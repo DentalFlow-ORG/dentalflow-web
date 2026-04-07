@@ -1,0 +1,34 @@
+# DentalFlow Codex Configuration
+
+[project]
+name = "DentalFlow"
+description = "SaaS platform for dentists focused on growth, digital presence, and revenue."
+
+[preferences]
+approval_required = true
+planning_required = true
+analyze_before_implement = true
+avoid_duplication = true
+prefer_reuse = true
+
+[stack]
+frontend = ["react", "vite", "typescript", "tailwind", "shadcn"]
+
+[rules]
+no_package_execution = true
+require_user_to_run_commands = true
+
+[ui]
+style = "clean, premium, modern, minimal"
+focus = ["trust", "clarity", "professionalism", "growth"]
+
+[code]
+strict_typescript = true
+prefer_small_components = true
+avoid_overengineering = true
+enforce_consistency = true
+
+[behavior]
+always_explain_before_code = true
+always_request_approval = true
+never_modify_without_permission = true
