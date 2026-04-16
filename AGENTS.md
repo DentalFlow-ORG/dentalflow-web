@@ -1,49 +1,93 @@
 # DentalFlow — Project Instructions
 
-## 🧠 Product Context
+---
+
+# 🧠 Product Context
+
 DentalFlow is a SaaS platform for dentists focused on:
+
 - increasing revenue
 - improving digital presence
 - enhancing authority and professionalism
+- generating patient acquisition
 - delivering measurable business growth
 - evolving with scalability
 
-The system must always reflect a **premium, clean, modern, and trustworthy** experience.
+The system must always reflect a:
+
+- **premium**
+- **clean**
+- **modern**
+- **trustworthy**
+- **business-oriented**
+
+experience.
 
 ---
 
-## ⚙️ Official Tech Stack (DO NOT CHANGE)
-Always use:
+# 🏗️ Project Architecture
 
+The project is split into two repositories:
+
+- dentalflow-web → Frontend (React)
+- dentalflow-api → Backend (NestJS)
+
+## Architecture flow
+
+Frontend (React)
+↓
+Backend (NestJS API)
+↓
+PostgreSQL (Supabase / Neon)
+↓
+Stripe (Billing)
+
+---
+
+# ⚙️ Official Tech Stack (DO NOT CHANGE)
+
+## Frontend
 - React
 - Vite
 - TypeScript
-- shadcn/ui
 - Tailwind CSS
+- shadcn/ui
 
-❗ Never suggest or apply changes to this stack unless explicitly approved.
+## Backend
+- Node.js
+- NestJS
+- TypeScript
+- Prisma ORM
+
+## Database
+- PostgreSQL (Supabase or Neon)
+
+## Payments
+- Stripe
+
+❗ Never suggest changing the stack without explicit approval.
 
 ---
 
-## 🚫 Execution Rules (MANDATORY)
+# 🚫 Execution Rules (MANDATORY)
 
-Before implementing ANY code, ALWAYS:
+Before implementing ANY code:
 
-1. Analyze the existing codebase
-2. Check for reusable components/hooks/utils
-3. Identify possible duplication
-4. Ensure consistency with current project patterns
+1. Analyze existing code
+2. Check for reusable components/hooks/services
+3. Identify duplication risks
+4. Ensure alignment with current patterns
 5. Look for optimization opportunities
 6. Create a short planning
 7. Ask for approval BEFORE coding
 
-❗ NEVER implement directly without approval.
+❗ NEVER implement without approval
 
 ---
 
-## 💻 Terminal / Package Manager Rule
+# 💻 Terminal / Package Manager Rule
 
-When any command involves:
+For any command involving:
 
 - node
 - npm
@@ -55,46 +99,47 @@ When any command involves:
 
 🚫 DO NOT execute
 
-✅ Instead:
-- Tell me the exact command
-- Wait for me to run it
-- Continue only after confirmation
+✅ Always:
+- Provide the exact command
+- Wait for user execution
+- Continue after confirmation
 
 ---
 
-## 🧩 Architecture & Code Standards
+# 🧩 Architecture & Code Standards
 
 Always prioritize:
 
 - Reusability
 - Scalability
-- Clean structure
+- Clean architecture
 - Strong typing (TypeScript)
-- Readability
 - Maintainability
+- Separation of concerns
 
-### Rules:
+## Rules
+
 - Avoid duplication
-- Prefer shared components
-- Avoid page-specific components when reusable
-- Keep components small and focused
-- Do not over-engineer abstractions
+- Prefer shared components/services
+- Avoid page-specific implementations when reusable
+- Keep components/services small and focused
+- Do not over-engineer early
 
 ---
 
-## 🔍 Code Analysis Before Suggestion
+# 🔍 Code Analysis Before Suggestion
 
 Always check:
 
 - Does this already exist?
 - Can this be reused?
 - Is there duplication risk?
-- Does it match project patterns?
-- Is there a cleaner approach?
+- Does it match current patterns?
+- Is there a cleaner or more scalable solution?
 
 ---
 
-## 🎨 UI / UX Guidelines
+# 🎨 UI / UX Guidelines (Frontend)
 
 The system must feel:
 
@@ -103,9 +148,10 @@ The system must feel:
 - Modern
 - Trustworthy
 - Premium
-- Minimal (no visual clutter)
+- Minimal
 
-### Rules:
+## Rules
+
 - Clear hierarchy
 - Consistent spacing
 - Elegant cards
@@ -115,33 +161,33 @@ The system must feel:
 
 ---
 
-## 🎨 Design System (OFFICIAL COLORS)
+# 🎨 Design System (OFFICIAL COLORS)
 
-### Primary
+## Primary
 - #1E3A8A
 - #3B82F6
 - #1E2A5A
 
-### Secondary
+## Secondary
 - #10B981
 - #34D399
 
-### Accent
+## Accent
 - #6366F1
 - #818CF8
 
-### Background
+## Background
 - #F8FAFC
 - #FFFFFF
 - #F1F5F9
 - #E2E8F0
 
-### Text
+## Text
 - #0F172A
 - #475569
 - #94A3B8
 
-### States
+## States
 - Success: #22C55E
 - Warning: #F59E0B
 - Error: #EF4444
@@ -149,16 +195,79 @@ The system must feel:
 
 ---
 
-## 🎯 UI Usage Rules
+# 🎯 UI Usage Rules
 
 - Primary → main actions
 - Secondary → success states
 - Accent → premium highlights
-- Neutral → structure and layout
+- Neutral → structure
 
 ---
 
-## 🧠 Response Format (MANDATORY)
+# 🔧 Backend Guidelines
+
+## Architecture (NestJS)
+
+Use modular structure:
+
+- auth
+- users
+- profiles
+- leads
+- subscriptions
+- billing
+- metrics
+
+## Rules
+
+- Follow modular architecture (NestJS)
+- Separate controller, service, module
+- Never mix business logic in controllers
+- Use services for logic
+- Use DTOs and validation
+
+---
+
+# 🗄️ Database Rules (Prisma)
+
+- Always use Prisma ORM
+- Maintain strong typing
+- Avoid raw queries unless necessary
+- Normalize data correctly
+- Use clear naming conventions
+
+---
+
+# 💳 Payments (Stripe)
+
+- Use Stripe as the single source of truth for billing
+- Always validate payments via backend
+- Use webhooks for status updates
+- Never trust frontend payment status
+
+---
+
+# 🔐 Security Guidelines
+
+- Use JWT authentication
+- Validate all inputs
+- Never expose sensitive data
+- Secure API endpoints
+- Handle errors properly
+
+---
+
+# 🧠 SaaS Product Rules
+
+- Always think in scalability
+- Avoid one-off implementations
+- Build reusable business logic
+- Think in features, not pages
+- Consider future monetization
+
+---
+
+# 🧠 Response Format (MANDATORY)
 
 When answering technical requests:
 
@@ -170,21 +279,27 @@ When answering technical requests:
 
 ---
 
-## 🔒 Safety Rule
+# 🔒 Safety Rule
 
 NEVER:
-- Refactor large parts without approval
+
+- Refactor large structures without approval
 - Change architecture drastically
 - Break visual consistency
+- Introduce inconsistent patterns
 
 ---
 
-## 🎯 Role
+# 🎯 Role
 
-Act as a **Senior Software Engineer + Product Thinker**.
+Act as a:
+
+**Senior Software Engineer + Product Architect**
 
 Focus on:
-- real-world SaaS quality
+
+- SaaS-quality code
 - scalability
 - maintainability
 - business impact
+- clean architecture
