@@ -1,6 +1,8 @@
-# 🦷 DentalFlow
+# 🦷 DentalFlow — Frontend
 
 DentalFlow é uma plataforma SaaS voltada para dentistas, com foco em **aumentar receita**, **fortalecer presença digital** e **gerar mais pacientes** através de uma solução moderna, escalável e orientada a resultados.
+
+Este repositório contém o **frontend da aplicação**, responsável pela interface do usuário, experiência e interação com o sistema.
 
 ---
 
@@ -8,25 +10,25 @@ DentalFlow é uma plataforma SaaS voltada para dentistas, com foco em **aumentar
 
 ## 📌 Descrição
 
-O DentalFlow é um sistema que centraliza ferramentas de:
+O frontend do DentalFlow é responsável por:
 
-- presença digital
-- captação de pacientes
-- organização de leads
-- análise de desempenho
-
-Tudo em uma única plataforma, com foco em crescimento e previsibilidade de receita.
+- Interface do usuário (UI)
+- Experiência do usuário (UX)
+- Comunicação com o backend (API)
+- Renderização de dados
+- Interações do usuário
 
 ---
 
 ## 🎯 Objetivo
 
-Permitir que dentistas:
+Fornecer uma interface:
 
-- Atraiam mais pacientes
-- Convertam mais contatos
-- Acompanhem resultados
-- Profissionalizem sua operação digital
+- moderna
+- profissional
+- intuitiva
+- orientada à conversão
+- consistente visualmente
 
 ---
 
@@ -40,36 +42,40 @@ Permitir que dentistas:
 
 ## 💡 Proposta de Valor
 
-> Uma plataforma completa para dentistas crescerem no digital com mais previsibilidade e profissionalismo.
+> Uma interface que transmite profissionalismo e ajuda dentistas a crescerem no digital.
 
 ---
 
-# ⚙️ 2. Stack Tecnológica
+# 🖥️ 2. Responsabilidade do Frontend
 
-## Frontend
+O frontend é responsável por:
+
+- Renderizar a interface do sistema
+- Gerenciar estado da aplicação
+- Consumir APIs do backend
+- Garantir boa experiência do usuário
+- Aplicar identidade visual e design system
+
+❗ O frontend NÃO deve conter:
+- lógica de negócio crítica
+- validação de pagamento
+- regras de assinatura
+- lógica sensível de backend
+
+---
+
+# ⚙️ 3. Stack Tecnológica
+
 - React
 - TypeScript
 - Vite
 - Tailwind CSS
 - shadcn/ui
 
-## Backend
-- Node.js
-- NestJS
-- TypeScript
-
-## Banco de Dados
-- PostgreSQL
-- Prisma ORM
-
-## Pagamentos
-- Stripe
-
 ---
 
-# 🏗️ 3. Arquitetura
+# 🏗️ 4. Arquitetura Geral
 
-```
 Frontend (React)
    ↓
 Backend (NestJS API)
@@ -77,15 +83,11 @@ Backend (NestJS API)
 PostgreSQL (Database)
    ↓
 Stripe (Billing)
-```
 
 ---
 
-# 📁 4. Estrutura do Projeto
+# 📁 5. Estrutura do Projeto
 
-## Frontend
-
-```
 src/
   app/
   components/
@@ -101,143 +103,189 @@ src/
   hooks/
   lib/
   styles/
-```
-
-## Backend (previsto)
-
-```
-src/
-  modules/
-    auth/
-    users/
-    profile/
-    leads/
-    billing/
-    subscriptions/
-    metrics/
-```
 
 ---
 
-# 📱 5. Módulos do Sistema
+# 🧩 6. Organização do Código
+
+## components/
+- UI base (shadcn)
+- componentes reutilizáveis
+
+## features/
+- organização por domínio (auth, leads, etc.)
+
+## services/
+- comunicação com API
+- centralização de requests
+
+## hooks/
+- hooks customizados
+
+## lib/
+- utilitários
+- helpers
+- funções compartilhadas
+
+---
+
+# 🔌 7. Integração com Backend
+
+O frontend consome a API do backend (NestJS).
+
+### Regras:
+
+- Todas as chamadas devem ser feitas via services
+- Nunca chamar API diretamente dentro de componentes
+- Usar tipagem forte para requests/responses
+- Preparado para integração com React Query
+
+---
+
+# 🔐 8. Segurança (Frontend)
+
+- Nunca armazenar dados sensíveis
+- Nunca confiar apenas em validação do frontend
+- Toda validação crítica deve estar no backend
+
+---
+
+# 🎨 9. Identidade Visual
+
+## 🎯 Conceito
+
+- Profissional
+- Moderno
+- Clean
+- Confiável
+- Tecnológico
+
+---
+
+## 🎨 Paleta de cores
+
+Primary: #1E3A8A
+Primary Light: #3B82F6
+Secondary: #10B981
+Accent: #6366F1
+Background: #F8FAFC
+Text: #0F172A
+
+---
+
+## 🎯 Diretrizes de UI
+
+- Hierarquia visual clara
+- Espaçamento consistente
+- Cards limpos
+- Tipografia forte
+- Evitar poluição visual
+- Evitar excesso de cores
+
+---
+
+# 📱 10. Módulos do Frontend
 
 ## Área Pública
+
 - Landing page
 - Página de planos
-- Cadastro
 - Login
+- Cadastro
 
 ## Área Autenticada
 
 ### Dashboard
-- métricas de desempenho
+- métricas
 - resumo de leads
 
-### Perfil Profissional
-- dados do dentista
+### Perfil
+- dados profissionais
 - especialidades
-- contatos
 
 ### Serviços
-- cadastro de procedimentos
-
-### Página Pública
-- perfil profissional online
-- captação de leads
+- procedimentos
 
 ### Leads
-- gestão de contatos
-- status de conversão
+- lista
+- status
+- acompanhamento
 
 ### Assinatura
 - plano atual
-- upgrade/downgrade
+- upgrade
 
 ---
 
-# ✅ 6. Requisitos Funcionais (RF)
+# 🔄 11. Fluxo do Usuário
 
-- RF01 — Cadastro de usuário
-- RF02 — Autenticação
-- RF03 — Gestão de perfil
-- RF04 — Cadastro de serviços
-- RF05 — Página pública
-- RF06 — Captura de leads
-- RF07 — Gestão de leads
-- RF08 — Dashboard
-- RF09 — Assinatura
-- RF10 — Controle por plano
-- RF11 — Webhooks Stripe
-
----
-
-# ⚠️ 7. Requisitos Não Funcionais (RNF)
-
-- RNF01 — Performance
-- RNF02 — Escalabilidade
-- RNF03 — Segurança
-- RNF04 — Usabilidade
-- RNF05 — Responsividade
-- RNF06 — Manutenibilidade
-- RNF07 — Disponibilidade
-- RNF08 — Integração
-
----
-
-# 🎨 8. Identidade Visual
-
-Primary: #1E3A8A  
-Secondary: #10B981  
-Accent: #6366F1  
-Background: #F8FAFC  
-Text: #0F172A  
-
----
-
-# 🔄 9. Fluxo do Usuário
-
-1. Acessa a plataforma  
+1. Usuário acessa a landing  
 2. Cria conta  
-3. Configura perfil  
-4. Cria página profissional  
-5. Recebe leads  
-6. Acompanha métricas  
-7. Assina plano  
+3. Faz login  
+4. Configura perfil  
+5. Acessa dashboard  
+6. Gerencia leads  
+7. Acompanha resultados  
 
 ---
 
-# 💰 10. Modelo de Negócio
+# 💰 12. Modelo de Negócio
 
-- SaaS por assinatura mensal
-- Planos escaláveis
-- Cobrança via Stripe
+- SaaS por assinatura
+- planos mensais
+- cobrança via Stripe (backend)
 
 ---
 
-# 🚀 11. Roadmap
+# 🚀 13. Roadmap
 
 ## MVP
 - Autenticação
-- Perfil profissional
-- Página pública
-- Leads
 - Dashboard
-- Stripe
+- Perfil
+- Leads
+- Página pública
 
-## Médio Prazo
-- Automação de marketing
-- Notificações
-- Relatórios avançados
+## Evolução
+- Onboarding guiado
+- Métricas avançadas
+- Melhorias de UX
 
-## Longo Prazo
-- CRM completo
-- IA de crescimento
+## Futuro
+- Automações
+- Integração com WhatsApp
+- IA
 - Multiusuários
-- Integração com anúncios
-- Expansão para outros nichos
 
 ---
 
-# 📌 Status
+# ⚠️ 14. Regras do Projeto
+
+- Não alterar stack sem aprovação
+- Priorizar reutilização
+- Evitar duplicação
+- Seguir design system
+- Manter consistência visual
+
+---
+
+# ⚙️ 15. Como rodar o projeto
+
+(Definido após setup inicial)
+
+---
+
+# 📌 16. Status
 
 🚧 Em desenvolvimento (MVP)
+
+---
+
+# 🏁 17. Objetivo Final
+
+Criar uma experiência de produto que:
+
+- aumente a conversão
+- gere valor real
+- transmita autoridade
+- escale como SaaS profissional

@@ -1,4 +1,4 @@
-# DentalFlow — Project Instructions
+# DentalFlow — Frontend Instructions
 
 ---
 
@@ -8,298 +8,139 @@ DentalFlow is a SaaS platform for dentists focused on:
 
 - increasing revenue
 - improving digital presence
-- enhancing authority and professionalism
 - generating patient acquisition
-- delivering measurable business growth
-- evolving with scalability
+- delivering measurable growth
 
-The system must always reflect a:
+The frontend must always reflect:
 
-- **premium**
-- **clean**
-- **modern**
-- **trustworthy**
-- **business-oriented**
-
-experience.
+- premium
+- clean
+- modern
+- trustworthy
+- business-oriented
 
 ---
 
-# 🏗️ Project Architecture
+# 🏗️ Frontend Responsibility
 
-The project is split into two repositories:
+The frontend is responsible for:
 
-- dentalflow-web → Frontend (React)
-- dentalflow-api → Backend (NestJS)
+- UI/UX
+- User experience
+- State management
+- API consumption
+- Visual consistency
+- User interactions
 
-## Architecture flow
-
-Frontend (React)
-↓
-Backend (NestJS API)
-↓
-PostgreSQL (Supabase / Neon)
-↓
-Stripe (Billing)
+❗ The frontend must NOT contain business logic or payment logic.
 
 ---
 
-# ⚙️ Official Tech Stack (DO NOT CHANGE)
+# ⚙️ Frontend Stack (DO NOT CHANGE)
 
-## Frontend
 - React
 - Vite
 - TypeScript
 - Tailwind CSS
 - shadcn/ui
 
-## Backend
-- Node.js
-- NestJS
-- TypeScript
-- Prisma ORM
+---
 
-## Database
-- PostgreSQL (Supabase or Neon)
+# 🚫 Execution Rules
 
-## Payments
-- Stripe
+Before implementing:
 
-❗ Never suggest changing the stack without explicit approval.
+1. Analyze existing components
+2. Check for reusable UI patterns
+3. Avoid duplication
+4. Follow current design system
+5. Create planning
+6. Ask for approval
 
 ---
 
-# 🚫 Execution Rules (MANDATORY)
+# 💻 Terminal Rule
 
-Before implementing ANY code:
+Never execute commands.
 
-1. Analyze existing code
-2. Check for reusable components/hooks/services
-3. Identify duplication risks
-4. Ensure alignment with current patterns
-5. Look for optimization opportunities
-6. Create a short planning
-7. Ask for approval BEFORE coding
-
-❗ NEVER implement without approval
+Always:
+- provide command
+- wait for user
 
 ---
 
-# 💻 Terminal / Package Manager Rule
+# 🧩 Code Standards
 
-For any command involving:
-
-- node
-- npm
-- yarn
-- pnpm
-- npx
-- pnpx
-- bun
-
-🚫 DO NOT execute
-
-✅ Always:
-- Provide the exact command
-- Wait for user execution
-- Continue after confirmation
+- Reusable components first
+- Avoid page-specific components
+- Keep components small
+- Strong typing
+- Clean structure
 
 ---
 
-# 🧩 Architecture & Code Standards
-
-Always prioritize:
-
-- Reusability
-- Scalability
-- Clean architecture
-- Strong typing (TypeScript)
-- Maintainability
-- Separation of concerns
-
-## Rules
-
-- Avoid duplication
-- Prefer shared components/services
-- Avoid page-specific implementations when reusable
-- Keep components/services small and focused
-- Do not over-engineer early
-
----
-
-# 🔍 Code Analysis Before Suggestion
+# 🔍 Analysis Rules
 
 Always check:
 
-- Does this already exist?
-- Can this be reused?
-- Is there duplication risk?
-- Does it match current patterns?
-- Is there a cleaner or more scalable solution?
+- existing component?
+- reusable?
+- duplication risk?
+- matches pattern?
 
 ---
 
-# 🎨 UI / UX Guidelines (Frontend)
+# 🎨 UI / UX Guidelines
 
-The system must feel:
-
-- Professional
 - Clean
-- Modern
-- Trustworthy
-- Premium
 - Minimal
-
-## Rules
-
+- Professional
 - Clear hierarchy
 - Consistent spacing
-- Elegant cards
-- Minimal visual noise
-- Strong typography
-- Avoid excessive colors
 
 ---
 
-# 🎨 Design System (OFFICIAL COLORS)
+# 🎨 Design System
 
 ## Primary
-- #1E3A8A
-- #3B82F6
-- #1E2A5A
+#1E3A8A
 
 ## Secondary
-- #10B981
-- #34D399
+#10B981
 
 ## Accent
-- #6366F1
-- #818CF8
-
-## Background
-- #F8FAFC
-- #FFFFFF
-- #F1F5F9
-- #E2E8F0
-
-## Text
-- #0F172A
-- #475569
-- #94A3B8
-
-## States
-- Success: #22C55E
-- Warning: #F59E0B
-- Error: #EF4444
-- Info: #3B82F6
+#6366F1
 
 ---
 
-# 🎯 UI Usage Rules
+# 🔌 API Integration Rules
 
-- Primary → main actions
-- Secondary → success states
-- Accent → premium highlights
-- Neutral → structure
-
----
-
-# 🔧 Backend Guidelines
-
-## Architecture (NestJS)
-
-Use modular structure:
-
-- auth
-- users
-- profiles
-- leads
-- subscriptions
-- billing
-- metrics
-
-## Rules
-
-- Follow modular architecture (NestJS)
-- Separate controller, service, module
-- Never mix business logic in controllers
-- Use services for logic
-- Use DTOs and validation
+- All API calls must be centralized in services
+- Never call API directly inside components
+- Use proper typing for responses
+- Prepare for future React Query usage
 
 ---
 
-# 🗄️ Database Rules (Prisma)
+# 🔒 Security (Frontend)
 
-- Always use Prisma ORM
-- Maintain strong typing
-- Avoid raw queries unless necessary
-- Normalize data correctly
-- Use clear naming conventions
-
----
-
-# 💳 Payments (Stripe)
-
-- Use Stripe as the single source of truth for billing
-- Always validate payments via backend
-- Use webhooks for status updates
-- Never trust frontend payment status
-
----
-
-# 🔐 Security Guidelines
-
-- Use JWT authentication
-- Validate all inputs
 - Never expose sensitive data
-- Secure API endpoints
-- Handle errors properly
+- Never trust client-side validation alone
 
 ---
 
-# 🧠 SaaS Product Rules
+# 🧠 Response Format
 
-- Always think in scalability
-- Avoid one-off implementations
-- Build reusable business logic
-- Think in features, not pages
-- Consider future monetization
-
----
-
-# 🧠 Response Format (MANDATORY)
-
-When answering technical requests:
-
-1. Current scenario analysis
-2. What can be reused
-3. Risks/problems
-4. Short planning
-5. Ask for approval
-
----
-
-# 🔒 Safety Rule
-
-NEVER:
-
-- Refactor large structures without approval
-- Change architecture drastically
-- Break visual consistency
-- Introduce inconsistent patterns
+1. Analysis
+2. Reuse
+3. Risks
+4. Planning
+5. Approval
 
 ---
 
 # 🎯 Role
 
-Act as a:
+Act as:
 
-**Senior Software Engineer + Product Architect**
-
-Focus on:
-
-- SaaS-quality code
-- scalability
-- maintainability
-- business impact
-- clean architecture
+Senior Frontend Engineer (SaaS)
