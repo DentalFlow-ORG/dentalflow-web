@@ -10,17 +10,17 @@ export function AuthModeTabs({ mode }: AuthModeTabsProps) {
   const isLogin = mode === 'login'
 
   return (
-    <div className="relative grid grid-cols-2 rounded-lg bg-slate-100 p-1">
+    <div className="relative grid grid-cols-2 rounded-lg border border-blue-100 bg-blue-50 p-1.5">
       <div
-        className={`absolute bottom-1 top-1 w-[calc(50%-0.25rem)] rounded-md bg-white shadow-sm transition-transform duration-300 ease-out ${
-          isLogin ? 'translate-x-0' : 'translate-x-[calc(100%+0.5rem)]'
+        className={`absolute bottom-1.5 left-1.5 top-1.5 w-[calc(50%-0.75rem)] rounded-md bg-primary shadow-sm shadow-blue-950/20 transition-transform duration-300 ease-out ${
+          isLogin ? 'translate-x-0' : 'translate-x-[calc(100%+0.75rem)]'
         }`}
       />
       <Link
         to="/acessar"
         search={{ mode: 'login' }}
         className={`relative z-10 flex h-11 items-center justify-center rounded-md text-sm font-semibold transition-colors duration-300 ${
-          isLogin ? 'text-primary' : 'text-slate-500 hover:text-slate-900'
+          isLogin ? 'text-white' : 'text-primary/70 hover:text-primary'
         }`}
       >
         Login
@@ -29,7 +29,7 @@ export function AuthModeTabs({ mode }: AuthModeTabsProps) {
         to="/acessar"
         search={{ mode: 'register' }}
         className={`relative z-10 flex h-11 items-center justify-center rounded-md text-sm font-semibold transition-colors duration-300 ${
-          !isLogin ? 'text-primary' : 'text-slate-500 hover:text-slate-900'
+          !isLogin ? 'text-white' : 'text-primary/70 hover:text-primary'
         }`}
       >
         Registro
