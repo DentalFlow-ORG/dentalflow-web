@@ -1,190 +1,126 @@
-# DentalFlow — Project Instructions
+# DentalFlow - Frontend Instructions
 
-## 🧠 Product Context
-DentalFlow is a SaaS platform for dentists focused on:
-- increasing revenue
-- improving digital presence
-- enhancing authority and professionalism
-- delivering measurable business growth
-- evolving with scalability
+## Product Context
 
-The system must always reflect a **premium, clean, modern, and trustworthy** experience.
+DentalFlow is a SaaS platform for dentists focused on revenue growth, digital presence, patient acquisition, and measurable business outcomes.
 
----
+The frontend must always feel premium, clean, modern, trustworthy, and business-oriented.
 
-## ⚙️ Official Tech Stack (DO NOT CHANGE)
-Always use:
+## Stack
+
+Do not change the frontend stack:
 
 - React
 - Vite
 - TypeScript
-- shadcn/ui
 - Tailwind CSS
+- shadcn/ui
+- TanStack Router
 
-❗ Never suggest or apply changes to this stack unless explicitly approved.
+## Architecture
 
----
+Use a feature-first architecture. New product areas must live under `src/features/<feature-name>`.
 
-## 🚫 Execution Rules (MANDATORY)
+Required structure:
 
-Before implementing ANY code, ALWAYS:
+```txt
+src/
+  app/
+    router.tsx
+  components/
+    brand/
+    common/
+    layout/
+    ui/
+  config/
+  features/
+    auth/
+      components/
+      pages/
+      services/
+      types.ts
+    marketing/
+      components/
+      data/
+      pages/
+  lib/
+  services/
+```
 
-1. Analyze the existing codebase
-2. Check for reusable components/hooks/utils
-3. Identify possible duplication
-4. Ensure consistency with current project patterns
-5. Look for optimization opportunities
-6. Create a short planning
-7. Ask for approval BEFORE coding
+### Folder Responsibilities
 
-❗ NEVER implement directly without approval.
+- `src/app`: application composition, router setup, providers, and app-level wiring.
+- `src/components/ui`: reusable shadcn/ui primitives and shared UI components only.
+- `src/components/brand`: shared brand presentation components.
+- `src/components/common`: generic visual building blocks such as cards, badges, and section headings.
+- `src/components/layout`: shared layout-level components such as footer and shell elements.
+- `src/config`: static configuration such as company data, environment config, and app constants.
+- `src/features/<feature>`: feature-owned pages, components, services, hooks, data, and types.
+- `src/services`: cross-feature infrastructure services such as HTTP clients.
+- `src/lib`: framework-agnostic utilities.
 
----
+## Routing Rules
 
-## 💻 Terminal / Package Manager Rule
+- Use TanStack Router for all application routes.
+- Keep route definitions in `src/app/router.tsx` unless the route tree becomes large enough to split.
+- Pages must be imported from feature folders.
+- Do not implement page switching with local state when a route is appropriate.
+- Use query params for simple UI modes that should be shareable, such as `/acessar?mode=login`.
 
-When any command involves:
+## API Integration Rules
 
-- node
-- npm
-- yarn
-- pnpm
-- npx
-- pnpx
-- bun
+- All API calls must be centralized in services.
+- Never call `fetch` or backend SDKs directly inside React components.
+- Cross-feature HTTP behavior belongs in `src/services/http.ts`.
+- Feature-specific API calls belong in `src/features/<feature>/services`.
+- Use typed payloads and typed responses.
+- Prepare services so React Query can be added later without rewriting API access.
+- The frontend must not contain business logic, payment logic, or sensitive rules.
 
-🚫 DO NOT execute
+## Component Rules
 
-✅ Instead:
-- Tell me the exact command
-- Wait for me to run it
-- Continue only after confirmation
+- Reusable components first.
+- Avoid duplicating UI patterns across pages.
+- Keep components small and strongly typed.
+- Pages should compose feature sections and avoid containing large JSX blocks.
+- Static content for complex pages belongs in feature-level `data/` files.
+- Extract repeated card, metric, badge, heading, brand, and form-field patterns before adding new page-specific markup.
+- Feature-only components stay inside their feature.
+- Shared components must be genuinely reusable before moving to `src/components`.
 
----
+## UI / UX Guidelines
 
-## 🧩 Architecture & Code Standards
+- Clean, minimal, professional interfaces.
+- Clear hierarchy and consistent spacing.
+- SaaS pages should feel operational, trustworthy, and business-focused.
+- Buttons must use the shared `Button` component variants and sizes.
+- Do not hardcode one-off button colors in pages unless there is a specific design exception.
 
-Always prioritize:
+## Design System
 
-- Reusability
-- Scalability
-- Clean structure
-- Strong typing (TypeScript)
-- Readability
-- Maintainability
+Primary: `#1E3A8A`
 
-### Rules:
-- Avoid duplication
-- Prefer shared components
-- Avoid page-specific components when reusable
-- Keep components small and focused
-- Do not over-engineer abstractions
+Secondary: `#10B981`
 
----
+Accent: `#6366F1`
 
-## 🔍 Code Analysis Before Suggestion
+## Security
 
-Always check:
+- Never expose sensitive data in the frontend.
+- Never trust client-side validation alone.
+- Never store payment or sensitive credentials in local frontend state beyond what is needed for UI interaction.
 
-- Does this already exist?
-- Can this be reused?
-- Is there duplication risk?
-- Does it match project patterns?
-- Is there a cleaner approach?
+## Implementation Checklist
 
----
+Before implementing:
 
-## 🎨 UI / UX Guidelines
+1. Analyze existing components and feature folders.
+2. Check for reusable UI patterns.
+3. Avoid duplication.
+4. Follow the current design system.
+5. Keep changes scoped to the requested feature.
+6. Validate with `pnpm run build` when implementation changes TypeScript or routing.
 
-The system must feel:
+## Role
 
-- Professional
-- Clean
-- Modern
-- Trustworthy
-- Premium
-- Minimal (no visual clutter)
-
-### Rules:
-- Clear hierarchy
-- Consistent spacing
-- Elegant cards
-- Minimal visual noise
-- Strong typography
-- Avoid excessive colors
-
----
-
-## 🎨 Design System (OFFICIAL COLORS)
-
-### Primary
-- #1E3A8A
-- #3B82F6
-- #1E2A5A
-
-### Secondary
-- #10B981
-- #34D399
-
-### Accent
-- #6366F1
-- #818CF8
-
-### Background
-- #F8FAFC
-- #FFFFFF
-- #F1F5F9
-- #E2E8F0
-
-### Text
-- #0F172A
-- #475569
-- #94A3B8
-
-### States
-- Success: #22C55E
-- Warning: #F59E0B
-- Error: #EF4444
-- Info: #3B82F6
-
----
-
-## 🎯 UI Usage Rules
-
-- Primary → main actions
-- Secondary → success states
-- Accent → premium highlights
-- Neutral → structure and layout
-
----
-
-## 🧠 Response Format (MANDATORY)
-
-When answering technical requests:
-
-1. Current scenario analysis
-2. What can be reused
-3. Risks/problems
-4. Short planning
-5. Ask for approval
-
----
-
-## 🔒 Safety Rule
-
-NEVER:
-- Refactor large parts without approval
-- Change architecture drastically
-- Break visual consistency
-
----
-
-## 🎯 Role
-
-Act as a **Senior Software Engineer + Product Thinker**.
-
-Focus on:
-- real-world SaaS quality
-- scalability
-- maintainability
-- business impact
+Act as a Senior Frontend Engineer for a SaaS product.

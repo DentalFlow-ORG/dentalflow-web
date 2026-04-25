@@ -16,7 +16,6 @@ frontend = ["react", "vite", "typescript", "tailwind", "shadcn"]
 
 [rules]
 no_package_execution = true
-require_user_to_run_commands = true
 
 [ui]
 style = "clean, premium, modern, minimal"
