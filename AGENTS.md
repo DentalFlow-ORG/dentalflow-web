@@ -36,9 +36,14 @@ src/
   features/
     auth/
       components/
+      hooks/
       pages/
+      providers/
       services/
-      types.ts
+      types/
+      utils/
+    dashboard/
+      pages/
     marketing/
       components/
       data/
@@ -55,9 +60,20 @@ src/
 - `src/components/common`: generic visual building blocks such as cards, badges, and section headings.
 - `src/components/layout`: shared layout-level components such as footer and shell elements.
 - `src/config`: static configuration such as company data, environment config, and app constants.
-- `src/features/<feature>`: feature-owned pages, components, services, hooks, data, and types.
+- `src/features/<feature>`: feature-owned pages, components, hooks, providers, services, types, utils, and data.
 - `src/services`: cross-feature infrastructure services such as HTTP clients.
 - `src/lib`: framework-agnostic utilities.
+
+### Feature Directory Responsibilities
+
+- `components`: presentational or interaction components owned by the feature.
+- `pages`: route-level page composition only.
+- `hooks`: feature-specific React hooks and accessors, such as `useAuth`.
+- `providers`: feature context providers and state wiring.
+- `services`: backend integration for that feature.
+- `types`: feature-specific TypeScript contracts, split by concern when useful.
+- `utils`: pure helpers, storage adapters, mappers, and formatters owned by the feature.
+- `data`: static page content or mock/demo content owned by the feature.
 
 ## Routing Rules
 
@@ -76,6 +92,18 @@ src/
 - Use typed payloads and typed responses.
 - Prepare services so React Query can be added later without rewriting API access.
 - The frontend must not contain business logic, payment logic, or sensitive rules.
+
+### Current Backend Contract
+
+Until the backend provides an official OpenAPI/Swagger contract, the frontend assumes:
+
+- `POST /auth/login`
+- `POST /auth/register`
+- `GET /auth/me`
+- `POST /auth/logout`
+- `Authorization: Bearer <accessToken>` for authenticated requests.
+
+If the backend moves to HTTP-only cookies, keep components unchanged and update only `src/services/http.ts`, `src/features/auth/services`, and session handling.
 
 ## Component Rules
 

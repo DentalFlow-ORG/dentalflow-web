@@ -4,11 +4,15 @@ import {
   createRouter,
 } from '@tanstack/react-router'
 
+import { RootRoute } from '@/app/RootRoute'
 import { AuthRoutePage } from '@/features/auth/pages/AuthRoutePage'
 import type { AuthMode } from '@/features/auth/types'
+import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { LandingPage } from '@/features/marketing/pages/LandingPage'
 
-const rootRoute = createRootRoute()
+const rootRoute = createRootRoute({
+  component: RootRoute,
+})
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -25,7 +29,13 @@ const authRoute = createRoute({
   component: AuthRoutePage,
 })
 
-const routeTree = rootRoute.addChildren([indexRoute, authRoute])
+const appRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app',
+  component: DashboardPage,
+})
+
+const routeTree = rootRoute.addChildren([indexRoute, authRoute, appRoute])
 
 export const router = createRouter({
   routeTree,
