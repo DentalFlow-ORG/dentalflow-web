@@ -25,7 +25,7 @@ export function DashboardPage() {
   if (isBootstrapping) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm font-medium text-slate-500">
-        Carregando sessao...
+        Carregando sessão...
       </div>
     )
   }
@@ -57,7 +57,7 @@ export function DashboardPage() {
               Bem-vindo ao DentalFlow
             </h1>
             <p className="mt-3 max-w-2xl leading-7 text-slate-600">
-              Esta e a primeira area protegida da aplicacao. A partir daqui,
+              Esta é a primeira área protegida da aplicação. A partir daqui,
               novas features devem ser adicionadas em `src/features`.
             </p>
           </div>
@@ -73,7 +73,7 @@ export function DashboardPage() {
               <UserRound className="h-6 w-6" />
             </div>
             <h2 className="mt-5 text-xl font-semibold text-slate-950">
-              Usuario autenticado
+              Usuário autenticado
             </h2>
             <dl className="mt-5 space-y-3 text-sm">
               <div>
@@ -98,10 +98,10 @@ export function DashboardPage() {
               <BarChart3 className="h-6 w-6" />
             </div>
             <h2 className="mt-5 text-xl font-semibold text-slate-950">
-              Proxima implementacao
+              Próxima implementação
             </h2>
             <p className="mt-3 leading-7 text-slate-600">
-              Conectar indicadores reais, clinicas, campanhas e funis usando
+              Conectar indicadores reais, clínicas, campanhas e funis usando
               services por feature e dados vindos do backend.
             </p>
           </section>

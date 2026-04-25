@@ -39,11 +39,11 @@ export function LandingHeader({ isScrolled }: LandingHeaderProps) {
             Falar com vendas
           </Button>
           <Button variant="outline" className="hidden sm:inline-flex">
-            Ver demonstracao
+            Ver demonstração
           </Button>
           <Button asChild>
             <Link to="/acessar" search={{ mode: 'register' }}>
-              Testar gratis
+              Testar grátis
               <ChevronRight className="h-4 w-4" />
             </Link>
           </Button>

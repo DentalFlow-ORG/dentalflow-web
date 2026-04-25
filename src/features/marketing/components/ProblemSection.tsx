@@ -13,8 +13,8 @@ export function ProblemSection() {
       <div className="mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
         <SectionHeading
           eyebrow="O problema"
-          title="Muitas clinicas investem em digital sem um sistema comercial claro."
-          description="O DentalFlow organiza os pontos que normalmente ficam soltos: posicionamento, canais, conversao, acompanhamento e leitura de resultados."
+          title="Muitas clínicas investem em digital sem um sistema comercial claro."
+          description="O DentalFlow organiza os pontos que normalmente ficam soltos: posicionamento, canais, conversão, acompanhamento e leitura de resultados."
           tone="dark"
         />
 

@@ -11,15 +11,15 @@ export function TrialCtaSection() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
               <CheckCircle2 className="h-4 w-4" />
-              Teste gratis sem cartao de credito
+              Teste grátis sem cartão de crédito
             </div>
             <h2 className="mt-5 text-3xl font-semibold leading-tight text-slate-950">
               Experimente o fluxo inicial da plataforma antes de conversar sobre
               planos.
             </h2>
             <p className="mt-4 max-w-2xl leading-7 text-slate-700">
-              O acesso de teste foi pensado para apresentar a experiencia do
-              DentalFlow sem inserir cartao, sem cobranca automatica e sem
+              O acesso de teste foi pensado para apresentar a experiência do
+              DentalFlow sem inserir cartão, sem cobrança automática e sem
               compromisso financeiro.
             </p>
           </div>
@@ -27,13 +27,13 @@ export function TrialCtaSection() {
           <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
             <Button size="xl" asChild>
               <Link to="/acessar" search={{ mode: 'register' }}>
-                Criar teste gratis
+                Criar teste grátis
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button variant="outline" size="xl" asChild>
               <Link to="/acessar" search={{ mode: 'login' }}>
-                Ja tenho acesso
+                Já tenho acesso
               </Link>
             </Button>
           </div>

@@ -13,7 +13,7 @@ export function FeaturesSection() {
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <SectionHeading
             eyebrow="Recursos"
-            title="Elementos para deixar a operacao comercial mais clara."
+            title="Elementos para deixar a operação comercial mais clara."
             eyebrowClassName="text-accent-foreground"
           />
           <Button variant="outline" size="lg">

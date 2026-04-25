@@ -39,7 +39,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     const normalizedResponsibleName = responsibleName.trim()
 
     if (!isLogin && normalizedResponsibleName.split(/\s+/).length < 2) {
-      setError('Informe nome e sobrenome do responsavel.')
+      setError('Informe nome e sobrenome do responsável.')
       return
     }
 
@@ -67,7 +67,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       } else if (requestError instanceof Error) {
         setError(requestError.message)
       } else {
-        setError('Nao foi possivel autenticar agora.')
+        setError('Não foi possível autenticar agora.')
       }
     } finally {
       setIsSubmitting(false)
@@ -90,8 +90,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           </h2>
           <p className="mt-1 text-sm text-slate-500">
             {isLogin
-              ? 'Use seus dados para acessar a demonstracao.'
-              : 'Cadastre a clinica para iniciar uma avaliacao sem cartao.'}
+              ? 'Use seus dados para acessar a demonstração.'
+              : 'Cadastre a clínica para iniciar uma avaliação sem cartão.'}
           </p>
         </div>
       </div>
@@ -105,8 +105,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           {!isLogin && (
             <div className="space-y-5">
               <AuthTextField
-                label="Nome da clinica"
-                placeholder="Clinica DentalFlow"
+                label="Nome da clínica"
+                placeholder="Clínica DentalFlow"
                 icon={Building2}
                 name="clinicName"
                 value={clinicName}
@@ -116,7 +116,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 onChange={setClinicName}
               />
               <AuthTextField
-                label="Responsavel"
+                label="Responsável"
                 placeholder="Nome completo"
                 name="responsibleName"
                 value={responsibleName}
@@ -163,28 +163,22 @@ export function AuthForm({ mode }: AuthFormProps) {
               ? 'Processando...'
               : isLogin
                 ? 'Entrar no ambiente de teste'
-                : 'Criar acesso sem cartao'}
+                : 'Criar acesso sem cartão'}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </form>
       </div>
 
       <p className="mt-5 text-center text-sm text-slate-500">
-        {isLogin ? 'Ainda nao tem acesso?' : 'Ja tem acesso criado?'}{' '}
+        {isLogin ? 'Ainda não tem acesso?' : 'Já tem acesso criado?'}{' '}
         <Link
           to="/acessar"
           search={{ mode: isLogin ? 'register' : 'login' }}
           className="font-semibold text-primary hover:underline"
         >
-          {isLogin ? 'Criar teste gratis' : 'Entrar com minha conta'}
+          {isLogin ? 'Criar teste grátis' : 'Entrar com minha conta'}
         </Link>
       </p>
-
-      <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-        <strong className="font-semibold">Aviso:</strong> esta tela e
-        demonstrativa. A autenticacao real deve ser conectada futuramente via
-        services/API, sem expor regras sensiveis no frontend.
-      </div>
     </div>
   )
 }

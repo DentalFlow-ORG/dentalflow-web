@@ -4,9 +4,9 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { Button } from '@/components/ui/button'
 
 const contactChecklist = [
-  'Diagnostico de presenca digital e jornada comercial.',
-  'Organizacao de paginas, mensagens e chamadas para acao.',
-  'Indicadores para acompanhar evolucao e tomar decisoes.',
+  'Diagnóstico de presença digital e jornada comercial.',
+  'Organização de páginas, mensagens e chamadas para ação.',
+  'Indicadores para acompanhar evolução e tomar decisões.',
 ] as const
 
 export function ContactSection() {
@@ -16,9 +16,9 @@ export function ContactSection() {
         <div className="grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-950/5 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="p-8 lg:p-12">
             <SectionHeading
-              eyebrow="Proximo passo"
-              title="Veja como o DentalFlow pode organizar o crescimento da sua clinica."
-              description="Uma conversa inicial ajuda a entender maturidade digital, oportunidades comerciais e prioridades para os proximos ciclos."
+              eyebrow="Próximo passo"
+              title="Veja como o DentalFlow pode organizar o crescimento da sua clínica."
+              description="Uma conversa inicial ajuda a entender maturidade digital, oportunidades comerciais e prioridades para os próximos ciclos."
             />
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button size="xl">
@@ -36,7 +36,7 @@ export function ContactSection() {
               <TrendingUp className="h-7 w-7" />
             </div>
             <h3 className="mt-8 text-2xl font-semibold">
-              Estrutura comercial com aparencia premium e leitura executiva.
+              Estrutura comercial com aparência premium e leitura executiva.
             </h3>
             <ul className="mt-6 space-y-4 text-sm leading-6 text-slate-300">
               {contactChecklist.map((item) => (

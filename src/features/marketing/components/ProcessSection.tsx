@@ -8,9 +8,9 @@ export function ProcessSection() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
           <SectionHeading
-            eyebrow="Metodo"
-            title="Do diagnostico a evolucao, sem improviso."
-            description="A jornada foi pensada para conectar estrategia, execucao e acompanhamento em uma rotina simples para a clinica."
+            eyebrow="Método"
+            title="Do diagnóstico à evolução, sem improviso."
+            description="A jornada foi pensada para conectar estratégia, execução e acompanhamento em uma rotina simples para a clínica."
             tone="dark"
           />
 
