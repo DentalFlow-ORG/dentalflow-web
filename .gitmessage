@@ -1,0 +1,10 @@
+# <tipo>: <mensagem curta no imperativo>
+#
+# Exemplos:
+# feat: adiciona tela de onboarding
+# fix: corrige fluxo de login
+# chore: atualiza configuração local
+# refactor: reorganiza serviços de autenticação
+#
+# Tipos aceitos:
+# feat, fix, chore, refactor, docs, style, test, perf, build, ci, revert
