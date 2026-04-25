@@ -27,7 +27,7 @@ export async function apiRequest<TResponse>(
   options: ApiRequestOptions = {},
 ): Promise<TResponse> {
   if (!env.apiUrl) {
-    throw new Error('VITE_API_URL nao esta configurada.')
+    throw new Error('VITE_API_URL não está configurada.')
   }
 
   const { accessToken, headers, ...requestOptions } = options

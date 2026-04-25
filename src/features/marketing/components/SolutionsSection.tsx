@@ -8,7 +8,7 @@ export function SolutionsSection() {
     <section className="py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Solucao"
+          eyebrow="Solução"
           title="Uma base premium para atrair, converter e medir crescimento."
         />
 

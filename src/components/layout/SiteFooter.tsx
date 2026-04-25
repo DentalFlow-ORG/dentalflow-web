@@ -17,12 +17,12 @@ export function SiteFooter() {
               <p className="font-semibold text-slate-900">
                 {companyInfo.tradeName}
               </p>
-              <p>Plataforma de crescimento para clinicas odontologicas.</p>
+              <p>Plataforma de crescimento para clínicas odontológicas.</p>
             </div>
           </div>
 
           <p className="mt-6 max-w-md leading-6">
-            Estrutura digital para fortalecer posicionamento, aquisicao de
+            Estrutura digital para fortalecer posicionamento, aquisição de
             pacientes, rotina comercial e indicadores de crescimento.
           </p>
         </div>
@@ -32,7 +32,7 @@ export function SiteFooter() {
           <dl className="mt-4 space-y-3">
             <div>
               <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Razao social
+                Razão social
               </dt>
               <dd className="mt-1 text-slate-600">{companyInfo.legalName}</dd>
             </div>
@@ -44,7 +44,7 @@ export function SiteFooter() {
             </div>
             <div>
               <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Endereco
+                Endereço
               </dt>
               <dd className="mt-1 text-slate-600">{companyInfo.address}</dd>
             </div>

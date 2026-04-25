@@ -1,0 +1,29 @@
+#!/bin/sh
+
+commit_msg_file="$1"
+first_line="$(sed -n '1p' "$commit_msg_file")"
+
+case "$first_line" in
+  Merge\ *|Revert\ *|fixup!\ *|squash!\ *)
+    exit 0
+    ;;
+esac
+
+pattern='^(feat|fix|chore|refactor|docs|style|test|perf|build|ci|revert)(\([a-z0-9._-]+\))?!?: .+'
+
+if ! printf '%s\n' "$first_line" | grep -Eq "$pattern"; then
+  cat <<'EOF'
+Erro: mensagem de commit fora do padrão.
+
+Use Conventional Commits:
+  feat: adiciona nova tela de onboarding
+  fix: corrige validação do formulário
+  chore: atualiza configuração local
+  refactor: reorganiza serviços de autenticação
+
+Tipos aceitos:
+  feat, fix, chore, refactor, docs, style, test, perf, build, ci, revert
+EOF
+  exit 1
+fi
+
