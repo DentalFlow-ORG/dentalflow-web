@@ -1,4 +1,5 @@
 import { companyInfo } from '@/config/company'
+import { onlyDigits } from '@/lib/field-formatters'
 
 export function SiteFooter() {
   const currentYear = new Date().getFullYear()
@@ -56,7 +57,7 @@ export function SiteFooter() {
           <h3 className="font-semibold text-slate-950">Contato e legal</h3>
           <div className="mt-4 space-y-3">
             <a
-              href={`tel:${companyInfo.phone.replace(/\D/g, '')}`}
+              href={`tel:${onlyDigits(companyInfo.phone)}`}
               className="block transition-colors hover:text-primary"
             >
               {companyInfo.phone}

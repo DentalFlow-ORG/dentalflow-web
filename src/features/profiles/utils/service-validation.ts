@@ -1,3 +1,5 @@
+import { parseOptionalNumber } from '@/lib/number-formatters'
+
 import type { ProfileService } from '../types'
 
 export function hasDuplicateDisplayOrder(
@@ -5,9 +7,9 @@ export function hasDuplicateDisplayOrder(
   displayOrderValue: string,
   ignoredServiceId?: string,
 ) {
-  const displayOrder = Number(displayOrderValue)
+  const displayOrder = parseOptionalNumber(displayOrderValue)
 
-  if (Number.isNaN(displayOrder)) {
+  if (displayOrder === undefined) {
     return false
   }
 

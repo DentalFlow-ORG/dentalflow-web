@@ -1,3 +1,5 @@
+import { parseOptionalNumber } from '@/lib/number-formatters'
+
 import type {
   ProfileDetail,
   ProfilePayload,
@@ -128,15 +130,6 @@ export function toPublicProfileUrl(slug: string) {
   return `/p/${slug}`
 }
 
-export function formatCurrency(value: number | null) {
-  if (value === null) return null
-
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value)
-}
-
 function compactPayload(values: ProfileFormValues): ProfilePayload {
   return Object.fromEntries(
     Object.entries(values).map(([key, value]) => [
@@ -144,12 +137,4 @@ function compactPayload(values: ProfileFormValues): ProfilePayload {
       value.trim() || undefined,
     ]),
   ) as ProfilePayload
-}
-
-function parseOptionalNumber(value: string) {
-  if (!value.trim()) return undefined
-
-  const normalized = Number(value.replace(',', '.'))
-
-  return Number.isNaN(normalized) ? undefined : normalized
 }

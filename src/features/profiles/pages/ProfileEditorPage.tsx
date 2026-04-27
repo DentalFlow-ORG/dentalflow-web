@@ -9,6 +9,7 @@ import { LoadingCard } from '@/components/common/LoadingCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { formatCurrencyBR } from '@/lib/number-formatters'
 
 import { useRequestErrorHandler } from '../hooks/useRequestErrorHandler'
 
@@ -27,7 +28,6 @@ import type { ProfileDetail } from '../types'
 import {
   emptyProfileForm,
   emptyServiceForm,
-  formatCurrency,
   profileFormToPayload,
   profileToFormValues,
   serviceFormToPayload,
@@ -320,8 +320,8 @@ export function ProfileEditorPage({ mode }: ProfileEditorPageProps) {
               </div>
             ) : (
               profile.services.map((service) => {
-                const priceFrom = formatCurrency(service.priceFrom)
-                const priceTo = formatCurrency(service.priceTo)
+                const priceFrom = formatCurrencyBR(service.priceFrom)
+                const priceTo = formatCurrencyBR(service.priceTo)
 
                 return (
                   <div
