@@ -1,6 +1,11 @@
 import { apiRequest } from '@/services/http'
 
-import type { AuthResponse, LoginPayload, RegisterPayload } from '../types'
+import type {
+  AuthResponse,
+  LoginPayload,
+  RefreshResponse,
+  RegisterPayload,
+} from '../types'
 import { getAccessToken, getRefreshToken } from '../utils/session-storage'
 
 export function login(payload: LoginPayload) {
@@ -21,6 +26,13 @@ export function getCurrentUser() {
   return apiRequest<AuthResponse['user']>('/auth/me', {
     method: 'GET',
     accessToken: getAccessToken(),
+  })
+}
+
+export function refreshSession() {
+  return apiRequest<RefreshResponse>('/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({ refreshToken: getRefreshToken() }),
   })
 }
 

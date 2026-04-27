@@ -47,3 +47,27 @@ export const PublicProfilePage = lazy(() =>
     default: m.PublicProfilePage,
   })),
 )
+
+export const AppointmentsPage = lazy(() =>
+  import('@/features/scheduling/pages/AppointmentsPage').then((m) => ({
+    default: m.AppointmentsPage,
+  })),
+)
+
+export const SchedulePage = lazy(() =>
+  import('@/features/scheduling/pages/SchedulePage').then((m) => ({
+    default: m.SchedulePage,
+  })),
+)
+
+export const TeamPage = lazy(() =>
+  import('@/features/team/pages/TeamPage').then((m) => ({
+    default: m.TeamPage,
+  })),
+)
+
+export const CreateMemberPage = lazy(() =>
+  import('@/features/team/pages/CreateMemberPage').then((m) => ({
+    default: m.CreateMemberPage,
+  })),
+)

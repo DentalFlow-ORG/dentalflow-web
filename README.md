@@ -289,3 +289,14 @@ Criar uma experiência de produto que:
 - gere valor real
 - transmita autoridade
 - escale como SaaS profissional
+
+---
+
+# Role and Scheduling Model
+
+The role and scheduling model is documented in
+[docs/roles-and-scheduling.md](docs/roles-and-scheduling.md).
+
+Key frontend rule: the public login page must stay clean and must not expose
+internal role names, role selectors, or permission hierarchy. Role-based access
+is enforced by the backend after authentication.

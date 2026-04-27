@@ -73,7 +73,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         })
         showAlert({
           title: 'Conta criada',
-          description: 'Seu acesso de teste foi criado com sucesso.',
+          description: 'A clínica foi cadastrada com sucesso.',
           tone: 'success',
         })
       }
@@ -120,12 +120,12 @@ export function AuthForm({ mode }: AuthFormProps) {
         </div>
         <div>
           <h2 className="text-2xl font-semibold text-slate-950">
-            {isLogin ? 'Entrar na plataforma' : 'Criar acesso de teste'}
+            {isLogin ? 'Entrar na plataforma' : 'Criar acesso da clínica'}
           </h2>
           <p className="mt-1 text-sm text-slate-500">
             {isLogin
-              ? 'Use seus dados para acessar a demonstração.'
-              : 'Cadastre a clínica para iniciar uma avaliação sem cartão.'}
+              ? 'Use seu e-mail profissional para acessar o ambiente DentalFlow.'
+              : 'Cadastre a clínica para iniciar o acesso da equipe.'}
           </p>
         </div>
       </div>
@@ -186,16 +186,14 @@ export function AuthForm({ mode }: AuthFormProps) {
             onChange={setPassword}
           />
 
-          {error && (
-            <InlineFeedback>{error}</InlineFeedback>
-          )}
+          {error && <InlineFeedback>{error}</InlineFeedback>}
 
           <Button type="submit" size="xl" className="w-full" disabled={isSubmitting}>
             {isSubmitting
               ? 'Processando...'
               : isLogin
-                ? 'Entrar no ambiente de teste'
-                : 'Criar acesso sem cartão'}
+                ? 'Entrar na plataforma'
+                : 'Criar acesso seguro'}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </form>
@@ -208,7 +206,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           search={{ mode: isLogin ? 'register' : 'login' }}
           className="font-semibold text-primary hover:underline"
         >
-          {isLogin ? 'Criar teste grátis' : 'Entrar com minha conta'}
+          {isLogin ? 'Criar conta da clínica' : 'Entrar com minha conta'}
         </Link>
       </p>
     </div>

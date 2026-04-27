@@ -10,6 +10,7 @@ import {
   getCurrentUser,
   login as loginRequest,
   logout as logoutRequest,
+  refreshSession,
   register as registerRequest,
 } from '../services/auth.service'
 import {
@@ -18,6 +19,7 @@ import {
   getRefreshToken,
   getStoredUser,
   setSession,
+  setTokens,
 } from '../utils/session-storage'
 import type { AuthUser, LoginPayload, RegisterPayload } from '../types'
 import { AuthContext, type AuthContextValue } from './auth-context'
@@ -43,9 +45,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(currentUser)
         setSession(accessToken, getRefreshToken(), currentUser)
       })
-      .catch(() => {
-        clearSession()
-        setUser(null)
+      .catch(async () => {
+        const refreshToken = getRefreshToken()
+
+        if (!refreshToken) {
+          clearSession()
+          setUser(null)
+          return
+        }
+
+        try {
+          const refreshedSession = await refreshSession()
+          setTokens(refreshedSession.accessToken, refreshedSession.refreshToken)
+          const currentUser = await getCurrentUser()
+
+          setUser(currentUser)
+          setSession(
+            refreshedSession.accessToken,
+            refreshedSession.refreshToken,
+            currentUser,
+          )
+        } catch {
+          clearSession()
+          setUser(null)
+        }
       })
       .finally(() => {
         setIsBootstrapping(false)

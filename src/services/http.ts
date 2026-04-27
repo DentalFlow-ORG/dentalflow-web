@@ -44,6 +44,7 @@ export async function apiRequest<TResponse>(
   try {
     const response = await fetch(`${env.apiUrl}${path}`, {
       ...requestOptions,
+      credentials: requestOptions.credentials ?? 'include',
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',

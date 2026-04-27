@@ -32,11 +32,15 @@ export function setSession(
   refreshToken: string | null,
   user: AuthUser,
 ) {
+  setTokens(accessToken, refreshToken)
+  window.localStorage.setItem(USER_KEY, JSON.stringify(user))
+}
+
+export function setTokens(accessToken: string, refreshToken: string | null) {
   window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
   if (refreshToken) {
     window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
   }
-  window.localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
 export function clearSession() {

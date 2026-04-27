@@ -6,7 +6,9 @@ import {
 
 import { RootRoute } from '@/app/RootRoute'
 import {
+  AppointmentsPage,
   AuthRoutePage,
+  CreateMemberPage,
   DashboardPage,
   LandingPage,
   ProfileEditorPageCreate,
@@ -14,6 +16,8 @@ import {
   ProfilesListPage,
   ProfileServiceEditorPage,
   PublicProfilePage,
+  SchedulePage,
+  TeamPage,
 } from '@/app/route-components'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
 import type { AuthMode } from '@/features/auth/types'
@@ -93,6 +97,46 @@ const publicProfileRoute = createRoute({
   component: PublicProfilePage,
 })
 
+const appointmentsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/agendamentos',
+  component: () => (
+    <ProtectedAppRoute>
+      <AppointmentsPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const scheduleRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/agenda',
+  component: () => (
+    <ProtectedAppRoute>
+      <SchedulePage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const teamRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/equipe',
+  component: () => (
+    <ProtectedAppRoute>
+      <TeamPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const newMemberRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/equipe/novo',
+  component: () => (
+    <ProtectedAppRoute>
+      <CreateMemberPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
@@ -102,6 +146,10 @@ const routeTree = rootRoute.addChildren([
   editProfileRoute,
   editProfileServiceRoute,
   publicProfileRoute,
+  appointmentsRoute,
+  scheduleRoute,
+  teamRoute,
+  newMemberRoute,
 ])
 
 export const router = createRouter({
