@@ -73,7 +73,7 @@ export function ProfileEditorPage({ mode }: ProfileEditorPageProps) {
       })
       .catch((err) => handleRequestError(err, 'Não foi possível carregar o perfil.'))
       .finally(() => setIsLoading(false))
-  }, [isCreate, profileId, showAlert])
+  }, [handleRequestError, isCreate, profileId])
 
   const publicUrl = useMemo(() => {
     if (!profile) return null
@@ -105,7 +105,7 @@ export function ProfileEditorPage({ mode }: ProfileEditorPageProps) {
         setFormValues(profileToFormValues(updatedProfile))
         showAlert({
           title: 'Perfil salvo',
-          description: 'As alteracoes do perfil foram salvas.',
+          description: 'As alterações do perfil foram salvas.',
           tone: 'success',
         })
       }
@@ -147,9 +147,9 @@ export function ProfileEditorPage({ mode }: ProfileEditorPageProps) {
     try {
       if (hasDuplicateDisplayOrder(profile.services, serviceValues.displayOrder)) {
         showAlert({
-          title: 'Ordem de exibicao duplicada',
+          title: 'Ordem de exibição duplicada',
           description:
-            'Ja existe um servico com essa ordem de exibicao neste perfil.',
+            'Já existe um serviço com essa ordem de exibição neste perfil.',
           tone: 'warning',
         })
         setError('Já existe um serviço com essa ordem de exibição neste perfil.')
@@ -162,8 +162,8 @@ export function ProfileEditorPage({ mode }: ProfileEditorPageProps) {
       setProfile(refreshedProfile)
       setServiceValues(emptyServiceForm)
       showAlert({
-        title: 'Servico adicionado',
-        description: 'O servico foi cadastrado no perfil.',
+        title: 'Serviço adicionado',
+        description: 'O serviço foi cadastrado no perfil.',
         tone: 'success',
       })
     } catch (requestError) {

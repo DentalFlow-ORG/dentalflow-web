@@ -3,59 +3,20 @@ import {
   createRootRoute,
   createRouter,
 } from '@tanstack/react-router'
-import { lazy } from 'react'
 
 import { RootRoute } from '@/app/RootRoute'
+import {
+  AuthRoutePage,
+  DashboardPage,
+  LandingPage,
+  ProfileEditorPageCreate,
+  ProfileEditorPageEdit,
+  ProfilesListPage,
+  ProfileServiceEditorPage,
+  PublicProfilePage,
+} from '@/app/route-components'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
 import type { AuthMode } from '@/features/auth/types'
-
-const LandingPage = lazy(() =>
-  import('@/features/marketing/pages/LandingPage').then((m) => ({
-    default: m.LandingPage,
-  })),
-)
-
-const AuthRoutePage = lazy(() =>
-  import('@/features/auth/pages/AuthRoutePage').then((m) => ({
-    default: m.AuthRoutePage,
-  })),
-)
-
-const DashboardPage = lazy(() =>
-  import('@/features/dashboard/pages/DashboardPage').then((m) => ({
-    default: m.DashboardPage,
-  })),
-)
-
-const ProfilesListPage = lazy(() =>
-  import('@/features/profiles/pages/ProfilesListPage').then((m) => ({
-    default: m.ProfilesListPage,
-  })),
-)
-
-const ProfileEditorPageCreate = lazy(() =>
-  import('@/features/profiles/pages/ProfileEditorPage').then((m) => ({
-    default: () => <m.ProfileEditorPage mode="create" />,
-  })),
-)
-
-const ProfileEditorPageEdit = lazy(() =>
-  import('@/features/profiles/pages/ProfileEditorPage').then((m) => ({
-    default: () => <m.ProfileEditorPage mode="edit" />,
-  })),
-)
-
-const ProfileServiceEditorPage = lazy(() =>
-  import('@/features/profiles/pages/ProfileServiceEditorPage').then((m) => ({
-    default: m.ProfileServiceEditorPage,
-  })),
-)
-
-const PublicProfilePage = lazy(() =>
-  import('@/features/profiles/pages/PublicProfilePage').then((m) => ({
-    default: m.PublicProfilePage,
-  })),
-)
 
 const rootRoute = createRootRoute({
   component: RootRoute,

@@ -11,8 +11,9 @@ export function SiteFooter() {
             <img
               src="/logo-without-bg.png"
               alt={companyInfo.tradeName}
-              className="h-10 w-10 rounded-md border border-slate-200 bg-white p-1.5 shadow-sm"
+              className="h-12 w-12 shrink-0 object-contain"
             />
+            <span className="h-10 w-px shrink-0 bg-slate-200" aria-hidden="true" />
             <div>
               <p className="font-semibold text-slate-900">
                 {companyInfo.tradeName}

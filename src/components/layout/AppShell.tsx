@@ -34,7 +34,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
-      {/* Sidebar — desktop only */}
+      {/* Sidebar - desktop only */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-slate-200 bg-white lg:block">
         <div className="flex h-20 items-center border-b border-slate-200 px-6">
           <BrandLink />
@@ -58,7 +58,7 @@ export function AppShell({ children }: AppShellProps) {
         </nav>
       </aside>
 
-      {/* Bottom nav — mobile only */}
+      {/* Bottom nav - mobile only */}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white lg:hidden">
         <div className="flex h-16 items-stretch">
           {appNavigation.map(({ label, to, icon: Icon }) => (

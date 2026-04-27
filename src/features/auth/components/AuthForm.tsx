@@ -41,7 +41,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     const normalizedResponsibleName = responsibleName.trim()
 
     if (!isLogin && normalizedResponsibleName.split(/\s+/).length < 2) {
-      const message = 'Informe nome e sobrenome do responsavel.'
+      const message = 'Informe nome e sobrenome do responsável.'
       setError(message)
       showAlert({
         title: 'Cadastro incompleto',
@@ -81,8 +81,8 @@ export function AuthForm({ mode }: AuthFormProps) {
       await navigate({ to: '/app' })
     } catch (requestError) {
       const title = isLogin
-        ? 'Nao foi possivel entrar'
-        : 'Nao foi possivel criar a conta'
+        ? 'Não foi possível entrar'
+        : 'Não foi possível criar a conta'
 
       if (requestError instanceof ApiError) {
         setError(requestError.message)
@@ -99,7 +99,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           tone: 'error',
         })
       } else {
-        const message = 'Nao foi possivel autenticar agora.'
+        const message = 'Não foi possível autenticar agora.'
         setError(message)
         showAlert({ title: message, tone: 'error' })
       }
@@ -124,8 +124,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           </h2>
           <p className="mt-1 text-sm text-slate-500">
             {isLogin
-              ? 'Use seus dados para acessar a demonstracao.'
-              : 'Cadastre a clinica para iniciar uma avaliacao sem cartao.'}
+              ? 'Use seus dados para acessar a demonstração.'
+              : 'Cadastre a clínica para iniciar uma avaliação sem cartão.'}
           </p>
         </div>
       </div>
@@ -139,8 +139,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           {!isLogin && (
             <div className="space-y-5">
               <AuthTextField
-                label="Nome da clinica"
-                placeholder="Clinica DentalFlow"
+                label="Nome da clínica"
+                placeholder="Clínica DentalFlow"
                 icon={Building2}
                 name="clinicName"
                 value={clinicName}
@@ -150,7 +150,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 onChange={setClinicName}
               />
               <AuthTextField
-                label="Responsavel"
+                label="Responsável"
                 placeholder="Nome completo"
                 name="responsibleName"
                 value={responsibleName}
@@ -195,20 +195,20 @@ export function AuthForm({ mode }: AuthFormProps) {
               ? 'Processando...'
               : isLogin
                 ? 'Entrar no ambiente de teste'
-                : 'Criar acesso sem cartao'}
+                : 'Criar acesso sem cartão'}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </form>
       </div>
 
       <p className="mt-5 text-center text-sm text-slate-500">
-        {isLogin ? 'Ainda nao tem acesso?' : 'Ja tem acesso criado?'}{' '}
+        {isLogin ? 'Ainda não tem acesso?' : 'Já tem acesso criado?'}{' '}
         <Link
           to="/acessar"
           search={{ mode: isLogin ? 'register' : 'login' }}
           className="font-semibold text-primary hover:underline"
         >
-          {isLogin ? 'Criar teste gratis' : 'Entrar com minha conta'}
+          {isLogin ? 'Criar teste grátis' : 'Entrar com minha conta'}
         </Link>
       </p>
     </div>

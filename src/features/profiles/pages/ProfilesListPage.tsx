@@ -26,7 +26,7 @@ export function ProfilesListPage() {
       .then(setProfiles)
       .catch((err) => handleRequestError(err, 'Não foi possível carregar os perfis.'))
       .finally(() => setIsLoading(false))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [handleRequestError])
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
@@ -44,9 +44,7 @@ export function ProfilesListPage() {
         }
       />
 
-      {error && (
-        <InlineFeedback>{error}</InlineFeedback>
-      )}
+      {error && <InlineFeedback>{error}</InlineFeedback>}
 
       {isLoading ? (
         <LoadingCard message="Carregando perfis..." />
@@ -81,7 +79,7 @@ export function ProfilesListPage() {
                   <p className="mt-2 text-sm text-slate-500">
                     /p/{profile.slug}
                     {profile.city || profile.state
-                      ? ` · ${[profile.city, profile.state].filter(Boolean).join(' - ')}`
+                      ? ` - ${[profile.city, profile.state].filter(Boolean).join(' - ')}`
                       : ''}
                   </p>
                   <p className="mt-3 text-sm font-medium text-slate-600">
