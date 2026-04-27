@@ -40,6 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     getCurrentUser()
       .then((currentUser) => {
         setUser(currentUser)
+        setSession(accessToken, currentUser)
       })
       .catch(() => {
         clearSession()
