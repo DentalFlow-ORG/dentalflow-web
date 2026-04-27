@@ -6,17 +6,23 @@ import {
   type ReactNode,
 } from 'react'
 
+import { setupAuthRefresh } from '@/services/http'
+
 import {
   getCurrentUser,
   login as loginRequest,
   logout as logoutRequest,
+  refresh,
   register as registerRequest,
 } from '../services/auth.service'
 import {
   clearSession,
   getAccessToken,
+  getRefreshToken,
   getStoredUser,
   setSession,
+  setTokens,
+  updateStoredUser,
 } from '../utils/session-storage'
 import type { AuthUser, LoginPayload, RegisterPayload } from '../types'
 import { AuthContext, type AuthContextValue } from './auth-context'
@@ -30,6 +36,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isBootstrapping, setIsBootstrapping] = useState(true)
 
   useEffect(() => {
+    setupAuthRefresh({
+      refreshTokens: () => {
+        const refreshToken = getRefreshToken()
+        if (!refreshToken) return Promise.reject(new Error('No refresh token'))
+        return refresh(refreshToken)
+      },
+      onTokenRefreshed: (accessToken, refreshToken) => {
+        setTokens(accessToken, refreshToken)
+      },
+      onRefreshFailed: () => {
+        clearSession()
+        setUser(null)
+        window.location.replace('/acessar')
+      },
+    })
+
     const accessToken = getAccessToken()
 
     if (!accessToken) {
@@ -40,7 +62,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     getCurrentUser()
       .then((currentUser) => {
         setUser(currentUser)
-        setSession(accessToken, currentUser)
+        updateStoredUser(currentUser)
       })
       .catch(() => {
         clearSession()
@@ -54,14 +76,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = useCallback(async (payload: LoginPayload) => {
     const response = await loginRequest(payload)
 
-    setSession(response.accessToken, response.user)
+    setSession(response.accessToken, response.refreshToken, response.user)
     setUser(response.user)
   }, [])
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const response = await registerRequest(payload)
 
-    setSession(response.accessToken, response.user)
+    setSession(response.accessToken, response.refreshToken, response.user)
     setUser(response.user)
   }, [])
 

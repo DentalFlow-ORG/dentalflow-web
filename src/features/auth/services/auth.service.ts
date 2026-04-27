@@ -1,6 +1,6 @@
 import { apiRequest } from '@/services/http'
 
-import type { AuthResponse, LoginPayload, RegisterPayload } from '../types'
+import type { AuthResponse, LoginPayload, RefreshResponse, RegisterPayload } from '../types'
 import { getAccessToken } from '../utils/session-storage'
 
 export function login(payload: LoginPayload) {
@@ -28,5 +28,13 @@ export function logout() {
   return apiRequest<void>('/auth/logout', {
     method: 'POST',
     accessToken: getAccessToken(),
+  })
+}
+
+export function refresh(refreshToken: string) {
+  return apiRequest<RefreshResponse>('/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({ refreshToken }),
+    _skipRefresh: true,
   })
 }

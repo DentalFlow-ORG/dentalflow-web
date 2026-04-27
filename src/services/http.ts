@@ -2,6 +2,7 @@ import { env } from '@/config/env'
 
 type ApiRequestOptions = RequestInit & {
   accessToken?: string | null
+  _skipRefresh?: boolean
 }
 
 type ApiErrorBody = {
@@ -22,6 +23,19 @@ export class ApiError extends Error {
   }
 }
 
+type RefreshConfig = {
+  refreshTokens: () => Promise<{ accessToken: string; refreshToken: string }>
+  onTokenRefreshed: (accessToken: string, refreshToken: string) => void
+  onRefreshFailed: () => void
+}
+
+let refreshConfig: RefreshConfig | null = null
+let pendingRefresh: Promise<{ accessToken: string; refreshToken: string }> | null = null
+
+export function setupAuthRefresh(config: RefreshConfig) {
+  refreshConfig = config
+}
+
 const REQUEST_TIMEOUT_MS = 15_000
 
 export async function apiRequest<TResponse>(
@@ -32,7 +46,7 @@ export async function apiRequest<TResponse>(
     throw new Error('VITE_API_URL não está configurada.')
   }
 
-  const { accessToken, headers, signal: externalSignal, ...requestOptions } = options
+  const { accessToken, headers, signal: externalSignal, _skipRefresh, ...requestOptions } = options
 
   const controller = new AbortController()
   const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
@@ -55,6 +69,26 @@ export async function apiRequest<TResponse>(
     if (!response.ok) {
       const body = await parseResponseBody(response)
       const message = getErrorMessage(body) ?? 'Erro ao comunicar com o servidor.'
+
+      if (response.status === 401 && !_skipRefresh && refreshConfig) {
+        try {
+          if (!pendingRefresh) {
+            pendingRefresh = refreshConfig.refreshTokens().finally(() => {
+              pendingRefresh = null
+            })
+          }
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await pendingRefresh
+          refreshConfig.onTokenRefreshed(newAccessToken, newRefreshToken)
+          return apiRequest<TResponse>(path, {
+            ...options,
+            accessToken: newAccessToken,
+            _skipRefresh: true,
+          })
+        } catch {
+          refreshConfig.onRefreshFailed()
+          throw new ApiError(message, response.status, body)
+        }
+      }
 
       throw new ApiError(message, response.status, body)
     }
