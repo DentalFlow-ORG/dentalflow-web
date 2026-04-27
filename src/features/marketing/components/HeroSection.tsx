@@ -19,30 +19,30 @@ export function HeroSection() {
       <div className="relative mx-auto grid min-h-[calc(100svh-5rem)] w-full max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:px-8 lg:py-20">
         <div className="max-w-3xl">
           <Eyebrow icon={Stethoscope}>
-            Plataforma premium para crescimento odontologico
+            Plataforma premium para crescimento odontológico
           </Eyebrow>
 
           <h1 className="mt-7 max-w-3xl text-5xl font-semibold leading-[1.02] text-slate-950 sm:text-6xl lg:text-7xl">
-            Crescimento digital mais organizado para clinicas odontologicas.
+            Crescimento digital mais organizado para clínicas odontológicas.
           </h1>
 
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-            O DentalFlow estrutura presenca digital, aquisicao de pacientes,
-            rotina comercial e indicadores para clinicas que querem crescer com
-            consistencia e imagem premium.
+            O DentalFlow estrutura presença digital, aquisição de pacientes,
+            rotina comercial e indicadores para clínicas que querem crescer com
+            consistência e imagem premium.
           </p>
 
           <div className="mt-7 inline-flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
             <CheckCircle2 className="h-4 w-4" />
-            Teste gratis da plataforma
+            Teste grátis da plataforma
             <span className="hidden h-4 w-px bg-emerald-200 sm:block" />
-            <span>sem cartao de credito</span>
+            <span>sem cartão de crédito</span>
           </div>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Button size="xl" asChild>
               <Link to="/acessar" search={{ mode: 'register' }}>
-                Comecar teste gratis
+                Começar teste grátis
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -70,7 +70,7 @@ export function HeroSection() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-                    Visao executiva
+                    Visão executiva
                   </p>
                   <h2 className="mt-2 text-xl font-semibold text-slate-950">
                     Performance comercial
@@ -104,7 +104,7 @@ export function HeroSection() {
             <div className="mx-6 mb-6 rounded-lg bg-slate-950 p-5 text-white">
               <div className="flex items-center gap-2 text-sm text-slate-300">
                 <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                Estrutura pensada para conversao, autoridade e previsibilidade.
+                Estrutura pensada para conversão, autoridade e previsibilidade.
               </div>
               <div className="mt-5 h-2 rounded-full bg-slate-800">
                 <div className="h-2 w-[78%] rounded-full bg-secondary" />

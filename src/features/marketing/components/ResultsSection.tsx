@@ -11,9 +11,9 @@ export function ResultsSection() {
         <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <SectionHeading
             eyebrow="Resultados"
-            title="Uma experiencia digital que combina imagem, processo e dados."
-            description="O objetivo nao e apenas ter mais telas bonitas. E transformar o digital em uma estrutura comercial mais confiavel para a clinica."
-            eyebrowClassName="text-secondary"
+            title="Uma experiência digital que combina imagem, processo e dados."
+            description="O objetivo não é apenas ter mais telas bonitas. É transformar o digital em uma estrutura comercial mais confiável para a clínica."
+            eyebrowClassName="text-primary"
           />
 
           <div className="grid gap-4 sm:grid-cols-3">

@@ -7,19 +7,22 @@ export type LoginPayload = {
 
 export type RegisterPayload = {
   clinicName: string
-  responsibleName: string
+  firstName: string
+  lastName: string
   email: string
   password: string
 }
 
 export type AuthUser = {
   id: string
-  name: string
+  clinicId: string
+  role: 'OWNER' | 'ADMIN' | 'DENTIST' | 'ASSISTANT'
   email: string
+  firstName: string
+  lastName: string
 }
 
 export type AuthResponse = {
   accessToken: string
   user: AuthUser
 }
-
