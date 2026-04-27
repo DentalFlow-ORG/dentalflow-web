@@ -17,9 +17,9 @@ export type AuthUser = {
   id: string
   clinicId: string
   role: 'OWNER' | 'ADMIN' | 'DENTIST' | 'ASSISTANT'
-  email?: string
-  firstName?: string
-  lastName?: string
+  email: string
+  firstName: string
+  lastName: string
 }
 
 export type AuthResponse = {

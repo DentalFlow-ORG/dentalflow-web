@@ -9,12 +9,12 @@ export function splitFullName(fullName: string) {
 }
 
 export function getUserDisplayName(user: {
-  firstName?: string
-  lastName?: string
-  email?: string
+  firstName: string
+  lastName: string
+  email: string
   id: string
 }) {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ')
 
-  return fullName || user.email || user.id
+  return fullName || user.email
 }

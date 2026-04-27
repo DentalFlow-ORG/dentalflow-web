@@ -7,11 +7,12 @@ import { cn } from '@/lib/utils'
 type BrandLinkProps = {
   compact?: boolean
   className?: string
+  to?: string
 }
 
-export function BrandLink({ compact = false, className }: BrandLinkProps) {
+export function BrandLink({ compact = false, className, to = '/' }: BrandLinkProps) {
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (window.location.pathname !== '/') {
+    if (to !== '/' || window.location.pathname !== '/') {
       return
     }
 
@@ -21,7 +22,7 @@ export function BrandLink({ compact = false, className }: BrandLinkProps) {
 
   return (
     <Link
-      to="/"
+      to={to}
       className={cn('flex min-w-0 items-center gap-3', className)}
       onClick={handleClick}
     >

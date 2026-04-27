@@ -1,7 +1,7 @@
 import { env } from '@/config/env'
 
 type ApiRequestOptions = RequestInit & {
-  accessToken?: string
+  accessToken?: string | null
 }
 
 type ApiErrorBody = {
@@ -22,6 +22,8 @@ export class ApiError extends Error {
   }
 }
 
+const REQUEST_TIMEOUT_MS = 15_000
+
 export async function apiRequest<TResponse>(
   path: string,
   options: ApiRequestOptions = {},
@@ -30,29 +32,47 @@ export async function apiRequest<TResponse>(
     throw new Error('VITE_API_URL não está configurada.')
   }
 
-  const { accessToken, headers, ...requestOptions } = options
+  const { accessToken, headers, signal: externalSignal, ...requestOptions } = options
 
-  const response = await fetch(`${env.apiUrl}${path}`, {
-    ...requestOptions,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...headers,
-    },
-  })
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 
-  if (!response.ok) {
-    const body = await parseResponseBody(response)
-    const message = getErrorMessage(body) ?? 'Erro ao comunicar com o servidor.'
-
-    throw new ApiError(message, response.status, body)
+  if (externalSignal) {
+    externalSignal.addEventListener('abort', () => controller.abort())
   }
 
-  if (response.status === 204) {
-    return undefined as TResponse
-  }
+  try {
+    const response = await fetch(`${env.apiUrl}${path}`, {
+      ...requestOptions,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        ...headers,
+      },
+    })
 
-  return response.json() as Promise<TResponse>
+    if (!response.ok) {
+      const body = await parseResponseBody(response)
+      const message = getErrorMessage(body) ?? 'Erro ao comunicar com o servidor.'
+
+      throw new ApiError(message, response.status, body)
+    }
+
+    if (response.status === 204) {
+      return undefined as TResponse
+    }
+
+    return response.json() as Promise<TResponse>
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ApiError('A requisição demorou muito. Tente novamente.', 408, null)
+    }
+
+    throw err
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
 }
 
 async function parseResponseBody(response: Response) {

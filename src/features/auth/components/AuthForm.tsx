@@ -1,8 +1,9 @@
-import { Link } from '@tanstack/react-router'
-import { useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { ArrowRight, Building2, LockKeyhole, Mail, UserPlus } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import { ApiError } from '@/services/http'
 
@@ -18,6 +19,7 @@ type AuthFormProps = {
 export function AuthForm({ mode }: AuthFormProps) {
   const isLogin = mode === 'login'
   const navigate = useNavigate()
+  const { showAlert } = useGlobalAlerts()
   const { login, register } = useAuth()
   const [clinicName, setClinicName] = useState('')
   const [responsibleName, setResponsibleName] = useState('')
@@ -39,7 +41,13 @@ export function AuthForm({ mode }: AuthFormProps) {
     const normalizedResponsibleName = responsibleName.trim()
 
     if (!isLogin && normalizedResponsibleName.split(/\s+/).length < 2) {
-      setError('Informe nome e sobrenome do responsável.')
+      const message = 'Informe nome e sobrenome do responsavel.'
+      setError(message)
+      showAlert({
+        title: 'Cadastro incompleto',
+        description: message,
+        tone: 'warning',
+      })
       return
     }
 
@@ -48,6 +56,11 @@ export function AuthForm({ mode }: AuthFormProps) {
     try {
       if (isLogin) {
         await login({ email: normalizedEmail, password })
+        showAlert({
+          title: 'Acesso liberado',
+          description: 'Login realizado com sucesso.',
+          tone: 'success',
+        })
       } else {
         const { firstName, lastName } = splitFullName(normalizedResponsibleName)
 
@@ -58,16 +71,37 @@ export function AuthForm({ mode }: AuthFormProps) {
           email: normalizedEmail,
           password,
         })
+        showAlert({
+          title: 'Conta criada',
+          description: 'Seu acesso de teste foi criado com sucesso.',
+          tone: 'success',
+        })
       }
 
       await navigate({ to: '/app' })
     } catch (requestError) {
+      const title = isLogin
+        ? 'Nao foi possivel entrar'
+        : 'Nao foi possivel criar a conta'
+
       if (requestError instanceof ApiError) {
         setError(requestError.message)
+        showAlert({
+          title,
+          description: requestError.message,
+          tone: 'error',
+        })
       } else if (requestError instanceof Error) {
         setError(requestError.message)
+        showAlert({
+          title,
+          description: requestError.message,
+          tone: 'error',
+        })
       } else {
-        setError('Não foi possível autenticar agora.')
+        const message = 'Nao foi possivel autenticar agora.'
+        setError(message)
+        showAlert({ title: message, tone: 'error' })
       }
     } finally {
       setIsSubmitting(false)
@@ -90,8 +124,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           </h2>
           <p className="mt-1 text-sm text-slate-500">
             {isLogin
-              ? 'Use seus dados para acessar a demonstração.'
-              : 'Cadastre a clínica para iniciar uma avaliação sem cartão.'}
+              ? 'Use seus dados para acessar a demonstracao.'
+              : 'Cadastre a clinica para iniciar uma avaliacao sem cartao.'}
           </p>
         </div>
       </div>
@@ -105,8 +139,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           {!isLogin && (
             <div className="space-y-5">
               <AuthTextField
-                label="Nome da clínica"
-                placeholder="Clínica DentalFlow"
+                label="Nome da clinica"
+                placeholder="Clinica DentalFlow"
                 icon={Building2}
                 name="clinicName"
                 value={clinicName}
@@ -116,7 +150,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 onChange={setClinicName}
               />
               <AuthTextField
-                label="Responsável"
+                label="Responsavel"
                 placeholder="Nome completo"
                 name="responsibleName"
                 value={responsibleName}
@@ -153,9 +187,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           />
 
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
-              {error}
-            </div>
+            <InlineFeedback>{error}</InlineFeedback>
           )}
 
           <Button type="submit" size="xl" className="w-full" disabled={isSubmitting}>
@@ -163,20 +195,20 @@ export function AuthForm({ mode }: AuthFormProps) {
               ? 'Processando...'
               : isLogin
                 ? 'Entrar no ambiente de teste'
-                : 'Criar acesso sem cartão'}
+                : 'Criar acesso sem cartao'}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </form>
       </div>
 
       <p className="mt-5 text-center text-sm text-slate-500">
-        {isLogin ? 'Ainda não tem acesso?' : 'Já tem acesso criado?'}{' '}
+        {isLogin ? 'Ainda nao tem acesso?' : 'Ja tem acesso criado?'}{' '}
         <Link
           to="/acessar"
           search={{ mode: isLogin ? 'register' : 'login' }}
           className="font-semibold text-primary hover:underline"
         >
-          {isLogin ? 'Criar teste grátis' : 'Entrar com minha conta'}
+          {isLogin ? 'Criar teste gratis' : 'Entrar com minha conta'}
         </Link>
       </p>
     </div>
