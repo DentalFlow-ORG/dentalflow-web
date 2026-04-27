@@ -13,7 +13,7 @@ export function ResultsSection() {
             eyebrow="Resultados"
             title="Uma experiência digital que combina imagem, processo e dados."
             description="O objetivo não é apenas ter mais telas bonitas. É transformar o digital em uma estrutura comercial mais confiável para a clínica."
-            eyebrowClassName="text-secondary"
+            eyebrowClassName="text-primary"
           />
 
           <div className="grid gap-4 sm:grid-cols-3">

@@ -18,19 +18,15 @@ export function register(payload: RegisterPayload) {
 }
 
 export function getCurrentUser() {
-  const accessToken = getAccessToken()
-
   return apiRequest<AuthResponse['user']>('/auth/me', {
     method: 'GET',
-    accessToken: accessToken ?? undefined,
+    accessToken: getAccessToken(),
   })
 }
 
 export function logout() {
-  const accessToken = getAccessToken()
-
   return apiRequest<void>('/auth/logout', {
     method: 'POST',
-    accessToken: accessToken ?? undefined,
+    accessToken: getAccessToken(),
   })
 }

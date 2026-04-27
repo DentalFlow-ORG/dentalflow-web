@@ -29,11 +29,14 @@ export function AuthTextField({
   onChange,
 }: AuthTextFieldProps) {
   return (
-    <label className="block">
-      <span className="text-sm font-semibold text-slate-700">{label}</span>
+    <div className="block">
+      <label htmlFor={name} className="text-sm font-semibold text-slate-700">
+        {label}
+      </label>
       <div className="mt-2 flex items-center gap-3 rounded-lg border border-slate-300 bg-white px-4 focus-within:border-primary focus-within:ring-3 focus-within:ring-primary/15">
         {Icon && <Icon className="h-4 w-4 text-slate-400" />}
         <input
+          id={name}
           name={name}
           type={type}
           value={value}
@@ -46,6 +49,6 @@ export function AuthTextField({
           className="h-12 min-w-0 flex-1 border-0 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400"
         />
       </div>
-    </label>
+    </div>
   )
 }
