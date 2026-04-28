@@ -62,7 +62,7 @@ export function ProfileServiceEditorPage() {
       })
       .catch((err) => handleRequestError(err, 'Não foi possível carregar o serviço.'))
       .finally(() => setIsLoading(false))
-  }, [profileId, serviceId])
+  }, [handleRequestError, profileId, serviceId])
 
   const handleSubmit = async () => {
     if (!profile || !service) return

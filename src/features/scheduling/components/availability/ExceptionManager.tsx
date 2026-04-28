@@ -1,0 +1,125 @@
+import { CalendarOff, Plus } from 'lucide-react'
+import { useState } from 'react'
+
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { Button } from '@/components/ui/button'
+
+import {
+  createAvailabilityException,
+  deleteAvailabilityException,
+} from '../../services/scheduling.service'
+import type {
+  AvailabilityException,
+  CreateAvailabilityExceptionDto,
+} from '../../types/scheduling.types'
+import { ExceptionForm } from './ExceptionForm'
+import { ExceptionRow } from './ExceptionRow'
+
+type ExceptionManagerProps = {
+  profileId: string
+  exceptions: AvailabilityException[]
+  onExceptionsChange: (exceptions: AvailabilityException[]) => void
+}
+
+export function ExceptionManager({
+  profileId,
+  exceptions,
+  onExceptionsChange,
+}: ExceptionManagerProps) {
+  const { showAlert } = useGlobalAlerts()
+  const [isAdding, setIsAdding] = useState(false)
+  const [loadingId, setLoadingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleAdd(dto: CreateAvailabilityExceptionDto) {
+    setLoadingId('new')
+    setError(null)
+    try {
+      const exc = await createAvailabilityException(profileId, dto)
+      onExceptionsChange([...exceptions, exc])
+      setIsAdding(false)
+      showAlert({ title: 'Exceção adicionada', tone: 'success' })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erro ao salvar.'
+      setError(msg)
+      showAlert({ title: 'Erro ao salvar exceção', description: msg, tone: 'error' })
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
+  async function handleDelete(exc: AvailabilityException) {
+    setLoadingId(exc.id)
+    setError(null)
+    try {
+      await deleteAvailabilityException(profileId, exc.id)
+      onExceptionsChange(exceptions.filter((e) => e.id !== exc.id))
+      showAlert({ title: 'Exceção removida', tone: 'success' })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erro ao remover.'
+      setError(msg)
+      showAlert({ title: 'Erro ao remover exceção', description: msg, tone: 'error' })
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
+  const sortedExceptions = [...exceptions].sort((a, b) =>
+    a.exceptionDate.localeCompare(b.exceptionDate),
+  )
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-semibold text-slate-900">Exceções de agenda</h3>
+          <p className="mt-0.5 text-sm text-slate-500">
+            Registre folgas ou horários especiais em datas específicas.
+          </p>
+        </div>
+        {!isAdding && (
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setIsAdding(true)}
+            disabled={loadingId !== null}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Adicionar
+          </Button>
+        )}
+      </div>
+
+      {error && <InlineFeedback tone="error">{error}</InlineFeedback>}
+
+      {isAdding && (
+        <ExceptionForm
+          isLoading={loadingId === 'new'}
+          onSubmit={handleAdd}
+          onCancel={() => setIsAdding(false)}
+        />
+      )}
+
+      {sortedExceptions.length === 0 && !isAdding ? (
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-white py-10 text-center">
+          <CalendarOff className="h-8 w-8 text-slate-300" />
+          <p className="text-sm text-slate-500">
+            Nenhuma exceção cadastrada. Adicione folgas e horários especiais.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {sortedExceptions.map((exc) => (
+            <ExceptionRow
+              key={exc.id}
+              exception={exc}
+              isLoading={loadingId === exc.id}
+              onDelete={() => handleDelete(exc)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

@@ -19,6 +19,8 @@ import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { onlyDigits } from '@/lib/field-formatters'
+import { formatCurrencyBR } from '@/lib/number-formatters'
 import { ApiError } from '@/services/http'
 
 import {
@@ -26,7 +28,6 @@ import {
   getPublicProfile,
 } from '../services/profiles.service'
 import type { ProfileDetail } from '../types'
-import { formatCurrency } from '../utils/profile-formatters'
 
 export function PublicProfilePage() {
   const { slug } = useParams({ from: '/p/$slug' })
@@ -135,7 +136,7 @@ export function PublicProfilePage() {
 
               {profile.whatsappNumber && (
                 <Button className="mt-7 w-full" asChild>
-                  <a href={`https://wa.me/${profile.whatsappNumber.replace(/\D/g, '')}`}>
+                  <a href={`https://wa.me/${onlyDigits(profile.whatsappNumber)}`}>
                     <MessageCircle className="h-4 w-4" />
                     Chamar no WhatsApp
                   </a>
@@ -172,10 +173,10 @@ export function PublicProfilePage() {
               ) : (
                 profile.services.map((service) => {
                   const priceFrom = service.isPriceDisplayed
-                    ? formatCurrency(service.priceFrom)
+                    ? formatCurrencyBR(service.priceFrom)
                     : null
                   const priceTo = service.isPriceDisplayed
-                    ? formatCurrency(service.priceTo)
+                    ? formatCurrencyBR(service.priceTo)
                     : null
 
                   const serviceContent = (

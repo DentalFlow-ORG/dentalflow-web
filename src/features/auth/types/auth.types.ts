@@ -15,8 +15,8 @@ export type RegisterPayload = {
 
 export type AuthUser = {
   id: string
-  clinicId: string
-  role: 'OWNER' | 'ADMIN' | 'DENTIST' | 'ASSISTANT'
+  clinicId: string | null
+  role: 'ADMIN' | 'OWNER' | 'DENTIST' | 'ASSISTANT' | 'PATIENT'
   email: string
   firstName: string
   lastName: string
@@ -24,5 +24,11 @@ export type AuthUser = {
 
 export type AuthResponse = {
   accessToken: string
+  refreshToken: string
   user: AuthUser
+}
+
+export type RefreshResponse = {
+  accessToken: string
+  refreshToken: string
 }

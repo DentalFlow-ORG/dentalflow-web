@@ -1,10 +1,15 @@
 import { apiRequest } from '@/services/http'
 
-import type { AuthResponse, LoginPayload, RegisterPayload } from '../types'
-import { getAccessToken } from '../utils/session-storage'
+import type {
+  AuthResponse,
+  LoginPayload,
+  RefreshResponse,
+  RegisterPayload,
+} from '../types'
+import { getAccessToken, getRefreshToken } from '../utils/session-storage'
 
 export function login(payload: LoginPayload) {
-  return apiRequest<AuthResponse>('/auth/sign-in', {
+  return apiRequest<AuthResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
@@ -24,9 +29,17 @@ export function getCurrentUser() {
   })
 }
 
+export function refreshSession() {
+  return apiRequest<RefreshResponse>('/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({ refreshToken: getRefreshToken() }),
+  })
+}
+
 export function logout() {
   return apiRequest<void>('/auth/logout', {
     method: 'POST',
     accessToken: getAccessToken(),
+    body: JSON.stringify({ refreshToken: getRefreshToken() }),
   })
 }

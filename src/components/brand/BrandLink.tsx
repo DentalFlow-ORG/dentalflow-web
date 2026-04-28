@@ -26,13 +26,21 @@ export function BrandLink({ compact = false, className, to = '/' }: BrandLinkPro
       className={cn('flex min-w-0 items-center gap-3', className)}
       onClick={handleClick}
     >
-      <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-blue-100 bg-white shadow-sm">
-        <img
-          src="/logo-without-bg.png"
-          alt={companyInfo.tradeName}
-          className="h-8 w-8 object-contain"
-        />
-      </div>
+      <img
+        src="/logo-without-bg.png"
+        alt={companyInfo.tradeName}
+        className={cn(
+          'shrink-0 object-contain',
+          compact ? 'h-11 w-11' : 'h-12 w-12',
+        )}
+      />
+      <span
+        className={cn(
+          'w-px shrink-0 bg-slate-200',
+          compact ? 'h-9' : 'h-10',
+        )}
+        aria-hidden="true"
+      />
       <div className="text-left">
         <span className="block text-lg font-semibold text-slate-950">
           {companyInfo.tradeName}

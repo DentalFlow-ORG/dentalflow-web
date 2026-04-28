@@ -10,13 +10,16 @@ import {
   getCurrentUser,
   login as loginRequest,
   logout as logoutRequest,
+  refreshSession,
   register as registerRequest,
 } from '../services/auth.service'
 import {
   clearSession,
   getAccessToken,
+  getRefreshToken,
   getStoredUser,
   setSession,
+  setTokens,
 } from '../utils/session-storage'
 import type { AuthUser, LoginPayload, RegisterPayload } from '../types'
 import { AuthContext, type AuthContextValue } from './auth-context'
@@ -40,11 +43,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     getCurrentUser()
       .then((currentUser) => {
         setUser(currentUser)
-        setSession(accessToken, currentUser)
+        setSession(accessToken, getRefreshToken(), currentUser)
       })
-      .catch(() => {
-        clearSession()
-        setUser(null)
+      .catch(async () => {
+        const refreshToken = getRefreshToken()
+
+        if (!refreshToken) {
+          clearSession()
+          setUser(null)
+          return
+        }
+
+        try {
+          const refreshedSession = await refreshSession()
+          setTokens(refreshedSession.accessToken, refreshedSession.refreshToken)
+          const currentUser = await getCurrentUser()
+
+          setUser(currentUser)
+          setSession(
+            refreshedSession.accessToken,
+            refreshedSession.refreshToken,
+            currentUser,
+          )
+        } catch {
+          clearSession()
+          setUser(null)
+        }
       })
       .finally(() => {
         setIsBootstrapping(false)
@@ -54,14 +78,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = useCallback(async (payload: LoginPayload) => {
     const response = await loginRequest(payload)
 
-    setSession(response.accessToken, response.user)
+    setSession(response.accessToken, response.refreshToken, response.user)
     setUser(response.user)
   }, [])
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const response = await registerRequest(payload)
 
-    setSession(response.accessToken, response.user)
+    setSession(response.accessToken, response.refreshToken, response.user)
     setUser(response.user)
   }, [])
 
