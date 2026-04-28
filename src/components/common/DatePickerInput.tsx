@@ -1,5 +1,5 @@
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -48,12 +48,6 @@ export function DatePickerInput({
     getMonthDate(selectedDate ?? new Date()),
   )
 
-  useEffect(() => {
-    if (selectedDate) {
-      setVisibleMonth(getMonthDate(selectedDate))
-    }
-  }, [selectedValue])
-
   const monthDays = useMemo(() => buildMonthDays(visibleMonth), [visibleMonth])
   const label = selectedValue ? formatDateBR(selectedValue) : placeholder
   const monthLabel = visibleMonth.toLocaleDateString('pt-BR', {
@@ -89,8 +83,15 @@ export function DatePickerInput({
     commit(formatDateInputValue(today))
   }
 
+  function handleOpenChange(isOpen: boolean) {
+    setOpen(isOpen)
+    if (isOpen && selectedDate) {
+      setVisibleMonth(getMonthDate(selectedDate))
+    }
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       {name && (
         <input
           name={name}
