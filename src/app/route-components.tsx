@@ -71,3 +71,9 @@ export const CreateMemberPage = lazy(() =>
     default: m.CreateMemberPage,
   })),
 )
+
+export const AdminUsersPage = lazy(() =>
+  import('@/features/admin/pages/AdminUsersPage').then((m) => ({
+    default: m.AdminUsersPage,
+  })),
+)

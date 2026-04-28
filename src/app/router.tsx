@@ -6,6 +6,7 @@ import {
 
 import { RootRoute } from '@/app/RootRoute'
 import {
+  AdminUsersPage,
   AppointmentsPage,
   AuthRoutePage,
   CreateMemberPage,
@@ -19,6 +20,7 @@ import {
   SchedulePage,
   TeamPage,
 } from '@/app/route-components'
+import { AdminRoute } from '@/features/admin/components/AdminRoute'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
 import type { AuthMode } from '@/features/auth/types'
 
@@ -137,6 +139,16 @@ const newMemberRoute = createRoute({
   ),
 })
 
+const adminUsersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/admin/users',
+  component: () => (
+    <AdminRoute>
+      <AdminUsersPage />
+    </AdminRoute>
+  ),
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
@@ -150,6 +162,7 @@ const routeTree = rootRoute.addChildren([
   scheduleRoute,
   teamRoute,
   newMemberRoute,
+  adminUsersRoute,
 ])
 
 export const router = createRouter({

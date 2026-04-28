@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import {
   ArrowRight,
   BarChart3,
@@ -25,11 +25,20 @@ import { ApiError } from '@/services/http'
 
 export function DashboardPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // ADMIN is a platform-level role with no clinic association — redirect to their area.
   useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      void navigate({ to: '/app/admin/users' })
+    }
+  }, [user?.role, navigate])
+
+  useEffect(() => {
+    if (user?.role === 'ADMIN') return
     listProfiles()
       .then(setProfiles)
       .catch((requestError) => {
@@ -40,7 +49,7 @@ export function DashboardPage() {
         )
       })
       .finally(() => setIsLoadingProfiles(false))
-  }, [])
+  }, [user?.role])
 
   const metrics = useMemo(() => {
     const publishedProfiles = profiles.filter((profile) => profile.isPublished)
