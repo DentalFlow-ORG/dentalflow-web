@@ -1,11 +1,14 @@
 import { Plus } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-import { InlineFeedback } from '@/components/common/InlineFeedback'
-import { LoadingCard } from '@/components/common/LoadingCard'
+import type { FilterDef } from '@/components/common/ListToolbar'
+import { ListToolbar } from '@/components/common/ListToolbar'
+import { ListPageShell } from '@/components/common/ListPageShell'
+import { Pagination } from '@/components/common/Pagination'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { useListFilter } from '@/hooks/useListFilter'
 import { listProfiles } from '@/features/profiles/services/profiles.service'
 import type { ProfileListItem } from '@/features/profiles/types'
 
@@ -19,15 +22,32 @@ import type {
   AppointmentStatus,
 } from '../types/scheduling.types'
 import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
-import { AppointmentFilters, type AppointmentFiltersState } from '../components/appointments/AppointmentFilters'
 import { AppointmentTable } from '../components/appointments/AppointmentTable'
 import { CancelAppointmentDialog } from '../components/appointments/CancelAppointmentDialog'
 import { CreateAppointmentModal } from '../components/appointments/CreateAppointmentModal'
 
+const PAGE_SIZE = 15
+
+const STATUS_OPTIONS = [
+  { value: 'PENDING', label: 'Pendente' },
+  { value: 'CONFIRMED', label: 'Confirmado' },
+  { value: 'COMPLETED', label: 'Concluído' },
+  { value: 'CANCELED', label: 'Cancelado' },
+  { value: 'NO_SHOW', label: 'Não compareceu' },
+]
+
+const SEARCH_FN = (a: Appointment, q: string) =>
+  `${a.patientName} ${a.patientEmail ?? ''} ${a.patientPhone ?? ''}`.toLowerCase().includes(q)
+
+const FILTER_FNS = {
+  status: (a: Appointment, v: string) => a.status === v,
+  profileId: (a: Appointment, v: string) => a.profileId === v,
+}
+
 export function AppointmentsPage() {
   const { showAlert } = useGlobalAlerts()
 
-  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [allAppointments, setAllAppointments] = useState<Appointment[]>([])
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -38,15 +58,38 @@ export function AppointmentsPage() {
   const [isActionLoading, setIsActionLoading] = useState(false)
   const [isCanceling, setIsCanceling] = useState(false)
 
-  const [filters, setFilters] = useState<AppointmentFiltersState>({
-    status: null,
-    profileId: null,
+  // Dynamic filter defs — profileId options depend on loaded profiles
+  const filterDefs = useMemo<FilterDef[]>(() => {
+    const defs: FilterDef[] = [
+      { key: 'status', label: 'Status', options: STATUS_OPTIONS },
+    ]
+    if (profiles.length > 1) {
+      defs.push({
+        key: 'profileId',
+        label: 'Profissional',
+        options: profiles.map((p) => ({ value: p.id, label: p.displayName })),
+      })
+    }
+    return defs
+  }, [profiles])
+
+  const {
+    searchQuery, setSearchQuery,
+    activeFilters, setFilter, clearAll,
+    page, setPage,
+    totalPages,
+    filteredCount,
+    paginatedData: appointments,
+  } = useListFilter<Appointment>(allAppointments, {
+    searchFn: SEARCH_FN,
+    filterFns: FILTER_FNS,
+    pageSize: PAGE_SIZE,
   })
 
   useEffect(() => {
     Promise.all([listAppointments(), listProfiles()])
       .then(([appts, profs]) => {
-        setAppointments(appts)
+        setAllAppointments(appts)
         setProfiles(profs)
       })
       .catch((err) => {
@@ -57,21 +100,11 @@ export function AppointmentsPage() {
       .finally(() => setIsLoading(false))
   }, [showAlert])
 
-  const filteredAppointments = useMemo(() => {
-    return appointments.filter((appt) => {
-      if (filters.status && appt.status !== filters.status) return false
-      if (filters.profileId && appt.profileId !== filters.profileId) return false
-      return true
-    })
-  }, [appointments, filters])
-
   async function handleStatusChange(id: string, status: AppointmentStatus) {
     setIsActionLoading(true)
     try {
       const updated = await updateAppointmentStatus(id, { status })
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === id ? updated : a)),
-      )
+      setAllAppointments((prev) => prev.map((a) => (a.id === id ? updated : a)))
       if (selectedAppointment?.id === id) setSelectedAppointment(updated)
       showAlert({ title: 'Status atualizado', tone: 'success' })
     } catch (err) {
@@ -90,7 +123,7 @@ export function AppointmentsPage() {
     setIsCanceling(true)
     try {
       const updated = await cancelAppointment(cancelTarget.id, reason)
-      setAppointments((prev) =>
+      setAllAppointments((prev) =>
         prev.map((a) => (a.id === cancelTarget.id ? updated : a)),
       )
       if (selectedAppointment?.id === cancelTarget.id) setSelectedAppointment(updated)
@@ -108,11 +141,11 @@ export function AppointmentsPage() {
   }
 
   function handleCreated(appointment: Appointment) {
-    setAppointments((prev) => [appointment, ...prev])
+    setAllAppointments((prev) => [appointment, ...prev])
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <div className="mx-auto max-w-7xl space-y-6">
       <AppPageHeader
         eyebrow="Agenda"
         title="Agendamentos"
@@ -125,26 +158,41 @@ export function AppointmentsPage() {
         }
       />
 
-      {error && <InlineFeedback>{error}</InlineFeedback>}
-
-      {isLoading ? (
-        <LoadingCard message="Carregando agendamentos..." />
-      ) : (
+      <ListPageShell
+        isLoading={isLoading}
+        loadingMessage="Carregando agendamentos..."
+        error={error}
+      >
         <div className="space-y-4">
-          <AppointmentFilters
-            filters={filters}
-            profiles={profiles}
-            onChange={setFilters}
+          <ListToolbar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder="Pesquisar por paciente, e-mail ou telefone..."
+            filterDefs={filterDefs}
+            activeFilters={activeFilters}
+            onFilterChange={setFilter}
+            onClearAll={clearAll}
+            filteredCount={filteredCount}
+            totalCount={allAppointments.length}
           />
+
           <AppointmentTable
-            appointments={filteredAppointments}
+            appointments={appointments}
             isActionLoading={isActionLoading}
             onRowClick={setSelectedAppointment}
             onStatusChange={handleStatusChange}
             onCancelRequest={setCancelTarget}
           />
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            filteredCount={filteredCount}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
         </div>
-      )}
+      </ListPageShell>
 
       <AppointmentDrawer
         appointment={selectedAppointment}

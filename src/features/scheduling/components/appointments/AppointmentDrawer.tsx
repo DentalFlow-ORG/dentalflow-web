@@ -43,17 +43,20 @@ export function AppointmentDrawer({
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
+          {/* Title must always be present inside Dialog.Content for accessibility */}
+          <Dialog.Title id="drawer-title" className="sr-only">
+            {appointment?.patientName ?? 'Detalhes do agendamento'}
+          </Dialog.Title>
           {appointment && (
             <>
               {/* Header */}
               <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
                 <div>
-                  <Dialog.Title
-                    id="drawer-title"
+                  <p
                     className="text-lg font-semibold text-slate-950"
                   >
                     {appointment.patientName}
-                  </Dialog.Title>
+                  </p>
                   <p className="mt-1 text-sm text-slate-500">
                     {formatAppointmentDateLong(appointment.appointmentDate)}
                   </p>
