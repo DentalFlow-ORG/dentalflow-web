@@ -15,8 +15,8 @@ export type RegisterPayload = {
 
 export type AuthUser = {
   id: string
-  clinicId: string
-  role: 'OWNER' | 'ADMIN' | 'DENTIST' | 'ASSISTANT'
+  clinicId: string | null
+  role: 'ADMIN' | 'OWNER' | 'DENTIST' | 'ASSISTANT' | 'PATIENT'
   email: string
   firstName: string
   lastName: string

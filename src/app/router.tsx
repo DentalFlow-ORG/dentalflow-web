@@ -3,59 +3,26 @@ import {
   createRootRoute,
   createRouter,
 } from '@tanstack/react-router'
-import { lazy } from 'react'
 
 import { RootRoute } from '@/app/RootRoute'
+import {
+  AdminUsersPage,
+  AppointmentsPage,
+  AuthRoutePage,
+  CreateMemberPage,
+  DashboardPage,
+  LandingPage,
+  ProfileEditorPageCreate,
+  ProfileEditorPageEdit,
+  ProfilesListPage,
+  ProfileServiceEditorPage,
+  PublicProfilePage,
+  SchedulePage,
+  TeamPage,
+} from '@/app/route-components'
+import { AdminRoute } from '@/features/admin/components/AdminRoute'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
 import type { AuthMode } from '@/features/auth/types'
-
-const LandingPage = lazy(() =>
-  import('@/features/marketing/pages/LandingPage').then((m) => ({
-    default: m.LandingPage,
-  })),
-)
-
-const AuthRoutePage = lazy(() =>
-  import('@/features/auth/pages/AuthRoutePage').then((m) => ({
-    default: m.AuthRoutePage,
-  })),
-)
-
-const DashboardPage = lazy(() =>
-  import('@/features/dashboard/pages/DashboardPage').then((m) => ({
-    default: m.DashboardPage,
-  })),
-)
-
-const ProfilesListPage = lazy(() =>
-  import('@/features/profiles/pages/ProfilesListPage').then((m) => ({
-    default: m.ProfilesListPage,
-  })),
-)
-
-const ProfileEditorPageCreate = lazy(() =>
-  import('@/features/profiles/pages/ProfileEditorPage').then((m) => ({
-    default: () => <m.ProfileEditorPage mode="create" />,
-  })),
-)
-
-const ProfileEditorPageEdit = lazy(() =>
-  import('@/features/profiles/pages/ProfileEditorPage').then((m) => ({
-    default: () => <m.ProfileEditorPage mode="edit" />,
-  })),
-)
-
-const ProfileServiceEditorPage = lazy(() =>
-  import('@/features/profiles/pages/ProfileServiceEditorPage').then((m) => ({
-    default: m.ProfileServiceEditorPage,
-  })),
-)
-
-const PublicProfilePage = lazy(() =>
-  import('@/features/profiles/pages/PublicProfilePage').then((m) => ({
-    default: m.PublicProfilePage,
-  })),
-)
 
 const rootRoute = createRootRoute({
   component: RootRoute,
@@ -132,6 +99,56 @@ const publicProfileRoute = createRoute({
   component: PublicProfilePage,
 })
 
+const appointmentsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/agendamentos',
+  component: () => (
+    <ProtectedAppRoute>
+      <AppointmentsPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const scheduleRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/agenda',
+  component: () => (
+    <ProtectedAppRoute>
+      <SchedulePage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const teamRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/equipe',
+  component: () => (
+    <ProtectedAppRoute>
+      <TeamPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const newMemberRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/equipe/novo',
+  component: () => (
+    <ProtectedAppRoute>
+      <CreateMemberPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const adminUsersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/admin/users',
+  component: () => (
+    <AdminRoute>
+      <AdminUsersPage />
+    </AdminRoute>
+  ),
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
@@ -141,6 +158,11 @@ const routeTree = rootRoute.addChildren([
   editProfileRoute,
   editProfileServiceRoute,
   publicProfileRoute,
+  appointmentsRoute,
+  scheduleRoute,
+  teamRoute,
+  newMemberRoute,
+  adminUsersRoute,
 ])
 
 export const router = createRouter({

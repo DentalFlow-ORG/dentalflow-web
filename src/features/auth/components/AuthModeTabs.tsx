@@ -23,7 +23,7 @@ export function AuthModeTabs({ mode }: AuthModeTabsProps) {
           isLogin ? 'text-white' : 'text-primary/70 hover:text-primary'
         }`}
       >
-        Login
+        Entrar
       </Link>
       <Link
         to="/acessar"
@@ -32,7 +32,7 @@ export function AuthModeTabs({ mode }: AuthModeTabsProps) {
           !isLogin ? 'text-white' : 'text-primary/70 hover:text-primary'
         }`}
       >
-        Registro
+        Criar conta
       </Link>
     </div>
   )

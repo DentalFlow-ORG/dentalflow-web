@@ -10,13 +10,13 @@ type AuthPageProps = {
 
 export function AuthPage({ mode }: AuthPageProps) {
   return (
-    <section className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#eef2ff_100%)] px-6 pb-20 pt-32 lg:px-8">
+    <section className="min-h-screen bg-slate-50 px-6 pb-20 pt-28 lg:px-8">
       <AuthHeader />
 
-      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+      <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_0.92fr] lg:items-center">
         <AuthInfoPanel />
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-950/10 sm:p-8">
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-xl shadow-slate-950/10 sm:p-8">
           <AuthModeTabs mode={mode} />
           <AuthForm mode={mode} />
         </div>

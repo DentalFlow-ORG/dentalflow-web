@@ -10,6 +10,7 @@ import {
   formatPhoneBR,
   formatSlug,
   formatUf,
+  onlyDigits,
 } from '@/lib/field-formatters'
 
 import type { ProfileFormValues } from '../utils/profile-formatters'
@@ -81,7 +82,7 @@ export function ProfileForm({
               value={values.crmNumber}
               placeholder="12345"
               maxLength={20}
-              onChange={(event) => updateValue('crmNumber', event.target.value)}
+              onChange={(event) => updateValue('crmNumber', onlyDigits(event.target.value))}
             />
           </FormField>
 
@@ -98,7 +99,7 @@ export function ProfileForm({
           </FormField>
         </div>
 
-        <FormField label="Bio" htmlFor="profile-bio" optional className="mt-5">
+        <FormField label="Bio" htmlFor="profile-bio" className="mt-5">
           <TextArea
             id="profile-bio"
             value={values.bio}
@@ -149,7 +150,7 @@ export function ProfileForm({
             />
           </FormField>
 
-          <FormField label="Site" htmlFor="profile-website" optional>
+          <FormField label="Site" htmlFor="profile-website">
             <TextInput
               id="profile-website"
               value={values.websiteUrl}
@@ -164,7 +165,7 @@ export function ProfileForm({
       <PanelCard>
         <h2 className="text-lg font-semibold text-slate-950">Presença e endereço</h2>
         <div className="mt-5 grid gap-5 md:grid-cols-2">
-          <FormField label="Instagram" htmlFor="profile-instagram" optional>
+          <FormField label="Instagram" htmlFor="profile-instagram">
             <TextInput
               id="profile-instagram"
               value={values.instagramUrl}
@@ -174,7 +175,7 @@ export function ProfileForm({
             />
           </FormField>
 
-          <FormField label="Facebook" htmlFor="profile-facebook" optional>
+          <FormField label="Facebook" htmlFor="profile-facebook">
             <TextInput
               id="profile-facebook"
               value={values.facebookUrl}
@@ -184,7 +185,7 @@ export function ProfileForm({
             />
           </FormField>
 
-          <FormField label="Endereço" htmlFor="profile-address" optional className="md:col-span-2">
+          <FormField label="Endereço" htmlFor="profile-address" className="md:col-span-2">
             <TextInput
               id="profile-address"
               value={values.addressLine1}
@@ -194,7 +195,7 @@ export function ProfileForm({
             />
           </FormField>
 
-          <FormField label="Cidade" htmlFor="profile-city" optional>
+          <FormField label="Cidade" htmlFor="profile-city">
             <TextInput
               id="profile-city"
               value={values.city}
@@ -205,7 +206,7 @@ export function ProfileForm({
           </FormField>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <FormField label="UF" htmlFor="profile-state" optional>
+            <FormField label="UF" htmlFor="profile-state">
               <TextInput
                 id="profile-state"
                 value={values.state}
@@ -217,7 +218,7 @@ export function ProfileForm({
               />
             </FormField>
 
-            <FormField label="CEP" htmlFor="profile-postal-code" optional>
+            <FormField label="CEP" htmlFor="profile-postal-code">
               <TextInput
                 id="profile-postal-code"
                 value={values.postalCode}

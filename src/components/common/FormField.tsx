@@ -1,4 +1,5 @@
 import type { ComponentProps, ReactNode } from 'react'
+import { CalendarDays, Clock3 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -47,6 +48,32 @@ export function TextInput({ className, ...props }: ComponentProps<'input'>) {
       )}
       {...props}
     />
+  )
+}
+
+export function DateInput({ className, ...props }: ComponentProps<'input'>) {
+  return (
+    <div className="relative">
+      <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <TextInput
+        type="date"
+        className={cn('pl-9 [color-scheme:light]', className)}
+        {...props}
+      />
+    </div>
+  )
+}
+
+export function TimeInput({ className, ...props }: ComponentProps<'input'>) {
+  return (
+    <div className="relative">
+      <Clock3 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <TextInput
+        type="time"
+        className={cn('pl-9 [color-scheme:light]', className)}
+        {...props}
+      />
+    </div>
   )
 }
 

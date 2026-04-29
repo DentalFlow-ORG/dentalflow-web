@@ -1,4 +1,5 @@
 import { companyInfo } from '@/config/company'
+import { onlyDigits } from '@/lib/field-formatters'
 
 export function SiteFooter() {
   const currentYear = new Date().getFullYear()
@@ -11,8 +12,9 @@ export function SiteFooter() {
             <img
               src="/logo-without-bg.png"
               alt={companyInfo.tradeName}
-              className="h-10 w-10 rounded-md border border-slate-200 bg-white p-1.5 shadow-sm"
+              className="h-12 w-12 shrink-0 object-contain"
             />
+            <span className="h-10 w-px shrink-0 bg-slate-200" aria-hidden="true" />
             <div>
               <p className="font-semibold text-slate-900">
                 {companyInfo.tradeName}
@@ -55,7 +57,7 @@ export function SiteFooter() {
           <h3 className="font-semibold text-slate-950">Contato e legal</h3>
           <div className="mt-4 space-y-3">
             <a
-              href={`tel:${companyInfo.phone.replace(/\D/g, '')}`}
+              href={`tel:${onlyDigits(companyInfo.phone)}`}
               className="block transition-colors hover:text-primary"
             >
               {companyInfo.phone}

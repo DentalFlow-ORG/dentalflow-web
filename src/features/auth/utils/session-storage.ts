@@ -27,15 +27,16 @@ export function getStoredUser() {
   }
 }
 
-export function setSession(accessToken: string, refreshToken: string, user: AuthUser) {
-  window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
-  window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+export function setSession(accessToken: string, refreshToken: string | null, user: AuthUser) {
+  setTokens(accessToken, refreshToken)
   window.localStorage.setItem(USER_KEY, JSON.stringify(user))
 }
 
-export function setTokens(accessToken: string, refreshToken: string) {
+export function setTokens(accessToken: string, refreshToken: string | null) {
   window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
-  window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+  if (refreshToken) {
+    window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+  }
 }
 
 export function updateStoredUser(user: AuthUser) {
