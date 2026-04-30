@@ -6,6 +6,8 @@ import type {
   CreateMemberResponse,
   MemberListItem,
   Specialty,
+  UpdateMemberDto,
+  UpdateMemberPasswordDto,
 } from '../types/team.types'
 
 export function listSpecialties() {
@@ -27,5 +29,31 @@ export function createMember(dto: CreateMemberDto) {
     method: 'POST',
     accessToken: getAccessToken(),
     body: JSON.stringify(dto),
+  })
+}
+
+export function updateClinicMember(memberId: string, dto: UpdateMemberDto) {
+  return apiRequest<MemberListItem>(`/users/clinic/members/${memberId}`, {
+    method: 'PATCH',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
+  })
+}
+
+export function updateClinicMemberPassword(
+  memberId: string,
+  dto: UpdateMemberPasswordDto,
+) {
+  return apiRequest<void>(`/users/clinic/members/${memberId}/password`, {
+    method: 'PATCH',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
+  })
+}
+
+export function deleteClinicMember(memberId: string) {
+  return apiRequest<void>(`/users/clinic/members/${memberId}`, {
+    method: 'DELETE',
+    accessToken: getAccessToken(),
   })
 }

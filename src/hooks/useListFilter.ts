@@ -79,6 +79,7 @@ export function useListFilter<T>(
     setPage,
     totalPages,
     filteredCount: filteredData.length,
+    filteredData,
     paginatedData,
   }
 }

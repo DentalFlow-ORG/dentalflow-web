@@ -40,6 +40,8 @@ export function setTokens(accessToken: string, refreshToken: string | null) {
   window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
   if (refreshToken) {
     window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+  } else {
+    window.localStorage.removeItem(REFRESH_TOKEN_KEY)
   }
 }
 

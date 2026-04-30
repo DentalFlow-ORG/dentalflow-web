@@ -5,13 +5,15 @@ import { AppShell } from '@/components/layout/AppShell'
 import { LoadingCard } from '@/components/common/LoadingCard'
 
 import { useAuth } from '../hooks/useAuth'
+import type { AuthUserRole } from '../types'
 
 type ProtectedAppRouteProps = {
   children: ReactNode
+  allowedRoles?: AuthUserRole[]
 }
 
-export function ProtectedAppRoute({ children }: ProtectedAppRouteProps) {
-  const { isAuthenticated, isBootstrapping } = useAuth()
+export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteProps) {
+  const { user, isAuthenticated, isBootstrapping } = useAuth()
 
   if (isBootstrapping) {
     return (
@@ -25,6 +27,10 @@ export function ProtectedAppRoute({ children }: ProtectedAppRouteProps) {
     return <Navigate to="/acessar" search={{ mode: 'login' }} />
   }
 
+  if (allowedRoles && (!user?.role || !allowedRoles.includes(user.role))) {
+    return <Navigate to={getDeniedRedirectPath(user?.role)} />
+  }
+
   return (
     <AppShell>
       <Suspense fallback={<LoadingCard message="Carregando..." />}>
@@ -32,4 +38,12 @@ export function ProtectedAppRoute({ children }: ProtectedAppRouteProps) {
       </Suspense>
     </AppShell>
   )
+}
+
+function getDeniedRedirectPath(role: AuthUserRole | undefined) {
+  if (role === 'ADMIN') return '/app/admin/users'
+  if (role === 'DENTIST') return '/app/agenda'
+  if (role === 'PATIENT') return '/'
+
+  return '/app'
 }

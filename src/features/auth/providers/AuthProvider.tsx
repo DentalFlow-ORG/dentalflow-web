@@ -21,6 +21,7 @@ import {
   setSession,
   setTokens,
 } from '../utils/session-storage'
+import { onSessionExpired } from '../utils/auth-events'
 import type { AuthUser, LoginPayload, RegisterPayload } from '../types'
 import { AuthContext, type AuthContextValue } from './auth-context'
 
@@ -31,6 +32,12 @@ type AuthProviderProps = {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(() => getStoredUser())
   const [isBootstrapping, setIsBootstrapping] = useState(true)
+
+  useEffect(() => {
+    return onSessionExpired(() => {
+      setUser(null)
+    })
+  }, [])
 
   useEffect(() => {
     const accessToken = getAccessToken()

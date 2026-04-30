@@ -1,10 +1,13 @@
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react'
 
+import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import {
   addDays,
+  BUSINESS_END_TIME,
+  BUSINESS_START_TIME,
   formatWallTime,
   formatWeekDayHeader,
   formatWeekRangeLabel,
@@ -25,8 +28,8 @@ type WeekCalendarProps = {
   onAppointmentClick: (appointment: Appointment) => void
 }
 
-const DEFAULT_START_MINUTES = 8 * 60
-const DEFAULT_END_MINUTES = 18 * 60
+const DEFAULT_START_MINUTES = wallTimeToMinutes(BUSINESS_START_TIME)
+const DEFAULT_END_MINUTES = wallTimeToMinutes(BUSINESS_END_TIME)
 const SLOT_MINUTES = 30
 
 const STATUS_CELL_CLASS: Record<AppointmentStatus, string> = {
@@ -49,7 +52,7 @@ export function WeekCalendar({
       (date) => isoDateToString(appointment.appointmentDate) === toDateInputValue(date),
     ),
   )
-  const slots = buildTimeSlots(visibleAppointments)
+  const slots = buildTimeSlots()
 
   function goToPrevWeek() {
     onWeekChange(addDays(weekStart, -7))
@@ -61,6 +64,13 @@ export function WeekCalendar({
 
   function goToToday() {
     onWeekChange(getWeekStart(new Date()))
+  }
+
+  function goToDate(value: string) {
+    const date = parseDateInputValue(value)
+    if (!date) return
+
+    onWeekChange(getWeekStart(date))
   }
 
   function getAppointmentsForCell(date: Date, slotStart: number): Appointment[] {
@@ -81,7 +91,7 @@ export function WeekCalendar({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-primary">
             <CalendarDays className="h-4 w-4" />
@@ -93,7 +103,14 @@ export function WeekCalendar({
             <p className="text-sm font-semibold text-slate-800">{weekLabel}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="w-full sm:w-48">
+            <DatePickerInput
+              value={toDateInputValue(weekDates[0])}
+              onValueChange={goToDate}
+              className="h-9"
+            />
+          </div>
           <Button type="button" variant="outline" size="sm" onClick={goToToday}>
             Hoje
           </Button>
@@ -239,20 +256,23 @@ function SpreadsheetAppointment({
   )
 }
 
-function buildTimeSlots(appointments: Appointment[]) {
-  const appointmentMinutes = appointments.flatMap((appointment) => [
-    wallTimeToMinutes(appointment.startTime),
-    wallTimeToMinutes(appointment.endTime),
-  ])
-  const minStart = Math.min(DEFAULT_START_MINUTES, ...appointmentMinutes)
-  const maxEnd = Math.max(DEFAULT_END_MINUTES, ...appointmentMinutes)
+function buildTimeSlots() {
+  const minStart = DEFAULT_START_MINUTES
+  const maxEnd = DEFAULT_END_MINUTES
   const start = Math.floor(minStart / SLOT_MINUTES) * SLOT_MINUTES
   const end = Math.ceil(maxEnd / SLOT_MINUTES) * SLOT_MINUTES
 
   return Array.from(
-    { length: Math.max(1, (end - start) / SLOT_MINUTES) },
+    { length: Math.max(1, (end - start) / SLOT_MINUTES + 1) },
     (_, index) => start + index * SLOT_MINUTES,
   )
+}
+
+function parseDateInputValue(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (!match) return null
+
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
 }
 
 function minutesToTime(minutes: number) {

@@ -1,7 +1,19 @@
 import { env } from '@/config/env'
+import { notifySessionExpired } from '@/features/auth/utils/auth-events'
+import {
+  clearSession,
+  getRefreshToken,
+  setTokens,
+} from '@/features/auth/utils/session-storage'
+
+import {
+  getStatusFallbackMessage,
+  translateApiErrorMessage,
+} from './api-error-messages'
 
 type ApiRequestOptions = RequestInit & {
   accessToken?: string | null
+  skipAuthRefresh?: boolean
 }
 
 type ApiErrorBody = {
@@ -23,6 +35,7 @@ export class ApiError extends Error {
 }
 
 const REQUEST_TIMEOUT_MS = 15_000
+let refreshSessionPromise: Promise<string | null> | null = null
 
 export async function apiRequest<TResponse>(
   path: string,
@@ -32,7 +45,13 @@ export async function apiRequest<TResponse>(
     throw new Error('VITE_API_URL não está configurada.')
   }
 
-  const { accessToken, headers, signal: externalSignal, ...requestOptions } = options
+  const {
+    accessToken,
+    headers,
+    signal: externalSignal,
+    skipAuthRefresh = false,
+    ...requestOptions
+  } = options
 
   const controller = new AbortController()
   const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
@@ -42,20 +61,29 @@ export async function apiRequest<TResponse>(
   }
 
   try {
-    const response = await fetch(`${env.apiUrl}${path}`, {
-      ...requestOptions,
-      credentials: requestOptions.credentials ?? 'include',
+    let response = await request(path, requestOptions, {
+      accessToken,
+      headers,
       signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-        ...headers,
-      },
     })
+
+    if (response.status === 401 && accessToken && !skipAuthRefresh) {
+      const nextAccessToken = await refreshAccessToken()
+
+      if (nextAccessToken) {
+        response = await request(path, requestOptions, {
+          accessToken: nextAccessToken,
+          headers,
+          signal: controller.signal,
+        })
+      }
+    }
 
     if (!response.ok) {
       const body = await parseResponseBody(response)
-      const message = getErrorMessage(body) ?? 'Erro ao comunicar com o servidor.'
+      const message =
+        translateApiErrorMessage(getErrorMessage(body), response.status) ??
+        getStatusFallbackMessage(response.status)
 
       throw new ApiError(message, response.status, body)
     }
@@ -102,4 +130,71 @@ function getErrorMessage(body: unknown) {
   }
 
   return apiBody.message ?? apiBody.error ?? null
+}
+
+function request(
+  path: string,
+  requestOptions: RequestInit,
+  options: Pick<ApiRequestOptions, 'accessToken' | 'headers'> & { signal: AbortSignal },
+) {
+  return fetch(`${env.apiUrl}${path}`, {
+    ...requestOptions,
+    credentials: requestOptions.credentials ?? 'include',
+    signal: options.signal,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.accessToken ? { Authorization: `Bearer ${options.accessToken}` } : {}),
+      ...options.headers,
+    },
+  })
+}
+
+async function refreshAccessToken() {
+  const refreshToken = getRefreshToken()
+
+  if (!refreshToken) {
+    clearExpiredSession()
+    return null
+  }
+
+  refreshSessionPromise ??= fetch(`${env.apiUrl}/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        return null
+      }
+
+      const session = (await response.json()) as {
+        accessToken?: string
+        refreshToken?: string
+      }
+
+      if (!session.accessToken || !session.refreshToken) {
+        return null
+      }
+
+      setTokens(session.accessToken, session.refreshToken)
+      return session.accessToken
+    })
+    .catch(() => null)
+    .finally(() => {
+      refreshSessionPromise = null
+    })
+
+  const accessToken = await refreshSessionPromise
+
+  if (!accessToken) {
+    clearExpiredSession()
+  }
+
+  return accessToken
+}
+
+function clearExpiredSession() {
+  clearSession()
+  notifySessionExpired()
 }
