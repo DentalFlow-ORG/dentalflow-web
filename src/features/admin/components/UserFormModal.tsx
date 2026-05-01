@@ -2,7 +2,8 @@ import { Loader2 } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 import { useState, useEffect } from 'react'
 
-import { FormField, TextInput } from '@/components/common/FormField'
+import { FormField } from '@/components/common/FormField'
+import { PasswordInput } from '@/components/common/PasswordInput'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import {
   UserEmailField,
@@ -219,9 +220,8 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
                     htmlFor="password"
                     hint="Mínimo 8 caracteres, máximo 72."
                   >
-                    <TextInput
+                    <PasswordInput
                       id="password"
-                      type="password"
                       value={form.password}
                       onChange={(e) => set('password', e.target.value)}
                       placeholder="••••••••"

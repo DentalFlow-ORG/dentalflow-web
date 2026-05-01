@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 
-import { FormField, TextInput } from './FormField'
+import { FormField } from './FormField'
 import { InlineFeedback } from './InlineFeedback'
+import { PasswordInput } from './PasswordInput'
 
 type PasswordResetModalProps = {
   open: boolean
@@ -120,9 +121,8 @@ export function PasswordResetModal({
                 htmlFor={newPasswordId}
                 hint="Minimo 8 caracteres, maximo 72."
               >
-                <TextInput
+                <PasswordInput
                   id={newPasswordId}
-                  type="password"
                   required
                   minLength={PASSWORD_MIN_LENGTH}
                   maxLength={PASSWORD_MAX_LENGTH}
@@ -134,9 +134,8 @@ export function PasswordResetModal({
               </FormField>
 
               <FormField label="Confirmar senha" htmlFor={confirmPasswordId}>
-                <TextInput
+                <PasswordInput
                   id={confirmPasswordId}
-                  type="password"
                   required
                   minLength={PASSWORD_MIN_LENGTH}
                   maxLength={PASSWORD_MAX_LENGTH}

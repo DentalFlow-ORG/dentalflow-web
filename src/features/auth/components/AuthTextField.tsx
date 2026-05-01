@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { HTMLInputTypeAttribute } from 'react'
+import { PasswordInput } from '@/components/common/PasswordInput'
 
 type AuthTextFieldProps = {
   label: string
@@ -28,6 +29,29 @@ export function AuthTextField({
   required = true,
   onChange,
 }: AuthTextFieldProps) {
+  if (type === 'password') {
+    return (
+      <div className="block">
+        <label htmlFor={name} className="text-sm font-semibold text-slate-700">
+          {label}
+        </label>
+        <PasswordInput
+          id={name}
+          name={name}
+          value={value}
+          autoComplete={autoComplete}
+          maxLength={maxLength}
+          minLength={minLength}
+          required={required}
+          placeholder={placeholder}
+          icon={Icon}
+          variant="auth"
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="block">
       <label htmlFor={name} className="text-sm font-semibold text-slate-700">

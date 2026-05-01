@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react'
+import { CalendarCheck, Link2Off, Loader2, Plus, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import type { FilterDef } from '@/components/common/ListToolbar'
@@ -16,6 +16,13 @@ import type { Appointment } from '../types/scheduling.types'
 import { CreateAppointmentModal } from '../components/appointments/CreateAppointmentModal'
 import { EditAppointmentModal } from '../components/appointments/EditAppointmentModal'
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
+import {
+  createGoogleCalendarConnectUrl,
+  disconnectGoogleCalendar,
+  getGoogleCalendarStatus,
+  syncGoogleCalendar,
+} from '../services/calendar-integrations.service'
+import type { GoogleCalendarStatus } from '../types/calendar-integration.types'
 import { getWeekStart } from '../utils/time'
 
 const STATUS_OPTIONS = [
@@ -45,6 +52,8 @@ export function AppointmentsPage() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
+  const [googleCalendar, setGoogleCalendar] = useState<GoogleCalendarStatus | null>(null)
+  const [isCalendarActionLoading, setIsCalendarActionLoading] = useState(false)
 
   // Dynamic filter defs — profileId options depend on loaded profiles
   const filterDefs = useMemo<FilterDef[]>(() => {
@@ -72,10 +81,11 @@ export function AppointmentsPage() {
   })
 
   useEffect(() => {
-    Promise.all([listAppointments(), listProfiles()])
-      .then(([appts, profs]) => {
+    Promise.all([listAppointments(), listProfiles(), getGoogleCalendarStatus()])
+      .then(([appts, profs, calendarStatus]) => {
         setAllAppointments(appts)
         setProfiles(profs)
+        setGoogleCalendar(calendarStatus)
       })
       .catch((err) => {
         const msg = err instanceof Error ? err.message : 'Erro ao carregar agendamentos.'
@@ -83,6 +93,31 @@ export function AppointmentsPage() {
         showAlert({ title: 'Erro ao carregar agendamentos', description: msg, tone: 'error' })
       })
       .finally(() => setIsLoading(false))
+  }, [showAlert])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const googleResult = params.get('googleCalendar')
+    if (!googleResult) return
+
+    if (googleResult === 'connected') {
+      showAlert({
+        title: 'Google Agenda conectado',
+        description: 'Agora você pode sincronizar os agendamentos da clínica.',
+        tone: 'success',
+      })
+      getGoogleCalendarStatus().then(setGoogleCalendar).catch(() => {})
+    }
+    if (googleResult === 'error') {
+      showAlert({
+        title: 'Erro ao conectar Google Agenda',
+        description:
+          params.get('message') ?? 'Não foi possível conectar o Google Agenda.',
+        tone: 'error',
+      })
+    }
+
+    window.history.replaceState(null, '', window.location.pathname)
   }, [showAlert])
 
   function handleCreated(appointment: Appointment) {
@@ -95,6 +130,65 @@ export function AppointmentsPage() {
     )
   }
 
+  async function handleConnectGoogleCalendar() {
+    setIsCalendarActionLoading(true)
+    try {
+      const { url } = await createGoogleCalendarConnectUrl()
+      window.location.assign(url)
+    } catch (err) {
+      showAlert({
+        title: 'Erro ao conectar Google Agenda',
+        description: err instanceof Error ? err.message : undefined,
+        tone: 'error',
+      })
+      setIsCalendarActionLoading(false)
+    }
+  }
+
+  async function handleSyncGoogleCalendar() {
+    setIsCalendarActionLoading(true)
+    try {
+      const result = await syncGoogleCalendar()
+      const status = await getGoogleCalendarStatus()
+      setGoogleCalendar(status)
+      showAlert({
+        title: 'Google Agenda sincronizado',
+        description: `${result.synced} agendamento${result.synced === 1 ? '' : 's'} sincronizado${result.synced === 1 ? '' : 's'}.`,
+        tone: 'success',
+      })
+    } catch (err) {
+      showAlert({
+        title: 'Erro ao sincronizar Google Agenda',
+        description: err instanceof Error ? err.message : undefined,
+        tone: 'error',
+      })
+    } finally {
+      setIsCalendarActionLoading(false)
+    }
+  }
+
+  async function handleDisconnectGoogleCalendar() {
+    setIsCalendarActionLoading(true)
+    try {
+      await disconnectGoogleCalendar()
+      setGoogleCalendar({
+        connected: false,
+        calendarSummary: null,
+        connectedAt: null,
+        lastSyncedAt: null,
+      })
+      showAlert({ title: 'Google Agenda desconectado', tone: 'success' })
+    } catch (err) {
+      showAlert({
+        title: 'Erro ao desconectar Google Agenda',
+        description: err instanceof Error ? err.message : undefined,
+        tone: 'error',
+      })
+    } finally {
+      setIsCalendarActionLoading(false)
+    }
+  }
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <AppPageHeader
@@ -102,10 +196,53 @@ export function AppointmentsPage() {
         title="Agendamentos"
         description="Gerencie as consultas da clínica, acompanhe status e registre novos atendimentos."
         action={
-          <Button onClick={() => setIsCreating(true)}>
-            <Plus className="h-4 w-4" />
-            Novo agendamento
-          </Button>
+          <div className="flex flex-wrap justify-end gap-2">
+            {googleCalendar?.connected ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleSyncGoogleCalendar}
+                  disabled={isCalendarActionLoading}
+                  title={googleCalendar.calendarSummary ?? 'Google Agenda conectado'}
+                >
+                  {isCalendarActionLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                  Sincronizar
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleDisconnectGoogleCalendar}
+                  disabled={isCalendarActionLoading}
+                >
+                  <Link2Off className="h-4 w-4" />
+                  Desconectar
+                </Button>
+              </>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleConnectGoogleCalendar}
+                disabled={isCalendarActionLoading}
+              >
+                {isCalendarActionLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CalendarCheck className="h-4 w-4" />
+                )}
+                Google Agenda
+              </Button>
+            )}
+            <Button onClick={() => setIsCreating(true)}>
+              <Plus className="h-4 w-4" />
+              Novo agendamento
+            </Button>
+          </div>
         }
       />
 

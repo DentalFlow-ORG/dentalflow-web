@@ -2,7 +2,8 @@ import { Loader2 } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 import { useEffect, useState } from 'react'
 
-import { FormField, TextInput } from '@/components/common/FormField'
+import { FormField } from '@/components/common/FormField'
+import { PasswordInput } from '@/components/common/PasswordInput'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import {
   UserEmailField,
@@ -172,9 +173,8 @@ export function ClinicMemberFormModal({
                     htmlFor="memberPassword"
                     hint="Mínimo 8 caracteres, máximo 72."
                   >
-                    <TextInput
+                    <PasswordInput
                       id="memberPassword"
-                      type="password"
                       required
                       minLength={8}
                       maxLength={72}
