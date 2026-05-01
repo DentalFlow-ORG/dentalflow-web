@@ -6,11 +6,13 @@ import {
   type ReactNode,
 } from 'react'
 
+import { setupAuthRefresh } from '@/services/http'
+
 import {
   getCurrentUser,
   login as loginRequest,
   logout as logoutRequest,
-  refreshSession,
+  refresh,
   register as registerRequest,
 } from '../services/auth.service'
 import {
@@ -20,6 +22,7 @@ import {
   getStoredUser,
   setSession,
   setTokens,
+  updateStoredUser,
 } from '../utils/session-storage'
 import type { AuthUser, LoginPayload, RegisterPayload } from '../types'
 import { AuthContext, type AuthContextValue } from './auth-context'
@@ -33,6 +36,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isBootstrapping, setIsBootstrapping] = useState(true)
 
   useEffect(() => {
+    setupAuthRefresh({
+      refreshTokens: () => {
+        const refreshToken = getRefreshToken()
+        if (!refreshToken) return Promise.reject(new Error('No refresh token'))
+        return refresh(refreshToken)
+      },
+      onTokenRefreshed: (accessToken, refreshToken) => {
+        setTokens(accessToken, refreshToken)
+      },
+      onRefreshFailed: () => {
+        clearSession()
+        setUser(null)
+        window.location.replace('/acessar')
+      },
+    })
+
     const accessToken = getAccessToken()
 
     if (!accessToken) {
@@ -43,32 +62,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     getCurrentUser()
       .then((currentUser) => {
         setUser(currentUser)
-        setSession(accessToken, getRefreshToken(), currentUser)
+        updateStoredUser(currentUser)
       })
-      .catch(async () => {
-        const refreshToken = getRefreshToken()
-
-        if (!refreshToken) {
-          clearSession()
-          setUser(null)
-          return
-        }
-
-        try {
-          const refreshedSession = await refreshSession()
-          setTokens(refreshedSession.accessToken, refreshedSession.refreshToken)
-          const currentUser = await getCurrentUser()
-
-          setUser(currentUser)
-          setSession(
-            refreshedSession.accessToken,
-            refreshedSession.refreshToken,
-            currentUser,
-          )
-        } catch {
-          clearSession()
-          setUser(null)
-        }
+      .catch(() => {
+        clearSession()
+        setUser(null)
       })
       .finally(() => {
         setIsBootstrapping(false)

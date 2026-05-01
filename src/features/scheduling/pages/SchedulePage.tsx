@@ -1,10 +1,11 @@
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { Button } from '@/components/ui/button'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { listProfiles } from '@/features/profiles/services/profiles.service'
@@ -15,15 +16,14 @@ import {
   listAppointments,
   listAvailability,
   listAvailabilityExceptions,
-  updateAppointmentStatus,
 } from '../services/scheduling.service'
 import type {
   Appointment,
-  AppointmentStatus,
   Availability,
   AvailabilityException,
 } from '../types/scheduling.types'
-import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
+import { CreateAppointmentModal } from '../components/appointments/CreateAppointmentModal'
+import { EditAppointmentModal } from '../components/appointments/EditAppointmentModal'
 import { AvailabilityManager } from '../components/availability/AvailabilityManager'
 import { ExceptionManager } from '../components/availability/ExceptionManager'
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
@@ -51,7 +51,7 @@ export function SchedulePage() {
   const [activeTab, setActiveTab] = useState<Tab>('agenda')
   const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
-  const [isActionLoading, setIsActionLoading] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -62,7 +62,7 @@ export function SchedulePage() {
         ])
         const mine = profiles.find((p) => p.userId === user?.id) ?? null
         setOwnProfile(mine)
-        setAppointments(appts)
+        setAppointments(mine ? appts.filter((appt) => appt.profileId === mine.id) : [])
 
         if (mine) {
           const [avail, excs] = await Promise.all([
@@ -83,21 +83,14 @@ export function SchedulePage() {
     load()
   }, [user?.id, showAlert])
 
-  async function handleStatusChange(id: string, status: AppointmentStatus) {
-    setIsActionLoading(true)
-    try {
-      const updated = await updateAppointmentStatus(id, { status })
-      setAppointments((prev) => prev.map((a) => (a.id === id ? updated : a)))
-      if (selectedAppointment?.id === id) setSelectedAppointment(updated)
-    } catch (err) {
-      showAlert({
-        title: 'Erro ao atualizar status',
-        description: err instanceof Error ? err.message : undefined,
-        tone: 'error',
-      })
-    } finally {
-      setIsActionLoading(false)
-    }
+  function handleUpdated(appointment: Appointment) {
+    setAppointments((prev) =>
+      prev.map((appt) => (appt.id === appointment.id ? appointment : appt)),
+    )
+  }
+
+  function handleCreated(appointment: Appointment) {
+    setAppointments((prev) => [appointment, ...prev])
   }
 
   return (
@@ -106,6 +99,14 @@ export function SchedulePage() {
         eyebrow="Profissional"
         title="Minha agenda"
         description="Visualize seus agendamentos e gerencie sua disponibilidade semanal."
+        action={
+          ownProfile ? (
+            <Button onClick={() => setIsCreating(true)}>
+              <Plus className="h-4 w-4" />
+              Novo agendamento
+            </Button>
+          ) : undefined
+        }
       />
 
       {error && <InlineFeedback>{error}</InlineFeedback>}
@@ -178,13 +179,17 @@ export function SchedulePage() {
         </>
       )}
 
-      <AppointmentDrawer
+      <EditAppointmentModal
         appointment={selectedAppointment}
-        readOnly
-        isActionLoading={isActionLoading}
         onClose={() => setSelectedAppointment(null)}
-        onStatusChange={handleStatusChange}
-        onCancelRequest={() => {}}
+        onUpdated={handleUpdated}
+      />
+
+      <CreateAppointmentModal
+        open={isCreating}
+        onClose={() => setIsCreating(false)}
+        onCreated={handleCreated}
+        fixedProfile={ownProfile}
       />
     </div>
   )

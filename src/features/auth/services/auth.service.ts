@@ -29,17 +29,18 @@ export function getCurrentUser() {
   })
 }
 
-export function refreshSession() {
-  return apiRequest<RefreshResponse>('/auth/refresh', {
-    method: 'POST',
-    body: JSON.stringify({ refreshToken: getRefreshToken() }),
-  })
-}
-
 export function logout() {
   return apiRequest<void>('/auth/logout', {
     method: 'POST',
     accessToken: getAccessToken(),
     body: JSON.stringify({ refreshToken: getRefreshToken() }),
+  })
+}
+
+export function refresh(refreshToken: string) {
+  return apiRequest<RefreshResponse>('/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({ refreshToken }),
+    _skipRefresh: true,
   })
 }

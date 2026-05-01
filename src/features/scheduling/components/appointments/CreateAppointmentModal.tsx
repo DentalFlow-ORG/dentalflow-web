@@ -24,11 +24,17 @@ import { formatPhoneBR } from '@/lib/field-formatters'
 
 import { createAppointment } from '../../services/scheduling.service'
 import type { Appointment, CreateAppointmentDto } from '../../types/scheduling.types'
+import {
+  BUSINESS_END_TIME,
+  BUSINESS_START_TIME,
+  isBusinessTime,
+} from '../../utils/time'
 
 type CreateAppointmentModalProps = {
   open: boolean
   onClose: () => void
   onCreated: (appointment: Appointment) => void
+  fixedProfile?: ProfileListItem | null
 }
 
 type FormState = {
@@ -57,6 +63,7 @@ export function CreateAppointmentModal({
   open,
   onClose,
   onCreated,
+  fixedProfile,
 }: CreateAppointmentModalProps) {
   const { showAlert } = useGlobalAlerts()
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
@@ -69,12 +76,18 @@ export function CreateAppointmentModal({
 
   useEffect(() => {
     if (!open) return
+    if (fixedProfile) {
+      setProfiles([fixedProfile])
+      set('profileId', fixedProfile.id)
+      return
+    }
+
     setIsLoadingProfiles(true)
     listProfiles()
       .then(setProfiles)
       .catch(() => {})
       .finally(() => setIsLoadingProfiles(false))
-  }, [open])
+  }, [fixedProfile, open])
 
   useEffect(() => {
     if (!form.profileId) {
@@ -90,7 +103,8 @@ export function CreateAppointmentModal({
     if (
       form.appointmentDate === todayInputValue &&
       form.startTime &&
-      formatTimeInputValue(form.startTime) < nowTimeInputValue
+      formatTimeInputValue(form.startTime) <
+        getMinStartTime(form.appointmentDate, todayInputValue, nowTimeInputValue)
     ) {
       set('startTime', '')
     }
@@ -126,6 +140,14 @@ export function CreateAppointmentModal({
       showAlert({
         title: 'Horario invalido',
         description: 'Para hoje, escolha um horario igual ou posterior ao horario atual.',
+        tone: 'error',
+      })
+      return
+    }
+    if (!isBusinessTime(form.startTime)) {
+      showAlert({
+        title: 'Horario fora do expediente',
+        description: `Escolha um horario entre ${BUSINESS_START_TIME} e ${BUSINESS_END_TIME}.`,
         tone: 'error',
       })
       return
@@ -196,7 +218,7 @@ export function CreateAppointmentModal({
             <FormField label="Profissional" htmlFor="profileId">
               <Select
                 required
-                disabled={isLoadingProfiles || isSubmitting}
+                disabled={Boolean(fixedProfile) || isLoadingProfiles || isSubmitting}
                 value={form.profileId}
                 onValueChange={(value) => {
                   set('profileId', value)
@@ -264,7 +286,8 @@ export function CreateAppointmentModal({
                     if (
                       nextDate === todayInputValue &&
                       form.startTime &&
-                      formatTimeInputValue(form.startTime) < nowTimeInputValue
+                      formatTimeInputValue(form.startTime) <
+                        getMinStartTime(nextDate, todayInputValue, nowTimeInputValue)
                     ) {
                       set('startTime', '')
                     }
@@ -278,11 +301,12 @@ export function CreateAppointmentModal({
                   required
                   disabled={isSubmitting}
                   value={form.startTime}
-                  minValue={
-                    form.appointmentDate === todayInputValue
-                      ? nowTimeInputValue
-                      : undefined
-                  }
+                  minValue={getMinStartTime(
+                    form.appointmentDate,
+                    todayInputValue,
+                    nowTimeInputValue,
+                  )}
+                  maxValue={BUSINESS_END_TIME}
                   onValueChange={(value) => set('startTime', formatTimeInputValue(value))}
                 />
               </FormField>
@@ -362,6 +386,18 @@ export function CreateAppointmentModal({
       </Dialog.Portal>
     </Dialog.Root>
   )
+}
+
+function getMinStartTime(
+  appointmentDate: string,
+  todayInputValue: string,
+  nowTimeInputValue: string,
+) {
+  if (appointmentDate !== todayInputValue) return BUSINESS_START_TIME
+
+  return nowTimeInputValue > BUSINESS_START_TIME
+    ? nowTimeInputValue
+    : BUSINESS_START_TIME
 }
 
 function getCurrentTimeInputValue() {

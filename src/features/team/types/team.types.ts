@@ -21,6 +21,19 @@ export type CreateMemberDto = {
   specialtyIds?: string[]
 }
 
+export type UpdateMemberDto = {
+  firstName?: string
+  lastName?: string
+  email?: string
+  role?: MemberRole
+  phone?: string
+  isActive?: boolean
+}
+
+export type UpdateMemberPasswordDto = {
+  password: string
+}
+
 export type MemberProfile = {
   id: string
   userId: string | null

@@ -2,8 +2,14 @@ import { Loader2 } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 import { useState, useEffect } from 'react'
 
-import { FormField, TextInput } from '@/components/common/FormField'
+import { FormField } from '@/components/common/FormField'
+import { PasswordInput } from '@/components/common/PasswordInput'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import {
+  UserEmailField,
+  UserNameFields,
+  UserPhoneField,
+} from '@/components/common/UserIdentityFields'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -12,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { formatPhoneBR, onlyDigits } from '@/lib/field-formatters'
+import { isValidPersonName, isValidPhoneBR, onlyDigits } from '@/lib/field-formatters'
 
 import { createAdminUser, listAdminClinics, updateAdminUser } from '../services/admin-users.service'
 import type { AdminClinic, AdminUser, UserRole } from '../types/admin.types'
@@ -64,7 +70,7 @@ function buildInitialForm(user: AdminUser): FormState {
     password: '',
     role: user.role,
     clinicId: user.clinicId ?? '',
-    phone: user.phone ? formatPhoneBR(user.phone) : '',
+    phone: user.phone ?? '',
     isActive: user.isActive ? 'true' : 'false',
   }
 }
@@ -105,6 +111,21 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
 
     if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
       setError('Nome, sobrenome e e-mail são obrigatórios.')
+      return
+    }
+
+    if (!isValidPersonName(form.firstName)) {
+      setError('O nome não pode conter números ou caracteres especiais.')
+      return
+    }
+
+    if (!isValidPersonName(form.lastName)) {
+      setError('O sobrenome não pode conter números ou caracteres especiais.')
+      return
+    }
+
+    if (form.phone && !isValidPhoneBR(form.phone)) {
+      setError('Telefone inválido. Informe um número com DDD e 10 ou 11 dígitos no total.')
       return
     }
 
@@ -181,43 +202,17 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
               <div className="space-y-4">
                 {error && <InlineFeedback>{error}</InlineFeedback>}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField label="Nome" htmlFor="firstName">
-                    <TextInput
-                      id="firstName"
-                      value={form.firstName}
-                      onChange={(e) => set('firstName', e.target.value)}
-                      placeholder="João"
-                      required
-                      minLength={2}
-                      maxLength={50}
-                    />
-                  </FormField>
+                <UserNameFields
+                  firstName={form.firstName}
+                  lastName={form.lastName}
+                  onFirstNameChange={(value) => set('firstName', value)}
+                  onLastNameChange={(value) => set('lastName', value)}
+                />
 
-                  <FormField label="Sobrenome" htmlFor="lastName">
-                    <TextInput
-                      id="lastName"
-                      value={form.lastName}
-                      onChange={(e) => set('lastName', e.target.value)}
-                      placeholder="Silva"
-                      required
-                      minLength={2}
-                      maxLength={50}
-                    />
-                  </FormField>
-                </div>
-
-                <FormField label="E-mail" htmlFor="email">
-                  <TextInput
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => set('email', e.target.value)}
-                    placeholder="joao@example.com"
-                    required
-                    maxLength={254}
-                  />
-                </FormField>
+                <UserEmailField
+                  email={form.email}
+                  onEmailChange={(value) => set('email', value)}
+                />
 
                 {!isEditMode && (
                   <FormField
@@ -225,9 +220,8 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
                     htmlFor="password"
                     hint="Mínimo 8 caracteres, máximo 72."
                   >
-                    <TextInput
+                    <PasswordInput
                       id="password"
-                      type="password"
                       value={form.password}
                       onChange={(e) => set('password', e.target.value)}
                       placeholder="••••••••"
@@ -250,7 +244,7 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
                       }}
                     >
                       <SelectTrigger id="role">
-                        <SelectValue />
+                        <SelectValue placeholder="Selecione o papel" />
                       </SelectTrigger>
                       <SelectContent>
                         {ROLE_OPTIONS.map((opt) => (
@@ -262,16 +256,10 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
                     </Select>
                   </FormField>
 
-                  <FormField label="Telefone" htmlFor="phone" optional>
-                    <TextInput
-                      id="phone"
-                      type="tel"
-                      value={form.phone}
-                      onChange={(e) => set('phone', formatPhoneBR(e.target.value))}
-                      placeholder="(11) 99999-9999"
-                      maxLength={15}
-                    />
-                  </FormField>
+                  <UserPhoneField
+                    phone={form.phone}
+                    onPhoneChange={(value) => set('phone', value)}
+                  />
                 </div>
 
                 {showClinicId && (
@@ -311,7 +299,7 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
                       onValueChange={(v) => set('isActive', v)}
                     >
                       <SelectTrigger id="isActive">
-                        <SelectValue />
+                        <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="true">Ativo</SelectItem>

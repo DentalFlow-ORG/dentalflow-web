@@ -1,14 +1,15 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PanelCard } from '@/components/common/PanelCard'
+import { PasswordInput } from '@/components/common/PasswordInput'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
-import { formatPhoneBR, formatSlug, formatUf, onlyDigits } from '@/lib/field-formatters'
+import { formatPhoneBR, formatSlug, formatUf, isValidPersonName, isValidPhoneBR, onlyDigits } from '@/lib/field-formatters'
 
 import { createMember, listSpecialties } from '../services/team.service'
 import type { CreateMemberDto, MemberRole, Specialty } from '../types/team.types'
@@ -49,7 +50,6 @@ export function CreateMemberPage() {
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [specialties, setSpecialties] = useState<Specialty[]>([])
-  const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -91,13 +91,33 @@ export function CreateMemberPage() {
     setIsSubmitting(true)
 
     try {
+      if (!isValidPersonName(form.firstName)) {
+        setError('O nome não pode conter números ou caracteres especiais.')
+        setIsSubmitting(false)
+        return
+      }
+
+      if (!isValidPersonName(form.lastName)) {
+        setError('O sobrenome não pode conter números ou caracteres especiais.')
+        setIsSubmitting(false)
+        return
+      }
+
+      if (form.phone && !isValidPhoneBR(form.phone)) {
+        setError('Telefone inválido. Informe um número com DDD e 10 ou 11 dígitos no total.')
+        setIsSubmitting(false)
+        return
+      }
+
+      const rawPhone = onlyDigits(form.phone)
+
       const dto: CreateMemberDto = {
         role: form.role,
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim(),
         password: form.password,
-        phone: form.phone.trim() || undefined,
+        phone: rawPhone || undefined,
       }
 
       if (form.role === 'DENTIST') {
@@ -224,32 +244,16 @@ export function CreateMemberPage() {
               htmlFor="password"
               hint="Mínimo de 8 caracteres. O membro poderá alterar a senha após o primeiro acesso."
             >
-              <div className="relative">
-                <TextInput
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  minLength={8}
-                  maxLength={72}
-                  disabled={isSubmitting}
-                  placeholder="Crie uma senha inicial"
-                  value={form.password}
-                  onChange={(e) => set('password', e.target.value)}
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600"
-                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="password"
+                required
+                minLength={8}
+                maxLength={72}
+                disabled={isSubmitting}
+                placeholder="Crie uma senha inicial"
+                value={form.password}
+                onChange={(e) => set('password', e.target.value)}
+              />
             </FormField>
           </div>
         </PanelCard>

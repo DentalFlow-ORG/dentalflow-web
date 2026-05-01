@@ -55,14 +55,28 @@ export function DatePickerInput({
     year: 'numeric',
   })
 
-  function commit(nextValue: string) {
+  function commit(nextValue: string, options: { close?: boolean } = { close: true }) {
     if (isBeforeMinDate(nextValue, minDateValue)) return
 
     if (!isControlled) {
       setInternalValue(nextValue)
     }
     onValueChange?.(nextValue)
-    setOpen(false)
+    if (options.close !== false) {
+      setOpen(false)
+    }
+  }
+
+  function handleManualChange(nextValue: string) {
+    if (!nextValue) {
+      if (!isControlled) {
+        setInternalValue('')
+      }
+      onValueChange?.('')
+      return
+    }
+
+    commit(nextValue, { close: false })
   }
 
   function goToPreviousMonth() {
@@ -92,34 +106,36 @@ export function DatePickerInput({
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
-      {name && (
+      <div className="relative">
         <input
-          name={name}
-          value={selectedValue}
-          required={required}
-          readOnly
-          tabIndex={-1}
-          className="sr-only"
-        />
-      )}
-      <PopoverTrigger asChild>
-        <button
           id={id}
-          type="button"
+          name={name}
+          type="date"
+          required={required}
           disabled={disabled}
+          value={selectedValue}
+          min={minDateValue || undefined}
+          onChange={(event) => handleManualChange(event.target.value)}
+          aria-label={placeholder}
           className={cn(
-            'flex h-11 w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 text-left text-sm font-medium text-slate-950 shadow-sm outline-none transition',
+            'h-11 w-full rounded-md border border-slate-200 bg-white px-3 pr-11 text-sm font-medium text-slate-950 shadow-sm outline-none transition [color-scheme:light] [&::-webkit-calendar-picker-indicator]:opacity-0',
             'hover:border-primary/35 hover:bg-blue-50/30 focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 disabled:opacity-70',
             !selectedValue && 'text-slate-400',
             className,
           )}
-        >
-          <span className="flex min-w-0 items-center gap-2">
-            <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
-            <span className="truncate">{label}</span>
-          </span>
-        </button>
-      </PopoverTrigger>
+        />
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            disabled={disabled}
+            className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:pointer-events-none disabled:opacity-50"
+            aria-label="Abrir calendário"
+            title={label}
+          >
+            <CalendarDays className="h-4 w-4" />
+          </button>
+        </PopoverTrigger>
+      </div>
       <PopoverContent className="w-[20rem]">
         <div className="border-b border-slate-100 p-3">
           <div className="flex items-center justify-between gap-2">
