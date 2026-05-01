@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { formatPhoneBR, onlyDigits } from '@/lib/field-formatters'
+import { formatPhoneBR, isValidPersonName, isValidPhoneBR, onlyDigits } from '@/lib/field-formatters'
 
 import { createAdminUser, listAdminClinics, updateAdminUser } from '../services/admin-users.service'
 import type { AdminClinic, AdminUser, UserRole } from '../types/admin.types'
@@ -105,6 +105,21 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
 
     if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
       setError('Nome, sobrenome e e-mail são obrigatórios.')
+      return
+    }
+
+    if (!isValidPersonName(form.firstName)) {
+      setError('O nome não pode conter números ou caracteres especiais.')
+      return
+    }
+
+    if (!isValidPersonName(form.lastName)) {
+      setError('O sobrenome não pode conter números ou caracteres especiais.')
+      return
+    }
+
+    if (form.phone && !isValidPhoneBR(form.phone)) {
+      setError('Telefone inválido. Informe um número com DDD e 10 ou 11 dígitos no total.')
       return
     }
 

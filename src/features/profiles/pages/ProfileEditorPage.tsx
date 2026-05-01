@@ -9,6 +9,7 @@ import { LoadingCard } from '@/components/common/LoadingCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { isValidPhoneBR } from '@/lib/field-formatters'
 import { formatCurrencyBR } from '@/lib/number-formatters'
 
 import { useRequestErrorHandler } from '../hooks/useRequestErrorHandler'
@@ -83,6 +84,17 @@ export function ProfileEditorPage({ mode }: ProfileEditorPageProps) {
 
   const handleSubmitProfile = async () => {
     setError(null)
+
+    if (formValues.phone && !isValidPhoneBR(formValues.phone)) {
+      setError('Telefone inválido. Informe um número com DDD e 10 ou 11 dígitos no total.')
+      return
+    }
+
+    if (formValues.whatsappNumber && !isValidPhoneBR(formValues.whatsappNumber)) {
+      setError('Número de WhatsApp inválido. Informe um número com DDD e 10 ou 11 dígitos no total.')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {

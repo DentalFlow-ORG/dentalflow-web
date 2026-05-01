@@ -8,7 +8,7 @@ import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
-import { formatPhoneBR, formatSlug, formatUf, onlyDigits } from '@/lib/field-formatters'
+import { formatPhoneBR, formatSlug, formatUf, isValidPersonName, isValidPhoneBR, onlyDigits } from '@/lib/field-formatters'
 
 import { createMember, listSpecialties } from '../services/team.service'
 import type { CreateMemberDto, MemberRole, Specialty } from '../types/team.types'
@@ -91,13 +91,33 @@ export function CreateMemberPage() {
     setIsSubmitting(true)
 
     try {
+      if (!isValidPersonName(form.firstName)) {
+        setError('O nome não pode conter números ou caracteres especiais.')
+        setIsSubmitting(false)
+        return
+      }
+
+      if (!isValidPersonName(form.lastName)) {
+        setError('O sobrenome não pode conter números ou caracteres especiais.')
+        setIsSubmitting(false)
+        return
+      }
+
+      if (form.phone && !isValidPhoneBR(form.phone)) {
+        setError('Telefone inválido. Informe um número com DDD e 10 ou 11 dígitos no total.')
+        setIsSubmitting(false)
+        return
+      }
+
+      const rawPhone = onlyDigits(form.phone)
+
       const dto: CreateMemberDto = {
         role: form.role,
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim(),
         password: form.password,
-        phone: form.phone.trim() || undefined,
+        phone: rawPhone || undefined,
       }
 
       if (form.role === 'DENTIST') {

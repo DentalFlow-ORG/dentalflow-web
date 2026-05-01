@@ -1,3 +1,4 @@
+import { onlyDigits } from '@/lib/field-formatters'
 import { parseOptionalNumber } from '@/lib/number-formatters'
 
 import type {
@@ -89,6 +90,8 @@ export function profileFormToPayload(values: ProfileFormValues): ProfilePayload 
   return compactPayload({
     ...values,
     crmState: values.crmState.toUpperCase(),
+    phone: onlyDigits(values.phone),
+    whatsappNumber: onlyDigits(values.whatsappNumber),
   })
 }
 

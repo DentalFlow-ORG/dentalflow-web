@@ -7,6 +7,8 @@ import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import { ApiError } from '@/services/http'
 
+import { isValidPersonName } from '@/lib/field-formatters'
+
 import { useAuth } from '../hooks/useAuth'
 import type { AuthMode } from '../types'
 import { splitFullName } from '../utils/name'
@@ -42,6 +44,17 @@ export function AuthForm({ mode }: AuthFormProps) {
 
     if (!isLogin && normalizedResponsibleName.split(/\s+/).length < 2) {
       const message = 'Informe nome e sobrenome do responsável.'
+      setError(message)
+      showAlert({
+        title: 'Cadastro incompleto',
+        description: message,
+        tone: 'warning',
+      })
+      return
+    }
+
+    if (!isLogin && !isValidPersonName(normalizedResponsibleName)) {
+      const message = 'O nome do responsável não pode conter números ou caracteres especiais.'
       setError(message)
       showAlert({
         title: 'Cadastro incompleto',

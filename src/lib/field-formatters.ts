@@ -64,3 +64,12 @@ export function formatSlug(value: string) {
 export function formatDecimalInput(value: string) {
   return value.replace(/[^\d,.]/g, '').replace(/([,.].*)[,.]/g, '$1')
 }
+
+export function isValidPhoneBR(value: string): boolean {
+  const digits = onlyDigits(value)
+  return digits.length >= 10 && digits.length <= 11
+}
+
+export function isValidPersonName(value: string): boolean {
+  return /^[\p{L}\s.'\-]+$/u.test(value.trim())
+}
