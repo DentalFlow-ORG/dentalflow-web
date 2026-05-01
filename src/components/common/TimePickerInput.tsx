@@ -15,6 +15,7 @@ type TimePickerInputProps = {
   value?: string
   defaultValue?: string
   minValue?: string
+  maxValue?: string
   placeholder?: string
   required?: boolean
   disabled?: boolean
@@ -29,6 +30,7 @@ export function TimePickerInput({
   value,
   defaultValue,
   minValue,
+  maxValue,
   placeholder = 'Selecionar horario',
   required = false,
   disabled = false,
@@ -37,6 +39,7 @@ export function TimePickerInput({
   const normalizedValue = formatTimeInputValue(value)
   const normalizedDefaultValue = formatTimeInputValue(defaultValue)
   const normalizedMinValue = formatTimeInputValue(minValue)
+  const normalizedMaxValue = formatTimeInputValue(maxValue)
 
   return (
     <Select
@@ -47,6 +50,7 @@ export function TimePickerInput({
       defaultValue={normalizedDefaultValue}
       onValueChange={(nextValue) => {
         if (isBeforeMinTime(nextValue, normalizedMinValue)) return
+        if (isAfterMaxTime(nextValue, normalizedMaxValue)) return
         onValueChange?.(nextValue)
       }}
     >
@@ -61,7 +65,10 @@ export function TimePickerInput({
           <SelectItem
             key={time}
             value={time}
-            disabled={isBeforeMinTime(time, normalizedMinValue)}
+            disabled={
+              isBeforeMinTime(time, normalizedMinValue) ||
+              isAfterMaxTime(time, normalizedMaxValue)
+            }
           >
             {time}
           </SelectItem>
@@ -83,4 +90,8 @@ function buildTimeOptions() {
 
 function isBeforeMinTime(value: string, minValue: string) {
   return Boolean(minValue && value && value < minValue)
+}
+
+function isAfterMaxTime(value: string, maxValue: string) {
+  return Boolean(maxValue && value && value > maxValue)
 }

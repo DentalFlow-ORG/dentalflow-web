@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FilterDef } from '@/components/common/ListToolbar'
 import { ListToolbar } from '@/components/common/ListToolbar'
 import { ListPageShell } from '@/components/common/ListPageShell'
-import { Pagination } from '@/components/common/Pagination'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -12,21 +11,12 @@ import { useListFilter } from '@/hooks/useListFilter'
 import { listProfiles } from '@/features/profiles/services/profiles.service'
 import type { ProfileListItem } from '@/features/profiles/types'
 
-import {
-  cancelAppointment,
-  listAppointments,
-  updateAppointmentStatus,
-} from '../services/scheduling.service'
-import type {
-  Appointment,
-  AppointmentStatus,
-} from '../types/scheduling.types'
-import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
-import { AppointmentTable } from '../components/appointments/AppointmentTable'
-import { CancelAppointmentDialog } from '../components/appointments/CancelAppointmentDialog'
+import { listAppointments } from '../services/scheduling.service'
+import type { Appointment } from '../types/scheduling.types'
 import { CreateAppointmentModal } from '../components/appointments/CreateAppointmentModal'
-
-const PAGE_SIZE = 15
+import { EditAppointmentModal } from '../components/appointments/EditAppointmentModal'
+import { WeekCalendar } from '../components/calendar/WeekCalendar'
+import { getWeekStart } from '../utils/time'
 
 const STATUS_OPTIONS = [
   { value: 'PENDING', label: 'Pendente' },
@@ -53,10 +43,8 @@ export function AppointmentsPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
-  const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null)
   const [isCreating, setIsCreating] = useState(false)
-  const [isActionLoading, setIsActionLoading] = useState(false)
-  const [isCanceling, setIsCanceling] = useState(false)
+  const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
 
   // Dynamic filter defs — profileId options depend on loaded profiles
   const filterDefs = useMemo<FilterDef[]>(() => {
@@ -76,14 +64,11 @@ export function AppointmentsPage() {
   const {
     searchQuery, setSearchQuery,
     activeFilters, setFilter, clearAll,
-    page, setPage,
-    totalPages,
     filteredCount,
-    paginatedData: appointments,
+    filteredData: appointments,
   } = useListFilter<Appointment>(allAppointments, {
     searchFn: SEARCH_FN,
     filterFns: FILTER_FNS,
-    pageSize: PAGE_SIZE,
   })
 
   useEffect(() => {
@@ -100,48 +85,14 @@ export function AppointmentsPage() {
       .finally(() => setIsLoading(false))
   }, [showAlert])
 
-  async function handleStatusChange(id: string, status: AppointmentStatus) {
-    setIsActionLoading(true)
-    try {
-      const updated = await updateAppointmentStatus(id, { status })
-      setAllAppointments((prev) => prev.map((a) => (a.id === id ? updated : a)))
-      if (selectedAppointment?.id === id) setSelectedAppointment(updated)
-      showAlert({ title: 'Status atualizado', tone: 'success' })
-    } catch (err) {
-      showAlert({
-        title: 'Erro ao atualizar status',
-        description: err instanceof Error ? err.message : undefined,
-        tone: 'error',
-      })
-    } finally {
-      setIsActionLoading(false)
-    }
-  }
-
-  async function handleCancel(reason: string) {
-    if (!cancelTarget) return
-    setIsCanceling(true)
-    try {
-      const updated = await cancelAppointment(cancelTarget.id, reason)
-      setAllAppointments((prev) =>
-        prev.map((a) => (a.id === cancelTarget.id ? updated : a)),
-      )
-      if (selectedAppointment?.id === cancelTarget.id) setSelectedAppointment(updated)
-      setCancelTarget(null)
-      showAlert({ title: 'Agendamento cancelado', tone: 'success' })
-    } catch (err) {
-      showAlert({
-        title: 'Erro ao cancelar agendamento',
-        description: err instanceof Error ? err.message : undefined,
-        tone: 'error',
-      })
-    } finally {
-      setIsCanceling(false)
-    }
-  }
-
   function handleCreated(appointment: Appointment) {
     setAllAppointments((prev) => [appointment, ...prev])
+  }
+
+  function handleUpdated(appointment: Appointment) {
+    setAllAppointments((prev) =>
+      prev.map((appt) => (appt.id === appointment.id ? appointment : appt)),
+    )
   }
 
   return (
@@ -176,41 +127,19 @@ export function AppointmentsPage() {
             totalCount={allAppointments.length}
           />
 
-          <AppointmentTable
+          <WeekCalendar
             appointments={appointments}
-            isActionLoading={isActionLoading}
-            onRowClick={setSelectedAppointment}
-            onStatusChange={handleStatusChange}
-            onCancelRequest={setCancelTarget}
-          />
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            filteredCount={filteredCount}
-            pageSize={PAGE_SIZE}
-            onPageChange={setPage}
+            weekStart={weekStart}
+            onWeekChange={setWeekStart}
+            onAppointmentClick={setSelectedAppointment}
           />
         </div>
       </ListPageShell>
 
-      <AppointmentDrawer
+      <EditAppointmentModal
         appointment={selectedAppointment}
-        isActionLoading={isActionLoading}
         onClose={() => setSelectedAppointment(null)}
-        onStatusChange={handleStatusChange}
-        onCancelRequest={(appt) => {
-          setCancelTarget(appt)
-          setSelectedAppointment(null)
-        }}
-      />
-
-      <CancelAppointmentDialog
-        open={!!cancelTarget}
-        patientName={cancelTarget?.patientName ?? ''}
-        isCanceling={isCanceling}
-        onCancel={() => setCancelTarget(null)}
-        onConfirm={handleCancel}
+        onUpdated={handleUpdated}
       />
 
       <CreateAppointmentModal

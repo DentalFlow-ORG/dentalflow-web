@@ -16,6 +16,9 @@ import {
   wallTimeToMinutes,
 } from '@/lib/date-time-formatters'
 
+export const BUSINESS_START_TIME = '08:00'
+export const BUSINESS_END_TIME = '18:00'
+
 export function formatWallTime(isoTime: string): string {
   return formatTimeInputValue(isoTime)
 }
@@ -34,6 +37,16 @@ export function isoDateToString(isoDate: string): string {
 
 export function toDateInputValue(date: Date): string {
   return formatDateInputValue(date)
+}
+
+export function isBusinessTime(value: string) {
+  const timeValue = formatTimeInputValue(value)
+
+  return Boolean(
+    timeValue &&
+      timeValue >= BUSINESS_START_TIME &&
+      timeValue <= BUSINESS_END_TIME,
+  )
 }
 
 export {

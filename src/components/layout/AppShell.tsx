@@ -5,6 +5,7 @@ import { type ReactNode } from 'react'
 import { BrandLink } from '@/components/brand/BrandLink'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import type { AuthUserRole } from '@/features/auth/types'
 import { getUserDisplayName } from '@/features/auth/utils/name'
 import { cn } from '@/lib/utils'
 
@@ -16,7 +17,7 @@ type NavItem = {
   label: string
   to: string
   icon: React.ElementType
-  roles?: string[]
+  roles?: AuthUserRole[]
 }
 
 const appNavigation: NavItem[] = [
@@ -24,13 +25,13 @@ const appNavigation: NavItem[] = [
     label: 'Visão geral',
     to: '/app',
     icon: BarChart3,
-    roles: ['OWNER', 'DENTIST', 'ASSISTANT'],
+    roles: ['OWNER', 'ASSISTANT'],
   },
   {
     label: 'Perfis',
     to: '/app/perfis',
     icon: BriefcaseBusiness,
-    roles: ['OWNER', 'DENTIST', 'ASSISTANT'],
+    roles: ['OWNER', 'ASSISTANT'],
   },
   {
     label: 'Agendamentos',

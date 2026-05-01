@@ -9,7 +9,6 @@ import {
   AdminUsersPage,
   AppointmentsPage,
   AuthRoutePage,
-  CreateMemberPage,
   DashboardPage,
   LandingPage,
   ProfileEditorPageCreate,
@@ -47,7 +46,7 @@ const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app',
   component: () => (
-    <ProtectedAppRoute>
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT', 'ADMIN']}>
       <DashboardPage />
     </ProtectedAppRoute>
   ),
@@ -57,7 +56,7 @@ const profilesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/perfis',
   component: () => (
-    <ProtectedAppRoute>
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
       <ProfilesListPage />
     </ProtectedAppRoute>
   ),
@@ -67,7 +66,7 @@ const newProfileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/perfis/novo',
   component: () => (
-    <ProtectedAppRoute>
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
       <ProfileEditorPageCreate />
     </ProtectedAppRoute>
   ),
@@ -77,7 +76,7 @@ const editProfileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/perfis/$profileId',
   component: () => (
-    <ProtectedAppRoute>
+    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
       <ProfileEditorPageEdit />
     </ProtectedAppRoute>
   ),
@@ -87,7 +86,7 @@ const editProfileServiceRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/perfis/$profileId/servicos/$serviceId',
   component: () => (
-    <ProtectedAppRoute>
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
       <ProfileServiceEditorPage />
     </ProtectedAppRoute>
   ),
@@ -103,7 +102,7 @@ const appointmentsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/agendamentos',
   component: () => (
-    <ProtectedAppRoute>
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
       <AppointmentsPage />
     </ProtectedAppRoute>
   ),
@@ -113,7 +112,7 @@ const scheduleRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/agenda',
   component: () => (
-    <ProtectedAppRoute>
+    <ProtectedAppRoute allowedRoles={['DENTIST']}>
       <SchedulePage />
     </ProtectedAppRoute>
   ),
@@ -123,18 +122,8 @@ const teamRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/equipe',
   component: () => (
-    <ProtectedAppRoute>
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
       <TeamPage />
-    </ProtectedAppRoute>
-  ),
-})
-
-const newMemberRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/app/equipe/novo',
-  component: () => (
-    <ProtectedAppRoute>
-      <CreateMemberPage />
     </ProtectedAppRoute>
   ),
 })
@@ -161,7 +150,6 @@ const routeTree = rootRoute.addChildren([
   appointmentsRoute,
   scheduleRoute,
   teamRoute,
-  newMemberRoute,
   adminUsersRoute,
 ])
 

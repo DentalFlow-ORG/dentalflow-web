@@ -2,6 +2,7 @@ export type {
   AuthMode,
   AuthResponse,
   AuthUser,
+  AuthUserRole,
   LoginPayload,
   RefreshResponse,
   RegisterPayload,
