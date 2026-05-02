@@ -13,15 +13,20 @@ import type { ProfileListItem } from '@/features/profiles/types'
 import { cn } from '@/lib/utils'
 
 import {
+  cancelAppointment,
   listAppointments,
   listAvailability,
   listAvailabilityExceptions,
+  updateAppointmentStatus,
 } from '../services/scheduling.service'
 import type {
   Appointment,
+  AppointmentStatus,
   Availability,
   AvailabilityException,
 } from '../types/scheduling.types'
+import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
+import { CancelAppointmentDialog } from '../components/appointments/CancelAppointmentDialog'
 import { CreateAppointmentModal } from '../components/appointments/CreateAppointmentModal'
 import { EditAppointmentModal } from '../components/appointments/EditAppointmentModal'
 import { AvailabilityManager } from '../components/availability/AvailabilityManager'
@@ -37,6 +42,8 @@ const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'excecoes', label: 'Exceções' },
 ]
 
+const DENTIST_ALLOWED_TRANSITIONS: AppointmentStatus[] = ['COMPLETED', 'NO_SHOW']
+
 export function SchedulePage() {
   const { user } = useAuth()
   const { showAlert } = useGlobalAlerts()
@@ -50,7 +57,10 @@ export function SchedulePage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('agenda')
   const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [drawerAppointment, setDrawerAppointment] = useState<Appointment | null>(null)
+  const [editTarget, setEditTarget] = useState<Appointment | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null)
+  const [isActionLoading, setIsActionLoading] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
@@ -87,10 +97,62 @@ export function SchedulePage() {
     setAppointments((prev) =>
       prev.map((appt) => (appt.id === appointment.id ? appointment : appt)),
     )
+    if (drawerAppointment?.id === appointment.id) {
+      setDrawerAppointment(appointment)
+    }
   }
 
   function handleCreated(appointment: Appointment) {
     setAppointments((prev) => [appointment, ...prev])
+  }
+
+  async function handleStatusChange(id: string, status: AppointmentStatus) {
+    setIsActionLoading(true)
+    try {
+      const updated = await updateAppointmentStatus(id, { status })
+      setAppointments((prev) => prev.map((a) => (a.id === id ? updated : a)))
+      if (drawerAppointment?.id === id) setDrawerAppointment(updated)
+      showAlert({ title: 'Status atualizado', tone: 'success' })
+    } catch (err) {
+      showAlert({
+        title: 'Erro ao atualizar status',
+        description: err instanceof Error ? err.message : undefined,
+        tone: 'error',
+      })
+    } finally {
+      setIsActionLoading(false)
+    }
+  }
+
+  function handleCancelRequest(appointment: Appointment) {
+    setCancelTarget(appointment)
+  }
+
+  async function handleCancelConfirm(reason: string) {
+    if (!cancelTarget) return
+    setIsActionLoading(true)
+    try {
+      const updated = await cancelAppointment(cancelTarget.id, reason || undefined)
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === cancelTarget.id ? updated : a)),
+      )
+      if (drawerAppointment?.id === cancelTarget.id) setDrawerAppointment(updated)
+      setCancelTarget(null)
+      showAlert({ title: 'Agendamento cancelado', tone: 'success' })
+    } catch (err) {
+      showAlert({
+        title: 'Erro ao cancelar agendamento',
+        description: err instanceof Error ? err.message : undefined,
+        tone: 'error',
+      })
+    } finally {
+      setIsActionLoading(false)
+    }
+  }
+
+  function handleEdit(appointment: Appointment) {
+    setDrawerAppointment(null)
+    setEditTarget(appointment)
   }
 
   return (
@@ -153,7 +215,7 @@ export function SchedulePage() {
               appointments={appointments}
               weekStart={weekStart}
               onWeekChange={setWeekStart}
-              onAppointmentClick={setSelectedAppointment}
+              onAppointmentClick={setDrawerAppointment}
             />
           )}
 
@@ -179,9 +241,27 @@ export function SchedulePage() {
         </>
       )}
 
+      <AppointmentDrawer
+        appointment={drawerAppointment}
+        isActionLoading={isActionLoading}
+        allowedTransitions={DENTIST_ALLOWED_TRANSITIONS}
+        onClose={() => setDrawerAppointment(null)}
+        onEdit={handleEdit}
+        onStatusChange={handleStatusChange}
+        onCancelRequest={handleCancelRequest}
+      />
+
+      <CancelAppointmentDialog
+        open={!!cancelTarget}
+        patientName={cancelTarget?.patientName ?? ''}
+        isCanceling={isActionLoading}
+        onCancel={() => setCancelTarget(null)}
+        onConfirm={handleCancelConfirm}
+      />
+
       <EditAppointmentModal
-        appointment={selectedAppointment}
-        onClose={() => setSelectedAppointment(null)}
+        appointment={editTarget}
+        onClose={() => setEditTarget(null)}
         onUpdated={handleUpdated}
       />
 

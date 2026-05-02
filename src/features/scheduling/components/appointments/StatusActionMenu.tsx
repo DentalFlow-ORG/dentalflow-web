@@ -7,6 +7,7 @@ import type { Appointment, AppointmentStatus } from '../../types/scheduling.type
 type StatusActionMenuProps = {
   appointment: Appointment
   isLoading: boolean
+  allowedTransitions?: AppointmentStatus[]
   onStatusChange: (id: string, status: AppointmentStatus) => void
   onCancelRequest: (appointment: Appointment) => void
 }
@@ -14,10 +15,14 @@ type StatusActionMenuProps = {
 export function StatusActionMenu({
   appointment,
   isLoading,
+  allowedTransitions,
   onStatusChange,
   onCancelRequest,
 }: StatusActionMenuProps) {
   const { id, status } = appointment
+
+  const can = (target: AppointmentStatus) =>
+    !allowedTransitions || allowedTransitions.includes(target)
 
   if (status === 'COMPLETED' || status === 'CANCELED' || status === 'NO_SHOW') {
     return <span className="text-xs text-slate-400">—</span>
@@ -25,7 +30,7 @@ export function StatusActionMenu({
 
   return (
     <div className="flex items-center gap-1.5">
-      {status === 'PENDING' && (
+      {status === 'PENDING' && can('CONFIRMED') && (
         <Button
           type="button"
           size="xs"
@@ -39,7 +44,7 @@ export function StatusActionMenu({
         </Button>
       )}
 
-      {status === 'CONFIRMED' && (
+      {status === 'CONFIRMED' && can('COMPLETED') && (
         <Button
           type="button"
           size="xs"
@@ -52,30 +57,34 @@ export function StatusActionMenu({
         </Button>
       )}
 
-      <Button
-        type="button"
-        size="xs"
-        variant="ghost"
-        disabled={isLoading}
-        onClick={() => onStatusChange(id, 'NO_SHOW')}
-        title="Não compareceu"
-        className="text-orange-600 hover:bg-orange-50 hover:text-orange-700"
-      >
-        <UserX className="h-3 w-3" />
-        <span className="hidden lg:inline">Não veio</span>
-      </Button>
+      {can('NO_SHOW') && (
+        <Button
+          type="button"
+          size="xs"
+          variant="ghost"
+          disabled={isLoading}
+          onClick={() => onStatusChange(id, 'NO_SHOW')}
+          title="Não compareceu"
+          className="text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+        >
+          <UserX className="h-3 w-3" />
+          <span className="hidden lg:inline">Não veio</span>
+        </Button>
+      )}
 
-      <Button
-        type="button"
-        size="xs"
-        variant="destructive"
-        disabled={isLoading}
-        onClick={() => onCancelRequest(appointment)}
-        title="Cancelar"
-      >
-        <X className="h-3 w-3" />
-        <span className="hidden sm:inline">Cancelar</span>
-      </Button>
+      {can('CANCELED') && (
+        <Button
+          type="button"
+          size="xs"
+          variant="destructive"
+          disabled={isLoading}
+          onClick={() => onCancelRequest(appointment)}
+          title="Cancelar"
+        >
+          <X className="h-3 w-3" />
+          <span className="hidden sm:inline">Cancelar</span>
+        </Button>
+      )}
     </div>
   )
 }

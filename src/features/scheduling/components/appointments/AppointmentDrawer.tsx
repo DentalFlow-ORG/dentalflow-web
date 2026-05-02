@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 
 import { Button } from '@/components/ui/button'
@@ -16,8 +16,10 @@ import { StatusActionMenu } from './StatusActionMenu'
 type AppointmentDrawerProps = {
   appointment: Appointment | null
   readOnly?: boolean
+  allowedTransitions?: AppointmentStatus[]
   isActionLoading: boolean
   onClose: () => void
+  onEdit?: (appointment: Appointment) => void
   onStatusChange: (id: string, status: AppointmentStatus) => void
   onCancelRequest: (appointment: Appointment) => void
 }
@@ -25,8 +27,10 @@ type AppointmentDrawerProps = {
 export function AppointmentDrawer({
   appointment,
   readOnly = false,
+  allowedTransitions,
   isActionLoading,
   onClose,
+  onEdit,
   onStatusChange,
   onCancelRequest,
 }: AppointmentDrawerProps) {
@@ -61,15 +65,28 @@ export function AppointmentDrawer({
                     {formatAppointmentDateLong(appointment.appointmentDate)}
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  onClick={onClose}
-                  aria-label="Fechar"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  {onEdit && (appointment.status === 'PENDING' || appointment.status === 'CONFIRMED') && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => onEdit(appointment)}
+                      aria-label="Editar agendamento"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={onClose}
+                    aria-label="Fechar"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Body */}
@@ -81,6 +98,7 @@ export function AppointmentDrawer({
                     <StatusActionMenu
                       appointment={appointment}
                       isLoading={isActionLoading}
+                      allowedTransitions={allowedTransitions}
                       onStatusChange={onStatusChange}
                       onCancelRequest={onCancelRequest}
                     />
