@@ -10,6 +10,7 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useListFilter } from '@/hooks/useListFilter'
 import { listProfiles } from '@/features/profiles/services/profiles.service'
 import type { ProfileListItem } from '@/features/profiles/types'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 
 import { listAppointments } from '../services/scheduling.service'
 import type { Appointment } from '../types/scheduling.types'
@@ -43,6 +44,8 @@ const FILTER_FNS = {
 
 export function AppointmentsPage() {
   const { showAlert } = useGlobalAlerts()
+  const { user } = useAuth()
+  const canManageGoogleCalendar = user?.role === 'OWNER'
 
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([])
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
@@ -81,7 +84,11 @@ export function AppointmentsPage() {
   })
 
   useEffect(() => {
-    Promise.all([listAppointments(), listProfiles(), getGoogleCalendarStatus()])
+    Promise.all([
+      listAppointments(),
+      listProfiles(),
+      canManageGoogleCalendar ? getGoogleCalendarStatus() : Promise.resolve(null),
+    ])
       .then(([appts, profs, calendarStatus]) => {
         setAllAppointments(appts)
         setProfiles(profs)
@@ -93,7 +100,7 @@ export function AppointmentsPage() {
         showAlert({ title: 'Erro ao carregar agendamentos', description: msg, tone: 'error' })
       })
       .finally(() => setIsLoading(false))
-  }, [showAlert])
+  }, [canManageGoogleCalendar, showAlert])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -106,7 +113,9 @@ export function AppointmentsPage() {
         description: 'Agora você pode sincronizar os agendamentos da clínica.',
         tone: 'success',
       })
-      getGoogleCalendarStatus().then(setGoogleCalendar).catch(() => {})
+      if (canManageGoogleCalendar) {
+        getGoogleCalendarStatus().then(setGoogleCalendar).catch(() => {})
+      }
     }
     if (googleResult === 'error') {
       showAlert({
@@ -118,7 +127,7 @@ export function AppointmentsPage() {
     }
 
     window.history.replaceState(null, '', window.location.pathname)
-  }, [showAlert])
+  }, [canManageGoogleCalendar, showAlert])
 
   function handleCreated(appointment: Appointment) {
     setAllAppointments((prev) => [appointment, ...prev])
@@ -197,7 +206,7 @@ export function AppointmentsPage() {
         description="Gerencie as consultas da clínica, acompanhe status e registre novos atendimentos."
         action={
           <div className="flex flex-wrap justify-end gap-2">
-            {googleCalendar?.connected ? (
+            {canManageGoogleCalendar && googleCalendar?.connected ? (
               <>
                 <Button
                   type="button"
@@ -223,7 +232,7 @@ export function AppointmentsPage() {
                   Desconectar
                 </Button>
               </>
-            ) : (
+            ) : canManageGoogleCalendar ? (
               <Button
                 type="button"
                 variant="outline"
@@ -237,7 +246,7 @@ export function AppointmentsPage() {
                 )}
                 Google Agenda
               </Button>
-            )}
+            ) : null}
             <Button onClick={() => setIsCreating(true)}>
               <Plus className="h-4 w-4" />
               Novo agendamento
