@@ -1,4 +1,4 @@
-import { CalendarCheck, Link2Off, Loader2, Plus, RefreshCw } from 'lucide-react'
+import { CalendarCheck, CalendarDays, Link2Off, List, Loader2, Plus, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import type { FilterDef } from '@/components/common/ListToolbar'
@@ -10,9 +10,17 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useListFilter } from '@/hooks/useListFilter'
 import { listProfiles } from '@/features/profiles/services/profiles.service'
 import type { ProfileListItem } from '@/features/profiles/types'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 
-import { listAppointments } from '../services/scheduling.service'
-import type { Appointment } from '../types/scheduling.types'
+import {
+  cancelAppointment,
+  listAppointments,
+  updateAppointmentStatus,
+} from '../services/scheduling.service'
+import type { Appointment, AppointmentStatus } from '../types/scheduling.types'
+import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
+import { AppointmentTable } from '../components/appointments/AppointmentTable'
+import { CancelAppointmentDialog } from '../components/appointments/CancelAppointmentDialog'
 import { CreateAppointmentModal } from '../components/appointments/CreateAppointmentModal'
 import { EditAppointmentModal } from '../components/appointments/EditAppointmentModal'
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
@@ -41,21 +49,28 @@ const FILTER_FNS = {
   profileId: (a: Appointment, v: string) => a.profileId === v,
 }
 
+type View = 'calendar' | 'table'
+
 export function AppointmentsPage() {
   const { showAlert } = useGlobalAlerts()
+  const { user } = useAuth()
+  const canManageGoogleCalendar = user?.role === 'OWNER'
 
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([])
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [view, setView] = useState<View>('calendar')
+  const [drawerAppointment, setDrawerAppointment] = useState<Appointment | null>(null)
+  const [editTarget, setEditTarget] = useState<Appointment | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null)
+  const [isActionLoading, setIsActionLoading] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
   const [googleCalendar, setGoogleCalendar] = useState<GoogleCalendarStatus | null>(null)
   const [isCalendarActionLoading, setIsCalendarActionLoading] = useState(false)
 
-  // Dynamic filter defs — profileId options depend on loaded profiles
   const filterDefs = useMemo<FilterDef[]>(() => {
     const defs: FilterDef[] = [
       { key: 'status', label: 'Status', options: STATUS_OPTIONS },
@@ -81,7 +96,11 @@ export function AppointmentsPage() {
   })
 
   useEffect(() => {
-    Promise.all([listAppointments(), listProfiles(), getGoogleCalendarStatus()])
+    Promise.all([
+      listAppointments(),
+      listProfiles(),
+      canManageGoogleCalendar ? getGoogleCalendarStatus() : Promise.resolve(null),
+    ])
       .then(([appts, profs, calendarStatus]) => {
         setAllAppointments(appts)
         setProfiles(profs)
@@ -93,7 +112,7 @@ export function AppointmentsPage() {
         showAlert({ title: 'Erro ao carregar agendamentos', description: msg, tone: 'error' })
       })
       .finally(() => setIsLoading(false))
-  }, [showAlert])
+  }, [canManageGoogleCalendar, showAlert])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -106,7 +125,9 @@ export function AppointmentsPage() {
         description: 'Agora você pode sincronizar os agendamentos da clínica.',
         tone: 'success',
       })
-      getGoogleCalendarStatus().then(setGoogleCalendar).catch(() => {})
+      if (canManageGoogleCalendar) {
+        getGoogleCalendarStatus().then(setGoogleCalendar).catch(() => {})
+      }
     }
     if (googleResult === 'error') {
       showAlert({
@@ -118,7 +139,7 @@ export function AppointmentsPage() {
     }
 
     window.history.replaceState(null, '', window.location.pathname)
-  }, [showAlert])
+  }, [canManageGoogleCalendar, showAlert])
 
   function handleCreated(appointment: Appointment) {
     setAllAppointments((prev) => [appointment, ...prev])
@@ -128,6 +149,58 @@ export function AppointmentsPage() {
     setAllAppointments((prev) =>
       prev.map((appt) => (appt.id === appointment.id ? appointment : appt)),
     )
+    if (drawerAppointment?.id === appointment.id) {
+      setDrawerAppointment(appointment)
+    }
+  }
+
+  async function handleStatusChange(id: string, status: AppointmentStatus) {
+    setIsActionLoading(true)
+    try {
+      const updated = await updateAppointmentStatus(id, { status })
+      setAllAppointments((prev) => prev.map((a) => (a.id === id ? updated : a)))
+      if (drawerAppointment?.id === id) setDrawerAppointment(updated)
+      showAlert({ title: 'Status atualizado', tone: 'success' })
+    } catch (err) {
+      showAlert({
+        title: 'Erro ao atualizar status',
+        description: err instanceof Error ? err.message : undefined,
+        tone: 'error',
+      })
+    } finally {
+      setIsActionLoading(false)
+    }
+  }
+
+  function handleCancelRequest(appointment: Appointment) {
+    setCancelTarget(appointment)
+  }
+
+  async function handleCancelConfirm(reason: string) {
+    if (!cancelTarget) return
+    setIsActionLoading(true)
+    try {
+      const updated = await cancelAppointment(cancelTarget.id, reason || undefined)
+      setAllAppointments((prev) =>
+        prev.map((a) => (a.id === cancelTarget.id ? updated : a)),
+      )
+      if (drawerAppointment?.id === cancelTarget.id) setDrawerAppointment(updated)
+      setCancelTarget(null)
+      showAlert({ title: 'Agendamento cancelado', tone: 'success' })
+    } catch (err) {
+      showAlert({
+        title: 'Erro ao cancelar agendamento',
+        description: err instanceof Error ? err.message : undefined,
+        tone: 'error',
+      })
+    } finally {
+      setIsActionLoading(false)
+    }
+  }
+
+  function handleEdit(appointment: Appointment) {
+    setDrawerAppointment(null)
+    setEditTarget(appointment)
   }
 
   async function handleConnectGoogleCalendar() {
@@ -197,7 +270,7 @@ export function AppointmentsPage() {
         description="Gerencie as consultas da clínica, acompanhe status e registre novos atendimentos."
         action={
           <div className="flex flex-wrap justify-end gap-2">
-            {googleCalendar?.connected ? (
+            {canManageGoogleCalendar && googleCalendar?.connected ? (
               <>
                 <Button
                   type="button"
@@ -223,7 +296,7 @@ export function AppointmentsPage() {
                   Desconectar
                 </Button>
               </>
-            ) : (
+            ) : canManageGoogleCalendar ? (
               <Button
                 type="button"
                 variant="outline"
@@ -237,7 +310,7 @@ export function AppointmentsPage() {
                 )}
                 Google Agenda
               </Button>
-            )}
+            ) : null}
             <Button onClick={() => setIsCreating(true)}>
               <Plus className="h-4 w-4" />
               Novo agendamento
@@ -252,30 +325,81 @@ export function AppointmentsPage() {
         error={error}
       >
         <div className="space-y-4">
-          <ListToolbar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            searchPlaceholder="Pesquisar por paciente, e-mail ou telefone..."
-            filterDefs={filterDefs}
-            activeFilters={activeFilters}
-            onFilterChange={setFilter}
-            onClearAll={clearAll}
-            filteredCount={filteredCount}
-            totalCount={allAppointments.length}
-          />
+          <div className="flex gap-2">
+            <div className="min-w-0 flex-1">
+              <ListToolbar
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                searchPlaceholder="Pesquisar por paciente, e-mail ou telefone..."
+                filterDefs={filterDefs}
+                activeFilters={activeFilters}
+                onFilterChange={setFilter}
+                onClearAll={clearAll}
+                filteredCount={filteredCount}
+                totalCount={allAppointments.length}
+              />
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                type="button"
+                variant={view === 'calendar' ? 'secondary' : 'ghost'}
+                size="icon-sm"
+                onClick={() => setView('calendar')}
+                title="Calendário semanal"
+              >
+                <CalendarDays className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant={view === 'table' ? 'secondary' : 'ghost'}
+                size="icon-sm"
+                onClick={() => setView('table')}
+                title="Lista"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
 
-          <WeekCalendar
-            appointments={appointments}
-            weekStart={weekStart}
-            onWeekChange={setWeekStart}
-            onAppointmentClick={setSelectedAppointment}
-          />
+          {view === 'calendar' ? (
+            <WeekCalendar
+              appointments={appointments}
+              weekStart={weekStart}
+              onWeekChange={setWeekStart}
+              onAppointmentClick={setDrawerAppointment}
+            />
+          ) : (
+            <AppointmentTable
+              appointments={appointments}
+              isActionLoading={isActionLoading}
+              onRowClick={setDrawerAppointment}
+              onStatusChange={handleStatusChange}
+              onCancelRequest={handleCancelRequest}
+            />
+          )}
         </div>
       </ListPageShell>
 
+      <AppointmentDrawer
+        appointment={drawerAppointment}
+        isActionLoading={isActionLoading}
+        onClose={() => setDrawerAppointment(null)}
+        onEdit={handleEdit}
+        onStatusChange={handleStatusChange}
+        onCancelRequest={handleCancelRequest}
+      />
+
+      <CancelAppointmentDialog
+        open={!!cancelTarget}
+        patientName={cancelTarget?.patientName ?? ''}
+        isCanceling={isActionLoading}
+        onCancel={() => setCancelTarget(null)}
+        onConfirm={handleCancelConfirm}
+      />
+
       <EditAppointmentModal
-        appointment={selectedAppointment}
-        onClose={() => setSelectedAppointment(null)}
+        appointment={editTarget}
+        onClose={() => setEditTarget(null)}
         onUpdated={handleUpdated}
       />
 
