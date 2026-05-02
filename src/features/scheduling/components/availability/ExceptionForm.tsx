@@ -5,6 +5,7 @@ import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { Button } from '@/components/ui/button'
 import { FormField, TextInput, TimeInput } from '@/components/common/FormField'
 import {
+  formatDateBR,
   formatDateInputValue,
   formatTimeInputValue,
 } from '@/lib/date-time-formatters'
@@ -12,19 +13,28 @@ import {
 import type { CreateAvailabilityExceptionDto } from '../../types/scheduling.types'
 
 type ExceptionFormProps = {
+  initial?: {
+    exceptionDate: string
+    isDayOff: boolean
+    startTime?: string | null
+    endTime?: string | null
+    reason?: string | null
+  }
   isLoading: boolean
   onSubmit: (dto: CreateAvailabilityExceptionDto) => void
   onCancel: () => void
 }
 
-export function ExceptionForm({ isLoading, onSubmit, onCancel }: ExceptionFormProps) {
-  const [isDayOff, setIsDayOff] = useState(true)
+export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: ExceptionFormProps) {
+  const [isDayOff, setIsDayOff] = useState(initial?.isDayOff ?? true)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const data = new FormData(e.currentTarget)
     const dto: CreateAvailabilityExceptionDto = {
-      exceptionDate: formatDateInputValue(String(data.get('exceptionDate'))),
+      exceptionDate: initial
+        ? formatDateInputValue(initial.exceptionDate)
+        : formatDateInputValue(String(data.get('exceptionDate'))),
       isDayOff,
       reason: String(data.get('reason') ?? '').trim() || undefined,
     }
@@ -32,6 +42,8 @@ export function ExceptionForm({ isLoading, onSubmit, onCancel }: ExceptionFormPr
       dto.startTime = formatTimeInputValue(String(data.get('startTime')))
       dto.endTime = formatTimeInputValue(String(data.get('endTime')))
     }
+    console.log('EXCEPTION DTO:', dto)
+    
     onSubmit(dto)
   }
 
@@ -40,14 +52,21 @@ export function ExceptionForm({ isLoading, onSubmit, onCancel }: ExceptionFormPr
       onSubmit={handleSubmit}
       className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-4"
     >
-      <FormField label="Data" htmlFor="exceptionDate">
-        <DatePickerInput
-          id="exceptionDate"
-          name="exceptionDate"
-          required
-          disabled={isLoading}
-        />
-      </FormField>
+      {initial ? (
+        <div>
+          <p className="mb-1 text-sm font-semibold text-slate-700">Data</p>
+          <p className="text-sm text-slate-900">{formatDateBR(initial.exceptionDate)}</p>
+        </div>
+      ) : (
+        <FormField label="Data" htmlFor="exceptionDate">
+          <DatePickerInput
+            id="exceptionDate"
+            name="exceptionDate"
+            required
+            disabled={isLoading}
+          />
+        </FormField>
+      )}
 
       {/* Type toggle */}
       <div>
@@ -86,6 +105,7 @@ export function ExceptionForm({ isLoading, onSubmit, onCancel }: ExceptionFormPr
               name="startTime"
               required={!isDayOff}
               disabled={isLoading}
+              defaultValue={formatTimeInputValue(initial?.startTime)}
             />
           </FormField>
           <FormField label="Fim" htmlFor="endTime">
@@ -94,6 +114,7 @@ export function ExceptionForm({ isLoading, onSubmit, onCancel }: ExceptionFormPr
               name="endTime"
               required={!isDayOff}
               disabled={isLoading}
+              defaultValue={formatTimeInputValue(initial?.endTime)}
             />
           </FormField>
         </div>
@@ -105,6 +126,7 @@ export function ExceptionForm({ isLoading, onSubmit, onCancel }: ExceptionFormPr
           name="reason"
           maxLength={200}
           disabled={isLoading}
+          defaultValue={initial?.reason ?? ''}
           placeholder={isDayOff ? 'Ex: Feriado, Férias...' : 'Ex: Atendimento emergencial...'}
         />
       </FormField>

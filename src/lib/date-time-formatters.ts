@@ -40,11 +40,10 @@ export function formatTimeInputValue(value: string | null | undefined) {
 }
 
 export function formatDateBR(value: string | null | undefined) {
-  const inputValue = formatDateInputValue(value)
-  if (!inputValue) return ''
-
-  const [year, month, day] = inputValue.split('-')
-  return `${day}/${month}/${year}`
+  if (!value) return ''
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (!match) return ''
+  return `${match[3]}/${match[2]}/${match[1]}`
 }
 
 export function formatDateLongBR(value: string | null | undefined) {

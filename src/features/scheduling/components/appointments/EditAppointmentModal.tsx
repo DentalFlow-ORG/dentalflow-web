@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
-import { TimePickerInput } from '@/components/common/TimePickerInput'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import {
@@ -23,6 +22,7 @@ import {
 import { formatPhoneBR } from '@/lib/field-formatters'
 
 import {
+  getAvailableSlots,
   listAvailability,
   listAvailabilityExceptions,
   updateAppointment,
@@ -31,9 +31,10 @@ import type {
   Appointment,
   Availability,
   AvailabilityException,
+  AvailabilitySlot,
   UpdateAppointmentDto,
 } from '../../types/scheduling.types'
-import { BUSINESS_END_TIME, BUSINESS_START_TIME } from '../../utils/time'
+import { SlotPicker } from './SlotPicker'
 
 type EditAppointmentModalProps = {
   appointment: Appointment | null
@@ -63,7 +64,9 @@ export function EditAppointmentModal({
   const [services, setServices] = useState<ProfileService[]>([])
   const [profileAvailability, setProfileAvailability] = useState<Availability[]>([])
   const [profileExceptions, setProfileExceptions] = useState<AvailabilityException[]>([])
+  const [slots, setSlots] = useState<AvailabilitySlot[]>([])
   const [isLoadingServices, setIsLoadingServices] = useState(false)
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const todayInputValue = formatDateInputValue(new Date())
   const nowTimeInputValue = getCurrentTimeInputValue()
@@ -99,14 +102,27 @@ export function EditAppointmentModal({
       .finally(() => setIsLoadingServices(false))
   }, [appointment])
 
+  useEffect(() => {
+    if (!appointment || !form.appointmentDate) {
+      setSlots([])
+      setIsLoadingSlots(false)
+      return
+    }
+    setIsLoadingSlots(true)
+    getAvailableSlots({
+      profileId: appointment.profileId,
+      date: form.appointmentDate,
+      serviceId: form.serviceId || undefined,
+    })
+      .then(setSlots)
+      .catch(() => setSlots([]))
+      .finally(() => setIsLoadingSlots(false))
+  }, [appointment, form.appointmentDate, form.serviceId])
+
   if (!appointment) return null
 
   const currentAppointment = appointment
   const isPastAppointment = hasAppointmentTimePassed(currentAppointment)
-  const timeWindow = getTimeWindowForDate(form.appointmentDate, profileAvailability, profileExceptions)
-  const timeMinValue = getMinStartTime(form.appointmentDate, todayInputValue, nowTimeInputValue, timeWindow.min)
-  const selectedService = services.find((s) => s.id === form.serviceId)
-  const effectiveMaxTime = subtractMinutes(timeWindow.max, selectedService?.durationMinutes ?? 0)
   const modalTitle = isPastAppointment ? 'Reagendar consulta' : 'Editar agendamento'
   const submitLabel = isPastAppointment ? 'Reagendar consulta' : 'Salvar alteracoes'
   const submittingLabel = isPastAppointment ? 'Reagendando...' : 'Salvando...'
@@ -135,7 +151,7 @@ export function EditAppointmentModal({
     }
     if (
       formatDateInputValue(form.appointmentDate) === todayInputValue &&
-      formatTimeInputValue(form.startTime) < nowTimeInputValue
+      form.startTime < nowTimeInputValue
     ) {
       showAlert({
         title: 'Horário inválido',
@@ -144,20 +160,12 @@ export function EditAppointmentModal({
       })
       return
     }
-    if (form.startTime < timeWindow.min || form.startTime > effectiveMaxTime) {
-      showAlert({
-        title: 'Horário fora da disponibilidade',
-        description: `Escolha um horário entre ${timeWindow.min} e ${effectiveMaxTime}.`,
-        tone: 'error',
-      })
-      return
-    }
 
     setIsSubmitting(true)
     try {
       const scheduleDto: UpdateAppointmentDto = {
-        appointmentDate: formatDateInputValue(form.appointmentDate),
-        startTime: formatTimeInputValue(form.startTime),
+        appointmentDate: form.appointmentDate,
+        startTime: form.startTime,
       }
       const dto: UpdateAppointmentDto = isPastAppointment
         ? scheduleDto
@@ -271,13 +279,8 @@ export function EditAppointmentModal({
                 }
                 value={form.serviceId || NO_SERVICE_SENTINEL}
                 onValueChange={(value) => {
-                  const nextServiceId = value === NO_SERVICE_SENTINEL ? '' : value
-                  set('serviceId', nextServiceId)
-                  if (form.startTime) {
-                    const svc = services.find((s) => s.id === nextServiceId)
-                    const newMax = subtractMinutes(timeWindow.max, svc?.durationMinutes ?? 0)
-                    if (form.startTime > newMax) set('startTime', '')
-                  }
+                  set('serviceId', value === NO_SERVICE_SENTINEL ? '' : value)
+                  set('startTime', '')
                 }}
               >
                 <SelectTrigger id="editServiceId">
@@ -303,42 +306,38 @@ export function EditAppointmentModal({
               </Select>
             </FormField>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Data" htmlFor="editAppointmentDate">
-                <DatePickerInput
-                  id="editAppointmentDate"
-                  required
-                  disabled={isSubmitting}
-                  minValue={todayInputValue}
-                  value={form.appointmentDate}
-                  disabledDate={(dv) => !isDateAvailable(dv, profileAvailability, profileExceptions)}
-                  onValueChange={(value) => {
-                    const nextDate = formatDateInputValue(value)
-                    set('appointmentDate', nextDate)
-                    if (form.startTime) {
-                      const nextWindow = getTimeWindowForDate(nextDate, profileAvailability, profileExceptions)
-                      const nextMin = getMinStartTime(nextDate, todayInputValue, nowTimeInputValue, nextWindow.min)
-                      if (form.startTime < nextMin || form.startTime >= nextWindow.max) {
-                        set('startTime', '')
-                      }
-                    }
-                  }}
-                />
-              </FormField>
-              <FormField label="Horário" htmlFor="editStartTime">
-                <TimePickerInput
-                  id="editStartTime"
-                  name="editStartTime"
-                  required
-                  disabled={isSubmitting}
+            {/* Date */}
+            <FormField label="Data" htmlFor="editAppointmentDate">
+              <DatePickerInput
+                id="editAppointmentDate"
+                required
+                disabled={isSubmitting}
+                minValue={todayInputValue}
+                value={form.appointmentDate}
+                disabledDate={(dv) => !isDateAvailable(dv, profileAvailability, profileExceptions)}
+                onValueChange={(value) => {
+                  set('appointmentDate', formatDateInputValue(value))
+                  set('startTime', '')
+                }}
+              />
+            </FormField>
+
+            {/* Time slots */}
+            <FormField label="Horário">
+              {!form.appointmentDate ? (
+                <p className="py-2 text-sm text-slate-400">
+                  Selecione uma data para ver os horários disponíveis
+                </p>
+              ) : (
+                <SlotPicker
+                  slots={slots}
                   value={form.startTime}
-                  minValue={timeMinValue}
-                  maxValue={timeWindow.max}
-                  selectableMax={effectiveMaxTime}
-                  onValueChange={(value) => set('startTime', formatTimeInputValue(value))}
+                  onChange={(time) => set('startTime', time)}
+                  isLoading={isLoadingSlots}
+                  disabled={isSubmitting}
                 />
-              </FormField>
-            </div>
+              )}
+            </FormField>
 
             <FormField label="Observações" htmlFor="editNotes" optional>
               <TextArea
@@ -362,7 +361,11 @@ export function EditAppointmentModal({
             >
               Cancelar
             </Button>
-            <Button type="submit" form="edit-appointment-form" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              form="edit-appointment-form"
+              disabled={isSubmitting || !form.startTime}
+            >
               {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {isSubmitting ? submittingLabel : submitLabel}
             </Button>
@@ -385,20 +388,11 @@ function buildFormState(appointment: Appointment | null): FormState {
   }
 }
 
-function subtractMinutes(time: string, minutes: number): string {
-  if (!minutes || !time) return time
-  const [h, m] = time.split(':').map(Number)
-  const total = Math.max(0, h * 60 + m - minutes)
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
-}
-
 function hasAppointmentTimePassed(appointment: Appointment) {
   const appointmentDate = formatDateInputValue(appointment.appointmentDate)
   const today = formatDateInputValue(new Date())
-
   if (appointmentDate < today) return true
   if (appointmentDate > today) return false
-
   return formatTimeInputValue(appointment.startTime) < getCurrentTimeInputValue()
 }
 
@@ -406,18 +400,7 @@ function getCurrentTimeInputValue() {
   const now = new Date()
   const hours = String(now.getHours()).padStart(2, '0')
   const minutes = String(now.getMinutes()).padStart(2, '0')
-
   return `${hours}:${minutes}`
-}
-
-function getMinStartTime(
-  appointmentDate: string,
-  todayInputValue: string,
-  nowTimeInputValue: string,
-  availabilityStart: string = BUSINESS_START_TIME,
-) {
-  if (formatDateInputValue(appointmentDate) !== todayInputValue) return availabilityStart
-  return nowTimeInputValue > availabilityStart ? nowTimeInputValue : availabilityStart
 }
 
 function isDateAvailable(
@@ -432,30 +415,4 @@ function isDateAvailable(
   const dow = new Date(`${dateValue}T00:00:00Z`).getUTCDay()
   if (availability.length === 0) return dow >= 1 && dow <= 5
   return availability.some((a) => a.dayOfWeek === dow && a.isActive)
-}
-
-function getTimeWindowForDate(
-  dateValue: string,
-  availability: Availability[],
-  exceptions: AvailabilityException[],
-): { min: string; max: string } {
-  if (!dateValue) return { min: BUSINESS_START_TIME, max: BUSINESS_END_TIME }
-  const exception = exceptions.find((e) => formatDateInputValue(e.exceptionDate) === dateValue)
-  if (exception && !exception.isDayOff && exception.startTime && exception.endTime) {
-    return {
-      min: formatTimeInputValue(exception.startTime),
-      max: formatTimeInputValue(exception.endTime),
-    }
-  }
-  const dow = new Date(`${dateValue}T00:00:00Z`).getUTCDay()
-  if (availability.length === 0) return { min: BUSINESS_START_TIME, max: BUSINESS_END_TIME }
-  const daySlots = availability.filter((a) => a.dayOfWeek === dow && a.isActive)
-  if (daySlots.length === 0) return { min: BUSINESS_START_TIME, max: BUSINESS_END_TIME }
-  const min = daySlots
-    .map((s) => formatTimeInputValue(s.startTime))
-    .reduce((a, b) => (a < b ? a : b))
-  const max = daySlots
-    .map((s) => formatTimeInputValue(s.endTime))
-    .reduce((a, b) => (a > b ? a : b))
-  return { min, max }
 }
