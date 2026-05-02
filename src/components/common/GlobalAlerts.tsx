@@ -12,6 +12,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { createPortal } from 'react-dom'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -93,46 +94,50 @@ export function GlobalAlertsProvider({ children }: GlobalAlertsProviderProps) {
     [dismissAlert, showAlert],
   )
 
+  const alertsContainer = (
+    <div className="pointer-events-none fixed right-4 top-4 z-60 flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
+      {alerts.map((alert) => {
+        const styles = toneStyles[alert.tone]
+        const Icon = styles.icon
+
+        return (
+          <div
+            key={alert.id}
+            className={cn(
+              'pointer-events-auto flex gap-3 rounded-lg border p-4 shadow-lg shadow-slate-950/10 backdrop-blur animate-in fade-in-0 slide-in-from-top-2 duration-200',
+              styles.container,
+            )}
+            role="status"
+          >
+            <Icon className={cn('mt-0.5 h-5 w-5 shrink-0', styles.iconClassName)} />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold">{alert.title}</p>
+              {alert.description && (
+                <p className="mt-1 text-sm leading-5 opacity-80">
+                  {alert.description}
+                </p>
+              )}
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className="-mr-1 -mt-1 text-current hover:bg-black/5"
+              aria-label="Fechar alerta"
+              onClick={() => dismissAlert(alert.id)}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )
+      })}
+    </div>
+  )
+
   return (
     <GlobalAlertsContext.Provider value={value}>
       {children}
-      <div className="pointer-events-none fixed right-4 top-4 z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
-        {alerts.map((alert) => {
-          const styles = toneStyles[alert.tone]
-          const Icon = styles.icon
-
-          return (
-            <div
-              key={alert.id}
-              className={cn(
-                'pointer-events-auto flex gap-3 rounded-lg border p-4 shadow-lg shadow-slate-950/10 backdrop-blur animate-in fade-in-0 slide-in-from-top-2 duration-200',
-                styles.container,
-              )}
-              role="status"
-            >
-              <Icon className={cn('mt-0.5 h-5 w-5 shrink-0', styles.iconClassName)} />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">{alert.title}</p>
-                {alert.description && (
-                  <p className="mt-1 text-sm leading-5 opacity-80">
-                    {alert.description}
-                  </p>
-                )}
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                className="-mr-1 -mt-1 text-current hover:bg-black/5"
-                aria-label="Fechar alerta"
-                onClick={() => dismissAlert(alert.id)}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          )
-        })}
-      </div>
+      {createPortal(alertsContainer, document.body)}
     </GlobalAlertsContext.Provider>
   )
 }

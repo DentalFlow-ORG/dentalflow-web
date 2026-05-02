@@ -11,6 +11,8 @@ import { StatusActionMenu } from './StatusActionMenu'
 type AppointmentTableProps = {
   appointments: Appointment[]
   isActionLoading: boolean
+  allowedTransitions?: AppointmentStatus[]
+  emptyDescription?: string
   onRowClick: (appointment: Appointment) => void
   onStatusChange: (id: string, status: AppointmentStatus) => void
   onCancelRequest: (appointment: Appointment) => void
@@ -19,6 +21,8 @@ type AppointmentTableProps = {
 export function AppointmentTable({
   appointments,
   isActionLoading,
+  allowedTransitions,
+  emptyDescription = 'Ajuste os filtros ou crie um novo agendamento para começar.',
   onRowClick,
   onStatusChange,
   onCancelRequest,
@@ -28,7 +32,7 @@ export function AppointmentTable({
       <EmptyState
         icon={Calendar}
         title="Nenhum agendamento encontrado"
-        description="Ajuste os filtros ou crie um novo agendamento para começar."
+        description={emptyDescription}
       />
     )
   }
@@ -94,6 +98,7 @@ export function AppointmentTable({
                   <StatusActionMenu
                     appointment={appt}
                     isLoading={isActionLoading}
+                    allowedTransitions={allowedTransitions}
                     onStatusChange={onStatusChange}
                     onCancelRequest={onCancelRequest}
                   />
@@ -111,6 +116,7 @@ export function AppointmentTable({
             key={appt.id}
             appointment={appt}
             isActionLoading={isActionLoading}
+            allowedTransitions={allowedTransitions}
             onClick={() => onRowClick(appt)}
             onStatusChange={onStatusChange}
             onCancelRequest={onCancelRequest}
@@ -124,12 +130,14 @@ export function AppointmentTable({
 function AppointmentCard({
   appointment: appt,
   isActionLoading,
+  allowedTransitions,
   onClick,
   onStatusChange,
   onCancelRequest,
 }: {
   appointment: Appointment
   isActionLoading: boolean
+  allowedTransitions?: AppointmentStatus[]
   onClick: () => void
   onStatusChange: (id: string, status: AppointmentStatus) => void
   onCancelRequest: (appointment: Appointment) => void
@@ -172,6 +180,7 @@ function AppointmentCard({
         <StatusActionMenu
           appointment={appt}
           isLoading={isActionLoading}
+          allowedTransitions={allowedTransitions}
           onStatusChange={onStatusChange}
           onCancelRequest={onCancelRequest}
         />
