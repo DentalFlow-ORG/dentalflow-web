@@ -125,6 +125,14 @@ export async function apiRequest<TResponse>(
       throw new ApiError('A requisição demorou muito. Tente novamente.', 408, null)
     }
 
+    if (err instanceof TypeError) {
+      throw new ApiError(
+        'Não foi possível conectar ao servidor. Verifique se a API está em execução.',
+        0,
+        null,
+      )
+    }
+
     throw err
   } finally {
     window.clearTimeout(timeoutId)

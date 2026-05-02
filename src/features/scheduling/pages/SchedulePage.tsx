@@ -1,11 +1,10 @@
-import { AlertCircle, Plus } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
-import { Button } from '@/components/ui/button'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { listProfiles } from '@/features/profiles/services/profiles.service'
@@ -13,11 +12,9 @@ import type { ProfileListItem } from '@/features/profiles/types'
 import { cn } from '@/lib/utils'
 
 import {
-  cancelAppointment,
   listAppointments,
   listAvailability,
   listAvailabilityExceptions,
-  updateAppointmentStatus,
 } from '../services/scheduling.service'
 import type {
   Appointment,
@@ -26,15 +23,16 @@ import type {
   AvailabilityException,
 } from '../types/scheduling.types'
 import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
-import { CancelAppointmentDialog } from '../components/appointments/CancelAppointmentDialog'
-import { CreateAppointmentModal } from '../components/appointments/CreateAppointmentModal'
-import { EditAppointmentModal } from '../components/appointments/EditAppointmentModal'
+import { AppointmentTable } from '../components/appointments/AppointmentTable'
 import { AvailabilityManager } from '../components/availability/AvailabilityManager'
 import { ExceptionManager } from '../components/availability/ExceptionManager'
+import { ViewToggle } from '../components/shared/ViewToggle'
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
+import { useAppointmentStatusChange } from '../hooks/useAppointmentStatusChange'
 import { getWeekStart } from '../utils/time'
 
 type Tab = 'agenda' | 'disponibilidade' | 'excecoes'
+type View = 'calendar' | 'table'
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: 'agenda', label: 'Agenda' },
@@ -56,12 +54,10 @@ export function SchedulePage() {
   const [isBootstrapping, setIsBootstrapping] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>('agenda')
+  const [view, setView] = useState<View>('calendar')
   const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
   const [drawerAppointment, setDrawerAppointment] = useState<Appointment | null>(null)
-  const [editTarget, setEditTarget] = useState<Appointment | null>(null)
-  const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null)
   const [isActionLoading, setIsActionLoading] = useState(false)
-  const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -93,67 +89,12 @@ export function SchedulePage() {
     load()
   }, [user?.id, showAlert])
 
-  function handleUpdated(appointment: Appointment) {
-    setAppointments((prev) =>
-      prev.map((appt) => (appt.id === appointment.id ? appointment : appt)),
-    )
-    if (drawerAppointment?.id === appointment.id) {
-      setDrawerAppointment(appointment)
-    }
-  }
-
-  function handleCreated(appointment: Appointment) {
-    setAppointments((prev) => [appointment, ...prev])
-  }
-
-  async function handleStatusChange(id: string, status: AppointmentStatus) {
-    setIsActionLoading(true)
-    try {
-      const updated = await updateAppointmentStatus(id, { status })
-      setAppointments((prev) => prev.map((a) => (a.id === id ? updated : a)))
-      if (drawerAppointment?.id === id) setDrawerAppointment(updated)
-      showAlert({ title: 'Status atualizado', tone: 'success' })
-    } catch (err) {
-      showAlert({
-        title: 'Erro ao atualizar status',
-        description: err instanceof Error ? err.message : undefined,
-        tone: 'error',
-      })
-    } finally {
-      setIsActionLoading(false)
-    }
-  }
-
-  function handleCancelRequest(appointment: Appointment) {
-    setCancelTarget(appointment)
-  }
-
-  async function handleCancelConfirm(reason: string) {
-    if (!cancelTarget) return
-    setIsActionLoading(true)
-    try {
-      const updated = await cancelAppointment(cancelTarget.id, reason || undefined)
-      setAppointments((prev) =>
-        prev.map((a) => (a.id === cancelTarget.id ? updated : a)),
-      )
-      if (drawerAppointment?.id === cancelTarget.id) setDrawerAppointment(updated)
-      setCancelTarget(null)
-      showAlert({ title: 'Agendamento cancelado', tone: 'success' })
-    } catch (err) {
-      showAlert({
-        title: 'Erro ao cancelar agendamento',
-        description: err instanceof Error ? err.message : undefined,
-        tone: 'error',
-      })
-    } finally {
-      setIsActionLoading(false)
-    }
-  }
-
-  function handleEdit(appointment: Appointment) {
-    setDrawerAppointment(null)
-    setEditTarget(appointment)
-  }
+  const { handleStatusChange } = useAppointmentStatusChange({
+    setAppointments,
+    drawerAppointment,
+    setDrawerAppointment,
+    setIsActionLoading,
+  })
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -161,14 +102,6 @@ export function SchedulePage() {
         eyebrow="Profissional"
         title="Minha agenda"
         description="Visualize seus agendamentos e gerencie sua disponibilidade semanal."
-        action={
-          ownProfile ? (
-            <Button onClick={() => setIsCreating(true)}>
-              <Plus className="h-4 w-4" />
-              Novo agendamento
-            </Button>
-          ) : undefined
-        }
       />
 
       {error && <InlineFeedback>{error}</InlineFeedback>}
@@ -211,12 +144,33 @@ export function SchedulePage() {
 
           {/* Tab content */}
           {activeTab === 'agenda' && (
-            <WeekCalendar
-              appointments={appointments}
-              weekStart={weekStart}
-              onWeekChange={setWeekStart}
-              onAppointmentClick={setDrawerAppointment}
-            />
+            <div className="space-y-4">
+              {view === 'calendar' ? (
+                <WeekCalendar
+                  appointments={appointments}
+                  weekStart={weekStart}
+                  profileAvailability={availability}
+                  toolbarAction={<ViewToggle view={view} onChange={setView} />}
+                  onWeekChange={setWeekStart}
+                  onAppointmentClick={setDrawerAppointment}
+                />
+              ) : (
+                <>
+                  <div className="flex justify-end">
+                    <ViewToggle view={view} onChange={setView} />
+                  </div>
+                  <AppointmentTable
+                    appointments={appointments}
+                    isActionLoading={isActionLoading}
+                    allowedTransitions={DENTIST_ALLOWED_TRANSITIONS}
+                    emptyDescription="Nenhuma consulta vinculada ao seu perfil."
+                    onRowClick={setDrawerAppointment}
+                    onStatusChange={handleStatusChange}
+                    onCancelRequest={() => {}}
+                  />
+                </>
+              )}
+            </div>
           )}
 
           {activeTab === 'disponibilidade' && (
@@ -246,30 +200,8 @@ export function SchedulePage() {
         isActionLoading={isActionLoading}
         allowedTransitions={DENTIST_ALLOWED_TRANSITIONS}
         onClose={() => setDrawerAppointment(null)}
-        onEdit={handleEdit}
         onStatusChange={handleStatusChange}
-        onCancelRequest={handleCancelRequest}
-      />
-
-      <CancelAppointmentDialog
-        open={!!cancelTarget}
-        patientName={cancelTarget?.patientName ?? ''}
-        isCanceling={isActionLoading}
-        onCancel={() => setCancelTarget(null)}
-        onConfirm={handleCancelConfirm}
-      />
-
-      <EditAppointmentModal
-        appointment={editTarget}
-        onClose={() => setEditTarget(null)}
-        onUpdated={handleUpdated}
-      />
-
-      <CreateAppointmentModal
-        open={isCreating}
-        onClose={() => setIsCreating(false)}
-        onCreated={handleCreated}
-        fixedProfile={ownProfile}
+        onCancelRequest={() => {}}
       />
     </div>
   )

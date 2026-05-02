@@ -1,8 +1,9 @@
 import { Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { formatDateBR } from '@/lib/date-time-formatters'
 
-import { formatAppointmentDate, formatWallTime } from '../../utils/time'
+import { formatWallTime } from '../../utils/time'
 import type { AvailabilityException } from '../../types/scheduling.types'
 
 type ExceptionRowProps = {
@@ -16,7 +17,7 @@ export function ExceptionRow({ exception, isLoading, onDelete }: ExceptionRowPro
     <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white px-4 py-3">
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-slate-900">
-          {formatAppointmentDate(exception.exceptionDate)}
+          {formatDateBR(exception.exceptionDate)}
         </p>
         <p className="mt-0.5 text-xs text-slate-500">
           {exception.isDayOff ? (
