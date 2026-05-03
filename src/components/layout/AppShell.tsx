@@ -93,7 +93,7 @@ export function AppShell({ children }: AppShellProps) {
       : location.pathname === to || location.pathname.startsWith(`${to}/`)
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="min-h-[100svh] bg-slate-50 text-slate-950">
       {/* Sidebar - desktop only */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-slate-200 bg-white lg:block">
         <div className="flex h-20 items-center border-b border-slate-200 px-6">
@@ -121,7 +121,7 @@ export function AppShell({ children }: AppShellProps) {
       </aside>
 
       {/* Bottom nav - mobile only */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
         <div className="flex h-16 items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {appNavigation
             .filter(({ roles }) => !roles || (user?.role && roles.includes(user.role)))
@@ -167,8 +167,10 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </header>
 
-        {/* pb-20 on mobile leaves room above the bottom nav */}
-        <main className="px-4 py-6 pb-24 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">{children}</main>
+        <main className="px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
+          {children}
+          <div className="h-[calc(7.5rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true" />
+        </main>
       </div>
     </div>
   )
