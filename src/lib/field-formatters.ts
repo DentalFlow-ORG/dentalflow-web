@@ -71,5 +71,5 @@ export function isValidPhoneBR(value: string): boolean {
 }
 
 export function isValidPersonName(value: string): boolean {
-  return /^[\p{L}\s.'\-]+$/u.test(value.trim())
+  return /^[\p{L}\s.'-]+$/u.test(value.trim())
 }

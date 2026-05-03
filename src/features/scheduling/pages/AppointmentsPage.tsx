@@ -1,9 +1,10 @@
-import { CalendarCheck, CalendarDays, Link2Off, List, Loader2, Plus, RefreshCw } from 'lucide-react'
+import { CalendarCheck, Link2Off, Loader2, Plus, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import type { FilterDef } from '@/components/common/ListToolbar'
 import { ListToolbar } from '@/components/common/ListToolbar'
 import { ListPageShell } from '@/components/common/ListPageShell'
+import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -15,15 +16,17 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import {
   cancelAppointment,
   listAppointments,
-  updateAppointmentStatus,
+  listAvailability,
 } from '../services/scheduling.service'
-import type { Appointment, AppointmentStatus } from '../types/scheduling.types'
+import type { Appointment, Availability } from '../types/scheduling.types'
 import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
 import { AppointmentTable } from '../components/appointments/AppointmentTable'
 import { CancelAppointmentDialog } from '../components/appointments/CancelAppointmentDialog'
 import { CreateAppointmentModal } from '../components/appointments/CreateAppointmentModal'
 import { EditAppointmentModal } from '../components/appointments/EditAppointmentModal'
+import { ViewToggle } from '../components/shared/ViewToggle'
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
+import { useAppointmentStatusChange } from '../hooks/useAppointmentStatusChange'
 import {
   createGoogleCalendarConnectUrl,
   disconnectGoogleCalendar,
@@ -68,6 +71,7 @@ export function AppointmentsPage() {
   const [isActionLoading, setIsActionLoading] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
+  const [calendarAvailability, setCalendarAvailability] = useState<Availability[]>([])
   const [googleCalendar, setGoogleCalendar] = useState<GoogleCalendarStatus | null>(null)
   const [isCalendarActionLoading, setIsCalendarActionLoading] = useState(false)
 
@@ -141,6 +145,17 @@ export function AppointmentsPage() {
     window.history.replaceState(null, '', window.location.pathname)
   }, [canManageGoogleCalendar, showAlert])
 
+  const selectedProfileId = activeFilters.profileId as string | undefined
+  useEffect(() => {
+    if (!selectedProfileId) {
+      setCalendarAvailability([])
+      return
+    }
+    listAvailability(selectedProfileId)
+      .then(setCalendarAvailability)
+      .catch(() => setCalendarAvailability([]))
+  }, [selectedProfileId])
+
   function handleCreated(appointment: Appointment) {
     setAllAppointments((prev) => [appointment, ...prev])
   }
@@ -154,23 +169,12 @@ export function AppointmentsPage() {
     }
   }
 
-  async function handleStatusChange(id: string, status: AppointmentStatus) {
-    setIsActionLoading(true)
-    try {
-      const updated = await updateAppointmentStatus(id, { status })
-      setAllAppointments((prev) => prev.map((a) => (a.id === id ? updated : a)))
-      if (drawerAppointment?.id === id) setDrawerAppointment(updated)
-      showAlert({ title: 'Status atualizado', tone: 'success' })
-    } catch (err) {
-      showAlert({
-        title: 'Erro ao atualizar status',
-        description: err instanceof Error ? err.message : undefined,
-        tone: 'error',
-      })
-    } finally {
-      setIsActionLoading(false)
-    }
-  }
+  const { handleStatusChange } = useAppointmentStatusChange({
+    setAppointments: setAllAppointments,
+    drawerAppointment,
+    setDrawerAppointment,
+    setIsActionLoading,
+  })
 
   function handleCancelRequest(appointment: Appointment) {
     setCancelTarget(appointment)
@@ -263,7 +267,7 @@ export function AppointmentsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <AppPage>
       <AppPageHeader
         eyebrow="Agenda"
         title="Agendamentos"
@@ -325,7 +329,7 @@ export function AppointmentsPage() {
         error={error}
       >
         <div className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
               <ListToolbar
                 searchQuery={searchQuery}
@@ -339,32 +343,14 @@ export function AppointmentsPage() {
                 totalCount={allAppointments.length}
               />
             </div>
-            <div className="flex shrink-0 items-center gap-1">
-              <Button
-                type="button"
-                variant={view === 'calendar' ? 'secondary' : 'ghost'}
-                size="icon-sm"
-                onClick={() => setView('calendar')}
-                title="Calendário semanal"
-              >
-                <CalendarDays className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant={view === 'table' ? 'secondary' : 'ghost'}
-                size="icon-sm"
-                onClick={() => setView('table')}
-                title="Lista"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
+            <ViewToggle view={view} onChange={setView} />
           </div>
 
           {view === 'calendar' ? (
             <WeekCalendar
               appointments={appointments}
               weekStart={weekStart}
+              profileAvailability={calendarAvailability}
               onWeekChange={setWeekStart}
               onAppointmentClick={setDrawerAppointment}
             />
@@ -408,6 +394,6 @@ export function AppointmentsPage() {
         onClose={() => setIsCreating(false)}
         onCreated={handleCreated}
       />
-    </div>
+    </AppPage>
   )
 }

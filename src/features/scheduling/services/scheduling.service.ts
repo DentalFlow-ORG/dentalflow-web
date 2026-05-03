@@ -5,6 +5,7 @@ import type {
   Appointment,
   Availability,
   AvailabilityException,
+  AvailabilitySlot,
   CanceledBy,
   CreateAppointmentDto,
   CreateAvailabilityDto,
@@ -64,6 +65,21 @@ export function cancelAppointment(
     method: 'POST',
     accessToken: getAccessToken(),
     body: JSON.stringify({ canceledBy, cancellationReason: reason }),
+  })
+}
+
+export function getAvailableSlots(params: {
+  profileId: string
+  date: string
+  serviceId?: string
+  durationMinutes?: number
+}) {
+  const query = new URLSearchParams({ profileId: params.profileId, date: params.date })
+  if (params.serviceId) query.set('serviceId', params.serviceId)
+  if (params.durationMinutes != null) query.set('durationMinutes', String(params.durationMinutes))
+  return apiRequest<AvailabilitySlot[]>(`/appointments/slots?${query}`, {
+    method: 'GET',
+    accessToken: getAccessToken(),
   })
 }
 

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
-import { TimePickerInput } from '@/components/common/TimePickerInput'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,13 +21,20 @@ import {
 } from '@/lib/date-time-formatters'
 import { formatPhoneBR } from '@/lib/field-formatters'
 
-import { updateAppointment } from '../../services/scheduling.service'
-import type { Appointment, UpdateAppointmentDto } from '../../types/scheduling.types'
 import {
-  BUSINESS_END_TIME,
-  BUSINESS_START_TIME,
-  isBusinessTime,
-} from '../../utils/time'
+  getAvailableSlots,
+  listAvailability,
+  listAvailabilityExceptions,
+  updateAppointment,
+} from '../../services/scheduling.service'
+import type {
+  Appointment,
+  Availability,
+  AvailabilityException,
+  AvailabilitySlot,
+  UpdateAppointmentDto,
+} from '../../types/scheduling.types'
+import { SlotPicker } from './SlotPicker'
 
 type EditAppointmentModalProps = {
   appointment: Appointment | null
@@ -56,7 +62,11 @@ export function EditAppointmentModal({
   const { showAlert } = useGlobalAlerts()
   const [form, setForm] = useState<FormState>(() => buildFormState(appointment))
   const [services, setServices] = useState<ProfileService[]>([])
+  const [profileAvailability, setProfileAvailability] = useState<Availability[]>([])
+  const [profileExceptions, setProfileExceptions] = useState<AvailabilityException[]>([])
+  const [slots, setSlots] = useState<AvailabilitySlot[]>([])
   const [isLoadingServices, setIsLoadingServices] = useState(false)
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const todayInputValue = formatDateInputValue(new Date())
   const nowTimeInputValue = getCurrentTimeInputValue()
@@ -68,25 +78,51 @@ export function EditAppointmentModal({
   useEffect(() => {
     if (!appointment) {
       setServices([])
+      setProfileAvailability([])
+      setProfileExceptions([])
       return
     }
 
     setIsLoadingServices(true)
-    getProfile(appointment.profileId)
-      .then((profile) => setServices(profile.services.filter((service) => service.isActive)))
-      .catch(() => setServices([]))
+    Promise.all([
+      getProfile(appointment.profileId).then((p) => p.services.filter((s) => s.isActive)),
+      listAvailability(appointment.profileId),
+      listAvailabilityExceptions(appointment.profileId),
+    ])
+      .then(([svcs, avail, excs]) => {
+        setServices(svcs)
+        setProfileAvailability(avail)
+        setProfileExceptions(excs)
+      })
+      .catch(() => {
+        setServices([])
+        setProfileAvailability([])
+        setProfileExceptions([])
+      })
       .finally(() => setIsLoadingServices(false))
   }, [appointment])
+
+  useEffect(() => {
+    if (!appointment || !form.appointmentDate) {
+      setSlots([])
+      setIsLoadingSlots(false)
+      return
+    }
+    setIsLoadingSlots(true)
+    getAvailableSlots({
+      profileId: appointment.profileId,
+      date: form.appointmentDate,
+      serviceId: form.serviceId || undefined,
+    })
+      .then(setSlots)
+      .catch(() => setSlots([]))
+      .finally(() => setIsLoadingSlots(false))
+  }, [appointment, form.appointmentDate, form.serviceId])
 
   if (!appointment) return null
 
   const currentAppointment = appointment
   const isPastAppointment = hasAppointmentTimePassed(currentAppointment)
-  const timeMinValue = getMinStartTime(
-    form.appointmentDate,
-    todayInputValue,
-    nowTimeInputValue,
-  )
   const modalTitle = isPastAppointment ? 'Reagendar consulta' : 'Editar agendamento'
   const submitLabel = isPastAppointment ? 'Reagendar consulta' : 'Salvar alteracoes'
   const submittingLabel = isPastAppointment ? 'Reagendando...' : 'Salvando...'
@@ -105,17 +141,9 @@ export function EditAppointmentModal({
     if (!form.patientName.trim() || !form.appointmentDate || !form.startTime) {
       return
     }
-    if (!isBusinessTime(form.startTime)) {
-      showAlert({
-        title: 'Horario fora do expediente',
-        description: `Escolha um horario entre ${BUSINESS_START_TIME} e ${BUSINESS_END_TIME}.`,
-        tone: 'error',
-      })
-      return
-    }
     if (formatDateInputValue(form.appointmentDate) < todayInputValue) {
       showAlert({
-        title: 'Data invalida',
+        title: 'Data inválida',
         description: 'Escolha uma data a partir de hoje.',
         tone: 'error',
       })
@@ -123,11 +151,11 @@ export function EditAppointmentModal({
     }
     if (
       formatDateInputValue(form.appointmentDate) === todayInputValue &&
-      formatTimeInputValue(form.startTime) < nowTimeInputValue
+      form.startTime < nowTimeInputValue
     ) {
       showAlert({
-        title: 'Horario invalido',
-        description: 'Escolha um horario que ainda nao passou.',
+        title: 'Horário inválido',
+        description: 'Escolha um horário que ainda não passou.',
         tone: 'error',
       })
       return
@@ -136,8 +164,8 @@ export function EditAppointmentModal({
     setIsSubmitting(true)
     try {
       const scheduleDto: UpdateAppointmentDto = {
-        appointmentDate: formatDateInputValue(form.appointmentDate),
-        startTime: formatTimeInputValue(form.startTime),
+        appointmentDate: form.appointmentDate,
+        startTime: form.startTime,
       }
       const dto: UpdateAppointmentDto = isPastAppointment
         ? scheduleDto
@@ -250,9 +278,10 @@ export function EditAppointmentModal({
                   isPastAppointment
                 }
                 value={form.serviceId || NO_SERVICE_SENTINEL}
-                onValueChange={(value) =>
+                onValueChange={(value) => {
                   set('serviceId', value === NO_SERVICE_SENTINEL ? '' : value)
-                }
+                  set('startTime', '')
+                }}
               >
                 <SelectTrigger id="editServiceId">
                   <SelectValue
@@ -277,40 +306,38 @@ export function EditAppointmentModal({
               </Select>
             </FormField>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Data" htmlFor="editAppointmentDate">
-                <DatePickerInput
-                  id="editAppointmentDate"
-                  required
-                  disabled={isSubmitting}
-                  minValue={todayInputValue}
-                  value={form.appointmentDate}
-                  onValueChange={(value) => {
-                    const nextDate = formatDateInputValue(value)
-                    set('appointmentDate', nextDate)
-                    if (
-                      nextDate === todayInputValue &&
-                      form.startTime &&
-                      formatTimeInputValue(form.startTime) < nowTimeInputValue
-                    ) {
-                      set('startTime', '')
-                    }
-                  }}
-                />
-              </FormField>
-              <FormField label="Horário" htmlFor="editStartTime">
-                <TimePickerInput
-                  id="editStartTime"
-                  name="editStartTime"
-                  required
-                  disabled={isSubmitting}
+            {/* Date */}
+            <FormField label="Data" htmlFor="editAppointmentDate">
+              <DatePickerInput
+                id="editAppointmentDate"
+                required
+                disabled={isSubmitting}
+                minValue={todayInputValue}
+                value={form.appointmentDate}
+                disabledDate={(dv) => !isDateAvailable(dv, profileAvailability, profileExceptions)}
+                onValueChange={(value) => {
+                  set('appointmentDate', formatDateInputValue(value))
+                  set('startTime', '')
+                }}
+              />
+            </FormField>
+
+            {/* Time slots */}
+            <FormField label="Horário">
+              {!form.appointmentDate ? (
+                <p className="py-2 text-sm text-slate-400">
+                  Selecione uma data para ver os horários disponíveis
+                </p>
+              ) : (
+                <SlotPicker
+                  slots={slots}
                   value={form.startTime}
-                  minValue={timeMinValue}
-                  maxValue={BUSINESS_END_TIME}
-                  onValueChange={(value) => set('startTime', formatTimeInputValue(value))}
+                  onChange={(time) => set('startTime', time)}
+                  isLoading={isLoadingSlots}
+                  disabled={isSubmitting}
                 />
-              </FormField>
-            </div>
+              )}
+            </FormField>
 
             <FormField label="Observações" htmlFor="editNotes" optional>
               <TextArea
@@ -334,7 +361,11 @@ export function EditAppointmentModal({
             >
               Cancelar
             </Button>
-            <Button type="submit" form="edit-appointment-form" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              form="edit-appointment-form"
+              disabled={isSubmitting || !form.startTime}
+            >
               {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {isSubmitting ? submittingLabel : submitLabel}
             </Button>
@@ -360,10 +391,8 @@ function buildFormState(appointment: Appointment | null): FormState {
 function hasAppointmentTimePassed(appointment: Appointment) {
   const appointmentDate = formatDateInputValue(appointment.appointmentDate)
   const today = formatDateInputValue(new Date())
-
   if (appointmentDate < today) return true
   if (appointmentDate > today) return false
-
   return formatTimeInputValue(appointment.startTime) < getCurrentTimeInputValue()
 }
 
@@ -371,18 +400,19 @@ function getCurrentTimeInputValue() {
   const now = new Date()
   const hours = String(now.getHours()).padStart(2, '0')
   const minutes = String(now.getMinutes()).padStart(2, '0')
-
   return `${hours}:${minutes}`
 }
 
-function getMinStartTime(
-  appointmentDate: string,
-  todayInputValue: string,
-  nowTimeInputValue: string,
-) {
-  if (formatDateInputValue(appointmentDate) !== todayInputValue) {
-    return BUSINESS_START_TIME
-  }
-
-  return nowTimeInputValue > BUSINESS_START_TIME ? nowTimeInputValue : BUSINESS_START_TIME
+function isDateAvailable(
+  dateValue: string,
+  availability: Availability[],
+  exceptions: AvailabilityException[],
+): boolean {
+  if (!dateValue) return true
+  const exception = exceptions.find((e) => formatDateInputValue(e.exceptionDate) === dateValue)
+  if (exception?.isDayOff) return false
+  if (exception) return true
+  const dow = new Date(`${dateValue}T00:00:00Z`).getUTCDay()
+  if (availability.length === 0) return dow >= 1 && dow <= 5
+  return availability.some((a) => a.dayOfWeek === dow && a.isActive)
 }

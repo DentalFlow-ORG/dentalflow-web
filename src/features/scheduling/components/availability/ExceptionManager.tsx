@@ -8,10 +8,12 @@ import { Button } from '@/components/ui/button'
 import {
   createAvailabilityException,
   deleteAvailabilityException,
+  updateAvailabilityException,
 } from '../../services/scheduling.service'
 import type {
   AvailabilityException,
   CreateAvailabilityExceptionDto,
+  UpdateAvailabilityExceptionDto,
 } from '../../types/scheduling.types'
 import { ExceptionForm } from './ExceptionForm'
 import { ExceptionRow } from './ExceptionRow'
@@ -29,6 +31,7 @@ export function ExceptionManager({
 }: ExceptionManagerProps) {
   const { showAlert } = useGlobalAlerts()
   const [isAdding, setIsAdding] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,6 +47,29 @@ export function ExceptionManager({
       const msg = err instanceof Error ? err.message : 'Erro ao salvar.'
       setError(msg)
       showAlert({ title: 'Erro ao salvar exceção', description: msg, tone: 'error' })
+    } finally {
+      setLoadingId(null)
+    }
+  }
+
+  async function handleUpdate(exc: AvailabilityException, dto: CreateAvailabilityExceptionDto) {
+    const updateDto: UpdateAvailabilityExceptionDto = {
+      isDayOff: dto.isDayOff,
+      startTime: dto.startTime,
+      endTime: dto.endTime,
+      reason: dto.reason,
+    }
+    setLoadingId(exc.id)
+    setError(null)
+    try {
+      const updated = await updateAvailabilityException(profileId, exc.id, updateDto)
+      onExceptionsChange(exceptions.map((e) => (e.id === exc.id ? updated : e)))
+      setEditingId(null)
+      showAlert({ title: 'Exceção atualizada', tone: 'success' })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erro ao atualizar.'
+      setError(msg)
+      showAlert({ title: 'Erro ao atualizar exceção', description: msg, tone: 'error' })
     } finally {
       setLoadingId(null)
     }
@@ -71,8 +97,8 @@ export function ExceptionManager({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h3 className="text-base font-semibold text-slate-900">Exceções de agenda</h3>
           <p className="mt-0.5 text-sm text-slate-500">
             Registre folgas ou horários especiais em datas específicas.
@@ -82,6 +108,7 @@ export function ExceptionManager({
           <Button
             type="button"
             size="sm"
+            className="w-full sm:w-auto"
             onClick={() => setIsAdding(true)}
             disabled={loadingId !== null}
           >
@@ -114,7 +141,11 @@ export function ExceptionManager({
             <ExceptionRow
               key={exc.id}
               exception={exc}
+              isEditing={editingId === exc.id}
               isLoading={loadingId === exc.id}
+              onEditStart={() => setEditingId(exc.id)}
+              onEditCancel={() => setEditingId(null)}
+              onEdit={(dto) => handleUpdate(exc, dto)}
               onDelete={() => handleDelete(exc)}
             />
           ))}

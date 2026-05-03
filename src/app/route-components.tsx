@@ -66,6 +66,12 @@ export const TeamPage = lazy(() =>
   })),
 )
 
+export const FinancePage = lazy(() =>
+  import('@/features/finance/pages/FinancePage').then((m) => ({
+    default: m.FinancePage,
+  })),
+)
+
 export const CreateMemberPage = lazy(() =>
   import('@/features/team/pages/CreateMemberPage').then((m) => ({
     default: m.CreateMemberPage,
@@ -75,5 +81,17 @@ export const CreateMemberPage = lazy(() =>
 export const AdminUsersPage = lazy(() =>
   import('@/features/admin/pages/AdminUsersPage').then((m) => ({
     default: m.AdminUsersPage,
+  })),
+)
+
+export const AdminClinicsPage = lazy(() =>
+  import('@/features/admin/pages/AdminClinicsPage').then((m) => ({
+    default: m.AdminClinicsPage,
+  })),
+)
+
+export const PatientsPage = lazy(() =>
+  import('@/features/patients/pages/PatientsPage').then((m) => ({
+    default: m.PatientsPage,
   })),
 )

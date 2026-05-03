@@ -185,7 +185,7 @@ export function ClinicMemberFormModal({
                   </FormField>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <FormField label="Papel" htmlFor="memberRole">
                     <Select
                       value={form.role}

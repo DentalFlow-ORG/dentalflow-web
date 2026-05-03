@@ -39,8 +39,8 @@ export function Pagination({
   const to = Math.min(page * pageSize, filteredCount)
 
   return (
-    <div className={cn('flex items-center justify-between gap-4', className)}>
-      <div className="flex items-center gap-3">
+    <div className={cn('flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4', className)}>
+      <div className="flex flex-wrap items-center gap-3">
         {onPageSizeChange && (
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-slate-500">Por página</span>

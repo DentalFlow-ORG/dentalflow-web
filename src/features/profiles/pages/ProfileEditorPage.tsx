@@ -7,6 +7,7 @@ import { PanelCard } from '@/components/common/PanelCard'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
+import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { isValidPhoneBR } from '@/lib/field-formatters'
@@ -239,14 +240,14 @@ export function ProfileEditorPage({ mode }: ProfileEditorPageProps) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-7xl">
+      <div>
         <LoadingCard message="Carregando perfil..." />
       </div>
     )
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <AppPage spacing="loose">
       <AppPageHeader
         eyebrow="Perfis profissionais"
         title={isCreate ? 'Novo perfil' : 'Gerenciar perfil'}
@@ -442,6 +443,6 @@ export function ProfileEditorPage({ mode }: ProfileEditorPageProps) {
           onCancel={() => setDeleteDialogOpen(false)}
         />
       )}
-    </div>
+    </AppPage>
   )
 }

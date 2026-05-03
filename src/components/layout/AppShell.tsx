@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { BarChart3, BriefcaseBusiness, CalendarCheck, CalendarDays, LogOut, ShieldCheck, Users } from 'lucide-react'
+import { BarChart3, BriefcaseBusiness, Building2, CalendarCheck, CalendarDays, Landmark, LogOut, ShieldCheck, Users, Users2 } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
@@ -52,9 +52,27 @@ const appNavigation: NavItem[] = [
     roles: ['OWNER'],
   },
   {
+    label: 'Financeiro',
+    to: '/app/financeiro',
+    icon: Landmark,
+    roles: ['OWNER'],
+  },
+  {
+    label: 'Pacientes',
+    to: '/app/pacientes',
+    icon: Users2,
+    roles: ['OWNER', 'ASSISTANT'],
+  },
+  {
     label: 'Usuários',
     to: '/app/admin/users',
     icon: ShieldCheck,
+    roles: ['ADMIN'],
+  },
+  {
+    label: 'Clínicas',
+    to: '/app/admin/clinics',
+    icon: Building2,
     roles: ['ADMIN'],
   },
 ]
@@ -75,7 +93,7 @@ export function AppShell({ children }: AppShellProps) {
       : location.pathname === to || location.pathname.startsWith(`${to}/`)
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="min-h-[100svh] bg-slate-50 text-slate-950">
       {/* Sidebar - desktop only */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-slate-200 bg-white lg:block">
         <div className="flex h-20 items-center border-b border-slate-200 px-6">
@@ -103,8 +121,8 @@ export function AppShell({ children }: AppShellProps) {
       </aside>
 
       {/* Bottom nav - mobile only */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white lg:hidden">
-        <div className="flex h-16 items-stretch">
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
+        <div className="flex h-16 items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {appNavigation
             .filter(({ roles }) => !roles || (user?.role && roles.includes(user.role)))
             .map(({ label, to, icon: Icon }) => (
@@ -113,14 +131,14 @@ export function AppShell({ children }: AppShellProps) {
                 to={to}
                 aria-current={isActive(to) ? 'page' : undefined}
                 className={cn(
-                  'flex flex-1 flex-col items-center justify-center gap-1 text-xs font-semibold transition-colors',
+                  'flex min-w-16 flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold transition-colors',
                   isActive(to)
                     ? 'text-primary'
                     : 'text-slate-500 hover:text-slate-700',
                 )}
               >
                 <Icon className="h-5 w-5" />
-                <span>{label}</span>
+                <span className="max-w-full truncate">{label}</span>
               </Link>
             ))}
         </div>
@@ -129,7 +147,7 @@ export function AppShell({ children }: AppShellProps) {
       {/* Main area */}
       <div className="lg:pl-64">
         <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
-          <div className="flex h-20 items-center justify-between gap-4 px-6 lg:px-8">
+          <div className="flex h-20 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <div className="lg:hidden">
               <BrandLink />
             </div>
@@ -149,8 +167,10 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </header>
 
-        {/* pb-20 on mobile leaves room above the bottom nav */}
-        <main className="px-6 py-8 pb-24 lg:pb-8 lg:px-8">{children}</main>
+        <main className="px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
+          {children}
+          <div className="h-[calc(7.5rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true" />
+        </main>
       </div>
     </div>
   )

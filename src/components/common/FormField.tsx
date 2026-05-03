@@ -21,14 +21,14 @@ export function FormField({
   className,
 }: FormFieldProps) {
   return (
-    <div className={cn('block space-y-2', className)}>
+    <div className={cn('min-w-0 space-y-2', className)}>
       <label
         htmlFor={htmlFor}
-        className="flex items-center gap-2 text-sm font-semibold text-slate-700"
+        className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-slate-700"
       >
-        {label}
+        <span className="min-w-0 truncate">{label}</span>
         {optional && (
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+          <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
             Opcional
           </span>
         )}

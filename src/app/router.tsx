@@ -6,11 +6,14 @@ import {
 
 import { RootRoute } from '@/app/RootRoute'
 import {
+  AdminClinicsPage,
   AdminUsersPage,
   AppointmentsPage,
   AuthRoutePage,
   DashboardPage,
+  FinancePage,
   LandingPage,
+  PatientsPage,
   ProfileEditorPageCreate,
   ProfileEditorPageEdit,
   ProfilesListPage,
@@ -128,12 +131,42 @@ const teamRoute = createRoute({
   ),
 })
 
+const financeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/financeiro',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
+      <FinancePage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const patientsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/pacientes',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
+      <PatientsPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const adminUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/admin/users',
   component: () => (
     <AdminRoute>
       <AdminUsersPage />
+    </AdminRoute>
+  ),
+})
+
+const adminClinicsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/admin/clinics',
+  component: () => (
+    <AdminRoute>
+      <AdminClinicsPage />
     </AdminRoute>
   ),
 })
@@ -150,7 +183,10 @@ const routeTree = rootRoute.addChildren([
   appointmentsRoute,
   scheduleRoute,
   teamRoute,
+  financeRoute,
+  patientsRoute,
   adminUsersRoute,
+  adminClinicsRoute,
 ])
 
 export const router = createRouter({

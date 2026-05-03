@@ -3,6 +3,9 @@ export type UserRole = 'ADMIN' | 'OWNER' | 'DENTIST' | 'ASSISTANT' | 'PATIENT'
 export type AdminClinic = {
   id: string
   name: string
+  isActive?: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type AdminUser = {
@@ -24,6 +27,13 @@ export type AdminUser = {
 
 export type AdminUsersResponse = {
   data: AdminUser[]
+  total: number
+  page: number
+  limit: number
+}
+
+export type AdminClinicsResponse = {
+  data: AdminClinic[]
   total: number
   page: number
   limit: number
@@ -51,4 +61,13 @@ export type UpdateAdminUserDto = {
 
 export type UpdateAdminPasswordDto = {
   password: string
+}
+
+export type CreateAdminClinicDto = {
+  name: string
+}
+
+export type UpdateAdminClinicDto = {
+  name?: string
+  isActive?: boolean
 }

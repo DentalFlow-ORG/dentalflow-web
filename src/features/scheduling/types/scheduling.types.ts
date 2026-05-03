@@ -121,3 +121,9 @@ export type CreateAvailabilityExceptionDto = {
 export type UpdateAvailabilityExceptionDto = Partial<
   Omit<CreateAvailabilityExceptionDto, 'exceptionDate'>
 >
+
+export type AvailabilitySlot = {
+  time: string
+  available: boolean
+  reason: string | null
+}

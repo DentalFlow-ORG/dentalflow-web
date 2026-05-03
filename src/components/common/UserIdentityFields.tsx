@@ -28,7 +28,7 @@ export function UserNameFields({
   const lastNameId = `${fieldPrefix}lastName`
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid gap-4 sm:grid-cols-2">
       <FormField label="Nome" htmlFor={firstNameId}>
         <TextInput
           id={firstNameId}

@@ -10,6 +10,7 @@ import { ListPageShell } from '@/components/common/ListPageShell'
 import { Pagination } from '@/components/common/Pagination'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useListFilter } from '@/hooks/useListFilter'
@@ -179,7 +180,7 @@ export function TeamPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <AppPage>
       <AppPageHeader
         eyebrow="Equipe"
         title="Usuários da clínica"
@@ -372,6 +373,6 @@ export function TeamPage() {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </AppPage>
   )
 }

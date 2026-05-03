@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
-import { TimePickerInput } from '@/components/common/TimePickerInput'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -16,19 +15,23 @@ import {
 } from '@/components/ui/select'
 import { getProfile, listProfiles } from '@/features/profiles/services/profiles.service'
 import type { ProfileListItem, ProfileService } from '@/features/profiles/types'
-import {
-  formatDateInputValue,
-  formatTimeInputValue,
-} from '@/lib/date-time-formatters'
+import { formatDateInputValue } from '@/lib/date-time-formatters'
 import { formatPhoneBR } from '@/lib/field-formatters'
 
-import { createAppointment } from '../../services/scheduling.service'
-import type { Appointment, CreateAppointmentDto } from '../../types/scheduling.types'
 import {
-  BUSINESS_END_TIME,
-  BUSINESS_START_TIME,
-  isBusinessTime,
-} from '../../utils/time'
+  createAppointment,
+  getAvailableSlots,
+  listAvailability,
+  listAvailabilityExceptions,
+} from '../../services/scheduling.service'
+import type {
+  Appointment,
+  Availability,
+  AvailabilityException,
+  AvailabilitySlot,
+  CreateAppointmentDto,
+} from '../../types/scheduling.types'
+import { SlotPicker } from './SlotPicker'
 
 type CreateAppointmentModalProps = {
   open: boolean
@@ -69,7 +72,11 @@ export function CreateAppointmentModal({
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
   const [services, setServices] = useState<ProfileService[]>([])
+  const [profileAvailability, setProfileAvailability] = useState<Availability[]>([])
+  const [profileExceptions, setProfileExceptions] = useState<AvailabilityException[]>([])
+  const [slots, setSlots] = useState<AvailabilitySlot[]>([])
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false)
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const todayInputValue = formatDateInputValue(new Date())
   const nowTimeInputValue = getCurrentTimeInputValue()
@@ -92,23 +99,44 @@ export function CreateAppointmentModal({
   useEffect(() => {
     if (!form.profileId) {
       setServices([])
+      setProfileAvailability([])
+      setProfileExceptions([])
       return
     }
-    getProfile(form.profileId)
-      .then((p) => setServices(p.services.filter((s) => s.isActive)))
-      .catch(() => setServices([]))
+    Promise.all([
+      getProfile(form.profileId).then((p) => p.services.filter((s) => s.isActive)),
+      listAvailability(form.profileId),
+      listAvailabilityExceptions(form.profileId),
+    ])
+      .then(([svcs, avail, excs]) => {
+        setServices(svcs)
+        setProfileAvailability(avail)
+        setProfileExceptions(excs)
+      })
+      .catch(() => {
+        setServices([])
+        setProfileAvailability([])
+        setProfileExceptions([])
+      })
   }, [form.profileId])
 
   useEffect(() => {
-    if (
-      form.appointmentDate === todayInputValue &&
-      form.startTime &&
-      formatTimeInputValue(form.startTime) <
-        getMinStartTime(form.appointmentDate, todayInputValue, nowTimeInputValue)
-    ) {
-      set('startTime', '')
+    set('startTime', '')
+    if (!form.profileId || !form.appointmentDate) {
+      setSlots([])
+      setIsLoadingSlots(false)
+      return
     }
-  }, [form.appointmentDate, form.startTime, nowTimeInputValue, todayInputValue])
+    setIsLoadingSlots(true)
+    getAvailableSlots({
+      profileId: form.profileId,
+      date: form.appointmentDate,
+      serviceId: form.serviceId || undefined,
+    })
+      .then(setSlots)
+      .catch(() => setSlots([]))
+      .finally(() => setIsLoadingSlots(false))
+  }, [form.profileId, form.appointmentDate, form.serviceId])
 
   function set(field: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -117,6 +145,9 @@ export function CreateAppointmentModal({
   function handleClose() {
     setForm(EMPTY_FORM)
     setServices([])
+    setProfileAvailability([])
+    setProfileExceptions([])
+    setSlots([])
     onClose()
   }
 
@@ -127,7 +158,7 @@ export function CreateAppointmentModal({
     }
     if (formatDateInputValue(form.appointmentDate) < todayInputValue) {
       showAlert({
-        title: 'Data invalida',
+        title: 'Data inválida',
         description: 'Escolha uma data de hoje em diante para criar o agendamento.',
         tone: 'error',
       })
@@ -135,19 +166,11 @@ export function CreateAppointmentModal({
     }
     if (
       formatDateInputValue(form.appointmentDate) === todayInputValue &&
-      formatTimeInputValue(form.startTime) < nowTimeInputValue
+      form.startTime < nowTimeInputValue
     ) {
       showAlert({
-        title: 'Horario invalido',
-        description: 'Para hoje, escolha um horario igual ou posterior ao horario atual.',
-        tone: 'error',
-      })
-      return
-    }
-    if (!isBusinessTime(form.startTime)) {
-      showAlert({
-        title: 'Horario fora do expediente',
-        description: `Escolha um horario entre ${BUSINESS_START_TIME} e ${BUSINESS_END_TIME}.`,
+        title: 'Horário inválido',
+        description: 'Para hoje, escolha um horário igual ou posterior ao horário atual.',
         tone: 'error',
       })
       return
@@ -160,8 +183,8 @@ export function CreateAppointmentModal({
         patientName: form.patientName.trim(),
         patientEmail: form.patientEmail.trim() || undefined,
         patientPhone: form.patientPhone.trim() || undefined,
-        appointmentDate: formatDateInputValue(form.appointmentDate),
-        startTime: formatTimeInputValue(form.startTime),
+        appointmentDate: form.appointmentDate,
+        startTime: form.startTime,
         notes: form.notes.trim() || undefined,
       }
       const appointment = await createAppointment(dto)
@@ -223,6 +246,7 @@ export function CreateAppointmentModal({
                 onValueChange={(value) => {
                   set('profileId', value)
                   set('serviceId', '')
+                  set('appointmentDate', '')
                 }}
               >
                 <SelectTrigger id="profileId">
@@ -271,46 +295,43 @@ export function CreateAppointmentModal({
               </Select>
             </FormField>
 
-            {/* Date and time */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField label="Data" htmlFor="appointmentDate">
-                <DatePickerInput
-                  id="appointmentDate"
-                  required
-                  disabled={isSubmitting}
-                  value={form.appointmentDate}
-                  minValue={todayInputValue}
-                  onValueChange={(value) => {
-                    const nextDate = formatDateInputValue(value)
-                    set('appointmentDate', nextDate)
-                    if (
-                      nextDate === todayInputValue &&
-                      form.startTime &&
-                      formatTimeInputValue(form.startTime) <
-                        getMinStartTime(nextDate, todayInputValue, nowTimeInputValue)
-                    ) {
-                      set('startTime', '')
-                    }
-                  }}
-                />
-              </FormField>
-              <FormField label="Horário" htmlFor="startTime">
-                <TimePickerInput
-                  id="startTime"
-                  name="startTime"
-                  required
-                  disabled={isSubmitting}
+            {/* Date */}
+            <FormField label="Data" htmlFor="appointmentDate">
+              <DatePickerInput
+                id="appointmentDate"
+                required
+                disabled={!form.profileId || isSubmitting}
+                value={form.appointmentDate}
+                minValue={todayInputValue}
+                disabledDate={
+                  form.profileId
+                    ? (dv) => !isDateAvailable(dv, profileAvailability, profileExceptions)
+                    : undefined
+                }
+                onValueChange={(value) => {
+                  set('appointmentDate', formatDateInputValue(value))
+                }}
+              />
+            </FormField>
+
+            {/* Time slots */}
+            <FormField label="Horário">
+              {!form.profileId || !form.appointmentDate ? (
+                <p className="py-2 text-sm text-slate-400">
+                  {!form.profileId
+                    ? 'Selecione um profissional para ver os horários'
+                    : 'Selecione uma data para ver os horários'}
+                </p>
+              ) : (
+                <SlotPicker
+                  slots={slots}
                   value={form.startTime}
-                  minValue={getMinStartTime(
-                    form.appointmentDate,
-                    todayInputValue,
-                    nowTimeInputValue,
-                  )}
-                  maxValue={BUSINESS_END_TIME}
-                  onValueChange={(value) => set('startTime', formatTimeInputValue(value))}
+                  onChange={(time) => set('startTime', time)}
+                  isLoading={isLoadingSlots}
+                  disabled={isSubmitting}
                 />
-              </FormField>
-            </div>
+              )}
+            </FormField>
 
             {/* Patient info */}
             <FormField label="Nome do paciente" htmlFor="patientName">
@@ -325,7 +346,7 @@ export function CreateAppointmentModal({
               />
             </FormField>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="E-mail" htmlFor="patientEmail" optional>
                 <TextInput
                   id="patientEmail"
@@ -376,7 +397,7 @@ export function CreateAppointmentModal({
             <Button
               type="submit"
               form="create-appointment-form"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !form.startTime}
             >
               {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {isSubmitting ? 'Criando...' : 'Criar agendamento'}
@@ -388,22 +409,23 @@ export function CreateAppointmentModal({
   )
 }
 
-function getMinStartTime(
-  appointmentDate: string,
-  todayInputValue: string,
-  nowTimeInputValue: string,
-) {
-  if (appointmentDate !== todayInputValue) return BUSINESS_START_TIME
-
-  return nowTimeInputValue > BUSINESS_START_TIME
-    ? nowTimeInputValue
-    : BUSINESS_START_TIME
-}
-
 function getCurrentTimeInputValue() {
   const now = new Date()
   const hours = String(now.getHours()).padStart(2, '0')
   const minutes = String(now.getMinutes()).padStart(2, '0')
-
   return `${hours}:${minutes}`
+}
+
+function isDateAvailable(
+  dateValue: string,
+  availability: Availability[],
+  exceptions: AvailabilityException[],
+): boolean {
+  if (!dateValue) return true
+  const exception = exceptions.find((e) => formatDateInputValue(e.exceptionDate) === dateValue)
+  if (exception?.isDayOff) return false
+  if (exception) return true
+  const dow = new Date(`${dateValue}T00:00:00Z`).getUTCDay()
+  if (availability.length === 0) return dow >= 1 && dow <= 5
+  return availability.some((a) => a.dayOfWeek === dow && a.isActive)
 }
