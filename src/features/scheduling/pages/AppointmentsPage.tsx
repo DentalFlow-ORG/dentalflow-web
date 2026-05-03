@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FilterDef } from '@/components/common/ListToolbar'
 import { ListToolbar } from '@/components/common/ListToolbar'
 import { ListPageShell } from '@/components/common/ListPageShell'
+import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -266,7 +267,7 @@ export function AppointmentsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <AppPage>
       <AppPageHeader
         eyebrow="Agenda"
         title="Agendamentos"
@@ -393,6 +394,6 @@ export function AppointmentsPage() {
         onClose={() => setIsCreating(false)}
         onCreated={handleCreated}
       />
-    </div>
+    </AppPage>
   )
 }

@@ -89,3 +89,9 @@ export const AdminClinicsPage = lazy(() =>
     default: m.AdminClinicsPage,
   })),
 )
+
+export const PatientsPage = lazy(() =>
+  import('@/features/patients/pages/PatientsPage').then((m) => ({
+    default: m.PatientsPage,
+  })),
+)

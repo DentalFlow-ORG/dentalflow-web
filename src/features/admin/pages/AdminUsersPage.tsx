@@ -14,6 +14,7 @@ import { ListPageShell } from '@/components/common/ListPageShell'
 import { ListToolbar } from '@/components/common/ListToolbar'
 import { Pagination } from '@/components/common/Pagination'
 import { StatusBadge } from '@/components/common/StatusBadge'
+import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -173,7 +174,7 @@ export function AdminUsersPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <AppPage>
       <AppPageHeader
         eyebrow="Administração"
         title="Usuários da plataforma"
@@ -366,6 +367,6 @@ export function AdminUsersPage() {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </AppPage>
   )
 }

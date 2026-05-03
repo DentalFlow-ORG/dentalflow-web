@@ -1,0 +1,19 @@
+import { getAccessToken } from '@/features/auth/utils/session-storage'
+import { apiRequest } from '@/services/http'
+
+import type { PatientHistoryResponse, PatientsListResponse } from '../types/patients.types'
+
+export function listPatients(search?: string) {
+  const query = search?.trim() ? `?search=${encodeURIComponent(search.trim())}` : ''
+  return apiRequest<PatientsListResponse>(`/patients${query}`, {
+    method: 'GET',
+    accessToken: getAccessToken(),
+  })
+}
+
+export function getPatientHistory(identifier: string) {
+  return apiRequest<PatientHistoryResponse>(
+    `/patients/history?identifier=${encodeURIComponent(identifier)}`,
+    { method: 'GET', accessToken: getAccessToken() },
+  )
+}

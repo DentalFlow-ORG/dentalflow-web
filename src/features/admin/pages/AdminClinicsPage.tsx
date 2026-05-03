@@ -9,6 +9,7 @@ import { ListToolbar, type FilterDef } from '@/components/common/ListToolbar'
 import { Pagination } from '@/components/common/Pagination'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useListFilter } from '@/hooks/useListFilter'
@@ -145,7 +146,7 @@ export function AdminClinicsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <AppPage>
       <AppPageHeader
         eyebrow="Administração"
         title="Clínicas da plataforma"
@@ -303,6 +304,6 @@ export function AdminClinicsPage() {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </AppPage>
   )
 }

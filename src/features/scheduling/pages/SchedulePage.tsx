@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
+import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
@@ -97,7 +98,7 @@ export function SchedulePage() {
   })
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <AppPage spacing="loose">
       <AppPageHeader
         eyebrow="Profissional"
         title="Minha agenda"
@@ -204,6 +205,6 @@ export function SchedulePage() {
         onStatusChange={handleStatusChange}
         onCancelRequest={() => {}}
       />
-    </div>
+    </AppPage>
   )
 }

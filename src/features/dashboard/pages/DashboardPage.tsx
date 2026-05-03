@@ -15,6 +15,7 @@ import { LoadingCard } from '@/components/common/LoadingCard'
 import { MetricCard } from '@/components/common/MetricCard'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
+import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
@@ -87,7 +88,7 @@ export function DashboardPage() {
   ]
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <AppPage spacing="loose">
       <AppPageHeader
         eyebrow="Plataforma"
         title="Visão geral"
@@ -251,6 +252,6 @@ export function DashboardPage() {
           </div>
         </PanelCard>
       )}
-    </div>
+    </AppPage>
   )
 }

@@ -13,6 +13,7 @@ import {
   DashboardPage,
   FinancePage,
   LandingPage,
+  PatientsPage,
   ProfileEditorPageCreate,
   ProfileEditorPageEdit,
   ProfilesListPage,
@@ -140,6 +141,16 @@ const financeRoute = createRoute({
   ),
 })
 
+const patientsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/pacientes',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
+      <PatientsPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const adminUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/admin/users',
@@ -173,6 +184,7 @@ const routeTree = rootRoute.addChildren([
   scheduleRoute,
   teamRoute,
   financeRoute,
+  patientsRoute,
   adminUsersRoute,
   adminClinicsRoute,
 ])

@@ -10,6 +10,7 @@ import { ListPageShell } from '@/components/common/ListPageShell'
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
+import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useListFilter } from '@/hooks/useListFilter'
@@ -67,7 +68,7 @@ export function ProfilesListPage() {
   }, [handleRequestError])
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <AppPage>
       <AppPageHeader
         eyebrow="Perfis profissionais"
         title="Páginas públicas da clínica"
@@ -178,6 +179,6 @@ export function ProfilesListPage() {
           )}
         </div>
       </ListPageShell>
-    </div>
+    </AppPage>
   )
 }

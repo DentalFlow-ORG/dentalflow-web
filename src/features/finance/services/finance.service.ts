@@ -2,6 +2,7 @@ import { getAccessToken } from '@/features/auth/utils/session-storage'
 import { apiRequest } from '@/services/http'
 
 import type {
+  CreateFinancialCategoryDto,
   CreateFinancialTransactionDto,
   CreateFixedExpenseDto,
   FinanceFilters,
@@ -10,6 +11,9 @@ import type {
   FinancialTransactionsResponse,
   FinanceSummary,
   FixedExpense,
+  UpdateFinancialCategoryDto,
+  UpdateFinancialTransactionDto,
+  UpdateFixedExpenseDto,
 } from '../types/finance.types'
 
 function buildQuery(params: Record<string, string | number | undefined>) {
@@ -39,6 +43,29 @@ export function getFinanceSummary(filters: FinanceFilters) {
 export function listFinancialCategories() {
   return apiRequest<FinancialCategory[]>('/finance/categories', {
     method: 'GET',
+    accessToken: getAccessToken(),
+  })
+}
+
+export function createFinancialCategory(dto: CreateFinancialCategoryDto) {
+  return apiRequest<FinancialCategory>('/finance/categories', {
+    method: 'POST',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
+  })
+}
+
+export function updateFinancialCategory(id: string, dto: UpdateFinancialCategoryDto) {
+  return apiRequest<FinancialCategory>(`/finance/categories/${id}`, {
+    method: 'PATCH',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
+  })
+}
+
+export function deleteFinancialCategory(id: string) {
+  return apiRequest<void>(`/finance/categories/${id}`, {
+    method: 'DELETE',
     accessToken: getAccessToken(),
   })
 }
@@ -77,6 +104,29 @@ export function listFixedExpenses() {
 export function createFixedExpense(dto: CreateFixedExpenseDto) {
   return apiRequest<FixedExpense>('/finance/fixed-expenses', {
     method: 'POST',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
+  })
+}
+
+export function updateFinancialTransaction(id: string, dto: UpdateFinancialTransactionDto) {
+  return apiRequest<FinancialTransaction>(`/finance/transactions/${id}`, {
+    method: 'PATCH',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
+  })
+}
+
+export function deleteFinancialTransaction(id: string) {
+  return apiRequest<void>(`/finance/transactions/${id}`, {
+    method: 'DELETE',
+    accessToken: getAccessToken(),
+  })
+}
+
+export function updateFixedExpense(id: string, dto: UpdateFixedExpenseDto) {
+  return apiRequest<FixedExpense>(`/finance/fixed-expenses/${id}`, {
+    method: 'PATCH',
     accessToken: getAccessToken(),
     body: JSON.stringify(dto),
   })

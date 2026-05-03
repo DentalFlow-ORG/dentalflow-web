@@ -132,3 +132,39 @@ export type CreateFixedExpenseDto = {
   endDate?: string
   isActive?: boolean
 }
+
+export type CreateFinancialCategoryDto = {
+  name: string
+  type: FinancialTransactionType
+  color?: string
+  icon?: string
+}
+
+export type UpdateFinancialCategoryDto = {
+  name?: string
+  type?: FinancialTransactionType
+  color?: string
+  icon?: string
+}
+
+export type UpdateFixedExpenseDto = {
+  categoryId?: string
+  description?: string
+  amount?: number
+  recurrence?: FixedExpenseRecurrence
+  dueDay?: number
+  startDate?: string
+  endDate?: string | null
+  isActive?: boolean
+}
+
+export type UpdateFinancialTransactionDto = {
+  type?: FinancialTransactionType
+  categoryId?: string
+  amount?: number
+  description?: string
+  transactionDate?: string
+  dueDate?: string | null
+  status?: FinancialTransactionStatus
+  paidAt?: string | null
+}
