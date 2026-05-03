@@ -77,3 +77,9 @@ export const AdminUsersPage = lazy(() =>
     default: m.AdminUsersPage,
   })),
 )
+
+export const AdminClinicsPage = lazy(() =>
+  import('@/features/admin/pages/AdminClinicsPage').then((m) => ({
+    default: m.AdminClinicsPage,
+  })),
+)

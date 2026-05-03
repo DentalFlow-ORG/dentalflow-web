@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { BarChart3, BriefcaseBusiness, CalendarCheck, CalendarDays, LogOut, ShieldCheck, Users } from 'lucide-react'
+import { BarChart3, BriefcaseBusiness, Building2, CalendarCheck, CalendarDays, LogOut, ShieldCheck, Users } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
@@ -57,6 +57,12 @@ const appNavigation: NavItem[] = [
     icon: ShieldCheck,
     roles: ['ADMIN'],
   },
+  {
+    label: 'Clínicas',
+    to: '/app/admin/clinics',
+    icon: Building2,
+    roles: ['ADMIN'],
+  },
 ]
 
 export function AppShell({ children }: AppShellProps) {
@@ -104,7 +110,7 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* Bottom nav - mobile only */}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white lg:hidden">
-        <div className="flex h-16 items-stretch">
+        <div className="flex h-16 items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {appNavigation
             .filter(({ roles }) => !roles || (user?.role && roles.includes(user.role)))
             .map(({ label, to, icon: Icon }) => (
@@ -113,14 +119,14 @@ export function AppShell({ children }: AppShellProps) {
                 to={to}
                 aria-current={isActive(to) ? 'page' : undefined}
                 className={cn(
-                  'flex flex-1 flex-col items-center justify-center gap-1 text-xs font-semibold transition-colors',
+                  'flex min-w-16 flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold transition-colors',
                   isActive(to)
                     ? 'text-primary'
                     : 'text-slate-500 hover:text-slate-700',
                 )}
               >
                 <Icon className="h-5 w-5" />
-                <span>{label}</span>
+                <span className="max-w-full truncate">{label}</span>
               </Link>
             ))}
         </div>
@@ -129,7 +135,7 @@ export function AppShell({ children }: AppShellProps) {
       {/* Main area */}
       <div className="lg:pl-64">
         <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
-          <div className="flex h-20 items-center justify-between gap-4 px-6 lg:px-8">
+          <div className="flex h-20 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <div className="lg:hidden">
               <BrandLink />
             </div>
@@ -150,7 +156,7 @@ export function AppShell({ children }: AppShellProps) {
         </header>
 
         {/* pb-20 on mobile leaves room above the bottom nav */}
-        <main className="px-6 py-8 pb-24 lg:pb-8 lg:px-8">{children}</main>
+        <main className="px-4 py-6 pb-24 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">{children}</main>
       </div>
     </div>
   )
