@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . && node scripts/check-unused-files.cjs",
+    "check:unused": "node scripts/check-unused-files.cjs",
     "preview": "vite preview"
   },
   "dependencies": {
