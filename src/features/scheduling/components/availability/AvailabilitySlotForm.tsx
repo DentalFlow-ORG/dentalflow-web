@@ -78,7 +78,7 @@ export function AvailabilitySlotForm({
         </Select>
       </FormField>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <FormField label="Início" htmlFor="startTime">
           <TimeInput
             id="startTime"
@@ -99,7 +99,7 @@ export function AvailabilitySlotForm({
         </FormField>
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={isLoading}>
           Cancelar
         </Button>

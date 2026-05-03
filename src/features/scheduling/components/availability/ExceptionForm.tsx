@@ -42,8 +42,7 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
       dto.startTime = formatTimeInputValue(String(data.get('startTime')))
       dto.endTime = formatTimeInputValue(String(data.get('endTime')))
     }
-    console.log('EXCEPTION DTO:', dto)
-    
+
     onSubmit(dto)
   }
 
@@ -98,7 +97,7 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
       </div>
 
       {!isDayOff && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <FormField label="Início" htmlFor="startTime">
             <TimeInput
               id="startTime"
@@ -131,7 +130,7 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
         />
       </FormField>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={isLoading}>
           Cancelar
         </Button>

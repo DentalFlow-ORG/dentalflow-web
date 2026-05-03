@@ -15,10 +15,7 @@ import {
 } from '@/components/ui/select'
 import { getProfile, listProfiles } from '@/features/profiles/services/profiles.service'
 import type { ProfileListItem, ProfileService } from '@/features/profiles/types'
-import {
-  formatDateInputValue,
-  formatTimeInputValue,
-} from '@/lib/date-time-formatters'
+import { formatDateInputValue } from '@/lib/date-time-formatters'
 import { formatPhoneBR } from '@/lib/field-formatters'
 
 import {
@@ -349,7 +346,7 @@ export function CreateAppointmentModal({
               />
             </FormField>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="E-mail" htmlFor="patientEmail" optional>
                 <TextInput
                   id="patientEmail"

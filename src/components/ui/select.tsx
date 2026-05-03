@@ -30,7 +30,7 @@ function SelectTrigger({
       data-size={size}
       className={cn(
         'group flex w-full items-center justify-between gap-2 rounded-md border border-slate-200 bg-white px-3 text-left text-sm font-medium text-slate-900 shadow-sm outline-none transition',
-        'hover:border-primary/35 hover:bg-blue-50/30 focus:border-primary focus:ring-3 focus:ring-primary/15',
+        'hover:border-primary/35 hover:bg-primary/5 focus:border-primary focus:ring-3 focus:ring-primary/15',
         'disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 disabled:opacity-70',
         'data-[placeholder]:text-slate-400 data-[size=default]:h-11 data-[size=sm]:h-9 data-[size=sm]:text-xs',
         className,
@@ -92,7 +92,7 @@ function SelectItem({
       data-slot="select-item"
       className={cn(
         'relative flex min-h-9 w-full cursor-default select-none items-center rounded-md py-2 pl-8 pr-3 text-sm outline-none transition',
-        'focus:bg-blue-50 focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'focus:bg-primary/5 focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className,
       )}
       {...props}

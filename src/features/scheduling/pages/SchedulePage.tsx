@@ -150,6 +150,7 @@ export function SchedulePage() {
                   appointments={appointments}
                   weekStart={weekStart}
                   profileAvailability={availability}
+                  profileExceptions={exceptions}
                   toolbarAction={<ViewToggle view={view} onChange={setView} />}
                   onWeekChange={setWeekStart}
                   onAppointmentClick={setDrawerAppointment}

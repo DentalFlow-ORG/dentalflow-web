@@ -31,7 +31,7 @@ export function SlotPicker({ slots, value, onChange, isLoading, disabled }: Slot
   }
 
   return (
-    <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+    <div className="grid grid-cols-3 gap-2 min-[380px]:grid-cols-4 sm:grid-cols-5">
       {slots.map((slot) => (
         <button
           key={slot.time}
@@ -43,8 +43,8 @@ export function SlotPicker({ slots, value, onChange, isLoading, disabled }: Slot
             'rounded-md border px-2 py-1.5 text-sm font-medium transition-colors',
             slot.available && !disabled
               ? value === slot.time
-                ? 'border-blue-600 bg-blue-600 text-white'
-                : 'border-slate-200 bg-white text-slate-900 hover:border-blue-300 hover:bg-blue-50'
+                ? 'border-primary bg-primary text-white shadow-sm shadow-primary/20'
+                : 'border-slate-200 bg-white text-slate-900 hover:border-primary/35 hover:bg-primary/5 hover:text-primary'
               : 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-400 line-through',
           )}
         >

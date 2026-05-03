@@ -97,8 +97,8 @@ export function ExceptionManager({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h3 className="text-base font-semibold text-slate-900">Exceções de agenda</h3>
           <p className="mt-0.5 text-sm text-slate-500">
             Registre folgas ou horários especiais em datas específicas.
@@ -108,6 +108,7 @@ export function ExceptionManager({
           <Button
             type="button"
             size="sm"
+            className="w-full sm:w-auto"
             onClick={() => setIsAdding(true)}
             disabled={loadingId !== null}
           >

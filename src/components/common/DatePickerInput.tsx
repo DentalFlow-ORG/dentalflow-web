@@ -154,7 +154,7 @@ export function DatePickerInput({
           aria-label={placeholder}
           className={cn(
             'h-11 w-full rounded-md border border-slate-200 bg-white px-3 pr-11 text-sm font-medium text-slate-950 shadow-sm outline-none transition',
-            'hover:border-primary/35 hover:bg-blue-50/30 focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 disabled:opacity-70',
+            'hover:border-primary/35 hover:bg-primary/5 focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 disabled:opacity-70',
             !displayValue && 'text-slate-400',
             className,
           )}
@@ -171,7 +171,7 @@ export function DatePickerInput({
           </button>
         </PopoverTrigger>
       </div>
-      <PopoverContent className="w-[20rem]">
+      <PopoverContent className="w-[20rem] max-w-[calc(100vw-2rem)]">
         <div className="border-b border-slate-100 p-3">
           <div className="flex items-center justify-between gap-2">
             <Button
@@ -226,7 +226,7 @@ export function DatePickerInput({
                   disabled={isDisabled}
                   className={cn(
                     'flex h-9 items-center justify-center rounded-md text-sm font-semibold outline-none transition',
-                    'hover:bg-blue-50 hover:text-primary focus:bg-blue-50 focus:text-primary focus:ring-2 focus:ring-primary/20',
+                    'hover:bg-primary/5 hover:text-primary focus:bg-primary/5 focus:text-primary focus:ring-2 focus:ring-primary/20',
                     isOutsideMonth && 'text-slate-300',
                     isDisabled && 'cursor-not-allowed text-slate-300 opacity-40 hover:bg-transparent hover:text-slate-300',
                     isToday(day) && !isSelected && 'bg-slate-100 text-slate-950',
