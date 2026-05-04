@@ -14,7 +14,10 @@ import { formatPhoneBR, formatSlug, formatUf, isValidPersonName, isValidPhoneBR,
 import { createMember, listSpecialties } from '../services/team.service'
 import type { CreateMemberDto, MemberRole, Specialty } from '../types/team.types'
 import { MemberTypeSelector } from '../components/MemberTypeSelector'
+import { MemberAvailabilityDraft } from '../components/MemberAvailabilityDraft'
 import { SpecialtyPicker } from '../components/SpecialtyPicker'
+import { createAvailability } from '@/features/scheduling/services/scheduling.service'
+import type { CreateAvailabilityDto } from '@/features/scheduling/types/scheduling.types'
 
 type FormState = {
   role: MemberRole
@@ -50,6 +53,7 @@ export function CreateMemberPage() {
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [specialties, setSpecialties] = useState<Specialty[]>([])
+  const [availability, setAvailability] = useState<CreateAvailabilityDto[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -128,15 +132,30 @@ export function CreateMemberPage() {
         dto.specialtyIds = form.specialtyIds.length > 0 ? form.specialtyIds : undefined
       }
 
-      await createMember(dto)
+      const response = await createMember(dto)
+      let availabilityError = false
+
+      if (form.role === 'DENTIST' && response.profile && availability.length > 0) {
+        try {
+          await Promise.all(
+            availability.map((slot) => createAvailability(response.profile!.id, slot)),
+          )
+        } catch {
+          availabilityError = true
+        }
+      }
 
       showAlert({
         title:
-          form.role === 'DENTIST'
+          availabilityError
+            ? 'Profissional cadastrado sem horarios'
+            : form.role === 'DENTIST'
             ? 'Profissional adicionado'
             : 'Assistente adicionado',
-        description: `${form.firstName} ${form.lastName} foi cadastrado com sucesso.`,
-        tone: 'success',
+        description: availabilityError
+          ? 'O cadastro foi salvo, mas nao foi possivel salvar a disponibilidade inicial.'
+          : `${form.firstName} ${form.lastName} foi cadastrado com sucesso.`,
+        tone: availabilityError ? 'warning' : 'success',
       })
 
       await navigate({ to: '/app/equipe' })
@@ -343,6 +362,16 @@ export function CreateMemberPage() {
               specialties={specialties}
               selected={form.specialtyIds}
               onChange={(ids) => set('specialtyIds', ids)}
+              disabled={isSubmitting}
+            />
+          </PanelCard>
+        )}
+
+        {isProfessional && (
+          <PanelCard>
+            <MemberAvailabilityDraft
+              value={availability}
+              onChange={setAvailability}
               disabled={isSubmitting}
             />
           </PanelCard>

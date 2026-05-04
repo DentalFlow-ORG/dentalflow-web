@@ -16,7 +16,18 @@ import {
   X,
 } from 'lucide-react'
 import { Dialog } from 'radix-ui'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Legend,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
@@ -24,6 +35,7 @@ import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { MetricCard } from '@/components/common/MetricCard'
+import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -193,8 +205,12 @@ export function FinancePage() {
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
   const [categories, setCategories] = useState<FinancialCategory[]>([])
   const [transactions, setTransactions] = useState<FinancialTransaction[]>([])
+  const [transactionsTotal, setTransactionsTotal] = useState(0)
+  const [transactionsPage, setTransactionsPage] = useState(1)
+  const [transactionsPageSize, setTransactionsPageSize] = useState(20)
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [transactionForm, setTransactionForm] =
     useState<TransactionFormState>(emptyTransactionForm)
@@ -234,6 +250,7 @@ export function FinancePage() {
   const [editError, setEditError] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const didMountTransactionsPagination = useRef(false)
 
   const incomeCategories = useMemo(
     () => categories.filter((category) => category.type === 'INCOME'),
@@ -253,13 +270,15 @@ export function FinancePage() {
     Promise.all([
       getFinanceSummary(filters),
       listFinancialCategories(),
-      listFinancialTransactions(filters, 1, 20),
+      listFinancialTransactions(filters, 1, transactionsPageSize),
       listFixedExpenses(),
     ])
       .then(([summaryResponse, categoriesResponse, transactionsResponse, fixedResponse]) => {
         setSummary(summaryResponse)
         setCategories(categoriesResponse)
         setTransactions(transactionsResponse.data)
+        setTransactionsTotal(transactionsResponse.total)
+        setTransactionsPage(transactionsResponse.page)
         setFixedExpenses(fixedResponse)
       })
       .catch((err) => {
@@ -275,11 +294,43 @@ export function FinancePage() {
       .finally(() => setIsLoading(false))
   }
 
+  function loadTransactions(page = transactionsPage, pageSize = transactionsPageSize) {
+    setIsLoadingTransactions(true)
+
+    listFinancialTransactions(filters, page, pageSize)
+      .then((transactionsResponse) => {
+        setTransactions(transactionsResponse.data)
+        setTransactionsTotal(transactionsResponse.total)
+        setTransactionsPage(transactionsResponse.page)
+        setTransactionsPageSize(transactionsResponse.limit)
+      })
+      .catch((err) => {
+        const message =
+          err instanceof Error ? err.message : 'Nao foi possivel carregar as movimentacoes.'
+        showAlert({
+          title: 'Erro ao carregar movimentacoes',
+          description: message,
+          tone: 'error',
+        })
+      })
+      .finally(() => setIsLoadingTransactions(false))
+  }
+
   useEffect(() => {
     load()
   }, [filters]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!didMountTransactionsPagination.current) {
+      didMountTransactionsPagination.current = true
+      return
+    }
+
+    loadTransactions(transactionsPage, transactionsPageSize)
+  }, [transactionsPage, transactionsPageSize]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function setFilter<K extends keyof FinanceFilters>(field: K, value: FinanceFilters[K]) {
+    setTransactionsPage(1)
     setFilters((prev) => ({ ...prev, [field]: value || undefined }))
   }
 
@@ -737,6 +788,12 @@ export function FinancePage() {
             <div className="grid gap-6 lg:grid-cols-2">
               <TransactionsTable
                 transactions={transactions}
+                isLoading={isLoadingTransactions}
+                page={transactionsPage}
+                pageSize={transactionsPageSize}
+                total={transactionsTotal}
+                onPageChange={setTransactionsPage}
+                onPageSizeChange={setTransactionsPageSize}
                 onEdit={handleOpenEdit}
                 onDelete={setDeletingTransaction}
               />
@@ -990,61 +1047,234 @@ function KpiGrid({ summary }: { summary: FinanceSummary }) {
 }
 
 function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
-  const maxValue = Math.max(
-    1,
-    ...summary.incomeVsExpenses.flatMap((item) => [item.income, item.expenses]),
-  )
+  const [visibleSeries, setVisibleSeries] = useState<Record<ChartSeriesKey, boolean>>({
+    income: true,
+    expenses: true,
+    netProfit: true,
+  })
 
   if (summary.incomeVsExpenses.length === 0) {
     return <EmptyChart message="Nenhuma movimentacao paga neste periodo." />
   }
 
+  const chartData = summary.incomeVsExpenses.map((item) => ({
+    ...item,
+    expensesChart: -Math.abs(item.expenses),
+    label: formatShortDate(item.date),
+    fullDate: formatDate(item.date),
+  }))
+  const lastPoint = chartData.at(-1)
+  const bestPoint = chartData.reduce((best, item) =>
+    item.netProfit > best.netProfit ? item : best,
+  )
+  const worstPoint = chartData.reduce((worst, item) =>
+    item.netProfit < worst.netProfit ? item : worst,
+  )
+  const activeSeriesCount = Object.values(visibleSeries).filter(Boolean).length
+
+  function toggleSeries(series: ChartSeriesKey) {
+    setVisibleSeries((current) => {
+      if (current[series] && activeSeriesCount === 1) {
+        return current
+      }
+
+      return {
+        ...current,
+        [series]: !current[series],
+      }
+    })
+  }
+
   return (
-    <div className="space-y-3">
-      {summary.incomeVsExpenses.map((item) => (
-        <div key={item.date} className="grid gap-2 sm:grid-cols-[96px_1fr] sm:items-center">
-          <span className="text-xs font-semibold text-slate-500">{formatShortDate(item.date)}</span>
-          <div className="space-y-1.5">
-            <ChartBar
-              label="Entradas"
-              value={item.income}
-              maxValue={maxValue}
-              className="bg-emerald-500"
+    <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <FinanceInsight label="Ultimo resultado" value={lastPoint?.netProfit ?? 0} />
+        <FinanceInsight label="Melhor periodo" value={bestPoint.netProfit} detail={bestPoint.label} />
+        <FinanceInsight label="Maior pressao" value={worstPoint.netProfit} detail={worstPoint.label} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {CHART_SERIES.map((series) => (
+          <button
+            key={series.key}
+            type="button"
+            aria-pressed={visibleSeries[series.key]}
+            title={`${visibleSeries[series.key] ? 'Ocultar' : 'Mostrar'} ${series.label}`}
+            className={cn(
+              'inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors',
+              visibleSeries[series.key]
+                ? 'border-slate-300 bg-white text-slate-800 shadow-sm'
+                : 'border-slate-200 bg-slate-50 text-slate-400',
+            )}
+            onClick={() => toggleSeries(series.key)}
+          >
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: series.color }}
             />
-            <ChartBar
-              label="Saidas"
-              value={item.expenses}
-              maxValue={maxValue}
-              className="bg-red-500"
+            {series.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="h-[320px] min-w-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 12, right: 10, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#10B981" stopOpacity={0.02} />
+              </linearGradient>
+              <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#EF4444" stopOpacity={0.18} />
+                <stop offset="95%" stopColor="#EF4444" stopOpacity={0.02} />
+              </linearGradient>
+              <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#6366F1" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#6366F1" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="label"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#64748B', fontSize: 12 }}
+              minTickGap={18}
             />
-          </div>
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#64748B', fontSize: 12 }}
+              tickFormatter={formatCompactCurrency}
+              width={72}
+            />
+            <Tooltip
+              cursor={{ stroke: '#94A3B8', strokeDasharray: '4 4' }}
+              formatter={(value, name) => [
+                formatCurrency(Math.abs(Number(value))),
+                CHART_SERIES_LABELS[String(name)] ?? String(name),
+              ]}
+              labelFormatter={(_, payload) => payload?.[0]?.payload?.fullDate ?? ''}
+              contentStyle={{
+                border: '1px solid #E2E8F0',
+                borderRadius: 8,
+                boxShadow: '0 12px 24px rgb(15 23 42 / 0.12)',
+              }}
+            />
+            <Legend
+              iconType="circle"
+              formatter={(value) => (
+                <span className="text-xs font-medium text-slate-600">
+                  {CHART_SERIES_LABELS[String(value)] ?? value}
+                </span>
+              )}
+            />
+            <ReferenceLine y={0} stroke="#CBD5E1" />
+            {visibleSeries.income && (
+              <Area
+                type="monotone"
+                dataKey="income"
+                name="income"
+                stroke="#10B981"
+                strokeWidth={2.5}
+                fill="url(#incomeGradient)"
+                dot={false}
+                activeDot={{ r: 5 }}
+              />
+            )}
+            {visibleSeries.expenses && (
+              <Area
+                type="monotone"
+                dataKey="expensesChart"
+                name="expenses"
+                stroke="#EF4444"
+                strokeWidth={2.5}
+                fill="url(#expenseGradient)"
+                dot={false}
+                activeDot={{ r: 5 }}
+              />
+            )}
+            {visibleSeries.netProfit && (
+              <Area
+                type="monotone"
+                dataKey="netProfit"
+                name="netProfit"
+                stroke="#6366F1"
+                strokeWidth={2.5}
+                fill="url(#profitGradient)"
+                dot={false}
+                activeDot={{ r: 5 }}
+              />
+            )}
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="grid grid-cols-4 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <span>Data</span>
+          <span className="text-right">Entradas</span>
+          <span className="text-right">Saidas</span>
+          <span className="text-right">Resultado</span>
         </div>
-      ))}
+        <div className="max-h-52 divide-y divide-slate-100 overflow-auto">
+          {chartData.map((item) => (
+            <div key={item.date} className="grid grid-cols-4 px-3 py-2 text-sm">
+              <span className="font-medium text-slate-700">{item.label}</span>
+              <span className="text-right text-emerald-700">{formatCurrency(item.income)}</span>
+              <span className="text-right text-red-700">{formatCurrency(item.expenses)}</span>
+              <span
+                className={cn(
+                  'text-right font-semibold',
+                  item.netProfit >= 0 ? 'text-indigo-700' : 'text-red-700',
+                )}
+              >
+                {formatCurrency(item.netProfit)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
 
-function ChartBar({
+type ChartSeriesKey = 'income' | 'expenses' | 'netProfit'
+
+const CHART_SERIES: Array<{ key: ChartSeriesKey; label: string; color: string }> = [
+  { key: 'income', label: 'Entradas', color: '#10B981' },
+  { key: 'expenses', label: 'Saidas', color: '#EF4444' },
+  { key: 'netProfit', label: 'Resultado', color: '#6366F1' },
+]
+
+const CHART_SERIES_LABELS: Record<string, string> = {
+  income: 'Entradas',
+  expenses: 'Saidas',
+  netProfit: 'Resultado',
+}
+
+function FinanceInsight({
   label,
   value,
-  maxValue,
-  className,
+  detail,
 }: {
   label: string
   value: number
-  maxValue: number
-  className: string
+  detail?: string
 }) {
-  const width = Math.max(2, Math.round((value / maxValue) * 100))
-
   return (
-    <div className="flex items-center gap-3">
-      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-        <div className={cn('h-full rounded-full', className)} style={{ width: `${width}%` }} />
+    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+      <div className="text-xs font-medium text-slate-500">{label}</div>
+      <div
+        className={cn(
+          'mt-1 text-base font-semibold',
+          value >= 0 ? 'text-slate-950' : 'text-red-700',
+        )}
+      >
+        {formatCurrency(value)}
       </div>
-      <span className="w-24 shrink-0 text-right text-xs font-medium text-slate-600">
-        {label}: {formatCurrency(value)}
-      </span>
+      {detail && <div className="mt-1 text-xs text-slate-500">{detail}</div>}
     </div>
   )
 }
@@ -1092,13 +1322,27 @@ function Ranking({
 
 function TransactionsTable({
   transactions,
+  isLoading,
+  page,
+  pageSize,
+  total,
+  onPageChange,
+  onPageSizeChange,
   onEdit,
   onDelete,
 }: {
   transactions: FinancialTransaction[]
+  isLoading: boolean
+  page: number
+  pageSize: number
+  total: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
   onEdit: (transaction: FinancialTransaction) => void
   onDelete: (transaction: FinancialTransaction) => void
 }) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+
   return (
     <PanelCard>
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -1106,7 +1350,11 @@ function TransactionsTable({
           <h2 className="text-base font-semibold text-slate-950">Movimentacoes</h2>
           <p className="mt-1 text-sm text-slate-500">Ultimos lancamentos do periodo.</p>
         </div>
-        <WalletCards className="h-5 w-5 text-primary" />
+        {isLoading ? (
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        ) : (
+          <WalletCards className="h-5 w-5 text-primary" />
+        )}
       </div>
       <div className="space-y-3 md:hidden">
         {transactions.length === 0 ? (
@@ -1283,6 +1531,17 @@ function TransactionsTable({
           </table>
         </div>
       </div>
+
+      <Pagination
+        className="mt-4 border-t border-slate-100 pt-4"
+        page={page}
+        totalPages={totalPages}
+        filteredCount={total}
+        pageSize={pageSize}
+        pageSizeOptions={[10, 20, 50, 100]}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+      />
     </PanelCard>
   )
 }
@@ -2210,6 +2469,15 @@ function formatCurrency(value: string | number) {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
+  }).format(Number(value))
+}
+
+function formatCompactCurrency(value: string | number) {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    notation: 'compact',
+    maximumFractionDigits: 1,
   }).format(Number(value))
 }
 

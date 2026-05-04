@@ -6,6 +6,7 @@ import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { MetricCard } from '@/components/common/MetricCard'
+import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -232,10 +233,13 @@ export function PatientsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleSearchChange = (value: string) => {
+    setPage(1)
     setSearch(value)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => setDebouncedSearch(value), 400)
@@ -264,6 +268,12 @@ export function PatientsPage() {
     if (dateTo && p.lastVisit && p.lastVisit > dateTo) return false
     return true
   })
+  const totalPages = Math.max(1, Math.ceil(filteredPatients.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedPatients = filteredPatients.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
 
   const hasFilters = !!debouncedSearch || !!dateFrom || !!dateTo
 
@@ -297,7 +307,10 @@ export function PatientsPage() {
               id="patientFrom"
               value={dateFrom}
               placeholder="DD/MM/AAAA"
-              onValueChange={setDateFrom}
+              onValueChange={(value) => {
+                setPage(1)
+                setDateFrom(value)
+              }}
             />
           </FormField>
           <FormField label="Última visita — até" htmlFor="patientTo">
@@ -306,7 +319,10 @@ export function PatientsPage() {
               value={dateTo}
               placeholder="DD/MM/AAAA"
               minValue={dateFrom}
-              onValueChange={setDateTo}
+              onValueChange={(value) => {
+                setPage(1)
+                setDateTo(value)
+              }}
             />
           </FormField>
         </div>
@@ -365,7 +381,7 @@ export function PatientsPage() {
                         </td>
                       </tr>
                     ) : (
-                      filteredPatients.map((patient) => (
+                      paginatedPatients.map((patient) => (
                         <tr
                           key={patient.identifier}
                           className="cursor-pointer hover:bg-slate-50/70"
@@ -407,8 +423,16 @@ export function PatientsPage() {
                 </table>
               </div>
 
-              <div className="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
-                {filteredPatients.length} paciente{filteredPatients.length !== 1 ? 's' : ''}
+              <div className="border-t border-slate-100 px-4 py-3">
+                <Pagination
+                  page={currentPage}
+                  totalPages={totalPages}
+                  filteredCount={filteredPatients.length}
+                  pageSize={pageSize}
+                  pageSizeOptions={[10, 25, 50, 100]}
+                  onPageChange={setPage}
+                  onPageSizeChange={setPageSize}
+                />
               </div>
             </div>
           </PanelCard>

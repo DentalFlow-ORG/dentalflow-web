@@ -90,6 +90,12 @@ export const AdminClinicsPage = lazy(() =>
   })),
 )
 
+export const AdminFinancePage = lazy(() =>
+  import('@/features/admin/pages/AdminFinancePage').then((m) => ({
+    default: m.AdminFinancePage,
+  })),
+)
+
 export const PatientsPage = lazy(() =>
   import('@/features/patients/pages/PatientsPage').then((m) => ({
     default: m.PatientsPage,

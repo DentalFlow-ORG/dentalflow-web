@@ -7,6 +7,7 @@ import {
 import { RootRoute } from '@/app/RootRoute'
 import {
   AdminClinicsPage,
+  AdminFinancePage,
   AdminUsersPage,
   AppointmentsPage,
   AuthRoutePage,
@@ -171,6 +172,16 @@ const adminClinicsRoute = createRoute({
   ),
 })
 
+const adminFinanceRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/admin/financeiro',
+  component: () => (
+    <AdminRoute>
+      <AdminFinancePage />
+    </AdminRoute>
+  ),
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
@@ -187,6 +198,7 @@ const routeTree = rootRoute.addChildren([
   patientsRoute,
   adminUsersRoute,
   adminClinicsRoute,
+  adminFinanceRoute,
 ])
 
 export const router = createRouter({

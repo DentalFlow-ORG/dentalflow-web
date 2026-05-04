@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { BarChart3, BriefcaseBusiness, Building2, CalendarCheck, CalendarDays, Landmark, LogOut, ShieldCheck, Users, Users2 } from 'lucide-react'
+import { BarChart3, BriefcaseBusiness, Building2, CalendarCheck, CalendarDays, CreditCard, Landmark, LogOut, ShieldCheck, Users, Users2 } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
@@ -73,6 +73,12 @@ const appNavigation: NavItem[] = [
     label: 'Clínicas',
     to: '/app/admin/clinics',
     icon: Building2,
+    roles: ['ADMIN'],
+  },
+  {
+    label: 'Financeiro SaaS',
+    to: '/app/admin/financeiro',
+    icon: CreditCard,
     roles: ['ADMIN'],
   },
 ]
