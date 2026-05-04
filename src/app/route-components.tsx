@@ -101,3 +101,9 @@ export const PatientsPage = lazy(() =>
     default: m.PatientsPage,
   })),
 )
+
+export const SubscriptionPage = lazy(() =>
+  import('@/features/billing/pages/SubscriptionPage').then((m) => ({
+    default: m.SubscriptionPage,
+  })),
+)

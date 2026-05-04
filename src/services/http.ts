@@ -143,7 +143,11 @@ async function parseResponseBody(response: Response) {
   const contentType = response.headers.get('content-type')
 
   if (contentType?.includes('application/json')) {
-    return response.json() as Promise<ApiErrorBody>
+    try {
+      return (await response.json()) as ApiErrorBody
+    } catch {
+      return null
+    }
   }
 
   return response.text()
