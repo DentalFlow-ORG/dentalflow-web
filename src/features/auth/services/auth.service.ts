@@ -6,7 +6,7 @@ import type {
   RefreshResponse,
   RegisterPayload,
 } from '../types'
-import { getAccessToken, getRefreshToken } from '../utils/session-storage'
+import { getAccessToken } from '../utils/session-storage'
 
 export function login(payload: LoginPayload) {
   return apiRequest<AuthResponse>('/auth/login', {
@@ -33,14 +33,12 @@ export function logout() {
   return apiRequest<void>('/auth/logout', {
     method: 'POST',
     accessToken: getAccessToken(),
-    body: JSON.stringify({ refreshToken: getRefreshToken() }),
   })
 }
 
-export function refresh(refreshToken: string) {
+export function refresh() {
   return apiRequest<RefreshResponse>('/auth/refresh', {
     method: 'POST',
-    body: JSON.stringify({ refreshToken }),
     _skipRefresh: true,
   })
 }

@@ -5,7 +5,6 @@ import type {
   BillingPlan,
   CheckoutSessionRequest,
   ClinicSubscription,
-  PortalSessionRequest,
   SessionUrlResponse,
 } from '../types/billing.types'
 
@@ -31,11 +30,10 @@ export function createCheckoutSession(dto: CheckoutSessionRequest) {
   })
 }
 
-export function createPortalSession(dto: PortalSessionRequest) {
+export function createPortalSession() {
   return apiRequest<SessionUrlResponse>('/billing/portal-session', {
     method: 'POST',
     accessToken: getAccessToken(),
-    body: JSON.stringify(dto),
   })
 }
 

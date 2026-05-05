@@ -49,12 +49,6 @@ export type ClinicSubscription = {
 export type CheckoutSessionRequest = {
   planId: string
   billingInterval: BillingInterval
-  successUrl: string
-  cancelUrl: string
-}
-
-export type PortalSessionRequest = {
-  returnUrl: string
 }
 
 export type SessionUrlResponse = {

@@ -19,7 +19,17 @@ import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { getUserDisplayName } from '@/features/auth/utils/name'
 
+import type { AuthUserRole } from '@/features/auth/types'
+
 import { useDashboardPage } from '../hooks/useDashboardPage'
+
+const ROLE_LABELS: Record<AuthUserRole, string> = {
+  ADMIN: 'Administrador',
+  OWNER: 'Proprietário',
+  DENTIST: 'Dentista',
+  ASSISTANT: 'Assistente',
+  PATIENT: 'Paciente',
+}
 
 export function DashboardPageContainer() {
   const {
@@ -85,7 +95,7 @@ export function DashboardPageContainer() {
             </div>
             <div>
               <dt className="font-semibold text-slate-500">Perfil</dt>
-              <dd className="mt-1 text-slate-900">{user?.role}</dd>
+              <dd className="mt-1 text-slate-900">{user ? ROLE_LABELS[user.role] ?? user.role : '-'}</dd>
             </div>
           </dl>
         </IconCard>

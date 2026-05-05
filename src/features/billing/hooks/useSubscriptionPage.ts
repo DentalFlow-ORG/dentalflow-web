@@ -129,8 +129,6 @@ export function useSubscriptionPage() {
       const { url } = await createCheckoutSession({
         planId,
         billingInterval,
-        successUrl: `${window.location.origin}/app/assinatura`,
-        cancelUrl: `${window.location.origin}/app/assinatura`,
       })
       showAlert({ title: 'Redirecionando para o Stripe...', tone: 'info' })
       window.location.href = url
@@ -145,9 +143,7 @@ export function useSubscriptionPage() {
   async function handlePortal() {
     setIsOpeningPortal(true)
     try {
-      const { url } = await createPortalSession({
-        returnUrl: `${window.location.origin}/app/assinatura`,
-      })
+      const { url } = await createPortalSession()
       showAlert({ title: 'Redirecionando para o Stripe...', tone: 'info' })
       window.location.href = url
     } catch (err) {
