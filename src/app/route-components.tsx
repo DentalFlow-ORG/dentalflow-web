@@ -107,3 +107,15 @@ export const SubscriptionPage = lazy(() =>
     default: m.SubscriptionPage,
   })),
 )
+
+export const SubscriptionSuccessPage = lazy(() =>
+  import('@/features/billing/pages/SubscriptionSuccessPage').then((m) => ({
+    default: m.SubscriptionSuccessPage,
+  })),
+)
+
+export const SubscriptionCancelPage = lazy(() =>
+  import('@/features/billing/pages/SubscriptionCancelPage').then((m) => ({
+    default: m.SubscriptionCancelPage,
+  })),
+)
