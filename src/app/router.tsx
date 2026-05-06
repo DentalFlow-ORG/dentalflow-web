@@ -13,6 +13,7 @@ import {
   AuthRoutePage,
   DashboardPage,
   FinancePage,
+  FiscalInvoicesPage,
   LandingPage,
   PatientsPage,
   ProfileEditorPageCreate,
@@ -145,6 +146,16 @@ const financeRoute = createRoute({
   ),
 })
 
+const fiscalInvoicesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/notas-fiscais',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
+      <FiscalInvoicesPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const patientsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/pacientes',
@@ -228,6 +239,7 @@ const routeTree = rootRoute.addChildren([
   scheduleRoute,
   teamRoute,
   financeRoute,
+  fiscalInvoicesRoute,
   patientsRoute,
   subscriptionRoute,
   subscriptionSuccessRoute,
