@@ -18,7 +18,6 @@ import {
 import {
   clearSession,
   getAccessToken,
-  getRefreshToken,
   getStoredUser,
   setSession,
   setTokens,
@@ -37,13 +36,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     setupAuthRefresh({
-      refreshTokens: () => {
-        const refreshToken = getRefreshToken()
-        if (!refreshToken) return Promise.reject(new Error('No refresh token'))
-        return refresh(refreshToken)
-      },
-      onTokenRefreshed: (accessToken, refreshToken) => {
-        setTokens(accessToken, refreshToken)
+      refreshTokens: () => refresh(),
+      onTokenRefreshed: (accessToken) => {
+        setTokens(accessToken)
       },
       onRefreshFailed: () => {
         clearSession()
@@ -75,15 +70,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = useCallback(async (payload: LoginPayload) => {
     const response = await loginRequest(payload)
-
-    setSession(response.accessToken, response.refreshToken, response.user)
+    setSession(response.accessToken, response.user)
     setUser(response.user)
   }, [])
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const response = await registerRequest(payload)
-
-    setSession(response.accessToken, response.refreshToken, response.user)
+    setSession(response.accessToken, response.user)
     setUser(response.user)
   }, [])
 

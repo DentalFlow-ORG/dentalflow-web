@@ -1,10 +1,6 @@
 import { env } from '@/config/env'
 import { notifySessionExpired } from '@/features/auth/utils/auth-events'
-import {
-  clearSession,
-  getRefreshToken,
-  setTokens,
-} from '@/features/auth/utils/session-storage'
+import {clearSession} from '@/features/auth/utils/session-storage'
 
 import {
   getStatusFallbackMessage,
@@ -35,20 +31,19 @@ export class ApiError extends Error {
 }
 
 type RefreshConfig = {
-  refreshTokens: () => Promise<{ accessToken: string; refreshToken: string }>
-  onTokenRefreshed: (accessToken: string, refreshToken: string) => void
+  refreshTokens: () => Promise<{ accessToken: string }>
+  onTokenRefreshed: (accessToken: string) => void
   onRefreshFailed: () => void
 }
 
 let refreshConfig: RefreshConfig | null = null
-let pendingRefresh: Promise<{ accessToken: string; refreshToken: string }> | null = null
+let pendingRefresh: Promise<{ accessToken: string }> | null = null
 
 export function setupAuthRefresh(config: RefreshConfig) {
   refreshConfig = config
 }
 
 const REQUEST_TIMEOUT_MS = 15_000
-let refreshSessionPromise: Promise<string | null> | null = null
 
 export async function apiRequest<TResponse>(
   path: string,
@@ -68,23 +63,11 @@ export async function apiRequest<TResponse>(
   }
 
   try {
-    let response = await request(path, requestOptions, {
+    const response = await request(path, requestOptions, {
       accessToken,
       headers,
       signal: controller.signal,
     })
-
-    if (response.status === 401 && accessToken && !_skipRefresh) {
-      const nextAccessToken = await refreshAccessToken()
-
-      if (nextAccessToken) {
-        response = await request(path, requestOptions, {
-          accessToken: nextAccessToken,
-          headers,
-          signal: controller.signal,
-        })
-      }
-    }
 
     if (!response.ok) {
       const body = await parseResponseBody(response)
@@ -99,14 +82,16 @@ export async function apiRequest<TResponse>(
               pendingRefresh = null
             })
           }
-          const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await pendingRefresh
-          refreshConfig.onTokenRefreshed(newAccessToken, newRefreshToken)
+          const { accessToken: newAccessToken } = await pendingRefresh
+          refreshConfig.onTokenRefreshed(newAccessToken)
           return apiRequest<TResponse>(path, {
             ...options,
             accessToken: newAccessToken,
             _skipRefresh: true,
           })
         } catch {
+          clearSession()
+          notifySessionExpired()
           refreshConfig.onRefreshFailed()
           throw new ApiError(message, response.status, body)
         }
@@ -143,7 +128,11 @@ async function parseResponseBody(response: Response) {
   const contentType = response.headers.get('content-type')
 
   if (contentType?.includes('application/json')) {
-    return response.json() as Promise<ApiErrorBody>
+    try {
+      return (await response.json()) as ApiErrorBody
+    } catch {
+      return null
+    }
   }
 
   return response.text()
@@ -182,54 +171,4 @@ function request(
       ...options.headers,
     },
   })
-}
-
-async function refreshAccessToken() {
-  const refreshToken = getRefreshToken()
-
-  if (!refreshToken) {
-    clearExpiredSession()
-    return null
-  }
-
-  refreshSessionPromise ??= fetch(`${env.apiUrl}/auth/refresh`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
-  })
-    .then(async (response) => {
-      if (!response.ok) {
-        return null
-      }
-
-      const session = (await response.json()) as {
-        accessToken?: string
-        refreshToken?: string
-      }
-
-      if (!session.accessToken || !session.refreshToken) {
-        return null
-      }
-
-      setTokens(session.accessToken, session.refreshToken)
-      return session.accessToken
-    })
-    .catch(() => null)
-    .finally(() => {
-      refreshSessionPromise = null
-    })
-
-  const accessToken = await refreshSessionPromise
-
-  if (!accessToken) {
-    clearExpiredSession()
-  }
-
-  return accessToken
-}
-
-function clearExpiredSession() {
-  clearSession()
-  notifySessionExpired()
 }

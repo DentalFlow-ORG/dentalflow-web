@@ -21,6 +21,9 @@ import {
   ProfileServiceEditorPage,
   PublicProfilePage,
   SchedulePage,
+  SubscriptionCancelPage,
+  SubscriptionPage,
+  SubscriptionSuccessPage,
   TeamPage,
 } from '@/app/route-components'
 import { AdminRoute } from '@/features/admin/components/AdminRoute'
@@ -152,6 +155,36 @@ const patientsRoute = createRoute({
   ),
 })
 
+const subscriptionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/assinatura',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
+      <SubscriptionPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const subscriptionSuccessRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/assinatura/sucesso',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
+      <SubscriptionSuccessPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const subscriptionCancelRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/assinatura/cancelar',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
+      <SubscriptionCancelPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const adminUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/admin/users',
@@ -196,6 +229,9 @@ const routeTree = rootRoute.addChildren([
   teamRoute,
   financeRoute,
   patientsRoute,
+  subscriptionRoute,
+  subscriptionSuccessRoute,
+  subscriptionCancelRoute,
   adminUsersRoute,
   adminClinicsRoute,
   adminFinanceRoute,

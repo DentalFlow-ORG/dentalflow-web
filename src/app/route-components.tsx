@@ -101,3 +101,21 @@ export const PatientsPage = lazy(() =>
     default: m.PatientsPage,
   })),
 )
+
+export const SubscriptionPage = lazy(() =>
+  import('@/features/billing/pages/SubscriptionPage').then((m) => ({
+    default: m.SubscriptionPage,
+  })),
+)
+
+export const SubscriptionSuccessPage = lazy(() =>
+  import('@/features/billing/pages/SubscriptionSuccessPage').then((m) => ({
+    default: m.SubscriptionSuccessPage,
+  })),
+)
+
+export const SubscriptionCancelPage = lazy(() =>
+  import('@/features/billing/pages/SubscriptionCancelPage').then((m) => ({
+    default: m.SubscriptionCancelPage,
+  })),
+)

@@ -58,6 +58,12 @@ const appNavigation: NavItem[] = [
     roles: ['OWNER'],
   },
   {
+    label: 'Assinatura',
+    to: '/app/assinatura',
+    icon: CreditCard,
+    roles: ['OWNER'],
+  },
+  {
     label: 'Pacientes',
     to: '/app/pacientes',
     icon: Users2,
@@ -99,7 +105,7 @@ export function AppShell({ children }: AppShellProps) {
       : location.pathname === to || location.pathname.startsWith(`${to}/`)
 
   return (
-    <div className="min-h-[100svh] bg-slate-50 text-slate-950">
+    <div className="min-h-svh bg-slate-50 text-slate-950">
       {/* Sidebar - desktop only */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-slate-200 bg-white lg:block">
         <div className="flex h-20 items-center border-b border-slate-200 px-6">
