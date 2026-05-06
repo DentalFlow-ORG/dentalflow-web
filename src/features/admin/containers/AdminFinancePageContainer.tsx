@@ -42,6 +42,7 @@ import type {
   AdminFinancePlan,
   AdminFinanceStripeEvent,
   AdminFinanceSubscription,
+  AdminFinanceSubscriptionPreview,
   AdminSubscriptionStatus,
   StripeEventFilters,
   SubscriptionFilters,
@@ -71,10 +72,10 @@ const STATUS_TONE: Record<AdminSubscriptionStatus, 'success' | 'warning' | 'mute
 
 const STATUS_OPTIONS = Object.keys(STATUS_LABEL) as AdminSubscriptionStatus[]
 
-function formatCurrencyFromCents(value: number) {
+function formatCurrencyFromCents(value: number, currency = 'BRL') {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL',
+    currency,
   }).format(value / 100)
 }
 
@@ -86,6 +87,31 @@ function formatDate(value?: string | null) {
     month: '2-digit',
     year: 'numeric',
   }).format(new Date(value))
+}
+
+function formatInterval(value?: 'MONTHLY' | 'YEARLY' | null) {
+  if (value === 'YEARLY') return 'Anual'
+  if (value === 'MONTHLY') return 'Mensal'
+  return '-'
+}
+
+function getSubscriptionAmount(subscription: AdminFinanceSubscription) {
+  const item = subscription.items[0]
+  const value = item?.unitAmount ?? Number(item?.unitAmountDecimal ?? 0)
+
+  if (item && Number.isFinite(value)) {
+    return {
+      value: value * item.quantity,
+      currency: item.currency,
+      interval: item.billingInterval,
+    }
+  }
+
+  return {
+    value: subscription.plan.priceMonthly,
+    currency: 'BRL',
+    interval: 'MONTHLY' as const,
+  }
 }
 
 export function AdminFinancePageContainer() {
@@ -113,9 +139,9 @@ export function AdminFinancePageContainer() {
   return (
     <AppPage>
       <AppPageHeader
-        eyebrow="Administracao"
-        title="Financeiro da plataforma"
-        description="Acompanhe assinaturas, planos e receita recorrente estimada do DentalFlow."
+        eyebrow="Administração"
+        title="Gestão financeira"
+        description="Acompanhe assinaturas, planos e receita recorrente do SaaS DentalFlow."
         action={
           <Button variant="outline" onClick={load}>
             <RefreshCw className="h-4 w-4" />
@@ -134,24 +160,23 @@ export function AdminFinancePageContainer() {
         {summary && (
           <div className="space-y-6">
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCard value={String(summary.kpis.totalPlans)} label="Planos cadastrados" />
               <MetricCard
                 value={String(summary.kpis.activeSubscriptions)}
                 label="Assinaturas ativas"
               />
               <ExplainedMetricCard
-                value={formatCurrencyFromCents(summary.kpis.estimatedMrr)}
-                label="MRR estimado"
-                explanation="MRR e a receita recorrente mensal estimada com base nas assinaturas ativas e em trial."
+                value={formatCurrencyFromCents(summary.kpis.estimatedMrr, summary.kpis.currency)}
+                label="Receita recorrente mensal"
+                explanation="MRR calculado no backend com base apenas em assinaturas ativas."
               />
               <ExplainedMetricCard
-                value={formatCurrencyFromCents(summary.kpis.estimatedArr)}
-                label="ARR estimado"
-                explanation="ARR e a receita recorrente anual estimada. Nesta versao, e calculado como MRR multiplicado por 12."
+                value={formatCurrencyFromCents(summary.kpis.estimatedArr, summary.kpis.currency)}
+                label="Receita recorrente anual"
+                explanation="ARR calculado no backend com base nos itens e intervalos de cobrança sincronizados do Stripe."
               />
               <MetricCard
                 value={String(summary.kpis.trialSubscriptions)}
-                label="Assinaturas em trial"
+                label="Assinaturas em teste"
               />
               <MetricCard
                 value={String(summary.kpis.canceledSubscriptions)}
@@ -159,37 +184,61 @@ export function AdminFinancePageContainer() {
               />
               <MetricCard
                 value={String(summary.kpis.pastDueSubscriptions)}
-                label="Pendentes ou em atraso"
+                label="Pagamentos pendentes"
               />
               <MetricCard
-                value={String(summary.kpis.stripeEventsProcessed)}
-                label="Eventos Stripe processados"
+                value={String(summary.kpis.totalPlans)}
+                label="Planos cadastrados"
+              />
+              <MetricCard
+                value={String(summary.kpis.stripeEventsFailed)}
+                label="Eventos Stripe com erro"
               />
             </section>
 
             <div className="grid gap-6 xl:grid-cols-2">
               <FinanceChart
-                title="Receita estimada por plano"
-                description="MRR calculado com base no preco mensal dos planos ativos/trial."
-                emptyTitle="Sem receita recorrente estimada"
-                emptyDescription="Os indicadores serao exibidos quando houver assinaturas ativas."
+                title="Receita por plano"
+                description="MRR calculado no backend com base nos itens ativos sincronizados do Stripe."
+                emptyTitle="Nenhum dado financeiro encontrado"
+                emptyDescription="Os indicadores serão exibidos quando houver assinaturas ativas."
                 data={summary.subscriptionsByPlan.map((item) => ({
                   label: item.planName,
                   value: item.estimatedMrr,
                 }))}
-                valueFormatter={formatCurrencyFromCents}
+                valueFormatter={(value) => formatCurrencyFromCents(value, summary.kpis.currency)}
               />
 
               <FinanceChart
-                title="Distribuicao por status"
+                title="Distribuição por status"
                 description="Quantidade de assinaturas por status cadastrado."
                 emptyTitle="Nenhuma assinatura encontrada"
-                emptyDescription="A distribuicao sera exibida quando houver assinaturas."
+                emptyDescription="A distribuição será exibida quando houver assinaturas."
                 data={summary.statusDistribution.map((item) => ({
                   label: STATUS_LABEL[item.status],
                   value: item.count,
                 }))}
                 valueFormatter={(value) => String(value)}
+              />
+            </div>
+
+            <PriceBreakdownSection
+              rows={summary.revenueByPrice}
+              defaultCurrency={summary.kpis.currency}
+            />
+
+            <div className="grid gap-6 xl:grid-cols-2">
+              <RecentSubscriptionsSection
+                title="Assinaturas recentes"
+                description="Últimas assinaturas criadas na plataforma."
+                subscriptions={summary.recentlyCreatedSubscriptions}
+                emptyTitle="Nenhuma assinatura recente"
+              />
+              <RecentSubscriptionsSection
+                title="Cancelamentos recentes"
+                description="Assinaturas canceladas ou encerradas recentemente."
+                subscriptions={summary.recentlyCanceledSubscriptions}
+                emptyTitle="Nenhum cancelamento recente"
               />
             </div>
 
@@ -279,11 +328,11 @@ function FinanceChart({
           {title.includes('Receita') && (
             <Info
               className="h-3.5 w-3.5 text-slate-400"
-              aria-label="MRR significa receita recorrente mensal. Os valores sao estimativas porque o modelo atual nao registra o intervalo real de cobranca da assinatura."
+              aria-label="MRR significa receita recorrente mensal. Os valores são calculados no backend a partir dos itens sincronizados do Stripe."
               role="img"
             >
               <title>
-                MRR significa receita recorrente mensal. Os valores sao estimativas porque o modelo atual nao registra o intervalo real de cobranca da assinatura.
+                MRR significa receita recorrente mensal. Os valores são calculados no backend a partir dos itens sincronizados do Stripe.
               </title>
             </Info>
           )}
@@ -310,6 +359,145 @@ function FinanceChart({
               <Bar dataKey="value" fill="#1E3A8A" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      )}
+    </PanelCard>
+  )
+}
+
+function PriceBreakdownSection({
+  rows,
+  defaultCurrency,
+}: {
+  rows: Array<{
+    stripePriceId: string
+    priceNickname: string | null
+    planName: string
+    currency: string
+    billingInterval: 'MONTHLY' | 'YEARLY' | null
+    estimatedMrr: number
+    estimatedArr: number
+    subscriberCount: number
+  }>
+  defaultCurrency: string
+}) {
+  return (
+    <PanelCard>
+      <SectionHeader
+        icon={Layers3}
+        title="Receita por preço"
+        description="Assinantes e receita recorrente agrupados por preço do Stripe."
+      />
+      {rows.length === 0 ? (
+        <EmptyState
+          icon={Layers3}
+          title="Nenhum dado financeiro encontrado"
+          description="A receita por preço será exibida quando houver assinaturas ativas."
+        />
+      ) : (
+        <div className="overflow-hidden rounded-lg border border-slate-200">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[860px] text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-4 py-3">Plano</th>
+                  <th className="px-4 py-3">Preço Stripe</th>
+                  <th className="px-4 py-3">Intervalo</th>
+                  <th className="px-4 py-3 text-right">Assinantes</th>
+                  <th className="px-4 py-3 text-right">MRR</th>
+                  <th className="px-4 py-3 text-right">ARR</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {rows.map((row) => (
+                  <tr key={`${row.stripePriceId}-${row.currency}`} className="hover:bg-slate-50/70">
+                    <td className="px-4 py-3 font-semibold text-slate-900">{row.planName}</td>
+                    <td className="px-4 py-3">
+                      <p className="text-slate-700">{row.priceNickname ?? '-'}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{row.stripePriceId}</p>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {formatInterval(row.billingInterval)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-slate-700">
+                      {row.subscriberCount}
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                      {formatCurrencyFromCents(row.estimatedMrr, row.currency || defaultCurrency)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-slate-700">
+                      {formatCurrencyFromCents(row.estimatedArr, row.currency || defaultCurrency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </PanelCard>
+  )
+}
+
+function RecentSubscriptionsSection({
+  title,
+  description,
+  subscriptions,
+  emptyTitle,
+}: {
+  title: string
+  description: string
+  subscriptions: AdminFinanceSubscriptionPreview[]
+  emptyTitle: string
+}) {
+  return (
+    <PanelCard>
+      <SectionHeader icon={ReceiptText} title={title} description={description} />
+      {subscriptions.length === 0 ? (
+        <EmptyState
+          icon={ReceiptText}
+          title={emptyTitle}
+          description="Nenhum dado financeiro encontrado."
+        />
+      ) : (
+        <div className="overflow-hidden rounded-lg border border-slate-200">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px] text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-4 py-3">Clínica</th>
+                  <th className="px-4 py-3">Plano</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Criada em</th>
+                  <th className="px-4 py-3">Cancelada em</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {subscriptions.map((subscription) => (
+                  <tr key={subscription.id} className="hover:bg-slate-50/70">
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-slate-900">{subscription.clinic.name}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {subscription.clinic.email ?? subscription.clinic.id}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3 text-slate-700">{subscription.plan.name}</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge tone={STATUS_TONE[subscription.status]}>
+                        {STATUS_LABEL[subscription.status]}
+                      </StatusBadge>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {formatDate(subscription.createdAt)}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {formatDate(subscription.canceledAt ?? subscription.endedAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </PanelCard>
@@ -343,13 +531,13 @@ function SubscriptionsSection({
       <SectionHeader
         icon={CreditCard}
         title="Assinaturas"
-        description="Clinicas com assinatura vinculada aos planos SaaS."
+        description="Clínicas com assinatura vinculada aos planos SaaS."
       />
       <div className="mb-4 grid gap-3 md:grid-cols-5">
-        <FormField label="Buscar clinica" htmlFor="subscriptionSearch" className="md:col-span-2">
+        <FormField label="Buscar clínica" htmlFor="subscriptionSearch" className="md:col-span-2">
           <TextInput
             id="subscriptionSearch"
-            placeholder="Nome da clinica..."
+            placeholder="Nome da clínica..."
             value={filters.search ?? ''}
             onChange={(event) => onFilterChange('search', event.target.value)}
           />
@@ -397,7 +585,7 @@ function SubscriptionsSection({
             </SelectContent>
           </Select>
         </FormField>
-        <FormField label="Criada ate" htmlFor="subscriptionTo">
+        <FormField label="Criada até" htmlFor="subscriptionTo">
           <DatePickerInput
             id="subscriptionTo"
             value={filters.to ?? ''}
@@ -410,7 +598,7 @@ function SubscriptionsSection({
         <EmptyState
           icon={CreditCard}
           title="Nenhuma assinatura encontrada"
-          description="As assinaturas das clinicas serao exibidas aqui quando existirem registros."
+          description="As assinaturas das clínicas serão exibidas aqui quando existirem registros."
         />
       ) : (
         <div className="overflow-hidden rounded-lg border border-slate-200">
@@ -418,46 +606,52 @@ function SubscriptionsSection({
             <table className="w-full min-w-[980px] text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="px-4 py-3">Clinica</th>
+                  <th className="px-4 py-3">Clínica</th>
                   <th className="px-4 py-3">Plano</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Valor mensal</th>
+                  <th className="px-4 py-3 text-right">Valor</th>
                   <th className="px-4 py-3">Intervalo</th>
-                  <th className="px-4 py-3">Inicio</th>
-                  <th className="px-4 py-3">Renovacao</th>
+                  <th className="px-4 py-3">Início</th>
+                  <th className="px-4 py-3">Renovação</th>
                   <th className="px-4 py-3">Cancelada em</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
-                {subscriptions.map((subscription) => (
-                  <tr key={subscription.id} className="hover:bg-slate-50/70">
-                    <td className="px-4 py-3">
-                      <p className="font-semibold text-slate-900">{subscription.clinic.name}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">
-                        {subscription.clinic.email ?? subscription.clinic.id}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">{subscription.plan.name}</td>
-                    <td className="px-4 py-3">
-                      <StatusBadge tone={STATUS_TONE[subscription.status]}>
-                        {STATUS_LABEL[subscription.status]}
-                      </StatusBadge>
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-900">
-                      {formatCurrencyFromCents(subscription.plan.priceMonthly)}
-                    </td>
-                    <td className="px-4 py-3 text-slate-500">Mensal estimado</td>
-                    <td className="px-4 py-3 text-slate-600">
-                      {formatDate(subscription.currentPeriodStart ?? subscription.createdAt)}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">
-                      {formatDate(subscription.currentPeriodEnd)}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">
-                      {formatDate(subscription.canceledAt)}
-                    </td>
-                  </tr>
-                ))}
+                {subscriptions.map((subscription) => {
+                  const amount = getSubscriptionAmount(subscription)
+
+                  return (
+                    <tr key={subscription.id} className="hover:bg-slate-50/70">
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-slate-900">{subscription.clinic.name}</p>
+                        <p className="mt-0.5 text-xs text-slate-500">
+                          {subscription.clinic.email ?? subscription.clinic.id}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">{subscription.plan.name}</td>
+                      <td className="px-4 py-3">
+                        <StatusBadge tone={STATUS_TONE[subscription.status]}>
+                          {STATUS_LABEL[subscription.status]}
+                        </StatusBadge>
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                        {formatCurrencyFromCents(amount.value, amount.currency)}
+                      </td>
+                      <td className="px-4 py-3 text-slate-500">
+                        {formatInterval(amount.interval)}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {formatDate(subscription.currentPeriodStart ?? subscription.createdAt)}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {formatDate(subscription.currentPeriodEnd)}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {formatDate(subscription.canceledAt)}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -483,13 +677,13 @@ function PlansSection({ plans }: { plans: AdminFinancePlan[] }) {
       <SectionHeader
         icon={Layers3}
         title="Planos"
-        description="Planos SaaS disponiveis e volume de assinaturas vinculadas."
+        description="Planos SaaS disponíveis e volume de assinaturas vinculadas."
       />
       {plans.length === 0 ? (
         <EmptyState
           icon={Layers3}
           title="Nenhum plano cadastrado"
-          description="Os planos da plataforma serao exibidos aqui quando forem cadastrados."
+          description="Os planos da plataforma serão exibidos aqui quando forem cadastrados."
         />
       ) : (
         <div className="overflow-hidden rounded-lg border border-slate-200">
@@ -502,7 +696,8 @@ function PlansSection({ plans }: { plans: AdminFinancePlan[] }) {
                   <th className="px-4 py-3 text-right">Anual</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3 text-right">Assinaturas</th>
-                  <th className="px-4 py-3 text-right">Ativas/trial</th>
+                  <th className="px-4 py-3 text-right">Ativas</th>
+                  <th className="px-4 py-3 text-right">Em teste</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 bg-white">
@@ -528,6 +723,9 @@ function PlansSection({ plans }: { plans: AdminFinancePlan[] }) {
                     </td>
                     <td className="px-4 py-3 text-right text-slate-700">
                       {plan.activeSubscriptionsCount}
+                    </td>
+                    <td className="px-4 py-3 text-right text-slate-700">
+                      {plan.trialSubscriptionsCount}
                     </td>
                   </tr>
                 ))}
@@ -565,7 +763,7 @@ function StripeEventsSection({
       <SectionHeader
         icon={ReceiptText}
         title="Eventos Stripe"
-        description="Saude dos eventos recebidos do Stripe e processamento interno."
+        description="Saúde dos eventos recebidos do Stripe e processamento interno."
       />
       <div className="mb-4 grid gap-3 md:grid-cols-4">
         <FormField label="Tipo do evento" htmlFor="stripeEventType" className="md:col-span-2">
@@ -596,7 +794,7 @@ function StripeEventsSection({
             </SelectContent>
           </Select>
         </FormField>
-        <FormField label="Recebido ate" htmlFor="stripeEventTo">
+        <FormField label="Recebido até" htmlFor="stripeEventTo">
           <DatePickerInput
             id="stripeEventTo"
             value={filters.to ?? ''}
@@ -608,8 +806,8 @@ function StripeEventsSection({
       {events.length === 0 ? (
         <EmptyState
           icon={ReceiptText}
-          title="Ainda nao ha eventos do Stripe processados"
-          description="Quando webhooks forem recebidos, os eventos aparecerao nesta tabela."
+          title="Ainda não há eventos do Stripe processados"
+          description="Quando webhooks forem recebidos, os eventos aparecerão nesta tabela."
         />
       ) : (
         <div className="overflow-hidden rounded-lg border border-slate-200">

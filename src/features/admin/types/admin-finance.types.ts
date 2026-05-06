@@ -17,10 +17,16 @@ export type AdminFinanceSummary = {
     pastDueSubscriptions: number
     estimatedMrr: number
     estimatedArr: number
+    currency: string
     stripeEventsTotal: number
     stripeEventsProcessed: number
     stripeEventsFailed: number
   }
+  revenueByCurrency: Array<{
+    currency: string
+    estimatedMrr: number
+    estimatedArr: number
+  }>
   statusDistribution: Array<{
     status: AdminSubscriptionStatus
     count: number
@@ -29,9 +35,28 @@ export type AdminFinanceSummary = {
     planId: string
     planName: string
     activeSubscriptions: number
+    trialSubscriptions: number
+    canceledSubscriptions: number
+    pastDueSubscriptions: number
     totalSubscriptions: number
+    subscriberCount: number
     estimatedMrr: number
+    estimatedArr: number
+    currency: string
   }>
+  revenueByPrice: Array<{
+    stripePriceId: string
+    priceNickname: string | null
+    planId: string
+    planName: string
+    currency: string
+    billingInterval: 'MONTHLY' | 'YEARLY' | null
+    estimatedMrr: number
+    estimatedArr: number
+    subscriberCount: number
+  }>
+  recentlyCreatedSubscriptions: AdminFinanceSubscriptionPreview[]
+  recentlyCanceledSubscriptions: AdminFinanceSubscriptionPreview[]
 }
 
 export type AdminFinancePlan = {
@@ -55,6 +80,7 @@ export type AdminFinancePlan = {
   displayOrder: number
   subscriptionsCount: number
   activeSubscriptionsCount: number
+  trialSubscriptionsCount: number
   createdAt: string
   updatedAt: string
 }
@@ -73,8 +99,6 @@ export type AdminFinanceSubscription = {
     priceMonthly: number
     priceYearly: number
   }
-  stripeCustomerId: string | null
-  stripeSubscriptionId: string | null
   status: AdminSubscriptionStatus
   trialEndsAt: string | null
   currentPeriodStart: string | null
@@ -82,8 +106,39 @@ export type AdminFinanceSubscription = {
   cancelAtPeriodEnd: boolean
   canceledAt: string | null
   endedAt: string | null
+  items: Array<{
+    id: string
+    stripePriceId: string
+    priceNickname: string | null
+    billingInterval: 'MONTHLY' | 'YEARLY' | null
+    unitAmount: number | null
+    unitAmountDecimal: string | null
+    currency: string
+    quantity: number
+  }>
   createdAt: string
   updatedAt: string
+}
+
+export type AdminFinanceSubscriptionPreview = {
+  id: string
+  clinic: {
+    id: string
+    name: string
+    email: string | null
+  }
+  plan: {
+    id: string
+    name: string
+    slug: string
+  }
+  status: AdminSubscriptionStatus
+  billingInterval: 'MONTHLY' | 'YEARLY' | null
+  currency: string
+  createdAt: string
+  currentPeriodEnd: string | null
+  canceledAt: string | null
+  endedAt: string | null
 }
 
 export type AdminFinanceStripeEvent = {
