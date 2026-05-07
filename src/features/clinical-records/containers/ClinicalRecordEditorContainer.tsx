@@ -37,7 +37,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const navigate = useNavigate()
-  const { record, isLoading, isSaving, error, save, complete, lock, cancel, restore } =
+  const { record, isLoading, isSaving, error, save, saveAndComplete, lock, cancel, restore } =
     useClinicalRecord(recordId)
   const { templates } = useClinicalTemplates()
 
@@ -116,7 +116,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     }
   }
 
-  const handleComplete = () => complete()
+  const handleComplete = () => saveAndComplete(draft)
   const handleLock = () => lock()
   const handleCancel = () => cancel()
   const handleRestore = () => restore()

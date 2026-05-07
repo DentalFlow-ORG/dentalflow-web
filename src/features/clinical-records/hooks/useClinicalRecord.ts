@@ -76,6 +76,25 @@ export function useClinicalRecord(id: string) {
     }
   }
 
+  const saveAndComplete = async (dto: UpdateClinicalRecordDto) => {
+    if (!record) return
+    setIsSaving(true)
+    try {
+      if (Object.keys(dto).length > 0) {
+        const saved = await updateClinicalRecord(record.id, dto)
+        setRecord(saved)
+      }
+      const updated = await completeClinicalRecord(record.id)
+      setRecord(updated)
+      showAlert({ title: 'Atendimento concluído.', description: 'Prontuário marcado como concluído.', tone: 'success' })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Não foi possível concluir o prontuário.'
+      showAlert({ title: 'Erro', description: msg, tone: 'error' })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const lock = async () => {
     if (!record) return
     setIsSaving(true)
@@ -118,7 +137,7 @@ export function useClinicalRecord(id: string) {
     }
   }
 
-  return { record, isLoading, isSaving, error, save, saveDraft, complete, lock, cancel, restore }
+  return { record, isLoading, isSaving, error, save, saveDraft, complete, saveAndComplete, lock, cancel, restore }
 }
 
 type AppointmentRecordState = {
