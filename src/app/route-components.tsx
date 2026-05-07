@@ -125,3 +125,28 @@ export const SubscriptionCancelPage = lazy(() =>
     default: m.SubscriptionCancelPage,
   })),
 )
+
+export const ClinicalRecordsPage = lazy(() =>
+  import('@/features/clinical-records/pages/ClinicalRecordsPage').then((m) => ({
+    default: m.ClinicalRecordsPage,
+  })),
+)
+
+export const ClinicalRecordEditorPage = lazy(() =>
+  import('@/features/clinical-records/pages/ClinicalRecordEditorPage').then((m) => ({
+    default: m.ClinicalRecordEditorPage,
+  })),
+)
+
+export const ClinicalRecordPrintPage = lazy(() =>
+  import('@/features/clinical-records/pages/ClinicalRecordPrintPage').then((m) => ({
+    default: m.ClinicalRecordPrintPage,
+  })),
+)
+
+export const ClinicalTemplatesPage = lazy(() =>
+  import('@/features/clinical-records/pages/ClinicalTemplatesPage').then((m) => ({
+    default: m.ClinicalTemplatesPage,
+  })),
+)
+

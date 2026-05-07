@@ -11,6 +11,10 @@ import {
   AdminUsersPage,
   AppointmentsPage,
   AuthRoutePage,
+  ClinicalRecordEditorPage,
+  ClinicalRecordPrintPage,
+  ClinicalRecordsPage,
+  ClinicalTemplatesPage,
   DashboardPage,
   FinancePage,
   FiscalInvoicesPage,
@@ -196,6 +200,46 @@ const subscriptionCancelRoute = createRoute({
   ),
 })
 
+const clinicalRecordsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/prontuario',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
+      <ClinicalRecordsPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const clinicalRecordEditorRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/prontuario/$clinicalRecordId',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
+      <ClinicalRecordEditorPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const clinicalRecordPrintRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/prontuario/$clinicalRecordId/imprimir',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
+      <ClinicalRecordPrintPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const clinicalTemplatesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/modelos-clinicos',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
+      <ClinicalTemplatesPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const adminUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/admin/users',
@@ -244,6 +288,10 @@ const routeTree = rootRoute.addChildren([
   subscriptionRoute,
   subscriptionSuccessRoute,
   subscriptionCancelRoute,
+  clinicalRecordsRoute,
+  clinicalRecordEditorRoute,
+  clinicalRecordPrintRoute,
+  clinicalTemplatesRoute,
   adminUsersRoute,
   adminClinicsRoute,
   adminFinanceRoute,

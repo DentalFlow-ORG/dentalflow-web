@@ -2,6 +2,7 @@ import { FormField, TextInput } from '@/components/common/FormField'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { formatCpfCnpjBR, formatCepBR, formatUf, formatDecimalInput } from '@/lib/field-formatters'
 
 import type { FiscalProfilePayload } from '../types/fiscal.types'
 
@@ -39,13 +40,16 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
         <FormField label="CNPJ" htmlFor="documentNumber">
           <TextInput
             id="documentNumber"
+            placeholder="00.000.000/0000-00"
             value={form.documentNumber}
-            onChange={(e) => onChange({ ...form, documentNumber: e.target.value })}
+            onChange={(e) => onChange({ ...form, documentNumber: formatCpfCnpjBR(e.target.value) })}
+            maxLength={18}
           />
         </FormField>
         <FormField label="Inscrição municipal" htmlFor="municipalRegistration" optional>
           <TextInput
             id="municipalRegistration"
+            placeholder="Informe a inscrição municipal"
             value={form.municipalRegistration ?? ''}
             onChange={(e) => onChange({ ...form, municipalRegistration: e.target.value })}
           />
@@ -72,6 +76,7 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
         <FormField label="Código de serviço" htmlFor="profileServiceCode" optional>
           <TextInput
             id="profileServiceCode"
+            placeholder="Ex: 04.12 ou código municipal"
             value={form.serviceCode ?? ''}
             onChange={(e) => onChange({ ...form, serviceCode: e.target.value })}
           />
@@ -79,28 +84,33 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
         <FormField label="CNAE" htmlFor="cnae" optional>
           <TextInput
             id="cnae"
+            placeholder="Ex: 8630-5/04"
             value={form.cnae ?? ''}
             onChange={(e) => onChange({ ...form, cnae: e.target.value })}
           />
         </FormField>
-        <FormField label="Alíquota de ISS" htmlFor="issRate" optional>
+        <FormField label="Alíquota de ISS (%)" htmlFor="issRate" optional>
           <TextInput
             id="issRate"
             inputMode="decimal"
-            value={form.issRate != null ? String(form.issRate) : ''}
-            onChange={(e) =>
+            placeholder="Ex: 2,00"
+            value={form.issRate != null ? String(form.issRate).replace('.', ',') : ''}
+            onChange={(e) => {
+              const raw = formatDecimalInput(e.target.value)
               onChange({
                 ...form,
-                issRate: e.target.value ? Number(e.target.value.replace(',', '.')) : null,
+                issRate: raw ? Number(raw.replace(',', '.')) : null,
               })
-            }
+            }}
           />
         </FormField>
         <FormField label="CEP" htmlFor="zipCode">
           <TextInput
             id="zipCode"
+            placeholder="00000-000"
             value={form.addressZipCode}
-            onChange={(e) => onChange({ ...form, addressZipCode: e.target.value })}
+            onChange={(e) => onChange({ ...form, addressZipCode: formatCepBR(e.target.value) })}
+            maxLength={9}
           />
         </FormField>
         <FormField label="Rua" htmlFor="street" className="lg:col-span-2">
@@ -144,14 +154,16 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
             maxLength={2}
             placeholder="SP"
             value={form.addressState}
-            onChange={(e) => onChange({ ...form, addressState: e.target.value.toUpperCase() })}
+            onChange={(e) => onChange({ ...form, addressState: formatUf(e.target.value) })}
           />
         </FormField>
         <FormField label="Código IBGE do município" htmlFor="ibgeCode" optional>
           <TextInput
             id="ibgeCode"
+            placeholder="Ex: 3550308"
             value={form.cityIbgeCode ?? ''}
-            onChange={(e) => onChange({ ...form, cityIbgeCode: e.target.value })}
+            onChange={(e) => onChange({ ...form, cityIbgeCode: e.target.value.replace(/\D/g, '') })}
+            maxLength={7}
           />
         </FormField>
       </div>

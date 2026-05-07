@@ -168,7 +168,7 @@ export function FiscalInvoicesPageContainer() {
       await saveProfile({
         ...profileForm,
         addressState: profileForm.addressState.trim().toUpperCase(),
-        issRate: profileForm.issRate === '' ? null : profileForm.issRate,
+        issRate: profileForm.issRate,
       })
       setIsProfileFormOpen(false)
     } catch {

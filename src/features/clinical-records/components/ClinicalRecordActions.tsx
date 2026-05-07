@@ -1,0 +1,142 @@
+import { useState } from 'react'
+import { CheckCircle, Lock, Printer, RotateCcw, XCircle } from 'lucide-react'
+
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { Button } from '@/components/ui/button'
+
+import type { ClinicalRecord } from '../types/clinical-record.types'
+
+type Props = {
+  record: ClinicalRecord
+  isSaving: boolean
+  onSaveDraft: () => void
+  onComplete: () => void
+  onLock: () => void
+  onCancel: () => void
+  onRestore: () => void
+  onPrint: () => void
+}
+
+export function ClinicalRecordActions({
+  record,
+  isSaving,
+  onSaveDraft,
+  onComplete,
+  onLock,
+  onCancel,
+  onRestore,
+  onPrint,
+}: Props) {
+  const [confirmCancel, setConfirmCancel] = useState(false)
+  const [confirmRestore, setConfirmRestore] = useState(false)
+
+  const isLocked = record.status === 'LOCKED'
+  const isCanceled = record.status === 'CANCELED'
+  const isCompleted = record.status === 'COMPLETED'
+  const isDraft = record.status === 'DRAFT'
+  const isReadOnly = isLocked || isCanceled
+
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="outline" size="sm" onClick={onPrint}>
+          <Printer className="h-4 w-4" />
+          Imprimir prontuário
+        </Button>
+
+        {isCanceled && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setConfirmRestore(true)}
+            disabled={isSaving}
+            className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Restaurar prontuário
+          </Button>
+        )}
+
+        {!isReadOnly && (
+          <>
+            {isDraft && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSaveDraft}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Salvando...' : 'Salvar rascunho'}
+              </Button>
+            )}
+
+            {isDraft && (
+              <Button size="sm" onClick={onComplete} disabled={isSaving}>
+                <CheckCircle className="h-4 w-4" />
+                Concluir atendimento
+              </Button>
+            )}
+
+            {isCompleted && (
+              <Button size="sm" onClick={onLock} disabled={isSaving} variant="outline">
+                <Lock className="h-4 w-4" />
+                Bloquear prontuário
+              </Button>
+            )}
+
+            {!isLocked && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmCancel(true)}
+                disabled={isSaving}
+                className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              >
+                <XCircle className="h-4 w-4" />
+                Cancelar prontuário
+              </Button>
+            )}
+          </>
+        )}
+
+        {isLocked && (
+          <span className="text-sm text-slate-500">
+            Este prontuário está bloqueado para edição.
+          </span>
+        )}
+      </div>
+
+      <ConfirmDialog
+        open={confirmCancel}
+        title="Cancelar prontuário"
+        description="Esta ação irá cancelar o prontuário. O prontuário poderá ser restaurado posteriormente, mas não poderá ser editado enquanto estiver cancelado."
+        subject={record.patientName}
+        confirmLabel="Cancelar prontuário"
+        cancelLabel="Manter prontuário"
+        tone="destructive"
+        isConfirming={isSaving}
+        onConfirm={() => {
+          setConfirmCancel(false)
+          onCancel()
+        }}
+        onCancel={() => setConfirmCancel(false)}
+      />
+
+      <ConfirmDialog
+        open={confirmRestore}
+        title="Restaurar prontuário"
+        description="O prontuário será reativado para o estado anterior ao cancelamento. Deseja continuar?"
+        subject={record.patientName}
+        confirmLabel="Restaurar prontuário"
+        cancelLabel="Fechar"
+        tone="warning"
+        isConfirming={isSaving}
+        onConfirm={() => {
+          setConfirmRestore(false)
+          onRestore()
+        }}
+        onCancel={() => setConfirmRestore(false)}
+      />
+    </>
+  )
+}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
@@ -6,11 +6,23 @@ import { ApiError } from '@/services/http'
 import { listPatients } from '../services/patients.service'
 import type { PatientSummary } from '../types/patients.types'
 
+type FetchState = { patients: PatientSummary[]; isLoading: boolean; error: string | null }
+type FetchAction =
+  | { type: 'loading' }
+  | { type: 'success'; patients: PatientSummary[] }
+  | { type: 'error'; message: string }
+
+function fetchReducer(state: FetchState, action: FetchAction): FetchState {
+  switch (action.type) {
+    case 'loading': return { ...state, isLoading: true, error: null }
+    case 'success': return { patients: action.patients, isLoading: false, error: null }
+    case 'error': return { ...state, isLoading: false, error: action.message }
+  }
+}
+
 export function usePatientsPage() {
   const { showAlert } = useGlobalAlerts()
-  const [patients, setPatients] = useState<PatientSummary[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [fetchState, dispatch] = useReducer(fetchReducer, { patients: [], isLoading: true, error: null })
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
@@ -22,23 +34,17 @@ export function usePatientsPage() {
 
   const loadPatients = useCallback(
     (searchTerm?: string) => {
-      setIsLoading(true)
-      setError(null)
+      dispatch({ type: 'loading' })
       listPatients(searchTerm)
-        .then((response) => setPatients(response.data))
+        .then((response) => dispatch({ type: 'success', patients: response.data }))
         .catch((requestError) => {
           const message =
             requestError instanceof ApiError
               ? requestError.message
               : 'Erro ao carregar pacientes.'
-          setError(message)
-          showAlert({
-            title: 'Erro ao carregar pacientes',
-            description: message,
-            tone: 'error',
-          })
+          dispatch({ type: 'error', message })
+          showAlert({ title: 'Erro ao carregar pacientes', description: message, tone: 'error' })
         })
-        .finally(() => setIsLoading(false))
     },
     [showAlert],
   )
@@ -68,12 +74,12 @@ export function usePatientsPage() {
 
   const filteredPatients = useMemo(
     () =>
-      patients.filter((patient) => {
+      fetchState.patients.filter((patient) => {
         if (dateFrom && patient.lastVisit && patient.lastVisit < dateFrom) return false
         if (dateTo && patient.lastVisit && patient.lastVisit > dateTo) return false
         return true
       }),
-    [dateFrom, dateTo, patients],
+    [dateFrom, dateTo, fetchState.patients],
   )
 
   const totalPages = Math.max(1, Math.ceil(filteredPatients.length / pageSize))
@@ -99,11 +105,11 @@ export function usePatientsPage() {
   }
 
   return {
-    patients,
+    patients: fetchState.patients,
     filteredPatients,
     paginatedPatients,
-    isLoading,
-    error,
+    isLoading: fetchState.isLoading,
+    error: fetchState.error,
     search,
     dateFrom,
     dateTo,

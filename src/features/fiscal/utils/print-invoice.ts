@@ -81,7 +81,7 @@ export function printInvoice(invoice: ServiceInvoice): void {
   <div class="footer">
     Gerado em ${escapeHtml(generatedAt)} · DentalFlow
   </div>
-  <script>window.onload = function() { window.print(); }<\/script>
+  <script>window.onload = function() { window.print(); }</script>
 </body>
 </html>`
 

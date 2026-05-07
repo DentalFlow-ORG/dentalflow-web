@@ -2,6 +2,7 @@ import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
+import { formatCpfCnpjBR, formatPhoneBR } from '@/lib/field-formatters'
 
 import type { InvoicePayload } from '../types/fiscal.types'
 import { fromMoneyInput, toMoneyInput } from '../utils/invoice-format'
@@ -36,14 +37,17 @@ export function InvoiceForm({ form, editing, onChange, onCancel, onSubmit }: Pro
         <FormField label="CPF/CNPJ do cliente" htmlFor="customerDocument" optional>
           <TextInput
             id="customerDocument"
+            placeholder="000.000.000-00 ou 00.000.000/0000-00"
             value={form.customerDocument ?? ''}
-            onChange={(e) => onChange({ ...form, customerDocument: e.target.value })}
+            onChange={(e) => onChange({ ...form, customerDocument: formatCpfCnpjBR(e.target.value) })}
+            maxLength={18}
           />
         </FormField>
         <FormField label="E-mail" htmlFor="customerEmail" optional>
           <TextInput
             id="customerEmail"
             type="email"
+            placeholder="email@exemplo.com"
             value={form.customerEmail ?? ''}
             onChange={(e) => onChange({ ...form, customerEmail: e.target.value })}
           />
@@ -51,8 +55,10 @@ export function InvoiceForm({ form, editing, onChange, onCancel, onSubmit }: Pro
         <FormField label="Telefone" htmlFor="customerPhone" optional>
           <TextInput
             id="customerPhone"
+            placeholder="(00) 00000-0000"
             value={form.customerPhone ?? ''}
-            onChange={(e) => onChange({ ...form, customerPhone: e.target.value })}
+            onChange={(e) => onChange({ ...form, customerPhone: formatPhoneBR(e.target.value) })}
+            maxLength={15}
           />
         </FormField>
         <FormField label="Serviço prestado" htmlFor="serviceDescription" className="lg:col-span-2">
@@ -65,6 +71,7 @@ export function InvoiceForm({ form, editing, onChange, onCancel, onSubmit }: Pro
         <FormField label="Código de serviço" htmlFor="serviceCode" optional>
           <TextInput
             id="serviceCode"
+            placeholder="Ex: 04.12 ou código municipal"
             value={form.serviceCode ?? ''}
             onChange={(e) => onChange({ ...form, serviceCode: e.target.value })}
           />
