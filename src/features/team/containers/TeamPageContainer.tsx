@@ -140,9 +140,9 @@ export function TeamPageContainer() {
           ) : (
             <div className="space-y-4">
               {/* Mobile card list — hidden on sm+ */}
-              <div className="space-y-3 sm:hidden">
+              <div className="space-y-3 md:hidden">
                 {members.map((member) => (
-                  <div key={member.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                  <PanelCard key={member.id} className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-slate-900">
@@ -203,12 +203,12 @@ export function TeamPageContainer() {
                         Desativar
                       </Button>
                     </div>
-                  </div>
+                  </PanelCard>
                 ))}
               </div>
 
               {/* Desktop table — hidden below sm */}
-              <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm sm:block">
+              <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:block">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm" aria-label="Usuários da clínica">
                     <thead>
@@ -224,8 +224,18 @@ export function TeamPageContainer() {
                       {members.map((member) => (
                         <tr
                           key={member.id}
-                          className="cursor-pointer transition-colors hover:bg-slate-50/60"
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Editar ${member.firstName} ${member.lastName}`}
+                          className="cursor-pointer transition-colors hover:bg-slate-50/60 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                           onClick={() => setEditTarget(member)}
+                          onKeyDown={(event) => {
+                            if (event.target !== event.currentTarget) return
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault()
+                              setEditTarget(member)
+                            }
+                          }}
                         >
                           <td className="px-4 py-3">
                             <p className="font-semibold text-slate-900">

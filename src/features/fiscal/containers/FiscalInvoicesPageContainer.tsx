@@ -196,11 +196,11 @@ export function FiscalInvoicesPageContainer() {
         action={
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={load}>
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Atualizar
             </Button>
             <Button onClick={() => openInvoiceForm()}>
-              <FileText className="h-4 w-4" />
+              <FileText className="h-4 w-4" aria-hidden="true" />
               Criar nota fiscal
             </Button>
           </div>
@@ -259,7 +259,7 @@ export function FiscalInvoicesPageContainer() {
                 </p>
               </div>
               <Button variant="outline" onClick={openProfileForm} disabled={!isOwner}>
-                <Settings2 className="h-4 w-4" />
+                <Settings2 className="h-4 w-4" aria-hidden="true" />
                 Configurar dados fiscais
               </Button>
             </div>
@@ -341,7 +341,7 @@ export function FiscalInvoicesPageContainer() {
                 {/* Mobile card list — hidden on md+ */}
                 <div className="space-y-3 md:hidden">
                   {invoices.map((invoice) => (
-                    <div key={invoice.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                    <PanelCard key={invoice.id} className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="truncate font-semibold text-slate-900">{invoice.customerName}</p>
@@ -407,23 +407,23 @@ export function FiscalInvoicesPageContainer() {
                           </Button>
                         )}
                       </div>
-                    </div>
+                    </PanelCard>
                   ))}
                 </div>
 
                 {/* Desktop table — hidden below md */}
                 <div className="hidden overflow-hidden rounded-lg border border-slate-200 md:block">
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-230 text-sm">
+                    <table className="w-full min-w-230 text-sm" aria-label="Notas fiscais">
                       <thead>
                         <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                          <th className="px-4 py-3">Cliente</th>
-                          <th className="px-4 py-3">Serviço</th>
-                          <th className="px-4 py-3 text-right">Valor</th>
-                          <th className="px-4 py-3">Status</th>
-                          <th className="px-4 py-3">Competência</th>
-                          <th className="px-4 py-3">Criada em</th>
-                          <th className="px-4 py-3 text-right">Ações</th>
+                          <th scope="col" className="px-4 py-3">Cliente</th>
+                          <th scope="col" className="px-4 py-3">Serviço</th>
+                          <th scope="col" className="px-4 py-3 text-right">Valor</th>
+                          <th scope="col" className="px-4 py-3">Status</th>
+                          <th scope="col" className="px-4 py-3">Competência</th>
+                          <th scope="col" className="px-4 py-3">Criada em</th>
+                          <th scope="col" className="px-4 py-3 text-right">Ações</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 bg-white">

@@ -105,7 +105,7 @@ export function FinancePageContainer() {
         description="Acompanhe entradas, saídas, despesas fixas e desempenho financeiro por período."
         action={
           <Button variant="outline" onClick={load}>
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
             Atualizar
           </Button>
         }
@@ -300,7 +300,6 @@ export function FinancePageContainer() {
     </AppPage>
   )
 }
-
 
 
 

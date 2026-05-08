@@ -74,9 +74,9 @@ export function AppointmentsPageContainer() {
                   title={googleCalendar.calendarSummary ?? 'Google Agenda conectado'}
                 >
                   {isCalendarActionLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                   ) : (
-                    <RefreshCw className="h-4 w-4" />
+                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
                   )}
                   Sincronizar
                 </Button>
@@ -86,7 +86,7 @@ export function AppointmentsPageContainer() {
                   onClick={handleDisconnectGoogleCalendar}
                   disabled={isCalendarActionLoading}
                 >
-                  <Link2Off className="h-4 w-4" />
+                  <Link2Off className="h-4 w-4" aria-hidden="true" />
                   Desconectar
                 </Button>
               </>
@@ -98,15 +98,15 @@ export function AppointmentsPageContainer() {
                 disabled={isCalendarActionLoading}
               >
                 {isCalendarActionLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  <CalendarCheck className="h-4 w-4" />
+                  <CalendarCheck className="h-4 w-4" aria-hidden="true" />
                 )}
                 Google Agenda
               </Button>
             ) : null}
             <Button onClick={() => setIsCreating(true)}>
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4" aria-hidden="true" />
               Novo agendamento
             </Button>
           </div>

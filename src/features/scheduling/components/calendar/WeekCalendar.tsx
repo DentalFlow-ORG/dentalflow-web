@@ -143,7 +143,7 @@ export function WeekCalendar({
       <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-primary">
-            <CalendarDays className="h-4 w-4" />
+            <CalendarDays className="h-4 w-4" aria-hidden="true" />
           </span>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -163,10 +163,10 @@ export function WeekCalendar({
             Hoje
           </Button>
           <Button type="button" variant="outline" size="icon-sm" onClick={goToPrevWeek} aria-label="Semana anterior">
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
-          <Button type="button" variant="outline" size="icon-sm" onClick={goToNextWeek} aria-label="Proxima semana">
-            <ChevronRight className="h-4 w-4" />
+          <Button type="button" variant="outline" size="icon-sm" onClick={goToNextWeek} aria-label="Próxima semana">
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>
@@ -176,16 +176,16 @@ export function WeekCalendar({
         {/* Mobile scroll hint — only visible on small screens */}
         <div className="flex items-center justify-end gap-1.5 border-b border-slate-100 px-3 py-1.5 lg:hidden">
           <span className="text-[11px] text-slate-400">Arraste para ver sábado e domingo</span>
-          <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+          <ChevronRight className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
         </div>
         <div className="relative overflow-x-auto">
           {/* Right-side fade indicating more content */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-linear-to-l from-white/70 to-transparent lg:hidden" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white/70 to-transparent lg:hidden" />
           <div className="min-w-245">
             {/* Day headers */}
             <div className="grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))] border-b border-slate-200 bg-slate-50">
               <div className="sticky left-0 z-20 flex items-center gap-2 border-r border-slate-200 bg-slate-50 px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                <Clock3 className="h-3.5 w-3.5" />
+                <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
                 Hora
               </div>
               {weekDates.map((date) => {

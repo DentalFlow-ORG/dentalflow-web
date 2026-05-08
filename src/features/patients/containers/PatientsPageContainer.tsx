@@ -402,7 +402,7 @@ export function PatientsPageContainer() {
             </div>
 
             <div className="overflow-hidden rounded-lg border border-slate-200">
-              <div className="space-y-3 bg-slate-50 p-3 md:hidden">
+              <div className="space-y-3 bg-slate-50 p-3 lg:hidden">
                 {filteredPatients.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
                     {hasFilters
@@ -420,8 +420,8 @@ export function PatientsPageContainer() {
                 )}
               </div>
 
-              <div className="hidden overflow-x-auto md:block">
-                <table className="w-full min-w-160 text-sm" aria-label="Lista de pacientes">
+              <div className="hidden lg:block">
+                <table className="w-full text-sm" aria-label="Lista de pacientes">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                       <th scope="col" className="px-4 py-3">Paciente</th>
@@ -447,8 +447,18 @@ export function PatientsPageContainer() {
                       paginatedPatients.map((patient) => (
                         <tr
                           key={patient.identifier}
-                          className="cursor-pointer hover:bg-slate-50/70"
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Ver detalhes de ${patient.patientName}`}
+                          className="cursor-pointer hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                           onClick={() => setSelectedPatient(patient)}
+                          onKeyDown={(event) => {
+                            if (event.target !== event.currentTarget) return
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault()
+                              setSelectedPatient(patient)
+                            }
+                          }}
                         >
                           <td className="px-4 py-3">
                             <p className="font-medium text-slate-900">

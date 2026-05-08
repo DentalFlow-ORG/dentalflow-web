@@ -7,6 +7,7 @@ import { FilteredEmptyState } from '@/components/common/FilteredEmptyState'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { ListToolbar } from '@/components/common/ListToolbar'
 import { Pagination } from '@/components/common/Pagination'
+import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
@@ -39,7 +40,7 @@ function AdminUserMobileCard({
   const fullName = `${user.firstName} ${user.lastName}`
 
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <PanelCard className="p-4">
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -93,7 +94,7 @@ function AdminUserMobileCard({
           </Button>
         </div>
       </div>
-    </article>
+    </PanelCard>
   )
 }
 
@@ -222,6 +223,7 @@ export function AdminUsersPageContainer() {
                         className="cursor-pointer transition-colors hover:bg-slate-50/60 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                         onClick={() => setEditTarget(user)}
                         onKeyDown={(event) => {
+                          if (event.target !== event.currentTarget) return
                           if (event.key === 'Enter' || event.key === ' ') {
                             event.preventDefault()
                             setEditTarget(user)

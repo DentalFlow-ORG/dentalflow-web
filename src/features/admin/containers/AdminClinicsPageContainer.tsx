@@ -6,6 +6,7 @@ import { FilteredEmptyState } from '@/components/common/FilteredEmptyState'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { ListToolbar } from '@/components/common/ListToolbar'
 import { Pagination } from '@/components/common/Pagination'
+import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
@@ -31,7 +32,7 @@ function AdminClinicMobileCard({
   const isActive = clinic.isActive !== false
 
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <PanelCard className="p-4">
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -69,7 +70,7 @@ function AdminClinicMobileCard({
           </Button>
         </div>
       </div>
-    </article>
+    </PanelCard>
   )
 }
 
@@ -191,6 +192,7 @@ export function AdminClinicsPageContainer() {
                           className="cursor-pointer transition-colors hover:bg-slate-50/60 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                           onClick={() => setEditTarget(clinic)}
                           onKeyDown={(event) => {
+                            if (event.target !== event.currentTarget) return
                             if (event.key === 'Enter' || event.key === ' ') {
                               event.preventDefault()
                               setEditTarget(clinic)
@@ -199,7 +201,9 @@ export function AdminClinicsPageContainer() {
                         >
                           <td className="px-4 py-3">
                             <p className="font-semibold text-slate-900">{clinic.name}</p>
-                            <p className="mt-0.5 text-xs text-slate-500">{clinic.id}</p>
+                            <p className="mt-0.5 text-xs text-slate-500">
+                              Criada em {formatDate(clinic.createdAt)}
+                            </p>
                           </td>
                           <td className="px-4 py-3">
                             <StatusBadge tone={isActive ? 'success' : 'muted'}>

@@ -41,25 +41,25 @@ export function AppointmentTable({
     <>
       {/* Desktop table */}
       <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white md:block">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" aria-label="Lista de agendamentos">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left">
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Paciente
               </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Profissional
               </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Data
               </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Horário
               </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Status
               </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Ações
               </th>
             </tr>
@@ -68,8 +68,18 @@ export function AppointmentTable({
             {appointments.map((appt) => (
               <tr
                 key={appt.id}
-                className="cursor-pointer transition-colors hover:bg-slate-50"
+                role="button"
+                tabIndex={0}
+                aria-label={`Abrir detalhes de ${appt.patientName}`}
+                className="cursor-pointer transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                 onClick={() => onRowClick(appt)}
+                onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    onRowClick(appt)
+                  }
+                }}
               >
                 <td className="px-4 py-3">
                   <p className="font-semibold text-slate-900">{appt.patientName}</p>
@@ -144,10 +154,20 @@ function AppointmentCard({
 }) {
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Abrir detalhes de ${appt.patientName}`}
       className={cn(
-        'cursor-pointer rounded-lg border border-slate-200 bg-white p-4 transition-shadow hover:shadow-md',
+        'cursor-pointer rounded-lg border border-slate-200 bg-white p-4 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
       )}
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onClick()
+        }
+      }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -159,18 +179,18 @@ function AppointmentCard({
 
       <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-600">
         <span className="flex items-center gap-1">
-          <Calendar className="h-3.5 w-3.5 text-slate-400" />
+          <Calendar className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
           {formatAppointmentDate(appt.appointmentDate)}
         </span>
         <span className="flex items-center gap-1">
-          <Clock className="h-3.5 w-3.5 text-slate-400" />
+          <Clock className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
           {formatWallTime(appt.startTime)}
           <span className="text-slate-400">–</span>
           {formatWallTime(appt.endTime)}
         </span>
         {appt.service && (
           <span className="flex items-center gap-1">
-            <User className="h-3.5 w-3.5 text-slate-400" />
+            <User className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
             {appt.service.name}
           </span>
         )}

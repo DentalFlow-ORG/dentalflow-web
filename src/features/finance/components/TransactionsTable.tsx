@@ -68,9 +68,9 @@ export function TransactionsTable({
                       )}
                     >
                       {transaction.type === 'INCOME' ? (
-                        <ArrowUpCircle className="h-4 w-4" />
+                        <ArrowUpCircle className="h-4 w-4" aria-hidden="true" />
                       ) : (
-                        <ArrowDownCircle className="h-4 w-4" />
+                        <ArrowDownCircle className="h-4 w-4" aria-hidden="true" />
                       )}
                       {TYPE_LABEL[transaction.type]}
                     </span>
@@ -126,17 +126,17 @@ export function TransactionsTable({
 
       <div className="hidden overflow-hidden rounded-lg border border-slate-200 md:block">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] text-sm">
+          <table className="w-full min-w-[820px] text-sm" aria-label="Movimentações financeiras">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <th className="px-4 py-3">Data</th>
-                <th className="px-4 py-3">Tipo</th>
-                <th className="px-4 py-3">Categoria</th>
-                <th className="px-4 py-3">Descrição</th>
-                <th className="px-4 py-3">Origem</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Valor</th>
-                <th className="px-4 py-3" />
+                <th scope="col" className="px-4 py-3">Data</th>
+                <th scope="col" className="px-4 py-3">Tipo</th>
+                <th scope="col" className="px-4 py-3">Categoria</th>
+                <th scope="col" className="px-4 py-3">Descrição</th>
+                <th scope="col" className="px-4 py-3">Origem</th>
+                <th scope="col" className="px-4 py-3">Status</th>
+                <th scope="col" className="px-4 py-3 text-right">Valor</th>
+                <th scope="col" className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -160,9 +160,9 @@ export function TransactionsTable({
                         )}
                       >
                         {transaction.type === 'INCOME' ? (
-                          <ArrowUpCircle className="h-4 w-4" />
+                          <ArrowUpCircle className="h-4 w-4" aria-hidden="true" />
                         ) : (
-                          <ArrowDownCircle className="h-4 w-4" />
+                          <ArrowDownCircle className="h-4 w-4" aria-hidden="true" />
                         )}
                         {TYPE_LABEL[transaction.type]}
                       </span>

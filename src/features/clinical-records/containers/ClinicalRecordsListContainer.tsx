@@ -88,7 +88,7 @@ export function ClinicalRecordsListContainer() {
         action={
           <Link to="/app/agendamentos">
             <Button>
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4" aria-hidden="true" />
               Novo via agendamento
             </Button>
           </Link>
@@ -153,6 +153,7 @@ export function ClinicalRecordsListContainer() {
               <button
                 key={sf.value}
                 type="button"
+                aria-pressed={statusFilter === sf.value}
                 onClick={() => setStatusFilter(sf.value)}
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
                   statusFilter === sf.value
@@ -172,7 +173,7 @@ export function ClinicalRecordsListContainer() {
           {/* Records grid */}
           {filtered.length === 0 && !isLoading ? (
             <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-200 py-12 text-center">
-              <ClipboardList className="h-8 w-8 text-slate-300" />
+              <ClipboardList className="h-8 w-8 text-slate-300" aria-hidden="true" />
               <p className="text-sm text-slate-400">Nenhum prontuário encontrado.</p>
             </div>
           ) : (
@@ -217,7 +218,7 @@ function RecordCard({ record }: { record: ClinicalRecord }) {
         )}
 
         <div className="mt-3 flex items-center gap-1 text-xs text-slate-400">
-          <Calendar className="h-3.5 w-3.5" />
+          <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
           {formatDateBR(record.createdAt.slice(0, 10))}
         </div>
       </PanelCard>
