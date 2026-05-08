@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { BarChart3, BriefcaseBusiness, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, MoreHorizontal, ShieldCheck, Users, Users2, X } from 'lucide-react'
+import { BarChart3, BriefcaseBusiness, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, MoreHorizontal, ShieldCheck, Users, Users2, X, Zap } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
@@ -8,10 +8,12 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import type { AuthUserRole } from '@/features/auth/types'
 import { getUserDisplayName } from '@/features/auth/utils/name'
+import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
 import { cn } from '@/lib/utils'
 
 type AppShellProps = {
   children: ReactNode
+  billingStatus?: CurrentBillingStatus | null
 }
 
 type NavItem = {
@@ -110,7 +112,7 @@ const MOBILE_PRIMARY_ROUTES_BY_ROLE: Partial<Record<AuthUserRole, string[]>> = {
   ADMIN: ['/app/admin/users', '/app/admin/clinics', '/app/admin/financeiro'],
 }
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, billingStatus }: AppShellProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuth()
@@ -259,10 +261,44 @@ export function AppShell({ children }: AppShellProps) {
           </div>
         </header>
 
+        {billingStatus?.status === 'trialing' && billingStatus.trialEndsAt && (
+          <TrialBanner trialEndsAt={billingStatus.trialEndsAt} />
+        )}
+
         <main className="px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
           {children}
           <div className="h-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true" />
         </main>
+      </div>
+    </div>
+  )
+}
+
+function TrialBanner({ trialEndsAt }: { trialEndsAt: string }) {
+  // Computed once on mount — days remaining doesn't need live updates
+  const [daysRemaining] = useState(() => {
+    const diff = new Date(trialEndsAt).getTime() - Date.now()
+    return Math.max(0, Math.ceil(diff / 86_400_000))
+  })
+
+  return (
+    <div className="border-b border-orange-200 bg-orange-50 px-4 py-2 sm:px-6 lg:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-orange-800">
+          <Zap className="h-4 w-4 shrink-0 text-orange-500" />
+          <span>
+            Teste grátis ativo
+            {daysRemaining > 0
+              ? ` · ${daysRemaining} ${daysRemaining === 1 ? 'dia restante' : 'dias restantes'}`
+              : ' · expira hoje'}
+          </span>
+        </div>
+        <Link
+          to="/app/assinatura"
+          className="text-xs font-semibold text-orange-700 underline underline-offset-2 hover:text-orange-900"
+        >
+          Assinar agora e manter o acesso
+        </Link>
       </div>
     </div>
   )
