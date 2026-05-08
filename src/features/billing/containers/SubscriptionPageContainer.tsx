@@ -1,4 +1,4 @@
-import { Package } from 'lucide-react'
+import { Check, Package } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -65,6 +65,7 @@ export function SubscriptionPageContainer() {
   return (
     <AppPage>
       <AppPageHeader
+        eyebrow="Planos e cobrança"
         title="Assinatura"
         description="Escolha o plano ideal, acompanhe seu teste grátis e gerencie a cobrança da clínica."
       />
@@ -92,13 +93,15 @@ export function SubscriptionPageContainer() {
       <section className="space-y-5">
         <div className="space-y-5 text-center">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
               Planos DentalFlow
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-slate-950">Escolha seu plano</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-              Comece com 7 dias grátis, sem cartão. Quando estiver pronto, continue no mensal
-              ou economize no anual.
+            <h2 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">
+              Libere a gestão completa da clínica
+            </h2>
+            <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              Comece com 7 dias grátis, sem cartão de crédito. Centralize agenda, pacientes e
+              financeiro em um só lugar e pare de perder tempo com desorganização.
             </p>
           </div>
 
@@ -128,7 +131,7 @@ export function SubscriptionPageContainer() {
             description="Nenhum plano está disponível no momento. Entre em contato com o suporte."
           />
         ) : (
-          <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-3">
+          <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
             {plans.map((plan, index) => {
               const normalizedInterval = normalizeBillingInterval(billingInterval)
               const isCurrentPlan =
@@ -169,6 +172,26 @@ export function SubscriptionPageContainer() {
             })}
           </div>
         )}
+
+        {/* Trust microcopy strip */}
+        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 pt-1">
+          <span className="flex items-center gap-1.5 text-sm text-slate-500">
+            <Check className="h-4 w-4 text-emerald-500" aria-hidden="true" />
+            Cancele quando quiser
+          </span>
+          <span className="flex items-center gap-1.5 text-sm text-slate-500">
+            <Check className="h-4 w-4 text-emerald-500" aria-hidden="true" />
+            Teste grátis por 7 dias
+          </span>
+          <span className="flex items-center gap-1.5 text-sm text-slate-500">
+            <Check className="h-4 w-4 text-emerald-500" aria-hidden="true" />
+            Sem compromisso durante o teste
+          </span>
+        </div>
+
+        <p className="text-center text-sm text-slate-400">
+          Clínicas dentárias usam o DentalFlow para organizar agenda, pacientes e financeiro em um só lugar.
+        </p>
       </section>
 
       <ConfirmDialog

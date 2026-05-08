@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
-import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
 import { formatDateBR } from '@/lib/date-time-formatters'
@@ -55,7 +54,10 @@ export function CurrentSubscriptionCard({
       </div>
 
       {isLoading ? (
-        <LoadingCard message="Carregando assinatura..." />
+        <div className="flex items-center gap-3 py-1" role="status">
+          <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
+          <span className="text-sm text-slate-500">Carregando assinatura...</span>
+        </div>
       ) : error ? (
         <InlineFeedback tone="error">
           Não foi possível carregar sua assinatura. Tente novamente.
@@ -178,7 +180,7 @@ function InfoBox({
 
   return (
     <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${toneClass}`}>
-      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
       <p>{text}</p>
     </div>
   )
