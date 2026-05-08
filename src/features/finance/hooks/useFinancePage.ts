@@ -18,55 +18,18 @@ import {
   updateFixedExpense,
 } from '../services/finance.service'
 import type {
+  CategoryFormState,
   CreateFinancialCategoryDto,
   FinanceFilters,
   FinanceSummary,
   FinancialCategory,
   FinancialTransaction,
-  FinancialTransactionStatus,
-  FinancialTransactionType,
   FixedExpense,
-  FixedExpenseRecurrence,
+  FixedExpenseEditFormState,
+  FixedExpenseFormState,
+  TransactionFormState,
 } from '../types/finance.types'
-type TransactionFormState = {
-  type: FinancialTransactionType
-  categoryId: string
-  amount: string
-  description: string
-  transactionDate: string
-  dueDate: string
-  status: FinancialTransactionStatus
-}
-
-type FixedExpenseFormState = {
-  categoryId: string
-  description: string
-  amount: string
-  recurrence: FixedExpenseRecurrence
-  dueDay: string
-  startDate: string
-}
-
-type FixedExpenseEditFormState = FixedExpenseFormState & { endDate: string }
-
-type CategoryFormState = {
-  name: string
-  type: FinancialTransactionType
-  color: string
-}
-
-const CATEGORY_COLORS = [
-  '#10B981',
-  '#6366F1',
-  '#EF4444',
-  '#F97316',
-  '#F59E0B',
-  '#0EA5E9',
-  '#7C3AED',
-  '#64748B',
-  '#EC4899',
-  '#14B8A6',
-] as const
+import { CATEGORY_COLORS } from '../utils/finance-constants'
 
 const emptyCategoryForm: CategoryFormState = {
   name: '',
