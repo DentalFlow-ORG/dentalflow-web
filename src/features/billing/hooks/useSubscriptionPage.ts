@@ -4,56 +4,37 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 
 import {
   cancelSubscription,
+  changeSubscriptionPlan,
   createCheckoutSession,
   createPortalSession,
-  getClinicSubscription,
+  getCurrentBillingStatus,
   listBillingPlans,
+  startTrial,
 } from '../services/billing.service'
 import type {
   BillingInterval,
+  BillingCampaign,
   BillingPlan,
-  ClinicSubscription,
-  SubscriptionStatus,
+  CurrentBillingStatus,
+  NormalizedBillingStatus,
 } from '../types/billing.types'
 
-export const STATUS_LABELS: Record<SubscriptionStatus, string> = {
-  TRIALING: 'Período de teste',
-  ACTIVE: 'Ativa',
-  PAST_DUE: 'Pagamento pendente',
-  CANCELED: 'Cancelada',
-  UNPAID: 'Não paga',
-  PAUSED: 'Pausada',
-  INCOMPLETE: 'Incompleta',
+export const BILLING_STATUS_LABELS: Record<NormalizedBillingStatus, string> = {
+  missing: 'Sem assinatura',
+  trialing: 'Em teste',
+  active: 'Ativa',
+  past_due: 'Pagamento pendente',
+  canceled: 'Cancelada',
+  unpaid: 'Não paga',
+  paused: 'Pausada',
+  incomplete: 'Incompleta',
 }
-
-export const STATUS_COLORS: Record<SubscriptionStatus, string> = {
-  TRIALING: 'bg-blue-50 text-blue-700',
-  ACTIVE: 'bg-green-50 text-green-700',
-  PAST_DUE: 'bg-amber-50 text-amber-700',
-  CANCELED: 'bg-slate-100 text-slate-500',
-  UNPAID: 'bg-red-50 text-red-700',
-  PAUSED: 'bg-slate-100 text-slate-600',
-  INCOMPLETE: 'bg-amber-50 text-amber-700',
-}
-
-const ACTIVE_STATUSES: SubscriptionStatus[] = [
-  'TRIALING',
-  'ACTIVE',
-  'PAST_DUE',
-  'INCOMPLETE',
-  'UNPAID',
-]
 
 export function getPlanFeatures(plan: BillingPlan): string[] {
   const features: string[] = []
-  if (plan.maxProfiles != null) {
-    features.push(`Até ${plan.maxProfiles} perfis`)
-  } else {
-    features.push('Perfis ilimitados')
-  }
-  if (plan.maxLeadsPerMonth != null) {
-    features.push(`Até ${plan.maxLeadsPerMonth} leads por mês`)
-  }
+  if (plan.maxProfiles != null) features.push(`Até ${plan.maxProfiles} perfis`)
+  else features.push('Perfis ilimitados')
+  if (plan.maxLeadsPerMonth != null) features.push(`Até ${plan.maxLeadsPerMonth} leads por mês`)
   if (plan.maxServicesPerProfile != null) {
     features.push(`Até ${plan.maxServicesPerProfile} serviços por perfil`)
   }
@@ -68,39 +49,51 @@ export function intervalAvailableForPlan(plan: BillingPlan, interval: BillingInt
   return interval === 'MONTHLY' ? plan.hasMonthlyPrice : plan.hasYearlyPrice
 }
 
+export function normalizeBillingInterval(interval: BillingInterval) {
+  return interval === 'MONTHLY' ? 'monthly' : 'annual'
+}
+
 export function useSubscriptionPage() {
   const { showAlert } = useGlobalAlerts()
 
   const [plans, setPlans] = useState<BillingPlan[]>([])
-  const [subscription, setSubscription] = useState<ClinicSubscription | null>(null)
+  const [campaign, setCampaign] = useState<BillingCampaign | null>(null)
+  const [billingStatus, setBillingStatus] = useState<CurrentBillingStatus | null>(null)
   const [isLoadingPlans, setIsLoadingPlans] = useState(true)
-  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true)
+  const [isLoadingBillingStatus, setIsLoadingBillingStatus] = useState(true)
   const [plansError, setPlansError] = useState<string | null>(null)
-  const [subscriptionError, setSubscriptionError] = useState<string | null>(null)
+  const [billingStatusError, setBillingStatusError] = useState<string | null>(null)
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('YEARLY')
-  const [checkingOutPlanId, setCheckingOutPlanId] = useState<string | null>(null)
+  const [checkingOutPlanKey, setCheckingOutPlanKey] = useState<string | null>(null)
+  const [startingTrialPlanKey, setStartingTrialPlanKey] = useState<string | null>(null)
+  const [changingPlanKey, setChangingPlanKey] = useState<string | null>(null)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [isCanceling, setIsCanceling] = useState(false)
 
-  function loadSubscription() {
-    setIsLoadingSubscription(true)
-    setSubscriptionError(null)
-    getClinicSubscription()
-      .then(setSubscription)
+  function loadBillingStatus() {
+    setIsLoadingBillingStatus(true)
+    setBillingStatusError(null)
+    getCurrentBillingStatus()
+      .then(setBillingStatus)
       .catch((err) => {
         const msg =
-          err instanceof Error ? err.message : 'Não foi possível carregar a assinatura.'
-        setSubscriptionError(msg)
+          err instanceof Error
+            ? err.message
+            : 'Não foi possível carregar sua assinatura. Tente novamente.'
+        setBillingStatusError(msg)
       })
-      .finally(() => setIsLoadingSubscription(false))
+      .finally(() => setIsLoadingBillingStatus(false))
   }
 
   useEffect(() => {
     setIsLoadingPlans(true)
     setPlansError(null)
     listBillingPlans()
-      .then(setPlans)
+      .then((response) => {
+        setPlans(response.plans)
+        setCampaign(response.campaign)
+      })
       .catch((err) => {
         const msg =
           err instanceof Error ? err.message : 'Não foi possível carregar os planos.'
@@ -108,35 +101,69 @@ export function useSubscriptionPage() {
       })
       .finally(() => setIsLoadingPlans(false))
 
-    loadSubscription()
+    loadBillingStatus()
   }, [])
 
-  // Auto-correct selected interval if no plan supports it
   useEffect(() => {
     if (plans.length === 0) return
-    const anyMonthly = plans.some((p) => p.hasMonthlyPrice)
-    const anyYearly = plans.some((p) => p.hasYearlyPrice)
+    const anyMonthly = plans.some((plan) => plan.hasMonthlyPrice)
+    const anyYearly = plans.some((plan) => plan.hasYearlyPrice)
     if (billingInterval === 'MONTHLY' && !anyMonthly && anyYearly) {
       setBillingInterval('YEARLY')
     } else if (billingInterval === 'YEARLY' && !anyYearly && anyMonthly) {
       setBillingInterval('MONTHLY')
     }
-  }, [plans]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [billingInterval, plans])
 
-  async function handleCheckout(planId: string) {
-    setCheckingOutPlanId(planId)
+  async function handleStartTrial(planKey: string) {
+    setStartingTrialPlanKey(planKey)
     try {
-      const { url } = await createCheckoutSession({
-        planId,
-        billingInterval,
+      const nextStatus = await startTrial({ planKey, billingInterval })
+      setBillingStatus(nextStatus)
+      showAlert({
+        title: 'Teste grátis iniciado',
+        description: 'Seu acesso ao DentalFlow foi liberado por 7 dias.',
+        tone: 'success',
       })
+      window.location.href = '/app'
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : 'Não foi possível iniciar o teste grátis.'
+      showAlert({ title: 'Erro ao iniciar teste', description: msg, tone: 'error' })
+      setStartingTrialPlanKey(null)
+    }
+  }
+
+  async function handleCheckout(planKey: string) {
+    setCheckingOutPlanKey(planKey)
+    try {
+      const { url } = await createCheckoutSession({ planKey, billingInterval })
       showAlert({ title: 'Redirecionando para o Stripe...', tone: 'info' })
       window.location.href = url
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : 'Não foi possível iniciar o checkout.'
       showAlert({ title: 'Erro no checkout', description: msg, tone: 'error' })
-      setCheckingOutPlanId(null)
+      setCheckingOutPlanKey(null)
+    }
+  }
+
+  async function handleChangePlan(planKey: string) {
+    setChangingPlanKey(planKey)
+    try {
+      const nextStatus = await changeSubscriptionPlan({ planKey, billingInterval })
+      setBillingStatus(nextStatus)
+      showAlert({
+        title: 'Plano atualizado',
+        description: 'A alteração foi enviada para a Stripe e sua assinatura foi sincronizada.',
+        tone: 'success',
+      })
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : 'Não foi possível alterar o plano.'
+      showAlert({ title: 'Erro ao alterar plano', description: msg, tone: 'error' })
+    } finally {
+      setChangingPlanKey(null)
     }
   }
 
@@ -163,7 +190,7 @@ export function useSubscriptionPage() {
         tone: 'success',
       })
       setShowCancelDialog(false)
-      loadSubscription()
+      loadBillingStatus()
     } catch (err) {
       const msg =
         err instanceof Error
@@ -175,35 +202,44 @@ export function useSubscriptionPage() {
     }
   }
 
-  const hasActiveSubscription =
-    subscription != null && ACTIVE_STATUSES.includes(subscription.status)
-  const canCancel = hasActiveSubscription && !subscription!.cancelAtPeriodEnd
-  const isAnyActionPending = checkingOutPlanId != null || isOpeningPortal
-  const anyPlanHasMonthly = plans.some((p) => p.hasMonthlyPrice)
-  const anyPlanHasYearly = plans.some((p) => p.hasYearlyPrice)
+  const anyPlanHasMonthly = plans.some((plan) => plan.hasMonthlyPrice)
+  const anyPlanHasYearly = plans.some((plan) => plan.hasYearlyPrice)
   const showIntervalToggle = anyPlanHasMonthly || anyPlanHasYearly
+  const canCancel =
+    billingStatus?.accessAllowed === true &&
+    billingStatus.stripeSubscriptionId != null &&
+    !billingStatus.cancelAtPeriodEnd
+  const isAnyActionPending =
+    checkingOutPlanKey != null ||
+    startingTrialPlanKey != null ||
+    changingPlanKey != null ||
+    isOpeningPortal
 
   return {
     plans,
-    subscription,
+    campaign,
+    billingStatus,
     isLoadingPlans,
-    isLoadingSubscription,
+    isLoadingBillingStatus,
     plansError,
-    subscriptionError,
+    billingStatusError,
     billingInterval,
     setBillingInterval,
-    checkingOutPlanId,
+    checkingOutPlanKey,
+    startingTrialPlanKey,
+    changingPlanKey,
     isOpeningPortal,
     showCancelDialog,
     setShowCancelDialog,
     isCanceling,
-    hasActiveSubscription,
     canCancel,
     isAnyActionPending,
     anyPlanHasMonthly,
     anyPlanHasYearly,
     showIntervalToggle,
+    handleStartTrial,
     handleCheckout,
+    handleChangePlan,
     handlePortal,
     handleCancelConfirm,
   }

@@ -1,6 +1,6 @@
 import { env } from '@/config/env'
 import { notifySessionExpired } from '@/features/auth/utils/auth-events'
-import {clearSession} from '@/features/auth/utils/session-storage'
+import { clearSession } from '@/features/auth/utils/session-storage'
 
 import {
   getStatusFallbackMessage,
@@ -75,6 +75,17 @@ export async function apiRequest<TResponse>(
         translateApiErrorMessage(getErrorMessage(body), response.status) ??
         getStatusFallbackMessage(response.status)
 
+      if (response.status === 402) {
+        if (!window.location.pathname.startsWith('/app/assinatura')) {
+          window.location.replace('/app/assinatura')
+        }
+        throw new ApiError(
+          'Escolha um plano para continuar usando o DentalFlow.',
+          402,
+          body,
+        )
+      }
+
       if (response.status === 401 && !_skipRefresh && refreshConfig) {
         try {
           if (!pendingRefresh) {
@@ -100,11 +111,7 @@ export async function apiRequest<TResponse>(
       throw new ApiError(message, response.status, body)
     }
 
-    if (response.status === 204) {
-      return undefined as TResponse
-    }
-
-    return response.json() as Promise<TResponse>
+    return parseSuccessResponse<TResponse>(response)
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') {
       throw new ApiError('A requisição demorou muito. Tente novamente.', 408, null)
@@ -136,6 +143,32 @@ async function parseResponseBody(response: Response) {
   }
 
   return response.text()
+}
+
+async function parseSuccessResponse<TResponse>(response: Response): Promise<TResponse> {
+  if (response.status === 204) {
+    return undefined as TResponse
+  }
+
+  const text = await response.text()
+  if (!text.trim()) {
+    return undefined as TResponse
+  }
+
+  const contentType = response.headers.get('content-type')
+  if (!contentType?.includes('application/json')) {
+    return text as TResponse
+  }
+
+  try {
+    return JSON.parse(text) as TResponse
+  } catch {
+    throw new ApiError(
+      'A resposta do servidor veio em um formato inválido.',
+      response.status,
+      text,
+    )
+  }
 }
 
 function getErrorMessage(body: unknown) {

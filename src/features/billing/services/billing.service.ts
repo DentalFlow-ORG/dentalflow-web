@@ -2,16 +2,27 @@ import { getAccessToken } from '@/features/auth/utils/session-storage'
 import { apiRequest } from '@/services/http'
 
 import type {
-  BillingPlan,
+  BillingPlansResponse,
+  ChangeSubscriptionPlanRequest,
   CheckoutSessionRequest,
   ClinicSubscription,
+  CurrentBillingStatus,
   SessionUrlResponse,
+  StartTrialRequest,
 } from '../types/billing.types'
 
 export function listBillingPlans() {
-  return apiRequest<BillingPlan[]>('/billing/plans', {
+  return apiRequest<BillingPlansResponse>('/billing/plans', {
     method: 'GET',
     accessToken: getAccessToken(),
+  })
+}
+
+export function changeSubscriptionPlan(dto: ChangeSubscriptionPlanRequest) {
+  return apiRequest<CurrentBillingStatus>('/billing/subscription/change-plan', {
+    method: 'POST',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
   })
 }
 
@@ -22,8 +33,23 @@ export function getClinicSubscription() {
   })
 }
 
+export function getCurrentBillingStatus() {
+  return apiRequest<CurrentBillingStatus>('/billing/subscription/current', {
+    method: 'GET',
+    accessToken: getAccessToken(),
+  })
+}
+
 export function createCheckoutSession(dto: CheckoutSessionRequest) {
   return apiRequest<SessionUrlResponse>('/billing/checkout-session', {
+    method: 'POST',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
+  })
+}
+
+export function startTrial(dto: StartTrialRequest) {
+  return apiRequest<CurrentBillingStatus>('/billing/trial/start', {
     method: 'POST',
     accessToken: getAccessToken(),
     body: JSON.stringify(dto),

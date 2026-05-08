@@ -174,7 +174,7 @@ const subscriptionRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/assinatura',
   component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER']}>
+    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST', 'ASSISTANT']}>
       <SubscriptionPage />
     </ProtectedAppRoute>
   ),

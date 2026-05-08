@@ -1,30 +1,17 @@
 import { useState } from 'react'
 
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+import { OdontogramChart } from './odontogram/OdontogramChart'
+import { OdontogramLegend } from './odontogram/OdontogramLegend'
+import { OdontogramToothDetailsPanel } from './odontogram/OdontogramToothDetailsPanel'
 import type { OdontogramData, OdontogramTooth } from '../types/clinical-record.types'
-
-const UPPER_TEETH = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28]
-const LOWER_TEETH = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38]
-const ALL_TEETH = [...UPPER_TEETH, ...LOWER_TEETH]
-
-const CONDITION_COLORS: Record<string, string> = {
-  healthy: 'bg-emerald-100 border-emerald-300 text-emerald-800',
-  caries: 'bg-amber-100 border-amber-300 text-amber-800',
-  restored: 'bg-blue-100 border-blue-300 text-blue-800',
-  absent: 'bg-slate-100 border-slate-300 text-slate-400 line-through',
-  extraction: 'bg-red-100 border-red-300 text-red-700',
-  crown: 'bg-purple-100 border-purple-300 text-purple-800',
-}
-
-const CONDITION_OPTIONS = [
-  { value: 'healthy', label: 'Saudável' },
-  { value: 'caries', label: 'Cárie' },
-  { value: 'restored', label: 'Restaurado' },
-  { value: 'absent', label: 'Ausente' },
-  { value: 'extraction', label: 'Extração' },
-  { value: 'crown', label: 'Coroa' },
-]
+import {
+  ALL_TEETH,
+  ODONTOGRAM_CONDITION_BUTTON_CLASSES,
+  ODONTOGRAM_CONDITION_OPTIONS,
+} from '../utils/odontogram-status-utils'
 
 type Props = {
   data: OdontogramData
@@ -64,16 +51,18 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
 
   const applyConditionToMulti = (condition: string) => {
     const allHaveIt = [...multiSelected].every(
-      (n) => getTooth(n).condition === condition,
+      (toothNumber) => getTooth(toothNumber).condition === condition,
     )
     const newTeeth = { ...data.teeth }
-    for (const n of multiSelected) {
-      const current = getTooth(n)
-      newTeeth[String(n)] = {
+
+    for (const toothNumber of multiSelected) {
+      const current = getTooth(toothNumber)
+      newTeeth[String(toothNumber)] = {
         ...current,
         condition: allHaveIt ? undefined : condition,
       }
     }
+
     onChange({ ...data, teeth: newTeeth })
   }
 
@@ -94,233 +83,198 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
     setMultiSelected(new Set())
   }
 
-  const toggleMultiTooth = (n: number) => {
+  const toggleMultiTooth = (toothNumber: number) => {
     setMultiSelected((prev) => {
       const next = new Set(prev)
-      if (next.has(n)) next.delete(n)
-      else next.add(n)
+      if (next.has(toothNumber)) next.delete(toothNumber)
+      else next.add(toothNumber)
       return next
     })
   }
 
-  const handleToothClick = (n: number) => {
+  const handleToothClick = (toothNumber: number) => {
     if (multiMode) {
-      toggleMultiTooth(n)
-    } else {
-      setSelected((prev) => (prev === n ? null : n))
+      toggleMultiTooth(toothNumber)
+      return
     }
+
+    setSelected((prev) => (prev === toothNumber ? null : toothNumber))
   }
 
   const selectedTooth = !multiMode && selected ? getTooth(selected) : null
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-slate-500">
-          Clique em um dente para registrar condição e observações.
-          {readOnly && ' (somente leitura)'}
-        </p>
-
-        {!readOnly && !multiMode && (
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={selectAll}
-              className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-            >
-              Selecionar todos
-            </button>
-            <button
-              type="button"
-              onClick={enterMultiMode}
-              className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-            >
-              Selecionar vários
-            </button>
-          </div>
-        )}
-
-        {!readOnly && multiMode && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">
-              {multiSelected.size === 0
-                ? 'Clique nos dentes para selecionar'
-                : `${multiSelected.size} dente${multiSelected.size > 1 ? 's' : ''} selecionado${multiSelected.size > 1 ? 's' : ''}`}
-            </span>
-            {multiSelected.size < ALL_TEETH.length && (
-              <button
-                type="button"
-                onClick={() => setMultiSelected(new Set(ALL_TEETH))}
-                className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs text-slate-500 hover:bg-slate-50 transition-colors"
-              >
-                Todos
-              </button>
-            )}
-            {multiSelected.size > 0 && (
-              <button
-                type="button"
-                onClick={() => setMultiSelected(new Set())}
-                className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs text-slate-500 hover:bg-slate-50 transition-colors"
-              >
-                Limpar
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={exitMultiMode}
-              className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-            >
-              Cancelar seleção
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Upper jaw */}
-      <div>
-        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-          Superior
-        </p>
-        <ToothRow
-          teeth={UPPER_TEETH}
-          getTooth={getTooth}
-          selected={multiMode ? null : selected}
-          multiSelected={multiMode ? multiSelected : null}
-          onSelect={readOnly ? undefined : handleToothClick}
-        />
-      </div>
-
-      {/* Lower jaw */}
-      <div>
-        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
-          Inferior
-        </p>
-        <ToothRow
-          teeth={LOWER_TEETH}
-          getTooth={getTooth}
-          selected={multiMode ? null : selected}
-          multiSelected={multiMode ? multiSelected : null}
-          onSelect={readOnly ? undefined : handleToothClick}
-        />
-      </div>
-
-      {/* Multi-select condition picker */}
-      {!readOnly && multiMode && multiSelected.size > 0 && (
-        <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
-          <p className="mb-2 text-xs font-semibold text-slate-600">
-            Aplicar condição a {multiSelected.size} dente{multiSelected.size > 1 ? 's' : ''}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-slate-800">Odontograma</p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Clique em um dente para registrar condição e observações.
+            {readOnly && ' Este prontuário está em modo somente leitura.'}
           </p>
-          <div className="flex flex-wrap gap-2">
-            {CONDITION_OPTIONS.map((opt) => {
-              const allHaveIt = [...multiSelected].every(
-                (n) => getTooth(n).condition === opt.value,
-              )
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => applyConditionToMulti(opt.value)}
-                  className={cn(
-                    'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
-                    allHaveIt
-                      ? CONDITION_COLORS[opt.value]
-                      : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100',
-                  )}
-                >
-                  {opt.label}
-                </button>
-              )
-            })}
-          </div>
         </div>
-      )}
 
-      {/* Single-select condition picker */}
-      {!readOnly && !multiMode && selected && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-          <p className="mb-2 text-xs font-semibold text-slate-600">
-            Dente {selected} — condição
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {CONDITION_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setToothCondition(selected, opt.value)}
-                className={cn(
-                  'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
-                  selectedTooth?.condition === opt.value
-                    ? CONDITION_COLORS[opt.value]
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100',
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <textarea
-            rows={2}
-            placeholder="Observações sobre este dente..."
-            value={selectedTooth?.notes ?? ''}
-            onChange={(e) => setToothNotes(selected, e.target.value)}
-            className="mt-2 w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/15"
+        {!readOnly && (
+          <OdontogramToolbar
+            multiMode={multiMode}
+            selectedCount={multiSelected.size}
+            onSelectAll={selectAll}
+            onEnterMultiMode={enterMultiMode}
+            onSelectEveryTooth={() => setMultiSelected(new Set(ALL_TEETH))}
+            onClearSelection={() => setMultiSelected(new Set())}
+            onCancelMultiMode={exitMultiMode}
           />
-        </div>
+        )}
+      </div>
+
+      <OdontogramChart
+        getTooth={getTooth}
+        selected={multiMode ? null : selected}
+        multiSelected={multiMode ? multiSelected : null}
+        readOnly={readOnly}
+        onSelect={readOnly ? undefined : handleToothClick}
+      />
+
+      <OdontogramLegend />
+
+      {!readOnly && multiMode && multiSelected.size > 0 && (
+      <MultiConditionPanel
+        selectedCount={multiSelected.size}
+        selectedTeeth={multiSelected}
+        getTooth={getTooth}
+        onApplyCondition={applyConditionToMulti}
+      />
       )}
 
-      {/* Global notes */}
+      {!multiMode && (
+        <OdontogramToothDetailsPanel
+          toothNumber={selected}
+          tooth={selectedTooth}
+          readOnly={readOnly}
+          onSetCondition={(condition) => {
+            if (selected) setToothCondition(selected, condition)
+          }}
+          onSetNotes={(notes) => {
+            if (selected) setToothNotes(selected, notes)
+          }}
+        />
+      )}
+
       <div>
         <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
           Observações gerais do odontograma
         </label>
         <textarea
-          rows={2}
+          rows={3}
           value={data.notes ?? ''}
-          onChange={(e) => onChange({ ...data, notes: e.target.value })}
+          onChange={(event) => onChange({ ...data, notes: event.target.value })}
           readOnly={readOnly}
-          placeholder={readOnly ? undefined : 'Observações gerais...'}
-          className="mt-1.5 w-full rounded-md border border-slate-200 px-3 py-2 text-sm placeholder:text-slate-400 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
+          placeholder={readOnly ? undefined : 'Observações gerais do odontograma...'}
+          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
         />
       </div>
     </div>
   )
 }
 
-type ToothRowProps = {
-  teeth: number[]
-  getTooth: (n: number) => OdontogramTooth
-  selected: number | null
-  multiSelected: Set<number> | null
-  onSelect?: (n: number) => void
+type OdontogramToolbarProps = {
+  multiMode: boolean
+  selectedCount: number
+  onSelectAll: () => void
+  onEnterMultiMode: () => void
+  onSelectEveryTooth: () => void
+  onClearSelection: () => void
+  onCancelMultiMode: () => void
 }
 
-function ToothRow({ teeth, getTooth, selected, multiSelected, onSelect }: ToothRowProps) {
+function OdontogramToolbar({
+  multiMode,
+  selectedCount,
+  onSelectAll,
+  onEnterMultiMode,
+  onSelectEveryTooth,
+  onClearSelection,
+  onCancelMultiMode,
+}: OdontogramToolbarProps) {
+  if (!multiMode) {
+    return (
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="outline" size="xs" onClick={onSelectAll}>
+          Selecionar todos
+        </Button>
+        <Button type="button" variant="outline" size="xs" onClick={onEnterMultiMode}>
+          Selecionar vários
+        </Button>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-wrap gap-1">
-      {teeth.map((n) => {
-        const tooth = getTooth(n)
-        const color = tooth.condition
-          ? CONDITION_COLORS[tooth.condition] ?? 'bg-white border-slate-300'
-          : 'bg-white border-slate-300'
-        const isMultiSelected = multiSelected?.has(n) ?? false
-        return (
-          <button
-            key={n}
-            type="button"
-            onClick={() => onSelect?.(n)}
-            title={tooth.condition ? `${n}: ${tooth.condition}` : String(n)}
-            className={cn(
-              'h-9 w-9 rounded border text-[11px] font-semibold transition-all hover:scale-110',
-              color,
-              selected === n && 'ring-2 ring-primary ring-offset-1',
-              isMultiSelected && 'ring-2 ring-primary ring-offset-1 brightness-95',
-              !onSelect && 'cursor-default',
-            )}
-          >
-            {n}
-          </button>
-        )
-      })}
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-xs text-slate-500">
+        {selectedCount === 0
+          ? 'Clique nos dentes para selecionar'
+          : `${selectedCount} dente${selectedCount > 1 ? 's' : ''} selecionado${selectedCount > 1 ? 's' : ''}`}
+      </span>
+      {selectedCount < ALL_TEETH.length && (
+        <Button type="button" variant="outline" size="xs" onClick={onSelectEveryTooth}>
+          Todos
+        </Button>
+      )}
+      {selectedCount > 0 && (
+        <Button type="button" variant="outline" size="xs" onClick={onClearSelection}>
+          Limpar
+        </Button>
+      )}
+      <Button type="button" variant="outline" size="xs" onClick={onCancelMultiMode}>
+        Cancelar seleção
+      </Button>
+    </div>
+  )
+}
+
+type MultiConditionPanelProps = {
+  selectedCount: number
+  selectedTeeth: Set<number>
+  getTooth: (toothNumber: number) => OdontogramTooth
+  onApplyCondition: (condition: string) => void
+}
+
+function MultiConditionPanel({
+  selectedCount,
+  selectedTeeth,
+  getTooth,
+  onApplyCondition,
+}: MultiConditionPanelProps) {
+  return (
+    <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+      <p className="mb-2 text-xs font-semibold text-slate-600">
+        Aplicar condição a {selectedCount} dente{selectedCount > 1 ? 's' : ''}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {ODONTOGRAM_CONDITION_OPTIONS.map((option) => {
+          const allHaveIt = [...selectedTeeth].every((toothNumber) => {
+            const tooth = getTooth(toothNumber)
+            return tooth.condition === option.value
+          })
+
+          return (
+            <Button
+              key={option.value}
+              type="button"
+              variant="outline"
+              size="xs"
+              onClick={() => onApplyCondition(option.value)}
+              className={cn(
+                'border-slate-200 bg-white text-slate-600 hover:bg-slate-100',
+                allHaveIt && ODONTOGRAM_CONDITION_BUTTON_CLASSES[option.value],
+              )}
+            >
+              {option.label}
+            </Button>
+          )
+        })}
+      </div>
     </div>
   )
 }
