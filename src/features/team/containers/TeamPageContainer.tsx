@@ -6,6 +6,7 @@ import { FilteredEmptyState } from '@/components/common/FilteredEmptyState'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { ListToolbar } from '@/components/common/ListToolbar'
 import { Pagination } from '@/components/common/Pagination'
+import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
@@ -53,6 +54,10 @@ export function TeamPageContainer() {
     handleDeleteConfirm,
   } = useTeamPage()
 
+  const availableUserSlots = Math.max(userLimit - activeUserCount, 0)
+  const userLimitUsagePercent =
+    userLimit > 0 ? Math.min(100, Math.round((activeUserCount / userLimit) * 100)) : 0
+
   return (
     <AppPage>
       <AppPageHeader
@@ -61,11 +66,41 @@ export function TeamPageContainer() {
         description={`Gerencie profissionais e assistentes da clínica. ${activeUserCount}/${userLimit} usuários ativos no plano atual.`}
         action={
           <Button onClick={handleCreateClick} disabled={hasReachedUserLimit}>
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" aria-hidden="true" />
             Novo usuário
           </Button>
         }
       />
+
+      <PanelCard className="p-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-slate-950">Uso de usuários do plano</p>
+              <StatusBadge tone={hasReachedUserLimit ? 'warning' : 'success'}>
+                {activeUserCount}/{userLimit} ativos
+              </StatusBadge>
+            </div>
+            <p className="mt-1 text-sm text-slate-500">
+              {hasReachedUserLimit
+                ? 'Limite de usuários ativos atingido para o plano atual.'
+                : `${availableUserSlots} ${availableUserSlots === 1 ? 'vaga disponível' : 'vagas disponíveis'} para novos usuários ativos.`}
+            </p>
+          </div>
+          <div className="w-full sm:max-w-56">
+            <div
+              className="h-2 overflow-hidden rounded-full bg-slate-100"
+              aria-label={`Uso de usuários do plano: ${activeUserCount} de ${userLimit}`}
+              role="img"
+            >
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${userLimitUsagePercent}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </PanelCard>
 
       <ListPageShell
         isLoading={isLoading}
@@ -80,7 +115,7 @@ export function TeamPageContainer() {
             description="Adicione profissionais e assistentes para gerenciar a equipe da clínica."
             action={
               <Button onClick={handleCreateClick} disabled={hasReachedUserLimit}>
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4" aria-hidden="true" />
                 Novo usuário
               </Button>
             }
@@ -129,10 +164,11 @@ export function TeamPageContainer() {
                         </span>
                       )}
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-4 grid grid-cols-2 gap-2">
                       <Button
                         size="sm"
                         variant="outline"
+                        className="w-full"
                         onClick={() => setEditTarget(member)}
                       >
                         <Pencil className="h-4 w-4" aria-hidden="true" />
@@ -141,6 +177,7 @@ export function TeamPageContainer() {
                       <Button
                         size="sm"
                         variant="ghost"
+                        className="w-full"
                         onClick={() =>
                           setPasswordTarget({
                             id: member.id,
@@ -154,7 +191,7 @@ export function TeamPageContainer() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                        className="col-span-2 w-full text-red-700 hover:bg-red-50 hover:text-red-700"
                         onClick={() =>
                           setDeleteTarget({
                             id: member.id,
@@ -173,14 +210,14 @@ export function TeamPageContainer() {
               {/* Desktop table — hidden below sm */}
               <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm sm:block">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm" aria-label="Usuários da clínica">
                     <thead>
                       <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        <th className="px-4 py-3">Usuário</th>
-                        <th className="px-4 py-3">Papel</th>
-                        <th className="px-4 py-3">Status</th>
-                        <th className="hidden px-4 py-3 md:table-cell">Perfil</th>
-                        <th className="px-4 py-3 text-right">Ações</th>
+                        <th scope="col" className="px-4 py-3">Usuário</th>
+                        <th scope="col" className="px-4 py-3">Papel</th>
+                        <th scope="col" className="px-4 py-3">Status</th>
+                        <th scope="col" className="hidden px-4 py-3 md:table-cell">Perfil</th>
+                        <th scope="col" className="px-4 py-3 text-right">Ações</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
