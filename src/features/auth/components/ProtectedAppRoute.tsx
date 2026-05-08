@@ -1,4 +1,5 @@
 import { Navigate } from '@tanstack/react-router'
+import { Loader2 } from 'lucide-react'
 import { Suspense, type ReactNode } from 'react'
 
 import { AppShell } from '@/components/layout/AppShell'
@@ -17,8 +18,9 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
 
   if (isBootstrapping) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm font-medium text-slate-500">
-        Carregando sessão...
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50" role="status">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
+        <span className="text-sm font-medium text-slate-500">Carregando DentalFlow...</span>
       </div>
     )
   }
