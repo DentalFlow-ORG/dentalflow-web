@@ -87,7 +87,7 @@ function AppointmentRow({ appt }: { appt: PatientAppointment }) {
         <StatusBadge tone={tone}>{STATUS_LABEL[appt.status] ?? appt.status}</StatusBadge>
       </div>
       <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
-        <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+        <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span>
           {formatDate(appt.appointmentDate)} · {formatTime(appt.startTime)}–
           {formatTime(appt.endTime)}
@@ -97,6 +97,75 @@ function AppointmentRow({ appt }: { appt: PatientAppointment }) {
         <p className="mt-1.5 text-xs italic text-slate-400">{appt.notes}</p>
       )}
     </div>
+  )
+}
+
+function PatientMobileCard({
+  patient,
+  onOpenDetails,
+}: {
+  patient: PatientSummary
+  onOpenDetails: (patient: PatientSummary) => void
+}) {
+  const hasContact = Boolean(patient.patientPhone || patient.patientEmail)
+  const completionSummary =
+    patient.totalAppointments > 0
+      ? `${patient.completedAppointments} de ${patient.totalAppointments} consultas concluídas`
+      : 'Nenhuma consulta registrada'
+
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold text-slate-950">
+            {patient.patientName}
+          </h3>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            {patient.lastVisit
+              ? `Última visita em ${formatDate(patient.lastVisit)}`
+              : 'Sem visita registrada'}
+          </p>
+        </div>
+        <StatusBadge tone={patient.totalAppointments > 0 ? 'success' : 'muted'}>
+          {patient.totalAppointments} consulta{patient.totalAppointments !== 1 ? 's' : ''}
+        </StatusBadge>
+      </div>
+
+      <div className="mt-4 grid gap-3 text-sm text-slate-600">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Contato</p>
+          {hasContact ? (
+            <div className="mt-1 space-y-0.5">
+              {patient.patientPhone && <p>{patient.patientPhone}</p>}
+              {patient.patientEmail && <p className="break-words">{patient.patientEmail}</p>}
+            </div>
+          ) : (
+            <p className="mt-1 text-slate-500">Sem contato cadastrado</p>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge tone="muted">{completionSummary}</StatusBadge>
+          {patient.canceledAppointments > 0 && (
+            <StatusBadge tone="warning">
+              {patient.canceledAppointments} cancelada
+              {patient.canceledAppointments !== 1 ? 's' : ''}
+            </StatusBadge>
+          )}
+        </div>
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-4 w-full"
+        onClick={() => onOpenDetails(patient)}
+      >
+        Ver detalhes do paciente
+        <ChevronRight className="h-4 w-4" aria-hidden="true" />
+      </Button>
+    </article>
   )
 }
 
@@ -266,7 +335,7 @@ export function PatientsPageContainer() {
         description="Lista de pacientes com base no histórico de consultas."
         action={
           <Button variant="outline" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
             Atualizar
           </Button>
         }
@@ -329,19 +398,37 @@ export function PatientsPageContainer() {
                   Ordenado pela consulta mais recente.
                 </p>
               </div>
-              <Users2 className="h-5 w-5 text-primary" />
+              <Users2 className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
 
             <div className="overflow-hidden rounded-lg border border-slate-200">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-160 text-sm">
+              <div className="space-y-3 bg-slate-50 p-3 md:hidden">
+                {filteredPatients.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
+                    {hasFilters
+                      ? 'Nenhum paciente encontrado para os filtros aplicados.'
+                      : 'Nenhum paciente encontrado.'}
+                  </div>
+                ) : (
+                  paginatedPatients.map((patient) => (
+                    <PatientMobileCard
+                      key={patient.identifier}
+                      patient={patient}
+                      onOpenDetails={setSelectedPatient}
+                    />
+                  ))
+                )}
+              </div>
+
+              <div className="hidden overflow-x-auto md:block">
+                <table className="w-full min-w-160 text-sm" aria-label="Lista de pacientes">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      <th className="px-4 py-3">Paciente</th>
-                      <th className="hidden px-4 py-3 sm:table-cell">Contato</th>
-                      <th className="px-4 py-3 text-center">Consultas</th>
-                      <th className="hidden px-4 py-3 md:table-cell">Última visita</th>
-                      <th className="px-4 py-3" />
+                      <th scope="col" className="px-4 py-3">Paciente</th>
+                      <th scope="col" className="hidden px-4 py-3 sm:table-cell">Contato</th>
+                      <th scope="col" className="px-4 py-3 text-center">Consultas</th>
+                      <th scope="col" className="hidden px-4 py-3 md:table-cell">Última visita</th>
+                      <th scope="col" className="px-4 py-3" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
@@ -394,7 +481,7 @@ export function PatientsPageContainer() {
                             )}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <ChevronRight className="ml-auto h-4 w-4 text-slate-400" />
+                            <ChevronRight className="ml-auto h-4 w-4 text-slate-400" aria-hidden="true" />
                           </td>
                         </tr>
                       ))
