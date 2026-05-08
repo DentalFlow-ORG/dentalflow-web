@@ -1,224 +1,125 @@
-import { AlertCircle, Check, ExternalLink, Loader2, Package, X } from 'lucide-react'
+import { Package } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
-import { Button } from '@/components/ui/button'
-import { formatDateBR } from '@/lib/date-time-formatters'
-import { formatCurrencyBR } from '@/lib/number-formatters'
-import { cn } from '@/lib/utils'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 
+import { BillingIntervalToggle } from '../components/BillingIntervalToggle'
+import { CurrentSubscriptionCard } from '../components/CurrentSubscriptionCard'
+import { LaunchOfferBanner } from '../components/LaunchOfferBanner'
+import { PricingCard } from '../components/PricingCard'
 import {
-  STATUS_COLORS,
-  STATUS_LABELS,
   getPlanFeatures,
   intervalAvailableForPlan,
+  normalizeBillingInterval,
   useSubscriptionPage,
 } from '../hooks/useSubscriptionPage'
+import {
+  getPlanCtaState,
+  type PlanCtaState,
+} from '../utils/billing-cta-utils'
 
 export function SubscriptionPageContainer() {
+  const { user } = useAuth()
+  const canManageBilling = user?.role === 'OWNER'
+
   const {
     plans,
-    subscription,
+    campaign,
+    billingStatus,
     isLoadingPlans,
-    isLoadingSubscription,
+    isLoadingBillingStatus,
     plansError,
-    subscriptionError,
+    billingStatusError,
     billingInterval,
     setBillingInterval,
-    checkingOutPlanId,
+    checkingOutPlanKey,
+    startingTrialPlanKey,
+    changingPlanKey,
     isOpeningPortal,
     showCancelDialog,
     setShowCancelDialog,
     isCanceling,
-    hasActiveSubscription,
     canCancel,
     isAnyActionPending,
     anyPlanHasMonthly,
     anyPlanHasYearly,
     showIntervalToggle,
+    handleStartTrial,
     handleCheckout,
+    handleChangePlan,
     handlePortal,
     handleCancelConfirm,
   } = useSubscriptionPage()
+
+  const annualDiscountPercent =
+    plans.find((plan) => plan.annualDiscountPercent != null)?.annualDiscountPercent ?? null
+  const currentPlan = plans.find((plan) => plan.slug === billingStatus?.planKey)
+  const currentPlanDisplayOrder = currentPlan?.displayOrder ?? null
 
   return (
     <AppPage>
       <AppPageHeader
         title="Assinatura"
-        description="Gerencie o plano e as informações de cobrança da sua clínica."
+        description="Escolha o plano ideal, acompanhe seu teste grátis e gerencie a cobrança da clínica."
       />
 
-      {/* Current subscription */}
-      <PanelCard>
-        <h2 className="mb-4 text-base font-semibold text-slate-950">Assinatura atual</h2>
+      <LaunchOfferBanner campaign={campaign} />
 
-        {isLoadingSubscription ? (
-          <p className="text-sm text-slate-500">Carregando assinatura...</p>
-        ) : subscriptionError ? (
-          <p className="text-sm text-red-600">{subscriptionError}</p>
-        ) : !subscription || subscription.status === 'CANCELED' ? (
-          <p className="text-sm text-slate-500">
-            Nenhuma assinatura ativa. Escolha um plano abaixo para começar.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-x-8 gap-y-4">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  Plano
-                </p>
-                <p className="mt-1 text-sm font-semibold text-slate-900">
-                  {subscription.plan?.name ?? '—'}
-                </p>
-              </div>
+      {!canManageBilling && (
+        <InlineFeedback tone="info">
+          Apenas o proprietário da clínica pode iniciar teste grátis, assinar ou gerenciar a
+          cobrança. Você ainda pode visualizar os planos disponíveis.
+        </InlineFeedback>
+      )}
 
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  Status
-                </p>
-                <span
-                  className={cn(
-                    'mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                    subscription.cancelAtPeriodEnd
-                      ? 'bg-orange-50 text-orange-700'
-                      : STATUS_COLORS[subscription.status],
-                  )}
-                >
-                  {subscription.cancelAtPeriodEnd
-                    ? 'Cancelamento agendado'
-                    : STATUS_LABELS[subscription.status]}
-                </span>
-              </div>
+      <CurrentSubscriptionCard
+        billingStatus={billingStatus}
+        isLoading={isLoadingBillingStatus}
+        error={billingStatusError}
+        canCancel={canCancel && canManageBilling}
+        isOpeningPortal={isOpeningPortal}
+        isAnyActionPending={isAnyActionPending || !canManageBilling}
+        onOpenPortal={handlePortal}
+        onCancel={() => setShowCancelDialog(true)}
+      />
 
-              {subscription.billingInterval && (
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                    Cobrança
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">
-                    {subscription.billingInterval === 'MONTHLY' ? 'Mensal' : 'Anual'}
-                  </p>
-                </div>
-              )}
-
-              {subscription.currentPeriodEnd && (
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                    {subscription.cancelAtPeriodEnd ? 'Acesso até' : 'Próxima cobrança'}
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">
-                    {formatDateBR(subscription.currentPeriodEnd)}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {subscription.cancelAtPeriodEnd && (
-              <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                <p className="text-sm text-amber-800">
-                  Cancelamento agendado para o fim do período atual. O acesso continua até{' '}
-                  <strong>{formatDateBR(subscription.currentPeriodEnd)}</strong>.
-                </p>
-              </div>
-            )}
-
-            <div className="flex flex-wrap gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePortal}
-                disabled={isAnyActionPending}
-              >
-                {isOpeningPortal ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ExternalLink className="h-4 w-4" />
-                )}
-                Gerenciar assinatura
-              </Button>
-
-              {canCancel && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700"
-                  onClick={() => setShowCancelDialog(true)}
-                  disabled={isAnyActionPending}
-                >
-                  <X className="h-4 w-4" />
-                  Cancelar assinatura
-                </Button>
-              )}
-            </div>
+      <section className="space-y-5">
+        <div className="space-y-5 text-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-primary">
+              Planos DentalFlow
+            </p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-950">Escolha seu plano</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              Comece com 7 dias grátis, sem cartão. Quando estiver pronto, continue no mensal
+              ou economize no anual.
+            </p>
           </div>
-        )}
-      </PanelCard>
 
-      {/* Plans */}
-      <div className="space-y-4">
-        <div className="space-y-3">
-          <h2 className="text-base font-semibold text-slate-950">Planos disponíveis</h2>
-
-          {showIntervalToggle && (() => {
-            const savingsPct = plans
-              .filter((p) => p.hasMonthlyPrice && p.hasYearlyPrice)
-              .map((p) =>
-                Math.round(((p.priceMonthly * 12 - p.priceYearly) / (p.priceMonthly * 12)) * 100),
-              )
-              .at(0) ?? null
-
-            return (
-              <div className="flex justify-center">
-                <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
-                  {anyPlanHasMonthly && (
-                    <button
-                      type="button"
-                      onClick={() => setBillingInterval('MONTHLY')}
-                      className={cn(
-                        'rounded-lg px-5 py-2 text-sm font-semibold transition-colors',
-                        billingInterval === 'MONTHLY'
-                          ? 'bg-white text-slate-900 shadow-sm'
-                          : 'text-slate-500 hover:text-slate-700',
-                      )}
-                    >
-                      Mensal
-                    </button>
-                  )}
-                  {anyPlanHasYearly && (
-                    <button
-                      type="button"
-                      onClick={() => setBillingInterval('YEARLY')}
-                      className={cn(
-                        'flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition-colors',
-                        billingInterval === 'YEARLY'
-                          ? 'bg-white text-slate-900 shadow-sm'
-                          : 'text-slate-500 hover:text-slate-700',
-                      )}
-                    >
-                      Anual
-                      {savingsPct != null && (
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">
-                          -{savingsPct}%
-                        </span>
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )
-          })()}
+          {showIntervalToggle && (
+            <div className="flex justify-center">
+              <BillingIntervalToggle
+                value={billingInterval}
+                onChange={setBillingInterval}
+                showMonthly={anyPlanHasMonthly}
+                showYearly={anyPlanHasYearly}
+                discountPercent={annualDiscountPercent}
+              />
+            </div>
+          )}
         </div>
 
         {isLoadingPlans ? (
           <LoadingCard message="Carregando planos..." />
         ) : plansError ? (
           <PanelCard>
-            <p className="text-sm text-red-600">{plansError}</p>
+            <InlineFeedback tone="error">{plansError}</InlineFeedback>
           </PanelCard>
         ) : plans.length === 0 ? (
           <EmptyState
@@ -227,108 +128,48 @@ export function SubscriptionPageContainer() {
             description="Nenhum plano está disponível no momento. Entre em contato com o suporte."
           />
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {plans.map((plan) => {
-              const available = intervalAvailableForPlan(plan, billingInterval)
-              const price =
-                billingInterval === 'MONTHLY' ? plan.priceMonthly : plan.priceYearly
-
-              // Compare both plan id AND billing interval so switching between
-              // monthly/yearly correctly clears the "Plano atual" badge
+          <div className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-3">
+            {plans.map((plan, index) => {
+              const normalizedInterval = normalizeBillingInterval(billingInterval)
               const isCurrentPlan =
-                hasActiveSubscription &&
-                subscription?.plan?.id === plan.id &&
-                subscription?.billingInterval === billingInterval
-
-              const features = getPlanFeatures(plan)
-              const isCheckingOutThisPlan = checkingOutPlanId === plan.id
-              const isDisabled = isCurrentPlan || !available || isAnyActionPending
+                billingStatus?.accessAllowed === true &&
+                billingStatus.planKey === plan.slug &&
+                billingStatus.billingInterval === normalizedInterval
+              const isAvailable = intervalAvailableForPlan(plan, billingInterval)
+              const ctaState: PlanCtaState = getPlanCtaState({
+                plan,
+                selectedInterval: billingInterval,
+                currentSubscription: billingStatus,
+                isCurrentPlan,
+                canManageBilling,
+                isAvailable,
+                isActionPending: isAnyActionPending,
+                currentPlanDisplayOrder,
+              })
 
               return (
-                <PanelCard
+                <PricingCard
                   key={plan.id}
-                  className={cn(isCurrentPlan && 'ring-2 ring-primary ring-offset-2')}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <h3 className="text-base font-semibold text-slate-950">{plan.name}</h3>
-                      {plan.description && (
-                        <p className="mt-1 text-sm text-slate-500">{plan.description}</p>
-                      )}
-                    </div>
-                    {isCurrentPlan ? (
-                      <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                        Plano atual
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <div className="mt-4">
-                    {available ? (
-                      <div className="space-y-1">
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-4xl font-extrabold text-slate-950">
-                            {formatCurrencyBR(
-                              billingInterval === 'YEARLY' ? price / 12 / 100 : price / 100,
-                            )}
-                          </span>
-                          <span className="text-sm text-slate-500">/mês</span>
-                        </div>
-                        {billingInterval === 'YEARLY' && (
-                          <p className="text-xs text-slate-400">
-                            Valor cobrado anualmente:{' '}
-                            <span className="font-medium">{formatCurrencyBR(price / 100)}</span>
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-sm text-slate-400">
-                        Sem preço {billingInterval === 'MONTHLY' ? 'mensal' : 'anual'}
-                      </span>
-                    )}
-                  </div>
-
-                  {features.length > 0 && (
-                    <ul className="mt-4 space-y-2">
-                      {features.map((feature) => (
-                        <li
-                          key={feature}
-                          className="flex items-center gap-2 text-sm text-slate-600"
-                        >
-                          <Check className="h-4 w-4 shrink-0 text-green-500" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  <div className="mt-6">
-                    <Button
-                      className="w-full"
-                      variant={isCurrentPlan ? 'outline' : 'default'}
-                      disabled={isDisabled}
-                      onClick={() => !isDisabled && handleCheckout(plan.id)}
-                    >
-                      {isCheckingOutThisPlan && (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      )}
-                      {isCurrentPlan
-                        ? 'Plano atual'
-                        : !available
-                          ? 'Indisponível neste período'
-                          : isCheckingOutThisPlan
-                            ? 'Redirecionando para o Stripe...'
-                            : hasActiveSubscription
-                              ? 'Alterar plano'
-                              : 'Assinar plano'}
-                    </Button>
-                  </div>
-                </PanelCard>
+                  plan={plan}
+                  billingInterval={billingInterval}
+                  features={getPlanFeatures(plan)}
+                  isAvailable={isAvailable}
+                  isCurrentPlan={isCurrentPlan}
+                  isRecommended={index === 1 || (plans.length === 1 && plan.hasAnalytics)}
+                  billingStatus={billingStatus}
+                  ctaState={ctaState}
+                  checkingOutPlanKey={checkingOutPlanKey}
+                  startingTrialPlanKey={startingTrialPlanKey}
+                  changingPlanKey={changingPlanKey}
+                  onStartTrial={handleStartTrial}
+                  onCheckout={handleCheckout}
+                  onChangePlan={handleChangePlan}
+                />
               )
             })}
           </div>
         )}
-      </div>
+      </section>
 
       <ConfirmDialog
         open={showCancelDialog}
