@@ -102,7 +102,7 @@ export function AdminUsersPageContainer() {
           {filteredCount === 0 ? (
             <FilteredEmptyState icon={Users} onClear={clearAll} />
           ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>

@@ -3,6 +3,7 @@ import { CalendarDays, ChevronRight, RefreshCw, Users2, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
+import { EmptyState } from '@/components/common/EmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { MetricCard } from '@/components/common/MetricCard'
@@ -132,12 +133,15 @@ function PatientDetailPanel({
               </p>
             </div>
             <Dialog.Close asChild>
-              <button
+              <Button
                 type="button"
-                className="rounded p-1 text-slate-400 hover:text-slate-700 focus:outline-none"
+                variant="ghost"
+                size="icon"
+                aria-label="Fechar painel do paciente"
+                className="h-8 w-8 text-slate-400 hover:text-slate-700"
               >
-                <X className="h-5 w-5" />
-              </button>
+                <X className="h-5 w-5" aria-hidden="true" />
+              </Button>
             </Dialog.Close>
           </div>
 
@@ -165,14 +169,18 @@ function PatientDetailPanel({
           )}
 
           {/* Tabs */}
-          <div className="flex border-b border-slate-200">
+          <div role="tablist" aria-label="Informações do paciente" className="flex border-b border-slate-200">
             {([
               { id: 'consultas', label: 'Consultas' },
               { id: 'prontuarios', label: 'Prontuários' },
             ] as { id: PanelTab; label: string }[]).map((tab) => (
               <button
                 key={tab.id}
+                id={`tab-patient-${tab.id}`}
                 type="button"
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                aria-controls={`panel-patient-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
                   activeTab === tab.id
@@ -187,33 +195,37 @@ function PatientDetailPanel({
 
           <div className="flex-1 overflow-y-auto px-6 py-4">
             {activeTab === 'consultas' && (
-              <ListPageShell
-                isLoading={isLoading}
-                loadingMessage="Carregando histórico…"
-                isEmpty={!isLoading && appointments.length === 0}
-                emptyState={
-                  <p className="text-sm text-slate-500">Nenhuma consulta encontrada.</p>
-                }
-              >
-                <div className="space-y-3">
-                  {appointments.map((appt) => (
-                    <AppointmentRow key={appt.id} appt={appt} />
-                  ))}
-                </div>
-              </ListPageShell>
+              <div id="panel-patient-consultas" role="tabpanel" aria-labelledby="tab-patient-consultas">
+                <ListPageShell
+                  isLoading={isLoading}
+                  loadingMessage="Carregando histórico…"
+                  isEmpty={!isLoading && appointments.length === 0}
+                  emptyState={
+                    <p className="text-sm text-slate-500">Nenhuma consulta encontrada.</p>
+                  }
+                >
+                  <div className="space-y-3">
+                    {appointments.map((appt) => (
+                      <AppointmentRow key={appt.id} appt={appt} />
+                    ))}
+                  </div>
+                </ListPageShell>
+              </div>
             )}
 
             {activeTab === 'prontuarios' && (
-              <ListPageShell
-                isLoading={isLoadingTimeline}
-                loadingMessage="Carregando prontuários…"
-                isEmpty={!isLoadingTimeline && clinicalRecords.length === 0}
-                emptyState={
-                  <p className="text-sm text-slate-500">Nenhum prontuário encontrado.</p>
-                }
-              >
-                <ClinicalTimeline records={clinicalRecords} />
-              </ListPageShell>
+              <div id="panel-patient-prontuarios" role="tabpanel" aria-labelledby="tab-patient-prontuarios">
+                <ListPageShell
+                  isLoading={isLoadingTimeline}
+                  loadingMessage="Carregando prontuários…"
+                  isEmpty={!isLoadingTimeline && clinicalRecords.length === 0}
+                  emptyState={
+                    <p className="text-sm text-slate-500">Nenhum prontuário encontrado.</p>
+                  }
+                >
+                  <ClinicalTimeline records={clinicalRecords} />
+                </ListPageShell>
+              </div>
             )}
           </div>
         </Dialog.Content>
@@ -297,12 +309,11 @@ export function PatientsPageContainer() {
         onRetry={handleRefresh}
         isEmpty={patients.length === 0}
         emptyState={
-          <PanelCard>
-            <div className="flex flex-col items-center gap-3 py-10 text-center">
-              <Users2 className="h-10 w-10 text-slate-300" />
-              <p className="text-sm text-slate-500">Nenhum paciente registrado ainda.</p>
-            </div>
-          </PanelCard>
+          <EmptyState
+            icon={Users2}
+            title="Nenhum paciente registrado"
+            description="Os pacientes aparecem aqui a partir dos agendamentos registrados na clínica."
+          />
         }
       >
         <>

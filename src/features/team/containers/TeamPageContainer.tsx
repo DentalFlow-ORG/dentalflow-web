@@ -103,8 +103,75 @@ export function TeamPageContainer() {
           {filteredCount === 0 ? (
             <FilteredEmptyState icon={Users} onClear={clearAll} />
           ) : (
-            <>
-              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="space-y-4">
+              {/* Mobile card list — hidden on sm+ */}
+              <div className="space-y-3 sm:hidden">
+                {members.map((member) => (
+                  <div key={member.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-slate-900">
+                          {member.firstName} {member.lastName}
+                        </p>
+                        <p className="truncate text-xs text-slate-500">{member.email}</p>
+                      </div>
+                      <StatusBadge tone="muted">
+                        {roleLabel[member.role] ?? member.role}
+                      </StatusBadge>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <StatusBadge tone={member.isActive ? 'success' : 'muted'}>
+                        {member.isActive ? 'Ativo' : 'Inativo'}
+                      </StatusBadge>
+                      {member.profile && (
+                        <span className="truncate text-xs text-slate-500">
+                          {member.profile.displayName}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditTarget(member)}
+                      >
+                        <Pencil className="h-4 w-4" aria-hidden="true" />
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          setPasswordTarget({
+                            id: member.id,
+                            name: `${member.firstName} ${member.lastName}`,
+                          })
+                        }
+                      >
+                        <KeyRound className="h-4 w-4" aria-hidden="true" />
+                        Senha
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                        onClick={() =>
+                          setDeleteTarget({
+                            id: member.id,
+                            name: `${member.firstName} ${member.lastName}`,
+                          })
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        Desativar
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop table — hidden below sm */}
+              <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm sm:block">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -158,14 +225,16 @@ export function TeamPageContainer() {
                                 size="icon-sm"
                                 variant="ghost"
                                 title="Editar"
+                                aria-label="Editar usuário"
                                 onClick={() => setEditTarget(member)}
                               >
-                                <Pencil className="h-3.5 w-3.5" />
+                                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                               </Button>
                               <Button
                                 size="icon-sm"
                                 variant="ghost"
                                 title="Redefinir senha"
+                                aria-label="Redefinir senha"
                                 onClick={() =>
                                   setPasswordTarget({
                                     id: member.id,
@@ -173,12 +242,13 @@ export function TeamPageContainer() {
                                   })
                                 }
                               >
-                                <KeyRound className="h-3.5 w-3.5" />
+                                <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
                               </Button>
                               <Button
                                 size="icon-sm"
                                 variant="ghost"
                                 title="Desativar"
+                                aria-label="Desativar usuário"
                                 className="text-red-500 hover:bg-red-50 hover:text-red-700"
                                 onClick={() =>
                                   setDeleteTarget({
@@ -187,7 +257,7 @@ export function TeamPageContainer() {
                                   })
                                 }
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
+                                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                               </Button>
                             </div>
                           </td>
@@ -205,7 +275,7 @@ export function TeamPageContainer() {
                 pageSize={pageSize}
                 onPageChange={setPage}
               />
-            </>
+            </div>
           )}
         </div>
       </ListPageShell>

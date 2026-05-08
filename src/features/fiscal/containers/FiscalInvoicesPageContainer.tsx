@@ -5,6 +5,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { EmptyState } from '@/components/common/EmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { MetricCard } from '@/components/common/MetricCard'
 import { Pagination } from '@/components/common/Pagination'
@@ -213,21 +214,19 @@ export function FiscalInvoicesPageContainer() {
         onRetry={load}
       >
         <div className="space-y-6">
-          <PanelCard className="border-amber-200 bg-amber-50/80">
+          <InlineFeedback tone="warning">
             <div className="flex gap-3">
-              <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+              <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
               <div>
-                <h2 className="text-sm font-semibold text-amber-950">
-                  Integração fiscal em modo local/simulação
-                </h2>
-                <p className="mt-1 text-sm leading-6 text-amber-900">
+                <p className="font-semibold">Integração fiscal em modo local/simulação</p>
+                <p className="mt-1 leading-6">
                   A emissão real de NFS-e ainda não está ativa. No momento, este módulo funciona
                   como controle interno e simulação. Para emitir notas fiscais válidas, será
                   necessário configurar uma integração fiscal homologada.
                 </p>
               </div>
             </div>
-          </PanelCard>
+          </InlineFeedback>
 
           {summary && (
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
@@ -338,103 +337,181 @@ export function FiscalInvoicesPageContainer() {
                 description="Crie rascunhos para organizar a futura emissão de NFS-e da clínica."
               />
             ) : (
-              <div className="overflow-hidden rounded-lg border border-slate-200">
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-230 text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        <th className="px-4 py-3">Cliente</th>
-                        <th className="px-4 py-3">Serviço</th>
-                        <th className="px-4 py-3 text-right">Valor</th>
-                        <th className="px-4 py-3">Status</th>
-                        <th className="px-4 py-3">Competência</th>
-                        <th className="px-4 py-3">Criada em</th>
-                        <th className="px-4 py-3 text-right">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 bg-white">
-                      {invoices.map((invoice) => (
-                        <tr key={invoice.id} className="hover:bg-slate-50/70">
-                          <td className="px-4 py-3">
-                            <p className="font-semibold text-slate-900">{invoice.customerName}</p>
-                            <p className="text-xs text-slate-500">
-                              {invoice.customerEmail ?? invoice.customerDocument ?? 'Sem contato'}
-                            </p>
-                          </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            {invoice.serviceDescription}
-                          </td>
-                          <td className="px-4 py-3 text-right font-semibold text-slate-900">
-                            {formatCents(invoice.amountCents)}
-                          </td>
-                          <td className="px-4 py-3">
-                            <StatusBadge tone={INVOICE_STATUS_TONE[invoice.status]}>
-                              {INVOICE_STATUS_LABEL[invoice.status]}
-                            </StatusBadge>
-                          </td>
-                          <td className="px-4 py-3 text-slate-600">
-                            {formatInvoiceDate(invoice.competenceDate)}
-                          </td>
-                          <td className="px-4 py-3 text-slate-600">
-                            {formatInvoiceDate(invoice.createdAt)}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex flex-wrap justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  void loadInvoiceDetails(invoice).catch(() => undefined)
-                                }}
-                              >
-                                Ver detalhes
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openInvoiceForm(invoice)}
-                                disabled={!['DRAFT', 'READY_TO_ISSUE'].includes(invoice.status)}
-                              >
-                                Editar
-                              </Button>
-                              {isOwner && invoice.status === 'DRAFT' && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    void markReady(invoice).catch(() => undefined)
-                                  }}
-                                >
-                                  Marcar pronta
-                                </Button>
-                              )}
-                              {isOwner && invoice.status === 'READY_TO_ISSUE' && (
-                                <Button
-                                  size="sm"
-                                  onClick={() => {
-                                    void simulateIssue(invoice).catch(() => undefined)
-                                  }}
-                                >
-                                  Simular emissão
-                                </Button>
-                              )}
-                              {isOwner && invoice.status !== 'CANCELED' && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setCancelTarget(invoice)}
-                                >
-                                  Cancelar
-                                </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <div className="space-y-3">
+                {/* Mobile card list — hidden on md+ */}
+                <div className="space-y-3 md:hidden">
+                  {invoices.map((invoice) => (
+                    <div key={invoice.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-slate-900">{invoice.customerName}</p>
+                          <p className="truncate text-xs text-slate-500">
+                            {invoice.customerEmail ?? invoice.customerDocument ?? 'Sem contato'}
+                          </p>
+                        </div>
+                        <StatusBadge tone={INVOICE_STATUS_TONE[invoice.status]}>
+                          {INVOICE_STATUS_LABEL[invoice.status]}
+                        </StatusBadge>
+                      </div>
+                      <p className="mt-2 truncate text-sm text-slate-600">{invoice.serviceDescription}</p>
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <span className="font-semibold text-slate-900">{formatCents(invoice.amountCents)}</span>
+                        <span className="text-xs text-slate-500">{formatInvoiceDate(invoice.competenceDate)}</span>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            void loadInvoiceDetails(invoice).catch(() => undefined)
+                          }}
+                        >
+                          Ver detalhes
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openInvoiceForm(invoice)}
+                          disabled={!['DRAFT', 'READY_TO_ISSUE'].includes(invoice.status)}
+                        >
+                          Editar
+                        </Button>
+                        {isOwner && invoice.status === 'DRAFT' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              void markReady(invoice).catch(() => undefined)
+                            }}
+                          >
+                            Marcar pronta
+                          </Button>
+                        )}
+                        {isOwner && invoice.status === 'READY_TO_ISSUE' && (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              void simulateIssue(invoice).catch(() => undefined)
+                            }}
+                          >
+                            Simular emissão
+                          </Button>
+                        )}
+                        {isOwner && invoice.status !== 'CANCELED' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCancelTarget(invoice)}
+                          >
+                            Cancelar
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="border-t border-slate-100 px-4 py-3">
+
+                {/* Desktop table — hidden below md */}
+                <div className="hidden overflow-hidden rounded-lg border border-slate-200 md:block">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-230 text-sm">
+                      <thead>
+                        <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          <th className="px-4 py-3">Cliente</th>
+                          <th className="px-4 py-3">Serviço</th>
+                          <th className="px-4 py-3 text-right">Valor</th>
+                          <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3">Competência</th>
+                          <th className="px-4 py-3">Criada em</th>
+                          <th className="px-4 py-3 text-right">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 bg-white">
+                        {invoices.map((invoice) => (
+                          <tr key={invoice.id} className="hover:bg-slate-50/70">
+                            <td className="px-4 py-3">
+                              <p className="font-semibold text-slate-900">{invoice.customerName}</p>
+                              <p className="text-xs text-slate-500">
+                                {invoice.customerEmail ?? invoice.customerDocument ?? 'Sem contato'}
+                              </p>
+                            </td>
+                            <td className="px-4 py-3 text-slate-700">
+                              {invoice.serviceDescription}
+                            </td>
+                            <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                              {formatCents(invoice.amountCents)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <StatusBadge tone={INVOICE_STATUS_TONE[invoice.status]}>
+                                {INVOICE_STATUS_LABEL[invoice.status]}
+                              </StatusBadge>
+                            </td>
+                            <td className="px-4 py-3 text-slate-600">
+                              {formatInvoiceDate(invoice.competenceDate)}
+                            </td>
+                            <td className="px-4 py-3 text-slate-600">
+                              {formatInvoiceDate(invoice.createdAt)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex flex-wrap justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    void loadInvoiceDetails(invoice).catch(() => undefined)
+                                  }}
+                                >
+                                  Ver detalhes
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openInvoiceForm(invoice)}
+                                  disabled={!['DRAFT', 'READY_TO_ISSUE'].includes(invoice.status)}
+                                >
+                                  Editar
+                                </Button>
+                                {isOwner && invoice.status === 'DRAFT' && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      void markReady(invoice).catch(() => undefined)
+                                    }}
+                                  >
+                                    Marcar pronta
+                                  </Button>
+                                )}
+                                {isOwner && invoice.status === 'READY_TO_ISSUE' && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      void simulateIssue(invoice).catch(() => undefined)
+                                    }}
+                                  >
+                                    Simular emissão
+                                  </Button>
+                                )}
+                                {isOwner && invoice.status !== 'CANCELED' && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCancelTarget(invoice)}
+                                  >
+                                    Cancelar
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Shared pagination */}
+                <div className="rounded-lg border border-slate-100 bg-white px-4 py-3">
                   <Pagination
                     page={filters.page}
                     totalPages={totalPages}

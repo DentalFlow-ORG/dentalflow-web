@@ -60,24 +60,30 @@ export function SchedulePageContainer() {
       {isBootstrapping ? (
         <LoadingCard message="Carregando agenda..." />
       ) : !ownProfile ? (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-          <div>
-            <p className="font-semibold">Perfil não encontrado</p>
-            <p className="mt-1 text-amber-700">
-              Seu usuário não está associado a um perfil profissional nesta clínica.
-              Solicite ao responsável pela clínica que vincule seu perfil.
-            </p>
+        <InlineFeedback tone="warning">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+            <div>
+              <p className="font-semibold">Perfil não encontrado</p>
+              <p className="mt-1">
+                Seu usuário não está associado a um perfil profissional nesta clínica.
+                Solicite ao responsável pela clínica que vincule seu perfil.
+              </p>
+            </div>
           </div>
-        </div>
+        </InlineFeedback>
       ) : (
         <>
           <div className="border-b border-slate-200">
-            <nav className="flex gap-0 overflow-x-auto">
+            <nav role="tablist" aria-label="Seções da minha agenda" className="flex gap-0 overflow-x-auto">
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
+                  id={`tab-schedule-${tab.id}`}
                   type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={`panel-schedule-${tab.id}`}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
                     'shrink-0 border-b-2 px-5 py-3 text-sm font-semibold transition-colors',
@@ -93,7 +99,12 @@ export function SchedulePageContainer() {
           </div>
 
           {activeTab === 'agenda' && (
-            <div className="space-y-4">
+            <div
+              id="panel-schedule-agenda"
+              role="tabpanel"
+              aria-labelledby="tab-schedule-agenda"
+              className="space-y-4"
+            >
               {view === 'calendar' ? (
                 <WeekCalendar
                   appointments={appointments}
@@ -124,23 +135,27 @@ export function SchedulePageContainer() {
           )}
 
           {activeTab === 'disponibilidade' && (
-            <PanelCard>
-              <AvailabilityManager
-                profileId={ownProfile.id}
-                slots={availability}
-                onSlotsChange={setAvailability}
-              />
-            </PanelCard>
+            <div id="panel-schedule-disponibilidade" role="tabpanel" aria-labelledby="tab-schedule-disponibilidade">
+              <PanelCard>
+                <AvailabilityManager
+                  profileId={ownProfile.id}
+                  slots={availability}
+                  onSlotsChange={setAvailability}
+                />
+              </PanelCard>
+            </div>
           )}
 
           {activeTab === 'excecoes' && (
-            <PanelCard>
-              <ExceptionManager
-                profileId={ownProfile.id}
-                exceptions={exceptions}
-                onExceptionsChange={setExceptions}
-              />
-            </PanelCard>
+            <div id="panel-schedule-excecoes" role="tabpanel" aria-labelledby="tab-schedule-excecoes">
+              <PanelCard>
+                <ExceptionManager
+                  profileId={ownProfile.id}
+                  exceptions={exceptions}
+                  onExceptionsChange={setExceptions}
+                />
+              </PanelCard>
+            </div>
           )}
         </>
       )}

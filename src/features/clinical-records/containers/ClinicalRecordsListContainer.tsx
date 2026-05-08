@@ -2,9 +2,12 @@ import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Calendar, ClipboardList, Plus } from 'lucide-react'
 
+import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { EmptyState } from '@/components/common/EmptyState'
+import { FormField, TextInput } from '@/components/common/FormField'
 import { ListPageShell } from '@/components/common/ListPageShell'
+import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -77,7 +80,7 @@ export function ClinicalRecordsListContainer() {
   })
 
   return (
-    <div className="space-y-8">
+    <AppPage spacing="loose">
       <AppPageHeader
         eyebrow="Clínica"
         title="Prontuário digital"
@@ -113,30 +116,34 @@ export function ClinicalRecordsListContainer() {
       >
         <div className="space-y-4">
           {/* Filters row */}
-          <div className="flex flex-wrap items-start gap-3">
-            <input
-              type="search"
-              placeholder="Buscar por paciente, procedimento ou observação..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-full max-w-sm rounded-md border border-slate-200 px-3 text-sm placeholder:text-slate-400 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
-            />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <FormField label="Buscar" htmlFor="clinicalSearch">
+              <TextInput
+                id="clinicalSearch"
+                type="search"
+                placeholder="Paciente, procedimento ou observação..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </FormField>
 
             {/* Professional filter — OWNER only */}
             {isOwner && professionals.length > 0 && (
-              <Select value={dentistFilter} onValueChange={setDentistFilter}>
-                <SelectTrigger className="h-9 w-52">
-                  <SelectValue placeholder="Todos os profissionais" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TODOS">Todos os profissionais</SelectItem>
-                  {professionals.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.displayName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormField label="Profissional" htmlFor="clinicalDentist">
+                <Select value={dentistFilter} onValueChange={setDentistFilter}>
+                  <SelectTrigger id="clinicalDentist">
+                    <SelectValue placeholder="Todos os profissionais" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TODOS">Todos os profissionais</SelectItem>
+                    {professionals.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
             )}
           </div>
 
@@ -176,20 +183,16 @@ export function ClinicalRecordsListContainer() {
             </div>
           )}
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-2">
-              <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
-                Anterior
-              </Button>
-              <span className="text-sm text-slate-500">{page} / {totalPages}</span>
-              <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
-                Próxima
-              </Button>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            filteredCount={filteredCount}
+            pageSize={10}
+            onPageChange={setPage}
+          />
         </div>
       </ListPageShell>
-    </div>
+    </AppPage>
   )
 }
 

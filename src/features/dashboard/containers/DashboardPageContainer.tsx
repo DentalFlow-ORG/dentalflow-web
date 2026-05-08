@@ -77,9 +77,10 @@ export function DashboardPageContainer() {
                 Agendamentos pendentes ou confirmados do dia
               </p>
               {upcomingAppointments.length === 0 ? (
-                <p className="mt-4 text-sm text-slate-400">
-                  Nenhuma consulta pendente para hoje.
-                </p>
+                <div className="mt-4 flex flex-col items-center gap-2 py-6 text-center">
+                  <Calendar className="h-8 w-8 text-slate-300" aria-hidden="true" />
+                  <p className="text-sm text-slate-500">Nenhuma consulta pendente para hoje.</p>
+                </div>
               ) : (
                 <ul className="mt-4 divide-y divide-slate-100">
                   {upcomingAppointments.map((appt) => (
@@ -111,8 +112,8 @@ export function DashboardPageContainer() {
               <h2 className="text-base font-semibold text-slate-950">Alertas do dia</h2>
               <div className="mt-4 space-y-4">
                 {statusCounts.pending > 0 ? (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-sm font-medium text-amber-800">
+                  <InlineFeedback tone="warning">
+                    <p className="font-medium">
                       {statusCounts.pending}{' '}
                       {statusCounts.pending === 1
                         ? 'consulta aguarda confirmação'
@@ -121,13 +122,11 @@ export function DashboardPageContainer() {
                     <Button variant="outline" size="sm" className="mt-3" asChild>
                       <Link to="/app/agendamentos">Ver agendamentos</Link>
                     </Button>
-                  </div>
+                  </InlineFeedback>
                 ) : (
-                  <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                    <p className="text-sm font-medium text-emerald-800">
-                      Todas as consultas estão confirmadas ou concluídas.
-                    </p>
-                  </div>
+                  <InlineFeedback tone="success">
+                    Todas as consultas estão confirmadas ou concluídas.
+                  </InlineFeedback>
                 )}
 
                 {activeDentists.length > 0 && (
