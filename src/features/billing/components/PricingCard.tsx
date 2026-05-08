@@ -1,4 +1,4 @@
-import { BadgeCheck, Flame, Loader2, Sparkles } from 'lucide-react'
+import { BadgeCheck, CheckCircle2, Loader2, Sparkles } from 'lucide-react'
 
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,13 @@ import { BillingStatusBadge } from './BillingStatusBadge'
 import { PlanFeatureList } from './PlanFeatureList'
 import type { BillingInterval, BillingPlan, CurrentBillingStatus } from '../types/billing.types'
 import type { PlanCtaAction, PlanCtaState } from '../utils/billing-cta-utils'
+
+// Fallback taglines when plan.description is null
+const PLAN_TAGLINES: Record<string, string> = {
+  starter: 'Ideal para clínicas em fase inicial',
+  professional: 'Para clínicas em crescimento',
+  premium: 'Para clínicas com maior volume',
+}
 
 type Props = {
   plan: BillingPlan
@@ -54,39 +61,49 @@ export function PricingCard({
     plan.campaign.enabled &&
     plan.campaign.promotionalPriceMonthly != null
 
+  const tagline = plan.description ?? PLAN_TAGLINES[plan.slug] ?? null
+
   return (
     <PanelCard
       className={cn(
-        'flex h-full flex-col overflow-hidden p-0',
-        isRecommended && 'border-orange-300 shadow-md shadow-orange-100',
+        'relative flex h-full flex-col overflow-hidden p-0',
         isCurrentPlan && 'ring-2 ring-primary ring-offset-2',
+        isRecommended && !isCurrentPlan && 'shadow-xl shadow-slate-200',
       )}
     >
-      <div className="flex min-h-36 flex-col gap-3 border-b border-slate-100 p-6">
+      {/* Top accent band — always reserves height for grid alignment */}
+      {isCurrentPlan ? (
+        <div className="flex items-center justify-center gap-1.5 bg-primary px-4 py-2 text-xs font-bold text-white">
+          <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+          Plano atual
+        </div>
+      ) : isRecommended ? (
+        <div className="flex items-center justify-center gap-1.5 bg-primary px-4 py-2 text-xs font-bold text-white">
+          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+          Mais escolhido · Melhor custo-benefício
+        </div>
+      ) : (
+        <div className="h-[33px]" aria-hidden="true" />
+      )}
+
+      <div className="flex flex-col gap-3 border-b border-slate-100 p-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-lg font-semibold text-slate-950">{plan.name}</h3>
               {plan.campaign.enabled && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-bold text-orange-700">
-                  <Flame className="h-3.5 w-3.5" />
+                <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-0.5 text-xs font-bold text-orange-700">
                   Oferta de lançamento
                 </span>
               )}
             </div>
-            {plan.description && (
-              <p className="mt-2 text-sm leading-6 text-slate-500">{plan.description}</p>
+            {tagline && (
+              <p className="mt-1.5 text-sm leading-5 text-slate-500">{tagline}</p>
             )}
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            {isRecommended && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                <Sparkles className="h-3.5 w-3.5" />
-                Mais escolhido
-              </span>
-            )}
-            {isCurrentPlan && <BillingStatusBadge status={billingStatus?.status ?? 'active'} />}
-          </div>
+          {isCurrentPlan && (
+            <BillingStatusBadge status={billingStatus?.status ?? 'active'} />
+          )}
         </div>
       </div>
 
@@ -109,8 +126,6 @@ export function PricingCard({
                   Próxima cobrança: {formatDateBR(billingStatus.currentPeriodEnd)}
                 </p>
               )}
-
-
             </div>
           ) : (
             <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
@@ -121,9 +136,10 @@ export function PricingCard({
 
         <PlanFeatureList features={features} className="mt-6 flex-1" />
 
-        <div className="mt-auto space-y-3 pt-6">
+        <div className="mt-auto space-y-2 pt-6">
           <CtaButton
             state={ctaState.primary}
+            isRecommended={isRecommended}
             loading={getLoadingState(ctaState.primary.actionType, {
               isCheckingOut,
               isStartingTrial,
@@ -141,6 +157,7 @@ export function PricingCard({
           {ctaState.secondary && (
             <CtaButton
               state={ctaState.secondary}
+              isRecommended={false}
               loading={getLoadingState(ctaState.secondary.actionType, {
                 isCheckingOut,
                 isStartingTrial,
@@ -169,24 +186,24 @@ function LaunchPriceBlock({ plan }: { plan: BillingPlan }) {
   return (
     <div className="rounded-lg border border-orange-200 bg-orange-50/70 p-4">
       <p className="text-xs font-bold uppercase tracking-wide text-orange-700">
-        Primeiro mês com condição especial
+        Primeiro mês promocional
       </p>
       {plan.campaign.compareAtPriceMonthly != null && (
-        <p className="mt-2 text-sm font-semibold text-slate-500">
+        <p className="mt-2 text-sm font-medium text-slate-400">
           De{' '}
           <span className="line-through">
             {formatCurrencyBR(plan.campaign.compareAtPriceMonthly / 100)}
           </span>
         </p>
       )}
-      <div className="mt-1 flex items-baseline gap-2">
-        <span className="text-sm font-bold text-orange-700">Por</span>
-        <span className="text-4xl font-black text-orange-700">
+      <div className="mt-1 flex items-baseline gap-1.5">
+        <span className="text-4xl font-black text-slate-950">
           {formatCurrencyBR((plan.campaign.promotionalPriceMonthly ?? 0) / 100)}
         </span>
+        <span className="text-sm font-medium text-slate-500">/mês</span>
       </div>
-      <p className="mt-2 text-xs font-medium text-orange-800">
-        no primeiro mês. Depois, valor regular do plano.
+      <p className="mt-2 text-xs font-medium text-orange-700">
+        Depois, valor regular do plano.
       </p>
     </div>
   )
@@ -222,28 +239,37 @@ function RegularPriceBlock({
 
 function CtaButton({
   state,
+  isRecommended,
   loading,
   onClick,
 }: {
   state: PlanCtaState['primary']
+  isRecommended: boolean
   loading: boolean
   onClick: () => void
 }) {
+  const isProminentCta = isRecommended && !state.disabled && state.variant === 'default'
   return (
     <Button
-      className="h-11 w-full"
+      className={cn('w-full', isProminentCta ? 'h-12 text-base' : 'h-11')}
       variant={state.variant}
       disabled={state.disabled}
       onClick={onClick}
     >
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : getButtonIcon(state.actionType)}
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+      ) : (
+        getButtonIcon(state.actionType)
+      )}
       {loading ? getLoadingLabel(state.actionType) : state.label}
     </Button>
   )
 }
 
 function getButtonIcon(actionType: PlanCtaAction) {
-  return actionType === 'current_plan' ? <BadgeCheck className="h-4 w-4" /> : null
+  return actionType === 'current_plan' ? (
+    <BadgeCheck className="h-4 w-4" aria-hidden="true" />
+  ) : null
 }
 
 function getLoadingLabel(actionType: PlanCtaAction) {

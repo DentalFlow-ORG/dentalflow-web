@@ -18,16 +18,22 @@ export function BillingIntervalToggle({
   discountPercent,
 }: Props) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 p-1.5 shadow-sm">
+    <div
+      role="radiogroup"
+      aria-label="Período de cobrança"
+      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 p-1.5 shadow-sm"
+    >
       {showMonthly && (
         <button
           type="button"
+          role="radio"
+          aria-checked={value === 'MONTHLY'}
           onClick={() => onChange('MONTHLY')}
           className={cn(
-            'h-12 rounded-lg px-7 text-sm font-bold transition-colors',
+            'h-11 rounded-lg px-7 text-sm font-semibold transition-colors',
             value === 'MONTHLY'
               ? 'bg-white text-slate-950 shadow-sm'
-              : 'text-orange-800 hover:text-slate-950',
+              : 'text-slate-500 hover:text-slate-700',
           )}
         >
           Mensal
@@ -36,17 +42,19 @@ export function BillingIntervalToggle({
       {showYearly && (
         <button
           type="button"
+          role="radio"
+          aria-checked={value === 'YEARLY'}
           onClick={() => onChange('YEARLY')}
           className={cn(
-            'flex h-12 items-center gap-2 rounded-lg px-7 text-sm font-bold transition-colors',
+            'flex h-11 items-center gap-2 rounded-lg px-7 text-sm font-semibold transition-colors',
             value === 'YEARLY'
               ? 'bg-white text-slate-950 shadow-sm'
-              : 'text-orange-800 hover:text-slate-950',
+              : 'text-slate-500 hover:text-slate-700',
           )}
         >
           Anual
           {discountPercent != null && discountPercent > 0 && (
-            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-black text-green-700">
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
               -{discountPercent}%
             </span>
           )}

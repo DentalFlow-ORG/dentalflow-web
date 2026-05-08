@@ -47,7 +47,7 @@ export function LaunchOfferBanner({ campaign }: Props) {
       <div className="grid gap-5 p-5 lg:grid-cols-[1.35fr_0.65fr] lg:p-6">
         <div className="flex gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-orange-600 text-white shadow-lg shadow-orange-200">
-            <Flame className="h-6 w-6" />
+            <Flame className="h-6 w-6" aria-hidden="true" />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-black uppercase tracking-wide text-orange-700">
@@ -78,21 +78,34 @@ export function LaunchOfferBanner({ campaign }: Props) {
 
         <div className="rounded-lg border border-orange-200 bg-white/90 p-4 shadow-sm">
           <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-orange-700">
-            <Clock3 className="h-4 w-4" />
+            <Clock3 className="h-4 w-4" aria-hidden="true" />
             {isActive ? 'Oferta termina em:' : 'Oferta encerrada'}
           </div>
-          {isActive && displayedTimeLeft ? (
-            <div className="mt-3 grid grid-cols-4 gap-2">
-              <TimePart value={displayedTimeLeft.days} label="dias" />
-              <TimePart value={displayedTimeLeft.hours} label="horas" />
-              <TimePart value={displayedTimeLeft.minutes} label="min" />
-              <TimePart value={displayedTimeLeft.seconds} label="seg" />
-            </div>
-          ) : (
-            <p className="mt-3 text-sm font-semibold text-slate-600">
-              A condição especial não está disponível no momento.
+
+          {/* Screen-reader-only static time — avoids per-second announcements */}
+          {isActive && displayedTimeLeft && (
+            <p className="sr-only">
+              Oferta encerra em {displayedTimeLeft.days} dias, {displayedTimeLeft.hours} horas
+              e {displayedTimeLeft.minutes} minutos.
             </p>
           )}
+
+          {/* Visual timer hidden from screen readers to prevent second-by-second spam */}
+          <div aria-hidden="true">
+            {isActive && displayedTimeLeft ? (
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                <TimePart value={displayedTimeLeft.days} label="dias" />
+                <TimePart value={displayedTimeLeft.hours} label="horas" />
+                <TimePart value={displayedTimeLeft.minutes} label="min" />
+                <TimePart value={displayedTimeLeft.seconds} label="seg" />
+              </div>
+            ) : (
+              <p className="mt-3 text-sm font-semibold text-slate-600">
+                A condição especial não está disponível no momento.
+              </p>
+            )}
+          </div>
+
           <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
             Garanta seu preço promocional antes que acabe.
           </p>
