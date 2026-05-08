@@ -110,12 +110,12 @@ const STATUS_LABEL: Record<FinancialTransactionStatus, string> = {
 
 const TYPE_LABEL: Record<FinancialTransactionType, string> = {
   INCOME: 'Entrada',
-  EXPENSE: 'Saida',
+  EXPENSE: 'Saída',
 }
 
 const SOURCE_LABEL: Record<string, string> = {
   MANUAL: 'Manual',
-  SERVICE_PAYMENT: 'Servico pago',
+  SERVICE_PAYMENT: 'Serviço pago',
   FIXED_EXPENSE: 'Despesa fixa',
   ADJUSTMENT: 'Ajuste',
 }
@@ -210,9 +210,9 @@ export function FinancePageContainer() {
   return (
     <AppPage>
       <AppPageHeader
-        eyebrow="Gestao financeira"
-        title="Financeiro da clinica"
-        description="Acompanhe entradas, saidas, despesas fixas e desempenho financeiro por periodo."
+        eyebrow="Gestão financeira"
+        title="Financeiro da clínica"
+        description="Acompanhe entradas, saídas, despesas fixas e desempenho financeiro por período."
         action={
           <Button variant="outline" onClick={load}>
             <RefreshCw className="h-4 w-4" />
@@ -239,10 +239,10 @@ export function FinancePageContainer() {
                 <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-base font-semibold text-slate-950">
-                      Entradas x saidas
+                      Entradas x saídas
                     </h2>
                     <p className="mt-1 text-sm text-slate-500">
-                      Evolucao financeira no periodo selecionado.
+                      Evolução financeira no período selecionado.
                     </p>
                   </div>
                   <StatusBadge tone={summary.kpis.netProfit >= 0 ? 'success' : 'warning'}>
@@ -254,7 +254,7 @@ export function FinancePageContainer() {
 
               <PanelCard>
                 <h2 className="text-base font-semibold text-slate-950">
-                  Composicao financeira
+                  Composição financeira
                 </h2>
                 <div className="mt-5 space-y-6">
                   <Ranking
@@ -266,7 +266,7 @@ export function FinancePageContainer() {
                     }))}
                   />
                   <Ranking
-                    title="Receitas por servico"
+                    title="Receitas por serviço"
                     items={summary.incomeByService.map((item) => ({
                       label: item.serviceName,
                       amount: item.amount,
@@ -348,7 +348,7 @@ export function FinancePageContainer() {
         open={deletingCategory !== null}
         title="Remover categoria"
         subject={deletingCategory?.name}
-        description="A categoria sera removida permanentemente. Categorias com lancamentos vinculados nao podem ser removidas."
+        description="A categoria será removida permanentemente. Categorias com lançamentos vinculados não podem ser removidas."
         confirmLabel="Remover categoria"
         tone="destructive"
         isConfirming={isDeletingCategory}
@@ -373,8 +373,8 @@ export function FinancePageContainer() {
         subject={togglingFixedExpense?.description}
         description={
           togglingFixedExpense?.isActive
-            ? 'A despesa sera desativada e nao podera gerar novos lancamentos ate ser reativada.'
-            : 'A despesa sera reativada e voltara a poder gerar lancamentos.'
+            ? 'A despesa será desativada e não poderá gerar novos lançamentos até ser reativada.'
+            : 'A despesa será reativada e voltará a poder gerar lançamentos.'
         }
         confirmLabel={togglingFixedExpense?.isActive ? 'Desativar' : 'Ativar'}
         tone={togglingFixedExpense?.isActive ? 'destructive' : 'warning'}
@@ -398,10 +398,10 @@ export function FinancePageContainer() {
 
       <ConfirmDialog
         open={deletingTransaction !== null}
-        title="Cancelar lancamento"
+        title="Cancelar lançamento"
         subject={deletingTransaction?.description}
-        description="O lancamento sera marcado como cancelado e nao contara nos totais do periodo. Esta acao pode ser desfeita editando o status do lancamento."
-        confirmLabel="Cancelar lancamento"
+        description="O lançamento será marcado como cancelado e não contará nos totais do período. Esta ação pode ser desfeita editando o status do lançamento."
+        confirmLabel="Cancelar lançamento"
         tone="destructive"
         isConfirming={isDeleting}
         onConfirm={handleDeleteTransaction}
@@ -423,7 +423,7 @@ function FinanceFiltersBar({
   return (
     <PanelCard className="p-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-        <FormField label="Inicio" htmlFor="financeFrom">
+        <FormField label="Início" htmlFor="financeFrom">
           <DatePickerInput
             id="financeFrom"
             value={filters.from}
@@ -445,7 +445,7 @@ function FinanceFiltersBar({
             <SelectContent>
               <SelectItem value="day">Dia</SelectItem>
               <SelectItem value="week">Semana</SelectItem>
-              <SelectItem value="month">Mes</SelectItem>
+              <SelectItem value="month">Mês</SelectItem>
             </SelectContent>
           </Select>
         </FormField>
@@ -462,7 +462,7 @@ function FinanceFiltersBar({
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="INCOME">Entradas</SelectItem>
-              <SelectItem value="EXPENSE">Saidas</SelectItem>
+              <SelectItem value="EXPENSE">Saídas</SelectItem>
             </SelectContent>
           </Select>
         </FormField>
@@ -516,10 +516,10 @@ function KpiGrid({ summary }: { summary: FinanceSummary }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
       <MetricCard value={formatCurrency(summary.kpis.totalIncome)} label="Entradas pagas" />
-      <MetricCard value={formatCurrency(summary.kpis.totalExpenses)} label="Saidas pagas" />
+      <MetricCard value={formatCurrency(summary.kpis.totalExpenses)} label="Saídas pagas" />
       <MetricCard
         value={formatCurrency(summary.kpis.netProfit)}
-        label="Lucro liquido"
+        label="Lucro líquido"
         className={summary.kpis.netProfit >= 0 ? 'border-emerald-200' : 'border-red-200'}
       />
       <MetricCard
@@ -528,7 +528,7 @@ function KpiGrid({ summary }: { summary: FinanceSummary }) {
       />
       <MetricCard
         value={formatCurrency(summary.kpis.pendingReceivables)}
-        label="Recebiveis pendentes"
+        label="Recebíveis pendentes"
       />
       <MetricCard
         value={formatCurrency(summary.kpis.fixedExpensesTotal)}
@@ -546,7 +546,7 @@ function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
   })
 
   if (summary.incomeVsExpenses.length === 0) {
-    return <EmptyChart message="Nenhuma movimentacao paga neste periodo." />
+    return <EmptyChart message="Nenhuma movimentação paga neste período." />
   }
 
   const chartData = summary.incomeVsExpenses.map((item) => ({
@@ -580,9 +580,9 @@ function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
   return (
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-3">
-        <FinanceInsight label="Ultimo resultado" value={lastPoint?.netProfit ?? 0} />
-        <FinanceInsight label="Melhor periodo" value={bestPoint.netProfit} detail={bestPoint.label} />
-        <FinanceInsight label="Maior pressao" value={worstPoint.netProfit} detail={worstPoint.label} />
+        <FinanceInsight label="Último resultado" value={lastPoint?.netProfit ?? 0} />
+        <FinanceInsight label="Melhor período" value={bestPoint.netProfit} detail={bestPoint.label} />
+        <FinanceInsight label="Maior pressão" value={worstPoint.netProfit} detail={worstPoint.label} />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -707,7 +707,7 @@ function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
         <div className="grid grid-cols-4 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
           <span>Data</span>
           <span className="text-right">Entradas</span>
-          <span className="text-right">Saidas</span>
+          <span className="text-right">Saídas</span>
           <span className="text-right">Resultado</span>
         </div>
         <div className="max-h-52 divide-y divide-slate-100 overflow-auto">
@@ -736,13 +736,13 @@ type ChartSeriesKey = 'income' | 'expenses' | 'netProfit'
 
 const CHART_SERIES: Array<{ key: ChartSeriesKey; label: string; color: string }> = [
   { key: 'income', label: 'Entradas', color: '#10B981' },
-  { key: 'expenses', label: 'Saidas', color: '#EF4444' },
+  { key: 'expenses', label: 'Saídas', color: '#EF4444' },
   { key: 'netProfit', label: 'Resultado', color: '#6366F1' },
 ]
 
 const CHART_SERIES_LABELS: Record<string, string> = {
   income: 'Entradas',
-  expenses: 'Saidas',
+  expenses: 'Saídas',
   netProfit: 'Resultado',
 }
 
@@ -786,7 +786,7 @@ function Ranking({
       <div className="mt-3 space-y-3">
         {items.length === 0 ? (
           <p className="rounded-md bg-slate-50 px-3 py-3 text-sm text-slate-500">
-            Sem dados no periodo.
+            Sem dados no período.
           </p>
         ) : (
           items.slice(0, 5).map((item) => (
@@ -839,8 +839,8 @@ function TransactionsTable({
     <PanelCard>
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Movimentacoes</h2>
-          <p className="mt-1 text-sm text-slate-500">Ultimos lancamentos do periodo.</p>
+          <h2 className="text-base font-semibold text-slate-950">Movimentações</h2>
+          <p className="mt-1 text-sm text-slate-500">Últimos lançamentos do período.</p>
         </div>
         {isLoading ? (
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -851,7 +851,7 @@ function TransactionsTable({
       <div className="space-y-3 md:hidden">
         {transactions.length === 0 ? (
           <p className="rounded-lg border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
-            Nenhuma movimentacao encontrada.
+            Nenhuma movimentação encontrada.
           </p>
         ) : (
           transactions.map((transaction) => (
@@ -902,7 +902,7 @@ function TransactionsTable({
               <div className="mt-4 flex items-center justify-end gap-1">
                 <button
                   type="button"
-                  title="Editar lancamento"
+                  title="Editar lançamento"
                   className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
                   onClick={() => onEdit(transaction)}
                 >
@@ -910,7 +910,7 @@ function TransactionsTable({
                 </button>
                 <button
                   type="button"
-                  title="Cancelar lancamento"
+                  title="Cancelar lançamento"
                   disabled={transaction.status === 'CANCELED'}
                   className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:pointer-events-none disabled:opacity-30"
                   onClick={() => onDelete(transaction)}
@@ -931,7 +931,7 @@ function TransactionsTable({
                 <th className="px-4 py-3">Data</th>
                 <th className="px-4 py-3">Tipo</th>
                 <th className="px-4 py-3">Categoria</th>
-                <th className="px-4 py-3">Descricao</th>
+                <th className="px-4 py-3">Descrição</th>
                 <th className="px-4 py-3">Origem</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Valor</th>
@@ -942,7 +942,7 @@ function TransactionsTable({
               {transactions.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-500">
-                    Nenhuma movimentacao encontrada.
+                    Nenhuma movimentação encontrada.
                   </td>
                 </tr>
               ) : (
@@ -999,7 +999,7 @@ function TransactionsTable({
                       <div className="flex items-center justify-end gap-1">
                         <button
                           type="button"
-                          title="Editar lancamento"
+                          title="Editar lançamento"
                           className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
                           onClick={() => onEdit(transaction)}
                         >
@@ -1007,7 +1007,7 @@ function TransactionsTable({
                         </button>
                         <button
                           type="button"
-                          title="Cancelar lancamento"
+                          title="Cancelar lançamento"
                           disabled={transaction.status === 'CANCELED'}
                           className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:pointer-events-none disabled:opacity-30"
                           onClick={() => onDelete(transaction)}
@@ -1063,7 +1063,7 @@ function TransactionForm({
           <Plus className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Novo lancamento</h2>
+          <h2 className="text-base font-semibold text-slate-950">Novo lançamento</h2>
           <p className="text-sm text-slate-500">Registre entradas ou despesas manuais.</p>
         </div>
       </div>
@@ -1080,7 +1080,7 @@ function TransactionForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="INCOME">Entrada</SelectItem>
-                <SelectItem value="EXPENSE">Saida</SelectItem>
+                <SelectItem value="EXPENSE">Saída</SelectItem>
               </SelectContent>
             </Select>
           </FormField>
@@ -1114,7 +1114,7 @@ function TransactionForm({
             </SelectContent>
           </Select>
         </FormField>
-        <FormField label="Descricao" htmlFor="transactionDescription">
+        <FormField label="Descrição" htmlFor="transactionDescription">
           <TextInput
             id="transactionDescription"
             value={form.description}
@@ -1152,7 +1152,7 @@ function TransactionForm({
         </div>
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          Salvar lancamento
+          Salvar lançamento
         </Button>
       </form>
     </PanelCard>
@@ -1178,7 +1178,7 @@ function FixedExpensesList({
         <div>
           <h2 className="text-base font-semibold text-slate-950">Despesas fixas</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Custos recorrentes e geracao de ocorrencias.
+            Custos recorrentes e geração de ocorrências.
           </p>
         </div>
         <CalendarPlus className="h-5 w-5 text-primary" />
@@ -1288,7 +1288,7 @@ function FixedExpenseForm({
         </div>
         <div>
           <h2 className="text-base font-semibold text-slate-950">Nova despesa fixa</h2>
-          <p className="text-sm text-slate-500">Cadastre custos recorrentes da clinica.</p>
+          <p className="text-sm text-slate-500">Cadastre custos recorrentes da clínica.</p>
         </div>
       </div>
       <form className="space-y-4" onSubmit={onSubmit}>
@@ -1307,12 +1307,12 @@ function FixedExpenseForm({
             </SelectContent>
           </Select>
         </FormField>
-        <FormField label="Descricao" htmlFor="fixedDescription">
+        <FormField label="Descrição" htmlFor="fixedDescription">
           <TextInput
             id="fixedDescription"
             value={form.description}
             maxLength={160}
-            placeholder="Ex.: aluguel da clinica"
+            placeholder="Ex.: aluguel da clínica"
             onChange={(event) => onChange('description', event.target.value)}
           />
         </FormField>
@@ -1328,7 +1328,7 @@ function FixedExpenseForm({
               onChange={(event) => onChange('amount', event.target.value)}
             />
           </FormField>
-          <FormField label="Recorrencia" htmlFor="fixedRecurrence">
+          <FormField label="Recorrência" htmlFor="fixedRecurrence">
             <Select
               value={form.recurrence}
               onValueChange={(value) => onChange('recurrence', value as FixedExpenseRecurrence)}
@@ -1355,7 +1355,7 @@ function FixedExpenseForm({
             />
           </FormField>
         </div>
-        <FormField label="Inicio" htmlFor="fixedStartDate">
+        <FormField label="Início" htmlFor="fixedStartDate">
           <DatePickerInput
             id="fixedStartDate"
             value={form.startDate}
@@ -1389,7 +1389,7 @@ function CategoriesPanel({
         <div>
           <h2 className="text-base font-semibold text-slate-950">Categorias</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Gerencie as categorias de entradas e saidas da clinica.
+            Gerencie as categorias de entradas e saídas da clínica.
           </p>
         </div>
         <Layers className="h-5 w-5 text-primary" />
@@ -1404,7 +1404,7 @@ function CategoriesPanel({
           onDelete={onDelete}
         />
         <CategoryGroup
-          title="Saidas"
+          title="Saídas"
           titleColor="text-red-700"
           categories={expense}
           onEdit={onEdit}
@@ -1449,11 +1449,11 @@ function CategoryGroup({
                 </span>
                 {category.isDefault && (
                   <span
-                    title="Categoria padrao — nao pode ser removida"
+                    title="Categoria padrão — não pode ser removida"
                     className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500"
                   >
                     <Lock className="h-3 w-3" />
-                    Padrao
+                    Padrão
                   </span>
                 )}
                 <div className="flex shrink-0 flex-wrap items-center gap-1">
@@ -1469,7 +1469,7 @@ function CategoryGroup({
                     type="button"
                     title={
                       category.isDefault
-                        ? 'Categorias padrao nao podem ser removidas'
+                        ? 'Categorias padrão não podem ser removidas'
                         : 'Remover categoria'
                     }
                     disabled={category.isDefault}
@@ -1535,7 +1535,7 @@ function CategoryCreateForm({
         </div>
         <div>
           <h2 className="text-base font-semibold text-slate-950">Nova categoria</h2>
-          <p className="text-sm text-slate-500">Crie categorias personalizadas para a clinica.</p>
+          <p className="text-sm text-slate-500">Crie categorias personalizadas para a clínica.</p>
         </div>
       </div>
       <form className="space-y-4" onSubmit={onSubmit}>
@@ -1550,7 +1550,7 @@ function CategoryCreateForm({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="INCOME">Entrada</SelectItem>
-              <SelectItem value="EXPENSE">Saida</SelectItem>
+              <SelectItem value="EXPENSE">Saída</SelectItem>
             </SelectContent>
           </Select>
         </FormField>
@@ -1608,6 +1608,7 @@ function CategoryEditModal({
             </Dialog.Title>
             <button
               type="button"
+              aria-label="Fechar edição de categoria"
               onClick={onClose}
               className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
             >
@@ -1628,7 +1629,7 @@ function CategoryEditModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="INCOME">Entrada</SelectItem>
-                  <SelectItem value="EXPENSE">Saida</SelectItem>
+                  <SelectItem value="EXPENSE">Saída</SelectItem>
                 </SelectContent>
               </Select>
             </FormField>
@@ -1652,7 +1653,7 @@ function CategoryEditModal({
               </Button>
               <Button type="submit" className="flex-1" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                Salvar alteracoes
+                Salvar alterações
               </Button>
             </div>
           </form>
@@ -1697,6 +1698,7 @@ function FixedExpenseEditModal({
             </Dialog.Title>
             <button
               type="button"
+              aria-label="Fechar edição de despesa fixa"
               onClick={onClose}
               className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
             >
@@ -1722,7 +1724,7 @@ function FixedExpenseEditModal({
               </Select>
             </FormField>
 
-            <FormField label="Descricao" htmlFor="editFeDescription">
+            <FormField label="Descrição" htmlFor="editFeDescription">
               <TextInput
                 id="editFeDescription"
                 value={form.description}
@@ -1743,7 +1745,7 @@ function FixedExpenseEditModal({
                   onChange={(event) => onChange('amount', event.target.value)}
                 />
               </FormField>
-              <FormField label="Recorrencia" htmlFor="editFeRecurrence">
+              <FormField label="Recorrência" htmlFor="editFeRecurrence">
                 <Select
                   value={form.recurrence}
                   onValueChange={(value) => onChange('recurrence', value as FixedExpenseRecurrence)}
@@ -1772,7 +1774,7 @@ function FixedExpenseEditModal({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Inicio" htmlFor="editFeStartDate">
+              <FormField label="Início" htmlFor="editFeStartDate">
                 <DatePickerInput
                   id="editFeStartDate"
                   value={form.startDate}
@@ -1794,7 +1796,7 @@ function FixedExpenseEditModal({
               </Button>
               <Button type="submit" className="flex-1" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                Salvar alteracoes
+                Salvar alterações
               </Button>
             </div>
           </form>
@@ -1835,10 +1837,11 @@ function TransactionEditModal({
         >
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
             <Dialog.Title id="edit-tx-title" className="text-base font-semibold text-slate-950">
-              Editar lancamento
+              Editar lançamento
             </Dialog.Title>
             <button
               type="button"
+              aria-label="Fechar edição de lançamento"
               onClick={onClose}
               className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
             >
@@ -1860,7 +1863,7 @@ function TransactionEditModal({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="INCOME">Entrada</SelectItem>
-                    <SelectItem value="EXPENSE">Saida</SelectItem>
+                    <SelectItem value="EXPENSE">Saída</SelectItem>
                   </SelectContent>
                 </Select>
               </FormField>
@@ -1896,7 +1899,7 @@ function TransactionEditModal({
               </Select>
             </FormField>
 
-            <FormField label="Descricao" htmlFor="editTxDescription">
+            <FormField label="Descrição" htmlFor="editTxDescription">
               <TextInput
                 id="editTxDescription"
                 value={form.description}
@@ -1939,7 +1942,7 @@ function TransactionEditModal({
               </Button>
               <Button type="submit" className="flex-1" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                Salvar alteracoes
+                Salvar alterações
               </Button>
             </div>
           </form>

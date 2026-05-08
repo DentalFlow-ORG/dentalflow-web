@@ -165,11 +165,15 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
           {/* Tab navigation */}
           <div className="overflow-x-auto rounded-t-xl border border-slate-200 bg-white">
-            <nav className="flex min-w-max border-b border-slate-200">
+            <nav role="tablist" aria-label="Seções do prontuário" className="flex min-w-max border-b border-slate-200">
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
+                  role="tab"
+                  id={`tab-${tab.id}`}
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={`tabpanel-${tab.id}`}
                   onClick={() => setActiveTab(tab.id)}
                   className={`whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors ${
                     activeTab === tab.id
@@ -182,7 +186,12 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
               ))}
             </nav>
 
-            <div className="p-5">
+            <div
+              role="tabpanel"
+              id={`tabpanel-${activeTab}`}
+              aria-labelledby={`tab-${activeTab}`}
+              className="p-5"
+            >
               {activeTab === 'anamnese' && (
                 <ClinicalSectionField
                   label="Anamnese"

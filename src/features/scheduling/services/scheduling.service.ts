@@ -18,8 +18,9 @@ import type {
 
 // --- Appointments ---
 
-export function listAppointments() {
-  return apiRequest<Appointment[]>('/appointments', {
+export function listAppointments(date?: string) {
+  const query = date ? `?date=${encodeURIComponent(date)}` : ''
+  return apiRequest<Appointment[]>(`/appointments${query}`, {
     method: 'GET',
     accessToken: getAccessToken(),
   })

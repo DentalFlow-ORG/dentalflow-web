@@ -1,201 +1,217 @@
 import { Link } from '@tanstack/react-router'
-import {
-  ArrowRight,
-  BarChart3,
-  BriefcaseBusiness,
-  Eye,
-  Stethoscope,
-  UserRound,
-} from 'lucide-react'
+import { Calendar, ClipboardList, DollarSign, Users } from 'lucide-react'
 
-import { IconCard } from '@/components/common/IconCard'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { MetricCard } from '@/components/common/MetricCard'
 import { PanelCard } from '@/components/common/PanelCard'
-import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
-import { getUserDisplayName } from '@/features/auth/utils/name'
-
-import type { AuthUserRole } from '@/features/auth/types'
+import { AppointmentDrawer } from '@/features/scheduling/components/appointments/AppointmentDrawer'
+import { formatWallTime } from '@/features/scheduling/utils/time'
 
 import { useDashboardPage } from '../hooks/useDashboardPage'
 
-const ROLE_LABELS: Record<AuthUserRole, string> = {
-  ADMIN: 'Administrador',
-  OWNER: 'Proprietário',
-  DENTIST: 'Dentista',
-  ASSISTANT: 'Assistente',
-  PATIENT: 'Paciente',
+const brl = (value: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+
+function formatTodayLabel(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  const d = new Date(year, month - 1, day)
+  return d.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
 }
 
 export function DashboardPageContainer() {
   const {
     user,
-    profiles,
-    isLoadingProfiles,
+    today,
+    statusCounts,
+    upcomingAppointments,
+    activeDentists,
+    financeTodaySummary,
+    isLoading,
     error,
-    metrics,
-    setupSteps,
-    hasProfiles,
+    drawerAppointment,
+    setDrawerAppointment,
   } = useDashboardPage()
+
+  const isOwner = user?.role === 'OWNER'
 
   return (
     <AppPage spacing="loose">
       <AppPageHeader
-        eyebrow="Plataforma"
+        eyebrow="Hoje"
         title="Visão geral"
-        description="Acompanhe a presença pública da clínica e avance nos próximos passos do MVP."
-        action={
-          <Button asChild>
-            <Link to="/app/perfis">Gerenciar perfis</Link>
-          </Button>
-        }
+        description={formatTodayLabel(today)}
       />
 
       {error && <InlineFeedback>{error}</InlineFeedback>}
 
-      {isLoadingProfiles ? (
-        <LoadingCard message="Carregando indicadores..." />
+      {isLoading ? (
+        <LoadingCard message="Carregando dados do dia..." />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            value={String(profiles.length)}
-            label="perfis profissionais cadastrados"
-          />
-          <MetricCard
-            value={String(metrics.publishedProfiles.length)}
-            label="páginas públicas publicadas"
-          />
-          <MetricCard
-            value={String(metrics.draftProfiles.length)}
-            label="rascunhos aguardando publicação"
-          />
-          <MetricCard
-            value={String(metrics.totalViews)}
-            label="visualizações acumuladas"
-          />
-        </div>
-      )}
-
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        <IconCard icon={UserRound} title="Usuário autenticado">
-          <dl className="space-y-3 text-sm">
-            <div>
-              <dt className="font-semibold text-slate-500">Nome</dt>
-              <dd className="mt-1 text-slate-900">
-                {user ? getUserDisplayName(user) : '-'}
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-slate-500">E-mail</dt>
-              <dd className="mt-1 text-slate-900">{user?.email ?? '-'}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold text-slate-500">Perfil</dt>
-              <dd className="mt-1 text-slate-900">{user ? ROLE_LABELS[user.role] ?? user.role : '-'}</dd>
-            </div>
-          </dl>
-        </IconCard>
-
-        <IconCard
-          icon={BriefcaseBusiness}
-          title="Perfis profissionais"
-          description={
-            hasProfiles
-              ? 'Gerencie páginas públicas, status de publicação e canais de contato dos profissionais.'
-              : 'Crie o primeiro perfil para começar a montar a presença pública da clínica.'
-          }
-          iconClassName="bg-emerald-50 text-emerald-700"
-        >
-          <Button variant="outline" size="sm" asChild>
-            <Link to={hasProfiles ? '/app/perfis' : '/app/perfis/novo'}>
-              {hasProfiles ? 'Abrir perfis' : 'Criar perfil'}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </IconCard>
-
-        <IconCard
-          icon={metrics.mostViewedProfile ? Eye : BarChart3}
-          title={metrics.mostViewedProfile ? 'Perfil com mais alcance' : 'Próximos módulos'}
-          description={
-            metrics.mostViewedProfile
-              ? `${metrics.mostViewedProfile.displayName} concentra ${metrics.mostViewedProfile.viewsCount} visualizações.`
-              : 'Leads, métricas e billing devem entrar depois que o fluxo de perfil público estiver sólido.'
-          }
-          iconClassName="bg-indigo-50 text-[#6366f1]"
-        >
-          {metrics.mostViewedProfile && (
-            <Button variant="outline" size="sm" asChild>
-              <Link
-                to="/app/perfis/$profileId"
-                params={{ profileId: metrics.mostViewedProfile.id }}
-              >
-                Ver perfil
-              </Link>
-            </Button>
-          )}
-        </IconCard>
-      </div>
-
-      <PanelCard>
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-950">Progresso do setup</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Complete a base pública antes de abrir módulos como leads, assinatura e métricas
-              avançadas.
-            </p>
+        <>
+          {/* Status stat cards */}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <MetricCard value={String(statusCounts.total)} label="consultas hoje" />
+            <MetricCard value={String(statusCounts.confirmed)} label="confirmadas" />
+            <MetricCard value={String(statusCounts.pending)} label="aguardando confirmação" />
+            <MetricCard value={String(statusCounts.completed)} label="concluídas" />
+            <MetricCard
+              value={String(statusCounts.canceledOrNoShow)}
+              label="canceladas / não compareceu"
+            />
           </div>
-          <StatusBadge tone={setupSteps.every((s) => s.isDone) ? 'success' : 'warning'}>
-            {setupSteps.filter((s) => s.isDone).length}/{setupSteps.length} concluídos
-          </StatusBadge>
-        </div>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-3">
-          {setupSteps.map((step) => (
-            <div
-              key={step.label}
-              className="rounded-lg border border-slate-200 bg-slate-50 p-4"
-            >
-              <StatusBadge tone={step.isDone ? 'success' : 'muted'}>
-                {step.isDone ? 'Concluído' : 'Pendente'}
-              </StatusBadge>
-              <p className="mt-3 text-sm font-semibold text-slate-800">{step.label}</p>
-            </div>
-          ))}
-        </div>
-      </PanelCard>
-
-      {!hasProfiles && !isLoadingProfiles && (
-        <PanelCard className="border-blue-200 bg-blue-50/50">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-white text-primary shadow-sm">
-                <Stethoscope className="h-6 w-6" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-slate-950">
-                  Comece pela página pública
-                </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                  Esse é o primeiro ativo visível para pacientes e a base para capturar
-                  oportunidades nos próximos módulos.
+          <div className="grid gap-5 lg:grid-cols-2">
+            {/* Upcoming appointments */}
+            <PanelCard>
+              <h2 className="text-base font-semibold text-slate-950">Próximas consultas</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Agendamentos pendentes ou confirmados do dia
+              </p>
+              {upcomingAppointments.length === 0 ? (
+                <p className="mt-4 text-sm text-slate-400">
+                  Nenhuma consulta pendente para hoje.
                 </p>
+              ) : (
+                <ul className="mt-4 divide-y divide-slate-100">
+                  {upcomingAppointments.map((appt) => (
+                    <li
+                      key={appt.id}
+                      className="-mx-2 flex cursor-pointer items-center justify-between gap-3 rounded px-2 py-3 text-sm hover:bg-slate-50"
+                      onClick={() => setDrawerAppointment(appt)}
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-slate-900">{appt.patientName}</p>
+                        {appt.service && (
+                          <p className="truncate text-slate-500">{appt.service.name}</p>
+                        )}
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="font-medium text-slate-700">
+                          {formatWallTime(appt.startTime)}
+                        </p>
+                        <p className="text-slate-400">{appt.profile.displayName}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </PanelCard>
+
+            {/* Alerts */}
+            <PanelCard>
+              <h2 className="text-base font-semibold text-slate-950">Alertas do dia</h2>
+              <div className="mt-4 space-y-4">
+                {statusCounts.pending > 0 ? (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-sm font-medium text-amber-800">
+                      {statusCounts.pending}{' '}
+                      {statusCounts.pending === 1
+                        ? 'consulta aguarda confirmação'
+                        : 'consultas aguardam confirmação'}
+                    </p>
+                    <Button variant="outline" size="sm" className="mt-3" asChild>
+                      <Link to="/app/agendamentos">Ver agendamentos</Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                    <p className="text-sm font-medium text-emerald-800">
+                      Todas as consultas estão confirmadas ou concluídas.
+                    </p>
+                  </div>
+                )}
+
+                {activeDentists.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      Profissionais com agenda hoje
+                    </p>
+                    <ul className="space-y-1">
+                      {activeDentists.map((name) => (
+                        <li key={name} className="text-sm text-slate-700">
+                          {name}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-            </div>
-            <Button asChild>
-              <Link to="/app/perfis/novo">
-                Criar primeiro perfil
-                <ArrowRight className="h-4 w-4" />
+            </PanelCard>
+          </div>
+
+          {/* Financial summary — OWNER only */}
+          {isOwner && financeTodaySummary && (
+            <PanelCard>
+              <h2 className="text-base font-semibold text-slate-950">Resumo financeiro de hoje</h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <MetricCard
+                  value={brl(financeTodaySummary.received)}
+                  label="recebido hoje"
+                />
+                <MetricCard
+                  value={brl(financeTodaySummary.pendingReceivables)}
+                  label="a receber"
+                />
+                <MetricCard
+                  value={brl(financeTodaySummary.expectedTotal)}
+                  label="total esperado"
+                />
+              </div>
+            </PanelCard>
+          )}
+
+          {/* Quick shortcuts */}
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" asChild>
+              <Link to="/app/agendamentos">
+                <Calendar className="h-4 w-4" />
+                Agendamentos
               </Link>
             </Button>
+            <Button variant="outline" asChild>
+              <Link to="/app/pacientes">
+                <Users className="h-4 w-4" />
+                Pacientes
+              </Link>
+            </Button>
+            {isOwner && (
+              <Button variant="outline" asChild>
+                <Link to="/app/prontuario">
+                  <ClipboardList className="h-4 w-4" />
+                  Prontuários
+                </Link>
+              </Button>
+            )}
+            {isOwner && (
+              <Button variant="outline" asChild>
+                <Link to="/app/financeiro">
+                  <DollarSign className="h-4 w-4" />
+                  Financeiro
+                </Link>
+              </Button>
+            )}
           </div>
-        </PanelCard>
+        </>
       )}
+
+      {/* Appointment detail drawer — readOnly, no status actions */}
+      <AppointmentDrawer
+        appointment={drawerAppointment}
+        readOnly
+        isActionLoading={false}
+        onClose={() => setDrawerAppointment(null)}
+        onStatusChange={() => {}}
+        onCancelRequest={() => {}}
+      />
     </AppPage>
   )
 }
