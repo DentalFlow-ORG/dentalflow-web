@@ -13,6 +13,65 @@ import { Button } from '@/components/ui/button'
 
 import { ClinicFormModal } from '../components/ClinicFormModal'
 import { useAdminClinicsPage } from '../hooks/useAdminClinicsPage'
+import type { AdminClinic } from '../types/admin.types'
+
+type AdminClinicMobileCardProps = {
+  clinic: AdminClinic
+  formatDate: (value?: string) => string
+  onEdit: (clinic: AdminClinic) => void
+  onDelete: (target: { id: string; name: string }) => void
+}
+
+function AdminClinicMobileCard({
+  clinic,
+  formatDate,
+  onEdit,
+  onDelete,
+}: AdminClinicMobileCardProps) {
+  const isActive = clinic.isActive !== false
+
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-semibold text-slate-950">{clinic.name}</h3>
+            <p className="mt-1 text-xs text-slate-500">Clínica da plataforma</p>
+          </div>
+          <StatusBadge tone={isActive ? 'success' : 'muted'}>
+            {isActive ? 'Ativa' : 'Inativa'}
+          </StatusBadge>
+        </div>
+
+        <dl className="grid gap-2 text-xs text-slate-600">
+          <div className="flex items-center justify-between gap-3">
+            <dt className="font-medium text-slate-500">Status</dt>
+            <dd className="text-right text-slate-700">{isActive ? 'Ativa' : 'Inativa'}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="font-medium text-slate-500">Criada em</dt>
+            <dd className="text-right text-slate-700">{formatDate(clinic.createdAt)}</dd>
+          </div>
+        </dl>
+
+        <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
+          <Button variant="outline" className="w-full" onClick={() => onEdit(clinic)}>
+            <Pencil className="h-4 w-4" aria-hidden="true" />
+            Editar
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full text-red-600 hover:bg-red-50 hover:text-red-700"
+            onClick={() => onDelete({ id: clinic.id, name: clinic.name })}
+          >
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+            Excluir
+          </Button>
+        </div>
+      </div>
+    </article>
+  )
+}
 
 export function AdminClinicsPageContainer() {
   const {
@@ -54,7 +113,7 @@ export function AdminClinicsPageContainer() {
         description="Gerencie os tenants da plataforma e mantenha a base de clínicas organizada."
         action={
           <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" aria-hidden="true" />
             Nova clínica
           </Button>
         }
@@ -73,7 +132,7 @@ export function AdminClinicsPageContainer() {
             description="Adicione a primeira clínica da plataforma."
             action={
               <Button onClick={() => setCreateOpen(true)}>
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4" aria-hidden="true" />
                 Nova clínica
               </Button>
             }
@@ -97,14 +156,26 @@ export function AdminClinicsPageContainer() {
             <FilteredEmptyState icon={Building2} onClear={clearAll} />
           ) : (
             <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="space-y-3 p-3 md:hidden">
+                {clinics.map((clinic) => (
+                  <AdminClinicMobileCard
+                    key={clinic.id}
+                    clinic={clinic}
+                    formatDate={formatDate}
+                    onEdit={setEditTarget}
+                    onDelete={setDeleteTarget}
+                  />
+                ))}
+              </div>
+
+              <div className="hidden md:block">
+                <table className="w-full text-sm" aria-label="Clínicas da plataforma">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      <th className="px-4 py-3">Clínica</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="hidden px-4 py-3 lg:table-cell">Criada em</th>
-                      <th className="px-4 py-3 text-right">Ações</th>
+                      <th scope="col" className="px-4 py-3">Clínica</th>
+                      <th scope="col" className="px-4 py-3">Status</th>
+                      <th scope="col" className="hidden px-4 py-3 lg:table-cell">Criada em</th>
+                      <th scope="col" className="px-4 py-3 text-right">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -114,8 +185,17 @@ export function AdminClinicsPageContainer() {
                       return (
                         <tr
                           key={clinic.id}
-                          className="cursor-pointer transition-colors hover:bg-slate-50/60"
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Editar ${clinic.name}`}
+                          className="cursor-pointer transition-colors hover:bg-slate-50/60 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                           onClick={() => setEditTarget(clinic)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault()
+                              setEditTarget(clinic)
+                            }
+                          }}
                         >
                           <td className="px-4 py-3">
                             <p className="font-semibold text-slate-900">{clinic.name}</p>
@@ -137,21 +217,23 @@ export function AdminClinicsPageContainer() {
                               <Button
                                 size="icon-sm"
                                 variant="ghost"
+                                aria-label={`Editar ${clinic.name}`}
                                 title="Editar"
                                 onClick={() => setEditTarget(clinic)}
                               >
-                                <Pencil className="h-3.5 w-3.5" />
+                                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                               </Button>
                               <Button
                                 size="icon-sm"
                                 variant="ghost"
+                                aria-label={`Excluir ${clinic.name}`}
                                 title="Excluir"
                                 className="text-red-500 hover:bg-red-50 hover:text-red-700"
                                 onClick={() =>
                                   setDeleteTarget({ id: clinic.id, name: clinic.name })
                                 }
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
+                                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                               </Button>
                             </div>
                           </td>

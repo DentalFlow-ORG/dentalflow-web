@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react'
 import { KeyRound, Pencil, Plus, Trash2, Users } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
@@ -14,6 +15,87 @@ import { Button } from '@/components/ui/button'
 import { UserFormModal } from '../components/UserFormModal'
 import { UserPasswordModal } from '../components/UserPasswordModal'
 import { useAdminUsersPage } from '../hooks/useAdminUsersPage'
+import type { AdminUser } from '../types/admin.types'
+
+type AdminUserMobileCardProps = {
+  user: AdminUser
+  roleLabel: Record<AdminUser['role'], string>
+  roleTone: Record<AdminUser['role'], ComponentProps<typeof StatusBadge>['tone']>
+  formatDate: (value: string) => string
+  onEdit: (user: AdminUser) => void
+  onPassword: (target: { id: string; name: string }) => void
+  onDeactivate: (target: { id: string; name: string }) => void
+}
+
+function AdminUserMobileCard({
+  user,
+  roleLabel,
+  roleTone,
+  formatDate,
+  onEdit,
+  onPassword,
+  onDeactivate,
+}: AdminUserMobileCardProps) {
+  const fullName = `${user.firstName} ${user.lastName}`
+
+  return (
+    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-semibold text-slate-950">{fullName}</h3>
+            <p className="mt-1 break-all text-xs text-slate-500">{user.email}</p>
+          </div>
+          <StatusBadge tone={user.isActive ? 'success' : 'muted'}>
+            {user.isActive ? 'Ativo' : 'Inativo'}
+          </StatusBadge>
+        </div>
+
+        <dl className="grid gap-2 text-xs text-slate-600">
+          <div className="flex items-center justify-between gap-3">
+            <dt className="font-medium text-slate-500">Papel</dt>
+            <dd>
+              <StatusBadge tone={roleTone[user.role]}>{roleLabel[user.role]}</StatusBadge>
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="font-medium text-slate-500">Clínica</dt>
+            <dd className="min-w-0 truncate text-right text-slate-700">
+              {user.clinic?.name ?? 'Sem clínica vinculada'}
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="font-medium text-slate-500">Criado em</dt>
+            <dd className="text-right text-slate-700">{formatDate(user.createdAt)}</dd>
+          </div>
+        </dl>
+
+        <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-3">
+          <Button variant="outline" className="w-full" onClick={() => onEdit(user)}>
+            <Pencil className="h-4 w-4" aria-hidden="true" />
+            Editar
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => onPassword({ id: user.id, name: fullName })}
+          >
+            <KeyRound className="h-4 w-4" aria-hidden="true" />
+            Senha
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full text-red-600 hover:bg-red-50 hover:text-red-700"
+            onClick={() => onDeactivate({ id: user.id, name: fullName })}
+          >
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+            Desativar
+          </Button>
+        </div>
+      </div>
+    </article>
+  )
+}
 
 export function AdminUsersPageContainer() {
   const {
@@ -60,7 +142,7 @@ export function AdminUsersPageContainer() {
         description="Gerencie todos os usuários cadastrados, independentemente da clínica."
         action={
           <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" aria-hidden="true" />
             Novo usuário
           </Button>
         }
@@ -79,7 +161,7 @@ export function AdminUsersPageContainer() {
             description="Adicione o primeiro usuário à plataforma."
             action={
               <Button onClick={() => setCreateOpen(true)}>
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4" aria-hidden="true" />
                 Novo usuário
               </Button>
             }
@@ -103,24 +185,48 @@ export function AdminUsersPageContainer() {
             <FilteredEmptyState icon={Users} onClear={clearAll} />
           ) : (
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="space-y-3 p-3 md:hidden">
+                {users.map((user) => (
+                  <AdminUserMobileCard
+                    key={user.id}
+                    user={user}
+                    roleLabel={roleLabel}
+                    roleTone={roleTone}
+                    formatDate={formatDate}
+                    onEdit={setEditTarget}
+                    onPassword={setPasswordTarget}
+                    onDeactivate={setDeleteTarget}
+                  />
+                ))}
+              </div>
+
+              <div className="hidden md:block">
+                <table className="w-full text-sm" aria-label="Usuários da plataforma">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      <th className="px-4 py-3">Usuário</th>
-                      <th className="px-4 py-3">Papel</th>
-                      <th className="hidden px-4 py-3 md:table-cell">Clínica</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="hidden px-4 py-3 lg:table-cell">Criado em</th>
-                      <th className="px-4 py-3 text-right">Ações</th>
+                      <th scope="col" className="px-4 py-3">Usuário</th>
+                      <th scope="col" className="px-4 py-3">Papel</th>
+                      <th scope="col" className="hidden px-4 py-3 md:table-cell">Clínica</th>
+                      <th scope="col" className="px-4 py-3">Status</th>
+                      <th scope="col" className="hidden px-4 py-3 lg:table-cell">Criado em</th>
+                      <th scope="col" className="px-4 py-3 text-right">Ações</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {users.map((user) => (
                       <tr
                         key={user.id}
-                        className="cursor-pointer transition-colors hover:bg-slate-50/60"
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Editar ${user.firstName} ${user.lastName}`}
+                        className="cursor-pointer transition-colors hover:bg-slate-50/60 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                         onClick={() => setEditTarget(user)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            setEditTarget(user)
+                          }
+                        }}
                       >
                         <td className="px-4 py-3">
                           <p className="font-semibold text-slate-900">
@@ -156,14 +262,16 @@ export function AdminUsersPageContainer() {
                             <Button
                               size="icon-sm"
                               variant="ghost"
+                              aria-label={`Editar ${user.firstName} ${user.lastName}`}
                               title="Editar"
                               onClick={() => setEditTarget(user)}
                             >
-                              <Pencil className="h-3.5 w-3.5" />
+                              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                             </Button>
                             <Button
                               size="icon-sm"
                               variant="ghost"
+                              aria-label={`Redefinir senha de ${user.firstName} ${user.lastName}`}
                               title="Redefinir senha"
                               onClick={() =>
                                 setPasswordTarget({
@@ -172,11 +280,12 @@ export function AdminUsersPageContainer() {
                                 })
                               }
                             >
-                              <KeyRound className="h-3.5 w-3.5" />
+                              <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
                             </Button>
                             <Button
                               size="icon-sm"
                               variant="ghost"
+                              aria-label={`Desativar ${user.firstName} ${user.lastName}`}
                               title="Desativar"
                               className="text-red-500 hover:bg-red-50 hover:text-red-700"
                               onClick={() =>
@@ -186,7 +295,7 @@ export function AdminUsersPageContainer() {
                                 })
                               }
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                             </Button>
                           </div>
                         </td>
