@@ -173,8 +173,15 @@ export function WeekCalendar({
 
       {/* Grid */}
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-950/5">
-        <div className="overflow-x-auto">
-          <div className="min-w-[980px]">
+        {/* Mobile scroll hint — only visible on small screens */}
+        <div className="flex items-center justify-end gap-1.5 border-b border-slate-100 px-3 py-1.5 lg:hidden">
+          <span className="text-[11px] text-slate-400">Arraste para ver sábado e domingo</span>
+          <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+        </div>
+        <div className="relative overflow-x-auto">
+          {/* Right-side fade indicating more content */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-linear-to-l from-white/70 to-transparent lg:hidden" />
+          <div className="min-w-245">
             {/* Day headers */}
             <div className="grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))] border-b border-slate-200 bg-slate-50">
               <div className="sticky left-0 z-20 flex items-center gap-2 border-r border-slate-200 bg-slate-50 px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-400">

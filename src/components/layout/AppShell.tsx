@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { BarChart3, BriefcaseBusiness, Building2, CalendarCheck, CalendarDays, CreditCard, Landmark, LogOut, ShieldCheck, Users, Users2 } from 'lucide-react'
+import { BarChart3, BriefcaseBusiness, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, MoreHorizontal, ShieldCheck, Users, Users2, X } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
@@ -58,6 +59,12 @@ const appNavigation: NavItem[] = [
     roles: ['OWNER'],
   },
   {
+    label: 'Notas fiscais',
+    to: '/app/notas-fiscais',
+    icon: FileText,
+    roles: ['OWNER', 'ASSISTANT'],
+  },
+  {
     label: 'Assinatura',
     to: '/app/assinatura',
     icon: CreditCard,
@@ -68,6 +75,12 @@ const appNavigation: NavItem[] = [
     to: '/app/pacientes',
     icon: Users2,
     roles: ['OWNER', 'ASSISTANT'],
+  },
+  {
+    label: 'Prontuário',
+    to: '/app/prontuario',
+    icon: ClipboardList,
+    roles: ['OWNER', 'DENTIST'],
   },
   {
     label: 'Usuários',
@@ -89,10 +102,19 @@ const appNavigation: NavItem[] = [
   },
 ]
 
+// Mobile primary items per role — max 4, rest goes in "Mais"
+const MOBILE_PRIMARY_ROUTES_BY_ROLE: Partial<Record<AuthUserRole, string[]>> = {
+  OWNER: ['/app', '/app/agendamentos', '/app/pacientes', '/app/prontuario'],
+  DENTIST: ['/app/agenda', '/app/prontuario'],
+  ASSISTANT: ['/app/agendamentos', '/app/pacientes', '/app/notas-fiscais'],
+  ADMIN: ['/app/admin/users', '/app/admin/clinics', '/app/admin/financeiro'],
+}
+
 export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuth()
+  const [moreOpen, setMoreOpen] = useState(false)
 
   const handleLogout = async () => {
     await logout()
@@ -104,6 +126,15 @@ export function AppShell({ children }: AppShellProps) {
       ? location.pathname === to
       : location.pathname === to || location.pathname.startsWith(`${to}/`)
 
+  const visibleNav = appNavigation.filter(
+    ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
+  )
+
+  // Split into primary (visible in bottom bar) and secondary (in "Mais" sheet)
+  const primaryRoutes = user?.role ? (MOBILE_PRIMARY_ROUTES_BY_ROLE[user.role] ?? []) : []
+  const primaryNav = visibleNav.filter((item) => primaryRoutes.includes(item.to))
+  const secondaryNav = visibleNav.filter((item) => !primaryRoutes.includes(item.to))
+
   return (
     <div className="min-h-svh bg-slate-50 text-slate-950">
       {/* Sidebar - desktop only */}
@@ -113,48 +144,97 @@ export function AppShell({ children }: AppShellProps) {
         </div>
 
         <nav className="space-y-1 px-3 py-5">
-          {appNavigation
-            .filter(({ roles }) => !roles || (user?.role && roles.includes(user.role)))
-            .map(({ label, to, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                aria-current={isActive(to) ? 'page' : undefined}
-                className={cn(
-                  'flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-blue-50 hover:text-primary',
-                  isActive(to) && 'bg-blue-50 text-primary',
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </Link>
-            ))}
+          {visibleNav.map(({ label, to, icon: Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              aria-current={isActive(to) ? 'page' : undefined}
+              className={cn(
+                'flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-blue-50 hover:text-primary',
+                isActive(to) && 'bg-blue-50 text-primary',
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {label}
+            </Link>
+          ))}
         </nav>
       </aside>
 
       {/* Bottom nav - mobile only */}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
-        <div className="flex h-16 items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {appNavigation
-            .filter(({ roles }) => !roles || (user?.role && roles.includes(user.role)))
-            .map(({ label, to, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                aria-current={isActive(to) ? 'page' : undefined}
-                className={cn(
-                  'flex min-w-16 flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold transition-colors',
-                  isActive(to)
-                    ? 'text-primary'
-                    : 'text-slate-500 hover:text-slate-700',
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="max-w-full truncate">{label}</span>
-              </Link>
-            ))}
+        <div className="flex h-16 items-stretch">
+          {primaryNav.map(({ label, to, icon: Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              aria-current={isActive(to) ? 'page' : undefined}
+              className={cn(
+                'flex flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold transition-colors',
+                isActive(to) ? 'text-primary' : 'text-slate-500 hover:text-slate-700',
+              )}
+            >
+              <Icon className="h-5 w-5" />
+              <span className="max-w-full truncate">{label}</span>
+            </Link>
+          ))}
+
+          {secondaryNav.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              className={cn(
+                'flex flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold transition-colors',
+                moreOpen ? 'text-primary' : 'text-slate-500 hover:text-slate-700',
+              )}
+            >
+              <MoreHorizontal className="h-5 w-5" />
+              <span>Mais</span>
+            </button>
+          )}
         </div>
       </nav>
+
+      {/* "Mais" sheet — mobile only */}
+      {moreOpen && (
+        <div className="fixed inset-0 z-30 lg:hidden" onClick={() => setMoreOpen(false)}>
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+          <div
+            className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-slate-200 bg-white pb-[calc(env(safe-area-inset-bottom)+4rem)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4">
+              <p className="text-sm font-semibold text-slate-700">Mais opções</p>
+              <button
+                type="button"
+                onClick={() => setMoreOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <nav className="grid grid-cols-3 gap-1 px-4 pb-4">
+              {secondaryNav.map(({ label, to, icon: Icon }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  onClick={() => setMoreOpen(false)}
+                  aria-current={isActive(to) ? 'page' : undefined}
+                  className={cn(
+                    'flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center text-[11px] font-semibold transition-colors',
+                    isActive(to)
+                      ? 'bg-blue-50 text-primary'
+                      : 'text-slate-600 hover:bg-slate-100',
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
 
       {/* Main area */}
       <div className="lg:pl-64">
@@ -181,7 +261,7 @@ export function AppShell({ children }: AppShellProps) {
 
         <main className="px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
           {children}
-          <div className="h-[calc(7.5rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true" />
+          <div className="h-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true" />
         </main>
       </div>
     </div>

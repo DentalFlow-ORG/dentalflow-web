@@ -83,10 +83,14 @@ export function SubscriptionPageContainer() {
                 <span
                   className={cn(
                     'mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                    STATUS_COLORS[subscription.status],
+                    subscription.cancelAtPeriodEnd
+                      ? 'bg-orange-50 text-orange-700'
+                      : STATUS_COLORS[subscription.status],
                   )}
                 >
-                  {STATUS_LABELS[subscription.status]}
+                  {subscription.cancelAtPeriodEnd
+                    ? 'Cancelamento agendado'
+                    : STATUS_LABELS[subscription.status]}
                 </span>
               </div>
 
@@ -117,8 +121,7 @@ export function SubscriptionPageContainer() {
               <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                 <p className="text-sm text-amber-800">
-                  Sua assinatura está agendada para cancelamento ao fim do período atual. O
-                  acesso continua até{' '}
+                  Cancelamento agendado para o fim do período atual. O acesso continua até{' '}
                   <strong>{formatDateBR(subscription.currentPeriodEnd)}</strong>.
                 </p>
               </div>
@@ -158,44 +161,57 @@ export function SubscriptionPageContainer() {
 
       {/* Plans */}
       <div className="space-y-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-3">
           <h2 className="text-base font-semibold text-slate-950">Planos disponíveis</h2>
 
-          {showIntervalToggle && (
-            <div className="flex items-center gap-1 self-start rounded-lg border border-slate-200 bg-slate-50 p-1 sm:self-auto">
-              {anyPlanHasMonthly && (
-                <button
-                  type="button"
-                  onClick={() => setBillingInterval('MONTHLY')}
-                  className={cn(
-                    'rounded-md px-4 py-1.5 text-sm font-semibold transition-colors',
-                    billingInterval === 'MONTHLY'
-                      ? 'bg-white text-slate-900 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700',
+          {showIntervalToggle && (() => {
+            const savingsPct = plans
+              .filter((p) => p.hasMonthlyPrice && p.hasYearlyPrice)
+              .map((p) =>
+                Math.round(((p.priceMonthly * 12 - p.priceYearly) / (p.priceMonthly * 12)) * 100),
+              )
+              .at(0) ?? null
+
+            return (
+              <div className="flex justify-center">
+                <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
+                  {anyPlanHasMonthly && (
+                    <button
+                      type="button"
+                      onClick={() => setBillingInterval('MONTHLY')}
+                      className={cn(
+                        'rounded-lg px-5 py-2 text-sm font-semibold transition-colors',
+                        billingInterval === 'MONTHLY'
+                          ? 'bg-white text-slate-900 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700',
+                      )}
+                    >
+                      Mensal
+                    </button>
                   )}
-                >
-                  Mensal
-                </button>
-              )}
-              {anyPlanHasYearly && (
-                <button
-                  type="button"
-                  onClick={() => setBillingInterval('YEARLY')}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-semibold transition-colors',
-                    billingInterval === 'YEARLY'
-                      ? 'bg-white text-slate-900 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700',
+                  {anyPlanHasYearly && (
+                    <button
+                      type="button"
+                      onClick={() => setBillingInterval('YEARLY')}
+                      className={cn(
+                        'flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold transition-colors',
+                        billingInterval === 'YEARLY'
+                          ? 'bg-white text-slate-900 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700',
+                      )}
+                    >
+                      Anual
+                      {savingsPct != null && (
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">
+                          -{savingsPct}%
+                        </span>
+                      )}
+                    </button>
                   )}
-                >
-                  Anual
-                  <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">
-                    Economize
-                  </span>
-                </button>
-              )}
-            </div>
-          )}
+                </div>
+              </div>
+            )
+          })()}
         </div>
 
         {isLoadingPlans ? (
@@ -211,12 +227,19 @@ export function SubscriptionPageContainer() {
             description="Nenhum plano está disponível no momento. Entre em contato com o suporte."
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {plans.map((plan) => {
               const available = intervalAvailableForPlan(plan, billingInterval)
               const price =
                 billingInterval === 'MONTHLY' ? plan.priceMonthly : plan.priceYearly
-              const isCurrentPlan = subscription?.plan?.id === plan.id
+
+              // Compare both plan id AND billing interval so switching between
+              // monthly/yearly correctly clears the "Plano atual" badge
+              const isCurrentPlan =
+                hasActiveSubscription &&
+                subscription?.plan?.id === plan.id &&
+                subscription?.billingInterval === billingInterval
+
               const features = getPlanFeatures(plan)
               const isCheckingOutThisPlan = checkingOutPlanId === plan.id
               const isDisabled = isCurrentPlan || !available || isAnyActionPending
@@ -233,23 +256,31 @@ export function SubscriptionPageContainer() {
                         <p className="mt-1 text-sm text-slate-500">{plan.description}</p>
                       )}
                     </div>
-                    {isCurrentPlan && (
+                    {isCurrentPlan ? (
                       <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                        Atual
+                        Plano atual
                       </span>
-                    )}
+                    ) : null}
                   </div>
 
                   <div className="mt-4">
                     {available ? (
-                      <>
-                        <span className="text-3xl font-bold text-slate-950">
-                          {formatCurrencyBR(price / 100)}
-                        </span>
-                        <span className="ml-1 text-sm text-slate-500">
-                          /{billingInterval === 'MONTHLY' ? 'mês' : 'ano'}
-                        </span>
-                      </>
+                      <div className="space-y-1">
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-4xl font-extrabold text-slate-950">
+                            {formatCurrencyBR(
+                              billingInterval === 'YEARLY' ? price / 12 / 100 : price / 100,
+                            )}
+                          </span>
+                          <span className="text-sm text-slate-500">/mês</span>
+                        </div>
+                        {billingInterval === 'YEARLY' && (
+                          <p className="text-xs text-slate-400">
+                            Valor cobrado anualmente:{' '}
+                            <span className="font-medium">{formatCurrencyBR(price / 100)}</span>
+                          </p>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-sm text-slate-400">
                         Sem preço {billingInterval === 'MONTHLY' ? 'mensal' : 'anual'}

@@ -65,10 +65,10 @@ export function useAdminFinancePage() {
 
   function handleLoadError(error: unknown) {
     const message =
-      error instanceof Error ? error.message : 'Nao foi possivel carregar o financeiro SaaS.'
+      error instanceof Error ? error.message : 'Não foi possível carregar os dados financeiros.'
     setLoadError(message)
     showAlert({
-      title: 'Erro ao carregar financeiro SaaS',
+      title: 'Erro ao carregar gestão financeira',
       description: message,
       tone: 'error',
     })
@@ -117,7 +117,7 @@ export function useAdminFinancePage() {
         showAlert({
           title: 'Erro ao carregar assinaturas',
           description:
-            err instanceof Error ? err.message : 'Nao foi possivel carregar assinaturas.',
+            err instanceof Error ? err.message : 'Não foi possível carregar assinaturas.',
           tone: 'error',
         })
       })
@@ -135,7 +135,7 @@ export function useAdminFinancePage() {
         showAlert({
           title: 'Erro ao carregar eventos Stripe',
           description:
-            err instanceof Error ? err.message : 'Nao foi possivel carregar eventos Stripe.',
+            err instanceof Error ? err.message : 'Não foi possível carregar eventos Stripe.',
           tone: 'error',
         })
       })

@@ -11,8 +11,13 @@ import {
   AdminUsersPage,
   AppointmentsPage,
   AuthRoutePage,
+  ClinicalRecordEditorPage,
+  ClinicalRecordPrintPage,
+  ClinicalRecordsPage,
+  ClinicalTemplatesPage,
   DashboardPage,
   FinancePage,
+  FiscalInvoicesPage,
   LandingPage,
   PatientsPage,
   ProfileEditorPageCreate,
@@ -145,6 +150,16 @@ const financeRoute = createRoute({
   ),
 })
 
+const fiscalInvoicesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/notas-fiscais',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
+      <FiscalInvoicesPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const patientsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/pacientes',
@@ -181,6 +196,46 @@ const subscriptionCancelRoute = createRoute({
   component: () => (
     <ProtectedAppRoute allowedRoles={['OWNER']}>
       <SubscriptionCancelPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const clinicalRecordsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/prontuario',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
+      <ClinicalRecordsPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const clinicalRecordEditorRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/prontuario/$clinicalRecordId',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
+      <ClinicalRecordEditorPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const clinicalRecordPrintRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/prontuario/$clinicalRecordId/imprimir',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
+      <ClinicalRecordPrintPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const clinicalTemplatesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/modelos-clinicos',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
+      <ClinicalTemplatesPage />
     </ProtectedAppRoute>
   ),
 })
@@ -228,10 +283,15 @@ const routeTree = rootRoute.addChildren([
   scheduleRoute,
   teamRoute,
   financeRoute,
+  fiscalInvoicesRoute,
   patientsRoute,
   subscriptionRoute,
   subscriptionSuccessRoute,
   subscriptionCancelRoute,
+  clinicalRecordsRoute,
+  clinicalRecordEditorRoute,
+  clinicalRecordPrintRoute,
+  clinicalTemplatesRoute,
   adminUsersRoute,
   adminClinicsRoute,
   adminFinanceRoute,

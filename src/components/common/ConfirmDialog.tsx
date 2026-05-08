@@ -40,8 +40,6 @@ export function ConfirmDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          aria-labelledby="confirm-dialog-title"
-          aria-describedby="confirm-dialog-description"
           className={cn(
             'fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15',
             'animate-in fade-in-0 zoom-in-[0.97] duration-150',
@@ -66,10 +64,7 @@ export function ConfirmDialog({
               )}
             </div>
 
-            <Dialog.Title
-              id="confirm-dialog-title"
-              className="text-xl font-bold text-slate-950"
-            >
+            <Dialog.Title className="text-xl font-bold text-slate-950">
               {title}
             </Dialog.Title>
 
@@ -86,10 +81,7 @@ export function ConfirmDialog({
               </p>
             )}
 
-            <Dialog.Description
-              id="confirm-dialog-description"
-              className="mt-3 text-sm leading-6 text-slate-500"
-            >
+            <Dialog.Description className="mt-3 text-sm leading-6 text-slate-500">
               {description}
             </Dialog.Description>
           </div>

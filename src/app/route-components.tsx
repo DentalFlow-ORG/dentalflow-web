@@ -72,6 +72,12 @@ export const FinancePage = lazy(() =>
   })),
 )
 
+export const FiscalInvoicesPage = lazy(() =>
+  import('@/features/fiscal/pages/FiscalInvoicesPage').then((m) => ({
+    default: m.FiscalInvoicesPage,
+  })),
+)
+
 export const CreateMemberPage = lazy(() =>
   import('@/features/team/pages/CreateMemberPage').then((m) => ({
     default: m.CreateMemberPage,
@@ -119,3 +125,28 @@ export const SubscriptionCancelPage = lazy(() =>
     default: m.SubscriptionCancelPage,
   })),
 )
+
+export const ClinicalRecordsPage = lazy(() =>
+  import('@/features/clinical-records/pages/ClinicalRecordsPage').then((m) => ({
+    default: m.ClinicalRecordsPage,
+  })),
+)
+
+export const ClinicalRecordEditorPage = lazy(() =>
+  import('@/features/clinical-records/pages/ClinicalRecordEditorPage').then((m) => ({
+    default: m.ClinicalRecordEditorPage,
+  })),
+)
+
+export const ClinicalRecordPrintPage = lazy(() =>
+  import('@/features/clinical-records/pages/ClinicalRecordPrintPage').then((m) => ({
+    default: m.ClinicalRecordPrintPage,
+  })),
+)
+
+export const ClinicalTemplatesPage = lazy(() =>
+  import('@/features/clinical-records/pages/ClinicalTemplatesPage').then((m) => ({
+    default: m.ClinicalTemplatesPage,
+  })),
+)
+

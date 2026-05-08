@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { CalendarDays, ChevronRight, RefreshCw, Users2, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 
@@ -11,19 +12,17 @@ import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { ClinicalTimeline } from '@/features/clinical-records/components/ClinicalTimeline'
+import { usePatientClinicalTimeline } from '@/features/clinical-records/hooks/usePatientClinicalTimeline'
+
+import { formatDateBR, formatTimeInputValue } from '@/lib/date-time-formatters'
 
 import { usePatientHistory } from '../hooks/usePatientHistory'
 import { usePatientsPage } from '../hooks/usePatientsPage'
 import type { PatientAppointment, PatientSummary } from '../types/patients.types'
 
-function formatDate(dateStr: string) {
-  const [year, month, day] = dateStr.slice(0, 10).split('-')
-  return `${day}/${month}/${year}`
-}
-
-function formatTime(time: string) {
-  return time.slice(0, 5)
-}
+const formatDate = formatDateBR
+const formatTime = (t: string) => formatTimeInputValue(t).slice(0, 5)
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pendente',
@@ -100,6 +99,8 @@ function AppointmentRow({ appt }: { appt: PatientAppointment }) {
   )
 }
 
+type PanelTab = 'consultas' | 'prontuarios'
+
 function PatientDetailPanel({
   patient,
   onClose,
@@ -107,7 +108,11 @@ function PatientDetailPanel({
   patient: PatientSummary | null
   onClose: () => void
 }) {
+  const [activeTab, setActiveTab] = useState<PanelTab>('consultas')
   const { appointments, isLoading } = usePatientHistory(patient)
+  const { records: clinicalRecords, isLoading: isLoadingTimeline } = usePatientClinicalTimeline(
+    patient?.identifier ?? null,
+  )
 
   return (
     <Dialog.Root open={!!patient} onOpenChange={(isOpen: boolean) => !isOpen && onClose()}>
@@ -159,25 +164,57 @@ function PatientDetailPanel({
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Histórico de consultas
-            </h2>
+          {/* Tabs */}
+          <div className="flex border-b border-slate-200">
+            {([
+              { id: 'consultas', label: 'Consultas' },
+              { id: 'prontuarios', label: 'Prontuários' },
+            ] as { id: PanelTab; label: string }[]).map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-            <ListPageShell
-              isLoading={isLoading}
-              loadingMessage="Carregando histórico…"
-              isEmpty={!isLoading && appointments.length === 0}
-              emptyState={
-                <p className="text-sm text-slate-500">Nenhuma consulta encontrada.</p>
-              }
-            >
-              <div className="space-y-3">
-                {appointments.map((appt) => (
-                  <AppointmentRow key={appt.id} appt={appt} />
-                ))}
-              </div>
-            </ListPageShell>
+          <div className="flex-1 overflow-y-auto px-6 py-4">
+            {activeTab === 'consultas' && (
+              <ListPageShell
+                isLoading={isLoading}
+                loadingMessage="Carregando histórico…"
+                isEmpty={!isLoading && appointments.length === 0}
+                emptyState={
+                  <p className="text-sm text-slate-500">Nenhuma consulta encontrada.</p>
+                }
+              >
+                <div className="space-y-3">
+                  {appointments.map((appt) => (
+                    <AppointmentRow key={appt.id} appt={appt} />
+                  ))}
+                </div>
+              </ListPageShell>
+            )}
+
+            {activeTab === 'prontuarios' && (
+              <ListPageShell
+                isLoading={isLoadingTimeline}
+                loadingMessage="Carregando prontuários…"
+                isEmpty={!isLoadingTimeline && clinicalRecords.length === 0}
+                emptyState={
+                  <p className="text-sm text-slate-500">Nenhum prontuário encontrado.</p>
+                }
+              >
+                <ClinicalTimeline records={clinicalRecords} />
+              </ListPageShell>
+            )}
           </div>
         </Dialog.Content>
       </Dialog.Portal>
@@ -286,7 +323,7 @@ export function PatientsPageContainer() {
 
             <div className="overflow-hidden rounded-lg border border-slate-200">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] text-sm">
+                <table className="w-full min-w-160 text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                       <th className="px-4 py-3">Paciente</th>

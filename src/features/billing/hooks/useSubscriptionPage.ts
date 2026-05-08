@@ -19,7 +19,7 @@ import type {
 export const STATUS_LABELS: Record<SubscriptionStatus, string> = {
   TRIALING: 'Período de teste',
   ACTIVE: 'Ativa',
-  PAST_DUE: 'Pagamento em atraso',
+  PAST_DUE: 'Pagamento pendente',
   CANCELED: 'Cancelada',
   UNPAID: 'Não paga',
   PAUSED: 'Pausada',
@@ -77,7 +77,7 @@ export function useSubscriptionPage() {
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true)
   const [plansError, setPlansError] = useState<string | null>(null)
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null)
-  const [billingInterval, setBillingInterval] = useState<BillingInterval>('MONTHLY')
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('YEARLY')
   const [checkingOutPlanId, setCheckingOutPlanId] = useState<string | null>(null)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
@@ -159,15 +159,17 @@ export function useSubscriptionPage() {
     try {
       await cancelSubscription()
       showAlert({
-        title: 'Assinatura cancelada para o fim do período atual.',
+        title: 'Cancelamento agendado para o fim do período atual.',
         tone: 'success',
       })
       setShowCancelDialog(false)
       loadSubscription()
     } catch (err) {
       const msg =
-        err instanceof Error ? err.message : 'Não foi possível cancelar a assinatura.'
-      showAlert({ title: 'Erro ao cancelar', description: msg, tone: 'error' })
+        err instanceof Error
+          ? err.message
+          : 'Não foi possível cancelar a assinatura. Tente novamente ou entre em contato com o suporte.'
+      showAlert({ title: 'Erro ao cancelar assinatura', description: msg, tone: 'error' })
     } finally {
       setIsCanceling(false)
     }
