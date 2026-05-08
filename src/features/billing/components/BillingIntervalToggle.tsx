@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import type { BillingInterval } from '../types/billing.types'
@@ -21,44 +22,48 @@ export function BillingIntervalToggle({
     <div
       role="radiogroup"
       aria-label="Período de cobrança"
-      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 p-1.5 shadow-sm"
+      className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1 shadow-sm"
     >
       {showMonthly && (
-        <button
+        <Button
           type="button"
           role="radio"
           aria-checked={value === 'MONTHLY'}
+          variant="ghost"
+          size="sm"
           onClick={() => onChange('MONTHLY')}
           className={cn(
-            'h-11 rounded-lg px-7 text-sm font-semibold transition-colors',
+            'min-h-10 px-4 text-sm sm:px-5',
             value === 'MONTHLY'
-              ? 'bg-white text-slate-950 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700',
+              ? 'bg-white text-slate-950 shadow-sm hover:bg-white'
+              : 'text-slate-600 hover:bg-white/70 hover:text-slate-950',
           )}
         >
           Mensal
-        </button>
+        </Button>
       )}
       {showYearly && (
-        <button
+        <Button
           type="button"
           role="radio"
           aria-checked={value === 'YEARLY'}
+          variant="ghost"
+          size="sm"
           onClick={() => onChange('YEARLY')}
           className={cn(
-            'flex h-11 items-center gap-2 rounded-lg px-7 text-sm font-semibold transition-colors',
+            'min-h-10 px-4 text-sm sm:px-5',
             value === 'YEARLY'
-              ? 'bg-white text-slate-950 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700',
+              ? 'bg-white text-slate-950 shadow-sm hover:bg-white'
+              : 'text-slate-600 hover:bg-white/70 hover:text-slate-950',
           )}
         >
-          Anual
+          <span>Anual</span>
           {discountPercent != null && discountPercent > 0 && (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+            <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
               -{discountPercent}%
             </span>
           )}
-        </button>
+        </Button>
       )}
     </div>
   )

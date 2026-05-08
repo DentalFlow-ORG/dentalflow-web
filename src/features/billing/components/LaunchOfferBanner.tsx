@@ -21,10 +21,12 @@ export function LaunchOfferBanner({ campaign }: Props) {
   )
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(() => getTimeLeft(endsAt))
   const displayedTimeLeft = endsAt ? timeLeft : null
-  const spotsPercent = campaign
-    ? Math.min(100, Math.round((campaign.claimedSpots / campaign.totalSpots) * 100))
-    : 0
+  const totalSpots = campaign?.totalSpots ?? 0
+  const claimedSpots = campaign?.claimedSpots ?? 0
+  const spotsPercent =
+    totalSpots > 0 ? Math.min(100, Math.round((claimedSpots / totalSpots) * 100)) : 0
   const isActive = Boolean(campaign?.enabled && displayedTimeLeft)
+  const hasSpots = totalSpots > 0
 
   useEffect(() => {
     if (!endsAt) {
@@ -43,46 +45,51 @@ export function LaunchOfferBanner({ campaign }: Props) {
   }
 
   return (
-    <section className="overflow-hidden rounded-lg border border-orange-200 bg-[linear-gradient(135deg,#fff7ed_0%,#ffffff_48%,#fef2f2_100%)] shadow-md shadow-orange-100/70">
+    <section className="overflow-hidden rounded-lg border border-orange-200 bg-white shadow-sm">
       <div className="grid gap-5 p-5 lg:grid-cols-[1.35fr_0.65fr] lg:p-6">
-        <div className="flex gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-orange-600 text-white shadow-lg shadow-orange-200">
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-700">
             <Flame className="h-6 w-6" aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-black uppercase tracking-wide text-orange-700">
+            <p className="text-xs font-semibold uppercase tracking-wider text-orange-700">
               {campaign.name}
             </p>
-            <h2 className="mt-2 text-2xl font-black text-slate-950">
-              Primeiro mês com condição especial para as 100 primeiras clínicas.
+            <h2 className="mt-2 text-xl font-bold leading-tight text-slate-950 sm:text-2xl">
+              Condição especial de lançamento para clínicas que querem organizar a operação agora.
             </h2>
-            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-600">
-              {campaign.claimedSpots} de {campaign.totalSpots} clínicas já garantiram essa
-              condição. Garanta sua vaga antes que a oferta acabe.
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              {hasSpots
+                ? `${claimedSpots} de ${totalSpots} clínicas já garantiram essa condição.`
+                : 'A condição especial está vinculada à campanha ativa.'}{' '}
+              A oferta usa os dados atuais da campanha e pode encerrar quando o prazo terminar.
             </p>
 
-            <div className="mt-5 max-w-xl">
-              <div className="flex items-center justify-between gap-3 text-xs font-bold text-orange-800">
-                <span>Últimas vagas da condição de lançamento</span>
-                <span>{campaign.claimedSpots}/{campaign.totalSpots}</span>
+            {hasSpots && (
+              <div className="mt-5 max-w-xl">
+                <div className="flex items-center justify-between gap-3 text-xs font-semibold text-orange-700">
+                  <span>Vagas da condição de lançamento</span>
+                  <span>
+                    {claimedSpots}/{totalSpots}
+                  </span>
+                </div>
+                <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-orange-50">
+                  <div
+                    className="h-full rounded-full bg-orange-600"
+                    style={{ width: `${spotsPercent}%` }}
+                  />
+                </div>
               </div>
-              <div className="mt-2 h-3 overflow-hidden rounded-full bg-orange-100">
-                <div
-                  className="h-full rounded-full bg-[linear-gradient(90deg,#f97316,#dc2626)]"
-                  style={{ width: `${spotsPercent}%` }}
-                />
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
-        <div className="rounded-lg border border-orange-200 bg-white/90 p-4 shadow-sm">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-orange-700">
+        <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-orange-700">
             <Clock3 className="h-4 w-4" aria-hidden="true" />
-            {isActive ? 'Oferta termina em:' : 'Oferta encerrada'}
+            {isActive ? 'Oferta termina em' : 'Oferta encerrada'}
           </div>
 
-          {/* Screen-reader-only static time — avoids per-second announcements */}
           {isActive && displayedTimeLeft && (
             <p className="sr-only">
               Oferta encerra em {displayedTimeLeft.days} dias, {displayedTimeLeft.hours} horas
@@ -90,7 +97,6 @@ export function LaunchOfferBanner({ campaign }: Props) {
             </p>
           )}
 
-          {/* Visual timer hidden from screen readers to prevent second-by-second spam */}
           <div aria-hidden="true">
             {isActive && displayedTimeLeft ? (
               <div className="mt-3 grid grid-cols-4 gap-2">
@@ -100,14 +106,14 @@ export function LaunchOfferBanner({ campaign }: Props) {
                 <TimePart value={displayedTimeLeft.seconds} label="seg" />
               </div>
             ) : (
-              <p className="mt-3 text-sm font-semibold text-slate-600">
+              <p className="mt-3 text-sm font-medium text-slate-600">
                 A condição especial não está disponível no momento.
               </p>
             )}
           </div>
 
-          <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs font-bold text-red-700">
-            Garanta seu preço promocional antes que acabe.
+          <p className="mt-4 rounded-md bg-white px-3 py-2 text-xs font-semibold leading-5 text-orange-700">
+            Sem cartão no teste grátis. A assinatura só avança quando você escolher continuar.
           </p>
         </div>
       </div>
@@ -117,9 +123,9 @@ export function LaunchOfferBanner({ campaign }: Props) {
 
 function TimePart({ value, label }: { value: number; label: string }) {
   return (
-    <div className="rounded-lg bg-slate-950 px-2 py-3 text-center text-white">
-      <p className="text-xl font-black tabular-nums">{String(value).padStart(2, '0')}</p>
-      <p className="mt-1 text-[0.65rem] font-bold uppercase tracking-wide text-orange-200">
+    <div className="rounded-lg bg-white px-2 py-3 text-center text-slate-950 shadow-sm">
+      <p className="text-lg font-bold tabular-nums sm:text-xl">{String(value).padStart(2, '0')}</p>
+      <p className="mt-1 text-[0.65rem] font-semibold uppercase tracking-wide text-orange-700">
         {label}
       </p>
     </div>

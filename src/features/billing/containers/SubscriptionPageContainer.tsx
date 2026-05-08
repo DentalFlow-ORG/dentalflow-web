@@ -24,6 +24,12 @@ import {
   type PlanCtaState,
 } from '../utils/billing-cta-utils'
 
+const TRUST_MESSAGES = [
+  'Teste grátis por 7 dias',
+  'Cancele quando quiser',
+  'Sem compromisso durante o teste',
+]
+
 export function SubscriptionPageContainer() {
   const { user } = useAuth()
   const canManageBilling = user?.role === 'OWNER'
@@ -90,8 +96,8 @@ export function SubscriptionPageContainer() {
         onCancel={() => setShowCancelDialog(true)}
       />
 
-      <section className="space-y-5">
-        <div className="space-y-5 text-center">
+      <section className="space-y-6">
+        <div className="space-y-5 text-left sm:text-center">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">
               Planos DentalFlow
@@ -106,7 +112,7 @@ export function SubscriptionPageContainer() {
           </div>
 
           {showIntervalToggle && (
-            <div className="flex justify-center">
+            <div className="flex justify-start sm:justify-center">
               <BillingIntervalToggle
                 value={billingInterval}
                 onChange={setBillingInterval}
@@ -131,7 +137,7 @@ export function SubscriptionPageContainer() {
             description="Nenhum plano está disponível no momento. Entre em contato com o suporte."
           />
         ) : (
-          <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             {plans.map((plan, index) => {
               const normalizedInterval = normalizeBillingInterval(billingInterval)
               const isCurrentPlan =
@@ -173,25 +179,22 @@ export function SubscriptionPageContainer() {
           </div>
         )}
 
-        {/* Trust microcopy strip */}
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 pt-1">
-          <span className="flex items-center gap-1.5 text-sm text-slate-500">
-            <Check className="h-4 w-4 text-emerald-500" aria-hidden="true" />
-            Cancele quando quiser
-          </span>
-          <span className="flex items-center gap-1.5 text-sm text-slate-500">
-            <Check className="h-4 w-4 text-emerald-500" aria-hidden="true" />
-            Teste grátis por 7 dias
-          </span>
-          <span className="flex items-center gap-1.5 text-sm text-slate-500">
-            <Check className="h-4 w-4 text-emerald-500" aria-hidden="true" />
-            Sem compromisso durante o teste
-          </span>
-        </div>
-
-        <p className="text-center text-sm text-slate-400">
-          Clínicas dentárias usam o DentalFlow para organizar agenda, pacientes e financeiro em um só lugar.
-        </p>
+        <PanelCard className="p-4 sm:p-5">
+          <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-3">
+            {TRUST_MESSAGES.map((message) => (
+              <div key={message} className="flex items-center gap-2 font-medium">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-700">
+                  <Check className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <span>{message}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 border-t border-slate-100 pt-4 text-sm leading-6 text-slate-500">
+            Clínicas dentárias usam o DentalFlow para organizar agenda, pacientes e financeiro em
+            um só lugar, com cobrança transparente e gestão centralizada.
+          </p>
+        </PanelCard>
       </section>
 
       <ConfirmDialog
