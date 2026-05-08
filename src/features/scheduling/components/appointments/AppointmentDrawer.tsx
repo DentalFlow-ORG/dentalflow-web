@@ -1,5 +1,16 @@
 import { useState } from 'react'
-import { Loader2, Pencil, X, ClipboardList } from 'lucide-react'
+import {
+  CalendarDays,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  ClipboardList,
+  Loader2,
+  Pencil,
+  Plus,
+  UserX,
+  X,
+} from 'lucide-react'
 import { Dialog } from 'radix-ui'
 import { useNavigate } from '@tanstack/react-router'
 
@@ -17,7 +28,6 @@ import {
 } from '../../utils/time'
 import type { Appointment, AppointmentStatus } from '../../types/scheduling.types'
 import { AppointmentStatusBadge } from './AppointmentStatusBadge'
-import { StatusActionMenu } from './StatusActionMenu'
 
 type AppointmentDrawerProps = {
   appointment: Appointment | null
@@ -28,6 +38,16 @@ type AppointmentDrawerProps = {
   onEdit?: (appointment: Appointment) => void
   onStatusChange: (id: string, status: AppointmentStatus) => void
   onCancelRequest: (appointment: Appointment) => void
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
 }
 
 export function AppointmentDrawer({
@@ -47,66 +67,76 @@ export function AppointmentDrawer({
         <Dialog.Content
           aria-describedby={undefined}
           className={cn(
-            'fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white shadow-2xl shadow-slate-950/15',
+            'fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-[#f8fafc] shadow-2xl shadow-slate-950/15',
             'animate-in slide-in-from-right duration-200',
           )}
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          <Dialog.Title className="sr-only">
-            {appointment?.patientName ?? 'Detalhes do agendamento'}
-          </Dialog.Title>
           {appointment && (
             <>
               {/* Header */}
-              <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
-                <div>
-                  <p className="text-lg font-semibold text-slate-950">
-                    {appointment.patientName}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-500">
-                    {formatAppointmentDateLong(appointment.appointmentDate)}
-                  </p>
+              <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-5">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary"
+                    aria-hidden="true"
+                  >
+                    {getInitials(appointment.patientName)}
+                  </div>
+                  <div className="min-w-0">
+                    <Dialog.Title className="truncate text-lg font-semibold text-slate-950">
+                      {appointment.patientName}
+                    </Dialog.Title>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-500">
+                      <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      {formatAppointmentDateLong(appointment.appointmentDate)}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  {onEdit && (appointment.status === 'PENDING' || appointment.status === 'CONFIRMED') && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => onEdit(appointment)}
-                      aria-label="Editar agendamento"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  )}
+                <div className="flex shrink-0 items-center gap-1">
+                  {onEdit &&
+                    (appointment.status === 'PENDING' || appointment.status === 'CONFIRMED') && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => onEdit(appointment)}
+                        aria-label="Editar agendamento"
+                      >
+                        <Pencil />
+                      </Button>
+                    )}
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon-sm"
                     onClick={onClose}
-                    aria-label="Fechar"
+                    aria-label="Fechar detalhes"
                   >
-                    <X className="h-4 w-4" />
+                    <X />
                   </Button>
                 </div>
               </div>
 
               {/* Body */}
-              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-                {/* Status + actions */}
-                <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
+                {/* Status */}
+                <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3">
+                  <span className="text-sm font-medium text-slate-600">Status</span>
                   <AppointmentStatusBadge status={appointment.status} />
-                  {!readOnly && (
-                    <StatusActionMenu
-                      appointment={appointment}
-                      isLoading={isActionLoading}
-                      allowedTransitions={allowedTransitions}
-                      onStatusChange={onStatusChange}
-                      onCancelRequest={onCancelRequest}
-                    />
-                  )}
                 </div>
+
+                {/* Actions */}
+                {!readOnly && (
+                  <DrawerActions
+                    appointment={appointment}
+                    isLoading={isActionLoading}
+                    allowedTransitions={allowedTransitions}
+                    onStatusChange={onStatusChange}
+                    onCancelRequest={onCancelRequest}
+                  />
+                )}
 
                 {/* Appointment details */}
                 <DrawerSection title="Consulta">
@@ -118,16 +148,10 @@ export function AppointmentDrawer({
                     <span className="mx-1 text-slate-400">–</span>
                     {formatWallTime(appointment.endTime)}
                   </DrawerRow>
-                  <DrawerRow label="Duração">
-                    {appointment.durationMinutes} min
-                  </DrawerRow>
-                  <DrawerRow label="Profissional">
-                    {appointment.profile.displayName}
-                  </DrawerRow>
+                  <DrawerRow label="Duração">{appointment.durationMinutes} min</DrawerRow>
+                  <DrawerRow label="Profissional">{appointment.profile.displayName}</DrawerRow>
                   {appointment.service && (
-                    <DrawerRow label="Serviço">
-                      {appointment.service.name}
-                    </DrawerRow>
+                    <DrawerRow label="Serviço">{appointment.service.name}</DrawerRow>
                   )}
                 </DrawerSection>
 
@@ -145,34 +169,118 @@ export function AppointmentDrawer({
                 {/* Notes */}
                 {appointment.notes && (
                   <DrawerSection title="Observações">
-                    <p className="text-sm leading-6 text-slate-600">{appointment.notes}</p>
+                    <p className="px-4 py-3 text-sm leading-6 text-slate-700">
+                      {appointment.notes}
+                    </p>
                   </DrawerSection>
                 )}
 
-                {/* Clinical record section — role-aware, dynamic */}
+                {/* Clinical record */}
                 <ClinicalRecordSection appointment={appointment} onClose={onClose} />
 
                 {/* Cancellation info */}
-                {appointment.status === 'CANCELED' && (
-                  <DrawerSection title="Cancelamento">
-                    {appointment.cancellationReason && (
-                      <DrawerRow label="Motivo">
-                        {appointment.cancellationReason}
-                      </DrawerRow>
-                    )}
-                    {appointment.canceledAt && (
-                      <DrawerRow label="Cancelado em">
-                        {formatAppointmentDate(appointment.canceledAt)}
-                      </DrawerRow>
-                    )}
-                  </DrawerSection>
-                )}
+                {appointment.status === 'CANCELED' &&
+                  (appointment.cancellationReason || appointment.canceledAt) && (
+                    <DrawerSection title="Cancelamento">
+                      {appointment.cancellationReason && (
+                        <DrawerRow label="Motivo">{appointment.cancellationReason}</DrawerRow>
+                      )}
+                      {appointment.canceledAt && (
+                        <DrawerRow label="Cancelado em">
+                          {formatAppointmentDate(appointment.canceledAt)}
+                        </DrawerRow>
+                      )}
+                    </DrawerSection>
+                  )}
               </div>
             </>
           )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  )
+}
+
+function DrawerActions({
+  appointment,
+  isLoading,
+  allowedTransitions,
+  onStatusChange,
+  onCancelRequest,
+}: {
+  appointment: Appointment
+  isLoading: boolean
+  allowedTransitions?: AppointmentStatus[]
+  onStatusChange: (id: string, status: AppointmentStatus) => void
+  onCancelRequest: (appointment: Appointment) => void
+}) {
+  const { id, status } = appointment
+  const can = (target: AppointmentStatus) =>
+    !allowedTransitions || allowedTransitions.includes(target)
+
+  if (status === 'COMPLETED' || status === 'CANCELED' || status === 'NO_SHOW') {
+    return null
+  }
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <p className="border-b border-slate-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        Ações
+      </p>
+      <div className="flex flex-col gap-1.5 p-3">
+        {status === 'PENDING' && can('CONFIRMED') && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="w-full justify-start"
+            disabled={isLoading}
+            onClick={() => onStatusChange(id, 'CONFIRMED')}
+          >
+            <Check />
+            Confirmar agendamento
+          </Button>
+        )}
+        {status === 'CONFIRMED' && can('COMPLETED') && (
+          <Button
+            type="button"
+            size="sm"
+            className="w-full justify-start"
+            disabled={isLoading}
+            onClick={() => onStatusChange(id, 'COMPLETED')}
+          >
+            <CheckCircle2 />
+            Concluir consulta
+          </Button>
+        )}
+        {can('NO_SHOW') && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+            disabled={isLoading}
+            onClick={() => onStatusChange(id, 'NO_SHOW')}
+          >
+            <UserX />
+            Não compareceu
+          </Button>
+        )}
+        {can('CANCELED') && (
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            className="w-full justify-start"
+            disabled={isLoading}
+            onClick={() => onCancelRequest(appointment)}
+          >
+            <X />
+            Cancelar agendamento
+          </Button>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -195,7 +303,10 @@ function ClinicalRecordSection({
   const handleOpen = () => {
     if (!record) return
     onClose()
-    void navigate({ to: '/app/prontuario/$clinicalRecordId', params: { clinicalRecordId: record.id } })
+    void navigate({
+      to: '/app/prontuario/$clinicalRecordId',
+      params: { clinicalRecordId: record.id },
+    })
   }
 
   const handleCreate = async () => {
@@ -209,9 +320,16 @@ function ClinicalRecordSection({
         patientPhone: appointment.patientPhone ?? undefined,
       })
       onClose()
-      void navigate({ to: '/app/prontuario/$clinicalRecordId', params: { clinicalRecordId: created.id } })
+      void navigate({
+        to: '/app/prontuario/$clinicalRecordId',
+        params: { clinicalRecordId: created.id },
+      })
     } catch {
-      showAlert({ title: 'Erro', description: 'Não foi possível criar o prontuário.', tone: 'error' })
+      showAlert({
+        title: 'Erro',
+        description: 'Não foi possível criar o prontuário.',
+        tone: 'error',
+      })
     } finally {
       setIsCreating(false)
     }
@@ -220,33 +338,57 @@ function ClinicalRecordSection({
   return (
     <DrawerSection title="Prontuário">
       {isLoading ? (
-        <div className="flex items-center gap-2 text-sm text-slate-500">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className="flex items-center gap-2.5 px-4 py-3.5 text-sm text-slate-500">
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
           Verificando prontuário...
         </div>
       ) : record ? (
-        <Button
-          size="sm"
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
           onClick={handleOpen}
-          className="w-full justify-start"
+          aria-label="Abrir prontuário clínico"
         >
-          <ClipboardList className="h-4 w-4" />
-          Abrir prontuário
-        </Button>
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"
+            aria-hidden="true"
+          >
+            <ClipboardList className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium text-slate-900">Abrir prontuário</p>
+            <p className="text-xs text-slate-500">Visualizar ficha clínica do paciente</p>
+          </div>
+          <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+        </button>
       ) : (
-        <Button
-          size="sm"
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50"
           onClick={handleCreate}
           disabled={isCreating}
-          className="w-full justify-start"
+          aria-label={isCreating ? 'Criando prontuário' : 'Criar prontuário clínico'}
         >
-          {isCreating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <ClipboardList className="h-4 w-4" />
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-500"
+            aria-hidden="true"
+          >
+            {isCreating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ClipboardList className="h-4 w-4" />
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium text-slate-900">
+              {isCreating ? 'Criando prontuário...' : 'Criar prontuário'}
+            </p>
+            <p className="text-xs text-slate-500">Iniciar ficha clínica para este paciente</p>
+          </div>
+          {!isCreating && (
+            <Plus className="ml-auto h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
           )}
-          {isCreating ? 'Criando prontuário...' : 'Criar prontuário'}
-        </Button>
+        </button>
       )}
     </DrawerSection>
   )
@@ -261,11 +403,11 @@ function DrawerSection({
 }) {
   return (
     <div>
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
         {title}
       </p>
-      <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-        {children}
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div className="divide-y divide-slate-100">{children}</div>
       </div>
     </div>
   )
@@ -279,9 +421,9 @@ function DrawerRow({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex justify-between gap-4 text-sm">
+    <div className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
       <span className="shrink-0 text-slate-500">{label}</span>
-      <span className="text-right font-medium text-slate-800">{children}</span>
+      <span className="text-right font-medium text-slate-900">{children}</span>
     </div>
   )
 }
