@@ -59,7 +59,11 @@ export function DashboardPageContainer() {
         <>
           {/* Status stat cards */}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <MetricCard value={String(statusCounts.total)} label="consultas hoje" />
+            <MetricCard
+              value={String(statusCounts.total)}
+              label="consultas hoje"
+              className="border-primary/30 bg-white sm:col-span-2 xl:col-span-1"
+            />
             <MetricCard value={String(statusCounts.confirmed)} label="confirmadas" />
             <MetricCard value={String(statusCounts.pending)} label="aguardando confirmação" />
             <MetricCard value={String(statusCounts.completed)} label="concluídas" />
@@ -84,23 +88,29 @@ export function DashboardPageContainer() {
               ) : (
                 <ul className="mt-4 divide-y divide-slate-100">
                   {upcomingAppointments.map((appt) => (
-                    <li
-                      key={appt.id}
-                      className="-mx-2 flex cursor-pointer items-center justify-between gap-3 rounded px-2 py-3 text-sm hover:bg-slate-50"
-                      onClick={() => setDrawerAppointment(appt)}
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-slate-900">{appt.patientName}</p>
-                        {appt.service && (
-                          <p className="truncate text-slate-500">{appt.service.name}</p>
-                        )}
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="font-medium text-slate-700">
-                          {formatWallTime(appt.startTime)}
-                        </p>
-                        <p className="text-slate-400">{appt.profile.displayName}</p>
-                      </div>
+                    <li key={appt.id}>
+                      <button
+                        type="button"
+                        className="-mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded px-2 py-3 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
+                        onClick={() => setDrawerAppointment(appt)}
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium text-slate-900">
+                            {appt.patientName}
+                          </span>
+                          {appt.service && (
+                            <span className="block truncate text-slate-500">
+                              {appt.service.name}
+                            </span>
+                          )}
+                        </span>
+                        <span className="shrink-0 text-right">
+                          <span className="block font-medium text-slate-700">
+                            {formatWallTime(appt.startTime)}
+                          </span>
+                          <span className="block text-slate-500">{appt.profile.displayName}</span>
+                        </span>
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -169,31 +179,31 @@ export function DashboardPageContainer() {
           )}
 
           {/* Quick shortcuts */}
-          <div className="flex flex-wrap gap-3">
-            <Button variant="outline" asChild>
+          <div className="grid gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap">
+            <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
               <Link to="/app/agendamentos">
-                <Calendar className="h-4 w-4" />
+                <Calendar className="h-4 w-4" aria-hidden="true" />
                 Agendamentos
               </Link>
             </Button>
-            <Button variant="outline" asChild>
+            <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
               <Link to="/app/pacientes">
-                <Users className="h-4 w-4" />
+                <Users className="h-4 w-4" aria-hidden="true" />
                 Pacientes
               </Link>
             </Button>
             {isOwner && (
-              <Button variant="outline" asChild>
+              <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
                 <Link to="/app/prontuario">
-                  <ClipboardList className="h-4 w-4" />
+                  <ClipboardList className="h-4 w-4" aria-hidden="true" />
                   Prontuários
                 </Link>
               </Button>
             )}
             {isOwner && (
-              <Button variant="outline" asChild>
+              <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
                 <Link to="/app/financeiro">
-                  <DollarSign className="h-4 w-4" />
+                  <DollarSign className="h-4 w-4" aria-hidden="true" />
                   Financeiro
                 </Link>
               </Button>
