@@ -13,8 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getProfile } from '@/features/profiles/services/profiles.service'
-import type { ProfileService } from '@/features/profiles/types'
+import { getProfile } from '../../services/profiles.service'
+import type { ProfileService } from '../../types/profile.types'
 import {
   formatDateInputValue,
   formatTimeInputValue,

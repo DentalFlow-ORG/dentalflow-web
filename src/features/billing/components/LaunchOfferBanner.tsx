@@ -49,7 +49,9 @@ export function LaunchOfferBanner({ campaign }: Props) {
       <div className="grid gap-5 p-5 lg:grid-cols-[1.35fr_0.65fr] lg:p-6">
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-700">
-            <Flame className="h-6 w-6" aria-hidden="true" />
+            <span className="df-orange-flame-flicker" aria-hidden="true">
+              <Flame className="h-6 w-6" />
+            </span>
           </div>
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wider text-orange-700">

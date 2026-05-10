@@ -32,6 +32,68 @@ const CHART_SERIES_LABELS: Record<string, string> = {
   netProfit: 'Resultado',
 }
 
+type ChartTooltipProps = {
+  active?: boolean
+  payload?: Array<{
+    name?: string | number
+    value?: number
+    color?: string
+    payload?: { fullDate?: string }
+  }>
+}
+
+function ChartTooltip({ active, payload }: ChartTooltipProps) {
+  if (!active || !payload?.length) return null
+
+  const fullDate = (payload[0]?.payload?.fullDate ?? '') as string
+
+  return (
+    <div
+      style={{
+        border: '1px solid #E2E8F0',
+        borderRadius: 8,
+        boxShadow: '0 12px 24px rgb(15 23 42 / 0.12)',
+        backgroundColor: '#ffffff',
+        padding: '8px 12px',
+        fontSize: 13,
+        lineHeight: 1.5,
+      }}
+    >
+      <p style={{ marginBottom: 6, fontWeight: 600, color: '#0F172A' }}>{fullDate}</p>
+      {payload.map((entry) => {
+        const key = String(entry.name)
+        const raw = Number(entry.value)
+        const label = CHART_SERIES_LABELS[key] ?? key
+        // For netProfit keep the sign (accessibility: minus sign visible for deficits).
+        // For income/expenses show absolute (the series label already conveys direction).
+        const displayValue =
+          key === 'netProfit'
+            ? raw > 0
+              ? `+${formatCurrency(raw)}`
+              : formatCurrency(raw)
+            : formatCurrency(Math.abs(raw))
+
+        let valueColor = entry.color ?? '#0F172A'
+        if (key === 'netProfit') {
+          if (raw > 0) valueColor = '#10B981'
+          else if (raw < 0) valueColor = '#EF4444'
+          else valueColor = '#94A3B8'
+        }
+
+        return (
+          <div
+            key={key}
+            style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginTop: 2 }}
+          >
+            <span style={{ color: '#64748B' }}>{label}</span>
+            <span style={{ color: valueColor, fontWeight: 600 }}>{displayValue}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
   const [visibleSeries, setVisibleSeries] = useState<Record<ChartSeriesKey, boolean>>({
     income: true,
@@ -137,16 +199,7 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
             />
             <Tooltip
               cursor={{ stroke: '#94A3B8', strokeDasharray: '4 4' }}
-              formatter={(value, name) => [
-                formatCurrency(Math.abs(Number(value))),
-                CHART_SERIES_LABELS[String(name)] ?? String(name),
-              ]}
-              labelFormatter={(_, payload) => payload?.[0]?.payload?.fullDate ?? ''}
-              contentStyle={{
-                border: '1px solid #E2E8F0',
-                borderRadius: 8,
-                boxShadow: '0 12px 24px rgb(15 23 42 / 0.12)',
-              }}
+              content={<ChartTooltip />}
             />
             <Legend
               iconType="circle"

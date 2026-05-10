@@ -1,4 +1,5 @@
-import { ArrowRight, BadgeCheck, CheckCircle2, Loader2, Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowRight, BadgeCheck, CheckCircle2, Flame, Loader2, Rocket } from 'lucide-react'
 
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
@@ -67,7 +68,7 @@ export function PricingCard({
       className={cn(
         'relative flex h-full flex-col overflow-hidden p-0',
         isCurrentPlan && 'border-primary ring-2 ring-primary/20',
-        isRecommended && !isCurrentPlan && 'border-primary shadow-sm',
+        isRecommended && !isCurrentPlan && 'border-primary shadow-sm transition-all duration-200 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md',
       )}
     >
       <PlanStateBanner isCurrentPlan={isCurrentPlan} isRecommended={isRecommended} />
@@ -190,8 +191,10 @@ function PlanStateBanner({
   if (isRecommended) {
     return (
       <div className="flex min-h-9 items-center justify-center gap-1.5 bg-primary px-4 py-2 text-xs font-semibold text-white">
-        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-        Plano recomendado
+        <span className="df-flame-flicker" aria-hidden="true">
+          <Flame className="h-4 w-4" />
+        </span>
+        Mais escolhido
       </div>
     )
   }
@@ -265,7 +268,30 @@ function CtaButton({
   loading: boolean
   onClick: () => void
 }) {
+  const [rocketAnimating, setRocketAnimating] = useState(false)
   const isProminentCta = isRecommended && !state.disabled && state.variant === 'default'
+
+  // Clear animation flag when loading begins so the rocket doesn't replay after the spinner.
+  useEffect(() => {
+    if (loading) setRocketAnimating(false)
+  }, [loading])
+
+  const handleClick = () => {
+    if (state.actionType === 'start_trial') setRocketAnimating(true)
+    onClick()
+  }
+
+  const icon = loading ? (
+    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+  ) : state.actionType === 'start_trial' ? (
+    <Rocket
+      className={cn('h-4 w-4', rocketAnimating && 'df-rocket-boost')}
+      aria-hidden="true"
+      onAnimationEnd={() => setRocketAnimating(false)}
+    />
+  ) : (
+    getButtonIcon(state.actionType)
+  )
 
   return (
     <Button
@@ -273,13 +299,9 @@ function CtaButton({
       className={cn('w-full', isProminentCta ? 'h-12 text-base' : 'h-11')}
       variant={state.variant}
       disabled={state.disabled}
-      onClick={onClick}
+      onClick={handleClick}
     >
-      {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-      ) : (
-        getButtonIcon(state.actionType)
-      )}
+      {icon}
       {loading ? getLoadingLabel(state.actionType) : state.label}
     </Button>
   )

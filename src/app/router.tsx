@@ -20,11 +20,6 @@ import {
   FiscalInvoicesPage,
   LandingPage,
   PatientsPage,
-  ProfileEditorPageCreate,
-  ProfileEditorPageEdit,
-  ProfilesListPage,
-  ProfileServiceEditorPage,
-  PublicProfilePage,
   SchedulePage,
   SubscriptionCancelPage,
   SubscriptionPage,
@@ -62,52 +57,6 @@ const appRoute = createRoute({
       <DashboardPage />
     </ProtectedAppRoute>
   ),
-})
-
-const profilesRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/app/perfis',
-  component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
-      <ProfilesListPage />
-    </ProtectedAppRoute>
-  ),
-})
-
-const newProfileRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/app/perfis/novo',
-  component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER']}>
-      <ProfileEditorPageCreate />
-    </ProtectedAppRoute>
-  ),
-})
-
-const editProfileRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/app/perfis/$profileId',
-  component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
-      <ProfileEditorPageEdit />
-    </ProtectedAppRoute>
-  ),
-})
-
-const editProfileServiceRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/app/perfis/$profileId/servicos/$serviceId',
-  component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER']}>
-      <ProfileServiceEditorPage />
-    </ProtectedAppRoute>
-  ),
-})
-
-const publicProfileRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/p/$slug',
-  component: PublicProfilePage,
 })
 
 const appointmentsRoute = createRoute({
@@ -274,11 +223,6 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
   appRoute,
-  profilesRoute,
-  newProfileRoute,
-  editProfileRoute,
-  editProfileServiceRoute,
-  publicProfileRoute,
   appointmentsRoute,
   scheduleRoute,
   teamRoute,

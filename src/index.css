@@ -151,3 +151,76 @@
     display: block;
   }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes df-flame-flicker {
+    0%,
+    100% {
+      transform: translateY(0px) scaleY(1) rotate(-2deg);
+      opacity: 1;
+    }
+
+    25% {
+      transform: translateY(-1px) scaleY(0.93) rotate(2deg);
+      opacity: 0.88;
+    }
+
+    50% {
+      transform: translateY(-2px) scaleY(1.1) rotate(-2.5deg);
+      opacity: 1;
+    }
+
+    75% {
+      transform: translateY(-1px) scaleY(0.96) rotate(1.5deg);
+      opacity: 0.92;
+    }
+  }
+
+  .df-flame-flicker {
+    display: inline-block;
+    transform-origin: center bottom;
+    will-change: transform, opacity;
+    animation: df-flame-flicker 1.8s ease-in-out infinite;
+  }
+
+  @keyframes df-orange-flame-flicker {
+    0%,
+    100% {
+      transform: translateY(0) scale(1, 1) rotate(-2deg);
+      opacity: 1;
+    }
+
+    25% {
+      transform: translateY(-1px) scale(0.96, 1.06) rotate(2deg);
+      opacity: 0.92;
+    }
+
+    50% {
+      transform: translateY(-2px) scale(1.06, 1.12) rotate(-1deg);
+      opacity: 1;
+    }
+
+    75% {
+      transform: translateY(-1px) scale(0.98, 1.04) rotate(1.5deg);
+      opacity: 0.94;
+    }
+  }
+
+  .df-orange-flame-flicker {
+    display: inline-block;
+    transform-origin: center bottom;
+    will-change: transform, opacity;
+    animation: df-orange-flame-flicker 2s ease-in-out infinite;
+  }
+
+  @keyframes df-rocket-boost {
+    0%   { transform: translate(0,    0)    scale(1);    }
+    35%  { transform: translate(2px, -5px)  scale(1.15); }
+    65%  { transform: translate(1px, -3px)  scale(1.08); }
+    100% { transform: translate(0,    0)    scale(1);    }
+  }
+
+  .df-rocket-boost {
+    animation: df-rocket-boost 420ms ease-out;
+  }
+}

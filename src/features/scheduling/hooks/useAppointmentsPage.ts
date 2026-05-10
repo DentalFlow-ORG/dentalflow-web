@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FilterDef } from '@/components/common/ListToolbar'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { listProfiles } from '@/features/profiles/services/profiles.service'
-import type { ProfileListItem } from '@/features/profiles/types'
+import { listProfiles } from '../services/profiles.service'
+import type { ProfileListItem } from '../types/profile.types'
 import { useListFilter } from '@/hooks/useListFilter'
 
 import {

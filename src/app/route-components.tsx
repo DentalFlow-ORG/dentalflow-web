@@ -18,36 +18,6 @@ export const DashboardPage = lazy(() =>
   })),
 )
 
-export const ProfilesListPage = lazy(() =>
-  import('@/features/profiles/pages/ProfilesListPage').then((m) => ({
-    default: m.ProfilesListPage,
-  })),
-)
-
-export const ProfileEditorPageCreate = lazy(() =>
-  import('@/features/profiles/pages/ProfileEditorPage').then((m) => ({
-    default: () => <m.ProfileEditorPage mode="create" />,
-  })),
-)
-
-export const ProfileEditorPageEdit = lazy(() =>
-  import('@/features/profiles/pages/ProfileEditorPage').then((m) => ({
-    default: () => <m.ProfileEditorPage mode="edit" />,
-  })),
-)
-
-export const ProfileServiceEditorPage = lazy(() =>
-  import('@/features/profiles/pages/ProfileServiceEditorPage').then((m) => ({
-    default: m.ProfileServiceEditorPage,
-  })),
-)
-
-export const PublicProfilePage = lazy(() =>
-  import('@/features/profiles/pages/PublicProfilePage').then((m) => ({
-    default: m.PublicProfilePage,
-  })),
-)
-
 export const AppointmentsPage = lazy(() =>
   import('@/features/scheduling/pages/AppointmentsPage').then((m) => ({
     default: m.AppointmentsPage,

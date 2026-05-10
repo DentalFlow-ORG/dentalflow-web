@@ -25,8 +25,8 @@ export function AuthInfoPanel() {
       </h1>
 
       <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">
-        Uma experiência limpa para acessar o ambiente da clínica, acompanhar
-        perfis profissionais e preparar os próximos fluxos de agendamento.
+        Uma experiência limpa para acessar o ambiente da clínica e gerenciar a
+        operação do dia a dia com segurança.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">

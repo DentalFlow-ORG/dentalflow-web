@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { BarChart3, BriefcaseBusiness, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, MoreHorizontal, ShieldCheck, Users, Users2, X, Zap } from 'lucide-react'
+import { BarChart3, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, MoreHorizontal, ShieldCheck, Users, Users2, X, Zap } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
@@ -31,12 +31,6 @@ const appNavigation: NavItem[] = [
     roles: ['OWNER', 'ASSISTANT'],
   },
   {
-    label: 'Perfis',
-    to: '/app/perfis',
-    icon: BriefcaseBusiness,
-    roles: ['OWNER', 'ASSISTANT'],
-  },
-  {
     label: 'Agendamentos',
     to: '/app/agendamentos',
     icon: CalendarCheck,
@@ -47,6 +41,18 @@ const appNavigation: NavItem[] = [
     to: '/app/agenda',
     icon: CalendarDays,
     roles: ['DENTIST'],
+  },
+  {
+    label: 'Pacientes',
+    to: '/app/pacientes',
+    icon: Users2,
+    roles: ['OWNER', 'ASSISTANT'],
+  },
+  {
+    label: 'Prontuário',
+    to: '/app/prontuario',
+    icon: ClipboardList,
+    roles: ['OWNER', 'DENTIST'],
   },
   {
     label: 'Equipe',
@@ -71,18 +77,6 @@ const appNavigation: NavItem[] = [
     to: '/app/assinatura',
     icon: CreditCard,
     roles: ['OWNER'],
-  },
-  {
-    label: 'Pacientes',
-    to: '/app/pacientes',
-    icon: Users2,
-    roles: ['OWNER', 'ASSISTANT'],
-  },
-  {
-    label: 'Prontuário',
-    to: '/app/prontuario',
-    icon: ClipboardList,
-    roles: ['OWNER', 'DENTIST'],
   },
   {
     label: 'Usuários',

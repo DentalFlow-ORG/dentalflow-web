@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { listProfiles } from '@/features/profiles/services/profiles.service'
-import type { ProfileListItem } from '@/features/profiles/types'
+import { listProfiles } from '../services/profiles.service'
+import type { ProfileListItem } from '../types/profile.types'
 
 import {
   listAppointments,
