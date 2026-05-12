@@ -120,3 +120,9 @@ export const ClinicalTemplatesPage = lazy(() =>
   })),
 )
 
+export const InventoryPage = lazy(() =>
+  import('@/features/inventory/pages/InventoryPage').then((m) => ({
+    default: m.InventoryPage,
+  })),
+)
+

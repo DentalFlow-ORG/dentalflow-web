@@ -18,6 +18,7 @@ import {
   DashboardPage,
   FinancePage,
   FiscalInvoicesPage,
+  InventoryPage,
   LandingPage,
   PatientsPage,
   SchedulePage,
@@ -189,6 +190,16 @@ const clinicalTemplatesRoute = createRoute({
   ),
 })
 
+const inventoryRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/estoque',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
+      <InventoryPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const adminUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/admin/users',
@@ -236,6 +247,7 @@ const routeTree = rootRoute.addChildren([
   clinicalRecordEditorRoute,
   clinicalRecordPrintRoute,
   clinicalTemplatesRoute,
+  inventoryRoute,
   adminUsersRoute,
   adminClinicsRoute,
   adminFinanceRoute,

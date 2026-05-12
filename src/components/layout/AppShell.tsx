@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { BarChart3, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, MoreHorizontal, ShieldCheck, Users, Users2, X, Zap } from 'lucide-react'
+import { BarChart3, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, MoreHorizontal, Package, ShieldCheck, Users, Users2, X, Zap } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
@@ -61,6 +61,12 @@ const appNavigation: NavItem[] = [
     roles: ['OWNER'],
   },
   {
+    label: 'Estoque',
+    to: '/app/estoque',
+    icon: Package,
+    roles: ['OWNER', 'ASSISTANT'],
+  },
+  {
     label: 'Financeiro',
     to: '/app/financeiro',
     icon: Landmark,
@@ -102,7 +108,7 @@ const appNavigation: NavItem[] = [
 const MOBILE_PRIMARY_ROUTES_BY_ROLE: Partial<Record<AuthUserRole, string[]>> = {
   OWNER: ['/app', '/app/agendamentos', '/app/pacientes', '/app/prontuario'],
   DENTIST: ['/app/agenda', '/app/prontuario'],
-  ASSISTANT: ['/app/agendamentos', '/app/pacientes', '/app/notas-fiscais'],
+  ASSISTANT: ['/app/agendamentos', '/app/pacientes', '/app/notas-fiscais', '/app/estoque'],
   ADMIN: ['/app/admin/users', '/app/admin/clinics', '/app/admin/financeiro'],
 }
 
