@@ -18,6 +18,7 @@ import { ApiError } from '@/services/http'
 
 import type { StockCategory, StockProduct } from '../types/inventory.types'
 import { createStockProduct, updateStockProduct } from '../services/inventory.service'
+import { formatQuantity } from '../utils/inventory-format'
 
 type ProductFormState = {
   name: string
@@ -116,7 +117,9 @@ export function ProductFormModal({
 
     const parsedQtyValue = parseFloat(form.currentQuantity)
     const parsedQty =
-      form.currentQuantity !== '' && !isNaN(parsedQtyValue) ? parsedQtyValue : undefined
+      !isEditMode && form.currentQuantity !== '' && !isNaN(parsedQtyValue)
+        ? parsedQtyValue
+        : undefined
 
     const parsedMinQtyValue = parseFloat(form.minQuantity)
     const parsedMinQty =
@@ -133,7 +136,6 @@ export function ProductFormModal({
           name: form.name.trim(),
           categoryId: form.categoryId,
           unit: unitValue,
-          currentQuantity: parsedQty,
           minQuantity: parsedMinQty,
           purchasePrice: parsedPrice,
           supplier: form.supplier.trim() || undefined,
@@ -178,20 +180,21 @@ export function ProductFormModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          aria-labelledby="product-form-title"
-          aria-describedby={undefined}
           className="fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
           {/* ── Header ── */}
+          <Dialog.Title className="sr-only">
+            {isEditMode ? 'Editar produto' : 'Novo produto'}
+          </Dialog.Title>
+          <Dialog.Description className="sr-only">
+            Preencha os dados do produto, selecione a categoria e salve o cadastro no estoque.
+          </Dialog.Description>
           <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
-            <Dialog.Title
-              id="product-form-title"
-              className="text-base font-semibold text-slate-950"
-            >
+            <h2 className="text-base font-semibold text-slate-950">
               {isEditMode ? 'Editar produto' : 'Novo produto'}
-            </Dialog.Title>
+            </h2>
             <button
               type="button"
               aria-label="Fechar"
@@ -247,7 +250,7 @@ export function ProductFormModal({
                     <SelectTrigger id="prodCategory">
                       <SelectValue placeholder="Selecione uma categoria" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="item-aligned">
                       {categories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
                           {cat.name}
@@ -268,18 +271,31 @@ export function ProductFormModal({
                   />
                 </FormField>
 
-                {/* Quantidade atual */}
-                <FormField label="Quantidade atual" htmlFor="prodQty" optional>
-                  <TextInput
-                    id="prodQty"
-                    type="number"
-                    min="0"
-                    step="0.001"
-                    placeholder="0"
-                    value={form.currentQuantity}
-                    onChange={(e) => setField('currentQuantity', e.target.value)}
-                  />
-                </FormField>
+                {isEditMode && product ? (
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                    <p className="text-sm font-semibold text-slate-700">
+                      Quantidade atual
+                    </p>
+                    <p className="mt-2 text-base font-semibold text-slate-950">
+                      {formatQuantity(product.currentQuantity, product.unit)}
+                    </p>
+                    <p className="mt-2 text-xs leading-5 text-slate-500">
+                      Para alterar a quantidade atual, use a ação "Movimentar estoque".
+                    </p>
+                  </div>
+                ) : (
+                  <FormField label="Quantidade atual" htmlFor="prodQty" optional>
+                    <TextInput
+                      id="prodQty"
+                      type="number"
+                      min="0"
+                      step="0.001"
+                      placeholder="0"
+                      value={form.currentQuantity}
+                      onChange={(e) => setField('currentQuantity', e.target.value)}
+                    />
+                  </FormField>
+                )}
 
                 {/* Quantidade mínima */}
                 <FormField label="Quantidade mínima" htmlFor="prodMinQty" optional>
@@ -367,7 +383,7 @@ export function ProductFormModal({
             </div>
 
             {/* ── Footer ── */}
-            <div className="flex shrink-0 gap-3 border-t border-slate-100 px-6 py-4">
+            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-100 px-6 py-4 sm:flex-row">
               <Button
                 type="button"
                 variant="outline"
