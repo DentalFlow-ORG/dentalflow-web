@@ -10,6 +10,7 @@ import {
   getStockSummary,
   listStockCategories,
   listStockProducts,
+  reactivateStockProduct,
 } from '../services/inventory.service'
 import type {
   StockCategory,
@@ -44,6 +45,10 @@ export function useInventoryPage() {
   const [deactivatingProduct, setDeactivatingProduct] = useState<StockProduct | null>(null)
   const [isDeactivating, setIsDeactivating] = useState(false)
   const [deactivateError, setDeactivateError] = useState<string | null>(null)
+
+  const [reactivatingProduct, setReactivatingProduct] = useState<StockProduct | null>(null)
+  const [isReactivating, setIsReactivating] = useState(false)
+  const [reactivateError, setReactivateError] = useState<string | null>(null)
 
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -287,6 +292,39 @@ export function useInventoryPage() {
     }
   }, [deactivatingProduct, reloadSummaryAndProducts, showAlert])
 
+  const handleReactivateRequest = useCallback((product: StockProduct) => {
+    setReactivateError(null)
+    setReactivatingProduct(product)
+  }, [])
+
+  const handleReactivateCancel = useCallback(() => {
+    setReactivatingProduct(null)
+    setReactivateError(null)
+  }, [])
+
+  const handleReactivateConfirm = useCallback(async () => {
+    if (!reactivatingProduct) return
+    setIsReactivating(true)
+    setReactivateError(null)
+    try {
+      const updated = await reactivateStockProduct(reactivatingProduct.id)
+      setReactivatingProduct(null)
+      showAlert({ title: 'Produto reativado com sucesso.', tone: 'success' })
+      reloadSummaryAndProducts()
+      if (viewingProduct?.id === reactivatingProduct.id) {
+        setViewingProduct(updated)
+      }
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : 'Não foi possível reativar o produto. Tente novamente.'
+      setReactivateError(message)
+    } finally {
+      setIsReactivating(false)
+    }
+  }, [reactivatingProduct, reloadSummaryAndProducts, showAlert, viewingProduct?.id])
+
   const hasFilters = !!debouncedSearch || !!categoryId || !!status
 
   return {
@@ -335,5 +373,11 @@ export function useInventoryPage() {
     handleDeactivateRequest,
     handleDeactivateCancel,
     handleDeactivateConfirm,
+    reactivatingProduct,
+    isReactivating,
+    reactivateError,
+    handleReactivateRequest,
+    handleReactivateCancel,
+    handleReactivateConfirm,
   }
 }

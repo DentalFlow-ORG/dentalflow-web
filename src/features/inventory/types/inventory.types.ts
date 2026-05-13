@@ -161,7 +161,6 @@ export type UpdateStockProductPayload = {
   categoryId?: string
   description?: string
   unit?: string
-  currentQuantity?: number
   minQuantity?: number
   purchasePrice?: number // in cents
   supplier?: string

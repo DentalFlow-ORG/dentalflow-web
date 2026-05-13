@@ -20,6 +20,7 @@ import { useInventoryPage } from '../hooks/useInventoryPage'
 import type { StockProductStatus } from '../types/inventory.types'
 import { CategoryManagerModal } from '../components/CategoryManagerModal'
 import { DeactivateProductDialog } from '../components/DeactivateProductDialog'
+import { ReactivateProductDialog } from '../components/ReactivateProductDialog'
 import { InventoryKpiGrid } from '../components/InventoryKpiGrid'
 import { InventoryProductTable } from '../components/InventoryProductTable'
 import { ProductDetailsDrawer } from '../components/ProductDetailsDrawer'
@@ -82,6 +83,12 @@ export function InventoryPageContainer() {
     handleDeactivateRequest,
     handleDeactivateCancel,
     handleDeactivateConfirm,
+    reactivatingProduct,
+    isReactivating,
+    reactivateError,
+    handleReactivateRequest,
+    handleReactivateCancel,
+    handleReactivateConfirm,
   } = useInventoryPage()
 
   return (
@@ -246,6 +253,7 @@ export function InventoryPageContainer() {
           handleCloseDetails()
           handleDeactivateRequest(p)
         }}
+        onReactivate={handleReactivateRequest}
       />
 
       <DeactivateProductDialog
@@ -255,6 +263,15 @@ export function InventoryPageContainer() {
         error={deactivateError}
         onCancel={handleDeactivateCancel}
         onConfirm={handleDeactivateConfirm}
+      />
+
+      <ReactivateProductDialog
+        open={reactivatingProduct !== null}
+        productName={reactivatingProduct?.name ?? ''}
+        isReactivating={isReactivating}
+        error={reactivateError}
+        onCancel={handleReactivateCancel}
+        onConfirm={handleReactivateConfirm}
       />
     </AppPage>
   )

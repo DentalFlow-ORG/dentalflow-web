@@ -116,6 +116,13 @@ export function deleteStockProduct(id: string) {
   })
 }
 
+export function reactivateStockProduct(id: string) {
+  return apiRequest<StockProduct>(`/stock/products/${id}/reactivate`, {
+    method: 'PATCH',
+    accessToken: getAccessToken(),
+  })
+}
+
 // â”€â”€ Movements â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function listStockMovements(query: ListStockMovementsQuery = {}) {

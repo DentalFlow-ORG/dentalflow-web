@@ -1,4 +1,4 @@
-import { MoveRight, Pencil, PowerOff, X } from 'lucide-react'
+import { MoveRight, Pencil, Power, PowerOff, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ type ProductDetailsDrawerProps = {
   onEdit: (product: StockProduct) => void
   onMove: (product: StockProduct) => void
   onDeactivate: (product: StockProduct) => void
+  onReactivate: (product: StockProduct) => void
 }
 
 export function ProductDetailsDrawer({
@@ -31,6 +32,7 @@ export function ProductDetailsDrawer({
   onEdit,
   onMove,
   onDeactivate,
+  onReactivate,
 }: ProductDetailsDrawerProps) {
   return (
     <Dialog.Root open={!!product} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -75,16 +77,18 @@ export function ProductDetailsDrawer({
                 {/* Actions */}
                 <DrawerSection title="Ações">
                   <div className="flex flex-col gap-1.5 p-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start"
-                      onClick={() => onEdit(product)}
-                    >
-                      <Pencil aria-hidden="true" />
-                      Editar produto
-                    </Button>
+                    {product.status !== 'INACTIVE' && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={() => onEdit(product)}
+                      >
+                        <Pencil aria-hidden="true" />
+                        Editar produto
+                      </Button>
+                    )}
                     {product.status !== 'INACTIVE' && (
                       <Button
                         type="button"
@@ -109,6 +113,19 @@ export function ProductDetailsDrawer({
                       >
                         <PowerOff aria-hidden="true" />
                         Desativar produto
+                      </Button>
+                    )}
+                    {isOwner && product.status === 'INACTIVE' && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        aria-label={`Reativar produto ${product.name}`}
+                        onClick={() => onReactivate(product)}
+                      >
+                        <Power aria-hidden="true" />
+                        Reativar produto
                       </Button>
                     )}
                   </div>
