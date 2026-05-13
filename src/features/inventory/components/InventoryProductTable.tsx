@@ -1,4 +1,4 @@
-import { Eye, Loader2, Package, Pencil, PowerOff } from 'lucide-react'
+import { Eye, Loader2, MoveRight, Package, Pencil, PowerOff } from 'lucide-react'
 
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
@@ -18,6 +18,7 @@ type InventoryProductTableProps = {
   onPageSizeChange: (size: number) => void
   onViewDetails: (product: StockProduct) => void
   onEdit: (product: StockProduct) => void
+  onMove: (product: StockProduct) => void
   onDeactivate?: (product: StockProduct) => void
 }
 
@@ -31,6 +32,7 @@ export function InventoryProductTable({
   onPageSizeChange,
   onViewDetails,
   onEdit,
+  onMove,
   onDeactivate,
 }: InventoryProductTableProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
@@ -66,6 +68,7 @@ export function InventoryProductTable({
               product={product}
               onViewDetails={onViewDetails}
               onEdit={onEdit}
+              onMove={onMove}
               onDeactivate={onDeactivate}
             />
           ))
@@ -149,7 +152,7 @@ export function InventoryProductTable({
                           type="button"
                           aria-label={`Ver detalhes do produto ${product.name}`}
                           onClick={() => onViewDetails(product)}
-                          className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                          className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-3 focus:ring-primary/15"
                         >
                           <Eye className="h-4 w-4" aria-hidden="true" />
                         </button>
@@ -157,16 +160,26 @@ export function InventoryProductTable({
                           type="button"
                           aria-label={`Editar produto ${product.name}`}
                           onClick={() => onEdit(product)}
-                          className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                          className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-3 focus:ring-primary/15"
                         >
                           <Pencil className="h-4 w-4" aria-hidden="true" />
                         </button>
-                        {onDeactivate && (
+                        {product.status !== 'INACTIVE' && (
+                          <button
+                            type="button"
+                            aria-label={`Movimentar estoque de ${product.name}`}
+                            onClick={() => onMove(product)}
+                            className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-blue-50 hover:text-primary focus:outline-none focus:ring-3 focus:ring-primary/15"
+                          >
+                            <MoveRight className="h-4 w-4" aria-hidden="true" />
+                          </button>
+                        )}
+                        {onDeactivate && product.status !== 'INACTIVE' && (
                           <button
                             type="button"
                             aria-label={`Desativar produto ${product.name}`}
                             onClick={() => onDeactivate(product)}
-                            className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                            className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-3 focus:ring-red-500/15"
                           >
                             <PowerOff className="h-4 w-4" aria-hidden="true" />
                           </button>

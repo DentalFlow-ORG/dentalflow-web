@@ -9,6 +9,15 @@ export const STOCK_PRODUCT_STATUSES = [
 
 export type StockProductStatus = (typeof STOCK_PRODUCT_STATUSES)[number]
 
+export const STOCK_MOVEMENT_TYPES = [
+  'IN',
+  'OUT',
+  'ADJUSTMENT',
+  'LOSS',
+] as const
+
+export type StockMovementType = (typeof STOCK_MOVEMENT_TYPES)[number]
+
 export type StockCategory = {
   id: string
   clinicId: string
@@ -54,6 +63,35 @@ export type StockSummary = {
   totalCategories: number
 }
 
+export type StockMovement = {
+  id: string
+  clinicId: string
+  productId: string
+  type: StockMovementType
+  quantity: number
+  previousQuantity: number
+  newQuantity: number
+  reason: string | null
+  notes: string | null
+  performedByUserId: string
+  createdAt: string
+  product?: {
+    id: string
+    name: string
+    unit: string
+    category?: {
+      id: string
+      name: string
+    }
+  }
+  performedBy?: {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+  }
+}
+
 export type ListStockProductsQuery = {
   search?: string
   categoryId?: string
@@ -67,6 +105,31 @@ export type PaginatedStockProductsResponse = {
   total: number
   page: number
   limit: number
+}
+
+export type ListStockMovementsQuery = {
+  productId?: string
+  type?: StockMovementType
+  dateFrom?: string
+  dateTo?: string
+  page?: number
+  limit?: number
+}
+
+export type PaginatedStockMovementsResponse = {
+  data: StockMovement[]
+  total: number
+  page: number
+  limit: number
+}
+
+export type CreateStockMovementPayload = {
+  productId: string
+  type: StockMovementType
+  quantity?: number
+  newQuantity?: number
+  reason?: string
+  notes?: string
 }
 
 export type CreateStockCategoryPayload = {

@@ -1,4 +1,4 @@
-import { Eye, Pencil, PowerOff } from 'lucide-react'
+import { Eye, MoveRight, Pencil, PowerOff } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 
@@ -10,6 +10,7 @@ type InventoryProductCardProps = {
   product: StockProduct
   onViewDetails: (product: StockProduct) => void
   onEdit: (product: StockProduct) => void
+  onMove: (product: StockProduct) => void
   onDeactivate?: (product: StockProduct) => void
 }
 
@@ -17,6 +18,7 @@ export function InventoryProductCard({
   product,
   onViewDetails,
   onEdit,
+  onMove,
   onDeactivate,
 }: InventoryProductCardProps) {
   return (
@@ -79,7 +81,7 @@ export function InventoryProductCard({
             size="sm"
             onClick={() => onViewDetails(product)}
           >
-            <Eye />
+            <Eye aria-hidden="true" />
             Ver detalhes
           </Button>
           <Button
@@ -88,11 +90,24 @@ export function InventoryProductCard({
             size="sm"
             onClick={() => onEdit(product)}
           >
-            <Pencil />
+            <Pencil aria-hidden="true" />
             Editar
           </Button>
         </div>
-        {onDeactivate && (
+        {product.status !== 'INACTIVE' && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full"
+            aria-label={`Movimentar estoque de ${product.name}`}
+            onClick={() => onMove(product)}
+          >
+            <MoveRight aria-hidden="true" />
+            Movimentar
+          </Button>
+        )}
+        {onDeactivate && product.status !== 'INACTIVE' && (
           <Button
             type="button"
             variant="destructive"
@@ -100,7 +115,7 @@ export function InventoryProductCard({
             className="w-full"
             onClick={() => onDeactivate(product)}
           >
-            <PowerOff />
+            <PowerOff aria-hidden="true" />
             Desativar produto
           </Button>
         )}

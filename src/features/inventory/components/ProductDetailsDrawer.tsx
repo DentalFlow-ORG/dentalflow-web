@@ -1,4 +1,4 @@
-import { Pencil, PowerOff, X } from 'lucide-react'
+import { MoveRight, Pencil, PowerOff, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 
 import { Button } from '@/components/ui/button'
@@ -11,20 +11,25 @@ import {
   formatQuantity,
 } from '../utils/inventory-format'
 import { StockStatusBadge } from './StockStatusBadge'
+import { StockMovementHistory } from './StockMovementHistory'
 
 type ProductDetailsDrawerProps = {
   product: StockProduct | null
   isOwner: boolean
+  movementHistoryRefreshKey: number
   onClose: () => void
   onEdit: (product: StockProduct) => void
+  onMove: (product: StockProduct) => void
   onDeactivate: (product: StockProduct) => void
 }
 
 export function ProductDetailsDrawer({
   product,
   isOwner,
+  movementHistoryRefreshKey,
   onClose,
   onEdit,
+  onMove,
   onDeactivate,
 }: ProductDetailsDrawerProps) {
   return (
@@ -61,7 +66,7 @@ export function ProductDetailsDrawer({
                   aria-label="Fechar detalhes"
                   className="shrink-0"
                 >
-                  <X />
+                  <X aria-hidden="true" />
                 </Button>
               </div>
 
@@ -77,18 +82,32 @@ export function ProductDetailsDrawer({
                       className="w-full justify-start"
                       onClick={() => onEdit(product)}
                     >
-                      <Pencil />
+                      <Pencil aria-hidden="true" />
                       Editar produto
                     </Button>
-                    {isOwner && (
+                    {product.status !== 'INACTIVE' && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        aria-label={`Movimentar estoque de ${product.name}`}
+                        onClick={() => onMove(product)}
+                      >
+                        <MoveRight aria-hidden="true" />
+                        Movimentar
+                      </Button>
+                    )}
+                    {isOwner && product.status !== 'INACTIVE' && (
                       <Button
                         type="button"
                         variant="destructive"
                         size="sm"
                         className="w-full justify-start"
+                        aria-label={`Desativar produto ${product.name}`}
                         onClick={() => onDeactivate(product)}
                       >
-                        <PowerOff />
+                        <PowerOff aria-hidden="true" />
                         Desativar produto
                       </Button>
                     )}
@@ -134,7 +153,7 @@ export function ProductDetailsDrawer({
                 {/* Description */}
                 {product.description && (
                   <DrawerSection title="Descrição">
-                    <p className="px-4 py-3 text-sm leading-6 text-slate-700">
+                    <p className="break-words px-4 py-3 text-sm leading-6 text-slate-700">
                       {product.description}
                     </p>
                   </DrawerSection>
@@ -143,7 +162,7 @@ export function ProductDetailsDrawer({
                 {/* Notes */}
                 {product.notes && (
                   <DrawerSection title="Observações internas">
-                    <p className="px-4 py-3 text-sm leading-6 text-slate-700">
+                    <p className="break-words px-4 py-3 text-sm leading-6 text-slate-700">
                       {product.notes}
                     </p>
                   </DrawerSection>
@@ -157,6 +176,13 @@ export function ProductDetailsDrawer({
                   <DrawerRow label="Atualizado em">
                     {formatProductDateTime(product.updatedAt)}
                   </DrawerRow>
+                </DrawerSection>
+
+                <DrawerSection title="Movimentações recentes">
+                  <StockMovementHistory
+                    product={product}
+                    refreshKey={movementHistoryRefreshKey}
+                  />
                 </DrawerSection>
               </div>
             </>
@@ -196,7 +222,9 @@ function DrawerRow({
   return (
     <div className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
       <span className="shrink-0 text-slate-500">{label}</span>
-      <span className="text-right font-medium text-slate-900">{children}</span>
+      <span className="min-w-0 break-words text-right font-medium text-slate-900">
+        {children}
+      </span>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { Package, Plus } from 'lucide-react'
+import { Package, Plus, Tags } from 'lucide-react'
 
 import { EmptyState } from '@/components/common/EmptyState'
 import { FilteredEmptyState } from '@/components/common/FilteredEmptyState'
@@ -18,11 +18,13 @@ import {
 
 import { useInventoryPage } from '../hooks/useInventoryPage'
 import type { StockProductStatus } from '../types/inventory.types'
+import { CategoryManagerModal } from '../components/CategoryManagerModal'
 import { DeactivateProductDialog } from '../components/DeactivateProductDialog'
 import { InventoryKpiGrid } from '../components/InventoryKpiGrid'
 import { InventoryProductTable } from '../components/InventoryProductTable'
 import { ProductDetailsDrawer } from '../components/ProductDetailsDrawer'
 import { ProductFormModal } from '../components/ProductFormModal'
+import { StockMovementModal } from '../components/StockMovementModal'
 
 const STATUS_OPTIONS: { value: StockProductStatus; label: string }[] = [
   { value: 'ACTIVE', label: 'Em estoque' },
@@ -57,12 +59,21 @@ export function InventoryPageContainer() {
     handlePageSizeChange,
     isOwner,
     isCreateModalOpen,
+    isCategoryManagerOpen,
     editingProduct,
+    movingProduct,
     handleOpenCreate,
+    handleOpenCategoryManager,
+    handleCloseCategoryManager,
+    reloadInventoryData,
     handleOpenEdit,
     handleCloseModal,
     handleProductSaved,
+    handleOpenMovement,
+    handleCloseMovement,
+    handleMovementSaved,
     viewingProduct,
+    movementHistoryRefreshKey,
     handleOpenDetails,
     handleCloseDetails,
     deactivatingProduct,
@@ -80,10 +91,18 @@ export function InventoryPageContainer() {
         title="Controle de Estoque"
         description="Gerencie produtos, categorias e acompanhe os níveis de estoque da clínica."
         action={
-          <Button onClick={handleOpenCreate}>
-            <Plus aria-hidden="true" />
-            Novo produto
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row [&>*]:w-full sm:[&>*]:w-auto">
+            {isOwner && (
+              <Button variant="outline" onClick={handleOpenCategoryManager}>
+                <Tags aria-hidden="true" />
+                Gerenciar categorias
+              </Button>
+            )}
+            <Button onClick={handleOpenCreate}>
+              <Plus aria-hidden="true" />
+              Novo produto
+            </Button>
+          </div>
         }
       />
 
@@ -108,7 +127,7 @@ export function InventoryPageContainer() {
               <SelectTrigger id="stockCategory">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="item-aligned">
                 <SelectItem value="all">Todas as categorias</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
@@ -130,7 +149,7 @@ export function InventoryPageContainer() {
               <SelectTrigger id="stockStatus">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="item-aligned">
                 <SelectItem value="all">Todos os status</SelectItem>
                 {STATUS_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
@@ -186,6 +205,7 @@ export function InventoryPageContainer() {
               onPageSizeChange={handlePageSizeChange}
               onViewDetails={handleOpenDetails}
               onEdit={handleOpenEdit}
+              onMove={handleOpenMovement}
               onDeactivate={isOwner ? handleDeactivateRequest : undefined}
             />
           )}
@@ -199,14 +219,29 @@ export function InventoryPageContainer() {
         onSuccess={handleProductSaved}
       />
 
+      <CategoryManagerModal
+        open={isCategoryManagerOpen}
+        categories={categories}
+        onClose={handleCloseCategoryManager}
+        onCategoriesChanged={reloadInventoryData}
+      />
+
+      <StockMovementModal
+        product={movingProduct}
+        onClose={handleCloseMovement}
+        onSuccess={handleMovementSaved}
+      />
+
       <ProductDetailsDrawer
         product={viewingProduct}
         isOwner={isOwner}
+        movementHistoryRefreshKey={movementHistoryRefreshKey}
         onClose={handleCloseDetails}
         onEdit={(p) => {
           handleCloseDetails()
           handleOpenEdit(p)
         }}
+        onMove={handleOpenMovement}
         onDeactivate={(p) => {
           handleCloseDetails()
           handleDeactivateRequest(p)

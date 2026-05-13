@@ -6,6 +6,7 @@ import { ApiError } from '@/services/http'
 
 import {
   deleteStockProduct,
+  getStockProduct,
   getStockSummary,
   listStockCategories,
   listStockProducts,
@@ -34,9 +35,12 @@ export function useInventoryPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<StockProduct | null>(null)
+  const [movingProduct, setMovingProduct] = useState<StockProduct | null>(null)
 
   const [viewingProduct, setViewingProduct] = useState<StockProduct | null>(null)
+  const [movementHistoryRefreshKey, setMovementHistoryRefreshKey] = useState(0)
   const [deactivatingProduct, setDeactivatingProduct] = useState<StockProduct | null>(null)
   const [isDeactivating, setIsDeactivating] = useState(false)
   const [deactivateError, setDeactivateError] = useState<string | null>(null)
@@ -169,7 +173,51 @@ export function useInventoryPage() {
       })
   }, [debouncedSearch, categoryId, status, page, pageSize, showAlert])
 
+  const reloadInventoryData = useCallback(
+    ({ refreshProducts = false }: { refreshProducts?: boolean } = {}) => {
+      const requests = [
+        getStockSummary(),
+        listStockCategories(),
+        refreshProducts
+          ? listStockProducts({
+              search: debouncedSearch || undefined,
+              categoryId,
+              status,
+              page,
+              limit: pageSize,
+            })
+          : Promise.resolve(null),
+      ] as const
+
+      Promise.all(requests)
+        .then(([s, c, p]) => {
+          setSummary(s)
+          setCategories(c)
+
+          if (p) {
+            setProducts(p.data)
+            setTotal(p.total)
+          }
+        })
+        .catch((err) => {
+          const message =
+            err instanceof ApiError ? err.message : 'Erro ao recarregar categorias.'
+          showAlert({ title: 'Erro ao recarregar', description: message, tone: 'error' })
+        })
+    },
+    [debouncedSearch, categoryId, status, page, pageSize, showAlert],
+  )
+
   const handleOpenCreate = useCallback(() => setIsCreateModalOpen(true), [])
+
+  const handleOpenCategoryManager = useCallback(() => {
+    if (!isOwner) return
+    setIsCategoryManagerOpen(true)
+  }, [isOwner])
+
+  const handleCloseCategoryManager = useCallback(() => {
+    setIsCategoryManagerOpen(false)
+  }, [])
 
   const handleOpenEdit = useCallback((product: StockProduct) => setEditingProduct(product), [])
 
@@ -181,6 +229,29 @@ export function useInventoryPage() {
   const handleProductSaved = useCallback(() => {
     reloadSummaryAndProducts()
   }, [reloadSummaryAndProducts])
+
+  const handleOpenMovement = useCallback((product: StockProduct) => {
+    setMovingProduct(product)
+  }, [])
+
+  const handleCloseMovement = useCallback(() => {
+    setMovingProduct(null)
+  }, [])
+
+  const handleMovementSaved = useCallback(() => {
+    reloadSummaryAndProducts()
+    setMovementHistoryRefreshKey((key) => key + 1)
+
+    if (movingProduct && viewingProduct?.id === movingProduct.id) {
+      getStockProduct(movingProduct.id)
+        .then((product) => setViewingProduct(product))
+        .catch((err) => {
+          const message =
+            err instanceof ApiError ? err.message : 'Erro ao recarregar produto.'
+          showAlert({ title: 'Erro ao recarregar', description: message, tone: 'error' })
+        })
+    }
+  }, [movingProduct, reloadSummaryAndProducts, showAlert, viewingProduct?.id])
 
   const handleOpenDetails = useCallback((product: StockProduct) => setViewingProduct(product), [])
 
@@ -241,12 +312,21 @@ export function useInventoryPage() {
     handlePageSizeChange,
     isOwner,
     isCreateModalOpen,
+    isCategoryManagerOpen,
     editingProduct,
+    movingProduct,
     handleOpenCreate,
+    handleOpenCategoryManager,
+    handleCloseCategoryManager,
+    reloadInventoryData,
     handleOpenEdit,
     handleCloseModal,
     handleProductSaved,
+    handleOpenMovement,
+    handleCloseMovement,
+    handleMovementSaved,
     viewingProduct,
+    movementHistoryRefreshKey,
     handleOpenDetails,
     handleCloseDetails,
     deactivatingProduct,

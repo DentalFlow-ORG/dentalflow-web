@@ -3,10 +3,14 @@ import { apiRequest } from '@/services/http'
 
 import type {
   CreateStockCategoryPayload,
+  CreateStockMovementPayload,
   CreateStockProductPayload,
+  ListStockMovementsQuery,
   ListStockProductsQuery,
+  PaginatedStockMovementsResponse,
   PaginatedStockProductsResponse,
   StockCategory,
+  StockMovement,
   StockProduct,
   StockSummary,
   UpdateStockCategoryPayload,
@@ -110,4 +114,44 @@ export function deleteStockProduct(id: string) {
     method: 'DELETE',
     accessToken: getAccessToken(),
   })
+}
+
+// â”€â”€ Movements â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+export function listStockMovements(query: ListStockMovementsQuery = {}) {
+  return apiRequest<PaginatedStockMovementsResponse>(
+    `/stock/movements${buildQuery({
+      productId: query.productId,
+      type: query.type,
+      dateFrom: query.dateFrom,
+      dateTo: query.dateTo,
+      page: query.page,
+      limit: query.limit,
+    })}`,
+    { method: 'GET', accessToken: getAccessToken() },
+  )
+}
+
+export function createStockMovement(payload: CreateStockMovementPayload) {
+  return apiRequest<StockMovement>('/stock/movements', {
+    method: 'POST',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(payload),
+  })
+}
+
+export function listProductStockMovements(
+  productId: string,
+  query: ListStockMovementsQuery = {},
+) {
+  return apiRequest<PaginatedStockMovementsResponse>(
+    `/stock/products/${productId}/movements${buildQuery({
+      type: query.type,
+      dateFrom: query.dateFrom,
+      dateTo: query.dateTo,
+      page: query.page,
+      limit: query.limit,
+    })}`,
+    { method: 'GET', accessToken: getAccessToken() },
+  )
 }

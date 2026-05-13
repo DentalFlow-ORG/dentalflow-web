@@ -25,5 +25,34 @@ export function formatProductDateTime(isoString: string): string {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   }).format(new Date(isoString))
+}
+
+export function getMovementTypeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    IN: 'Entrada',
+    OUT: 'Saída',
+    ADJUSTMENT: 'Ajuste',
+    LOSS: 'Perda/descarte',
+  }
+
+  return labels[type] ?? type
+}
+
+export function formatMovementQuantity(
+  type: string,
+  quantity: number,
+  unit: string,
+): string {
+  const sign = type === 'IN' ? '+' : type === 'OUT' || type === 'LOSS' ? '-' : ''
+  return `${sign}${formatQuantity(quantity, unit)}`
+}
+
+export function formatQuantityTransition(
+  previousQuantity: number,
+  newQuantity: number,
+): string {
+  return `${previousQuantity} → ${newQuantity}`
 }
