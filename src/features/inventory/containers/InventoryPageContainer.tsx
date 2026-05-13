@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 
 import { useInventoryPage } from '../hooks/useInventoryPage'
-import type { StockProductStatus } from '../types/inventory.types'
+import type { StockProductStatus, StockSummary } from '../types/inventory.types'
 import { CategoryManagerModal } from '../components/CategoryManagerModal'
 import { DeactivateProductDialog } from '../components/DeactivateProductDialog'
 import { ReactivateProductDialog } from '../components/ReactivateProductDialog'
@@ -35,6 +35,54 @@ const STATUS_OPTIONS: { value: StockProductStatus; label: string }[] = [
   { value: 'EXPIRED', label: 'Vencido' },
   { value: 'INACTIVE', label: 'Inativo' },
 ]
+
+type AttentionChip = {
+  status: StockProductStatus
+  label: string
+  count: number
+  base: string
+  active: string
+}
+
+function buildAttentionChips(summary: StockSummary): AttentionChip[] {
+  return [
+    {
+      status: 'EMPTY',
+      label: 'Sem estoque',
+      count: summary.emptyStock,
+      base: 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
+      active: 'border-red-600 bg-red-600 text-white hover:bg-red-700',
+    },
+    {
+      status: 'LOW',
+      label: 'Baixo estoque',
+      count: summary.lowStock,
+      base: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100',
+      active: 'border-amber-600 bg-amber-600 text-white hover:bg-amber-700',
+    },
+    {
+      status: 'EXPIRING',
+      label: 'Vencendo',
+      count: summary.expiring,
+      base: 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100',
+      active: 'border-orange-600 bg-orange-600 text-white hover:bg-orange-700',
+    },
+    {
+      status: 'EXPIRED',
+      label: 'Vencidos',
+      count: summary.expired,
+      base: 'border-red-200 bg-red-50 text-red-800 hover:bg-red-100',
+      active: 'border-red-700 bg-red-700 text-white hover:bg-red-800',
+    },
+    {
+      status: 'INACTIVE',
+      label: 'Inativos',
+      count: summary.inactive,
+      base: 'border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200',
+      active: 'border-slate-500 bg-slate-500 text-white hover:bg-slate-600',
+    },
+  ].filter((c) => c.count > 0)
+}
 
 export function InventoryPageContainer() {
   const {
@@ -167,6 +215,42 @@ export function InventoryPageContainer() {
             </Select>
           </FormField>
         </div>
+        {/* Quick-filter chips — derived from summary, only shown when counts > 0 */}
+        {summary && (() => {
+          const chips = buildAttentionChips(summary)
+          return chips.length > 0 ? (
+            <div
+              className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3"
+              role="group"
+              aria-label="Filtros rápidos por atenção"
+            >
+              <span className="text-xs font-medium text-slate-400" aria-hidden="true">
+                Atenção:
+              </span>
+              {chips.map(({ status: s, label, count, base, active }) => {
+                const isActive = status === s
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    aria-pressed={isActive}
+                    aria-label={`Filtrar por ${label}: ${count} produto${count !== 1 ? 's' : ''}`}
+                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 ${isActive ? active : base}`}
+                    onClick={() => handleStatusChange(isActive ? undefined : s)}
+                  >
+                    {label}
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${isActive ? 'bg-white/25' : 'bg-white/70'}`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          ) : null
+        })()}
+
         {hasFilters && (
           <div className="mt-3 flex justify-end">
             <Button variant="ghost" size="sm" onClick={handleClearFilters}>
@@ -214,6 +298,7 @@ export function InventoryPageContainer() {
               onEdit={handleOpenEdit}
               onMove={handleOpenMovement}
               onDeactivate={isOwner ? handleDeactivateRequest : undefined}
+              onReactivate={isOwner ? handleReactivateRequest : undefined}
             />
           )}
         </>
