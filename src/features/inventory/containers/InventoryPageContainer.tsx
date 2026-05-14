@@ -45,7 +45,7 @@ type AttentionChip = {
 }
 
 function buildAttentionChips(summary: StockSummary): AttentionChip[] {
-  return [
+  const all: AttentionChip[] = [
     {
       status: 'EMPTY',
       label: 'Sem estoque',
@@ -81,7 +81,8 @@ function buildAttentionChips(summary: StockSummary): AttentionChip[] {
       base: 'border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200',
       active: 'border-slate-500 bg-slate-500 text-white hover:bg-slate-600',
     },
-  ].filter((c) => c.count > 0)
+  ]
+  return all.filter((c) => c.count > 0)
 }
 
 export function InventoryPageContainer() {

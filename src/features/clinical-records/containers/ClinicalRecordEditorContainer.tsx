@@ -4,6 +4,7 @@ import { ClipboardList } from 'lucide-react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 import { ClinicalAiAssistantCard } from '../components/ClinicalAiAssistantCard'
 import { ClinicalRecordActions } from '../components/ClinicalRecordActions'
@@ -37,6 +38,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const { record, isLoading, isSaving, error, save, saveAndComplete, lock, cancel, restore } =
     useClinicalRecord(recordId)
   const { templates } = useClinicalTemplates()
@@ -46,7 +48,6 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const [odontogramData, setOdontogramData] = useState<OdontogramData>({ teeth: {} })
   const [odontogramLoaded, setOdontogramLoaded] = useState(false)
 
-  // Load odontogram once the record is available
   useEffect(() => {
     if (!record || odontogramLoaded) return
     const identifier = record.patientEmail ?? record.patientName
@@ -100,17 +101,13 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
   const handleSaveDraft = async () => {
     await save(draft)
-    // Save odontogram alongside record if on odontogram tab or if data changed
     if (Object.keys(odontogramData.teeth).length > 0) {
-      upsertOdontogram(identifier, record.patientName, odontogramData).catch(() => {
-        // odontogram save failure is non-critical
-      })
+      upsertOdontogram(identifier, record.patientName, odontogramData).catch(() => {})
     }
   }
 
   const handleOdontogramChange = (data: OdontogramData) => {
     setOdontogramData(data)
-    // Auto-save odontogram on change (debounced in service layer or accept the immediate call)
     if (!isReadOnly) {
       upsertOdontogram(identifier, record.patientName, data).catch(() => {})
     }
@@ -148,10 +145,9 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-4">
-        {/* Main editor */}
-        <div className="xl:col-span-3 space-y-4">
-          {/* Queixa principal */}
+      {isMobile ? (
+        /* ── Mobile: all sections stacked vertically ── */
+        <div className="space-y-4">
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <ClinicalSectionField
               label="Queixa principal"
@@ -163,122 +159,103 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           </div>
 
-          {/* Tab navigation */}
-          <div className="overflow-x-auto rounded-t-xl border border-slate-200 bg-white">
-            <nav role="tablist" aria-label="Seções do prontuário" className="flex min-w-max border-b border-slate-200">
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  id={`tab-${tab.id}`}
-                  aria-selected={activeTab === tab.id}
-                  aria-controls={`tabpanel-${tab.id}`}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-b-2 border-primary text-primary'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
-
-            <div
-              role="tabpanel"
-              id={`tabpanel-${activeTab}`}
-              aria-labelledby={`tab-${activeTab}`}
-              className="p-5"
-            >
-              {activeTab === 'anamnese' && (
-                <ClinicalSectionField
-                  label="Anamnese"
-                  value={field('anamnesis')}
-                  onChange={setField('anamnesis')}
-                  placeholder="Histórico médico, alergias, medicamentos em uso, antecedentes familiares..."
-                  readOnly={isReadOnly}
-                  rows={8}
-                />
-              )}
-              {activeTab === 'evolucao' && (
-                <ClinicalSectionField
-                  label="Evolução clínica"
-                  value={field('clinicalEvolution')}
-                  onChange={setField('clinicalEvolution')}
-                  placeholder="Descreva a evolução clínica do atendimento..."
-                  readOnly={isReadOnly}
-                  rows={8}
-                />
-              )}
-              {activeTab === 'diagnostico' && (
-                <ClinicalSectionField
-                  label="Diagnóstico / Hipótese diagnóstica"
-                  value={field('diagnosis')}
-                  onChange={setField('diagnosis')}
-                  placeholder="CID, hipótese diagnóstica ou diagnóstico diferencial..."
-                  readOnly={isReadOnly}
-                  rows={6}
-                />
-              )}
-              {activeTab === 'procedimentos' && (
-                <ClinicalSectionField
-                  label="Procedimentos realizados"
-                  value={field('proceduresPerformed')}
-                  onChange={setField('proceduresPerformed')}
-                  placeholder="Descreva os procedimentos realizados durante o atendimento..."
-                  readOnly={isReadOnly}
-                  rows={6}
-                />
-              )}
-              {activeTab === 'plano' && (
-                <ClinicalSectionField
-                  label="Plano de tratamento"
-                  value={field('treatmentPlan')}
-                  onChange={setField('treatmentPlan')}
-                  placeholder="Descreva o plano de tratamento proposto..."
-                  readOnly={isReadOnly}
-                  rows={6}
-                />
-              )}
-              {activeTab === 'prescricao' && (
-                <ClinicalSectionField
-                  label="Prescrição / Medicamentos"
-                  value={field('prescription')}
-                  onChange={setField('prescription')}
-                  placeholder="Medicamentos prescritos, posologia, orientações de uso..."
-                  readOnly={isReadOnly}
-                  rows={6}
-                />
-              )}
-              {activeTab === 'recomendacoes' && (
-                <ClinicalSectionField
-                  label="Recomendações ao paciente"
-                  value={field('recommendations')}
-                  onChange={setField('recommendations')}
-                  placeholder="Orientações de cuidados pós-atendimento, restrições, retorno..."
-                  readOnly={isReadOnly}
-                  rows={6}
-                />
-              )}
-              {activeTab === 'odontograma' && (
-                <OdontogramSection
-                  data={odontogramData}
-                  onChange={handleOdontogramChange}
-                  readOnly={isReadOnly}
-                />
-              )}
-              {activeTab === 'imagens' && (
-                <ImageAttachmentPanel
-                  recordId={recordId}
-                  readOnly={isReadOnly}
-                />
-              )}
-            </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <ClinicalSectionField
+              label="Anamnese"
+              value={field('anamnesis')}
+              onChange={setField('anamnesis')}
+              placeholder="Histórico médico, alergias, medicamentos em uso, antecedentes familiares..."
+              readOnly={isReadOnly}
+              rows={4}
+            />
           </div>
 
-          {/* Private notes — visible to professionals only */}
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <ClinicalSectionField
+              label="Evolução clínica"
+              value={field('clinicalEvolution')}
+              onChange={setField('clinicalEvolution')}
+              placeholder="Descreva a evolução clínica do atendimento..."
+              readOnly={isReadOnly}
+              rows={4}
+            />
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <ClinicalSectionField
+              label="Diagnóstico / Hipótese diagnóstica"
+              value={field('diagnosis')}
+              onChange={setField('diagnosis')}
+              placeholder="CID, hipótese diagnóstica ou diagnóstico diferencial..."
+              readOnly={isReadOnly}
+              rows={4}
+            />
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <ClinicalSectionField
+              label="Procedimentos realizados"
+              value={field('proceduresPerformed')}
+              onChange={setField('proceduresPerformed')}
+              placeholder="Descreva os procedimentos realizados durante o atendimento..."
+              readOnly={isReadOnly}
+              rows={4}
+            />
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <ClinicalSectionField
+              label="Plano de tratamento"
+              value={field('treatmentPlan')}
+              onChange={setField('treatmentPlan')}
+              placeholder="Descreva o plano de tratamento proposto..."
+              readOnly={isReadOnly}
+              rows={4}
+            />
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <ClinicalSectionField
+              label="Prescrição / Medicamentos"
+              value={field('prescription')}
+              onChange={setField('prescription')}
+              placeholder="Medicamentos prescritos, posologia, orientações de uso..."
+              readOnly={isReadOnly}
+              rows={4}
+            />
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <ClinicalSectionField
+              label="Recomendações ao paciente"
+              value={field('recommendations')}
+              onChange={setField('recommendations')}
+              placeholder="Orientações de cuidados pós-atendimento, restrições, retorno..."
+              readOnly={isReadOnly}
+              rows={4}
+            />
+          </div>
+
+          <ClinicalTemplateSelectorPanel
+            templates={templates}
+            onApply={handleApplyTemplate}
+          />
+
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <OdontogramSection
+              data={odontogramData}
+              onChange={handleOdontogramChange}
+              readOnly={isReadOnly}
+            />
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <ImageAttachmentPanel
+              recordId={recordId}
+              readOnly={isReadOnly}
+            />
+          </div>
+
           {!isReadOnly && (
             <div className="rounded-xl border border-amber-100 bg-amber-50 p-5">
               <ClinicalSectionField
@@ -291,16 +268,161 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             </div>
           )}
         </div>
+      ) : (
+        /* ── Desktop: tabs + sidebar ── */
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-4">
+          {/* Main editor */}
+          <div className="space-y-4 xl:col-span-3">
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <ClinicalSectionField
+                label="Queixa principal"
+                value={field('chiefComplaint')}
+                onChange={setField('chiefComplaint')}
+                placeholder="Descreva a queixa principal do paciente..."
+                readOnly={isReadOnly}
+                rows={2}
+              />
+            </div>
 
-        {/* Sidebar */}
-        <div className="space-y-4">
-          <ClinicalTemplateSelectorPanel
-            templates={templates}
-            onApply={handleApplyTemplate}
-          />
-          <ClinicalAiAssistantCard />
+            {/* Tab navigation */}
+            <div className="overflow-x-auto rounded-t-xl border border-slate-200 bg-white">
+              <nav role="tablist" aria-label="Seções do prontuário" className="flex min-w-max border-b border-slate-200">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    id={`tab-${tab.id}`}
+                    aria-selected={activeTab === tab.id}
+                    aria-controls={`tabpanel-${tab.id}`}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors ${
+                      activeTab === tab.id
+                        ? 'border-b-2 border-primary text-primary'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </nav>
+
+              <div
+                role="tabpanel"
+                id={`tabpanel-${activeTab}`}
+                aria-labelledby={`tab-${activeTab}`}
+                className="p-5"
+              >
+                {activeTab === 'anamnese' && (
+                  <ClinicalSectionField
+                    label="Anamnese"
+                    value={field('anamnesis')}
+                    onChange={setField('anamnesis')}
+                    placeholder="Histórico médico, alergias, medicamentos em uso, antecedentes familiares..."
+                    readOnly={isReadOnly}
+                    rows={8}
+                  />
+                )}
+                {activeTab === 'evolucao' && (
+                  <ClinicalSectionField
+                    label="Evolução clínica"
+                    value={field('clinicalEvolution')}
+                    onChange={setField('clinicalEvolution')}
+                    placeholder="Descreva a evolução clínica do atendimento..."
+                    readOnly={isReadOnly}
+                    rows={8}
+                  />
+                )}
+                {activeTab === 'diagnostico' && (
+                  <ClinicalSectionField
+                    label="Diagnóstico / Hipótese diagnóstica"
+                    value={field('diagnosis')}
+                    onChange={setField('diagnosis')}
+                    placeholder="CID, hipótese diagnóstica ou diagnóstico diferencial..."
+                    readOnly={isReadOnly}
+                    rows={6}
+                  />
+                )}
+                {activeTab === 'procedimentos' && (
+                  <ClinicalSectionField
+                    label="Procedimentos realizados"
+                    value={field('proceduresPerformed')}
+                    onChange={setField('proceduresPerformed')}
+                    placeholder="Descreva os procedimentos realizados durante o atendimento..."
+                    readOnly={isReadOnly}
+                    rows={6}
+                  />
+                )}
+                {activeTab === 'plano' && (
+                  <ClinicalSectionField
+                    label="Plano de tratamento"
+                    value={field('treatmentPlan')}
+                    onChange={setField('treatmentPlan')}
+                    placeholder="Descreva o plano de tratamento proposto..."
+                    readOnly={isReadOnly}
+                    rows={6}
+                  />
+                )}
+                {activeTab === 'prescricao' && (
+                  <ClinicalSectionField
+                    label="Prescrição / Medicamentos"
+                    value={field('prescription')}
+                    onChange={setField('prescription')}
+                    placeholder="Medicamentos prescritos, posologia, orientações de uso..."
+                    readOnly={isReadOnly}
+                    rows={6}
+                  />
+                )}
+                {activeTab === 'recomendacoes' && (
+                  <ClinicalSectionField
+                    label="Recomendações ao paciente"
+                    value={field('recommendations')}
+                    onChange={setField('recommendations')}
+                    placeholder="Orientações de cuidados pós-atendimento, restrições, retorno..."
+                    readOnly={isReadOnly}
+                    rows={6}
+                  />
+                )}
+                {activeTab === 'odontograma' && (
+                  <OdontogramSection
+                    data={odontogramData}
+                    onChange={handleOdontogramChange}
+                    readOnly={isReadOnly}
+                  />
+                )}
+                {activeTab === 'imagens' && (
+                  <ImageAttachmentPanel
+                    recordId={recordId}
+                    readOnly={isReadOnly}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Private notes */}
+            {!isReadOnly && (
+              <div className="rounded-xl border border-amber-100 bg-amber-50 p-5">
+                <ClinicalSectionField
+                  label="Notas privadas (não imprimíveis)"
+                  value={field('privateNotes')}
+                  onChange={setField('privateNotes')}
+                  placeholder="Anotações internas, observações do profissional..."
+                  rows={3}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-4">
+            <ClinicalTemplateSelectorPanel
+              templates={templates}
+              onApply={handleApplyTemplate}
+            />
+            <ClinicalAiAssistantCard />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

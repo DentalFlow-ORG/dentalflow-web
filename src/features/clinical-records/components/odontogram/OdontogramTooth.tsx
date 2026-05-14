@@ -15,6 +15,7 @@ type Props = {
   readOnly?: boolean
   lower?: boolean
   printMode?: boolean
+  compact?: boolean
   onSelect?: (toothNumber: number) => void
 }
 
@@ -26,6 +27,7 @@ export function OdontogramTooth({
   readOnly = false,
   lower = false,
   printMode = false,
+  compact = false,
   onSelect,
 }: Props) {
   const tokens = getToothVisualTokens(tooth)
@@ -48,7 +50,10 @@ export function OdontogramTooth({
         selected && 'bg-primary/5 ring-2 ring-primary ring-offset-2',
         multiSelected && 'bg-primary/5 ring-2 ring-primary/70 ring-offset-2',
         !isInteractive && 'cursor-default',
-        printMode && 'h-[54px] w-[38px] rounded-none',
+        // print: smaller fixed size matching print grid columns (32px)
+        printMode && 'h-[46px] w-[32px] rounded-none',
+        // compact: fluid width filling the grid cell (used in mobile quadrant layout)
+        compact && 'h-[54px] w-full',
       )}
     >
       <OdontogramToothSvg
@@ -63,7 +68,7 @@ export function OdontogramTooth({
           className={cn(
             'absolute right-1.5 top-1.5 h-2 w-2 rounded-full ring-2 ring-white',
             tokens.dot,
-            printMode && 'right-1 top-1 h-1.5 w-1.5',
+            (printMode || compact) && 'right-1 top-1 h-1.5 w-1.5',
           )}
           aria-hidden="true"
         />
