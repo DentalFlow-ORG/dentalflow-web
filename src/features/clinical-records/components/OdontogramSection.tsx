@@ -199,10 +199,10 @@ function OdontogramToolbar({
   if (!multiMode) {
     return (
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="xs" onClick={onSelectAll}>
+        <Button type="button" variant="outline" size="sm" onClick={onSelectAll}>
           Selecionar todos
         </Button>
-        <Button type="button" variant="outline" size="xs" onClick={onEnterMultiMode}>
+        <Button type="button" variant="outline" size="sm" onClick={onEnterMultiMode}>
           Selecionar vários
         </Button>
       </div>
@@ -217,16 +217,16 @@ function OdontogramToolbar({
           : `${selectedCount} dente${selectedCount > 1 ? 's' : ''} selecionado${selectedCount > 1 ? 's' : ''}`}
       </span>
       {selectedCount < ALL_TEETH.length && (
-        <Button type="button" variant="outline" size="xs" onClick={onSelectEveryTooth}>
+        <Button type="button" variant="outline" size="sm" onClick={onSelectEveryTooth}>
           Todos
         </Button>
       )}
       {selectedCount > 0 && (
-        <Button type="button" variant="outline" size="xs" onClick={onClearSelection}>
+        <Button type="button" variant="outline" size="sm" onClick={onClearSelection}>
           Limpar
         </Button>
       )}
-      <Button type="button" variant="outline" size="xs" onClick={onCancelMultiMode}>
+      <Button type="button" variant="outline" size="sm" onClick={onCancelMultiMode}>
         Cancelar seleção
       </Button>
     </div>
@@ -263,7 +263,7 @@ function MultiConditionPanel({
               key={option.value}
               type="button"
               variant="outline"
-              size="xs"
+              size="sm"
               onClick={() => onApplyCondition(option.value)}
               className={cn(
                 'border-slate-200 bg-white text-slate-600 hover:bg-slate-100',

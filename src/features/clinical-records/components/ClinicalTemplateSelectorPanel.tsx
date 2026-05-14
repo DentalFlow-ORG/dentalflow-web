@@ -27,9 +27,14 @@ export function ClinicalTemplateSelectorPanel({ templates, onApply }: Props) {
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white">
-      <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
-        <BookOpen className="h-4 w-4 text-primary" />
-        <span className="text-sm font-semibold text-slate-800">Modelos clínicos</span>
+      <div className="flex items-start gap-2 border-b border-slate-100 px-4 py-3">
+        <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <div>
+          <p className="text-sm font-semibold text-slate-800">Modelos clínicos</p>
+          <p className="mt-0.5 text-xs text-slate-400">
+            Selecione um modelo para preencher os campos do prontuário.
+          </p>
+        </div>
       </div>
       <ul className="divide-y divide-slate-100">
         {templates.map((t) => (

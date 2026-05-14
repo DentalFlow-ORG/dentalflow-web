@@ -60,7 +60,7 @@ export function OdontogramToothDetailsPanel({
                   key={option.value}
                   type="button"
                   variant="outline"
-                  size="xs"
+                  size="sm"
                   onClick={() => onSetCondition(option.value)}
                   className={cn(
                     'border-slate-200 bg-white text-slate-600 hover:bg-slate-100',

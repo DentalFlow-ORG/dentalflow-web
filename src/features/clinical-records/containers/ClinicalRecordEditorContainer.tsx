@@ -126,7 +126,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     <div className="space-y-5">
       <ClinicalRecordHeader record={record} />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-slate-400" />
           <span className="text-sm text-slate-500">
@@ -148,6 +148,12 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
       {isMobile ? (
         /* ── Mobile: all sections stacked vertically ── */
         <div className="space-y-4">
+          {/* Templates at top on mobile — visible shortcut before filling in fields */}
+          <ClinicalTemplateSelectorPanel
+            templates={templates}
+            onApply={handleApplyTemplate}
+          />
+
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <ClinicalSectionField
               label="Queixa principal"
@@ -235,11 +241,6 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
               rows={4}
             />
           </div>
-
-          <ClinicalTemplateSelectorPanel
-            templates={templates}
-            onApply={handleApplyTemplate}
-          />
 
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <OdontogramSection

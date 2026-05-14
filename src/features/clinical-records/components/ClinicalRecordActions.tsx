@@ -38,8 +38,13 @@ export function ClinicalRecordActions({
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" size="sm" onClick={onPrint}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onPrint}
+          className="w-full sm:w-auto"
+        >
           <Printer className="h-4 w-4" />
           Imprimir prontuário
         </Button>
@@ -50,7 +55,7 @@ export function ClinicalRecordActions({
             variant="outline"
             onClick={() => setConfirmRestore(true)}
             disabled={isSaving}
-            className="text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+            className="w-full text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 sm:w-auto"
           >
             <RotateCcw className="h-4 w-4" />
             Restaurar prontuário
@@ -65,20 +70,32 @@ export function ClinicalRecordActions({
                 size="sm"
                 onClick={onSaveDraft}
                 disabled={isSaving}
+                className="w-full sm:w-auto"
               >
                 {isSaving ? 'Salvando...' : 'Salvar rascunho'}
               </Button>
             )}
 
             {isDraft && (
-              <Button size="sm" onClick={onComplete} disabled={isSaving}>
+              <Button
+                size="sm"
+                onClick={onComplete}
+                disabled={isSaving}
+                className="w-full sm:w-auto"
+              >
                 <CheckCircle className="h-4 w-4" />
                 Concluir atendimento
               </Button>
             )}
 
             {isCompleted && (
-              <Button size="sm" onClick={onLock} disabled={isSaving} variant="outline">
+              <Button
+                size="sm"
+                onClick={onLock}
+                disabled={isSaving}
+                variant="outline"
+                className="w-full sm:w-auto"
+              >
                 <Lock className="h-4 w-4" />
                 Bloquear prontuário
               </Button>
@@ -90,7 +107,7 @@ export function ClinicalRecordActions({
                 size="sm"
                 onClick={() => setConfirmCancel(true)}
                 disabled={isSaving}
-                className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 sm:w-auto"
               >
                 <XCircle className="h-4 w-4" />
                 Cancelar prontuário
