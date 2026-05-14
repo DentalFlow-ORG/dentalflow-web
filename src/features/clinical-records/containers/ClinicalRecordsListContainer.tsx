@@ -42,12 +42,9 @@ export function ClinicalRecordsListContainer() {
     dentistProfileId: isOwner && dentistFilter !== 'TODOS' ? dentistFilter : undefined,
   })
 
-  // Derive dentist list from the unfiltered base load (load without dentist filter to populate selector)
-  const { records: allRecords } = useClinicalRecords(
-    isOwner
-      ? { status: statusFilter !== 'TODOS' ? statusFilter : undefined }
-      : {},
-  )
+  // Derive dentist list from a status-unfiltered load so the professional dropdown
+  // stays stable regardless of which status filter is currently active.
+  const { records: allRecords } = useClinicalRecords(isOwner ? {} : {})
 
   const professionals = useMemo(() => {
     const map = new Map<string, string>()
