@@ -3,6 +3,10 @@ import { Check, CheckCircle2, UserX, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 import type { Appointment, AppointmentStatus } from '../../types/scheduling.types'
+import {
+  getAvailableTransitions,
+  isTerminalStatus,
+} from '../../utils/appointment-state-machine'
 
 type StatusActionMenuProps = {
   appointment: Appointment
@@ -21,36 +25,38 @@ export function StatusActionMenu({
 }: StatusActionMenuProps) {
   const { id, status } = appointment
 
-  const can = (target: AppointmentStatus) =>
-    !allowedTransitions || allowedTransitions.includes(target)
+  const available = getAvailableTransitions(appointment, {
+    roleAllowedTargets: allowedTransitions,
+  })
+  const can = (target: AppointmentStatus) => available.includes(target)
 
-  if (status === 'COMPLETED' || status === 'CANCELED' || status === 'NO_SHOW') {
+  if (isTerminalStatus(status)) {
     return <span className="text-xs text-slate-400">—</span>
   }
 
   return (
     <div className="flex items-center gap-1.5">
-      {status === 'PENDING' && can('CONFIRMED') && (
+      {can('CONFIRMED') && (
         <Button
           type="button"
           size="xs"
           variant="secondary"
           disabled={isLoading}
           onClick={() => onStatusChange(id, 'CONFIRMED')}
-          title="Confirmar"
+          title="Confirmar agendamento"
         >
           <Check className="h-3 w-3" />
           <span className="hidden sm:inline">Confirmar</span>
         </Button>
       )}
 
-      {status === 'CONFIRMED' && can('COMPLETED') && (
+      {can('COMPLETED') && (
         <Button
           type="button"
           size="xs"
           disabled={isLoading}
           onClick={() => onStatusChange(id, 'COMPLETED')}
-          title="Concluir"
+          title="Concluir consulta"
         >
           <CheckCircle2 className="h-3 w-3" />
           <span className="hidden sm:inline">Concluir</span>
@@ -79,7 +85,7 @@ export function StatusActionMenu({
           variant="destructive"
           disabled={isLoading}
           onClick={() => onCancelRequest(appointment)}
-          title="Cancelar"
+          title="Cancelar agendamento"
         >
           <X className="h-3 w-3" />
           <span className="hidden sm:inline">Cancelar</span>

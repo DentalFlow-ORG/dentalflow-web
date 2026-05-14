@@ -27,6 +27,10 @@ import {
   formatWallTime,
 } from '../../utils/time'
 import type { Appointment, AppointmentStatus } from '../../types/scheduling.types'
+import {
+  getAvailableTransitions,
+  isTerminalStatus,
+} from '../../utils/appointment-state-machine'
 import { AppointmentStatusBadge } from './AppointmentStatusBadge'
 
 type AppointmentDrawerProps = {
@@ -215,10 +219,13 @@ function DrawerActions({
   onCancelRequest: (appointment: Appointment) => void
 }) {
   const { id, status } = appointment
-  const can = (target: AppointmentStatus) =>
-    !allowedTransitions || allowedTransitions.includes(target)
 
-  if (status === 'COMPLETED' || status === 'CANCELED' || status === 'NO_SHOW') {
+  const available = getAvailableTransitions(appointment, {
+    roleAllowedTargets: allowedTransitions,
+  })
+  const can = (target: AppointmentStatus) => available.includes(target)
+
+  if (isTerminalStatus(status) || available.length === 0) {
     return null
   }
 
@@ -228,7 +235,7 @@ function DrawerActions({
         Ações
       </p>
       <div className="flex flex-col gap-1.5 p-3">
-        {status === 'PENDING' && can('CONFIRMED') && (
+        {can('CONFIRMED') && (
           <Button
             type="button"
             variant="secondary"
@@ -241,7 +248,7 @@ function DrawerActions({
             Confirmar agendamento
           </Button>
         )}
-        {status === 'CONFIRMED' && can('COMPLETED') && (
+        {can('COMPLETED') && (
           <Button
             type="button"
             size="sm"
