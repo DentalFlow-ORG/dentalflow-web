@@ -28,7 +28,7 @@ export function OdontogramToothSvg({ toothNumber, fill, stroke, lower = false, c
     <svg
       aria-hidden="true"
       viewBox="0 0 44 56"
-      className={cn('h-full w-full overflow-visible', lower && 'rotate-180', className)}
+      className={cn('h-full w-full overflow-visible', !lower && 'rotate-180', className)}
     >
       <path
         d={TOOTH_PATHS[kind]}
