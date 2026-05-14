@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Printer } from 'lucide-react'
+import { ArrowLeft, Printer } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
@@ -57,9 +58,15 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between print:hidden">
-        <p className="text-sm text-slate-500">
-          Prontuário pronto para impressão.
-        </p>
+        <Link
+          to="/app/prontuario/$clinicalRecordId"
+          params={{ clinicalRecordId: recordId }}
+        >
+          <Button variant="outline">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar ao prontuário
+          </Button>
+        </Link>
         <Button onClick={() => window.print()}>
           <Printer className="h-4 w-4" />
           Imprimir

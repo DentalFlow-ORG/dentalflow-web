@@ -140,7 +140,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
   return (
     <div className="min-h-svh bg-slate-50 text-slate-950">
       {/* Sidebar - desktop only */}
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-slate-200 bg-white lg:block">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-slate-200 bg-white lg:block print:hidden">
         <div className="flex h-20 items-center border-b border-slate-200 px-6">
           <BrandLink />
         </div>
@@ -164,7 +164,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
       </aside>
 
       {/* Bottom nav - mobile only */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden print:hidden">
         <div className="flex h-16 items-stretch">
           {primaryNav.map(({ label, to, icon: Icon }) => (
             <Link
@@ -199,7 +199,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
 
       {/* "Mais" sheet — mobile only */}
       {moreOpen && (
-        <div className="fixed inset-0 z-30 lg:hidden" onClick={() => setMoreOpen(false)}>
+        <div className="fixed inset-0 z-30 lg:hidden print:hidden" onClick={() => setMoreOpen(false)}>
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
           <div
             className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-slate-200 bg-white pb-[calc(env(safe-area-inset-bottom)+4rem)]"
@@ -239,8 +239,8 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
       )}
 
       {/* Main area */}
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
+      <div className="lg:pl-64 print:pl-0">
+        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur-xl print:hidden">
           <div className="flex h-20 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <div className="lg:hidden">
               <BrandLink />
@@ -262,12 +262,14 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
         </header>
 
         {billingStatus?.status === 'trialing' && billingStatus.trialEndsAt && (
-          <TrialBanner trialEndsAt={billingStatus.trialEndsAt} />
+          <div className="print:hidden">
+            <TrialBanner trialEndsAt={billingStatus.trialEndsAt} />
+          </div>
         )}
 
         <main className="px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
           {children}
-          <div className="h-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true" />
+          <div className="h-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden print:hidden" aria-hidden="true" />
         </main>
       </div>
     </div>
