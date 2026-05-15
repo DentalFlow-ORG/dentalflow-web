@@ -90,7 +90,7 @@ export function FixedExpenseEditModal({
               />
             </FormField>
 
-            <div className="grid items-end gap-4 sm:grid-cols-3">
+            <div className="grid items-start gap-4 sm:grid-cols-3">
               <FormField label="Valor" htmlFor="editFeAmount">
                 <TextInput
                   id="editFeAmount"

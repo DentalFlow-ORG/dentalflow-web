@@ -73,7 +73,7 @@ export function FixedExpenseForm({
             onChange={(event) => onChange('description', event.target.value)}
           />
         </FormField>
-        <div className="grid items-end gap-4 sm:grid-cols-3">
+        <div className="grid items-start gap-4 sm:grid-cols-3">
           <FormField label="Valor" htmlFor="fixedAmount">
             <TextInput
               id="fixedAmount"
