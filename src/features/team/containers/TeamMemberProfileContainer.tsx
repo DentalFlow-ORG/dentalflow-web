@@ -130,6 +130,7 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
               profileId={profileId}
               exceptions={exceptions}
               onExceptionsChange={setExceptions}
+              title="Exceções e bloqueios"
             />
           </PanelCard>
         </>

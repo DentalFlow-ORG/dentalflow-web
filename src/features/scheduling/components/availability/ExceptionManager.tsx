@@ -22,12 +22,14 @@ type ExceptionManagerProps = {
   profileId: string
   exceptions: AvailabilityException[]
   onExceptionsChange: (exceptions: AvailabilityException[]) => void
+  title?: string
 }
 
 export function ExceptionManager({
   profileId,
   exceptions,
   onExceptionsChange,
+  title = 'Exceções de agenda',
 }: ExceptionManagerProps) {
   const { showAlert } = useGlobalAlerts()
   const [isAdding, setIsAdding] = useState(false)
@@ -99,7 +101,7 @@ export function ExceptionManager({
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h3 className="text-base font-semibold text-slate-900">Exceções de agenda</h3>
+          <h3 className="text-base font-semibold text-slate-900">{title}</h3>
           <p className="mt-0.5 text-sm text-slate-500">
             Registre folgas ou horários especiais em datas específicas.
           </p>

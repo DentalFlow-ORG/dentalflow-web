@@ -144,9 +144,9 @@ export function SchedulePageContainer() {
                 buttonLabel="Gerenciar disponibilidade"
               />
               <div>
-                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
                   Edição rápida na Agenda
-                </p>
+                </h3>
                 <PanelCard>
                   <AvailabilityManager
                     profileId={ownProfile.id}
@@ -166,9 +166,9 @@ export function SchedulePageContainer() {
                 buttonLabel="Gerenciar exceções"
               />
               <div>
-                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
                   Edição rápida na Agenda
-                </p>
+                </h3>
                 <PanelCard>
                   <ExceptionManager
                     profileId={ownProfile.id}
