@@ -1,10 +1,12 @@
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, ExternalLink } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
@@ -135,7 +137,8 @@ export function SchedulePageContainer() {
           )}
 
           {activeTab === 'disponibilidade' && (
-            <div id="panel-schedule-disponibilidade" role="tabpanel" aria-labelledby="tab-schedule-disponibilidade">
+            <div id="panel-schedule-disponibilidade" role="tabpanel" aria-labelledby="tab-schedule-disponibilidade" className="space-y-3">
+              <ProfileShortcut profileId={ownProfile.id} />
               <PanelCard>
                 <AvailabilityManager
                   profileId={ownProfile.id}
@@ -147,7 +150,8 @@ export function SchedulePageContainer() {
           )}
 
           {activeTab === 'excecoes' && (
-            <div id="panel-schedule-excecoes" role="tabpanel" aria-labelledby="tab-schedule-excecoes">
+            <div id="panel-schedule-excecoes" role="tabpanel" aria-labelledby="tab-schedule-excecoes" className="space-y-3">
+              <ProfileShortcut profileId={ownProfile.id} />
               <PanelCard>
                 <ExceptionManager
                   profileId={ownProfile.id}
@@ -169,5 +173,21 @@ export function SchedulePageContainer() {
         onCancelRequest={() => {}}
       />
     </AppPage>
+  )
+}
+
+function ProfileShortcut({ profileId }: { profileId: string }) {
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-blue-700">
+        Horários e exceções agora podem ser ajustados no perfil do profissional.
+      </p>
+      <Button size="sm" variant="outline" asChild className="w-full shrink-0 border-blue-200 text-blue-800 hover:bg-blue-100 sm:w-auto">
+        <Link to="/app/equipe/$profileId" params={{ profileId }}>
+          <ExternalLink className="h-3.5 w-3.5" />
+          Gerenciar disponibilidade
+        </Link>
+      </Button>
+    </div>
   )
 }
