@@ -1,5 +1,5 @@
 import { FileText, RefreshCw, Settings2, ShieldAlert } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
@@ -16,6 +16,7 @@ import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { cn } from '@/lib/utils'
 
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
 import { InvoiceDetails } from '../components/InvoiceDetails'
@@ -29,6 +30,8 @@ import type {
   ServiceInvoiceStatus,
 } from '../types/fiscal.types'
 import { formatCents, formatInvoiceDate } from '../utils/invoice-format'
+
+type ActiveWorkspace = 'profile' | 'form' | 'details' | 'none'
 
 const emptyInvoiceForm: InvoicePayload = {
   customerName: '',
@@ -69,6 +72,8 @@ const emptyProfileForm: FiscalProfilePayload = {
 export function FiscalInvoicesPageContainer() {
   const { user } = useAuth()
   const isOwner = user?.role === 'OWNER'
+  const workspaceRef = useRef<HTMLDivElement>(null)
+  const [activeWorkspace, setActiveWorkspace] = useState<ActiveWorkspace>('none')
   const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false)
   const [editingInvoice, setEditingInvoice] = useState<ServiceInvoice | null>(null)
   const [invoiceForm, setInvoiceForm] = useState<InvoicePayload>(emptyInvoiceForm)
@@ -99,6 +104,22 @@ export function FiscalInvoicesPageContainer() {
   } = useFiscalInvoicesPage()
 
   const profile = profileResponse?.profile ?? null
+  const isWorkspaceOpen = isProfileFormOpen || isInvoiceFormOpen || !!selectedInvoice
+  const activeWorkspaceLabel = getActiveWorkspaceLabel(activeWorkspace)
+  const isFiscalConfigurationIncomplete =
+    summary?.configurationPending ?? (profile ? !profile.isConfigured : false)
+
+  function focusWorkspace() {
+    window.requestAnimationFrame(() => {
+      const workspace = workspaceRef.current
+      if (!workspace) return
+
+      workspace.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      window.setTimeout(() => {
+        workspace.focus({ preventScroll: true })
+      }, 250)
+    })
+  }
 
   function openProfileForm() {
     setProfileForm(
@@ -129,6 +150,8 @@ export function FiscalInvoicesPageContainer() {
         : emptyProfileForm,
     )
     setIsProfileFormOpen(true)
+    setActiveWorkspace('profile')
+    focusWorkspace()
   }
 
   function openInvoiceForm(invoice?: ServiceInvoice) {
@@ -151,12 +174,15 @@ export function FiscalInvoicesPageContainer() {
         : emptyInvoiceForm,
     )
     setIsInvoiceFormOpen(true)
+    setActiveWorkspace('form')
+    focusWorkspace()
   }
 
   async function submitInvoice() {
     try {
       await saveInvoice(invoiceForm, editingInvoice)
       setIsInvoiceFormOpen(false)
+      if (activeWorkspace === 'form') setActiveWorkspace('none')
       setEditingInvoice(null)
       setInvoiceForm(emptyInvoiceForm)
     } catch {
@@ -172,6 +198,7 @@ export function FiscalInvoicesPageContainer() {
         issRate: profileForm.issRate,
       })
       setIsProfileFormOpen(false)
+      if (activeWorkspace === 'profile') setActiveWorkspace('none')
     } catch {
       // O hook já exibe o alerta em português; manter o formulário aberto ajuda na correção.
     }
@@ -187,6 +214,21 @@ export function FiscalInvoicesPageContainer() {
     }
   }
 
+  async function openInvoiceDetails(invoice: ServiceInvoice) {
+    setActiveWorkspace('details')
+    try {
+      await loadInvoiceDetails(invoice)
+      focusWorkspace()
+    } catch {
+      setActiveWorkspace('none')
+    }
+  }
+
+  function closeInvoiceDetails() {
+    setSelectedInvoice(null)
+    if (activeWorkspace === 'details') setActiveWorkspace('none')
+  }
+
   return (
     <AppPage>
       <AppPageHeader
@@ -199,10 +241,17 @@ export function FiscalInvoicesPageContainer() {
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Atualizar
             </Button>
-            <Button onClick={() => openInvoiceForm()}>
-              <FileText className="h-4 w-4" aria-hidden="true" />
-              Criar nota fiscal
-            </Button>
+            {isFiscalConfigurationIncomplete ? (
+              <Button onClick={openProfileForm} disabled={!isOwner}>
+                <Settings2 className="h-4 w-4" aria-hidden="true" />
+                Configurar dados fiscais
+              </Button>
+            ) : (
+              <Button onClick={() => openInvoiceForm()}>
+                <FileText className="h-4 w-4" aria-hidden="true" />
+                Criar nota fiscal
+              </Button>
+            )}
           </div>
         }
       />
@@ -265,27 +314,87 @@ export function FiscalInvoicesPageContainer() {
             </div>
           </PanelCard>
 
-          {isProfileFormOpen && (
-            <FiscalProfileForm
-              form={profileForm}
-              onChange={setProfileForm}
-              onCancel={() => setIsProfileFormOpen(false)}
-              onSubmit={submitProfile}
-            />
+          {isFiscalConfigurationIncomplete && (
+            <InlineFeedback tone="warning">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="max-w-2xl">
+                  <p className="font-semibold">
+                    Complete a configuração fiscal antes de criar notas fiscais.
+                  </p>
+                  <p className="mt-1 leading-6">
+                    Os dados fiscais da clínica são necessários para emitir notas com segurança.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full bg-white sm:w-auto"
+                  onClick={openProfileForm}
+                  disabled={!isOwner}
+                >
+                  <Settings2 className="h-4 w-4" aria-hidden="true" />
+                  Configurar dados fiscais
+                </Button>
+              </div>
+            </InlineFeedback>
           )}
 
-          {isInvoiceFormOpen && (
-            <InvoiceForm
-              form={invoiceForm}
-              editing={!!editingInvoice}
-              onChange={setInvoiceForm}
-              onCancel={() => setIsInvoiceFormOpen(false)}
-              onSubmit={submitInvoice}
-            />
-          )}
+          {isWorkspaceOpen && (
+            <div
+              ref={workspaceRef}
+              tabIndex={-1}
+              className="scroll-mt-24 space-y-4 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
+              aria-label="Área de trabalho fiscal"
+            >
+              <div className="flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-sm font-semibold text-slate-950">Área de trabalho</h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    O painel aberto abaixo concentra a ação selecionada.
+                  </p>
+                </div>
+                {activeWorkspaceLabel && (
+                  <span className="inline-flex w-fit rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-primary">
+                    {activeWorkspaceLabel}
+                  </span>
+                )}
+              </div>
 
-          {selectedInvoice && (
-            <InvoiceDetails invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
+              {isProfileFormOpen && (
+                <div className={getWorkspacePanelClass(activeWorkspace === 'profile')}>
+                  <FiscalProfileForm
+                    form={profileForm}
+                    onChange={setProfileForm}
+                    onCancel={() => {
+                      setIsProfileFormOpen(false)
+                      if (activeWorkspace === 'profile') setActiveWorkspace('none')
+                    }}
+                    onSubmit={submitProfile}
+                  />
+                </div>
+              )}
+
+              {isInvoiceFormOpen && (
+                <div className={getWorkspacePanelClass(activeWorkspace === 'form')}>
+                  <InvoiceForm
+                    form={invoiceForm}
+                    editing={!!editingInvoice}
+                    onChange={setInvoiceForm}
+                    onCancel={() => {
+                      setIsInvoiceFormOpen(false)
+                      if (activeWorkspace === 'form') setActiveWorkspace('none')
+                    }}
+                    onSubmit={submitInvoice}
+                  />
+                </div>
+              )}
+
+              {selectedInvoice && (
+                <div className={getWorkspacePanelClass(activeWorkspace === 'details')}>
+                  <InvoiceDetails invoice={selectedInvoice} onClose={closeInvoiceDetails} />
+                </div>
+              )}
+            </div>
           )}
 
           <PanelCard>
@@ -363,7 +472,7 @@ export function FiscalInvoicesPageContainer() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            void loadInvoiceDetails(invoice).catch(() => undefined)
+                            void openInvoiceDetails(invoice)
                           }}
                         >
                           Ver detalhes
@@ -458,7 +567,7 @@ export function FiscalInvoicesPageContainer() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => {
-                                    void loadInvoiceDetails(invoice).catch(() => undefined)
+                                    void openInvoiceDetails(invoice)
                                   }}
                                 >
                                   Ver detalhes
@@ -539,5 +648,23 @@ export function FiscalInvoicesPageContainer() {
         onConfirm={confirmCancel}
       />
     </AppPage>
+  )
+}
+
+function getActiveWorkspaceLabel(activeWorkspace: ActiveWorkspace) {
+  const labels: Record<ActiveWorkspace, string | null> = {
+    profile: 'Configuração fiscal',
+    form: 'Nota fiscal',
+    details: 'Detalhes da nota',
+    none: null,
+  }
+
+  return labels[activeWorkspace]
+}
+
+function getWorkspacePanelClass(isActive: boolean) {
+  return cn(
+    'rounded-xl transition-shadow',
+    isActive && 'ring-2 ring-primary/25 ring-offset-2 ring-offset-slate-50',
   )
 }
