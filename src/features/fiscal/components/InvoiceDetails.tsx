@@ -19,8 +19,8 @@ export function InvoiceDetails({ invoice, onClose }: Props) {
     <PanelCard>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Detalhes da nota fiscal</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-base font-semibold text-foreground">Detalhes da nota fiscal</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Documento sem validade fiscal. Modo da integração: Local/Simulação.
           </p>
         </div>
@@ -36,23 +36,23 @@ export function InvoiceDetails({ invoice, onClose }: Props) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Status atual</p>
+        <div className="rounded-lg border border-border bg-muted p-4">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">Status atual</p>
           <div className="mt-2">
             <StatusBadge tone={INVOICE_STATUS_TONE[invoice.status]}>
               {INVOICE_STATUS_LABEL[invoice.status]}
             </StatusBadge>
           </div>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Cliente</p>
-          <p className="mt-2 font-semibold text-slate-900">{invoice.customerName}</p>
-          <p className="text-sm text-slate-500">{invoice.customerDocument ?? 'Sem documento'}</p>
+        <div className="rounded-lg border border-border bg-muted p-4">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">Cliente</p>
+          <p className="mt-2 font-semibold text-foreground">{invoice.customerName}</p>
+          <p className="text-sm text-muted-foreground">{invoice.customerDocument ?? 'Sem documento'}</p>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase text-slate-500">Valor</p>
-          <p className="mt-2 font-semibold text-slate-900">{formatCents(invoice.amountCents)}</p>
-          <p className="text-sm text-slate-500">
+        <div className="rounded-lg border border-border bg-muted p-4">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">Valor</p>
+          <p className="mt-2 font-semibold text-foreground">{formatCents(invoice.amountCents)}</p>
+          <p className="text-sm text-muted-foreground">
             Competência {formatInvoiceDate(invoice.competenceDate)}
           </p>
         </div>
@@ -60,20 +60,20 @@ export function InvoiceDetails({ invoice, onClose }: Props) {
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">Dados do serviço</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{invoice.serviceDescription}</p>
-          <p className="mt-1 text-sm text-slate-500">
+          <h3 className="text-sm font-semibold text-foreground">Dados do serviço</h3>
+          <p className="mt-2 text-sm leading-6 text-foreground">{invoice.serviceDescription}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
             Código de serviço: {invoice.serviceCode ?? '-'}
           </p>
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">Linha do tempo</h3>
+          <h3 className="text-sm font-semibold text-foreground">Linha do tempo</h3>
           {invoice.events?.length ? (
             <div className="mt-2 space-y-2">
               {invoice.events.map((event) => (
-                <div key={event.id} className="rounded-md border border-slate-200 px-3 py-2">
-                  <p className="text-sm font-semibold text-slate-800">{event.eventType}</p>
-                  <p className="text-xs text-slate-500">
+                <div key={event.id} className="rounded-md border border-border px-3 py-2">
+                  <p className="text-sm font-semibold text-foreground">{event.eventType}</p>
+                  <p className="text-xs text-muted-foreground">
                     {event.previousStatus ? INVOICE_STATUS_LABEL[event.previousStatus] : '-'} →{' '}
                     {event.nextStatus ? INVOICE_STATUS_LABEL[event.nextStatus] : '-'} ·{' '}
                     {formatInvoiceDate(event.createdAt)}
@@ -82,7 +82,7 @@ export function InvoiceDetails({ invoice, onClose }: Props) {
               ))}
             </div>
           ) : (
-            <p className="mt-2 text-sm text-slate-500">Nenhum evento registrado.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Nenhum evento registrado.</p>
           )}
         </div>
       </div>

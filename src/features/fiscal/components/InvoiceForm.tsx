@@ -19,10 +19,10 @@ export function InvoiceForm({ form, editing, onChange, onCancel, onSubmit }: Pro
   return (
     <PanelCard>
       <div className="mb-5">
-        <h2 className="text-base font-semibold text-slate-950">
+        <h2 className="text-base font-semibold text-foreground">
           {editing ? 'Editar nota fiscal' : 'Criar nota fiscal'}
         </h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           Este cadastro é um rascunho interno e não possui validade fiscal.
         </p>
       </div>

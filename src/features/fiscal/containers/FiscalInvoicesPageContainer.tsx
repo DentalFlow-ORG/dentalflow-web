@@ -294,12 +294,12 @@ export function FiscalInvoicesPageContainer() {
           <PanelCard>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <h2 className="text-base font-semibold text-slate-950">
+                <h2 className="text-base font-semibold text-foreground">
                   {profile?.isConfigured
                     ? 'Configuração fiscal completa'
                     : 'Configuração fiscal pendente'}
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Integração fiscal real ainda não configurada. Esses dados serão usados futuramente
                   para emissão real de NFS-e.
                 </p>
@@ -332,15 +332,15 @@ export function FiscalInvoicesPageContainer() {
               className="scroll-mt-24 space-y-4"
               aria-label="Área de trabalho fiscal"
             >
-              <div className="flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-950">Área de trabalho</h2>
-                  <p className="mt-1 text-sm text-slate-600">
+                  <h2 className="text-sm font-semibold text-foreground">Área de trabalho</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     O painel aberto abaixo concentra a ação selecionada.
                   </p>
                 </div>
                 {activeWorkspaceLabel && (
-                  <span className="inline-flex w-fit rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-primary">
+                  <span className="inline-flex w-fit rounded-full border border-primary/25 bg-card px-3 py-1 text-xs font-semibold text-primary">
                     {activeWorkspaceLabel}
                   </span>
                 )}
@@ -439,8 +439,8 @@ export function FiscalInvoicesPageContainer() {
                     <PanelCard key={invoice.id} className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="truncate font-semibold text-slate-900">{invoice.customerName}</p>
-                          <p className="truncate text-xs text-slate-500">
+                          <p className="truncate font-semibold text-foreground">{invoice.customerName}</p>
+                          <p className="truncate text-xs text-muted-foreground">
                             {invoice.customerEmail ?? invoice.customerDocument ?? 'Sem contato'}
                           </p>
                         </div>
@@ -448,10 +448,10 @@ export function FiscalInvoicesPageContainer() {
                           {INVOICE_STATUS_LABEL[invoice.status]}
                         </StatusBadge>
                       </div>
-                      <p className="mt-2 truncate text-sm text-slate-600">{invoice.serviceDescription}</p>
+                      <p className="mt-2 truncate text-sm text-muted-foreground">{invoice.serviceDescription}</p>
                       <div className="mt-2 flex items-center justify-between gap-2">
-                        <span className="font-semibold text-slate-900">{formatCents(invoice.amountCents)}</span>
-                        <span className="text-xs text-slate-500">{formatInvoiceDate(invoice.competenceDate)}</span>
+                        <span className="font-semibold text-foreground">{formatCents(invoice.amountCents)}</span>
+                        <span className="text-xs text-muted-foreground">{formatInvoiceDate(invoice.competenceDate)}</span>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Button
@@ -508,11 +508,11 @@ export function FiscalInvoicesPageContainer() {
                 </div>
 
                 {/* Desktop table — hidden below md */}
-                <div className="hidden overflow-hidden rounded-lg border border-slate-200 md:block">
+                <div className="hidden overflow-hidden rounded-lg border border-border md:block">
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-230 text-sm" aria-label="Notas fiscais">
                       <thead>
-                        <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                           <th scope="col" className="px-4 py-3">Cliente</th>
                           <th scope="col" className="px-4 py-3">Serviço</th>
                           <th scope="col" className="px-4 py-3 text-right">Valor</th>
@@ -522,19 +522,19 @@ export function FiscalInvoicesPageContainer() {
                           <th scope="col" className="px-4 py-3 text-right">Ações</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 bg-white">
+                      <tbody className="divide-y divide-border bg-card">
                         {invoices.map((invoice) => (
-                          <tr key={invoice.id} className="hover:bg-slate-50/70">
+                          <tr key={invoice.id} className="hover:bg-muted/70">
                             <td className="px-4 py-3">
-                              <p className="font-semibold text-slate-900">{invoice.customerName}</p>
-                              <p className="text-xs text-slate-500">
+                              <p className="font-semibold text-foreground">{invoice.customerName}</p>
+                              <p className="text-xs text-muted-foreground">
                                 {invoice.customerEmail ?? invoice.customerDocument ?? 'Sem contato'}
                               </p>
                             </td>
-                            <td className="px-4 py-3 text-slate-700">
+                            <td className="px-4 py-3 text-muted-foreground">
                               {invoice.serviceDescription}
                             </td>
-                            <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                            <td className="px-4 py-3 text-right font-semibold text-foreground">
                               {formatCents(invoice.amountCents)}
                             </td>
                             <td className="px-4 py-3">
@@ -542,10 +542,10 @@ export function FiscalInvoicesPageContainer() {
                                 {INVOICE_STATUS_LABEL[invoice.status]}
                               </StatusBadge>
                             </td>
-                            <td className="px-4 py-3 text-slate-600">
+                            <td className="px-4 py-3 text-muted-foreground">
                               {formatInvoiceDate(invoice.competenceDate)}
                             </td>
-                            <td className="px-4 py-3 text-slate-600">
+                            <td className="px-4 py-3 text-muted-foreground">
                               {formatInvoiceDate(invoice.createdAt)}
                             </td>
                             <td className="px-4 py-3">
@@ -608,7 +608,7 @@ export function FiscalInvoicesPageContainer() {
                 </div>
 
                 {/* Shared pagination */}
-                <div className="rounded-lg border border-slate-100 bg-white px-4 py-3">
+                <div className="rounded-lg border border-border bg-card px-4 py-3">
                   <Pagination
                     page={filters.page}
                     totalPages={totalPages}

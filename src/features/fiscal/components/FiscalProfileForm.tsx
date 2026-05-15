@@ -17,8 +17,8 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
   return (
     <PanelCard>
       <div className="mb-5">
-        <h2 className="text-base font-semibold text-slate-950">Dados fiscais da clínica</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="text-base font-semibold text-foreground">Dados fiscais da clínica</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Confirme as informações com o contador da clínica antes de ativar a emissão real.
         </p>
       </div>
@@ -167,7 +167,7 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
           />
         </FormField>
       </div>
-      <p className="mt-4 text-sm text-slate-500">
+      <p className="mt-4 text-sm text-muted-foreground">
         A integração real com provedor fiscal ainda não está habilitada.
       </p>
       <div className="mt-5 flex justify-end gap-2">
