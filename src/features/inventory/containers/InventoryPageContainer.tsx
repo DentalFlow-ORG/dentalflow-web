@@ -21,6 +21,7 @@ import type { StockProductStatus, StockSummary } from '../types/inventory.types'
 import { CategoryManagerModal } from '../components/CategoryManagerModal'
 import { DeactivateProductDialog } from '../components/DeactivateProductDialog'
 import { ReactivateProductDialog } from '../components/ReactivateProductDialog'
+import { InventoryAnalysisPanel } from '../components/InventoryAnalysisPanel'
 import { InventoryKpiGrid } from '../components/InventoryKpiGrid'
 import { InventoryProductTable } from '../components/InventoryProductTable'
 import { ProductDetailsDrawer } from '../components/ProductDetailsDrawer'
@@ -285,6 +286,8 @@ export function InventoryPageContainer() {
       >
         <>
           {summary && <InventoryKpiGrid summary={summary} />}
+
+          {summary && <InventoryAnalysisPanel summary={summary} products={products} />}
 
           {hasFilters && products.length === 0 && !isLoadingProducts ? (
             <FilteredEmptyState icon={Package} onClear={handleClearFilters} />
