@@ -287,12 +287,12 @@ function ExplainedMetricCard({
   explanation: string
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white/85 p-5 shadow-sm">
-      <p className="text-2xl font-semibold text-slate-950">{value}</p>
-      <p className="mt-2 flex items-center gap-1.5 text-sm leading-6 text-slate-500">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+      <p className="text-2xl font-semibold text-foreground">{value}</p>
+      <p className="mt-2 flex items-center gap-1.5 text-sm leading-6 text-muted-foreground">
         {label}
         <Info
-          className="h-3.5 w-3.5 text-slate-400"
+          className="h-3.5 w-3.5 text-muted-foreground"
           aria-label={explanation}
           role="img"
         >
@@ -323,11 +323,11 @@ function FinanceChart({
   return (
     <PanelCard>
       <div className="mb-5">
-        <h2 className="flex items-center gap-1.5 text-base font-semibold text-slate-950">
+        <h2 className="flex items-center gap-1.5 text-base font-semibold text-foreground">
           {title}
           {title.includes('Receita') && (
             <Info
-              className="h-3.5 w-3.5 text-slate-400"
+              className="h-3.5 w-3.5 text-muted-foreground"
               aria-label="MRR significa receita recorrente mensal. Os valores são calculados no backend a partir dos itens sincronizados do Stripe."
               role="img"
             >
@@ -337,7 +337,7 @@ function FinanceChart({
             </Info>
           )}
         </h2>
-        <p className="mt-1 text-sm text-slate-500">{description}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
 
       {visibleData.length === 0 ? (
@@ -395,11 +395,11 @@ function PriceBreakdownSection({
           description="A receita por preço será exibida quando houver assinaturas ativas."
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-sm">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Plano</th>
                   <th className="px-4 py-3">Preço Stripe</th>
                   <th className="px-4 py-3">Intervalo</th>
@@ -408,24 +408,24 @@ function PriceBreakdownSection({
                   <th className="px-4 py-3 text-right">ARR</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-border bg-card">
                 {rows.map((row) => (
-                  <tr key={`${row.stripePriceId}-${row.currency}`} className="hover:bg-slate-50/70">
-                    <td className="px-4 py-3 font-semibold text-slate-900">{row.planName}</td>
+                  <tr key={`${row.stripePriceId}-${row.currency}`} className="hover:bg-muted/70">
+                    <td className="px-4 py-3 font-semibold text-foreground">{row.planName}</td>
                     <td className="px-4 py-3">
-                      <p className="text-slate-700">{row.priceNickname ?? '-'}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{row.stripePriceId}</p>
+                      <p className="text-foreground">{row.priceNickname ?? '-'}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{row.stripePriceId}</p>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {formatInterval(row.billingInterval)}
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-foreground">
                       {row.subscriberCount}
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                    <td className="px-4 py-3 text-right font-semibold text-foreground">
                       {formatCurrencyFromCents(row.estimatedMrr, row.currency || defaultCurrency)}
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-foreground">
                       {formatCurrencyFromCents(row.estimatedArr, row.currency || defaultCurrency)}
                     </td>
                   </tr>
@@ -460,11 +460,11 @@ function RecentSubscriptionsSection({
           description="Nenhum dado financeiro encontrado."
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] text-sm">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Clínica</th>
                   <th className="px-4 py-3">Plano</th>
                   <th className="px-4 py-3">Status</th>
@@ -472,25 +472,25 @@ function RecentSubscriptionsSection({
                   <th className="px-4 py-3">Cancelada em</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-border bg-card">
                 {subscriptions.map((subscription) => (
-                  <tr key={subscription.id} className="hover:bg-slate-50/70">
+                  <tr key={subscription.id} className="hover:bg-muted/70">
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-slate-900">{subscription.clinic.name}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">
+                      <p className="font-semibold text-foreground">{subscription.clinic.name}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
                         {subscription.clinic.email ?? subscription.clinic.id}
                       </p>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{subscription.plan.name}</td>
+                    <td className="px-4 py-3 text-foreground">{subscription.plan.name}</td>
                     <td className="px-4 py-3">
                       <StatusBadge tone={STATUS_TONE[subscription.status]}>
                         {STATUS_LABEL[subscription.status]}
                       </StatusBadge>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {formatDate(subscription.createdAt)}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {formatDate(subscription.canceledAt ?? subscription.endedAt)}
                     </td>
                   </tr>
@@ -601,11 +601,11 @@ function SubscriptionsSection({
           description="As assinaturas das clínicas serão exibidas aqui quando existirem registros."
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[980px] text-sm">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Clínica</th>
                   <th className="px-4 py-3">Plano</th>
                   <th className="px-4 py-3">Status</th>
@@ -616,37 +616,37 @@ function SubscriptionsSection({
                   <th className="px-4 py-3">Cancelada em</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-border bg-card">
                 {subscriptions.map((subscription) => {
                   const amount = getSubscriptionAmount(subscription)
 
                   return (
-                    <tr key={subscription.id} className="hover:bg-slate-50/70">
+                    <tr key={subscription.id} className="hover:bg-muted/70">
                       <td className="px-4 py-3">
-                        <p className="font-semibold text-slate-900">{subscription.clinic.name}</p>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                        <p className="font-semibold text-foreground">{subscription.clinic.name}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
                           {subscription.clinic.email ?? subscription.clinic.id}
                         </p>
                       </td>
-                      <td className="px-4 py-3 text-slate-700">{subscription.plan.name}</td>
+                      <td className="px-4 py-3 text-foreground">{subscription.plan.name}</td>
                       <td className="px-4 py-3">
                         <StatusBadge tone={STATUS_TONE[subscription.status]}>
                           {STATUS_LABEL[subscription.status]}
                         </StatusBadge>
                       </td>
-                      <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                      <td className="px-4 py-3 text-right font-semibold text-foreground">
                         {formatCurrencyFromCents(amount.value, amount.currency)}
                       </td>
-                      <td className="px-4 py-3 text-slate-500">
+                      <td className="px-4 py-3 text-muted-foreground">
                         {formatInterval(amount.interval)}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
+                      <td className="px-4 py-3 text-muted-foreground">
                         {formatDate(subscription.currentPeriodStart ?? subscription.createdAt)}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
+                      <td className="px-4 py-3 text-muted-foreground">
                         {formatDate(subscription.currentPeriodEnd)}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
+                      <td className="px-4 py-3 text-muted-foreground">
                         {formatDate(subscription.canceledAt)}
                       </td>
                     </tr>
@@ -655,7 +655,7 @@ function SubscriptionsSection({
               </tbody>
             </table>
           </div>
-          <div className="border-t border-slate-100 px-4 py-3">
+          <div className="border-t border-border px-4 py-3">
             <Pagination
               page={filters.page}
               totalPages={totalPages}
@@ -686,11 +686,11 @@ function PlansSection({ plans }: { plans: AdminFinancePlan[] }) {
           description="Os planos da plataforma serão exibidos aqui quando forem cadastrados."
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Plano</th>
                   <th className="px-4 py-3 text-right">Mensal</th>
                   <th className="px-4 py-3 text-right">Anual</th>
@@ -700,17 +700,17 @@ function PlansSection({ plans }: { plans: AdminFinancePlan[] }) {
                   <th className="px-4 py-3 text-right">Em teste</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-border bg-card">
                 {plans.map((plan) => (
-                  <tr key={plan.id} className="hover:bg-slate-50/70">
+                  <tr key={plan.id} className="hover:bg-muted/70">
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-slate-900">{plan.name}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{plan.slug}</p>
+                      <p className="font-semibold text-foreground">{plan.name}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{plan.slug}</p>
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                    <td className="px-4 py-3 text-right font-semibold text-foreground">
                       {formatCurrencyFromCents(plan.priceMonthly)}
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-foreground">
                       {formatCurrencyFromCents(plan.priceYearly)}
                     </td>
                     <td className="px-4 py-3">
@@ -718,13 +718,13 @@ function PlansSection({ plans }: { plans: AdminFinancePlan[] }) {
                         {plan.isActive ? 'Ativo' : 'Inativo'}
                       </StatusBadge>
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-foreground">
                       {plan.subscriptionsCount}
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-foreground">
                       {plan.activeSubscriptionsCount}
                     </td>
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-foreground">
                       {plan.trialSubscriptionsCount}
                     </td>
                   </tr>
@@ -810,11 +810,11 @@ function StripeEventsSection({
           description="Quando webhooks forem recebidos, os eventos aparecerão nesta tabela."
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-sm">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Evento</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Recebido em</th>
@@ -822,28 +822,28 @@ function StripeEventsSection({
                   <th className="px-4 py-3">Erro</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
+              <tbody className="divide-y divide-border bg-card">
                 {events.map((event) => (
-                  <tr key={event.id} className="hover:bg-slate-50/70">
+                  <tr key={event.id} className="hover:bg-muted/70">
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-slate-900">{event.type}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{event.id}</p>
+                      <p className="font-semibold text-foreground">{event.type}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{event.id}</p>
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge tone={event.processed ? 'success' : 'warning'}>
                         {event.processed ? 'Processado' : 'Pendente'}
                       </StatusBadge>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{formatDate(event.receivedAt)}</td>
-                    <td className="px-4 py-3 text-slate-600">{formatDate(event.processedAt)}</td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(event.receivedAt)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(event.processedAt)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
                       {event.errorMessage ? (
                         <span className="inline-flex items-center gap-1.5 text-red-600">
                           <AlertTriangle className="h-3.5 w-3.5" />
                           {event.errorMessage}
                         </span>
                       ) : (
-                        <span className="text-slate-300">-</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </td>
                   </tr>
@@ -851,7 +851,7 @@ function StripeEventsSection({
               </tbody>
             </table>
           </div>
-          <div className="border-t border-slate-100 px-4 py-3">
+          <div className="border-t border-border px-4 py-3">
             <Pagination
               page={filters.page}
               totalPages={totalPages}
@@ -879,8 +879,8 @@ function SectionHeader({
   return (
     <div className="mb-5 flex items-center justify-between gap-3">
       <div>
-        <h2 className="text-base font-semibold text-slate-950">{title}</h2>
-        <p className="mt-1 text-sm text-slate-500">{description}</p>
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
       <Icon className="h-5 w-5 text-primary" />
     </div>

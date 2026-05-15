@@ -44,30 +44,30 @@ function AdminUserMobileCard({
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-semibold text-slate-950">{fullName}</h3>
-            <p className="mt-1 break-all text-xs text-slate-500">{user.email}</p>
+            <h3 className="truncate text-sm font-semibold text-foreground">{fullName}</h3>
+            <p className="mt-1 break-all text-xs text-muted-foreground">{user.email}</p>
           </div>
           <StatusBadge tone={user.isActive ? 'success' : 'muted'}>
             {user.isActive ? 'Ativo' : 'Inativo'}
           </StatusBadge>
         </div>
 
-        <dl className="grid gap-2 text-xs text-slate-600">
+        <dl className="grid gap-2 text-xs text-muted-foreground">
           <div className="flex items-center justify-between gap-3">
-            <dt className="font-medium text-slate-500">Papel</dt>
+            <dt className="font-medium text-muted-foreground">Papel</dt>
             <dd>
               <StatusBadge tone={roleTone[user.role]}>{roleLabel[user.role]}</StatusBadge>
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="font-medium text-slate-500">Clínica</dt>
-            <dd className="min-w-0 truncate text-right text-slate-700">
+            <dt className="font-medium text-muted-foreground">Clínica</dt>
+            <dd className="min-w-0 truncate text-right text-foreground">
               {user.clinic?.name ?? 'Sem clínica vinculada'}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="font-medium text-slate-500">Criado em</dt>
-            <dd className="text-right text-slate-700">{formatDate(user.createdAt)}</dd>
+            <dt className="font-medium text-muted-foreground">Criado em</dt>
+            <dd className="text-right text-foreground">{formatDate(user.createdAt)}</dd>
           </div>
         </dl>
 
@@ -185,7 +185,7 @@ export function AdminUsersPageContainer() {
           {filteredCount === 0 ? (
             <FilteredEmptyState icon={Users} onClear={clearAll} />
           ) : (
-            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
               <div className="space-y-3 p-3 md:hidden">
                 {users.map((user) => (
                   <AdminUserMobileCard
@@ -204,7 +204,7 @@ export function AdminUsersPageContainer() {
               <div className="hidden md:block">
                 <table className="w-full text-sm" aria-label="Usuários da plataforma">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       <th scope="col" className="px-4 py-3">Usuário</th>
                       <th scope="col" className="px-4 py-3">Papel</th>
                       <th scope="col" className="hidden px-4 py-3 md:table-cell">Clínica</th>
@@ -213,14 +213,14 @@ export function AdminUsersPageContainer() {
                       <th scope="col" className="px-4 py-3 text-right">Ações</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-border">
                     {users.map((user) => (
                       <tr
                         key={user.id}
                         role="button"
                         tabIndex={0}
                         aria-label={`Editar ${user.firstName} ${user.lastName}`}
-                        className="cursor-pointer transition-colors hover:bg-slate-50/60 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                        className="cursor-pointer transition-colors hover:bg-muted/60 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                         onClick={() => setEditTarget(user)}
                         onKeyDown={(event) => {
                           if (event.target !== event.currentTarget) return
@@ -231,10 +231,10 @@ export function AdminUsersPageContainer() {
                         }}
                       >
                         <td className="px-4 py-3">
-                          <p className="font-semibold text-slate-900">
+                          <p className="font-semibold text-foreground">
                             {user.firstName} {user.lastName}
                           </p>
-                          <p className="mt-0.5 text-xs text-slate-500">{user.email}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{user.email}</p>
                         </td>
                         <td className="px-4 py-3">
                           <StatusBadge tone={roleTone[user.role]}>
@@ -243,9 +243,9 @@ export function AdminUsersPageContainer() {
                         </td>
                         <td className="hidden px-4 py-3 md:table-cell">
                           {user.clinic ? (
-                            <span className="text-sm text-slate-700">{user.clinic.name}</span>
+                            <span className="text-sm text-foreground">{user.clinic.name}</span>
                           ) : (
-                            <span className="text-slate-300">—</span>
+                            <span className="text-muted-foreground">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -253,7 +253,7 @@ export function AdminUsersPageContainer() {
                             {user.isActive ? 'Ativo' : 'Inativo'}
                           </StatusBadge>
                         </td>
-                        <td className="hidden px-4 py-3 text-xs text-slate-500 lg:table-cell">
+                        <td className="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell">
                           {formatDate(user.createdAt)}
                         </td>
                         <td className="px-4 py-3">
@@ -307,7 +307,7 @@ export function AdminUsersPageContainer() {
                 </table>
               </div>
 
-              <div className="border-t border-slate-100 px-4 py-3">
+              <div className="border-t border-border px-4 py-3">
                 <Pagination
                   page={page}
                   totalPages={totalPages}

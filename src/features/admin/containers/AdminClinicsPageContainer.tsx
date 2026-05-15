@@ -36,22 +36,22 @@ function AdminClinicMobileCard({
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="truncate text-sm font-semibold text-slate-950">{clinic.name}</h3>
-            <p className="mt-1 text-xs text-slate-500">Clínica da plataforma</p>
+            <h3 className="truncate text-sm font-semibold text-foreground">{clinic.name}</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Clínica da plataforma</p>
           </div>
           <StatusBadge tone={isActive ? 'success' : 'muted'}>
             {isActive ? 'Ativa' : 'Inativa'}
           </StatusBadge>
         </div>
 
-        <dl className="grid gap-2 text-xs text-slate-600">
+        <dl className="grid gap-2 text-xs text-muted-foreground">
           <div className="flex items-center justify-between gap-3">
-            <dt className="font-medium text-slate-500">Status</dt>
-            <dd className="text-right text-slate-700">{isActive ? 'Ativa' : 'Inativa'}</dd>
+            <dt className="font-medium text-muted-foreground">Status</dt>
+            <dd className="text-right text-foreground">{isActive ? 'Ativa' : 'Inativa'}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="font-medium text-slate-500">Criada em</dt>
-            <dd className="text-right text-slate-700">{formatDate(clinic.createdAt)}</dd>
+            <dt className="font-medium text-muted-foreground">Criada em</dt>
+            <dd className="text-right text-foreground">{formatDate(clinic.createdAt)}</dd>
           </div>
         </dl>
 
@@ -156,7 +156,7 @@ export function AdminClinicsPageContainer() {
           {filteredCount === 0 ? (
             <FilteredEmptyState icon={Building2} onClear={clearAll} />
           ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
               <div className="space-y-3 p-3 md:hidden">
                 {clinics.map((clinic) => (
                   <AdminClinicMobileCard
@@ -172,14 +172,14 @@ export function AdminClinicsPageContainer() {
               <div className="hidden md:block">
                 <table className="w-full text-sm" aria-label="Clínicas da plataforma">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       <th scope="col" className="px-4 py-3">Clínica</th>
                       <th scope="col" className="px-4 py-3">Status</th>
                       <th scope="col" className="hidden px-4 py-3 lg:table-cell">Criada em</th>
                       <th scope="col" className="px-4 py-3 text-right">Ações</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-border">
                     {clinics.map((clinic) => {
                       const isActive = clinic.isActive !== false
 
@@ -189,7 +189,7 @@ export function AdminClinicsPageContainer() {
                           role="button"
                           tabIndex={0}
                           aria-label={`Editar ${clinic.name}`}
-                          className="cursor-pointer transition-colors hover:bg-slate-50/60 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                          className="cursor-pointer transition-colors hover:bg-muted/60 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                           onClick={() => setEditTarget(clinic)}
                           onKeyDown={(event) => {
                             if (event.target !== event.currentTarget) return
@@ -200,8 +200,8 @@ export function AdminClinicsPageContainer() {
                           }}
                         >
                           <td className="px-4 py-3">
-                            <p className="font-semibold text-slate-900">{clinic.name}</p>
-                            <p className="mt-0.5 text-xs text-slate-500">
+                            <p className="font-semibold text-foreground">{clinic.name}</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
                               Criada em {formatDate(clinic.createdAt)}
                             </p>
                           </td>
@@ -210,7 +210,7 @@ export function AdminClinicsPageContainer() {
                               {isActive ? 'Ativa' : 'Inativa'}
                             </StatusBadge>
                           </td>
-                          <td className="hidden px-4 py-3 text-xs text-slate-500 lg:table-cell">
+                          <td className="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell">
                             {formatDate(clinic.createdAt)}
                           </td>
                           <td className="px-4 py-3">
@@ -248,7 +248,7 @@ export function AdminClinicsPageContainer() {
                 </table>
               </div>
 
-              <div className="border-t border-slate-100 px-4 py-3">
+              <div className="border-t border-border px-4 py-3">
                 <Pagination
                   page={page}
                   totalPages={totalPages}
