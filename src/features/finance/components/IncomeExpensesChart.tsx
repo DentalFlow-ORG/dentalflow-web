@@ -270,16 +270,16 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
           <span className="text-right">Saídas</span>
           <span className="text-right">Resultado</span>
         </div>
-        <div className="max-h-52 divide-y divide-border overflow-auto">
+        <div className="app-scrollbar max-h-52 divide-y divide-border overflow-auto">
           {chartData.map((item) => (
             <div key={item.date} className="grid grid-cols-4 px-3 py-2 text-sm">
               <span className="font-medium text-foreground">{item.label}</span>
-              <span className="text-right text-emerald-700">{formatCurrency(item.income)}</span>
-              <span className="text-right text-red-700">{formatCurrency(item.expenses)}</span>
+              <span className="text-right text-emerald-700 dark:text-emerald-400">{formatCurrency(item.income)}</span>
+              <span className="text-right text-red-700 dark:text-red-400">{formatCurrency(item.expenses)}</span>
               <span
                 className={cn(
                   'text-right font-semibold',
-                  item.netProfit >= 0 ? 'text-indigo-700' : 'text-red-700',
+                  item.netProfit >= 0 ? 'text-indigo-700 dark:text-indigo-300' : 'text-red-700 dark:text-red-400',
                 )}
               >
                 {formatCurrency(item.netProfit)}

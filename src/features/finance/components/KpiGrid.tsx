@@ -11,7 +11,7 @@ export function KpiGrid({ summary }: { summary: FinanceSummary }) {
       <MetricCard
         value={formatCurrency(summary.kpis.netProfit)}
         label="Lucro líquido"
-        className={summary.kpis.netProfit >= 0 ? 'border-emerald-200' : 'border-red-200'}
+        className={summary.kpis.netProfit >= 0 ? 'border-emerald-200 dark:border-emerald-800/50' : 'border-red-200 dark:border-red-800/50'}
       />
       <MetricCard
         value={`${summary.kpis.profitMargin.toFixed(1)}%`}

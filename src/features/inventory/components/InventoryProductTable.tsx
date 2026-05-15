@@ -149,7 +149,7 @@ export function InventoryProductTable({
                               product.currentQuantity < 1 || quickMovingIds.has(product.id)
                             }
                             onClick={() => onQuickMove(product, 'out')}
-                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border text-muted-foreground transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border text-muted-foreground transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-800/60 dark:hover:bg-red-950/30 dark:hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
                           >
                             <Minus className="h-3 w-3" aria-hidden="true" />
                           </button>
@@ -159,9 +159,9 @@ export function InventoryProductTable({
                               quickMovingIds.has(product.id)
                                 ? 'text-muted-foreground'
                                 : product.status === 'EMPTY'
-                                  ? 'text-red-600'
+                                  ? 'text-red-600 dark:text-red-400'
                                   : product.status === 'LOW'
-                                    ? 'text-amber-700'
+                                    ? 'text-amber-700 dark:text-amber-400'
                                     : 'text-foreground',
                             )}
                           >
@@ -180,7 +180,7 @@ export function InventoryProductTable({
                             aria-label={`Adicionar 1 unidade de ${product.name}`}
                             disabled={quickMovingIds.has(product.id)}
                             onClick={() => onQuickMove(product, 'in')}
-                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border text-muted-foreground transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border text-muted-foreground transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:border-emerald-800/60 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-400 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
                           >
                             <Plus className="h-3 w-3" aria-hidden="true" />
                           </button>
@@ -198,7 +198,7 @@ export function InventoryProductTable({
                       <StockStatusBadge status={product.status} />
                     </td>
                     <td
-                      className={`px-4 py-3 ${product.status === 'EXPIRED' ? 'font-medium text-red-600' : product.status === 'EXPIRING' ? 'font-medium text-amber-700' : 'text-muted-foreground'}`}
+                      className={`px-4 py-3 ${product.status === 'EXPIRED' ? 'font-medium text-red-600 dark:text-red-400' : product.status === 'EXPIRING' ? 'font-medium text-amber-700 dark:text-amber-400' : 'text-muted-foreground'}`}
                     >
                       {product.expiresAt ? (
                         formatProductDate(product.expiresAt)

@@ -136,7 +136,7 @@ export function CurrentSubscriptionCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="text-red-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+                className="text-red-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:border-red-800/60 dark:hover:bg-red-950/30 dark:hover:text-red-300"
                 onClick={onCancel}
                 disabled={isAnyActionPending}
               >
@@ -171,8 +171,8 @@ function InfoBox({
 }) {
   const toneClass =
     tone === 'amber'
-      ? 'border-amber-200 bg-amber-50 text-amber-800'
-      : 'border-blue-200 bg-blue-50 text-blue-800'
+      ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-300'
+      : 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800/50 dark:bg-blue-950/30 dark:text-blue-300'
 
   return (
     <div className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${toneClass}`}>

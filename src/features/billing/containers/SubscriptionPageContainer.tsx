@@ -191,7 +191,7 @@ export function SubscriptionPageContainer() {
           <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
             {TRUST_MESSAGES.map((message) => (
               <div key={message} className="flex items-center gap-2 font-medium">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-700">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400">
                   <Check className="h-4 w-4" aria-hidden="true" />
                 </span>
                 <span>{message}</span>

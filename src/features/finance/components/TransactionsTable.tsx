@@ -64,7 +64,7 @@ export function TransactionsTable({
                     <span
                       className={cn(
                         'inline-flex items-center gap-1.5 font-semibold',
-                        transaction.type === 'INCOME' ? 'text-emerald-700' : 'text-red-700',
+                        transaction.type === 'INCOME' ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400',
                       )}
                     >
                       {transaction.type === 'INCOME' ? (
@@ -92,7 +92,7 @@ export function TransactionsTable({
                 <span
                   className={cn(
                     'shrink-0 text-sm font-semibold',
-                    transaction.type === 'INCOME' ? 'text-emerald-700' : 'text-red-700',
+                    transaction.type === 'INCOME' ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400',
                   )}
                 >
                   {formatCurrency(transaction.amount)}
@@ -113,7 +113,7 @@ export function TransactionsTable({
                   title="Cancelar lançamento"
                   aria-label="Cancelar lançamento"
                   disabled={transaction.status === 'CANCELED'}
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors disabled:pointer-events-none disabled:opacity-30"
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-colors disabled:pointer-events-none disabled:opacity-30"
                   onClick={() => onDelete(transaction)}
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
@@ -156,7 +156,7 @@ export function TransactionsTable({
                       <span
                         className={cn(
                           'inline-flex items-center gap-1.5 font-semibold',
-                          transaction.type === 'INCOME' ? 'text-emerald-700' : 'text-red-700',
+                          transaction.type === 'INCOME' ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400',
                         )}
                       >
                         {transaction.type === 'INCOME' ? (
@@ -191,7 +191,7 @@ export function TransactionsTable({
                     <td
                       className={cn(
                         'px-4 py-3 text-right font-semibold',
-                        transaction.type === 'INCOME' ? 'text-emerald-700' : 'text-red-700',
+                        transaction.type === 'INCOME' ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400',
                       )}
                     >
                       {formatCurrency(transaction.amount)}
@@ -212,7 +212,7 @@ export function TransactionsTable({
                           title="Cancelar lançamento"
                           aria-label="Cancelar lançamento"
                           disabled={transaction.status === 'CANCELED'}
-                          className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors disabled:pointer-events-none disabled:opacity-30"
+                          className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 transition-colors disabled:pointer-events-none disabled:opacity-30"
                           onClick={() => onDelete(transaction)}
                         >
                           <Trash2 className="h-4 w-4" aria-hidden="true" />

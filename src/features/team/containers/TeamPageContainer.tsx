@@ -48,7 +48,7 @@ function MemberRowActions({ member, onEdit, onPassword, onDelete }: MemberRowAct
             <MoreHorizontal aria-hidden="true" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-48 py-1">
+        <PopoverContent align="end" className="w-48 overflow-hidden py-1">
           {member.profile && (
             <>
               <Link

@@ -17,12 +17,12 @@ type KpiVariant = 'neutral' | 'positive' | 'warning' | 'caution' | 'danger' | 'c
 type IconComponent = React.ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' }>
 
 const variantStyles: Record<KpiVariant, { activeCard: string; activeIcon: string; idleIcon: string }> = {
-  neutral:  { activeCard: '',                                    activeIcon: 'text-muted-foreground',   idleIcon: 'text-muted-foreground'  },
-  positive: { activeCard: '',                                    activeIcon: 'text-emerald-500', idleIcon: 'text-emerald-500' },
-  warning:  { activeCard: 'border-amber-200 bg-amber-50/60',    activeIcon: 'text-amber-500',   idleIcon: 'text-muted-foreground/30'  },
-  caution:  { activeCard: 'border-orange-200 bg-orange-50/60',  activeIcon: 'text-orange-500',  idleIcon: 'text-muted-foreground/30'  },
-  danger:   { activeCard: 'border-red-200 bg-red-50/60',        activeIcon: 'text-red-500',     idleIcon: 'text-muted-foreground/30'  },
-  critical: { activeCard: 'border-red-300 bg-red-100/60',       activeIcon: 'text-red-600',     idleIcon: 'text-muted-foreground/30'  },
+  neutral:  { activeCard: '',                                                                                                activeIcon: 'text-muted-foreground',   idleIcon: 'text-muted-foreground'  },
+  positive: { activeCard: '',                                                                                                activeIcon: 'text-emerald-500 dark:text-emerald-400', idleIcon: 'text-emerald-500 dark:text-emerald-400' },
+  warning:  { activeCard: 'border-amber-200 bg-amber-50/60 dark:border-amber-800/40 dark:bg-amber-950/20',                 activeIcon: 'text-amber-500 dark:text-amber-400',   idleIcon: 'text-muted-foreground/30'  },
+  caution:  { activeCard: 'border-orange-200 bg-orange-50/60 dark:border-orange-800/40 dark:bg-orange-950/20',             activeIcon: 'text-orange-500 dark:text-orange-400',  idleIcon: 'text-muted-foreground/30'  },
+  danger:   { activeCard: 'border-red-200 bg-red-50/60 dark:border-red-800/40 dark:bg-red-950/20',                        activeIcon: 'text-red-500 dark:text-red-400',     idleIcon: 'text-muted-foreground/30'  },
+  critical: { activeCard: 'border-red-300 bg-red-100/60 dark:border-red-700/50 dark:bg-red-950/30',                       activeIcon: 'text-red-600 dark:text-red-300',     idleIcon: 'text-muted-foreground/30'  },
 }
 
 function InventoryKpiCard({

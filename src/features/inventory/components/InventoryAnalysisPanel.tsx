@@ -10,11 +10,11 @@ import { generateInventoryInsights } from '../utils/inventory-insights'
 function getToneConfig(tone: InventoryInsightTone) {
   switch (tone) {
     case 'positive':
-      return { card: 'border-emerald-200 bg-emerald-50', icon: 'text-emerald-600', Icon: CheckCircle2 }
+      return { card: 'border-emerald-200 bg-emerald-50 dark:border-emerald-800/50 dark:bg-emerald-950/30', icon: 'text-emerald-600 dark:text-emerald-400', Icon: CheckCircle2 }
     case 'warning':
-      return { card: 'border-amber-200 bg-amber-50', icon: 'text-amber-600', Icon: AlertTriangle }
+      return { card: 'border-amber-200 bg-amber-50 dark:border-amber-800/50 dark:bg-amber-950/30', icon: 'text-amber-600 dark:text-amber-400', Icon: AlertTriangle }
     case 'danger':
-      return { card: 'border-red-200 bg-red-50', icon: 'text-red-600', Icon: AlertCircle }
+      return { card: 'border-red-200 bg-red-50 dark:border-red-800/50 dark:bg-red-950/30', icon: 'text-red-600 dark:text-red-400', Icon: AlertCircle }
     case 'neutral':
       return { card: 'border-border bg-muted', icon: 'text-muted-foreground', Icon: Info }
   }
