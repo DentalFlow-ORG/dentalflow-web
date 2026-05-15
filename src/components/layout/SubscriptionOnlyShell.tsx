@@ -22,15 +22,15 @@ export function SubscriptionOnlyShell({ children }: Props) {
   }
 
   return (
-    <div className="min-h-svh bg-slate-50">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
+    <div className="min-h-svh bg-background">
+      <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur-xl">
         <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <BrandLink />
           <div className="flex items-center gap-3">
             {user && (
               <div className="hidden text-right sm:block">
-                <p className="text-sm font-semibold text-slate-950">{getUserDisplayName(user)}</p>
-                <p className="text-xs text-slate-500">{user.email}</p>
+                <p className="text-sm font-semibold text-foreground">{getUserDisplayName(user)}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
             )}
             <Button variant="outline" size="sm" aria-label="Sair" onClick={handleLogout}>

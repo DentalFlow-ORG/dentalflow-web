@@ -160,10 +160,10 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
   const secondaryNav = visibleNav.filter((item) => !primaryRoutes.includes(item.to))
 
   return (
-    <div className="min-h-svh bg-slate-50 text-slate-950">
+    <div className="min-h-svh bg-background text-foreground">
       {/* Sidebar - desktop only */}
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-slate-200 bg-white lg:block print:hidden">
-        <div className="flex h-20 items-center border-b border-slate-200 px-6">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-sidebar-border bg-sidebar lg:block print:hidden">
+        <div className="flex h-20 items-center border-b border-sidebar-border px-6">
           <BrandLink />
         </div>
 
@@ -174,8 +174,8 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
               to={to}
               aria-current={isActive(to) ? 'page' : undefined}
               className={cn(
-                'flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-blue-50 hover:text-primary',
-                isActive(to) && 'bg-blue-50 text-primary',
+                'flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                isActive(to) && 'bg-sidebar-accent text-sidebar-primary',
               )}
             >
               <Icon className="h-4 w-4" />
@@ -186,7 +186,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
       </aside>
 
       {/* Bottom nav - mobile only */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden print:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] lg:hidden print:hidden">
         <div className="flex h-16 items-stretch">
           {primaryNav.map(({ label, to, icon: Icon }) => (
             <Link
@@ -195,7 +195,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
               aria-current={isActive(to) ? 'page' : undefined}
               className={cn(
                 'flex flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold transition-colors',
-                isActive(to) ? 'text-primary' : 'text-slate-500 hover:text-slate-700',
+                isActive(to) ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               <Icon className="h-5 w-5" />
@@ -209,7 +209,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
               onClick={() => setMoreOpen(true)}
               className={cn(
                 'flex flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold transition-colors',
-                moreOpen ? 'text-primary' : 'text-slate-500 hover:text-slate-700',
+                moreOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               <MoreHorizontal className="h-5 w-5" />
@@ -224,15 +224,15 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
         <div className="fixed inset-0 z-30 lg:hidden print:hidden" onClick={() => setMoreOpen(false)}>
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
           <div
-            className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-slate-200 bg-white pb-[calc(env(safe-area-inset-bottom)+4rem)]"
+            className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-border bg-card pb-[calc(env(safe-area-inset-bottom)+4rem)]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 py-4">
-              <p className="text-sm font-semibold text-slate-700">Mais opções</p>
+              <p className="text-sm font-semibold text-foreground">Mais opções</p>
               <button
                 type="button"
                 onClick={() => setMoreOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -247,8 +247,8 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
                   className={cn(
                     'flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center text-[11px] font-semibold transition-colors',
                     isActive(to)
-                      ? 'bg-blue-50 text-primary'
-                      : 'text-slate-600 hover:bg-slate-100',
+                      ? 'bg-sidebar-accent text-sidebar-primary'
+                      : 'text-muted-foreground hover:bg-muted',
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -262,7 +262,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
 
       {/* Main area */}
       <div className="lg:pl-64 print:pl-0">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur-xl print:hidden">
+        <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur-xl print:hidden">
           <div className="flex h-20 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <div className="lg:hidden">
               <BrandLink />
@@ -270,10 +270,10 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
 
             <div className="ml-auto flex items-center gap-3">
               <div className="hidden text-right sm:block">
-                <p className="text-sm font-semibold text-slate-950">
+                <p className="text-sm font-semibold text-foreground">
                   {user ? getUserDisplayName(user) : 'Usuário'}
                 </p>
-                <p className="text-xs text-slate-500">{user?.email}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
               <ThemeToggle />
               <Button variant="outline" size="sm" aria-label="Sair" onClick={handleLogout}>
@@ -307,10 +307,10 @@ function TrialBanner({ trialEndsAt }: { trialEndsAt: string }) {
   })
 
   return (
-    <div className="border-b border-orange-200 bg-orange-50 px-4 py-2 sm:px-6 lg:px-8">
+    <div className="border-b border-orange-200 bg-orange-50 px-4 py-2 dark:border-orange-800/30 dark:bg-orange-950/30 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm font-medium text-orange-800">
-          <Zap className="h-4 w-4 shrink-0 text-orange-500" aria-hidden="true" />
+        <div className="flex items-center gap-2 text-sm font-medium text-orange-800 dark:text-orange-200">
+          <Zap className="h-4 w-4 shrink-0 text-orange-500 dark:text-orange-400" aria-hidden="true" />
           <span>
             Teste grátis ativo
             {daysRemaining > 0
@@ -320,7 +320,7 @@ function TrialBanner({ trialEndsAt }: { trialEndsAt: string }) {
         </div>
         <Link
           to="/app/assinatura"
-          className="text-xs font-semibold text-orange-700 underline underline-offset-2 hover:text-orange-900"
+          className="text-xs font-semibold text-orange-700 underline underline-offset-2 hover:text-orange-900 dark:text-orange-300 dark:hover:text-orange-100"
         >
           Assinar agora e manter o acesso
         </Link>

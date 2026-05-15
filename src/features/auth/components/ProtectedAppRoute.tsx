@@ -71,9 +71,9 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
 
   if (isBootstrapping) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50" role="status">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background" role="status">
         <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
-        <span className="text-sm font-medium text-slate-500">Carregando DentalFlow...</span>
+        <span className="text-sm font-medium text-muted-foreground">Carregando DentalFlow...</span>
       </div>
     )
   }
@@ -98,9 +98,9 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
   // Billing check in progress — render nothing until we know the access state
   if (!billingChecked) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50" role="status">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background" role="status">
         <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
-        <span className="text-sm font-medium text-slate-500">Verificando assinatura...</span>
+        <span className="text-sm font-medium text-muted-foreground">Verificando assinatura...</span>
       </div>
     )
   }
