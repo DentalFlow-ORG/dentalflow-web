@@ -1,10 +1,11 @@
-import { ArrowLeft, CalendarDays, Clock, ShieldOff } from 'lucide-react'
+import { ArrowLeft, CalendarDays, ShieldOff } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
 import { AppPage } from '@/components/layout/AppPage'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
+import { AvailabilityManager } from '@/features/scheduling/components/availability/AvailabilityManager'
 
 import { useTeamMemberProfile } from '../hooks/useTeamMemberProfile'
 
@@ -13,7 +14,7 @@ type Props = {
 }
 
 export function TeamMemberProfileContainer({ profileId }: Props) {
-  const { profile, status, displayName, email, phone, isActive, load } =
+  const { profile, status, displayName, email, phone, isActive, availability, setAvailability, load } =
     useTeamMemberProfile(profileId)
 
   return (
@@ -108,25 +109,12 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
               </dl>
             </PanelCard>
 
-            {/* Availability placeholder */}
-            <PanelCard>
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50">
-                  <Clock className="h-4 w-4 text-primary" aria-hidden="true" />
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-base font-semibold text-slate-950">Disponibilidade</h2>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Configure os horários de atendimento deste profissional.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-center">
-                <p className="text-sm text-slate-500">
-                  A configuração detalhada de horários será adicionada nesta página.
-                </p>
-              </div>
-            </PanelCard>
+            {/* Availability editor */}
+            <AvailabilityManager
+              profileId={profileId}
+              slots={availability}
+              onSlotsChange={setAvailability}
+            />
           </div>
 
           {/* Exceptions placeholder */}
