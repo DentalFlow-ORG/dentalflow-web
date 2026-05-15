@@ -26,7 +26,7 @@ export function InvoiceDetails({ invoice, onClose }: Props) {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => printInvoice(invoice)}>
-            <Printer className="h-4 w-4" />
+            <Printer className="h-4 w-4" aria-hidden="true" />
             Imprimir
           </Button>
           <Button variant="outline" onClick={onClose}>

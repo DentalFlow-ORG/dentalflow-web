@@ -288,8 +288,8 @@ export function FiscalInvoicesPageContainer() {
               <MetricCard value={String(summary.counts.CANCELED ?? 0)} label="Canceladas" />
               <MetricCard value={formatCents(summary.monthTotalCents)} label="Valor total do mês" />
               <MetricCard
-                value={summary.configurationPending ? '1' : '0'}
-                label="Pendências de configuração"
+                value={summary.configurationPending ? 'Pendente' : 'Ok'}
+                label="Configuração fiscal"
               />
             </section>
           )}
@@ -316,25 +316,12 @@ export function FiscalInvoicesPageContainer() {
 
           {isFiscalConfigurationIncomplete && (
             <InlineFeedback tone="warning">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="max-w-2xl">
-                  <p className="font-semibold">
-                    Complete a configuração fiscal antes de criar notas fiscais.
-                  </p>
-                  <p className="mt-1 leading-6">
-                    Os dados fiscais da clínica são necessários para emitir notas com segurança.
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full bg-white sm:w-auto"
-                  onClick={openProfileForm}
-                  disabled={!isOwner}
-                >
-                  <Settings2 className="h-4 w-4" aria-hidden="true" />
-                  Configurar dados fiscais
-                </Button>
+              <div className="max-w-2xl">
+                <p className="font-semibold">Configuração fiscal pendente</p>
+                <p className="mt-1 leading-6">
+                  Complete os dados fiscais da clínica para criar novas notas fiscais com
+                  segurança.
+                </p>
               </div>
             </InlineFeedback>
           )}
