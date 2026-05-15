@@ -123,7 +123,7 @@ export function TransactionsTable({
       </div>
 
       <div className="hidden overflow-hidden rounded-lg border border-border md:block">
-        <div className="overflow-x-auto">
+        <div className="app-scrollbar overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm" aria-label="Movimentações financeiras">
             <thead>
               <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">

@@ -12,12 +12,12 @@ export function FinanceInsight({
   detail?: string
 }) {
   return (
-    <div className="rounded-lg border border-border bg-muted px-3 py-3">
+    <div className="rounded-lg border border-border bg-card/85 px-3 py-3 shadow-sm">
       <div className="text-xs font-medium text-muted-foreground">{label}</div>
       <div
         className={cn(
           'mt-1 text-base font-semibold',
-          value >= 0 ? 'text-foreground' : 'text-red-700',
+          value >= 0 ? 'text-foreground' : 'text-red-700 dark:text-red-400',
         )}
       >
         {formatCurrency(value)}

@@ -40,7 +40,7 @@ export function FixedExpenseForm({
   return (
     <PanelCard>
       <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600 dark:bg-red-900/35 dark:text-red-300">
           <Scale className="h-5 w-5" />
         </div>
         <div>

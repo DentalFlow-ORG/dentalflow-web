@@ -279,7 +279,7 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
               <span
                 className={cn(
                   'text-right font-semibold',
-                  item.netProfit >= 0 ? 'text-indigo-700 dark:text-indigo-300' : 'text-red-700 dark:text-red-400',
+                  item.netProfit >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-400',
                 )}
               >
                 {formatCurrency(item.netProfit)}
