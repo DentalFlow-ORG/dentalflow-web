@@ -36,8 +36,8 @@ export function TransactionsTable({
     <PanelCard>
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Movimentações</h2>
-          <p className="mt-1 text-sm text-slate-500">Últimos lançamentos do período.</p>
+          <h2 className="text-base font-semibold text-foreground">Movimentações</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Últimos lançamentos do período.</p>
         </div>
         {isLoading ? (
           <span role="status" aria-label="Carregando movimentações">
@@ -49,14 +49,14 @@ export function TransactionsTable({
       </div>
       <div className="space-y-3 md:hidden">
         {transactions.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+          <p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
             Nenhuma movimentação encontrada.
           </p>
         ) : (
           transactions.map((transaction) => (
             <div
               key={transaction.id}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm"
+              className="rounded-lg border border-border bg-card px-4 py-4 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -78,13 +78,13 @@ export function TransactionsTable({
                       {STATUS_LABEL[transaction.status]}
                     </StatusBadge>
                   </div>
-                  <p className="mt-2 text-sm font-medium text-slate-900">
+                  <p className="mt-2 text-sm font-medium text-foreground">
                     {transaction.description}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {formatDate(transaction.transactionDate)} - {transaction.category?.name ?? 'Sem categoria'}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {SOURCE_LABEL[transaction.source] ?? transaction.source}
                     {transaction.service?.name ? ` - ${transaction.service.name}` : ''}
                   </p>
@@ -103,7 +103,7 @@ export function TransactionsTable({
                   type="button"
                   title="Editar lançamento"
                   aria-label="Editar lançamento"
-                  className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   onClick={() => onEdit(transaction)}
                 >
                   <Pencil className="h-4 w-4" aria-hidden="true" />
@@ -124,11 +124,11 @@ export function TransactionsTable({
         )}
       </div>
 
-      <div className="hidden overflow-hidden rounded-lg border border-slate-200 md:block">
+      <div className="hidden overflow-hidden rounded-lg border border-border md:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm" aria-label="Movimentações financeiras">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <th scope="col" className="px-4 py-3">Data</th>
                 <th scope="col" className="px-4 py-3">Tipo</th>
                 <th scope="col" className="px-4 py-3">Categoria</th>
@@ -139,17 +139,17 @@ export function TransactionsTable({
                 <th scope="col" className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
+            <tbody className="divide-y divide-border bg-card">
               {transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-500">
+                  <td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">
                     Nenhuma movimentação encontrada.
                   </td>
                 </tr>
               ) : (
                 transactions.map((transaction) => (
-                  <tr key={transaction.id} className="hover:bg-slate-50/70">
-                    <td className="px-4 py-3 text-slate-600">
+                  <tr key={transaction.id} className="hover:bg-muted/50">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {formatDate(transaction.transactionDate)}
                     </td>
                     <td className="px-4 py-3">
@@ -167,20 +167,20 @@ export function TransactionsTable({
                         {TYPE_LABEL[transaction.type]}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {transaction.category?.name ?? 'Sem categoria'}
                     </td>
                     <td className="px-4 py-3">
-                      <p className="max-w-[200px] truncate font-medium text-slate-900">
+                      <p className="max-w-[200px] truncate font-medium text-foreground">
                         {transaction.description}
                       </p>
                       {transaction.service?.name && (
-                        <p className="mt-0.5 text-xs text-slate-500">
+                        <p className="mt-0.5 text-xs text-muted-foreground">
                           {transaction.service.name}
                         </p>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {SOURCE_LABEL[transaction.source] ?? transaction.source}
                     </td>
                     <td className="px-4 py-3">
@@ -228,7 +228,7 @@ export function TransactionsTable({
       </div>
 
       <Pagination
-        className="mt-4 border-t border-slate-100 pt-4"
+        className="mt-4 border-t border-border pt-4"
         page={page}
         totalPages={totalPages}
         filteredCount={total}

@@ -45,8 +45,8 @@ export function TransactionForm({
           <Plus className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Novo lançamento</h2>
-          <p className="text-sm text-slate-500">Registre entradas ou despesas manuais.</p>
+          <h2 className="text-base font-semibold text-foreground">Novo lançamento</h2>
+          <p className="text-sm text-muted-foreground">Registre entradas ou despesas manuais.</p>
         </div>
       </div>
       <form className="space-y-4" onSubmit={onSubmit}>

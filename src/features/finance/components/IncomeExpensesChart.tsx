@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
+import { useTheme } from '@/features/theme/ThemeProvider'
 
 import type { FinanceSummary } from '../types/finance.types'
 import { formatCompactCurrency, formatCurrency, formatDate, formatShortDate } from '../utils/finance-format'
@@ -40,26 +41,31 @@ type ChartTooltipProps = {
     color?: string
     payload?: { fullDate?: string }
   }>
+  isDark?: boolean
 }
 
-function ChartTooltip({ active, payload }: ChartTooltipProps) {
+function ChartTooltip({ active, payload, isDark }: ChartTooltipProps) {
   if (!active || !payload?.length) return null
 
   const fullDate = (payload[0]?.payload?.fullDate ?? '') as string
+  const bgColor = isDark ? '#0f172a' : '#ffffff'
+  const borderColor = isDark ? 'rgba(226,232,240,0.18)' : '#E2E8F0'
+  const titleColor = isDark ? '#f8fafc' : '#0F172A'
+  const labelColor = isDark ? '#cbd5e1' : '#64748B'
 
   return (
     <div
       style={{
-        border: '1px solid #E2E8F0',
+        border: `1px solid ${borderColor}`,
         borderRadius: 8,
         boxShadow: '0 12px 24px rgb(15 23 42 / 0.12)',
-        backgroundColor: '#ffffff',
+        backgroundColor: bgColor,
         padding: '8px 12px',
         fontSize: 13,
         lineHeight: 1.5,
       }}
     >
-      <p style={{ marginBottom: 6, fontWeight: 600, color: '#0F172A' }}>{fullDate}</p>
+      <p style={{ marginBottom: 6, fontWeight: 600, color: titleColor }}>{fullDate}</p>
       {payload.map((entry) => {
         const key = String(entry.name)
         const raw = Number(entry.value)
@@ -73,7 +79,7 @@ function ChartTooltip({ active, payload }: ChartTooltipProps) {
               : formatCurrency(raw)
             : formatCurrency(Math.abs(raw))
 
-        let valueColor = entry.color ?? '#0F172A'
+        let valueColor = entry.color ?? titleColor
         if (key === 'netProfit') {
           if (raw > 0) valueColor = '#10B981'
           else if (raw < 0) valueColor = '#EF4444'
@@ -85,7 +91,7 @@ function ChartTooltip({ active, payload }: ChartTooltipProps) {
             key={key}
             style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginTop: 2 }}
           >
-            <span style={{ color: '#64748B' }}>{label}</span>
+            <span style={{ color: labelColor }}>{label}</span>
             <span style={{ color: valueColor, fontWeight: 600 }}>{displayValue}</span>
           </div>
         )
@@ -95,6 +101,15 @@ function ChartTooltip({ active, payload }: ChartTooltipProps) {
 }
 
 export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
+  const { theme } = useTheme()
+  const isDark =
+    theme === 'dark' ||
+    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+
+  const gridColor = isDark ? 'rgba(226,232,240,0.12)' : '#E2E8F0'
+  const tickColor = isDark ? '#cbd5e1' : '#64748B'
+  const refLineColor = isDark ? 'rgba(203,213,225,0.25)' : '#CBD5E1'
+
   const [visibleSeries, setVisibleSeries] = useState<Record<ChartSeriesKey, boolean>>({
     income: true,
     expenses: true,
@@ -151,8 +166,8 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
             className={cn(
               'inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors',
               visibleSeries[series.key]
-                ? 'border-slate-300 bg-white text-slate-800 shadow-sm'
-                : 'border-slate-200 bg-slate-50 text-slate-400',
+                ? 'border-border bg-card text-foreground shadow-sm'
+                : 'border-border/50 bg-muted text-muted-foreground',
             )}
             onClick={() => toggleSeries(series.key)}
           >
@@ -182,34 +197,34 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
                 <stop offset="95%" stopColor="#6366F1" stopOpacity={0.02} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke={gridColor} strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="label"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#64748B', fontSize: 12 }}
+              tick={{ fill: tickColor, fontSize: 12 }}
               minTickGap={18}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#64748B', fontSize: 12 }}
+              tick={{ fill: tickColor, fontSize: 12 }}
               tickFormatter={formatCompactCurrency}
               width={72}
             />
             <Tooltip
-              cursor={{ stroke: '#94A3B8', strokeDasharray: '4 4' }}
-              content={<ChartTooltip />}
+              cursor={{ stroke: refLineColor, strokeDasharray: '4 4' }}
+              content={<ChartTooltip isDark={isDark} />}
             />
             <Legend
               iconType="circle"
               formatter={(value) => (
-                <span className="text-xs font-medium text-slate-600">
+                <span className="text-xs font-medium text-muted-foreground">
                   {CHART_SERIES_LABELS[String(value)] ?? value}
                 </span>
               )}
             />
-            <ReferenceLine y={0} stroke="#CBD5E1" />
+            <ReferenceLine y={0} stroke={refLineColor} />
             {visibleSeries.income && (
               <Area
                 type="monotone"
@@ -250,17 +265,17 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
         </ResponsiveContainer>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200">
-        <div className="grid grid-cols-4 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div className="overflow-hidden rounded-lg border border-border">
+        <div className="grid grid-cols-4 bg-muted px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           <span>Data</span>
           <span className="text-right">Entradas</span>
           <span className="text-right">Saídas</span>
           <span className="text-right">Resultado</span>
         </div>
-        <div className="max-h-52 divide-y divide-slate-100 overflow-auto">
+        <div className="max-h-52 divide-y divide-border overflow-auto">
           {chartData.map((item) => (
             <div key={item.date} className="grid grid-cols-4 px-3 py-2 text-sm">
-              <span className="font-medium text-slate-700">{item.label}</span>
+              <span className="font-medium text-foreground">{item.label}</span>
               <span className="text-right text-emerald-700">{formatCurrency(item.income)}</span>
               <span className="text-right text-red-700">{formatCurrency(item.expenses)}</span>
               <span

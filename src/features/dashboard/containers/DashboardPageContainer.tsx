@@ -62,7 +62,7 @@ export function DashboardPageContainer() {
             <MetricCard
               value={String(statusCounts.total)}
               label="consultas hoje"
-              className="border-primary/30 bg-white sm:col-span-2 xl:col-span-1"
+              className="border-primary/30 bg-card sm:col-span-2 xl:col-span-1"
             />
             <MetricCard value={String(statusCounts.confirmed)} label="confirmadas" />
             <MetricCard value={String(statusCounts.pending)} label="aguardando confirmação" />
@@ -76,39 +76,39 @@ export function DashboardPageContainer() {
           <div className="grid gap-5 lg:grid-cols-2">
             {/* Upcoming appointments */}
             <PanelCard>
-              <h2 className="text-base font-semibold text-slate-950">Próximas consultas</h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <h2 className="text-base font-semibold text-foreground">Próximas consultas</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Agendamentos pendentes ou confirmados do dia
               </p>
               {upcomingAppointments.length === 0 ? (
                 <div className="mt-4 flex flex-col items-center gap-2 py-6 text-center">
-                  <Calendar className="h-8 w-8 text-slate-300" aria-hidden="true" />
-                  <p className="text-sm text-slate-500">Nenhuma consulta pendente para hoje.</p>
+                  <Calendar className="h-8 w-8 text-muted-foreground/40" aria-hidden="true" />
+                  <p className="text-sm text-muted-foreground">Nenhuma consulta pendente para hoje.</p>
                 </div>
               ) : (
-                <ul className="mt-4 divide-y divide-slate-100">
+                <ul className="mt-4 divide-y divide-border">
                   {upcomingAppointments.map((appt) => (
                     <li key={appt.id}>
                       <button
                         type="button"
-                        className="-mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded px-2 py-3 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
+                        className="-mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded px-2 py-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
                         onClick={() => setDrawerAppointment(appt)}
                       >
                         <span className="min-w-0">
-                          <span className="block truncate font-medium text-slate-900">
+                          <span className="block truncate font-medium text-foreground">
                             {appt.patientName}
                           </span>
                           {appt.service && (
-                            <span className="block truncate text-slate-500">
+                            <span className="block truncate text-muted-foreground">
                               {appt.service.name}
                             </span>
                           )}
                         </span>
                         <span className="shrink-0 text-right">
-                          <span className="block font-medium text-slate-700">
+                          <span className="block font-medium text-foreground">
                             {formatWallTime(appt.startTime)}
                           </span>
-                          <span className="block text-slate-500">{appt.profile.displayName}</span>
+                          <span className="block text-muted-foreground">{appt.profile.displayName}</span>
                         </span>
                       </button>
                     </li>
@@ -119,7 +119,7 @@ export function DashboardPageContainer() {
 
             {/* Alerts */}
             <PanelCard>
-              <h2 className="text-base font-semibold text-slate-950">Alertas do dia</h2>
+              <h2 className="text-base font-semibold text-foreground">Alertas do dia</h2>
               <div className="mt-4 space-y-4">
                 {statusCounts.pending > 0 ? (
                   <InlineFeedback tone="warning">
@@ -141,12 +141,12 @@ export function DashboardPageContainer() {
 
                 {activeDentists.length > 0 && (
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Profissionais com agenda hoje
                     </p>
                     <ul className="space-y-1">
                       {activeDentists.map((name) => (
-                        <li key={name} className="text-sm text-slate-700">
+                        <li key={name} className="text-sm text-foreground">
                           {name}
                         </li>
                       ))}
@@ -160,7 +160,7 @@ export function DashboardPageContainer() {
           {/* Financial summary — OWNER only */}
           {isOwner && financeTodaySummary && (
             <PanelCard>
-              <h2 className="text-base font-semibold text-slate-950">Resumo financeiro de hoje</h2>
+              <h2 className="text-base font-semibold text-foreground">Resumo financeiro de hoje</h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-3">
                 <MetricCard
                   value={brl(financeTodaySummary.received)}

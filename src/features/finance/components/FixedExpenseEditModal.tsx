@@ -45,19 +45,19 @@ export function FixedExpenseEditModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-labelledby="edit-fe-title"
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <Dialog.Title id="edit-fe-title" className="text-base font-semibold text-slate-950">
+          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <Dialog.Title id="edit-fe-title" className="text-base font-semibold text-foreground">
               Editar despesa fixa
             </Dialog.Title>
             <button
               type="button"
               aria-label="Fechar edição de despesa fixa"
               onClick={onClose}
-              className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <X className="h-5 w-5" />
             </button>

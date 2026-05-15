@@ -132,10 +132,10 @@ export function FinancePageContainer() {
               <PanelCard>
                 <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-base font-semibold text-slate-950">
+                    <h2 className="text-base font-semibold text-foreground">
                       Entradas x saídas
                     </h2>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       Evolução financeira no período selecionado.
                     </p>
                   </div>
@@ -147,7 +147,7 @@ export function FinancePageContainer() {
               </PanelCard>
 
               <PanelCard>
-                <h2 className="text-base font-semibold text-slate-950">
+                <h2 className="text-base font-semibold text-foreground">
                   Composição financeira
                 </h2>
                 <div className="mt-5 space-y-6">

@@ -26,8 +26,8 @@ export function FixedExpensesList({
     <PanelCard>
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Despesas fixas</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-base font-semibold text-foreground">Despesas fixas</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Custos recorrentes e geração de ocorrências.
           </p>
         </div>
@@ -35,7 +35,7 @@ export function FixedExpensesList({
       </div>
       <div className="space-y-3">
         {expenses.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+          <p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
             Nenhuma despesa fixa cadastrada.
           </p>
         ) : (
@@ -44,32 +44,32 @@ export function FixedExpensesList({
               key={expense.id}
               className={cn(
                 'flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between',
-                expense.isActive ? 'border-slate-200' : 'border-slate-100 bg-slate-50/60',
+                expense.isActive ? 'border-border' : 'border-border/50 bg-muted/50',
               )}
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className={cn('font-semibold', expense.isActive ? 'text-slate-950' : 'text-slate-400')}>
+                  <p className={cn('font-semibold', expense.isActive ? 'text-foreground' : 'text-muted-foreground/50')}>
                     {expense.description}
                   </p>
                   <StatusBadge tone={expense.isActive ? 'success' : 'muted'}>
                     {expense.isActive ? 'Ativa' : 'Inativa'}
                   </StatusBadge>
                 </div>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-muted-foreground">
                   {expense.category?.name ?? 'Sem categoria'} · {RECURRENCE_LABEL[expense.recurrence]} ·
                   dia {expense.dueDay}
                 </p>
               </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end">
-                <span className={cn('font-semibold', expense.isActive ? 'text-red-700' : 'text-slate-400')}>
+                <span className={cn('font-semibold', expense.isActive ? 'text-red-700' : 'text-muted-foreground/50')}>
                   {formatCurrency(expense.amount)}
                 </span>
                 <button
                   type="button"
                   title="Editar despesa fixa"
                   aria-label="Editar despesa fixa"
-                  className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   onClick={() => onEdit(expense)}
                 >
                   <Pencil className="h-4 w-4" aria-hidden="true" />

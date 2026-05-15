@@ -35,8 +35,8 @@ export function CategoryCreateForm({
           <Layers className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Nova categoria</h2>
-          <p className="text-sm text-slate-500">Crie categorias personalizadas para a clínica.</p>
+          <h2 className="text-base font-semibold text-foreground">Nova categoria</h2>
+          <p className="text-sm text-muted-foreground">Crie categorias personalizadas para a clínica.</p>
         </div>
       </div>
       <form className="space-y-4" onSubmit={onSubmit}>

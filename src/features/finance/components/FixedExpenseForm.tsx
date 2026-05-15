@@ -44,8 +44,8 @@ export function FixedExpenseForm({
           <Scale className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Nova despesa fixa</h2>
-          <p className="text-sm text-slate-500">Cadastre custos recorrentes da clínica.</p>
+          <h2 className="text-base font-semibold text-foreground">Nova despesa fixa</h2>
+          <p className="text-sm text-muted-foreground">Cadastre custos recorrentes da clínica.</p>
         </div>
       </div>
       <form className="space-y-4" onSubmit={onSubmit}>

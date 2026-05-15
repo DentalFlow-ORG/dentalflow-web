@@ -21,8 +21,8 @@ export function CategoriesPanel({
     <PanelCard>
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Categorias</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-base font-semibold text-foreground">Categorias</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Gerencie as categorias de entradas e saídas da clínica.
           </p>
         </div>
@@ -67,24 +67,24 @@ function CategoryGroup({
       <h3 className={cn('mb-2 text-xs font-semibold uppercase tracking-wide', titleColor)}>
         {title}
       </h3>
-      <div className="overflow-hidden rounded-lg border border-slate-200">
+      <div className="overflow-hidden rounded-lg border border-border">
         {categories.length === 0 ? (
-          <p className="px-4 py-4 text-sm text-slate-500">Nenhuma categoria cadastrada.</p>
+          <p className="px-4 py-4 text-sm text-muted-foreground">Nenhuma categoria cadastrada.</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-border">
             {categories.map((category) => (
-              <li key={category.id} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50/70">
+              <li key={category.id} className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50">
                 <span
                   className="h-3 w-3 shrink-0 rounded-full"
                   style={{ backgroundColor: category.color ?? '#94A3B8' }}
                 />
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
                   {category.name}
                 </span>
                 {category.isDefault && (
                   <span
                     title="Categoria padrão — não pode ser removida"
-                    className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500"
+                    className="flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
                   >
                     <Lock className="h-3 w-3" />
                     Padrão
@@ -95,7 +95,7 @@ function CategoryGroup({
                     type="button"
                     title="Editar categoria"
                     aria-label="Editar categoria"
-                    className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                     onClick={() => onEdit(category)}
                   >
                     <Pencil className="h-3.5 w-3.5" aria-hidden="true" />

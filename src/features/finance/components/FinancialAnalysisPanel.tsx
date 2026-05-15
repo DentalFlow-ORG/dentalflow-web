@@ -16,7 +16,7 @@ function getToneConfig(tone: InsightTone) {
     case 'danger':
       return { card: 'border-red-200 bg-red-50', icon: 'text-red-600', Icon: AlertCircle }
     case 'neutral':
-      return { card: 'border-slate-200 bg-slate-50', icon: 'text-slate-400', Icon: Info }
+      return { card: 'border-border bg-muted', icon: 'text-muted-foreground', Icon: Info }
   }
 }
 
@@ -27,8 +27,8 @@ function InsightCard({ insight }: { insight: FinancialInsight }) {
       <div className="flex items-start gap-3">
         <Icon className={cn('mt-0.5 h-4 w-4 shrink-0', icon)} aria-hidden="true" />
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-900">{insight.title}</p>
-          <p className="mt-1 text-sm leading-relaxed text-slate-600">{insight.description}</p>
+          <p className="text-sm font-semibold text-foreground">{insight.title}</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{insight.description}</p>
         </div>
       </div>
     </div>
@@ -53,8 +53,8 @@ export function FinancialAnalysisPanel({
   return (
     <PanelCard>
       <div className="mb-4">
-        <h2 className="text-base font-semibold text-slate-950">Análise do período</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <h2 className="text-base font-semibold text-foreground">Análise do período</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Alertas e oportunidades do período selecionado.
         </p>
       </div>
