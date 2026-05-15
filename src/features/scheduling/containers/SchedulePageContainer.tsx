@@ -137,28 +137,46 @@ export function SchedulePageContainer() {
           )}
 
           {activeTab === 'disponibilidade' && (
-            <div id="panel-schedule-disponibilidade" role="tabpanel" aria-labelledby="tab-schedule-disponibilidade" className="space-y-3">
-              <ProfileShortcut profileId={ownProfile.id} />
-              <PanelCard>
-                <AvailabilityManager
-                  profileId={ownProfile.id}
-                  slots={availability}
-                  onSlotsChange={setAvailability}
-                />
-              </PanelCard>
+            <div id="panel-schedule-disponibilidade" role="tabpanel" aria-labelledby="tab-schedule-disponibilidade" className="space-y-4">
+              <ManagementBanner
+                profileId={ownProfile.id}
+                description="Gerencie os horários de atendimento no perfil profissional. A Agenda continuará usando esses horários para exibir e criar consultas."
+                buttonLabel="Gerenciar disponibilidade"
+              />
+              <div>
+                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Edição rápida na Agenda
+                </p>
+                <PanelCard>
+                  <AvailabilityManager
+                    profileId={ownProfile.id}
+                    slots={availability}
+                    onSlotsChange={setAvailability}
+                  />
+                </PanelCard>
+              </div>
             </div>
           )}
 
           {activeTab === 'excecoes' && (
-            <div id="panel-schedule-excecoes" role="tabpanel" aria-labelledby="tab-schedule-excecoes" className="space-y-3">
-              <ProfileShortcut profileId={ownProfile.id} />
-              <PanelCard>
-                <ExceptionManager
-                  profileId={ownProfile.id}
-                  exceptions={exceptions}
-                  onExceptionsChange={setExceptions}
-                />
-              </PanelCard>
+            <div id="panel-schedule-excecoes" role="tabpanel" aria-labelledby="tab-schedule-excecoes" className="space-y-4">
+              <ManagementBanner
+                profileId={ownProfile.id}
+                description="Folgas, férias, feriados e horários especiais devem ser mantidos no perfil profissional. A Agenda usa essas exceções para bloquear ou ajustar horários."
+                buttonLabel="Gerenciar exceções"
+              />
+              <div>
+                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Edição rápida na Agenda
+                </p>
+                <PanelCard>
+                  <ExceptionManager
+                    profileId={ownProfile.id}
+                    exceptions={exceptions}
+                    onExceptionsChange={setExceptions}
+                  />
+                </PanelCard>
+              </div>
             </div>
           )}
         </>
@@ -176,18 +194,26 @@ export function SchedulePageContainer() {
   )
 }
 
-function ProfileShortcut({ profileId }: { profileId: string }) {
+function ManagementBanner({
+  profileId,
+  description,
+  buttonLabel,
+}: {
+  profileId: string
+  description: string
+  buttonLabel: string
+}) {
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-blue-700">
-        Horários e exceções agora podem ser ajustados no perfil do profissional.
-      </p>
-      <Button size="sm" variant="outline" asChild className="w-full shrink-0 border-blue-200 text-blue-800 hover:bg-blue-100 sm:w-auto">
-        <Link to="/app/equipe/$profileId" params={{ profileId }}>
-          <ExternalLink className="h-3.5 w-3.5" />
-          Gerenciar disponibilidade
-        </Link>
-      </Button>
+    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <p className="text-sm text-blue-700">{description}</p>
+        <Button size="sm" asChild className="w-full shrink-0 sm:w-auto">
+          <Link to="/app/equipe/$profileId" params={{ profileId }}>
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            {buttonLabel}
+          </Link>
+        </Button>
+      </div>
     </div>
   )
 }
