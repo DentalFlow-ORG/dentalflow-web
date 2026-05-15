@@ -31,7 +31,7 @@ export function FixedExpensesList({
             Custos recorrentes e geração de ocorrências.
           </p>
         </div>
-        <CalendarPlus className="h-5 w-5 text-primary" />
+        <CalendarPlus className="h-5 w-5 text-primary" aria-hidden="true" />
       </div>
       <div className="space-y-3">
         {expenses.length === 0 ? (

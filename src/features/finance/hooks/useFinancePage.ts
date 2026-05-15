@@ -170,6 +170,9 @@ export function useFinancePage() {
       from: prevPeriod.from,
       to: prevPeriod.to,
       groupBy: filters.groupBy,
+      type: filters.type,
+      status: filters.status,
+      categoryId: filters.categoryId,
     }
 
     Promise.all([
@@ -190,7 +193,7 @@ export function useFinancePage() {
       })
       .catch((err) => {
         const message =
-          err instanceof Error ? err.message : 'Nao foi possivel carregar o financeiro.'
+          err instanceof Error ? err.message : 'Não foi possível carregar o financeiro.'
         setLoadError(message)
         showAlert({
           title: 'Erro ao carregar financeiro',
@@ -213,7 +216,7 @@ export function useFinancePage() {
       })
       .catch((err) => {
         const message =
-          err instanceof Error ? err.message : 'Nao foi possivel carregar as movimentacoes.'
+          err instanceof Error ? err.message : 'Não foi possível carregar as movimentações.'
         showAlert({
           title: 'Erro ao carregar movimentacoes',
           description: message,
