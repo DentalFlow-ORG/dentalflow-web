@@ -1,4 +1,5 @@
-import { KeyRound, Pencil, Plus, Trash2, Users } from 'lucide-react'
+import { useState } from 'react'
+import { KeyRound, MoreHorizontal, Pencil, Plus, Trash2, Users } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -11,10 +12,70 @@ import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 import { ClinicMemberFormModal } from '../components/ClinicMemberFormModal'
 import { ClinicMemberPasswordModal } from '../components/ClinicMemberPasswordModal'
 import { useTeamPage } from '../hooks/useTeamPage'
+import type { MemberListItem } from '../types/team.types'
+
+type MemberRowActionsProps = {
+  member: MemberListItem
+  onEdit: () => void
+  onPassword: () => void
+  onDelete: () => void
+}
+
+function MemberRowActions({ member, onEdit, onPassword, onDelete }: MemberRowActionsProps) {
+  const [open, setOpen] = useState(false)
+  const fullName = `${member.firstName} ${member.lastName}`
+
+  return (
+    <div className="flex items-center justify-end gap-1.5">
+      <Button size="xs" variant="outline" onClick={onEdit}>
+        <Pencil aria-hidden="true" />
+        Editar
+      </Button>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            size="icon-xs"
+            variant="ghost"
+            aria-label={`Mais ações para ${fullName}`}
+            aria-haspopup="menu"
+          >
+            <MoreHorizontal aria-hidden="true" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-44 py-1">
+          <button
+            type="button"
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+            onClick={() => {
+              setOpen(false)
+              onPassword()
+            }}
+          >
+            <KeyRound className="h-4 w-4 text-slate-400" aria-hidden="true" />
+            Alterar senha
+          </button>
+          <div className="mx-1 my-0.5 h-px bg-slate-100" role="separator" />
+          <button
+            type="button"
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus:bg-red-50 focus:outline-none"
+            onClick={() => {
+              setOpen(false)
+              onDelete()
+            }}
+          >
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+            Desativar
+          </button>
+        </PopoverContent>
+      </Popover>
+    </div>
+  )
+}
 
 export function TeamPageContainer() {
   const {
@@ -164,7 +225,7 @@ export function TeamPageContainer() {
                         </span>
                       )}
                     </div>
-                    <div className="mt-4 grid grid-cols-2 gap-2">
+                    <div className="mt-4 flex flex-col gap-2">
                       <Button
                         size="sm"
                         variant="outline"
@@ -186,12 +247,12 @@ export function TeamPageContainer() {
                         }
                       >
                         <KeyRound className="h-4 w-4" aria-hidden="true" />
-                        Senha
+                        Alterar senha
                       </Button>
                       <Button
                         size="sm"
-                        variant="ghost"
-                        className="col-span-2 w-full text-red-700 hover:bg-red-50 hover:text-red-700"
+                        variant="destructive"
+                        className="w-full"
                         onClick={() =>
                           setDeleteTarget({
                             id: member.id,
@@ -255,58 +316,28 @@ export function TeamPageContainer() {
                           </td>
                           <td className="hidden px-4 py-3 text-xs text-slate-500 md:table-cell">
                             {member.profile ? (
-                              <span>
-                                {member.profile.displayName}
-                                {member.profile.slug ? ` · /${member.profile.slug}` : ''}
-                              </span>
+                              <span>{member.profile.displayName}</span>
                             ) : (
-                              <span className="text-slate-300">-</span>
+                              <span className="text-slate-300">—</span>
                             )}
                           </td>
-                          <td className="px-4 py-3">
-                            <div
-                              className="flex items-center justify-end gap-1"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                title="Editar"
-                                aria-label="Editar usuário"
-                                onClick={() => setEditTarget(member)}
-                              >
-                                <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                              </Button>
-                              <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                title="Redefinir senha"
-                                aria-label="Redefinir senha"
-                                onClick={() =>
-                                  setPasswordTarget({
-                                    id: member.id,
-                                    name: `${member.firstName} ${member.lastName}`,
-                                  })
-                                }
-                              >
-                                <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
-                              </Button>
-                              <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                title="Desativar"
-                                aria-label="Desativar usuário"
-                                className="text-red-500 hover:bg-red-50 hover:text-red-700"
-                                onClick={() =>
-                                  setDeleteTarget({
-                                    id: member.id,
-                                    name: `${member.firstName} ${member.lastName}`,
-                                  })
-                                }
-                              >
-                                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                              </Button>
-                            </div>
+                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            <MemberRowActions
+                              member={member}
+                              onEdit={() => setEditTarget(member)}
+                              onPassword={() =>
+                                setPasswordTarget({
+                                  id: member.id,
+                                  name: `${member.firstName} ${member.lastName}`,
+                                })
+                              }
+                              onDelete={() =>
+                                setDeleteTarget({
+                                  id: member.id,
+                                  name: `${member.firstName} ${member.lastName}`,
+                                })
+                              }
+                            />
                           </td>
                         </tr>
                       ))}
