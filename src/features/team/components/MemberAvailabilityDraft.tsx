@@ -62,16 +62,16 @@ export function MemberAvailabilityDraft({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-base font-semibold text-slate-900">
+        <h2 className="text-base font-semibold text-foreground">
           Horarios de atendimento
         </h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           Configure a disponibilidade inicial do profissional. Voce tambem pode
           ajustar esses horarios depois.
         </p>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <div className="rounded-lg border border-border bg-muted p-4">
         <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_auto] lg:items-end">
           <FormField label="Dia da semana" htmlFor="availabilityDay">
             <Select value={dayOfWeek} onValueChange={setDayOfWeek} disabled={disabled}>
@@ -119,25 +119,25 @@ export function MemberAvailabilityDraft({
       </div>
 
       {value.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-white py-8 text-center">
-          <Clock className="h-7 w-7 text-slate-300" />
-          <p className="text-sm text-slate-500">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-card py-8 text-center">
+          <Clock className="h-7 w-7 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
             Nenhum horario inicial cadastrado.
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-          <div className="divide-y divide-slate-100">
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
+          <div className="divide-y divide-border">
             {value.map((slot, index) => (
               <div
                 key={`${slot.dayOfWeek}-${slot.startTime}-${slot.endTime}-${index}`}
                 className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-foreground">
                     {DAY_OPTIONS.find((day) => day.value === slot.dayOfWeek)?.label}
                   </p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-muted-foreground">
                     {formatTimeInputValue(slot.startTime)} as{' '}
                     {formatTimeInputValue(slot.endTime)}
                   </p>

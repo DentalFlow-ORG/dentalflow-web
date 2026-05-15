@@ -47,7 +47,7 @@ export function CreateMemberPageContainer() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <PanelCard>
-          <h2 className="mb-4 text-base font-semibold text-slate-900">
+          <h2 className="mb-4 text-base font-semibold text-foreground">
             Tipo de membro
           </h2>
           <MemberTypeSelector
@@ -57,7 +57,7 @@ export function CreateMemberPageContainer() {
         </PanelCard>
 
         <PanelCard>
-          <h2 className="mb-5 text-base font-semibold text-slate-900">
+          <h2 className="mb-5 text-base font-semibold text-foreground">
             Dados pessoais
           </h2>
           <div className="grid gap-5 sm:grid-cols-2">
@@ -135,7 +135,7 @@ export function CreateMemberPageContainer() {
 
         {isProfessional && (
           <PanelCard>
-            <h2 className="mb-5 text-base font-semibold text-slate-900">
+            <h2 className="mb-5 text-base font-semibold text-foreground">
               Perfil profissional
             </h2>
             <div className="grid gap-5 sm:grid-cols-2">
@@ -198,10 +198,10 @@ export function CreateMemberPageContainer() {
         {isProfessional && (
           <PanelCard>
             <div className="mb-4">
-              <h2 className="text-base font-semibold text-slate-900">
+              <h2 className="text-base font-semibold text-foreground">
                 Especialidades
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Selecione as especialidades do profissional. Aparecem no perfil
                 público da clínica.
               </p>

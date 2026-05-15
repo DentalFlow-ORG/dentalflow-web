@@ -54,27 +54,27 @@ function MemberRowActions({ member, onEdit, onPassword, onDelete }: MemberRowAct
               <Link
                 to="/app/equipe/$profileId"
                 params={{ profileId: member.profile.id }}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none"
                 onClick={() => setOpen(false)}
               >
-                <User className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                <User className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 Ver perfil
               </Link>
-              <div className="mx-1 my-0.5 h-px bg-slate-100" role="separator" />
+              <div className="mx-1 my-0.5 h-px bg-border" role="separator" />
             </>
           )}
           <button
             type="button"
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none"
             onClick={() => {
               setOpen(false)
               onPassword()
             }}
           >
-            <KeyRound className="h-4 w-4 text-slate-400" aria-hidden="true" />
+            <KeyRound className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             Alterar senha
           </button>
-          <div className="mx-1 my-0.5 h-px bg-slate-100" role="separator" />
+          <div className="mx-1 my-0.5 h-px bg-border" role="separator" />
           <button
             type="button"
             className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus:bg-red-50 focus:outline-none"
@@ -152,12 +152,12 @@ export function TeamPageContainer() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-sm font-semibold text-slate-950">Uso de usuários do plano</p>
+              <p className="text-sm font-semibold text-foreground">Uso de usuários do plano</p>
               <StatusBadge tone={hasReachedUserLimit ? 'warning' : 'success'}>
                 {activeUserCount}/{userLimit} ativos
               </StatusBadge>
             </div>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-muted-foreground">
               {hasReachedUserLimit
                 ? 'Limite de usuários ativos atingido para o plano atual.'
                 : `${availableUserSlots} ${availableUserSlots === 1 ? 'vaga disponível' : 'vagas disponíveis'} para novos usuários ativos.`}
@@ -165,7 +165,7 @@ export function TeamPageContainer() {
           </div>
           <div className="w-full sm:max-w-56">
             <div
-              className="h-2 overflow-hidden rounded-full bg-slate-100"
+              className="h-2 overflow-hidden rounded-full bg-muted"
               aria-label={`Uso de usuários do plano: ${activeUserCount} de ${userLimit}`}
               role="img"
             >
@@ -221,10 +221,10 @@ export function TeamPageContainer() {
                   <PanelCard key={member.id} className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-slate-900">
+                        <p className="truncate font-semibold text-foreground">
                           {member.firstName} {member.lastName}
                         </p>
-                        <p className="truncate text-xs text-slate-500">{member.email}</p>
+                        <p className="truncate text-xs text-muted-foreground">{member.email}</p>
                       </div>
                       <StatusBadge tone="muted">
                         {roleLabel[member.role] ?? member.role}
@@ -235,7 +235,7 @@ export function TeamPageContainer() {
                         {member.isActive ? 'Ativo' : 'Inativo'}
                       </StatusBadge>
                       {member.profile && (
-                        <span className="truncate text-xs text-slate-500">
+                        <span className="truncate text-xs text-muted-foreground">
                           {member.profile.displayName}
                         </span>
                       )}
@@ -295,11 +295,11 @@ export function TeamPageContainer() {
               </div>
 
               {/* Desktop table — hidden below sm */}
-              <div className="hidden overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:block">
+              <div className="hidden overflow-hidden rounded-lg border border-border bg-card shadow-sm md:block">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm" aria-label="Usuários da clínica">
                     <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         <th scope="col" className="px-4 py-3">Usuário</th>
                         <th scope="col" className="px-4 py-3">Papel</th>
                         <th scope="col" className="px-4 py-3">Status</th>
@@ -307,14 +307,14 @@ export function TeamPageContainer() {
                         <th scope="col" className="px-4 py-3 text-right">Ações</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-border">
                       {members.map((member) => (
                         <tr
                           key={member.id}
                           role="button"
                           tabIndex={0}
                           aria-label={`Editar ${member.firstName} ${member.lastName}`}
-                          className="cursor-pointer transition-colors hover:bg-slate-50/60 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                          className="cursor-pointer transition-colors hover:bg-muted/60 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                           onClick={() => setEditTarget(member)}
                           onKeyDown={(event) => {
                             if (event.target !== event.currentTarget) return
@@ -325,10 +325,10 @@ export function TeamPageContainer() {
                           }}
                         >
                           <td className="px-4 py-3">
-                            <p className="font-semibold text-slate-900">
+                            <p className="font-semibold text-foreground">
                               {member.firstName} {member.lastName}
                             </p>
-                            <p className="mt-0.5 text-xs text-slate-500">{member.email}</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">{member.email}</p>
                           </td>
                           <td className="px-4 py-3">
                             <StatusBadge tone="muted">
@@ -340,11 +340,11 @@ export function TeamPageContainer() {
                               {member.isActive ? 'Ativo' : 'Inativo'}
                             </StatusBadge>
                           </td>
-                          <td className="hidden px-4 py-3 text-xs text-slate-500 md:table-cell">
+                          <td className="hidden px-4 py-3 text-xs text-muted-foreground md:table-cell">
                             {member.profile ? (
                               <span>{member.profile.displayName}</span>
                             ) : (
-                              <span className="text-slate-300">—</span>
+                              <span className="text-muted-foreground">—</span>
                             )}
                           </td>
                           <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>

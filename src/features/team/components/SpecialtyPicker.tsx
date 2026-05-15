@@ -25,7 +25,7 @@ export function SpecialtyPicker({
 
   if (specialties.length === 0) {
     return (
-      <p className="text-sm text-slate-400">Nenhuma especialidade disponível.</p>
+      <p className="text-sm text-muted-foreground">Nenhuma especialidade disponível.</p>
     )
   }
 
@@ -43,7 +43,7 @@ export function SpecialtyPicker({
               'rounded-full border px-3 py-1.5 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50',
               isSelected
                 ? 'border-primary bg-primary text-white'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-primary/40 hover:text-primary',
+                : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-primary',
             )}
           >
             {specialty.name}

@@ -49,7 +49,7 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                 Equipe
               </p>
-              <h1 className="mt-2 truncate text-2xl font-semibold text-slate-950 sm:text-3xl">
+              <h1 className="mt-2 truncate text-2xl font-semibold text-foreground sm:text-3xl">
                 {displayName || profile.displayName}
               </h1>
             </div>
@@ -70,7 +70,7 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Basic information */}
             <PanelCard>
-              <h2 className="mb-4 text-base font-semibold text-slate-950">
+              <h2 className="mb-4 text-base font-semibold text-foreground">
                 Informações do profissional
               </h2>
               <dl className="space-y-3">
@@ -93,7 +93,7 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
                 {profile.bio && <InfoRow label="Sobre" value={profile.bio} />}
                 {profile.profileSpecialties.length > 0 && (
                   <div>
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Especialidades
                     </dt>
                     <dd className="mt-1.5 flex flex-wrap gap-1.5">
@@ -152,8 +152,8 @@ function InfoRow({
 }) {
   return (
     <div>
-      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</dt>
-      <dd className={`mt-0.5 text-sm font-medium ${muted ? 'text-slate-400' : 'text-slate-800'}`}>
+      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className={`mt-0.5 text-sm font-medium ${muted ? 'text-muted-foreground' : 'text-foreground'}`}>
         {value}
       </dd>
     </div>
@@ -165,11 +165,11 @@ function LoadingState() {
     <PanelCard className="flex items-center justify-center py-12">
       <div className="flex flex-col items-center gap-3">
         <div
-          className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-primary"
+          className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary"
           role="status"
           aria-label="Carregando perfil profissional"
         />
-        <p className="text-sm text-slate-500">Carregando perfil profissional...</p>
+        <p className="text-sm text-muted-foreground">Carregando perfil profissional...</p>
       </div>
     </PanelCard>
   )
@@ -178,12 +178,12 @@ function LoadingState() {
 function ForbiddenState({ backPath, backLabel }: { backPath: string; backLabel: string }) {
   return (
     <PanelCard className="flex flex-col items-center gap-3 py-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-        <ShieldOff className="h-5 w-5 text-slate-400" aria-hidden="true" />
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+        <ShieldOff className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
       </div>
       <div>
-        <p className="font-semibold text-slate-900">Acesso não autorizado</p>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="font-semibold text-foreground">Acesso não autorizado</p>
+        <p className="mt-1 text-sm text-muted-foreground">
           Você não tem permissão para acessar este perfil profissional.
         </p>
       </div>
@@ -197,7 +197,7 @@ function ForbiddenState({ backPath, backLabel }: { backPath: string; backLabel: 
 function NotFoundState({ backPath, backLabel }: { backPath: string; backLabel: string }) {
   return (
     <PanelCard className="flex flex-col items-center gap-3 py-12 text-center">
-      <p className="font-semibold text-slate-900">Profissional não encontrado.</p>
+      <p className="font-semibold text-foreground">Profissional não encontrado.</p>
       <Button variant="outline" size="sm" asChild>
         <Link to={backPath}>{backLabel}</Link>
       </Button>
@@ -208,7 +208,7 @@ function NotFoundState({ backPath, backLabel }: { backPath: string; backLabel: s
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <PanelCard className="flex flex-col items-center gap-3 py-12 text-center">
-      <p className="font-semibold text-slate-900">
+      <p className="font-semibold text-foreground">
         Não foi possível carregar o perfil profissional.
       </p>
       <Button variant="outline" size="sm" onClick={onRetry}>

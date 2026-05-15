@@ -157,18 +157,18 @@ export function ClinicMemberFormModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-labelledby="clinic-member-form-title"
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          <div className="border-b border-slate-100 px-6 py-5">
+          <div className="border-b border-border px-6 py-5">
             <Dialog.Title
               id="clinic-member-form-title"
-              className="text-base font-semibold text-slate-950"
+              className="text-base font-semibold text-foreground"
             >
               {isEditMode ? 'Editar usuário' : 'Novo usuário'}
             </Dialog.Title>
-            <Dialog.Description className="mt-0.5 text-sm text-slate-500">
+            <Dialog.Description className="mt-0.5 text-sm text-muted-foreground">
               {isEditMode
                 ? `Alterando dados de ${initialData!.firstName} ${initialData!.lastName}`
                 : 'Adicione um profissional ou assistente à clínica.'}
@@ -257,9 +257,9 @@ export function ClinicMemberFormModal({
               </form>
 
               {canManageAvailability && (
-                <div className="mt-6 border-t border-slate-100 pt-5">
+                <div className="mt-6 border-t border-border pt-5">
                   {isAvailabilityLoading ? (
-                    <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Carregando horarios...
                     </div>
@@ -274,14 +274,14 @@ export function ClinicMemberFormModal({
               )}
 
               {isEditMode && form.role === 'DENTIST' && !profileId && (
-                <div className="mt-6 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                <div className="mt-6 rounded-lg border border-dashed border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
                   Este profissional ainda nao possui perfil publico para cadastrar
                   horarios de atendimento.
                 </div>
               )}
             </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-slate-100 px-6 py-4 sm:flex-row sm:justify-end">
+            <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
