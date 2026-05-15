@@ -2,8 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ApiError } from '@/services/http'
-import { listAvailability } from '@/features/scheduling/services/scheduling.service'
-import type { Availability } from '@/features/scheduling/types/scheduling.types'
+import {
+  listAvailability,
+  listAvailabilityExceptions,
+} from '@/features/scheduling/services/scheduling.service'
+import type {
+  Availability,
+  AvailabilityException,
+} from '@/features/scheduling/types/scheduling.types'
 
 import { getClinicProfile, listClinicMembers } from '../services/team.service'
 import type { MemberListItem, ProfileDetail } from '../types/team.types'
@@ -15,6 +21,7 @@ export function useTeamMemberProfile(profileId: string) {
   const [profile, setProfile] = useState<ProfileDetail | null>(null)
   const [member, setMember] = useState<MemberListItem | null>(null)
   const [availability, setAvailability] = useState<Availability[]>([])
+  const [exceptions, setExceptions] = useState<AvailabilityException[]>([])
   const [status, setStatus] = useState<ProfileLoadStatus>('loading')
 
   const load = useCallback(async () => {
@@ -22,14 +29,17 @@ export function useTeamMemberProfile(profileId: string) {
     setProfile(null)
     setMember(null)
     setAvailability([])
+    setExceptions([])
 
     try {
-      const [profileData, slots] = await Promise.all([
+      const [profileData, slots, excs] = await Promise.all([
         getClinicProfile(profileId),
         listAvailability(profileId).catch(() => [] as Availability[]),
+        listAvailabilityExceptions(profileId).catch(() => [] as AvailabilityException[]),
       ])
       setProfile(profileData)
       setAvailability(slots)
+      setExceptions(excs)
 
       if (user?.role === 'OWNER') {
         try {
@@ -69,5 +79,5 @@ export function useTeamMemberProfile(profileId: string) {
 
   const isActive = member ? member.isActive : user?.role === 'DENTIST' ? true : null
 
-  return { profile, member, user, status, displayName, email, phone, isActive, availability, setAvailability, load }
+  return { profile, member, user, status, displayName, email, phone, isActive, availability, setAvailability, exceptions, setExceptions, load }
 }
