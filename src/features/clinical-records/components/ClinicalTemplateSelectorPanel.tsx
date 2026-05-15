@@ -16,12 +16,12 @@ type Props = {
 export function ClinicalTemplateSelectorPanel({ templates, onApply }: Props) {
   if (templates.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 bg-white p-5 text-center">
-        <BookOpen className="mx-auto h-8 w-8 text-slate-300" />
-        <p className="mt-2 text-sm font-medium text-slate-500">
+      <div className="rounded-xl border border-dashed border-border bg-card p-5 text-center">
+        <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/40" />
+        <p className="mt-2 text-sm font-medium text-muted-foreground">
           Nenhum modelo disponível
         </p>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-xs text-muted-foreground">
           Acesse <strong>Modelos clínicos</strong> no menu para criar modelos e agilizar o preenchimento.
         </p>
       </div>
@@ -29,17 +29,17 @@ export function ClinicalTemplateSelectorPanel({ templates, onApply }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white">
-      <div className="flex items-start gap-2 border-b border-slate-100 px-4 py-3">
+    <div className="rounded-xl border border-border bg-card">
+      <div className="flex items-start gap-2 border-b border-border px-4 py-3">
         <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
         <div>
-          <p className="text-sm font-semibold text-slate-800">Modelos clínicos</p>
-          <p className="mt-0.5 text-xs text-slate-400">
+          <p className="text-sm font-semibold text-foreground">Modelos clínicos</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Clique para adicionar o texto do modelo ao campo correspondente.
           </p>
         </div>
       </div>
-      <ul className="divide-y divide-slate-100">
+      <ul className="divide-y divide-border">
         {templates.map((t) => {
           const isUnmapped = UNMAPPED_CATEGORIES.includes(t.category)
           return (
@@ -59,12 +59,12 @@ export function ClinicalTemplateSelectorPanel({ templates, onApply }: Props) {
                 disabled={isUnmapped}
                 className={cn(
                   'w-full justify-between rounded-none px-4 py-3 text-left',
-                  !isUnmapped && 'hover:bg-blue-50',
+                  !isUnmapped && 'hover:bg-primary/10',
                 )}
                 onClick={() => onApply(t)}
               >
                 <div className="min-w-0">
-                  <p className={cn('truncate text-sm font-medium', isUnmapped ? 'text-slate-400' : 'text-slate-800')}>
+                  <p className={cn('truncate text-sm font-medium', isUnmapped ? 'text-muted-foreground/50' : 'text-foreground')}>
                     {t.name}
                   </p>
                   {isUnmapped ? (
@@ -73,12 +73,12 @@ export function ClinicalTemplateSelectorPanel({ templates, onApply }: Props) {
                       Sem campo associado
                     </span>
                   ) : (
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-muted-foreground">
                       → {CLINICAL_TEMPLATE_CATEGORY_LABEL[t.category]}
                     </p>
                   )}
                 </div>
-                {!isUnmapped && <FilePlus className="h-4 w-4 shrink-0 text-slate-400" />}
+                {!isUnmapped && <FilePlus className="h-4 w-4 shrink-0 text-muted-foreground" />}
               </Button>
             </li>
           )

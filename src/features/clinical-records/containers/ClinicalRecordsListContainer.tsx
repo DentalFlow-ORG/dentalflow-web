@@ -155,7 +155,7 @@ export function ClinicalRecordsListContainer() {
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
                   statusFilter === sf.value
                     ? 'bg-primary text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
               >
                 {sf.label}
@@ -163,15 +163,15 @@ export function ClinicalRecordsListContainer() {
             ))}
           </div>
 
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             {filteredCount} prontuário{filteredCount !== 1 ? 's' : ''} encontrado{filteredCount !== 1 ? 's' : ''}
           </p>
 
           {/* Records grid */}
           {filtered.length === 0 && !isLoading ? (
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-200 py-12 text-center">
-              <ClipboardList className="h-8 w-8 text-slate-300" aria-hidden="true" />
-              <p className="text-sm text-slate-400">Nenhum prontuário encontrado.</p>
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border py-12 text-center">
+              <ClipboardList className="h-8 w-8 text-muted-foreground/40" aria-hidden="true" />
+              <p className="text-sm text-muted-foreground">Nenhum prontuário encontrado.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -200,21 +200,21 @@ function RecordCard({ record }: { record: ClinicalRecord }) {
       <PanelCard className="h-full cursor-pointer transition-shadow hover:shadow-md">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="truncate font-semibold text-slate-900">{record.patientName}</p>
+            <p className="truncate font-semibold text-foreground">{record.patientName}</p>
             {record.patientEmail && (
-              <p className="truncate text-xs text-slate-500">{record.patientEmail}</p>
+              <p className="truncate text-xs text-muted-foreground">{record.patientEmail}</p>
             )}
           </div>
           <ClinicalRecordStatusBadge status={record.status} />
         </div>
 
-        <p className="mt-2 text-xs text-slate-500">{record.profile.displayName}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{record.profile.displayName}</p>
 
         {record.chiefComplaint && (
-          <p className="mt-1.5 line-clamp-2 text-xs text-slate-600">{record.chiefComplaint}</p>
+          <p className="mt-1.5 line-clamp-2 text-xs text-muted-foreground">{record.chiefComplaint}</p>
         )}
 
-        <div className="mt-3 flex items-center gap-1 text-xs text-slate-400">
+        <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
           <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
           {formatDateBR(record.createdAt.slice(0, 10))}
         </div>

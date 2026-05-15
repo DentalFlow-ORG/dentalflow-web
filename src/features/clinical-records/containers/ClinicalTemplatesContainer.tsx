@@ -71,13 +71,13 @@ export function ClinicalTemplatesContainer() {
 
       {/* Form */}
       {showForm && (
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-4 text-base font-semibold text-slate-800">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="mb-4 text-base font-semibold text-foreground">
             {editing ? 'Editar modelo' : 'Novo modelo clínico'}
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Nome do modelo
               </label>
               <input
@@ -85,11 +85,11 @@ export function ClinicalTemplatesContainer() {
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="Ex: Anamnese padrão adulto"
-                className="mt-1.5 h-11 w-full rounded-md border border-slate-200 px-3 text-sm placeholder:text-slate-400 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
+                className="mt-1.5 h-11 w-full rounded-md border border-border bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Categoria
               </label>
               <select
@@ -97,7 +97,7 @@ export function ClinicalTemplatesContainer() {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, category: e.target.value as ClinicalTemplateCategory }))
                 }
-                className="mt-1.5 h-11 w-full rounded-md border border-slate-200 px-3 text-sm text-slate-800 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
+                className="mt-1.5 h-11 w-full rounded-md border border-border bg-card px-3 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
@@ -107,7 +107,7 @@ export function ClinicalTemplatesContainer() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Conteúdo do modelo
               </label>
               <textarea
@@ -115,7 +115,7 @@ export function ClinicalTemplatesContainer() {
                 value={form.content}
                 onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
                 placeholder="Escreva o texto padrão deste modelo..."
-                className="mt-1.5 w-full rounded-md border border-slate-200 px-3 py-2 text-sm placeholder:text-slate-400 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
+                className="mt-1.5 w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
               />
             </div>
             <div className="flex gap-2">
@@ -154,12 +154,12 @@ export function ClinicalTemplatesContainer() {
           {templates.map((t) => (
             <div
               key={t.id}
-              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+              className="rounded-xl border border-border bg-card p-4 shadow-sm"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="truncate font-semibold text-slate-900">{t.name}</p>
-                  <span className="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  <p className="truncate font-semibold text-foreground">{t.name}</p>
+                  <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                     {CLINICAL_TEMPLATE_CATEGORY_LABEL[t.category]}
                   </span>
                 </div>
@@ -168,7 +168,7 @@ export function ClinicalTemplatesContainer() {
                     variant="ghost"
                     size="sm"
                     aria-label="Editar modelo"
-                    className="h-7 w-7 p-0 text-slate-500 hover:text-primary"
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
                     onClick={() => handleEdit(t)}
                   >
                     <Edit2 className="h-3.5 w-3.5" />
@@ -177,14 +177,14 @@ export function ClinicalTemplatesContainer() {
                     variant="ghost"
                     size="sm"
                     aria-label="Excluir modelo"
-                    className="h-7 w-7 p-0 text-slate-500 hover:text-red-600"
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-red-600"
                     onClick={() => deactivate(t.id)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
-              <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-slate-600">
+              <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
                 {t.content}
               </p>
             </div>

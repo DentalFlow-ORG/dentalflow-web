@@ -113,8 +113,8 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-slate-800">Odontograma</p>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="text-sm font-semibold text-foreground">Odontograma</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {readOnly
               ? 'Este prontuário está finalizado e o odontograma está disponível apenas para consulta.'
               : 'Clique em um dente para registrar condição e observações.'}
@@ -168,7 +168,7 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
       )}
 
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Observações gerais do odontograma
         </label>
         <textarea
@@ -178,8 +178,8 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
           readOnly={readOnly}
           placeholder={readOnly ? undefined : 'Observações gerais do odontograma...'}
           className={cn(
-            'mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15',
-            readOnly && 'cursor-default bg-slate-50 text-slate-600',
+            'mt-1.5 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15',
+            readOnly && 'cursor-default bg-muted text-muted-foreground',
           )}
         />
       </div>
@@ -221,7 +221,7 @@ function OdontogramToolbar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs text-slate-500">
+      <span className="text-xs text-muted-foreground">
         {selectedCount === 0
           ? 'Clique nos dentes para selecionar'
           : `${selectedCount} dente${selectedCount > 1 ? 's' : ''} selecionado${selectedCount > 1 ? 's' : ''}`}
@@ -258,7 +258,7 @@ function MultiConditionPanel({
 }: MultiConditionPanelProps) {
   return (
     <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-      <p className="mb-2 text-xs font-semibold text-slate-600">
+      <p className="mb-2 text-xs font-semibold text-muted-foreground">
         Aplicar condição a {selectedCount} dente{selectedCount > 1 ? 's' : ''}
       </p>
       <div className="flex flex-wrap gap-2">
@@ -276,7 +276,7 @@ function MultiConditionPanel({
               size="sm"
               onClick={() => onApplyCondition(option.value)}
               className={cn(
-                'border-slate-200 bg-white text-slate-600 hover:bg-slate-100',
+                'border-border bg-card text-muted-foreground hover:bg-muted',
                 allHaveIt && ODONTOGRAM_CONDITION_BUTTON_CLASSES[option.value],
               )}
             >

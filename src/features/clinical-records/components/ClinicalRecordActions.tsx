@@ -113,7 +113,7 @@ export function ClinicalRecordActions({
         )}
 
         {isLocked && (
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-muted-foreground">
             Este prontuário está bloqueado para edição.
           </span>
         )}

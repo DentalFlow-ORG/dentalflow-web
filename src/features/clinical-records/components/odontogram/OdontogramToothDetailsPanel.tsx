@@ -25,9 +25,9 @@ export function OdontogramToothDetailsPanel({
 }: Props) {
   if (!toothNumber || !tooth) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4">
-        <p className="text-sm font-semibold text-slate-700">Nenhum dente selecionado</p>
-        <p className="mt-1 text-xs text-slate-500">
+      <div className="rounded-xl border border-dashed border-border bg-muted p-4">
+        <p className="text-sm font-semibold text-foreground">Nenhum dente selecionado</p>
+        <p className="mt-1 text-xs text-muted-foreground">
           Selecione um dente no odontograma para registrar condição e observações.
         </p>
       </div>
@@ -35,22 +35,22 @@ export function OdontogramToothDetailsPanel({
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-xl border border-border bg-muted p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Dente selecionado
           </p>
-          <h3 className="mt-1 text-lg font-semibold text-slate-900">Dente {toothNumber}</h3>
+          <h3 className="mt-1 text-lg font-semibold text-foreground">Dente {toothNumber}</h3>
         </div>
-        <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-600">
+        <span className="rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground">
           {getToothConditionLabel(tooth.condition)}
         </span>
       </div>
 
       {!readOnly && (
         <div className="mt-4">
-          <p className="mb-2 text-xs font-semibold text-slate-600">Condição</p>
+          <p className="mb-2 text-xs font-semibold text-muted-foreground">Condição</p>
           <div className="flex flex-wrap gap-2">
             {ODONTOGRAM_CONDITION_OPTIONS.map((option) => {
               const isActive = tooth.condition === option.value
@@ -63,7 +63,7 @@ export function OdontogramToothDetailsPanel({
                   size="sm"
                   onClick={() => onSetCondition(option.value)}
                   className={cn(
-                    'border-slate-200 bg-white text-slate-600 hover:bg-slate-100',
+                    'border-border bg-card text-muted-foreground hover:bg-muted',
                     isActive && ODONTOGRAM_CONDITION_BUTTON_CLASSES[option.value],
                   )}
                 >
@@ -72,13 +72,13 @@ export function OdontogramToothDetailsPanel({
               )
             })}
           </div>
-          <p className="mt-2 text-[11px] text-slate-400">
+          <p className="mt-2 text-[11px] text-muted-foreground">
             As alterações são salvas automaticamente no prontuário.
           </p>
         </div>
       )}
 
-      <label className="mt-4 block text-xs font-semibold text-slate-600">
+      <label className="mt-4 block text-xs font-semibold text-muted-foreground">
         Observações do dente
       </label>
       <textarea
@@ -87,7 +87,7 @@ export function OdontogramToothDetailsPanel({
         placeholder={readOnly ? undefined : 'Observações clínicas sobre este dente...'}
         value={tooth.notes ?? ''}
         onChange={(event) => onSetNotes(event.target.value)}
-        className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
+        className="mt-2 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
       />
     </div>
   )

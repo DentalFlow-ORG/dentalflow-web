@@ -132,7 +132,7 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 py-6 text-sm text-slate-500">
+      <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
         Carregando imagens...
       </div>
@@ -142,8 +142,8 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-sm font-medium text-slate-700">Imagens e anexos clínicos</p>
-        <p className="mt-0.5 text-xs text-slate-500">
+        <p className="text-sm font-medium text-foreground">Imagens e anexos clínicos</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
           {readOnly
             ? 'As imagens clínicas estão disponíveis apenas para consulta neste status do prontuário.'
             : 'Envie imagens clínicas, exames ou fotos relacionadas ao atendimento. As imagens serão otimizadas para reduzir o uso de armazenamento.'}
@@ -170,14 +170,14 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
             <Upload className="h-4 w-4" />
             {isUploading ? 'Enviando...' : 'Adicionar imagem'}
           </Button>
-          <p className="mt-1 text-xs text-slate-400">JPEG, PNG ou WebP · máx. 5 MB por arquivo</p>
+          <p className="mt-1 text-xs text-muted-foreground">JPEG, PNG ou WebP · máx. 5 MB por arquivo</p>
         </div>
       )}
 
       {attachments.length === 0 && (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-slate-200 py-8 text-center">
-          <Image className="h-8 w-8 text-slate-300" />
-          <p className="text-sm text-slate-400">Nenhuma imagem adicionada.</p>
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-8 text-center">
+          <Image className="h-8 w-8 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">Nenhuma imagem adicionada.</p>
         </div>
       )}
 
@@ -246,7 +246,7 @@ function AttachmentCard({
     : null
 
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div className="group relative overflow-hidden rounded-lg border border-border bg-card">
       {src ? (
         <img
           src={src}
@@ -254,8 +254,8 @@ function AttachmentCard({
           className="aspect-square w-full object-cover"
         />
       ) : (
-        <div className="flex aspect-square w-full items-center justify-center bg-slate-100">
-          <Image className="h-8 w-8 text-slate-300" />
+        <div className="flex aspect-square w-full items-center justify-center bg-muted">
+          <Image className="h-8 w-8 text-muted-foreground/40" />
         </div>
       )}
 
@@ -263,7 +263,7 @@ function AttachmentCard({
         <button
           type="button"
           onClick={onRemove}
-          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-red-600 opacity-0 shadow transition-opacity group-hover:opacity-100"
+          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-card/90 text-red-600 opacity-0 shadow transition-opacity group-hover:opacity-100"
           title="Remover imagem"
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -271,17 +271,17 @@ function AttachmentCard({
       )}
 
       <div className="p-2">
-        <p className="truncate text-[11px] text-slate-500">{attachment.fileName}</p>
+        <p className="truncate text-[11px] text-muted-foreground">{attachment.fileName}</p>
         <input
           type="text"
           placeholder="Legenda..."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="mt-1 w-full rounded border-0 bg-transparent p-0 text-[11px] text-slate-700 placeholder:text-slate-300 focus:outline-none"
+          className="mt-1 w-full rounded border-0 bg-transparent p-0 text-[11px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none"
           readOnly={readOnly}
         />
         {!readOnly && saveState === 'saving' && (
-          <p className="mt-0.5 text-[10px] text-slate-400">Salvando...</p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">Salvando...</p>
         )}
         {!readOnly && saveState === 'saved' && (
           <p className="mt-0.5 text-[10px] text-emerald-500">Salvo</p>

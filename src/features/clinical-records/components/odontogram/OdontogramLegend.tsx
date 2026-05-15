@@ -19,7 +19,7 @@ export function OdontogramLegend({ printMode = false }: Props) {
           <div
             key={option.value}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600',
+              'inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground',
               printMode && 'px-2 py-0.5 text-[10px]',
             )}
           >

@@ -138,8 +138,8 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
       <ClinicalRecordHeader record={record} />
 
       {readOnlyMessage && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          <p className="font-medium text-slate-800">{readOnlyMessage}</p>
+        <div className="rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">{readOnlyMessage}</p>
           <p className="mt-0.5">
             Para alterar informações clínicas, o prontuário precisa estar em rascunho.
           </p>
@@ -148,8 +148,8 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <ClipboardList className="h-4 w-4 text-slate-400" />
-          <span className="text-sm text-slate-500">
+          <ClipboardList className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">
             Criado por {record.createdByUser.firstName} {record.createdByUser.lastName}
           </span>
         </div>
@@ -176,7 +176,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           )}
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <ClinicalSectionField
               label="Queixa principal"
               value={field('chiefComplaint')}
@@ -187,7 +187,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <ClinicalSectionField
               label="Anamnese"
               value={field('anamnesis')}
@@ -198,7 +198,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <ClinicalSectionField
               label="Evolução clínica"
               value={field('clinicalEvolution')}
@@ -209,7 +209,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <ClinicalSectionField
               label="Diagnóstico / Hipótese diagnóstica"
               value={field('diagnosis')}
@@ -220,7 +220,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <ClinicalSectionField
               label="Procedimentos realizados"
               value={field('proceduresPerformed')}
@@ -231,7 +231,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <ClinicalSectionField
               label="Plano de tratamento"
               value={field('treatmentPlan')}
@@ -242,7 +242,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <ClinicalSectionField
               label="Prescrição / Medicamentos"
               value={field('prescription')}
@@ -253,7 +253,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <ClinicalSectionField
               label="Recomendações ao paciente"
               value={field('recommendations')}
@@ -264,7 +264,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <div className="rounded-xl border border-border bg-card p-4">
             <OdontogramSection
               data={odontogramData}
               onChange={handleOdontogramChange}
@@ -272,7 +272,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             />
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="rounded-xl border border-border bg-card p-5">
             <ImageAttachmentPanel
               recordId={recordId}
               readOnly={isReadOnly}
@@ -296,7 +296,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-4">
           {/* Main editor */}
           <div className="space-y-4 xl:col-span-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <div className="rounded-xl border border-border bg-card p-5">
               <ClinicalSectionField
                 label="Queixa principal"
                 value={field('chiefComplaint')}
@@ -308,8 +308,8 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             </div>
 
             {/* Tab navigation */}
-            <div className="rounded-xl border border-slate-200 bg-white">
-              <div className="overflow-x-auto border-b border-slate-200">
+            <div className="rounded-xl border border-border bg-card">
+              <div className="overflow-x-auto border-b border-border">
                 <nav role="tablist" aria-label="Seções do prontuário" className="flex min-w-max">
                   {TABS.map((tab) => (
                     <button
@@ -323,7 +323,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
                       className={`whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors ${
                         activeTab === tab.id
                           ? 'border-b-2 border-primary text-primary'
-                          : 'text-slate-500 hover:text-slate-800'
+                          : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       {tab.label}

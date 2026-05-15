@@ -45,7 +45,7 @@ export function OdontogramTooth({
       className={cn(
         'group relative flex h-[68px] w-[48px] items-center justify-center rounded-lg outline-none transition',
         tokens.text,
-        isInteractive && 'cursor-pointer hover:bg-slate-50 hover:shadow-sm',
+        isInteractive && 'cursor-pointer hover:bg-muted hover:shadow-sm',
         isInteractive && 'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
         selected && 'bg-primary/5 ring-2 ring-primary ring-offset-2',
         multiSelected && 'bg-primary/5 ring-2 ring-primary/70 ring-offset-2',
@@ -66,7 +66,7 @@ export function OdontogramTooth({
       {hasCondition && (
         <span
           className={cn(
-            'absolute right-1.5 top-1.5 h-2 w-2 rounded-full ring-2 ring-white',
+            'absolute right-1.5 top-1.5 h-2 w-2 rounded-full ring-2 ring-card',
             tokens.dot,
             (printMode || compact) && 'right-1 top-1 h-1.5 w-1.5',
           )}
@@ -76,7 +76,7 @@ export function OdontogramTooth({
       {tooth.condition === 'absent' && (
         <span
           aria-hidden="true"
-          className="absolute left-2 right-2 top-1/2 h-px -rotate-12 bg-slate-400"
+          className="absolute left-2 right-2 top-1/2 h-px -rotate-12 bg-muted-foreground/50"
         />
       )}
     </button>

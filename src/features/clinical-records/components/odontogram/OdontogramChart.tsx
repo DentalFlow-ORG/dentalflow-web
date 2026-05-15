@@ -58,7 +58,7 @@ export function OdontogramChart({
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-xl border border-border bg-card p-4">
       {isMobile ? (
         <QuadrantLayout {...iProps} />
       ) : (
@@ -66,7 +66,7 @@ export function OdontogramChart({
           <div className="mx-auto w-fit">
             <FullArch teeth={UPPER_TEETH} lower={false} {...iProps} />
             <FullNumberRow teeth={UPPER_TEETH} />
-            <div className="my-3 border-t border-dashed border-slate-300" />
+            <div className="my-3 border-t border-dashed border-border" />
             <FullNumberRow teeth={LOWER_TEETH} />
             <FullArch teeth={LOWER_TEETH} lower={true} {...iProps} />
           </div>
@@ -113,7 +113,7 @@ function FullNumberRow({ teeth }: { teeth: number[] }) {
       {teeth.map((n) => (
         <div
           key={n}
-          className="flex h-6 items-center justify-center text-[11px] font-semibold text-slate-500"
+          className="flex h-6 items-center justify-center text-[11px] font-semibold text-muted-foreground"
         >
           {n}
         </div>
@@ -164,7 +164,7 @@ function QuadrantNumberRow({ teeth }: { teeth: number[] }) {
       {teeth.map((n) => (
         <div
           key={n}
-          className="flex h-5 items-center justify-center text-[10px] font-semibold text-slate-500"
+          className="flex h-5 items-center justify-center text-[10px] font-semibold text-muted-foreground"
         >
           {n}
         </div>
@@ -186,7 +186,7 @@ function QuadrantSection({
   const archProps = { teeth, lower, getTooth, selected, multiSelected, readOnly, onSelect }
   return (
     <div>
-      <p className="mb-1.5 text-[11px] font-medium text-slate-400">{title}</p>
+      <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">{title}</p>
       {!lower ? (
         // Upper: teeth first (crowns face down), numbers below (gum line)
         <>
@@ -208,15 +208,15 @@ function QuadrantLayout(p: InteractiveProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Arcada superior
         </p>
         <QuadrantSection {...p} title="Quadrante 1 — Superior direita" teeth={Q1} lower={false} />
         <QuadrantSection {...p} title="Quadrante 2 — Superior esquerda" teeth={Q2} lower={false} />
       </div>
-      <div className="border-t border-dashed border-slate-300" />
+      <div className="border-t border-dashed border-border" />
       <div className="space-y-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Arcada inferior
         </p>
         <QuadrantSection {...p} title="Quadrante 4 — Inferior direita" teeth={Q4} lower={true} />

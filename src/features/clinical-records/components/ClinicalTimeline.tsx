@@ -23,7 +23,7 @@ export function ClinicalTimeline({ records }: Props) {
   }
 
   return (
-    <ol className="relative space-y-4 border-l border-slate-200 pl-5">
+    <ol className="relative space-y-4 border-l border-border pl-5">
       {records.map((record) => (
         <ClinicalTimelineItem key={record.id} record={record} />
       ))}
@@ -39,16 +39,16 @@ function ClinicalTimelineItem({ record }: ItemProps) {
   return (
     <li className="relative">
       <span className="absolute -left-[1.375rem] top-1.5 flex h-3 w-3 items-center justify-center">
-        <span className="h-3 w-3 rounded-full border-2 border-primary bg-white" />
+        <span className="h-3 w-3 rounded-full border-2 border-primary bg-card" />
       </span>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <p className="text-sm font-semibold text-slate-800">
+            <p className="text-sm font-semibold text-foreground">
               {record.profile.displayName}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               {formatDateLongBR(record.createdAt.slice(0, 10))}
               {record.appointment?.service && (
                 <> &middot; {record.appointment.service.name}</>
@@ -59,14 +59,14 @@ function ClinicalTimelineItem({ record }: ItemProps) {
         </div>
 
         {record.chiefComplaint && (
-          <p className="mt-2 text-sm text-slate-600">
-            <span className="font-medium">Queixa principal:</span>{' '}
+          <p className="mt-2 text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Queixa principal:</span>{' '}
             {record.chiefComplaint}
           </p>
         )}
 
         {record.clinicalEvolution && (
-          <p className="mt-1 line-clamp-2 text-sm text-slate-600">
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
             {record.clinicalEvolution}
           </p>
         )}
