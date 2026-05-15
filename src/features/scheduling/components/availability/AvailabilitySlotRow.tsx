@@ -43,12 +43,12 @@ export function AvailabilitySlotRow({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-slate-900">
+        <p className="text-sm font-semibold text-foreground">
           <DayOfWeekLabel day={slot.dayOfWeek} />
         </p>
-        <p className="mt-0.5 text-xs text-slate-500">
+        <p className="mt-0.5 text-xs text-muted-foreground">
           {formatWallTime(slot.startTime)} – {formatWallTime(slot.endTime)}
         </p>
       </div>
@@ -57,7 +57,7 @@ export function AvailabilitySlotRow({
           'shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold',
           slot.isActive
             ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
-            : 'border-slate-200 bg-slate-100 text-slate-500',
+            : 'border-border bg-muted text-muted-foreground',
         )}
       >
         {slot.isActive ? 'Ativo' : 'Inativo'}
@@ -80,7 +80,7 @@ export function AvailabilitySlotRow({
           onClick={onDelete}
           disabled={isLoading}
           aria-label="Remover"
-          className="text-slate-400 hover:bg-red-50 hover:text-red-600"
+          className="text-muted-foreground hover:bg-red-50 hover:text-red-600"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>

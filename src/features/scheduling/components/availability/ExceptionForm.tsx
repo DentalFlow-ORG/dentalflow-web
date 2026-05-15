@@ -49,12 +49,12 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-4"
+      className="rounded-lg border border-border bg-muted p-4 space-y-4"
     >
       {initial ? (
         <div>
-          <p className="mb-1 text-sm font-semibold text-slate-700">Data</p>
-          <p className="text-sm text-slate-900">{formatDateBR(initial.exceptionDate)}</p>
+          <p className="mb-1 text-sm font-semibold text-foreground">Data</p>
+          <p className="text-sm text-foreground">{formatDateBR(initial.exceptionDate)}</p>
         </div>
       ) : (
         <FormField label="Data" htmlFor="exceptionDate">
@@ -69,15 +69,15 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
 
       {/* Type toggle */}
       <div>
-        <p className="mb-2 text-sm font-semibold text-slate-700">Tipo</p>
-        <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-1">
+        <p className="mb-2 text-sm font-semibold text-foreground">Tipo</p>
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-1">
           <button
             type="button"
             onClick={() => setIsDayOff(true)}
             className={`flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors ${
               isDayOff
-                ? 'bg-slate-950 text-white'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'bg-foreground text-background'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Folga
@@ -87,8 +87,8 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
             onClick={() => setIsDayOff(false)}
             className={`flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors ${
               !isDayOff
-                ? 'bg-slate-950 text-white'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'bg-foreground text-background'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Horário especial

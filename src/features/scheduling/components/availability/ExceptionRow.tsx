@@ -44,12 +44,12 @@ export function ExceptionRow({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-slate-900">
+        <p className="text-sm font-semibold text-foreground">
           {formatDateBR(exception.exceptionDate)}
         </p>
-        <p className="mt-0.5 text-xs text-slate-500">
+        <p className="mt-0.5 text-xs text-muted-foreground">
           {exception.isDayOff ? (
             <span className="font-medium text-red-600">Folga</span>
           ) : (
@@ -61,7 +61,7 @@ export function ExceptionRow({
             </>
           )}
           {exception.reason && (
-            <span className="ml-1 text-slate-400">· {exception.reason}</span>
+            <span className="ml-1 text-muted-foreground/60">· {exception.reason}</span>
           )}
         </p>
       </div>
@@ -83,7 +83,7 @@ export function ExceptionRow({
           onClick={onDelete}
           disabled={isLoading}
           aria-label="Remover exceção"
-          className="text-slate-400 hover:bg-red-50 hover:text-red-600"
+          className="text-muted-foreground hover:bg-red-50 hover:text-red-600"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>

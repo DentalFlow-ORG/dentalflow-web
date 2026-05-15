@@ -208,15 +208,15 @@ export function CreateAppointmentModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-labelledby="create-modal-title"
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg max-h-[90vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 flex flex-col"
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg max-h-[90vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 flex flex-col"
           onEscapeKeyDown={handleClose}
           onInteractOutside={handleClose}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+          <div className="flex items-center justify-between border-b border-border px-6 py-5">
             <Dialog.Title
               id="create-modal-title"
-              className="text-lg font-semibold text-slate-950"
+              className="text-lg font-semibold text-foreground"
             >
               Novo agendamento
             </Dialog.Title>
@@ -317,7 +317,7 @@ export function CreateAppointmentModal({
             {/* Time slots */}
             <FormField label="Horário">
               {!form.profileId || !form.appointmentDate ? (
-                <p className="py-2 text-sm text-slate-400">
+                <p className="py-2 text-sm text-muted-foreground">
                   {!form.profileId
                     ? 'Selecione um profissional para ver os horários'
                     : 'Selecione uma data para ver os horários'}
@@ -385,7 +385,7 @@ export function CreateAppointmentModal({
           </form>
 
           {/* Footer */}
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-5 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"

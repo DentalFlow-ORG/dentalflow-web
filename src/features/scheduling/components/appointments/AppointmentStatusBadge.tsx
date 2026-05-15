@@ -26,8 +26,8 @@ const STATUS_CONFIG: Record<AppointmentStatus, StatusConfig> = {
   },
   COMPLETED: {
     label: 'Concluído',
-    className: 'border-slate-200 bg-slate-100 text-slate-600',
-    dotClass: 'bg-slate-400',
+    className: 'border-border bg-muted text-muted-foreground',
+    dotClass: 'bg-muted-foreground/50',
   },
   NO_SHOW: {
     label: 'Não compareceu',

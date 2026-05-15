@@ -71,7 +71,7 @@ export function AppointmentDrawer({
         <Dialog.Content
           aria-describedby={undefined}
           className={cn(
-            'fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-[#f8fafc] shadow-2xl shadow-slate-950/15',
+            'fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-background shadow-2xl shadow-black/15',
             'animate-in slide-in-from-right duration-200',
           )}
           onEscapeKeyDown={onClose}
@@ -80,7 +80,7 @@ export function AppointmentDrawer({
           {appointment && (
             <>
               {/* Header */}
-              <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-5">
+              <div className="flex items-start justify-between gap-4 border-b border-border bg-card px-6 py-5">
                 <div className="flex min-w-0 items-center gap-3">
                   <div
                     className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary"
@@ -89,10 +89,10 @@ export function AppointmentDrawer({
                     {getInitials(appointment.patientName)}
                   </div>
                   <div className="min-w-0">
-                    <Dialog.Title className="truncate text-lg font-semibold text-slate-950">
+                    <Dialog.Title className="truncate text-lg font-semibold text-foreground">
                       {appointment.patientName}
                     </Dialog.Title>
-                    <p className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-500">
+                    <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
                       <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       {formatAppointmentDateLong(appointment.appointmentDate)}
                     </p>
@@ -126,8 +126,8 @@ export function AppointmentDrawer({
               {/* Body */}
               <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
                 {/* Status */}
-                <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3">
-                  <span className="text-sm font-medium text-slate-600">Status</span>
+                <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
+                  <span className="text-sm font-medium text-muted-foreground">Status</span>
                   <AppointmentStatusBadge status={appointment.status} />
                 </div>
 
@@ -149,7 +149,7 @@ export function AppointmentDrawer({
                   </DrawerRow>
                   <DrawerRow label="Horário">
                     {formatWallTime(appointment.startTime)}
-                    <span className="mx-1 text-slate-400">–</span>
+                    <span className="mx-1 text-muted-foreground/60">–</span>
                     {formatWallTime(appointment.endTime)}
                   </DrawerRow>
                   <DrawerRow label="Duração">{appointment.durationMinutes} min</DrawerRow>
@@ -173,7 +173,7 @@ export function AppointmentDrawer({
                 {/* Notes */}
                 {appointment.notes && (
                   <DrawerSection title="Observações">
-                    <p className="px-4 py-3 text-sm leading-6 text-slate-700">
+                    <p className="px-4 py-3 text-sm leading-6 text-foreground">
                       {appointment.notes}
                     </p>
                   </DrawerSection>
@@ -230,8 +230,8 @@ function DrawerActions({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-      <p className="border-b border-slate-100 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+    <div className="overflow-hidden rounded-lg border border-border bg-card">
+      <p className="border-b border-border px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         Ações
       </p>
       <div className="flex flex-col gap-1.5 p-3">
@@ -355,14 +355,14 @@ function ClinicalRecordManagerSection({
   return (
     <DrawerSection title="Prontuário">
       {isLoading ? (
-        <div className="flex items-center gap-2.5 px-4 py-3.5 text-sm text-slate-500">
+        <div className="flex items-center gap-2.5 px-4 py-3.5 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
           Verificando prontuário...
         </div>
       ) : record ? (
         <button
           type="button"
-          className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
           onClick={handleOpen}
           aria-label="Abrir prontuário clínico"
         >
@@ -381,13 +381,13 @@ function ClinicalRecordManagerSection({
       ) : (
         <button
           type="button"
-          className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50"
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50"
           onClick={handleCreate}
           disabled={isCreating}
           aria-label={isCreating ? 'Criando prontuário' : 'Criar prontuário clínico'}
         >
           <div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-500"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground"
             aria-hidden="true"
           >
             {isCreating ? (
@@ -397,13 +397,13 @@ function ClinicalRecordManagerSection({
             )}
           </div>
           <div className="min-w-0">
-            <p className="font-medium text-slate-900">
+            <p className="font-medium text-foreground">
               {isCreating ? 'Criando prontuário...' : 'Criar prontuário'}
             </p>
-            <p className="text-xs text-slate-500">Iniciar ficha clínica para este paciente</p>
+            <p className="text-xs text-muted-foreground">Iniciar ficha clínica para este paciente</p>
           </div>
           {!isCreating && (
-            <Plus className="ml-auto h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+            <Plus className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           )}
         </button>
       )}
@@ -420,11 +420,11 @@ function DrawerSection({
 }) {
   return (
     <div>
-      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
+      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </p>
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="divide-y divide-slate-100">{children}</div>
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <div className="divide-y divide-border">{children}</div>
       </div>
     </div>
   )
@@ -439,8 +439,8 @@ function DrawerRow({
 }) {
   return (
     <div className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
-      <span className="shrink-0 text-slate-500">{label}</span>
-      <span className="text-right font-medium text-slate-900">{children}</span>
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="text-right font-medium text-foreground">{children}</span>
     </div>
   )
 }

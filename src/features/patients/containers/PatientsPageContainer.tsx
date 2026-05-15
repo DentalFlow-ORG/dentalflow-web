@@ -75,19 +75,19 @@ function AppointmentRow({ appt }: { appt: PatientAppointment }) {
   const tone: BadgeTone = STATUS_TONE[appt.status] ?? 'muted'
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+    <div className="rounded-lg border border-border bg-muted px-4 py-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-slate-900">
+          <p className="truncate text-sm font-medium text-foreground">
             {appt.service?.name ?? 'Consulta'}
           </p>
           {appt.profile && (
-            <p className="mt-0.5 text-xs text-slate-500">{appt.profile.displayName}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{appt.profile.displayName}</p>
           )}
         </div>
         <StatusBadge tone={tone}>{STATUS_LABEL[appt.status] ?? appt.status}</StatusBadge>
       </div>
-      <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+      <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
         <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span>
           {formatDate(appt.appointmentDate)} · {formatTime(appt.startTime)}–
@@ -95,7 +95,7 @@ function AppointmentRow({ appt }: { appt: PatientAppointment }) {
         </span>
       </div>
       {appt.notes && (
-        <p className="mt-1.5 text-xs italic text-slate-400">{appt.notes}</p>
+        <p className="mt-1.5 text-xs italic text-muted-foreground/70">{appt.notes}</p>
       )}
     </div>
   )
@@ -115,13 +115,13 @@ function PatientMobileCard({
       : 'Nenhuma consulta registrada'
 
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate text-sm font-semibold text-slate-950">
+          <h3 className="truncate text-sm font-semibold text-foreground">
             {patient.patientName}
           </h3>
-          <p className="mt-1 text-xs leading-5 text-slate-500">
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
             {patient.lastVisit
               ? `Última visita em ${formatDate(patient.lastVisit)}`
               : 'Sem visita registrada'}
@@ -132,16 +132,16 @@ function PatientMobileCard({
         </StatusBadge>
       </div>
 
-      <div className="mt-4 grid gap-3 text-sm text-slate-600">
+      <div className="mt-4 grid gap-3 text-sm text-foreground">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Contato</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Contato</p>
           {hasContact ? (
             <div className="mt-1 space-y-0.5">
               {patient.patientPhone && <p>{patient.patientPhone}</p>}
               {patient.patientEmail && <p className="break-words">{patient.patientEmail}</p>}
             </div>
           ) : (
-            <p className="mt-1 text-slate-500">Sem contato cadastrado</p>
+            <p className="mt-1 text-muted-foreground">Sem contato cadastrado</p>
           )}
         </div>
 
@@ -192,15 +192,15 @@ function PatientDetailPanel({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-white shadow-xl focus:outline-none"
+          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-card shadow-xl focus:outline-none"
           aria-describedby={undefined}
         >
-          <div className="flex items-start justify-between border-b border-slate-200 px-6 py-4">
+          <div className="flex items-start justify-between border-b border-border px-6 py-4">
             <div>
-              <Dialog.Title className="text-base font-semibold text-slate-950">
+              <Dialog.Title className="text-base font-semibold text-foreground">
                 {patient?.patientName}
               </Dialog.Title>
-              <p className="mt-0.5 text-sm text-slate-500">
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 {patient?.patientEmail ?? patient?.patientPhone ?? 'Sem contato'}
               </p>
             </div>
@@ -210,7 +210,7 @@ function PatientDetailPanel({
                 variant="ghost"
                 size="icon"
                 aria-label="Fechar painel do paciente"
-                className="h-8 w-8 text-slate-400 hover:text-slate-700"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </Button>
@@ -218,30 +218,30 @@ function PatientDetailPanel({
           </div>
 
           {patient && (
-            <div className="grid grid-cols-3 divide-x divide-slate-200 border-b border-slate-200 bg-slate-50">
+            <div className="grid grid-cols-3 divide-x divide-border border-b border-border bg-muted">
               <div className="px-4 py-3 text-center">
-                <p className="text-xl font-bold text-slate-950">
+                <p className="text-xl font-bold text-foreground">
                   {patient.totalAppointments}
                 </p>
-                <p className="text-xs text-slate-500">Total</p>
+                <p className="text-xs text-muted-foreground">Total</p>
               </div>
               <div className="px-4 py-3 text-center">
                 <p className="text-xl font-bold text-emerald-600">
                   {patient.completedAppointments}
                 </p>
-                <p className="text-xs text-slate-500">Concluídas</p>
+                <p className="text-xs text-muted-foreground">Concluídas</p>
               </div>
               <div className="px-4 py-3 text-center">
                 <p className="text-xl font-bold text-red-500">
                   {patient.canceledAppointments}
                 </p>
-                <p className="text-xs text-slate-500">Canceladas</p>
+                <p className="text-xs text-muted-foreground">Canceladas</p>
               </div>
             </div>
           )}
 
           {/* Tabs */}
-          <div role="tablist" aria-label="Informações do paciente" className="flex border-b border-slate-200">
+          <div role="tablist" aria-label="Informações do paciente" className="flex border-b border-border">
             {([
               { id: 'consultas', label: 'Consultas' },
               { id: 'prontuarios', label: 'Prontuários' },
@@ -257,7 +257,7 @@ function PatientDetailPanel({
                 className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
                   activeTab === tab.id
                     ? 'border-b-2 border-primary text-primary'
-                    : 'text-slate-500 hover:text-slate-800'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {tab.label}
@@ -273,7 +273,7 @@ function PatientDetailPanel({
                   loadingMessage="Carregando histórico…"
                   isEmpty={!isLoading && appointments.length === 0}
                   emptyState={
-                    <p className="text-sm text-slate-500">Nenhuma consulta encontrada.</p>
+                    <p className="text-sm text-muted-foreground">Nenhuma consulta encontrada.</p>
                   }
                 >
                   <div className="space-y-3">
@@ -293,17 +293,17 @@ function PatientDetailPanel({
                     loadingMessage="Carregando prontuários…"
                     isEmpty={!isLoadingTimeline && clinicalRecords.length === 0}
                     emptyState={
-                      <p className="text-sm text-slate-500">Nenhum prontuário encontrado.</p>
+                      <p className="text-sm text-muted-foreground">Nenhum prontuário encontrado.</p>
                     }
                   >
                     <ClinicalTimeline records={clinicalRecords} />
                   </ListPageShell>
                 ) : (
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-5">
-                    <p className="text-sm font-medium text-slate-700">
+                  <div className="rounded-lg border border-border bg-muted px-4 py-5">
+                    <p className="text-sm font-medium text-foreground">
                       Informações clínicas restritas ao proprietário e dentistas.
                     </p>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       O histórico administrativo de consultas continua disponível nesta tela.
                     </p>
                   </div>
@@ -405,20 +405,20 @@ export function PatientsPageContainer() {
           <PanelCard>
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-semibold text-slate-950">
+                <h2 className="text-base font-semibold text-foreground">
                   Lista de pacientes
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-muted-foreground">
                   Ordenado pela consulta mais recente.
                 </p>
               </div>
               <Users2 className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-slate-200">
-              <div className="space-y-3 bg-slate-50 p-3 lg:hidden">
+            <div className="overflow-hidden rounded-lg border border-border">
+              <div className="space-y-3 bg-muted p-3 lg:hidden">
                 {filteredPatients.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
+                  <div className="rounded-lg border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
                     {hasFilters
                       ? 'Nenhum paciente encontrado para os filtros aplicados.'
                       : 'Nenhum paciente encontrado.'}
@@ -437,7 +437,7 @@ export function PatientsPageContainer() {
               <div className="hidden lg:block">
                 <table className="w-full text-sm" aria-label="Lista de pacientes">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       <th scope="col" className="px-4 py-3">Paciente</th>
                       <th scope="col" className="hidden px-4 py-3 sm:table-cell">Contato</th>
                       <th scope="col" className="px-4 py-3 text-center">Consultas</th>
@@ -445,12 +445,12 @@ export function PatientsPageContainer() {
                       <th scope="col" className="px-4 py-3" />
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
+                  <tbody className="divide-y divide-border bg-card">
                     {filteredPatients.length === 0 ? (
                       <tr>
                         <td
                           colSpan={5}
-                          className="px-4 py-8 text-center text-sm text-slate-500"
+                          className="px-4 py-8 text-center text-sm text-muted-foreground"
                         >
                           {hasFilters
                             ? 'Nenhum paciente encontrado para os filtros aplicados.'
@@ -464,7 +464,7 @@ export function PatientsPageContainer() {
                           role="button"
                           tabIndex={0}
                           aria-label={`Ver detalhes de ${patient.patientName}`}
-                          className="cursor-pointer hover:bg-slate-50/70 focus-visible:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                          className="cursor-pointer hover:bg-muted/50 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                           onClick={() => setSelectedPatient(patient)}
                           onKeyDown={(event) => {
                             if (event.target !== event.currentTarget) return
@@ -475,37 +475,37 @@ export function PatientsPageContainer() {
                           }}
                         >
                           <td className="px-4 py-3">
-                            <p className="font-medium text-slate-900">
+                            <p className="font-medium text-foreground">
                               {patient.patientName}
                             </p>
                             {patient.patientEmail && (
-                              <p className="text-xs text-slate-500">
+                              <p className="text-xs text-muted-foreground">
                                 {patient.patientEmail}
                               </p>
                             )}
                           </td>
-                          <td className="hidden px-4 py-3 text-slate-600 sm:table-cell">
+                          <td className="hidden px-4 py-3 text-foreground sm:table-cell">
                             {patient.patientPhone ?? (
-                              <span className="text-slate-400">—</span>
+                              <span className="text-muted-foreground">—</span>
                             )}
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <span className="font-semibold text-slate-900">
+                            <span className="font-semibold text-foreground">
                               {patient.totalAppointments}
                             </span>
-                            <span className="ml-1 text-xs text-slate-400">
+                            <span className="ml-1 text-xs text-muted-foreground">
                               ({patient.completedAppointments} ✓)
                             </span>
                           </td>
-                          <td className="hidden px-4 py-3 text-slate-600 md:table-cell">
+                          <td className="hidden px-4 py-3 text-foreground md:table-cell">
                             {patient.lastVisit ? (
                               formatDate(patient.lastVisit)
                             ) : (
-                              <span className="text-slate-400">—</span>
+                              <span className="text-muted-foreground">—</span>
                             )}
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <ChevronRight className="ml-auto h-4 w-4 text-slate-400" aria-hidden="true" />
+                            <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground" aria-hidden="true" />
                           </td>
                         </tr>
                       ))
@@ -514,7 +514,7 @@ export function PatientsPageContainer() {
                 </table>
               </div>
 
-              <div className="border-t border-slate-100 px-4 py-3">
+              <div className="border-t border-border px-4 py-3">
                 <Pagination
                   page={page}
                   totalPages={totalPages}

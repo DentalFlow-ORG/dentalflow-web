@@ -15,7 +15,7 @@ type SlotPickerProps = {
 export function SlotPicker({ slots, value, onChange, isLoading, disabled }: SlotPickerProps) {
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 py-5 text-slate-500">
+      <div className="flex items-center gap-2 py-5 text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" />
         <span className="text-sm">Carregando horários...</span>
       </div>
@@ -24,7 +24,7 @@ export function SlotPicker({ slots, value, onChange, isLoading, disabled }: Slot
 
   if (slots.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-slate-400">
+      <p className="py-4 text-center text-sm text-muted-foreground">
         Nenhum horário disponível para esta data.
       </p>
     )
@@ -44,8 +44,8 @@ export function SlotPicker({ slots, value, onChange, isLoading, disabled }: Slot
             slot.available && !disabled
               ? value === slot.time
                 ? 'border-primary bg-primary text-white shadow-sm shadow-primary/20'
-                : 'border-slate-200 bg-white text-slate-900 hover:border-primary/35 hover:bg-primary/5 hover:text-primary'
-              : 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-400 line-through',
+                : 'border-border bg-card text-foreground hover:border-primary/35 hover:bg-primary/5 hover:text-primary'
+              : 'cursor-not-allowed border-border/50 bg-muted text-muted-foreground line-through',
           )}
         >
           {slot.time}

@@ -76,7 +76,7 @@ export function SchedulePageContainer() {
         </InlineFeedback>
       ) : (
         <>
-          <div className="border-b border-slate-200">
+          <div className="border-b border-border">
             <nav role="tablist" aria-label="Seções da minha agenda" className="flex gap-0 overflow-x-auto">
               {TABS.map((tab) => (
                 <button
@@ -91,7 +91,7 @@ export function SchedulePageContainer() {
                     'shrink-0 border-b-2 px-5 py-3 text-sm font-semibold transition-colors',
                     activeTab === tab.id
                       ? 'border-primary text-primary'
-                      : 'border-transparent text-slate-500 hover:text-slate-700',
+                      : 'border-transparent text-muted-foreground hover:text-foreground',
                   )}
                 >
                   {tab.label}
@@ -144,7 +144,7 @@ export function SchedulePageContainer() {
                 buttonLabel="Gerenciar disponibilidade"
               />
               <div>
-                <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Edição rápida na Agenda
                 </h3>
                 <PanelCard>
@@ -166,7 +166,7 @@ export function SchedulePageContainer() {
                 buttonLabel="Gerenciar exceções"
               />
               <div>
-                <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Edição rápida na Agenda
                 </h3>
                 <PanelCard>

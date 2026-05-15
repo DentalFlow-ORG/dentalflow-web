@@ -55,7 +55,7 @@ export function AvailabilitySlotForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-4"
+      className="rounded-lg border border-border bg-muted p-4 space-y-4"
     >
       <FormField label="Dia da semana" htmlFor="dayOfWeek">
         <Select

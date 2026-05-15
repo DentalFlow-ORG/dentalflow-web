@@ -202,19 +202,19 @@ export function EditAppointmentModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-labelledby="edit-appointment-title"
-          className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={handleClose}
           onInteractOutside={handleClose}
         >
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+          <div className="flex items-center justify-between border-b border-border px-6 py-5">
             <div>
               <Dialog.Title
                 id="edit-appointment-title"
-                className="text-lg font-semibold text-slate-950"
+                className="text-lg font-semibold text-foreground"
               >
                 {modalTitle}
               </Dialog.Title>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {isPastAppointment
                   ? 'Esta consulta ja passou. Ajuste data e horario para remarcar.'
                   : currentAppointment.profile.displayName}
@@ -325,7 +325,7 @@ export function EditAppointmentModal({
             {/* Time slots */}
             <FormField label="Horário">
               {!form.appointmentDate ? (
-                <p className="py-2 text-sm text-slate-400">
+                <p className="py-2 text-sm text-muted-foreground">
                   Selecione uma data para ver os horários disponíveis
                 </p>
               ) : (
@@ -352,7 +352,7 @@ export function EditAppointmentModal({
             </FormField>
           </form>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-5 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"

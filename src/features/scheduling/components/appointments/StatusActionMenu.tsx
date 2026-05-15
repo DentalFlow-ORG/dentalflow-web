@@ -31,7 +31,7 @@ export function StatusActionMenu({
   const can = (target: AppointmentStatus) => available.includes(target)
 
   if (isTerminalStatus(status)) {
-    return <span className="text-xs text-slate-400">—</span>
+    return <span className="text-xs text-muted-foreground">—</span>
   }
 
   return (
