@@ -115,10 +115,6 @@ export function CurrentSubscriptionCard({
             />
           )}
 
-          {!billingStatus.accessAllowed && (
-            <InfoBox icon={AlertCircle} tone="amber" text={billingStatus.message} />
-          )}
-
           <div className="flex flex-wrap gap-3">
             {billingStatus.stripeCustomerId && (
               <Button

@@ -78,7 +78,15 @@ export function SubscriptionPageContainer() {
 
       <LaunchOfferBanner campaign={campaign} />
 
-      {!canManageBilling && (
+      {billingStatus?.accessAllowed === false && (
+        <InlineFeedback tone="warning">
+          {canManageBilling
+            ? (billingStatus.message || 'Sua assinatura precisa ser regularizada para continuar usando o DentalFlow.')
+            : 'O acesso ao DentalFlow está suspenso. Entre em contato com o proprietário da clínica para regularizar a assinatura e restaurar o acesso.'}
+        </InlineFeedback>
+      )}
+
+      {!canManageBilling && billingStatus?.accessAllowed !== false && (
         <InlineFeedback tone="info">
           Apenas o proprietário da clínica pode iniciar teste grátis, assinar ou gerenciar a
           cobrança. Você ainda pode visualizar os planos disponíveis.
@@ -137,7 +145,7 @@ export function SubscriptionPageContainer() {
             description="Nenhum plano está disponível no momento. Entre em contato com o suporte."
           />
         ) : (
-          <div className="grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+          <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3 lg:gap-6">
             {plans.map((plan, index) => {
               const normalizedInterval = normalizeBillingInterval(billingInterval)
               const isCurrentPlan =
