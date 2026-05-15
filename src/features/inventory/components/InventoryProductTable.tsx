@@ -1,7 +1,8 @@
-import { Eye, Loader2, MoveRight, Package, Pencil, Power, PowerOff } from 'lucide-react'
+import { Eye, Loader2, Minus, MoveRight, Package, Pencil, Plus, Power, PowerOff } from 'lucide-react'
 
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
+import { cn } from '@/lib/utils'
 
 import type { StockProduct } from '../types/inventory.types'
 import { formatBRLCents, formatProductDate, formatQuantity } from '../utils/inventory-format'
@@ -21,6 +22,8 @@ type InventoryProductTableProps = {
   onMove: (product: StockProduct) => void
   onDeactivate?: (product: StockProduct) => void
   onReactivate?: (product: StockProduct) => void
+  quickMovingIds: Set<string>
+  onQuickMove: (product: StockProduct, direction: 'in' | 'out') => void
 }
 
 export function InventoryProductTable({
@@ -36,6 +39,8 @@ export function InventoryProductTable({
   onMove,
   onDeactivate,
   onReactivate,
+  quickMovingIds,
+  onQuickMove,
 }: InventoryProductTableProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
@@ -73,6 +78,8 @@ export function InventoryProductTable({
               onMove={onMove}
               onDeactivate={onDeactivate}
               onReactivate={onReactivate}
+              quickMovingIds={quickMovingIds}
+              onQuickMove={onQuickMove}
             />
           ))
         )}
@@ -120,11 +127,65 @@ export function InventoryProductTable({
                     </td>
                     <td className="px-4 py-3 text-slate-600">{product.category.name}</td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`font-semibold ${product.status === 'EMPTY' ? 'text-red-600' : product.status === 'LOW' ? 'text-amber-700' : 'text-slate-900'}`}
-                      >
-                        {formatQuantity(product.currentQuantity, product.unit)}
-                      </span>
+                      {product.status === 'INACTIVE' ? (
+                        <span className="font-semibold text-slate-400">
+                          {formatQuantity(product.currentQuantity, product.unit)}
+                        </span>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            title={
+                              product.currentQuantity < 1
+                                ? 'Estoque insuficiente para saída rápida de 1 unidade'
+                                : 'Remover 1 unidade'
+                            }
+                            aria-label={
+                              product.currentQuantity < 1
+                                ? 'Estoque insuficiente para saída rápida de 1 unidade'
+                                : `Remover 1 unidade de ${product.name}`
+                            }
+                            disabled={
+                              product.currentQuantity < 1 || quickMovingIds.has(product.id)
+                            }
+                            onClick={() => onQuickMove(product, 'out')}
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 text-slate-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+                          >
+                            <Minus className="h-3 w-3" aria-hidden="true" />
+                          </button>
+                          <span
+                            className={cn(
+                              'min-w-[3.5rem] text-center text-sm font-semibold tabular-nums',
+                              quickMovingIds.has(product.id)
+                                ? 'text-slate-400'
+                                : product.status === 'EMPTY'
+                                  ? 'text-red-600'
+                                  : product.status === 'LOW'
+                                    ? 'text-amber-700'
+                                    : 'text-slate-900',
+                            )}
+                          >
+                            {quickMovingIds.has(product.id) ? (
+                              <Loader2
+                                className="mx-auto h-3.5 w-3.5 animate-spin"
+                                aria-hidden="true"
+                              />
+                            ) : (
+                              formatQuantity(product.currentQuantity, product.unit)
+                            )}
+                          </span>
+                          <button
+                            type="button"
+                            title="Adicionar 1 unidade"
+                            aria-label={`Adicionar 1 unidade de ${product.name}`}
+                            disabled={quickMovingIds.has(product.id)}
+                            onClick={() => onQuickMove(product, 'in')}
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 text-slate-400 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+                          >
+                            <Plus className="h-3 w-3" aria-hidden="true" />
+                          </button>
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-600">
                       {product.minQuantity > 0 ? (

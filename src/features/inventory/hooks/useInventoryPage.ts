@@ -5,6 +5,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ApiError } from '@/services/http'
 
 import {
+  createStockMovement,
   deleteStockProduct,
   getStockProduct,
   getStockSummary,
@@ -56,6 +57,9 @@ export function useInventoryPage() {
   const [status, setStatus] = useState<StockProductStatus | undefined>()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(INITIAL_PAGE_SIZE)
+
+  const quickMovingIdsRef = useRef(new Set<string>())
+  const [quickMovingIds, setQuickMovingIds] = useState<Set<string>>(new Set())
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initializedRef = useRef(false)
@@ -325,6 +329,56 @@ export function useInventoryPage() {
     }
   }, [reactivatingProduct, reloadSummaryAndProducts, showAlert, viewingProduct?.id])
 
+  const handleQuickMove = useCallback(
+    async (product: StockProduct, direction: 'in' | 'out') => {
+      if (quickMovingIdsRef.current.has(product.id)) return
+
+      quickMovingIdsRef.current = new Set([...quickMovingIdsRef.current, product.id])
+      setQuickMovingIds(new Set(quickMovingIdsRef.current))
+
+      try {
+        await createStockMovement({
+          productId: product.id,
+          type: direction === 'in' ? 'IN' : 'OUT',
+          quantity: 1,
+          reason:
+            direction === 'in'
+              ? 'Entrada rápida pela lista de estoque'
+              : 'Saída rápida pela lista de estoque',
+        })
+
+        showAlert({
+          title:
+            direction === 'in'
+              ? 'Entrada rápida registrada com sucesso.'
+              : 'Saída rápida registrada com sucesso.',
+          tone: 'success',
+        })
+
+        reloadSummaryAndProducts()
+        setMovementHistoryRefreshKey((k) => k + 1)
+
+        if (viewingProduct?.id === product.id) {
+          getStockProduct(product.id)
+            .then((updated) => setViewingProduct(updated))
+            .catch(() => {})
+        }
+      } catch (err) {
+        const message =
+          err instanceof ApiError
+            ? err.message
+            : 'Não foi possível registrar a movimentação rápida.'
+        showAlert({ title: 'Erro na movimentação rápida', description: message, tone: 'error' })
+      } finally {
+        const next = new Set(quickMovingIdsRef.current)
+        next.delete(product.id)
+        quickMovingIdsRef.current = next
+        setQuickMovingIds(new Set(next))
+      }
+    },
+    [reloadSummaryAndProducts, showAlert, viewingProduct?.id],
+  )
+
   const hasFilters = !!debouncedSearch || !!categoryId || !!status
 
   return {
@@ -379,5 +433,7 @@ export function useInventoryPage() {
     handleReactivateRequest,
     handleReactivateCancel,
     handleReactivateConfirm,
+    quickMovingIds,
+    handleQuickMove,
   }
 }

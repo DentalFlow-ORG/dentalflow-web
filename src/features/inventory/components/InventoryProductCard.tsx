@@ -1,4 +1,4 @@
-import { AlertTriangle, Eye, MoveRight, Pencil, Power, PowerOff } from 'lucide-react'
+import { AlertTriangle, Eye, Loader2, Minus, MoveRight, Pencil, Plus, Power, PowerOff } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 
@@ -13,6 +13,8 @@ type InventoryProductCardProps = {
   onMove: (product: StockProduct) => void
   onDeactivate?: (product: StockProduct) => void
   onReactivate?: (product: StockProduct) => void
+  quickMovingIds: Set<string>
+  onQuickMove: (product: StockProduct, direction: 'in' | 'out') => void
 }
 
 export function InventoryProductCard({
@@ -22,6 +24,8 @@ export function InventoryProductCard({
   onMove,
   onDeactivate,
   onReactivate,
+  quickMovingIds,
+  onQuickMove,
 }: InventoryProductCardProps) {
   const isInactive = product.status === 'INACTIVE'
   const hasStockWarning = product.status === 'EMPTY' || product.status === 'LOW'
@@ -117,6 +121,49 @@ export function InventoryProductCard({
           </div>
         )}
       </dl>
+
+      {/* Quick quantity controls */}
+      {!isInactive && (
+        <div className="mt-3 flex items-center justify-center gap-2 border-t border-slate-100 pt-3">
+          <button
+            type="button"
+            title={
+              product.currentQuantity < 1
+                ? 'Estoque insuficiente para saída rápida de 1 unidade'
+                : 'Remover 1 unidade'
+            }
+            aria-label={
+              product.currentQuantity < 1
+                ? 'Estoque insuficiente para saída rápida de 1 unidade'
+                : `Remover 1 unidade de ${product.name}`
+            }
+            disabled={product.currentQuantity < 1 || quickMovingIds.has(product.id)}
+            onClick={() => onQuickMove(product, 'out')}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-200 text-slate-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+          >
+            <Minus className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+          <span className="min-w-[5rem] text-center text-xs font-semibold tabular-nums text-slate-700">
+            {quickMovingIds.has(product.id) ? (
+              <span className="flex justify-center">
+                <Loader2 className="h-4 w-4 animate-spin text-slate-400" aria-hidden="true" />
+              </span>
+            ) : (
+              formatQuantity(product.currentQuantity, product.unit)
+            )}
+          </span>
+          <button
+            type="button"
+            title="Adicionar 1 unidade"
+            aria-label={`Adicionar 1 unidade de ${product.name}`}
+            disabled={quickMovingIds.has(product.id)}
+            onClick={() => onQuickMove(product, 'in')}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-200 text-slate-400 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+          >
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="mt-4 flex flex-col gap-2">

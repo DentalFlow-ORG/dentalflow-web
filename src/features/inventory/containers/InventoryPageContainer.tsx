@@ -138,6 +138,8 @@ export function InventoryPageContainer() {
     handleReactivateRequest,
     handleReactivateCancel,
     handleReactivateConfirm,
+    quickMovingIds,
+    handleQuickMove,
   } = useInventoryPage()
 
   return (
@@ -300,6 +302,8 @@ export function InventoryPageContainer() {
               onMove={handleOpenMovement}
               onDeactivate={isOwner ? handleDeactivateRequest : undefined}
               onReactivate={isOwner ? handleReactivateRequest : undefined}
+              quickMovingIds={quickMovingIds}
+              onQuickMove={handleQuickMove}
             />
           )}
         </>
