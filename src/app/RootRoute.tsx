@@ -6,24 +6,27 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { CrashScreen } from '@/components/common/CrashScreen'
 import { GlobalAlertsProvider } from '@/components/common/GlobalAlerts'
 import { AuthProvider } from '@/features/auth/providers/AuthProvider'
+import { ThemeProvider } from '@/features/theme/ThemeProvider'
 
 export function RootRoute() {
   return (
     <ErrorBoundary FallbackComponent={CrashScreen}>
-      <GlobalAlertsProvider>
-        <AuthProvider>
-          <Suspense
-            fallback={
-              <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50" role="status">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
-                <span className="text-sm font-medium text-slate-500">Carregando DentalFlow...</span>
-              </div>
-            }
-          >
-            <Outlet />
-          </Suspense>
-        </AuthProvider>
-      </GlobalAlertsProvider>
+      <ThemeProvider>
+        <GlobalAlertsProvider>
+          <AuthProvider>
+            <Suspense
+              fallback={
+                <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-slate-50" role="status">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
+                  <span className="text-sm font-medium text-slate-500">Carregando DentalFlow...</span>
+                </div>
+              }
+            >
+              <Outlet />
+            </Suspense>
+          </AuthProvider>
+        </GlobalAlertsProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   )
 }
