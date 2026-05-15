@@ -131,7 +131,7 @@ export function StockMovementModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-[61] flex max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
+          className="fixed left-1/2 top-1/2 z-[61] flex max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
@@ -140,12 +140,12 @@ export function StockMovementModal({
             Registre uma entrada, saída, ajuste ou perda para manter o estoque atualizado.
           </Dialog.Description>
 
-          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
+          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border/50 px-5 py-4 sm:px-6">
             <div className="min-w-0">
-              <h2 className="text-base font-semibold text-slate-950">
+              <h2 className="text-base font-semibold text-foreground">
                 Movimentar estoque
               </h2>
-              <p className="mt-1 text-sm leading-6 text-slate-500">
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 Registre uma entrada, saída, ajuste ou perda para manter o estoque atualizado.
               </p>
             </div>
@@ -171,19 +171,19 @@ export function StockMovementModal({
                 )}
 
                 {product && (
-                  <div className="sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  <div className="sm:col-span-2 rounded-lg border border-border bg-muted px-4 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Produto
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-slate-950">{product.name}</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-sm font-semibold text-foreground">{product.name}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Estoque atual: {formatQuantity(product.currentQuantity, product.unit)}
                     </p>
                   </div>
                 )}
 
                 <fieldset className="sm:col-span-2">
-                  <legend className="text-sm font-semibold text-slate-700">
+                  <legend className="text-sm font-semibold text-foreground">
                     Tipo de movimentação
                   </legend>
                   <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -202,11 +202,11 @@ export function StockMovementModal({
                           />
                           <span
                             className={cn(
-                              'flex min-h-20 flex-col justify-between rounded-lg border bg-white px-3 py-3 text-left shadow-sm transition',
+                              'flex min-h-20 flex-col justify-between rounded-lg border bg-card px-3 py-3 text-left shadow-sm transition',
                               'peer-focus-visible:outline-none peer-focus-visible:ring-3 peer-focus-visible:ring-primary/15',
                               isSelected
                                 ? 'border-primary bg-primary/5 text-primary'
-                                : 'border-slate-200 text-slate-900 hover:border-primary/35 hover:bg-primary/5',
+                                : 'border-border text-foreground hover:border-primary/35 hover:bg-primary/5',
                             )}
                           >
                             <span className="flex items-start justify-between gap-3">
@@ -220,7 +220,7 @@ export function StockMovementModal({
                             <span
                               className={cn(
                                 'mt-2 text-xs leading-5',
-                                isSelected ? 'text-primary/80' : 'text-slate-500',
+                                isSelected ? 'text-primary/80' : 'text-muted-foreground',
                               )}
                             >
                               {option.description}
@@ -300,7 +300,7 @@ export function StockMovementModal({
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:px-6">
+            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-border/50 px-5 py-4 sm:flex-row sm:px-6">
               <Button
                 type="button"
                 variant="outline"

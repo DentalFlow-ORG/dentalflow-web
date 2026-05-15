@@ -33,17 +33,17 @@ export function InventoryProductCard({
 
   return (
     <article
-      className={`rounded-lg border p-4 shadow-sm ${isInactive ? 'border-slate-200 bg-slate-50/60' : 'border-slate-200 bg-white'}`}
+      className={`rounded-lg border p-4 shadow-sm ${isInactive ? 'border-border bg-muted/60' : 'border-border bg-card'}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3
-            className={`truncate text-sm font-semibold ${isInactive ? 'text-slate-500' : 'text-slate-950'}`}
+            className={`truncate text-sm font-semibold ${isInactive ? 'text-muted-foreground' : 'text-foreground'}`}
           >
             {product.name}
           </h3>
-          <p className="mt-0.5 text-xs text-slate-500">{product.category.name}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{product.category.name}</p>
         </div>
         <StockStatusBadge status={product.status} />
       </div>
@@ -75,47 +75,47 @@ export function InventoryProductCard({
       {/* Data grid */}
       <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
         <div>
-          <dt className="font-medium uppercase tracking-wide text-slate-400">Quantidade</dt>
+          <dt className="font-medium uppercase tracking-wide text-muted-foreground">Quantidade</dt>
           <dd
-            className={`mt-0.5 font-semibold ${product.status === 'EMPTY' ? 'text-red-600' : product.status === 'LOW' ? 'text-amber-700' : 'text-slate-800'}`}
+            className={`mt-0.5 font-semibold ${product.status === 'EMPTY' ? 'text-red-600' : product.status === 'LOW' ? 'text-amber-700' : 'text-foreground'}`}
           >
             {formatQuantity(product.currentQuantity, product.unit)}
           </dd>
         </div>
         <div>
-          <dt className="font-medium uppercase tracking-wide text-slate-400">Mínimo</dt>
-          <dd className="mt-0.5 font-medium text-slate-800">
+          <dt className="font-medium uppercase tracking-wide text-muted-foreground">Mínimo</dt>
+          <dd className="mt-0.5 font-medium text-foreground">
             {product.minQuantity > 0 ? (
               formatQuantity(product.minQuantity, product.unit)
             ) : (
-              <span className="text-slate-400">—</span>
+              <span className="text-muted-foreground">—</span>
             )}
           </dd>
         </div>
         <div>
-          <dt className="font-medium uppercase tracking-wide text-slate-400">Validade</dt>
+          <dt className="font-medium uppercase tracking-wide text-muted-foreground">Validade</dt>
           <dd
-            className={`mt-0.5 font-medium ${product.status === 'EXPIRED' ? 'text-red-600' : product.status === 'EXPIRING' ? 'text-amber-700' : 'text-slate-800'}`}
+            className={`mt-0.5 font-medium ${product.status === 'EXPIRED' ? 'text-red-600' : product.status === 'EXPIRING' ? 'text-amber-700' : 'text-foreground'}`}
           >
             {product.expiresAt ? (
               formatProductDate(product.expiresAt)
             ) : (
-              <span className="text-slate-400">—</span>
+              <span className="text-muted-foreground">—</span>
             )}
           </dd>
         </div>
         <div>
-          <dt className="font-medium uppercase tracking-wide text-slate-400">Fornecedor</dt>
-          <dd className="mt-0.5 truncate font-medium text-slate-800">
-            {product.supplier ?? <span className="text-slate-400">—</span>}
+          <dt className="font-medium uppercase tracking-wide text-muted-foreground">Fornecedor</dt>
+          <dd className="mt-0.5 truncate font-medium text-foreground">
+            {product.supplier ?? <span className="text-muted-foreground">—</span>}
           </dd>
         </div>
         {product.purchasePrice !== null && (
           <div className="col-span-2">
-            <dt className="font-medium uppercase tracking-wide text-slate-400">
+            <dt className="font-medium uppercase tracking-wide text-muted-foreground">
               Preço de compra
             </dt>
-            <dd className="mt-0.5 font-medium text-slate-800">
+            <dd className="mt-0.5 font-medium text-foreground">
               {formatBRLCents(product.purchasePrice)}
             </dd>
           </div>
@@ -124,7 +124,7 @@ export function InventoryProductCard({
 
       {/* Quick quantity controls */}
       {!isInactive && (
-        <div className="mt-3 flex items-center justify-center gap-2 border-t border-slate-100 pt-3">
+        <div className="mt-3 flex items-center justify-center gap-2 border-t border-border/50 pt-3">
           <button
             type="button"
             title={
@@ -139,14 +139,14 @@ export function InventoryProductCard({
             }
             disabled={product.currentQuantity < 1 || quickMovingIds.has(product.id)}
             onClick={() => onQuickMove(product, 'out')}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-200 text-slate-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
           >
             <Minus className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
-          <span className="min-w-[5rem] text-center text-xs font-semibold tabular-nums text-slate-700">
+          <span className="min-w-[5rem] text-center text-xs font-semibold tabular-nums text-foreground">
             {quickMovingIds.has(product.id) ? (
               <span className="flex justify-center">
-                <Loader2 className="h-4 w-4 animate-spin text-slate-400" aria-hidden="true" />
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
               </span>
             ) : (
               formatQuantity(product.currentQuantity, product.unit)
@@ -158,7 +158,7 @@ export function InventoryProductCard({
             aria-label={`Adicionar 1 unidade de ${product.name}`}
             disabled={quickMovingIds.has(product.id)}
             onClick={() => onQuickMove(product, 'in')}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-200 text-slate-400 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           </button>

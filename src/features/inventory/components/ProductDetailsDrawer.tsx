@@ -41,21 +41,21 @@ export function ProductDetailsDrawer({
         <Dialog.Content
           aria-labelledby="product-details-title"
           aria-describedby={undefined}
-          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-[#f8fafc] shadow-2xl shadow-slate-950/15 animate-in slide-in-from-right duration-200 focus:outline-none"
+          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-muted shadow-2xl shadow-black/15 animate-in slide-in-from-right duration-200 focus:outline-none"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
           {product && (
             <>
               {/* Header */}
-              <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-5">
+              <div className="flex items-start justify-between gap-4 border-b border-border bg-card px-6 py-5">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Detalhes do produto
                   </p>
                   <Dialog.Title
                     id="product-details-title"
-                    className="mt-1 truncate text-lg font-semibold text-slate-950"
+                    className="mt-1 truncate text-lg font-semibold text-foreground"
                   >
                     {product.name}
                   </Dialog.Title>
@@ -144,7 +144,7 @@ export function ProductDetailsDrawer({
                     {product.minQuantity > 0 ? (
                       formatQuantity(product.minQuantity, product.unit)
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </DrawerRow>
                   <DrawerRow label="Unidade">{product.unit}</DrawerRow>
@@ -152,17 +152,17 @@ export function ProductDetailsDrawer({
                     {product.purchasePrice !== null ? (
                       formatBRLCents(product.purchasePrice)
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </DrawerRow>
                   <DrawerRow label="Fornecedor">
-                    {product.supplier ?? <span className="text-slate-400">—</span>}
+                    {product.supplier ?? <span className="text-muted-foreground">—</span>}
                   </DrawerRow>
                   <DrawerRow label="Validade">
                     {product.expiresAt ? (
                       formatProductDate(product.expiresAt)
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </DrawerRow>
                 </DrawerSection>
@@ -170,7 +170,7 @@ export function ProductDetailsDrawer({
                 {/* Description */}
                 {product.description && (
                   <DrawerSection title="Descrição">
-                    <p className="break-words px-4 py-3 text-sm leading-6 text-slate-700">
+                    <p className="break-words px-4 py-3 text-sm leading-6 text-foreground">
                       {product.description}
                     </p>
                   </DrawerSection>
@@ -179,7 +179,7 @@ export function ProductDetailsDrawer({
                 {/* Notes */}
                 {product.notes && (
                   <DrawerSection title="Observações internas">
-                    <p className="break-words px-4 py-3 text-sm leading-6 text-slate-700">
+                    <p className="break-words px-4 py-3 text-sm leading-6 text-foreground">
                       {product.notes}
                     </p>
                   </DrawerSection>
@@ -219,11 +219,11 @@ function DrawerSection({
 }) {
   return (
     <div>
-      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
+      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </p>
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="divide-y divide-slate-100">{children}</div>
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <div className="divide-y divide-border">{children}</div>
       </div>
     </div>
   )
@@ -238,8 +238,8 @@ function DrawerRow({
 }) {
   return (
     <div className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
-      <span className="shrink-0 text-slate-500">{label}</span>
-      <span className="min-w-0 break-words text-right font-medium text-slate-900">
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="min-w-0 break-words text-right font-medium text-foreground">
         {children}
       </span>
     </div>

@@ -48,8 +48,8 @@ export function InventoryProductTable({
     <PanelCard>
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Produtos em estoque</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-base font-semibold text-foreground">Produtos em estoque</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             {total} produto{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
           </p>
         </div>
@@ -65,7 +65,7 @@ export function InventoryProductTable({
       {/* Mobile cards — visible below md */}
       <div className="grid gap-3 md:hidden">
         {products.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+          <p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
             Nenhum produto encontrado.
           </p>
         ) : (
@@ -86,14 +86,14 @@ export function InventoryProductTable({
       </div>
 
       {/* Desktop table — visible at md and above */}
-      <div className="hidden overflow-hidden rounded-lg border border-slate-200 md:block">
+      <div className="hidden overflow-hidden rounded-lg border border-border md:block">
         <div className="overflow-x-auto">
           <table
             className="w-full min-w-[900px] text-sm"
             aria-label="Lista de produtos em estoque"
           >
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <th scope="col" className="px-4 py-3">Produto</th>
                 <th scope="col" className="px-4 py-3">Categoria</th>
                 <th scope="col" className="px-4 py-3">Quantidade</th>
@@ -105,30 +105,30 @@ export function InventoryProductTable({
                 <th scope="col" className="px-4 py-3">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
+            <tbody className="divide-y divide-border bg-card">
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-500">
+                  <td colSpan={9} className="px-4 py-8 text-center text-sm text-muted-foreground">
                     Nenhum produto encontrado.
                   </td>
                 </tr>
               ) : (
                 products.map((product) => (
-                  <tr key={product.id} className="hover:bg-slate-50/70">
+                  <tr key={product.id} className="hover:bg-muted/70">
                     <td className="px-4 py-3">
-                      <p className="max-w-[200px] truncate font-medium text-slate-900">
+                      <p className="max-w-[200px] truncate font-medium text-foreground">
                         {product.name}
                       </p>
                       {product.description && (
-                        <p className="mt-0.5 max-w-[200px] truncate text-xs text-slate-500">
+                        <p className="mt-0.5 max-w-[200px] truncate text-xs text-muted-foreground">
                           {product.description}
                         </p>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{product.category.name}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{product.category.name}</td>
                     <td className="px-4 py-3">
                       {product.status === 'INACTIVE' ? (
-                        <span className="font-semibold text-slate-400">
+                        <span className="font-semibold text-muted-foreground">
                           {formatQuantity(product.currentQuantity, product.unit)}
                         </span>
                       ) : (
@@ -149,7 +149,7 @@ export function InventoryProductTable({
                               product.currentQuantity < 1 || quickMovingIds.has(product.id)
                             }
                             onClick={() => onQuickMove(product, 'out')}
-                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 text-slate-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border text-muted-foreground transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
                           >
                             <Minus className="h-3 w-3" aria-hidden="true" />
                           </button>
@@ -157,12 +157,12 @@ export function InventoryProductTable({
                             className={cn(
                               'min-w-[3.5rem] text-center text-sm font-semibold tabular-nums',
                               quickMovingIds.has(product.id)
-                                ? 'text-slate-400'
+                                ? 'text-muted-foreground'
                                 : product.status === 'EMPTY'
                                   ? 'text-red-600'
                                   : product.status === 'LOW'
                                     ? 'text-amber-700'
-                                    : 'text-slate-900',
+                                    : 'text-foreground',
                             )}
                           >
                             {quickMovingIds.has(product.id) ? (
@@ -180,41 +180,41 @@ export function InventoryProductTable({
                             aria-label={`Adicionar 1 unidade de ${product.name}`}
                             disabled={quickMovingIds.has(product.id)}
                             onClick={() => onQuickMove(product, 'in')}
-                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 text-slate-400 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border text-muted-foreground transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
                           >
                             <Plus className="h-3 w-3" aria-hidden="true" />
                           </button>
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {product.minQuantity > 0 ? (
                         formatQuantity(product.minQuantity, product.unit)
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       <StockStatusBadge status={product.status} />
                     </td>
                     <td
-                      className={`px-4 py-3 ${product.status === 'EXPIRED' ? 'font-medium text-red-600' : product.status === 'EXPIRING' ? 'font-medium text-amber-700' : 'text-slate-600'}`}
+                      className={`px-4 py-3 ${product.status === 'EXPIRED' ? 'font-medium text-red-600' : product.status === 'EXPIRING' ? 'font-medium text-amber-700' : 'text-muted-foreground'}`}
                     >
                       {product.expiresAt ? (
                         formatProductDate(product.expiresAt)
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-4 py-3 text-muted-foreground">
                       {product.purchasePrice !== null ? (
                         formatBRLCents(product.purchasePrice)
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
-                      {product.supplier ?? <span className="text-slate-400">—</span>}
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {product.supplier ?? <span className="text-muted-foreground">—</span>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-0.5">
@@ -223,7 +223,7 @@ export function InventoryProductTable({
                           title="Ver detalhes"
                           aria-label={`Ver detalhes de ${product.name}`}
                           onClick={() => onViewDetails(product)}
-                          className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-3 focus:ring-primary/15"
+                          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-3 focus:ring-primary/15"
                         >
                           <Eye className="h-4 w-4" aria-hidden="true" />
                         </button>
@@ -234,7 +234,7 @@ export function InventoryProductTable({
                               title="Editar produto"
                               aria-label={`Editar produto ${product.name}`}
                               onClick={() => onEdit(product)}
-                              className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-3 focus:ring-primary/15"
+                              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-3 focus:ring-primary/15"
                             >
                               <Pencil className="h-4 w-4" aria-hidden="true" />
                             </button>
@@ -243,7 +243,7 @@ export function InventoryProductTable({
                               title="Movimentar estoque"
                               aria-label={`Movimentar estoque de ${product.name}`}
                               onClick={() => onMove(product)}
-                              className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-blue-50 hover:text-primary focus:outline-none focus:ring-3 focus:ring-primary/15"
+                              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary focus:outline-none focus:ring-3 focus:ring-primary/15"
                             >
                               <MoveRight className="h-4 w-4" aria-hidden="true" />
                             </button>
@@ -253,7 +253,7 @@ export function InventoryProductTable({
                                 title="Desativar produto"
                                 aria-label={`Desativar produto ${product.name}`}
                                 onClick={() => onDeactivate(product)}
-                                className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-3 focus:ring-red-500/15"
+                                className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-3 focus:ring-red-500/15"
                               >
                                 <PowerOff className="h-4 w-4" aria-hidden="true" />
                               </button>
@@ -266,7 +266,7 @@ export function InventoryProductTable({
                             title="Reativar produto"
                             aria-label={`Reativar produto ${product.name}`}
                             onClick={() => onReactivate(product)}
-                            className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-green-50 hover:text-green-700 focus:outline-none focus:ring-3 focus:ring-green-500/15"
+                            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-green-50 hover:text-green-700 focus:outline-none focus:ring-3 focus:ring-green-500/15"
                           >
                             <Power className="h-4 w-4" aria-hidden="true" />
                           </button>
@@ -282,7 +282,7 @@ export function InventoryProductTable({
       </div>
 
       <Pagination
-        className="mt-4 border-t border-slate-100 pt-4"
+        className="mt-4 border-t border-border pt-4"
         page={page}
         totalPages={totalPages}
         filteredCount={total}

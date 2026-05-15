@@ -15,7 +15,7 @@ const STATUS_CLASS: Record<StockProductStatus, string> = {
   EMPTY: 'border-red-200 bg-red-100 text-red-700',
   EXPIRING: 'border-orange-200 bg-orange-100 text-orange-800',
   EXPIRED: 'border-red-300 bg-red-100 text-red-800',
-  INACTIVE: 'border-slate-200 bg-slate-100 text-slate-600',
+  INACTIVE: 'border-border bg-muted text-muted-foreground',
 }
 
 export function StockStatusBadge({ status }: { status: StockProductStatus }) {

@@ -17,12 +17,12 @@ type KpiVariant = 'neutral' | 'positive' | 'warning' | 'caution' | 'danger' | 'c
 type IconComponent = React.ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' }>
 
 const variantStyles: Record<KpiVariant, { activeCard: string; activeIcon: string; idleIcon: string }> = {
-  neutral:  { activeCard: '',                                    activeIcon: 'text-slate-400',   idleIcon: 'text-slate-400'  },
+  neutral:  { activeCard: '',                                    activeIcon: 'text-muted-foreground',   idleIcon: 'text-muted-foreground'  },
   positive: { activeCard: '',                                    activeIcon: 'text-emerald-500', idleIcon: 'text-emerald-500' },
-  warning:  { activeCard: 'border-amber-200 bg-amber-50/60',    activeIcon: 'text-amber-500',   idleIcon: 'text-slate-300'  },
-  caution:  { activeCard: 'border-orange-200 bg-orange-50/60',  activeIcon: 'text-orange-500',  idleIcon: 'text-slate-300'  },
-  danger:   { activeCard: 'border-red-200 bg-red-50/60',        activeIcon: 'text-red-500',     idleIcon: 'text-slate-300'  },
-  critical: { activeCard: 'border-red-300 bg-red-100/60',       activeIcon: 'text-red-600',     idleIcon: 'text-slate-300'  },
+  warning:  { activeCard: 'border-amber-200 bg-amber-50/60',    activeIcon: 'text-amber-500',   idleIcon: 'text-muted-foreground/30'  },
+  caution:  { activeCard: 'border-orange-200 bg-orange-50/60',  activeIcon: 'text-orange-500',  idleIcon: 'text-muted-foreground/30'  },
+  danger:   { activeCard: 'border-red-200 bg-red-50/60',        activeIcon: 'text-red-500',     idleIcon: 'text-muted-foreground/30'  },
+  critical: { activeCard: 'border-red-300 bg-red-100/60',       activeIcon: 'text-red-600',     idleIcon: 'text-muted-foreground/30'  },
 }
 
 function InventoryKpiCard({
@@ -47,19 +47,19 @@ function InventoryKpiCard({
   return (
     <div
       className={cn(
-        'rounded-lg border border-slate-200 bg-white/85 p-5 shadow-sm',
+        'rounded-lg border border-border bg-card p-5 shadow-sm',
         active && !alwaysOn ? activeCard : '',
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-2xl font-semibold text-slate-950">{value}</p>
+        <p className="text-2xl font-semibold text-foreground">{value}</p>
         <Icon
           className={cn('mt-0.5 h-4 w-4 shrink-0', showColor ? activeIcon : idleIcon)}
           aria-hidden="true"
         />
       </div>
-      <p className="mt-2 text-sm font-medium leading-5 text-slate-700">{label}</p>
-      <p className="mt-0.5 text-xs leading-4 text-slate-400">{description}</p>
+      <p className="mt-2 text-sm font-medium leading-5 text-foreground">{label}</p>
+      <p className="mt-0.5 text-xs leading-4 text-muted-foreground">{description}</p>
     </div>
   )
 }

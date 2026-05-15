@@ -39,7 +39,7 @@ export function StockMovementHistory({
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 px-4 py-5 text-sm text-slate-500">
+      <div className="flex items-center gap-2 px-4 py-5 text-sm text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
         Carregando movimentações...
       </div>
@@ -56,39 +56,39 @@ export function StockMovementHistory({
 
   if (movements.length === 0) {
     return (
-      <p className="px-4 py-5 text-sm leading-6 text-slate-500">
+      <p className="px-4 py-5 text-sm leading-6 text-muted-foreground">
         Nenhuma movimentação registrada para este produto.
       </p>
     )
   }
 
   return (
-    <div className="divide-y divide-slate-100">
+    <div className="divide-y divide-border">
       {movements.map((movement) => (
         <article key={movement.id} className="px-4 py-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-950">
+              <p className="text-sm font-semibold text-foreground">
                 {getMovementTypeLabel(movement.type)}
               </p>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 {formatMovementQuantity(movement.type, movement.quantity, product.unit)}
-                <span className="mx-1.5 text-slate-300">·</span>
+                <span className="mx-1.5 text-muted-foreground/30">·</span>
                 {formatQuantityTransition(movement.previousQuantity, movement.newQuantity)}
               </p>
             </div>
-            <time className="shrink-0 text-xs leading-5 text-slate-400 sm:text-right">
+            <time className="shrink-0 text-xs leading-5 text-muted-foreground sm:text-right">
               {formatProductDateTime(movement.createdAt)}
             </time>
           </div>
-          <div className="mt-2 space-y-1 text-xs leading-5 text-slate-500">
+          <div className="mt-2 space-y-1 text-xs leading-5 text-muted-foreground">
             {movement.reason && <p className="break-words">{movement.reason}</p>}
             {movement.performedBy && (
               <p>
                 Por {movement.performedBy.firstName} {movement.performedBy.lastName}
               </p>
             )}
-            {movement.notes && <p className="break-words text-slate-400">{movement.notes}</p>}
+            {movement.notes && <p className="break-words text-muted-foreground">{movement.notes}</p>}
           </div>
         </article>
       ))}

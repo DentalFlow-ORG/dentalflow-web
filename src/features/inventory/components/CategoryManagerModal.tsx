@@ -186,7 +186,7 @@ export function CategoryManagerModal({
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
           <Dialog.Content
-            className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
+            className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
             onEscapeKeyDown={onClose}
             onInteractOutside={onClose}
           >
@@ -194,12 +194,12 @@ export function CategoryManagerModal({
             <Dialog.Description className="sr-only">
               Crie, edite e exclua categorias usadas nos produtos do estoque.
             </Dialog.Description>
-            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border/50 px-5 py-4 sm:px-6">
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-slate-950">
+                <h2 className="text-base font-semibold text-foreground">
                   Gerenciar categorias
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   Crie, edite e exclua categorias usadas nos produtos do estoque.
                 </p>
               </div>
@@ -219,10 +219,10 @@ export function CategoryManagerModal({
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
                 <form className="space-y-4" onSubmit={handleSubmit}>
                   <div>
-                    <h3 className="text-sm font-semibold text-slate-950">
+                    <h3 className="text-sm font-semibold text-foreground">
                       {isEditMode ? 'Editar categoria' : 'Nova categoria'}
                     </h3>
-                    <p className="mt-1 text-sm leading-6 text-slate-500">
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
                       O nome é obrigatório. A cor ajuda na identificação visual.
                     </p>
                   </div>
@@ -263,8 +263,8 @@ export function CategoryManagerModal({
                           className={cn(
                             'h-8 w-8 rounded-full border-2 transition focus:outline-none focus:ring-3 focus:ring-primary/15',
                             form.color === color
-                              ? 'border-slate-900'
-                              : 'border-white ring-1 ring-slate-200',
+                              ? 'border-foreground'
+                              : 'border-card ring-1 ring-border',
                           )}
                           style={{ backgroundColor: color }}
                           onClick={() => setForm((current) => ({ ...current, color }))}
@@ -303,11 +303,11 @@ export function CategoryManagerModal({
                     <div>
                       <h3
                         id="stock-category-list-title"
-                        className="text-sm font-semibold text-slate-950"
+                        className="text-sm font-semibold text-foreground"
                       >
                         Categorias cadastradas
                       </h3>
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-muted-foreground">
                         {categories.length} categoria{categories.length !== 1 ? 's' : ''}
                       </p>
                     </div>
@@ -316,26 +316,26 @@ export function CategoryManagerModal({
 
                   <div className="max-h-[42vh] space-y-2 overflow-y-auto pr-1">
                     {categories.length === 0 ? (
-                      <p className="rounded-lg border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500">
+                      <p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
                         Nenhuma categoria cadastrada.
                       </p>
                     ) : (
                       categories.map((category) => (
                         <article
                           key={category.id}
-                          className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-3"
+                          className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/50 px-3 py-3"
                         >
                           <div className="flex min-w-0 items-center gap-3">
                             <span
-                              className="h-3 w-3 shrink-0 rounded-full border border-slate-200 bg-slate-200"
+                              className="h-3 w-3 shrink-0 rounded-full border border-border bg-muted"
                               style={category.color ? { backgroundColor: category.color } : undefined}
                               aria-hidden="true"
                             />
                             <div className="min-w-0">
-                              <h4 className="truncate text-sm font-semibold text-slate-950">
+                              <h4 className="truncate text-sm font-semibold text-foreground">
                                 {category.name}
                               </h4>
-                              <p className="text-xs text-slate-500">
+                              <p className="text-xs text-muted-foreground">
                                 {category.productCount} produto
                                 {category.productCount !== 1 ? 's' : ''}
                               </p>
@@ -347,7 +347,7 @@ export function CategoryManagerModal({
                               title="Editar categoria"
                               aria-label={`Editar categoria ${category.name}`}
                               onClick={() => handleEdit(category)}
-                              className="rounded-md p-2 text-slate-400 transition-colors hover:bg-white hover:text-slate-700 focus:outline-none focus:ring-3 focus:ring-primary/15"
+                              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-card hover:text-foreground focus:outline-none focus:ring-3 focus:ring-primary/15"
                             >
                               <Pencil className="h-4 w-4" aria-hidden="true" />
                             </button>
@@ -356,7 +356,7 @@ export function CategoryManagerModal({
                               title="Excluir categoria"
                               aria-label={`Excluir categoria ${category.name}`}
                               onClick={() => handleDeleteRequest(category)}
-                              className="rounded-md p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-3 focus:ring-red-500/15"
+                              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-3 focus:ring-red-500/15"
                             >
                               <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </button>
@@ -401,7 +401,7 @@ function DeleteCategoryDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-[61] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
+          className="fixed left-1/2 top-1/2 z-[61] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
           onEscapeKeyDown={onCancel}
           onInteractOutside={onCancel}
         >
@@ -418,11 +418,11 @@ function DeleteCategoryDialog({
               <Trash2 className="h-7 w-7 text-red-600" aria-hidden="true" />
             </div>
 
-            <h2 className="text-center text-xl font-bold text-slate-950">
+            <h2 className="text-center text-xl font-bold text-foreground">
               Excluir categoria
             </h2>
 
-            <p className="mt-2 text-center text-sm leading-6 text-slate-500">
+            <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
               Tem certeza que deseja excluir esta categoria? Categorias com produtos
               vinculados não podem ser excluídas.
             </p>

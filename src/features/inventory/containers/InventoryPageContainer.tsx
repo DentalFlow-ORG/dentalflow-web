@@ -79,8 +79,8 @@ function buildAttentionChips(summary: StockSummary): AttentionChip[] {
       status: 'INACTIVE',
       label: 'Inativos',
       count: summary.inactive,
-      base: 'border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200',
-      active: 'border-slate-500 bg-slate-500 text-white hover:bg-slate-600',
+      base: 'border-border bg-muted text-muted-foreground hover:bg-accent',
+      active: 'border-primary bg-primary text-primary-foreground hover:bg-primary/90',
     },
   ]
   return all.filter((c) => c.count > 0)
@@ -224,11 +224,11 @@ export function InventoryPageContainer() {
           const chips = buildAttentionChips(summary)
           return chips.length > 0 ? (
             <div
-              className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3"
+              className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3"
               role="group"
               aria-label="Filtros rápidos por atenção"
             >
-              <span className="text-xs font-medium text-slate-400" aria-hidden="true">
+              <span className="text-xs font-medium text-muted-foreground" aria-hidden="true">
                 Atenção:
               </span>
               {chips.map(({ status: s, label, count, base, active }) => {
@@ -244,7 +244,7 @@ export function InventoryPageContainer() {
                   >
                     {label}
                     <span
-                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${isActive ? 'bg-white/25' : 'bg-white/70'}`}
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${isActive ? 'bg-primary-foreground/25' : 'bg-card/70'}`}
                     >
                       {count}
                     </span>

@@ -180,7 +180,7 @@ export function ProductFormModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
@@ -191,15 +191,15 @@ export function ProductFormModal({
           <Dialog.Description className="sr-only">
             Preencha os dados do produto, selecione a categoria e salve o cadastro no estoque.
           </Dialog.Description>
-          <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
-            <h2 className="text-base font-semibold text-slate-950">
+          <div className="flex shrink-0 items-center justify-between border-b border-border/50 px-6 py-4">
+            <h2 className="text-base font-semibold text-foreground">
               {isEditMode ? 'Editar produto' : 'Novo produto'}
             </h2>
             <button
               type="button"
               aria-label="Fechar"
               onClick={onClose}
-              className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -272,14 +272,14 @@ export function ProductFormModal({
                 </FormField>
 
                 {isEditMode && product ? (
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-sm font-semibold text-slate-700">
+                  <div className="rounded-lg border border-border bg-muted px-4 py-3">
+                    <p className="text-sm font-semibold text-foreground">
                       Quantidade atual
                     </p>
-                    <p className="mt-2 text-base font-semibold text-slate-950">
+                    <p className="mt-2 text-base font-semibold text-foreground">
                       {formatQuantity(product.currentQuantity, product.unit)}
                     </p>
-                    <p className="mt-2 text-xs leading-5 text-slate-500">
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
                       Para alterar a quantidade atual, use a ação "Movimentar estoque".
                     </p>
                   </div>
@@ -383,7 +383,7 @@ export function ProductFormModal({
             </div>
 
             {/* ── Footer ── */}
-            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-100 px-6 py-4 sm:flex-row">
+            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-border/50 px-6 py-4 sm:flex-row">
               <Button
                 type="button"
                 variant="outline"
