@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { BarChart3, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, MoreHorizontal, Package, ShieldCheck, Users, Users2, X, Zap } from 'lucide-react'
+import { BarChart3, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, Monitor, Moon, MoreHorizontal, Package, ShieldCheck, Sun, Users, Users2, X, Zap } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
@@ -9,6 +9,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import type { AuthUserRole } from '@/features/auth/types'
 import { getUserDisplayName } from '@/features/auth/utils/name'
 import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
+import { useTheme, type ThemeMode } from '@/features/theme/ThemeProvider'
 import { cn } from '@/lib/utils'
 
 type AppShellProps = {
@@ -108,8 +109,29 @@ const appNavigation: NavItem[] = [
 const MOBILE_PRIMARY_ROUTES_BY_ROLE: Partial<Record<AuthUserRole, string[]>> = {
   OWNER: ['/app', '/app/agendamentos', '/app/pacientes', '/app/prontuario'],
   DENTIST: ['/app/agenda', '/app/prontuario'],
-  ASSISTANT: ['/app/agendamentos', '/app/pacientes', '/app/notas-fiscais', '/app/estoque'],
+  ASSISTANT: ['/app/agendamentos', '/app/pacientes', '/app/estoque', '/app/notas-fiscais'],
   ADMIN: ['/app/admin/users', '/app/admin/clinics', '/app/admin/financeiro'],
+}
+
+const THEME_CYCLE: ThemeMode[] = ['system', 'light', 'dark']
+
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+
+  function cycleTheme() {
+    const idx = THEME_CYCLE.indexOf(theme)
+    setTheme(THEME_CYCLE[(idx + 1) % THEME_CYCLE.length])
+  }
+
+  const label =
+    theme === 'light' ? 'Tema claro' : theme === 'dark' ? 'Tema escuro' : 'Tema do sistema'
+  const Icon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor
+
+  return (
+    <Button variant="outline" size="sm" aria-label={label} onClick={cycleTheme}>
+      <Icon className="h-4 w-4" aria-hidden="true" />
+    </Button>
+  )
 }
 
 export function AppShell({ children, billingStatus }: AppShellProps) {
@@ -253,6 +275,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
                 </p>
                 <p className="text-xs text-slate-500">{user?.email}</p>
               </div>
+              <ThemeToggle />
               <Button variant="outline" size="sm" aria-label="Sair" onClick={handleLogout}>
                 <LogOut className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline" aria-hidden="true">Sair</span>
