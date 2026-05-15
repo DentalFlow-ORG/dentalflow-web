@@ -77,19 +77,19 @@ export function ListToolbar({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         {/* Search input */}
         <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={searchPlaceholder}
-            className="h-11 w-full rounded-md border border-slate-200 bg-white pl-10 pr-10 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-3 focus:ring-primary/15"
+            className="h-11 w-full rounded-md border border-input bg-background pl-10 pr-10 text-sm text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-3 focus:ring-primary/15"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-700"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
               aria-label="Limpar pesquisa"
             >
               <X className="h-4 w-4" />
@@ -122,7 +122,7 @@ export function ListToolbar({
             <PopoverContent align="end" className="w-72">
               <div className="space-y-4 p-4">
                 <div className="flex items-center justify-between">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
                     <Filter className="h-3.5 w-3.5" />
                     Filtros
                   </p>
@@ -135,7 +135,7 @@ export function ListToolbar({
                         )
                         setFilterOpen(false)
                       }}
-                      className="text-xs text-slate-400 underline underline-offset-2 transition-colors hover:text-slate-700"
+                      className="text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
                     >
                       Limpar filtros
                     </button>
@@ -145,7 +145,7 @@ export function ListToolbar({
                 <div className="space-y-3">
                   {filterDefs.map((def) => (
                     <div key={def.key} className="space-y-1.5">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         {def.label}
                       </p>
                       <Select
@@ -194,9 +194,9 @@ export function ListToolbar({
               key={badge.key}
               type="button"
               onClick={() => onFilterChange(badge.key, null)}
-              className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 pl-3 pr-2 text-xs font-semibold leading-none text-primary transition-colors hover:bg-blue-100"
+              className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 pl-3 pr-2 text-xs font-semibold leading-none text-primary transition-colors hover:bg-primary/20"
             >
-              <span className="shrink-0 font-normal text-slate-500">
+              <span className="shrink-0 font-normal text-muted-foreground">
                 {badge.defLabel}:
               </span>
               <span className="truncate">{badge.optionLabel}</span>
@@ -210,14 +210,14 @@ export function ListToolbar({
             <button
               type="button"
               onClick={onClearAll}
-              className="inline-flex h-8 items-center text-xs text-slate-400 underline underline-offset-2 transition-colors hover:text-slate-700"
+              className="inline-flex h-8 items-center text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
             >
               Limpar tudo
             </button>
           )}
 
           {isFiltered && filteredCount !== undefined && totalCount !== undefined && (
-            <span className="ml-auto inline-flex h-8 items-center text-xs text-slate-500">
+            <span className="ml-auto inline-flex h-8 items-center text-xs text-muted-foreground">
               {filteredCount === 0
                 ? 'Nenhum resultado'
                 : `${filteredCount} de ${totalCount} resultado${totalCount !== 1 ? 's' : ''}`}

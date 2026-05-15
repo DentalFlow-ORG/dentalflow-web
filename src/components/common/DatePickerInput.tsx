@@ -153,9 +153,9 @@ export function DatePickerInput({
           onChange={(event) => handleManualChange(event.target.value)}
           aria-label={placeholder}
           className={cn(
-            'h-11 w-full rounded-md border border-slate-200 bg-white px-3 pr-11 text-sm font-medium text-slate-950 shadow-sm outline-none transition',
-            'hover:border-primary/35 hover:bg-primary/5 focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 disabled:opacity-70',
-            !displayValue && 'text-slate-400',
+            'h-11 w-full rounded-md border border-input bg-background px-3 pr-11 text-sm font-medium text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground',
+            'hover:border-primary/35 hover:bg-primary/5 focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-70',
+            !displayValue && 'text-muted-foreground',
             className,
           )}
         />
@@ -163,7 +163,7 @@ export function DatePickerInput({
           <button
             type="button"
             disabled={disabled}
-            className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:pointer-events-none disabled:opacity-50"
+            className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:pointer-events-none disabled:opacity-50"
             aria-label="Abrir calendário"
             title={label}
           >
@@ -172,7 +172,7 @@ export function DatePickerInput({
         </PopoverTrigger>
       </div>
       <PopoverContent className="w-[20rem] max-w-[calc(100vw-2rem)]">
-        <div className="border-b border-slate-100 p-3">
+        <div className="border-b border-border p-3">
           <div className="flex items-center justify-between gap-2">
             <Button
               type="button"
@@ -183,7 +183,7 @@ export function DatePickerInput({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <p className="text-sm font-semibold capitalize text-slate-900">
+            <p className="text-sm font-semibold capitalize text-foreground">
               {monthLabel}
             </p>
             <Button
@@ -203,7 +203,7 @@ export function DatePickerInput({
             {WEEK_DAYS.map((day) => (
               <div
                 key={day}
-                className="flex h-8 items-center justify-center text-[11px] font-semibold uppercase text-slate-400"
+                className="flex h-8 items-center justify-center text-[11px] font-semibold uppercase text-muted-foreground"
               >
                 {day}
               </div>
@@ -227,9 +227,9 @@ export function DatePickerInput({
                   className={cn(
                     'flex h-9 items-center justify-center rounded-md text-sm font-semibold outline-none transition',
                     'hover:bg-primary/5 hover:text-primary focus:bg-primary/5 focus:text-primary focus:ring-2 focus:ring-primary/20',
-                    isOutsideMonth && 'text-slate-300',
-                    isDisabled && 'cursor-not-allowed text-slate-300 opacity-40 hover:bg-transparent hover:text-slate-300',
-                    isToday(day) && !isSelected && 'bg-slate-100 text-slate-950',
+                    isOutsideMonth && 'text-muted-foreground/40',
+                    isDisabled && 'cursor-not-allowed text-muted-foreground/40 opacity-40 hover:bg-transparent hover:text-muted-foreground/40',
+                    isToday(day) && !isSelected && 'bg-muted text-foreground',
                     isSelected && 'bg-primary text-white shadow-sm shadow-primary/25 hover:bg-primary hover:text-white',
                   )}
                 >
@@ -240,11 +240,11 @@ export function DatePickerInput({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-slate-100 px-3 py-2">
+        <div className="flex items-center justify-between border-t border-border px-3 py-2">
           <Button type="button" variant="ghost" size="xs" onClick={selectToday}>
             Hoje
           </Button>
-          <span className="text-xs font-medium text-slate-400">
+          <span className="text-xs font-medium text-muted-foreground">
             {selectedValue ? isoToDisplayDate(selectedValue) : 'Sem data'}
           </span>
         </div>

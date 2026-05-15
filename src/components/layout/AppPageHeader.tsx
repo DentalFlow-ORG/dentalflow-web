@@ -21,9 +21,9 @@ export function AppPageHeader({
             {eyebrow}
           </p>
         )}
-        <h1 className="mt-2 text-2xl font-semibold text-slate-950 sm:text-3xl">{title}</h1>
+        <h1 className="mt-2 text-2xl font-semibold text-foreground sm:text-3xl">{title}</h1>
         {description && (
-          <p className="mt-3 max-w-2xl leading-7 text-slate-600">
+          <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
             {description}
           </p>
         )}

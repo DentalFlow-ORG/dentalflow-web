@@ -24,17 +24,17 @@ export function FormField({
     <div className={cn('min-w-0 space-y-2', className)}>
       <label
         htmlFor={htmlFor}
-        className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-slate-700"
+        className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-foreground"
       >
         <span className="min-w-0 truncate">{label}</span>
         {optional && (
-          <span className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+          <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
             Opcional
           </span>
         )}
       </label>
       {children}
-      {hint && <span className="block text-xs leading-5 text-slate-500">{hint}</span>}
+      {hint && <span className="block text-xs leading-5 text-muted-foreground">{hint}</span>}
     </div>
   )
 }
@@ -43,7 +43,7 @@ export function TextInput({ className, ...props }: ComponentProps<'input'>) {
   return (
     <input
       className={cn(
-        'h-11 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-950 shadow-sm outline-none transition focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500',
+        'h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground placeholder:text-muted-foreground',
         className,
       )}
       {...props}
@@ -54,10 +54,10 @@ export function TextInput({ className, ...props }: ComponentProps<'input'>) {
 export function DateInput({ className, ...props }: ComponentProps<'input'>) {
   return (
     <div className="relative">
-      <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <TextInput
         type="date"
-        className={cn('pl-9 [color-scheme:light]', className)}
+        className={cn('pl-9 [color-scheme:light] dark:[color-scheme:dark]', className)}
         {...props}
       />
     </div>
@@ -67,10 +67,10 @@ export function DateInput({ className, ...props }: ComponentProps<'input'>) {
 export function TimeInput({ className, ...props }: ComponentProps<'input'>) {
   return (
     <div className="relative">
-      <Clock3 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <Clock3 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <TextInput
         type="time"
-        className={cn('pl-9 [color-scheme:light]', className)}
+        className={cn('pl-9 [color-scheme:light] dark:[color-scheme:dark]', className)}
         {...props}
       />
     </div>
@@ -81,7 +81,7 @@ export function TextArea({ className, ...props }: ComponentProps<'textarea'>) {
   return (
     <textarea
       className={cn(
-        'min-h-28 w-full resize-y rounded-md border border-slate-200 bg-white px-3 py-3 text-sm leading-6 text-slate-950 shadow-sm outline-none transition focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500',
+        'min-h-28 w-full resize-y rounded-md border border-input bg-background px-3 py-3 text-sm leading-6 text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground placeholder:text-muted-foreground',
         className,
       )}
       {...props}
