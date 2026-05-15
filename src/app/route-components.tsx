@@ -36,6 +36,12 @@ export const TeamPage = lazy(() =>
   })),
 )
 
+export const TeamMemberProfilePage = lazy(() =>
+  import('@/features/team/pages/TeamMemberProfilePage').then((m) => ({
+    default: m.TeamMemberProfilePage,
+  })),
+)
+
 export const FinancePage = lazy(() =>
   import('@/features/finance/pages/FinancePage').then((m) => ({
     default: m.FinancePage,

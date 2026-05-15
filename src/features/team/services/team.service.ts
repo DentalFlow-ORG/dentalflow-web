@@ -5,6 +5,7 @@ import type {
   CreateMemberDto,
   CreateMemberResponse,
   MemberListItem,
+  ProfileDetail,
   Specialty,
   UpdateMemberDto,
   UpdateMemberPasswordDto,
@@ -54,6 +55,13 @@ export function updateClinicMemberPassword(
 export function deleteClinicMember(memberId: string) {
   return apiRequest<void>(`/users/clinic/members/${memberId}`, {
     method: 'DELETE',
+    accessToken: getAccessToken(),
+  })
+}
+
+export function getClinicProfile(profileId: string) {
+  return apiRequest<ProfileDetail>(`/profiles/${profileId}`, {
+    method: 'GET',
     accessToken: getAccessToken(),
   })
 }

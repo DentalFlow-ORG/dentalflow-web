@@ -58,3 +58,24 @@ export type CreateMemberResponse = {
   user: MemberListItem
   profile: MemberProfile | null
 }
+
+export type ProfileSpecialtyItem = {
+  specialty: {
+    id: string
+    name: string
+    slug: string
+  }
+}
+
+export type ProfileDetail = {
+  id: string
+  userId: string | null
+  slug: string
+  displayName: string
+  bio: string | null
+  crmNumber: string | null
+  crmState: string | null
+  phone: string | null
+  isPublished: boolean
+  profileSpecialties: ProfileSpecialtyItem[]
+}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { KeyRound, MoreHorizontal, Pencil, Plus, Trash2, Users } from 'lucide-react'
+import { KeyRound, MoreHorizontal, Pencil, Plus, Trash2, User, Users } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -47,7 +48,21 @@ function MemberRowActions({ member, onEdit, onPassword, onDelete }: MemberRowAct
             <MoreHorizontal aria-hidden="true" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-44 py-1">
+        <PopoverContent align="end" className="w-48 py-1">
+          {member.profile && (
+            <>
+              <Link
+                to="/app/equipe/$profileId"
+                params={{ profileId: member.profile.id }}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
+                onClick={() => setOpen(false)}
+              >
+                <User className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                Ver perfil
+              </Link>
+              <div className="mx-1 my-0.5 h-px bg-slate-100" role="separator" />
+            </>
+          )}
           <button
             type="button"
             className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
@@ -226,6 +241,17 @@ export function TeamPageContainer() {
                       )}
                     </div>
                     <div className="mt-4 flex flex-col gap-2">
+                      {member.profile && (
+                        <Button size="sm" variant="outline" className="w-full" asChild>
+                          <Link
+                            to="/app/equipe/$profileId"
+                            params={{ profileId: member.profile.id }}
+                          >
+                            <User className="h-4 w-4" aria-hidden="true" />
+                            Ver perfil
+                          </Link>
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
