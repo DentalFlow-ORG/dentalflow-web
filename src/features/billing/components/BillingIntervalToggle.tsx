@@ -22,7 +22,7 @@ export function BillingIntervalToggle({
     <div
       role="radiogroup"
       aria-label="Período de cobrança"
-      className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1 shadow-sm"
+      className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-lg border border-border bg-muted p-1 shadow-sm"
     >
       {showMonthly && (
         <Button
@@ -35,8 +35,8 @@ export function BillingIntervalToggle({
           className={cn(
             'min-h-10 px-4 text-sm sm:px-5',
             value === 'MONTHLY'
-              ? 'bg-white text-slate-950 shadow-sm hover:bg-white'
-              : 'text-slate-600 hover:bg-white/70 hover:text-slate-950',
+              ? 'bg-card text-foreground shadow-sm hover:bg-card'
+              : 'text-muted-foreground hover:bg-card/70 hover:text-foreground',
           )}
         >
           Mensal
@@ -53,8 +53,8 @@ export function BillingIntervalToggle({
           className={cn(
             'min-h-10 px-4 text-sm sm:px-5',
             value === 'YEARLY'
-              ? 'bg-white text-slate-950 shadow-sm hover:bg-white'
-              : 'text-slate-600 hover:bg-white/70 hover:text-slate-950',
+              ? 'bg-card text-foreground shadow-sm hover:bg-card'
+              : 'text-muted-foreground hover:bg-card/70 hover:text-foreground',
           )}
         >
           <span>Anual</span>

@@ -110,10 +110,10 @@ export function SubscriptionPageContainer() {
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">
               Planos DentalFlow
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">
+            <h2 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">
               Libere a gestão completa da clínica
             </h2>
-            <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+            <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
               Comece com 7 dias grátis, sem cartão de crédito. Centralize agenda, pacientes e
               financeiro em um só lugar e pare de perder tempo com desorganização.
             </p>
@@ -188,7 +188,7 @@ export function SubscriptionPageContainer() {
         )}
 
         <PanelCard className="p-4 sm:p-5">
-          <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-3">
+          <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
             {TRUST_MESSAGES.map((message) => (
               <div key={message} className="flex items-center gap-2 font-medium">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-700">
@@ -198,7 +198,7 @@ export function SubscriptionPageContainer() {
               </div>
             ))}
           </div>
-          <p className="mt-4 border-t border-slate-100 pt-4 text-sm leading-6 text-slate-500">
+          <p className="mt-4 border-t border-border pt-4 text-sm leading-6 text-muted-foreground">
             Clínicas dentárias usam o DentalFlow para organizar agenda, pacientes e financeiro em
             um só lugar, com cobrança transparente e gestão centralizada.
           </p>

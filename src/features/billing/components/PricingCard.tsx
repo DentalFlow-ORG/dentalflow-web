@@ -73,11 +73,11 @@ export function PricingCard({
     >
       <PlanStateBanner isCurrentPlan={isCurrentPlan} isRecommended={isRecommended} />
 
-      <div className="flex flex-col gap-4 border-b border-slate-100 p-5 sm:p-6">
+      <div className="flex flex-col gap-4 border-b border-border p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-lg font-semibold text-slate-950">{plan.name}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
               {plan.campaign.enabled && (
                 <span className="inline-flex items-center rounded-full bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-700">
                   Oferta de lançamento
@@ -85,7 +85,7 @@ export function PricingCard({
               )}
             </div>
             {tagline && (
-              <p className="mt-2 text-sm leading-5 text-slate-600">{tagline}</p>
+              <p className="mt-2 text-sm leading-5 text-muted-foreground">{tagline}</p>
             )}
           </div>
           {isCurrentPlan && (
@@ -108,19 +108,19 @@ export function PricingCard({
             )}
 
             {billingStatus?.currentPeriodEnd && isCurrentPlan && (
-              <p className="text-xs font-medium text-slate-500">
+              <p className="text-xs font-medium text-muted-foreground">
                 Próxima cobrança: {formatDateBR(billingStatus.currentPeriodEnd)}
               </p>
             )}
           </div>
         ) : (
-          <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+          <p className="rounded-lg border border-dashed border-border bg-muted p-3 text-sm text-muted-foreground">
             Sem preço {billingInterval === 'MONTHLY' ? 'mensal' : 'anual'} disponível.
           </p>
         )}
 
-        <div className="mt-6 border-t border-slate-100 pt-5">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="mt-6 border-t border-border pt-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Incluído no plano
           </p>
           <PlanFeatureList features={features} />
@@ -163,7 +163,7 @@ export function PricingCard({
             />
           )}
 
-          <p className="min-h-5 text-center text-xs leading-5 text-slate-500">
+          <p className="min-h-5 text-center text-xs leading-5 text-muted-foreground">
             {ctaState.secondary?.helperText ?? ctaState.primary.helperText}
           </p>
         </div>
@@ -209,7 +209,7 @@ function LaunchPriceBlock({ plan }: { plan: BillingPlan }) {
         Primeiro mês promocional
       </p>
       {plan.campaign.compareAtPriceMonthly != null && (
-        <p className="mt-2 text-sm font-medium text-slate-500">
+        <p className="mt-2 text-sm font-medium text-muted-foreground">
           De{' '}
           <span className="line-through">
             {formatCurrencyBR(plan.campaign.compareAtPriceMonthly / 100)}
@@ -217,10 +217,10 @@ function LaunchPriceBlock({ plan }: { plan: BillingPlan }) {
         </p>
       )}
       <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
-        <span className="text-3xl font-bold text-slate-950 sm:text-4xl">
+        <span className="text-3xl font-bold text-foreground sm:text-4xl">
           {formatCurrencyBR((plan.campaign.promotionalPriceMonthly ?? 0) / 100)}
         </span>
-        <span className="text-sm font-medium text-slate-600">/mês</span>
+        <span className="text-sm font-medium text-muted-foreground">/mês</span>
       </div>
       <p className="mt-2 text-xs font-medium leading-5 text-orange-700">
         Depois, valor regular do plano.
@@ -241,17 +241,17 @@ function RegularPriceBlock({
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
-        <span className="text-3xl font-bold text-slate-950 sm:text-4xl">
+        <span className="text-3xl font-bold text-foreground sm:text-4xl">
           {formatCurrencyBR(monthlyEquivalent / 100)}
         </span>
-        <span className="text-sm font-medium text-slate-600">/mês</span>
+        <span className="text-sm font-medium text-muted-foreground">/mês</span>
       </div>
       {billingInterval === 'YEARLY' ? (
-        <p className="text-xs leading-5 text-slate-500">
+        <p className="text-xs leading-5 text-muted-foreground">
           Cobrança anual de {formatCurrencyBR(price / 100)}.
         </p>
       ) : (
-        <p className="text-xs leading-5 text-slate-500">Cobrança mensal, sem fidelidade.</p>
+        <p className="text-xs leading-5 text-muted-foreground">Cobrança mensal, sem fidelidade.</p>
       )}
     </div>
   )

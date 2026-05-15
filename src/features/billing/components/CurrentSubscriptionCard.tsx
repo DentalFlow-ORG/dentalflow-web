@@ -40,8 +40,8 @@ export function CurrentSubscriptionCard({
     <PanelCard>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-950">Assinatura atual</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-base font-semibold text-foreground">Assinatura atual</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Status de acesso e cobrança da sua clínica.
           </p>
         </div>
@@ -56,16 +56,16 @@ export function CurrentSubscriptionCard({
       {isLoading ? (
         <div className="flex items-center gap-3 py-1" role="status">
           <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
-          <span className="text-sm text-slate-500">Carregando assinatura...</span>
+          <span className="text-sm text-muted-foreground">Carregando assinatura...</span>
         </div>
       ) : error ? (
         <InlineFeedback tone="error">
           Não foi possível carregar sua assinatura. Tente novamente.
         </InlineFeedback>
       ) : !billingStatus || billingStatus.status === 'missing' ? (
-        <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4">
-          <p className="font-semibold text-slate-800">Nenhuma assinatura encontrada.</p>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="rounded-lg border border-dashed border-border bg-muted p-4">
+          <p className="font-semibold text-foreground">Nenhuma assinatura encontrada.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
             Escolha um plano para continuar usando o DentalFlow.
           </p>
         </div>
@@ -154,8 +154,8 @@ export function CurrentSubscriptionCard({
 function StatusInfo({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-1 font-semibold text-slate-900">{value}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 font-semibold text-foreground">{value}</p>
     </div>
   )
 }

@@ -45,7 +45,7 @@ export function LaunchOfferBanner({ campaign }: Props) {
   }
 
   return (
-    <section className="overflow-hidden rounded-lg border border-orange-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-lg border border-orange-200 bg-card shadow-sm">
       <div className="grid gap-5 p-5 lg:grid-cols-[1.35fr_0.65fr] lg:p-6">
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-700">
@@ -57,10 +57,10 @@ export function LaunchOfferBanner({ campaign }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wider text-orange-700">
               {campaign.name}
             </p>
-            <h2 className="mt-2 text-xl font-bold leading-tight text-slate-950 sm:text-2xl">
+            <h2 className="mt-2 text-xl font-bold leading-tight text-foreground sm:text-2xl">
               Condição especial de lançamento para clínicas que querem organizar a operação agora.
             </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
               {hasSpots
                 ? `${claimedSpots} de ${totalSpots} clínicas já garantiram essa condição.`
                 : 'A condição especial está vinculada à campanha ativa.'}{' '}
@@ -108,13 +108,13 @@ export function LaunchOfferBanner({ campaign }: Props) {
                 <TimePart value={displayedTimeLeft.seconds} label="seg" />
               </div>
             ) : (
-              <p className="mt-3 text-sm font-medium text-slate-600">
+              <p className="mt-3 text-sm font-medium text-muted-foreground">
                 A condição especial não está disponível no momento.
               </p>
             )}
           </div>
 
-          <p className="mt-4 rounded-md bg-white px-3 py-2 text-xs font-semibold leading-5 text-orange-700">
+          <p className="mt-4 rounded-md bg-card px-3 py-2 text-xs font-semibold leading-5 text-orange-700">
             Sem cartão no teste grátis. A assinatura só avança quando você escolher continuar.
           </p>
         </div>
@@ -125,7 +125,7 @@ export function LaunchOfferBanner({ campaign }: Props) {
 
 function TimePart({ value, label }: { value: number; label: string }) {
   return (
-    <div className="rounded-lg bg-white px-2 py-3 text-center text-slate-950 shadow-sm">
+    <div className="rounded-lg bg-card px-2 py-3 text-center text-foreground shadow-sm">
       <p className="text-lg font-bold tabular-nums sm:text-xl">{String(value).padStart(2, '0')}</p>
       <p className="mt-1 text-[0.65rem] font-semibold uppercase tracking-wide text-orange-700">
         {label}
