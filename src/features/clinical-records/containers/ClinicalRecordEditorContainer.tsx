@@ -286,27 +286,29 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             </div>
 
             {/* Tab navigation */}
-            <div className="overflow-x-auto rounded-t-xl border border-slate-200 bg-white">
-              <nav role="tablist" aria-label="Seções do prontuário" className="flex min-w-max border-b border-slate-200">
-                {TABS.map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    role="tab"
-                    id={`tab-${tab.id}`}
-                    aria-selected={activeTab === tab.id}
-                    aria-controls={`tabpanel-${tab.id}`}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors ${
-                      activeTab === tab.id
-                        ? 'border-b-2 border-primary text-primary'
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </nav>
+            <div className="rounded-xl border border-slate-200 bg-white">
+              <div className="overflow-x-auto border-b border-slate-200">
+                <nav role="tablist" aria-label="Seções do prontuário" className="flex min-w-max">
+                  {TABS.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      role="tab"
+                      id={`tab-${tab.id}`}
+                      aria-selected={activeTab === tab.id}
+                      aria-controls={`tabpanel-${tab.id}`}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors ${
+                        activeTab === tab.id
+                          ? 'border-b-2 border-primary text-primary'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </nav>
+              </div>
 
               <div
                 role="tabpanel"
