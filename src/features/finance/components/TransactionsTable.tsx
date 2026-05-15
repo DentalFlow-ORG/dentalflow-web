@@ -113,7 +113,7 @@ export function TransactionsTable({
                   title="Cancelar lançamento"
                   aria-label="Cancelar lançamento"
                   disabled={transaction.status === 'CANCELED'}
-                  className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:pointer-events-none disabled:opacity-30"
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors disabled:pointer-events-none disabled:opacity-30"
                   onClick={() => onDelete(transaction)}
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
@@ -202,7 +202,7 @@ export function TransactionsTable({
                           type="button"
                           title="Editar lançamento"
                           aria-label="Editar lançamento"
-                          className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                          className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                           onClick={() => onEdit(transaction)}
                         >
                           <Pencil className="h-4 w-4" aria-hidden="true" />
@@ -212,7 +212,7 @@ export function TransactionsTable({
                           title="Cancelar lançamento"
                           aria-label="Cancelar lançamento"
                           disabled={transaction.status === 'CANCELED'}
-                          className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:pointer-events-none disabled:opacity-30"
+                          className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors disabled:pointer-events-none disabled:opacity-30"
                           onClick={() => onDelete(transaction)}
                         >
                           <Trash2 className="h-4 w-4" aria-hidden="true" />

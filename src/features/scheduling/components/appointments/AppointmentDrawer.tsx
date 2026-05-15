@@ -373,10 +373,10 @@ function ClinicalRecordManagerSection({
             <ClipboardList className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <p className="font-medium text-slate-900">Abrir prontuário</p>
-            <p className="text-xs text-slate-500">Visualizar ficha clínica do paciente</p>
+            <p className="font-medium text-foreground">Abrir prontuário</p>
+            <p className="text-xs text-muted-foreground">Visualizar ficha clínica do paciente</p>
           </div>
-          <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+          <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         </button>
       ) : (
         <button

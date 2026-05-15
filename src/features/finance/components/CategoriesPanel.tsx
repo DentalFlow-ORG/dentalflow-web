@@ -113,7 +113,7 @@ function CategoryGroup({
                         : 'Remover categoria'
                     }
                     disabled={category.isDefault}
-                    className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors disabled:pointer-events-none disabled:opacity-25"
+                    className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors disabled:pointer-events-none disabled:opacity-25"
                     onClick={() => onDelete(category)}
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
