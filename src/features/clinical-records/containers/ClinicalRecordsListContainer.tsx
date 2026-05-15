@@ -155,7 +155,7 @@ export function ClinicalRecordsListContainer() {
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
                   statusFilter === sf.value
                     ? 'bg-primary text-white'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80 dark:border dark:border-border dark:hover:bg-muted dark:hover:text-foreground'
                 }`}
               >
                 {sf.label}
