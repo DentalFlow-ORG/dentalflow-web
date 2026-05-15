@@ -338,6 +338,7 @@ export function CategoryManagerModal({
                           <div className="flex shrink-0 items-center gap-1">
                             <button
                               type="button"
+                              title="Editar categoria"
                               aria-label={`Editar categoria ${category.name}`}
                               onClick={() => handleEdit(category)}
                               className="rounded-md p-2 text-slate-400 transition-colors hover:bg-white hover:text-slate-700 focus:outline-none focus:ring-3 focus:ring-primary/15"
@@ -346,6 +347,7 @@ export function CategoryManagerModal({
                             </button>
                             <button
                               type="button"
+                              title="Excluir categoria"
                               aria-label={`Excluir categoria ${category.name}`}
                               onClick={() => handleDeleteRequest(category)}
                               className="rounded-md p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-3 focus:ring-red-500/15"

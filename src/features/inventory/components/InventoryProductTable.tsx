@@ -159,6 +159,7 @@ export function InventoryProductTable({
                       <div className="flex items-center gap-0.5">
                         <button
                           type="button"
+                          title="Ver detalhes"
                           aria-label={`Ver detalhes de ${product.name}`}
                           onClick={() => onViewDetails(product)}
                           className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-3 focus:ring-primary/15"
@@ -169,6 +170,7 @@ export function InventoryProductTable({
                           <>
                             <button
                               type="button"
+                              title="Editar produto"
                               aria-label={`Editar produto ${product.name}`}
                               onClick={() => onEdit(product)}
                               className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-3 focus:ring-primary/15"
@@ -177,6 +179,7 @@ export function InventoryProductTable({
                             </button>
                             <button
                               type="button"
+                              title="Movimentar estoque"
                               aria-label={`Movimentar estoque de ${product.name}`}
                               onClick={() => onMove(product)}
                               className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-blue-50 hover:text-primary focus:outline-none focus:ring-3 focus:ring-primary/15"
@@ -186,6 +189,7 @@ export function InventoryProductTable({
                             {onDeactivate && (
                               <button
                                 type="button"
+                                title="Desativar produto"
                                 aria-label={`Desativar produto ${product.name}`}
                                 onClick={() => onDeactivate(product)}
                                 className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-3 focus:ring-red-500/15"
@@ -198,6 +202,7 @@ export function InventoryProductTable({
                         {onReactivate && product.status === 'INACTIVE' && (
                           <button
                             type="button"
+                            title="Reativar produto"
                             aria-label={`Reativar produto ${product.name}`}
                             onClick={() => onReactivate(product)}
                             className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-green-50 hover:text-green-700 focus:outline-none focus:ring-3 focus:ring-green-500/15"
