@@ -72,6 +72,7 @@ const emptyProfileForm: FiscalProfilePayload = {
 export function FiscalInvoicesPageContainer() {
   const { user } = useAuth()
   const isOwner = user?.role === 'OWNER'
+  const isAssistant = user?.role === 'ASSISTANT'
   const workspaceRef = useRef<HTMLDivElement>(null)
   const [activeWorkspace, setActiveWorkspace] = useState<ActiveWorkspace>('none')
   const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false)
@@ -241,17 +242,17 @@ export function FiscalInvoicesPageContainer() {
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Atualizar
             </Button>
-            {isFiscalConfigurationIncomplete ? (
+            {isFiscalConfigurationIncomplete && isOwner ? (
               <Button onClick={openProfileForm} disabled={!isOwner}>
                 <Settings2 className="h-4 w-4" aria-hidden="true" />
                 Configurar dados fiscais
               </Button>
-            ) : (
+            ) : !isFiscalConfigurationIncomplete ? (
               <Button onClick={() => openInvoiceForm()}>
                 <FileText className="h-4 w-4" aria-hidden="true" />
                 Criar nota fiscal
               </Button>
-            )}
+            ) : null}
           </div>
         }
       />
@@ -307,10 +308,12 @@ export function FiscalInvoicesPageContainer() {
                   para emissão real de NFS-e.
                 </p>
               </div>
-              <Button variant="outline" onClick={openProfileForm} disabled={!isOwner}>
-                <Settings2 className="h-4 w-4" aria-hidden="true" />
-                Configurar dados fiscais
-              </Button>
+              {isOwner && (
+                <Button variant="outline" onClick={openProfileForm}>
+                  <Settings2 className="h-4 w-4" aria-hidden="true" />
+                  Configurar dados fiscais
+                </Button>
+              )}
             </div>
           </PanelCard>
 
@@ -319,8 +322,9 @@ export function FiscalInvoicesPageContainer() {
               <div className="max-w-2xl">
                 <p className="font-semibold">Configuração fiscal pendente</p>
                 <p className="mt-1 leading-6">
-                  Complete os dados fiscais da clínica para criar novas notas fiscais com
-                  segurança.
+                  {isAssistant
+                    ? 'A configuração fiscal precisa ser concluída pelo proprietário da clínica antes da criação de novas notas.'
+                    : 'Complete os dados fiscais da clínica para criar novas notas fiscais com segurança.'}
                 </p>
               </div>
             </InlineFeedback>
@@ -464,14 +468,15 @@ export function FiscalInvoicesPageContainer() {
                         >
                           Ver detalhes
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openInvoiceForm(invoice)}
-                          disabled={!['DRAFT', 'READY_TO_ISSUE'].includes(invoice.status)}
-                        >
-                          Editar
-                        </Button>
+                        {canEditInvoice(invoice, user?.role) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openInvoiceForm(invoice)}
+                          >
+                            Editar
+                          </Button>
+                        )}
                         {isOwner && invoice.status === 'DRAFT' && (
                           <Button
                             variant="outline"
@@ -559,14 +564,15 @@ export function FiscalInvoicesPageContainer() {
                                 >
                                   Ver detalhes
                                 </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openInvoiceForm(invoice)}
-                                  disabled={!['DRAFT', 'READY_TO_ISSUE'].includes(invoice.status)}
-                                >
-                                  Editar
-                                </Button>
+                                {canEditInvoice(invoice, user?.role) && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openInvoiceForm(invoice)}
+                                  >
+                                    Editar
+                                  </Button>
+                                )}
                                 {isOwner && invoice.status === 'DRAFT' && (
                                   <Button
                                     variant="outline"
@@ -654,4 +660,10 @@ function getWorkspacePanelClass(isActive: boolean) {
     'rounded-xl transition-shadow',
     isActive && 'ring-2 ring-primary/25 ring-offset-2 ring-offset-slate-50',
   )
+}
+
+function canEditInvoice(invoice: ServiceInvoice, role?: string) {
+  if (role === 'OWNER') return ['DRAFT', 'READY_TO_ISSUE'].includes(invoice.status)
+  if (role === 'ASSISTANT') return invoice.status === 'DRAFT'
+  return false
 }
