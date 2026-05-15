@@ -6,6 +6,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { CrashScreen } from '@/components/common/CrashScreen'
 import { GlobalAlertsProvider } from '@/components/common/GlobalAlerts'
 import { AuthProvider } from '@/features/auth/providers/AuthProvider'
+import { CookieConsentProvider } from '@/features/privacy/components/CookieConsentProvider'
 import { ThemeProvider } from '@/features/theme/ThemeProvider'
 
 export function RootRoute() {
@@ -13,6 +14,7 @@ export function RootRoute() {
     <ErrorBoundary FallbackComponent={CrashScreen}>
       <ThemeProvider>
         <GlobalAlertsProvider>
+          <CookieConsentProvider>
           <AuthProvider>
             <Suspense
               fallback={
@@ -25,6 +27,7 @@ export function RootRoute() {
               <Outlet />
             </Suspense>
           </AuthProvider>
+          </CookieConsentProvider>
         </GlobalAlertsProvider>
       </ThemeProvider>
     </ErrorBoundary>

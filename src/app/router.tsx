@@ -9,24 +9,33 @@ import {
   AdminClinicsPage,
   AdminFinancePage,
   AdminUsersPage,
+  CompliancePage,
   AppointmentsPage,
   AuthRoutePage,
   ClinicalRecordEditorPage,
   ClinicalRecordPrintPage,
   ClinicalRecordsPage,
   ClinicalTemplatesPage,
+  CookiePolicyPage,
   DashboardPage,
+  DataProcessingPage,
+  DataRightsPage,
+  DpoContactPage,
   FinancePage,
   FiscalInvoicesPage,
   InventoryPage,
   LandingPage,
   PatientsPage,
+  PrivacyPolicyPage,
+  PrivacyRequestFormPage,
   SchedulePage,
+  SecurityPage,
   SubscriptionCancelPage,
   SubscriptionPage,
   SubscriptionSuccessPage,
   TeamMemberProfilePage,
   TeamPage,
+  TermsOfUsePage,
 } from '@/app/route-components'
 import { AdminRoute } from '@/features/admin/components/AdminRoute'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
@@ -241,6 +250,65 @@ const adminFinanceRoute = createRoute({
   ),
 })
 
+const complianceRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/compliance',
+  component: () => (
+    <AdminRoute>
+      <CompliancePage />
+    </AdminRoute>
+  ),
+})
+
+// Legal & compliance routes (public)
+const privacyPolicyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/politica-de-privacidade',
+  component: PrivacyPolicyPage,
+})
+
+const termsOfUseRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/termos-de-uso',
+  component: TermsOfUsePage,
+})
+
+const cookiePolicyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/politica-de-cookies',
+  component: CookiePolicyPage,
+})
+
+const dataProcessingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/tratamento-de-dados',
+  component: DataProcessingPage,
+})
+
+const securityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/seguranca',
+  component: SecurityPage,
+})
+
+const dataRightsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/direitos-do-titular',
+  component: DataRightsPage,
+})
+
+const dpoContactRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/encarregado',
+  component: DpoContactPage,
+})
+
+const privacyRequestFormRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/direitos-do-titular/solicitar',
+  component: PrivacyRequestFormPage,
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
@@ -263,6 +331,15 @@ const routeTree = rootRoute.addChildren([
   adminUsersRoute,
   adminClinicsRoute,
   adminFinanceRoute,
+  complianceRoute,
+  privacyPolicyRoute,
+  termsOfUseRoute,
+  cookiePolicyRoute,
+  dataProcessingRoute,
+  securityRoute,
+  dataRightsRoute,
+  dpoContactRoute,
+  privacyRequestFormRoute,
 ])
 
 export const router = createRouter({

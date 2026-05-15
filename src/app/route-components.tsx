@@ -78,6 +78,12 @@ export const AdminFinancePage = lazy(() =>
   })),
 )
 
+export const CompliancePage = lazy(() =>
+  import('@/features/compliance/pages/CompliancePage').then((m) => ({
+    default: m.CompliancePage,
+  })),
+)
+
 export const PatientsPage = lazy(() =>
   import('@/features/patients/pages/PatientsPage').then((m) => ({
     default: m.PatientsPage,
@@ -129,6 +135,55 @@ export const ClinicalTemplatesPage = lazy(() =>
 export const InventoryPage = lazy(() =>
   import('@/features/inventory/pages/InventoryPage').then((m) => ({
     default: m.InventoryPage,
+  })),
+)
+
+// Legal pages
+export const PrivacyPolicyPage = lazy(() =>
+  import('@/features/legal/pages/PrivacyPolicyPage').then((m) => ({
+    default: m.PrivacyPolicyPage,
+  })),
+)
+
+export const TermsOfUsePage = lazy(() =>
+  import('@/features/legal/pages/TermsOfUsePage').then((m) => ({
+    default: m.TermsOfUsePage,
+  })),
+)
+
+export const CookiePolicyPage = lazy(() =>
+  import('@/features/legal/pages/CookiePolicyPage').then((m) => ({
+    default: m.CookiePolicyPage,
+  })),
+)
+
+export const DataProcessingPage = lazy(() =>
+  import('@/features/legal/pages/DataProcessingPage').then((m) => ({
+    default: m.DataProcessingPage,
+  })),
+)
+
+export const SecurityPage = lazy(() =>
+  import('@/features/legal/pages/SecurityPage').then((m) => ({
+    default: m.SecurityPage,
+  })),
+)
+
+export const DataRightsPage = lazy(() =>
+  import('@/features/legal/pages/DataRightsPage').then((m) => ({
+    default: m.DataRightsPage,
+  })),
+)
+
+export const DpoContactPage = lazy(() =>
+  import('@/features/legal/pages/DpoContactPage').then((m) => ({
+    default: m.DpoContactPage,
+  })),
+)
+
+export const PrivacyRequestFormPage = lazy(() =>
+  import('@/features/privacy/pages/PrivacyRequestFormPage').then((m) => ({
+    default: m.PrivacyRequestFormPage,
   })),
 )
 
