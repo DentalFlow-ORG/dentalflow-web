@@ -253,9 +253,9 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
                 </p>
                 <p className="text-xs text-slate-500">{user?.email}</p>
               </div>
-              <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Sair</span>
+              <Button variant="outline" size="sm" aria-label="Sair" onClick={handleLogout}>
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline" aria-hidden="true">Sair</span>
               </Button>
             </div>
           </div>
@@ -287,7 +287,7 @@ function TrialBanner({ trialEndsAt }: { trialEndsAt: string }) {
     <div className="border-b border-orange-200 bg-orange-50 px-4 py-2 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-orange-800">
-          <Zap className="h-4 w-4 shrink-0 text-orange-500" />
+          <Zap className="h-4 w-4 shrink-0 text-orange-500" aria-hidden="true" />
           <span>
             Teste grátis ativo
             {daysRemaining > 0

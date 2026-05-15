@@ -123,7 +123,6 @@ export function useSubscriptionPage() {
     setStartingTrialPlanKey(planKey)
     try {
       const nextStatus = await startTrial({ planKey, billingInterval })
-      setCachedBillingStatus(nextStatus)
       setBillingStatus(nextStatus)
       showAlert({
         title: 'Teste grátis iniciado',

@@ -33,9 +33,9 @@ export function SubscriptionOnlyShell({ children }: Props) {
                 <p className="text-xs text-slate-500">{user.email}</p>
               </div>
             )}
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Sair</span>
+            <Button variant="outline" size="sm" aria-label="Sair" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline" aria-hidden="true">Sair</span>
             </Button>
           </div>
         </div>
