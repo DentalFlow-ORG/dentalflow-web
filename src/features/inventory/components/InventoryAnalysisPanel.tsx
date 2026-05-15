@@ -3,7 +3,7 @@ import { AlertCircle, AlertTriangle, CheckCircle2, Info } from 'lucide-react'
 import { PanelCard } from '@/components/common/PanelCard'
 import { cn } from '@/lib/utils'
 
-import type { StockProduct, StockSummary } from '../types/inventory.types'
+import type { StockSummary } from '../types/inventory.types'
 import type { InventoryInsight, InventoryInsightTone } from '../utils/inventory-insights'
 import { generateInventoryInsights } from '../utils/inventory-insights'
 
@@ -35,14 +35,8 @@ function InsightCard({ insight }: { insight: InventoryInsight }) {
   )
 }
 
-export function InventoryAnalysisPanel({
-  summary,
-  products,
-}: {
-  summary: StockSummary
-  products?: StockProduct[]
-}) {
-  const insights = generateInventoryInsights(summary, products)
+export function InventoryAnalysisPanel({ summary }: { summary: StockSummary }) {
+  const insights = generateInventoryInsights(summary)
 
   const gridClass =
     insights.length >= 5

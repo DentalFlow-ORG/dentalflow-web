@@ -287,7 +287,7 @@ export function InventoryPageContainer() {
         <>
           {summary && <InventoryKpiGrid summary={summary} />}
 
-          {summary && <InventoryAnalysisPanel summary={summary} products={products} />}
+          {summary && <InventoryAnalysisPanel summary={summary} />}
 
           {hasFilters && products.length === 0 && !isLoadingProducts ? (
             <FilteredEmptyState icon={Package} onClear={handleClearFilters} />

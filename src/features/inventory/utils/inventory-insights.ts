@@ -1,4 +1,4 @@
-import type { StockProduct, StockSummary } from '../types/inventory.types'
+import type { StockSummary } from '../types/inventory.types'
 import { formatBRLCents } from './inventory-format'
 
 export type InventoryInsightTone = 'positive' | 'warning' | 'danger' | 'neutral'
@@ -10,10 +10,7 @@ export type InventoryInsight = {
   tone: InventoryInsightTone
 }
 
-export function generateInventoryInsights(
-  summary: StockSummary,
-  products?: StockProduct[],
-): InventoryInsight[] {
+export function generateInventoryInsights(summary: StockSummary): InventoryInsight[] {
   const { emptyStock, lowStock, expired, expiring, estimatedValue, totalActive } = summary
 
   const noRisks = emptyStock === 0 && lowStock === 0 && expired === 0 && expiring === 0
@@ -79,28 +76,7 @@ export function generateInventoryInsights(
     })
   }
 
-  // 5. Products below minimum (from product list, only if minQuantity is set)
-  if (products && products.length > 0) {
-    const belowMin = products.filter(
-      (p) => p.isActive && p.minQuantity > 0 && p.currentQuantity < p.minQuantity,
-    )
-    // Only add if it surfaces more than already covered by lowStock/emptyStock
-    if (belowMin.length > 0 && insights.length < 4) {
-      const names = belowMin
-        .slice(0, 3)
-        .map((p) => p.name)
-        .join(', ')
-      const extra = belowMin.length > 3 ? ` e mais ${belowMin.length - 3}` : ''
-      insights.push({
-        id: 'restock-needed',
-        title: 'Reposição necessária',
-        description: `${names}${extra} ${belowMin.length === 1 ? 'está' : 'estão'} abaixo do mínimo configurado.`,
-        tone: 'warning',
-      })
-    }
-  }
-
-  // 6. Estimated value — informational, shown when meaningful
+  // 5. Estimated value — informational, shown when meaningful
   if (estimatedValue > 0 && insights.length < 5) {
     insights.push({
       id: 'estimated-value',
@@ -110,7 +86,7 @@ export function generateInventoryInsights(
     })
   }
 
-  // 7. All clear — only when no risks found
+  // 6. All clear — only when no risks found
   if (noRisks && insights.length === 0) {
     insights.push({
       id: 'all-clear',

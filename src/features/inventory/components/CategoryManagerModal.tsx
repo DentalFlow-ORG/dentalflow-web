@@ -104,9 +104,15 @@ export function CategoryManagerModal({
     event.preventDefault()
 
     const name = form.name.trim()
+    const color = form.color.trim()
 
     if (!name) {
       setFormError('O nome da categoria é obrigatório.')
+      return
+    }
+
+    if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
+      setFormError('Cor inválida. Use o formato #RRGGBB ou selecione uma cor sugerida.')
       return
     }
 
@@ -116,7 +122,7 @@ export function CategoryManagerModal({
     try {
       const payload = {
         name,
-        color: form.color.trim() || undefined,
+        color: color || undefined,
       }
 
       if (editingCategory) {
