@@ -1,5 +1,6 @@
 import { ArrowDownCircle, ArrowUpCircle, Loader2, Pencil, Trash2, WalletCards } from 'lucide-react'
 
+import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
@@ -99,25 +100,22 @@ export function TransactionsTable({
                 </span>
               </div>
               <div className="mt-4 flex items-center justify-end gap-1">
-                <button
-                  type="button"
+                <ActionIconButton
                   title="Editar lançamento"
                   aria-label="Editar lançamento"
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                   onClick={() => onEdit(transaction)}
                 >
                   <Pencil className="h-4 w-4" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
+                </ActionIconButton>
+                <ActionIconButton
+                  tone="danger"
                   title="Cancelar lançamento"
                   aria-label="Cancelar lançamento"
                   disabled={transaction.status === 'CANCELED'}
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-300 transition-colors disabled:pointer-events-none disabled:opacity-30"
                   onClick={() => onDelete(transaction)}
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
-                </button>
+                </ActionIconButton>
               </div>
             </div>
           ))

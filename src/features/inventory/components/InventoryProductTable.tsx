@@ -1,5 +1,6 @@
 import { Eye, Loader2, Minus, MoveRight, Package, Pencil, Plus, Power, PowerOff } from 'lucide-react'
 
+import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { cn } from '@/lib/utils'
@@ -248,28 +249,26 @@ export function InventoryProductTable({
                               <MoveRight className="h-4 w-4" aria-hidden="true" />
                             </button>
                             {onDeactivate && (
-                              <button
-                                type="button"
+                              <ActionIconButton
+                                tone="danger"
                                 title="Desativar produto"
                                 aria-label={`Desativar produto ${product.name}`}
                                 onClick={() => onDeactivate(product)}
-                                className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-300 focus:outline-none focus:ring-3 focus:ring-red-500/15"
                               >
                                 <PowerOff className="h-4 w-4" aria-hidden="true" />
-                              </button>
+                              </ActionIconButton>
                             )}
                           </>
                         )}
                         {onReactivate && product.status === 'INACTIVE' && (
-                          <button
-                            type="button"
+                          <ActionIconButton
+                            tone="success"
                             title="Reativar produto"
                             aria-label={`Reativar produto ${product.name}`}
                             onClick={() => onReactivate(product)}
-                            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-green-50 hover:text-green-700 dark:hover:bg-emerald-900/40 dark:hover:text-emerald-300 focus:outline-none focus:ring-3 focus:ring-green-500/15"
                           >
                             <Power className="h-4 w-4" aria-hidden="true" />
-                          </button>
+                          </ActionIconButton>
                         )}
                       </div>
                     </td>

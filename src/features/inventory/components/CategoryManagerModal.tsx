@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Loader2, Pencil, Plus, Tag, Trash2, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 
+import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -351,15 +352,14 @@ export function CategoryManagerModal({
                             >
                               <Pencil className="h-4 w-4" aria-hidden="true" />
                             </button>
-                            <button
-                              type="button"
+                            <ActionIconButton
+                              tone="danger"
                               title="Excluir categoria"
                               aria-label={`Excluir categoria ${category.name}`}
                               onClick={() => handleDeleteRequest(category)}
-                              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-300 focus:outline-none focus:ring-3 focus:ring-red-500/15"
                             >
                               <Trash2 className="h-4 w-4" aria-hidden="true" />
-                            </button>
+                            </ActionIconButton>
                           </div>
                         </article>
                       ))

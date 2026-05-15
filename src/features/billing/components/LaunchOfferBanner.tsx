@@ -86,7 +86,7 @@ export function LaunchOfferBanner({ campaign }: Props) {
           </div>
         </div>
 
-        <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800/40 dark:bg-orange-950/30">
+        <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-border dark:bg-muted/40">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300">
             <Clock3 className="h-4 w-4" aria-hidden="true" />
             {isActive ? 'Oferta termina em' : 'Oferta encerrada'}

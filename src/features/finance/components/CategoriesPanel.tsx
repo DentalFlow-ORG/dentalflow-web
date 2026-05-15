@@ -1,5 +1,6 @@
 import { Layers, Lock, Pencil, Trash2 } from 'lucide-react'
 
+import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { PanelCard } from '@/components/common/PanelCard'
 import { cn } from '@/lib/utils'
 
@@ -100,8 +101,8 @@ function CategoryGroup({
                   >
                     <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
-                  <button
-                    type="button"
+                  <ActionIconButton
+                    tone="danger"
                     title={
                       category.isDefault
                         ? 'Categorias padrão não podem ser removidas'
@@ -113,11 +114,10 @@ function CategoryGroup({
                         : 'Remover categoria'
                     }
                     disabled={category.isDefault}
-                    className="rounded-md p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-300 transition-colors disabled:pointer-events-none disabled:opacity-25"
                     onClick={() => onDelete(category)}
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  </button>
+                  </ActionIconButton>
                 </div>
               </li>
             ))}
