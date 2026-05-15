@@ -16,7 +16,6 @@ import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { cn } from '@/lib/utils'
 
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
 import { InvoiceDetails } from '../components/InvoiceDetails'
@@ -110,15 +109,12 @@ export function FiscalInvoicesPageContainer() {
   const isFiscalConfigurationIncomplete =
     summary?.configurationPending ?? (profile ? !profile.isConfigured : false)
 
-  function focusWorkspace() {
+  function scrollToWorkspace() {
     window.requestAnimationFrame(() => {
       const workspace = workspaceRef.current
       if (!workspace) return
 
       workspace.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      window.setTimeout(() => {
-        workspace.focus({ preventScroll: true })
-      }, 250)
     })
   }
 
@@ -152,7 +148,7 @@ export function FiscalInvoicesPageContainer() {
     )
     setIsProfileFormOpen(true)
     setActiveWorkspace('profile')
-    focusWorkspace()
+    scrollToWorkspace()
   }
 
   function openInvoiceForm(invoice?: ServiceInvoice) {
@@ -176,7 +172,7 @@ export function FiscalInvoicesPageContainer() {
     )
     setIsInvoiceFormOpen(true)
     setActiveWorkspace('form')
-    focusWorkspace()
+    scrollToWorkspace()
   }
 
   async function submitInvoice() {
@@ -219,7 +215,7 @@ export function FiscalInvoicesPageContainer() {
     setActiveWorkspace('details')
     try {
       await loadInvoiceDetails(invoice)
-      focusWorkspace()
+      scrollToWorkspace()
     } catch {
       setActiveWorkspace('none')
     }
@@ -333,8 +329,7 @@ export function FiscalInvoicesPageContainer() {
           {isWorkspaceOpen && (
             <div
               ref={workspaceRef}
-              tabIndex={-1}
-              className="scroll-mt-24 space-y-4 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2"
+              className="scroll-mt-24 space-y-4"
               aria-label="Área de trabalho fiscal"
             >
               <div className="flex flex-col gap-2 rounded-lg border border-blue-100 bg-blue-50/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -352,7 +347,7 @@ export function FiscalInvoicesPageContainer() {
               </div>
 
               {isProfileFormOpen && (
-                <div className={getWorkspacePanelClass(activeWorkspace === 'profile')}>
+                <div>
                   <FiscalProfileForm
                     form={profileForm}
                     onChange={setProfileForm}
@@ -366,7 +361,7 @@ export function FiscalInvoicesPageContainer() {
               )}
 
               {isInvoiceFormOpen && (
-                <div className={getWorkspacePanelClass(activeWorkspace === 'form')}>
+                <div>
                   <InvoiceForm
                     form={invoiceForm}
                     editing={!!editingInvoice}
@@ -381,7 +376,7 @@ export function FiscalInvoicesPageContainer() {
               )}
 
               {selectedInvoice && (
-                <div className={getWorkspacePanelClass(activeWorkspace === 'details')}>
+                <div>
                   <InvoiceDetails invoice={selectedInvoice} onClose={closeInvoiceDetails} />
                 </div>
               )}
@@ -653,13 +648,6 @@ function getActiveWorkspaceLabel(activeWorkspace: ActiveWorkspace) {
   }
 
   return labels[activeWorkspace]
-}
-
-function getWorkspacePanelClass(isActive: boolean) {
-  return cn(
-    'rounded-xl transition-shadow',
-    isActive && 'ring-2 ring-primary/25 ring-offset-2 ring-offset-slate-50',
-  )
 }
 
 function canEditInvoice(invoice: ServiceInvoice, role?: string) {
