@@ -356,7 +356,7 @@ export function CategoryManagerModal({
                               title="Excluir categoria"
                               aria-label={`Excluir categoria ${category.name}`}
                               onClick={() => handleDeleteRequest(category)}
-                              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 focus:outline-none focus:ring-3 focus:ring-red-500/15"
+                              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-300 focus:outline-none focus:ring-3 focus:ring-red-500/15"
                             >
                               <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </button>

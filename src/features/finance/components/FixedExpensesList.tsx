@@ -81,8 +81,8 @@ export function FixedExpensesList({
                   className={cn(
                     'rounded-md p-1.5 transition-colors',
                     expense.isActive
-                      ? 'text-muted-foreground hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/30 dark:hover:text-amber-400'
-                      : 'text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-400',
+                      ? 'text-muted-foreground hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-900/40 dark:hover:text-amber-300'
+                      : 'text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-900/40 dark:hover:text-emerald-300',
                   )}
                   onClick={() => onToggle(expense)}
                 >

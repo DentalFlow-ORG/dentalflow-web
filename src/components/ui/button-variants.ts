@@ -6,17 +6,17 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20",
+          "bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary/85 hover:shadow-lg hover:shadow-primary/35",
         outline:
-          "border-border bg-background text-foreground shadow-sm hover:border-primary/35 hover:bg-primary/10 hover:text-primary aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 dark:hover:border-primary/50",
+          "border-border bg-background text-foreground shadow-sm hover:border-primary/35 hover:bg-primary/10 hover:text-primary aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-primary/15 dark:hover:border-primary/60 dark:hover:text-primary",
         secondary:
           "bg-[#10b981] text-white shadow-sm shadow-emerald-600/20 hover:bg-[#0f9f72] hover:shadow-md hover:shadow-emerald-600/20 aria-expanded:bg-[#10b981] aria-expanded:text-white",
         accent:
           "bg-[#6366f1] text-white shadow-sm shadow-indigo-600/20 hover:bg-[#4f46e5] hover:shadow-md hover:shadow-indigo-600/20",
         ghost:
-          "text-muted-foreground hover:bg-muted hover:text-primary aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "text-muted-foreground hover:bg-muted hover:text-primary aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted dark:hover:text-foreground",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/40 dark:focus-visible:ring-destructive/40",
         link: "h-auto rounded-none border-0 px-0 py-0 text-primary underline-offset-4 hover:underline",
       },
       size: {

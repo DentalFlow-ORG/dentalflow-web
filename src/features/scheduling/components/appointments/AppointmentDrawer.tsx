@@ -265,7 +265,7 @@ function DrawerActions({
             type="button"
             variant="ghost"
             size="sm"
-            className="w-full justify-start text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/30 dark:hover:text-orange-400"
+            className="w-full justify-start text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/40 dark:hover:text-orange-300"
             disabled={isLoading}
             onClick={() => onStatusChange(id, 'NO_SHOW')}
           >

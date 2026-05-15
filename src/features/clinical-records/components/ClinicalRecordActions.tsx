@@ -55,7 +55,7 @@ export function ClinicalRecordActions({
             variant="outline"
             onClick={() => setConfirmRestore(true)}
             disabled={isSaving}
-            className="w-full text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-400 sm:w-auto"
+            className="w-full text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-900/40 dark:hover:text-emerald-300 sm:w-auto"
           >
             <RotateCcw className="h-4 w-4" />
             Restaurar prontuário
@@ -105,7 +105,7 @@ export function ClinicalRecordActions({
             size="sm"
             onClick={() => setConfirmCancel(true)}
             disabled={isSaving}
-            className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:text-red-400 sm:w-auto"
+            className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/40 dark:hover:text-red-300 sm:w-auto"
           >
             <XCircle className="h-4 w-4" />
             Cancelar prontuário

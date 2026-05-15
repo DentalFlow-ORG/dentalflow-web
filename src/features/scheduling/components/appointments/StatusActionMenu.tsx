@@ -71,7 +71,7 @@ export function StatusActionMenu({
           disabled={isLoading}
           onClick={() => onStatusChange(id, 'NO_SHOW')}
           title="Não compareceu"
-          className="text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/30 dark:hover:text-orange-400"
+          className="text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/40 dark:hover:text-orange-300"
         >
           <UserX className="h-3 w-3" />
           <span className="hidden lg:inline">Não veio</span>
