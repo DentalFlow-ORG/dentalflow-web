@@ -17,6 +17,11 @@ import { useClinicalRecord } from '../hooks/useClinicalRecord'
 import { useClinicalTemplates } from '../hooks/useClinicalTemplates'
 import { getOdontogram, upsertOdontogram } from '../services/clinical-records.service'
 import type { ClinicalTemplate, OdontogramData, UpdateClinicalRecordDto } from '../types/clinical-record.types'
+import {
+  getClinicalRecordReadOnlyMessage,
+  isClinicalRecordEditable,
+  isClinicalRecordReadOnly,
+} from '../utils/clinical-record-status-rules'
 
 type Props = {
   recordId: string
@@ -69,7 +74,9 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   if (error) return <InlineFeedback tone="error">{error}</InlineFeedback>
   if (!record) return null
 
-  const isReadOnly = record.status === 'LOCKED' || record.status === 'CANCELED'
+  const canEditClinicalContent = isClinicalRecordEditable(record.status)
+  const isReadOnly = isClinicalRecordReadOnly(record.status)
+  const readOnlyMessage = getClinicalRecordReadOnlyMessage(record.status)
   const identifier = record.patientEmail ?? record.patientName
 
   const field = (key: keyof UpdateClinicalRecordDto) =>
@@ -79,6 +86,8 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     setDraft((prev) => ({ ...prev, [key]: value }))
 
   const handleApplyTemplate = (template: ClinicalTemplate) => {
+    if (!canEditClinicalContent) return
+
     const fieldMap: Record<string, keyof UpdateClinicalRecordDto> = {
       ANAMNESIS: 'anamnesis',
       EVOLUTION: 'clinicalEvolution',
@@ -100,6 +109,8 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   }
 
   const handleSaveDraft = async () => {
+    if (!canEditClinicalContent) return
+
     await save(draft)
     if (Object.keys(odontogramData.teeth).length > 0) {
       upsertOdontogram(identifier, record.patientName, odontogramData).catch(() => {})
@@ -107,10 +118,10 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   }
 
   const handleOdontogramChange = (data: OdontogramData) => {
+    if (!canEditClinicalContent) return
+
     setOdontogramData(data)
-    if (!isReadOnly) {
-      upsertOdontogram(identifier, record.patientName, data).catch(() => {})
-    }
+    upsertOdontogram(identifier, record.patientName, data).catch(() => {})
   }
 
   const handleComplete = () => saveAndComplete(draft)
@@ -125,6 +136,15 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   return (
     <div className="space-y-5">
       <ClinicalRecordHeader record={record} />
+
+      {readOnlyMessage && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <p className="font-medium text-slate-800">{readOnlyMessage}</p>
+          <p className="mt-0.5">
+            Para alterar informações clínicas, o prontuário precisa estar em rascunho.
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
@@ -149,10 +169,12 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         /* ── Mobile: all sections stacked vertically ── */
         <div className="space-y-4">
           {/* Templates at top on mobile — visible shortcut before filling in fields */}
-          <ClinicalTemplateSelectorPanel
-            templates={templates}
-            onApply={handleApplyTemplate}
-          />
+          {canEditClinicalContent && (
+            <ClinicalTemplateSelectorPanel
+              templates={templates}
+              onApply={handleApplyTemplate}
+            />
+          )}
 
           <div className="rounded-xl border border-slate-200 bg-white p-5">
             <ClinicalSectionField
@@ -418,11 +440,15 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            <ClinicalTemplateSelectorPanel
-              templates={templates}
-              onApply={handleApplyTemplate}
-            />
-            <ClinicalAiAssistantCard />
+            {canEditClinicalContent && (
+              <>
+                <ClinicalTemplateSelectorPanel
+                  templates={templates}
+                  onApply={handleApplyTemplate}
+                />
+                <ClinicalAiAssistantCard />
+              </>
+            )}
           </div>
         </div>
       )}

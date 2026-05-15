@@ -144,7 +144,9 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
       <div>
         <p className="text-sm font-medium text-slate-700">Imagens e anexos clínicos</p>
         <p className="mt-0.5 text-xs text-slate-500">
-          Envie imagens clínicas, exames ou fotos relacionadas ao atendimento. As imagens serão otimizadas para reduzir o uso de armazenamento.
+          {readOnly
+            ? 'As imagens clínicas estão disponíveis apenas para consulta neste status do prontuário.'
+            : 'Envie imagens clínicas, exames ou fotos relacionadas ao atendimento. As imagens serão otimizadas para reduzir o uso de armazenamento.'}
         </p>
       </div>
 

@@ -28,6 +28,8 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
     data.teeth?.[String(number)] ?? {}
 
   const setToothCondition = (number: number, condition: string) => {
+    if (readOnly) return
+
     const current = getTooth(number)
     const newCondition = current.condition === condition ? undefined : condition
     onChange({
@@ -40,6 +42,8 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
   }
 
   const setToothNotes = (number: number, notes: string) => {
+    if (readOnly) return
+
     onChange({
       ...data,
       teeth: {
@@ -50,6 +54,8 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
   }
 
   const applyConditionToMulti = (condition: string) => {
+    if (readOnly) return
+
     const allHaveIt = [...multiSelected].every(
       (toothNumber) => getTooth(toothNumber).condition === condition,
     )
@@ -109,8 +115,9 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
         <div>
           <p className="text-sm font-semibold text-slate-800">Odontograma</p>
           <p className="mt-0.5 text-xs text-slate-500">
-            Clique em um dente para registrar condição e observações.
-            {readOnly && ' Este prontuário está em modo somente leitura.'}
+            {readOnly
+              ? 'Este prontuário está finalizado e o odontograma está disponível apenas para consulta.'
+              : 'Clique em um dente para registrar condição e observações.'}
           </p>
         </div>
 
@@ -170,7 +177,10 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
           onChange={(event) => onChange({ ...data, notes: event.target.value })}
           readOnly={readOnly}
           placeholder={readOnly ? undefined : 'Observações gerais do odontograma...'}
-          className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15"
+          className={cn(
+            'mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15',
+            readOnly && 'cursor-default bg-slate-50 text-slate-600',
+          )}
         />
       </div>
     </div>

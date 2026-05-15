@@ -5,6 +5,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
 
 import type { ClinicalRecord } from '../types/clinical-record.types'
+import { isClinicalRecordEditable } from '../utils/clinical-record-status-rules'
 
 type Props = {
   record: ClinicalRecord
@@ -33,8 +34,7 @@ export function ClinicalRecordActions({
   const isLocked = record.status === 'LOCKED'
   const isCanceled = record.status === 'CANCELED'
   const isCompleted = record.status === 'COMPLETED'
-  const isDraft = record.status === 'DRAFT'
-  const isReadOnly = isLocked || isCanceled
+  const isDraft = isClinicalRecordEditable(record.status)
 
   return (
     <>
@@ -62,58 +62,54 @@ export function ClinicalRecordActions({
           </Button>
         )}
 
-        {!isReadOnly && (
-          <>
-            {isDraft && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onSaveDraft}
-                disabled={isSaving}
-                className="w-full sm:w-auto"
-              >
-                {isSaving ? 'Salvando...' : 'Salvar rascunho'}
-              </Button>
-            )}
+        {isDraft && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onSaveDraft}
+            disabled={isSaving}
+            className="w-full sm:w-auto"
+          >
+            {isSaving ? 'Salvando...' : 'Salvar rascunho'}
+          </Button>
+        )}
 
-            {isDraft && (
-              <Button
-                size="sm"
-                onClick={onComplete}
-                disabled={isSaving}
-                className="w-full sm:w-auto"
-              >
-                <CheckCircle className="h-4 w-4" />
-                Concluir atendimento
-              </Button>
-            )}
+        {isDraft && (
+          <Button
+            size="sm"
+            onClick={onComplete}
+            disabled={isSaving}
+            className="w-full sm:w-auto"
+          >
+            <CheckCircle className="h-4 w-4" />
+            Concluir atendimento
+          </Button>
+        )}
 
-            {isCompleted && (
-              <Button
-                size="sm"
-                onClick={onLock}
-                disabled={isSaving}
-                variant="outline"
-                className="w-full sm:w-auto"
-              >
-                <Lock className="h-4 w-4" />
-                Bloquear prontuário
-              </Button>
-            )}
+        {isCompleted && (
+          <Button
+            size="sm"
+            onClick={onLock}
+            disabled={isSaving}
+            variant="outline"
+            className="w-full sm:w-auto"
+          >
+            <Lock className="h-4 w-4" />
+            Bloquear prontuário
+          </Button>
+        )}
 
-            {!isLocked && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setConfirmCancel(true)}
-                disabled={isSaving}
-                className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 sm:w-auto"
-              >
-                <XCircle className="h-4 w-4" />
-                Cancelar prontuário
-              </Button>
-            )}
-          </>
+        {(isDraft || isCompleted) && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmCancel(true)}
+            disabled={isSaving}
+            className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 sm:w-auto"
+          >
+            <XCircle className="h-4 w-4" />
+            Cancelar prontuário
+          </Button>
         )}
 
         {isLocked && (
