@@ -102,9 +102,7 @@ function ChartTooltip({ active, payload, isDark }: ChartTooltipProps) {
 
 export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
   const { theme } = useTheme()
-  const isDark =
-    theme === 'dark' ||
-    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const isDark = theme === 'dark'
 
   const gridColor = isDark ? 'rgba(226,232,240,0.12)' : '#E2E8F0'
   const tickColor = isDark ? '#cbd5e1' : '#64748B'

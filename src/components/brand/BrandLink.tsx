@@ -36,17 +36,17 @@ export function BrandLink({ compact = false, className, to = '/' }: BrandLinkPro
       />
       <span
         className={cn(
-          'w-px shrink-0 bg-slate-200',
+          'w-px shrink-0 bg-border',
           compact ? 'h-9' : 'h-10',
         )}
         aria-hidden="true"
       />
       <div className="text-left">
-        <span className="block text-lg font-semibold text-slate-950">
+        <span className="block text-lg font-semibold text-foreground">
           {companyInfo.tradeName}
         </span>
         {!compact && (
-          <span className="hidden text-sm text-slate-500 sm:block">
+          <span className="hidden text-sm text-muted-foreground sm:block">
             Growth platform for clinics
           </span>
         )}

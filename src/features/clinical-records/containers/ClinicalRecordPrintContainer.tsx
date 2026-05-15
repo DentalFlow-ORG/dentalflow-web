@@ -67,7 +67,14 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
             Voltar ao prontuário
           </Button>
         </Link>
-        <Button onClick={() => window.print()}>
+        <Button
+          onClick={() => {
+            const prev = document.title
+            document.title = `Prontuário — ${data.record.patientName}`
+            window.print()
+            document.title = prev
+          }}
+        >
           <Printer className="h-4 w-4" />
           Imprimir
         </Button>

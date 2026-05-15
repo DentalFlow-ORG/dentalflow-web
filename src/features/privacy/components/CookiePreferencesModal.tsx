@@ -18,18 +18,18 @@ type CategoryRowProps = {
 
 function CategoryRow({ title, description, required, enabled, onChange }: CategoryRowProps) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-lg border border-slate-200 p-4">
+    <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <p className="font-medium text-slate-900">{title}</p>
+          <p className="font-medium text-foreground">{title}</p>
           {required && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
               <Lock className="h-3 w-3" />
               Sempre ativo
             </span>
           )}
         </div>
-        <p className="mt-1 text-sm text-slate-500 leading-5">{description}</p>
+        <p className="mt-1 text-sm text-muted-foreground leading-5">{description}</p>
       </div>
       <button
         type="button"
@@ -40,7 +40,7 @@ function CategoryRow({ title, description, required, enabled, onChange }: Catego
         className={[
           'relative mt-1 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
           required ? 'cursor-not-allowed opacity-60' : '',
-          enabled ? 'bg-primary' : 'bg-slate-200',
+          enabled ? 'bg-primary' : 'bg-muted',
         ].join(' ')}
         aria-label={`${enabled ? 'Desativar' : 'Ativar'} cookies ${title.toLowerCase()}`}
       >
@@ -81,23 +81,23 @@ export function CookiePreferencesModal() {
         onClick={closePreferences}
       />
 
-      <div className="relative z-10 w-full max-w-lg rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <h2 id="cookie-prefs-title" className="text-lg font-semibold text-slate-900">
+      <div className="relative z-10 w-full max-w-lg rounded-2xl bg-card shadow-2xl">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <h2 id="cookie-prefs-title" className="text-lg font-semibold text-foreground">
             Preferências de cookies
           </h2>
           <button
             type="button"
             onClick={closePreferences}
             aria-label="Fechar preferências de cookies"
-            className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto px-6 py-5">
-          <p className="mb-5 text-sm text-slate-500">
+          <p className="mb-5 text-sm text-muted-foreground">
             Gerencie suas preferências. Cookies necessários garantem o funcionamento
             básico e não podem ser desativados.{' '}
             <a href="/politica-de-cookies" className="text-primary underline">
@@ -134,7 +134,7 @@ export function CookiePreferencesModal() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 border-t border-slate-200 px-6 py-4">
+        <div className="flex flex-wrap gap-2 border-t border-border px-6 py-4">
           <Button
             variant="outline"
             size="sm"

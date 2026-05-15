@@ -224,3 +224,36 @@
     animation: df-rocket-boost 420ms ease-out;
   }
 }
+
+@media print {
+  /* Force light/white background for document output */
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Hide all non-printable UI chrome */
+  [data-sidebar],
+  nav,
+  header,
+  .print\:hidden,
+  [aria-label="Aviso de cookies"],
+  [aria-modal="true"],
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* Remove shadows and radius for cleaner print */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* Ensure page breaks don't cut content mid-element */
+  section, article, table {
+    break-inside: avoid;
+  }
+
+  a {
+    text-decoration: none;
+  }
+}

@@ -1,4 +1,4 @@
-import { useState, useCallback, type ReactNode } from 'react'
+import { useState, useCallback, useMemo, type ReactNode } from 'react'
 
 import type { CookieConsent } from '../types/cookie-consent.types'
 import {
@@ -52,20 +52,23 @@ export function CookieConsentProvider({ children }: Props) {
   const hasConsented = consent !== null
   const isBannerVisible = !hasConsented
 
+  const contextValue = useMemo(
+    () => ({
+      consent,
+      hasConsented,
+      isBannerVisible,
+      isPreferencesOpen,
+      acceptAll,
+      rejectOptional,
+      savePreferences,
+      openPreferences,
+      closePreferences,
+    }),
+    [consent, hasConsented, isBannerVisible, isPreferencesOpen, acceptAll, rejectOptional, savePreferences, openPreferences, closePreferences],
+  )
+
   return (
-    <CookieConsentContext.Provider
-      value={{
-        consent,
-        hasConsented,
-        isBannerVisible,
-        isPreferencesOpen,
-        acceptAll,
-        rejectOptional,
-        savePreferences,
-        openPreferences,
-        closePreferences,
-      }}
-    >
+    <CookieConsentContext.Provider value={contextValue}>
       {children}
       {isBannerVisible && <CookieBanner />}
       {isPreferencesOpen && <CookiePreferencesModal />}

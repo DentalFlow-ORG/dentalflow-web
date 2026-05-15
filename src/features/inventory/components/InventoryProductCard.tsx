@@ -51,7 +51,7 @@ export function InventoryProductCard({
       {/* Stock warning */}
       {hasStockWarning && (
         <div
-          className={`mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EMPTY' ? 'border-red-200 bg-red-50 text-red-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}
+          className={`mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EMPTY' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-300'}`}
         >
           <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {product.status === 'EMPTY'
@@ -63,7 +63,7 @@ export function InventoryProductCard({
       {/* Expiry warning */}
       {hasExpiryWarning && (
         <div
-          className={`mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EXPIRED' ? 'border-red-200 bg-red-50 text-red-700' : 'border-orange-200 bg-orange-50 text-orange-700'}`}
+          className={`mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EXPIRED' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800/50 dark:bg-orange-950/30 dark:text-orange-300'}`}
         >
           <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {product.status === 'EXPIRED'
@@ -77,7 +77,7 @@ export function InventoryProductCard({
         <div>
           <dt className="font-medium uppercase tracking-wide text-muted-foreground">Quantidade</dt>
           <dd
-            className={`mt-0.5 font-semibold ${product.status === 'EMPTY' ? 'text-red-600' : product.status === 'LOW' ? 'text-amber-700' : 'text-foreground'}`}
+            className={`mt-0.5 font-semibold ${product.status === 'EMPTY' ? 'text-red-600 dark:text-red-400' : product.status === 'LOW' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}
           >
             {formatQuantity(product.currentQuantity, product.unit)}
           </dd>
@@ -95,7 +95,7 @@ export function InventoryProductCard({
         <div>
           <dt className="font-medium uppercase tracking-wide text-muted-foreground">Validade</dt>
           <dd
-            className={`mt-0.5 font-medium ${product.status === 'EXPIRED' ? 'text-red-600' : product.status === 'EXPIRING' ? 'text-amber-700' : 'text-foreground'}`}
+            className={`mt-0.5 font-medium ${product.status === 'EXPIRED' ? 'text-red-600 dark:text-red-400' : product.status === 'EXPIRING' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}
           >
             {product.expiresAt ? (
               formatProductDate(product.expiresAt)
@@ -139,7 +139,7 @@ export function InventoryProductCard({
             }
             disabled={product.currentQuantity < 1 || quickMovingIds.has(product.id)}
             onClick={() => onQuickMove(product, 'out')}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-800/60 dark:hover:bg-red-950/30 dark:hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
           >
             <Minus className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
@@ -158,7 +158,7 @@ export function InventoryProductCard({
             aria-label={`Adicionar 1 unidade de ${product.name}`}
             disabled={quickMovingIds.has(product.id)}
             onClick={() => onQuickMove(product, 'in')}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:border-emerald-800/60 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-400 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
           </button>

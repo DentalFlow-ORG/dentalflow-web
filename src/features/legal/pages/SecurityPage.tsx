@@ -1,5 +1,4 @@
 import {
-  Shield,
   Lock,
   KeyRound,
   Eye,

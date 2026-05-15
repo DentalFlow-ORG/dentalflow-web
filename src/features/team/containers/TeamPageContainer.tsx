@@ -77,7 +77,7 @@ function MemberRowActions({ member, onEdit, onPassword, onDelete }: MemberRowAct
           <div className="mx-1 my-0.5 h-px bg-border" role="separator" />
           <button
             type="button"
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus:bg-red-50 focus:outline-none"
+            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 focus:bg-destructive/10 focus:outline-none dark:hover:bg-destructive/20 dark:focus:bg-destructive/20"
             onClick={() => {
               setOpen(false)
               onDelete()

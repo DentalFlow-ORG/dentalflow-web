@@ -11,12 +11,12 @@ export function CookieBanner() {
     <div
       role="region"
       aria-label="Aviso de cookies"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 shadow-lg backdrop-blur-sm"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 shadow-lg backdrop-blur-sm print:hidden"
     >
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:gap-6 lg:px-8">
         <div className="flex items-start gap-3">
           <Cookie className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted-foreground">
             Utilizamos cookies para autenticação e, com seu consentimento, para melhorar
             sua experiência. Cookies necessários não podem ser desativados.{' '}
             <a

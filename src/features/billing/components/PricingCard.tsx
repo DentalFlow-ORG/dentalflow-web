@@ -79,7 +79,7 @@ export function PricingCard({
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
               {plan.campaign.enabled && (
-                <span className="inline-flex items-center rounded-full bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-700">
+                <span className="inline-flex items-center rounded-full bg-orange-50 px-2 py-0.5 text-xs font-semibold text-orange-700 dark:bg-orange-950/40 dark:text-orange-300">
                   Oferta de lançamento
                 </span>
               )}
@@ -204,8 +204,8 @@ function PlanStateBanner({
 
 function LaunchPriceBlock({ plan }: { plan: BillingPlan }) {
   return (
-    <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wider text-orange-700">
+    <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800/40 dark:bg-orange-950/30">
+      <p className="text-xs font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300">
         Primeiro mês promocional
       </p>
       {plan.campaign.compareAtPriceMonthly != null && (
@@ -222,7 +222,7 @@ function LaunchPriceBlock({ plan }: { plan: BillingPlan }) {
         </span>
         <span className="text-sm font-medium text-muted-foreground">/mês</span>
       </div>
-      <p className="mt-2 text-xs font-medium leading-5 text-orange-700">
+      <p className="mt-2 text-xs font-medium leading-5 text-orange-700 dark:text-orange-300">
         Depois, valor regular do plano.
       </p>
     </div>

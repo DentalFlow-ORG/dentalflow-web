@@ -9,7 +9,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import type { AuthUserRole } from '@/features/auth/types'
 import { getUserDisplayName } from '@/features/auth/utils/name'
 import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
-import { useTheme, type ThemeMode } from '@/features/theme/ThemeProvider'
+import { useTheme } from '@/features/theme/ThemeProvider'
 import { cn } from '@/lib/utils'
 
 type AppShellProps = {
