@@ -15,25 +15,29 @@ type Props = {
 }
 
 export function TeamMemberProfileContainer({ profileId }: Props) {
-  const { profile, status, displayName, email, phone, isActive, availability, setAvailability, exceptions, setExceptions, load } =
+  const { profile, status, displayName, email, phone, isActive, availability, setAvailability, exceptions, setExceptions, user, load } =
     useTeamMemberProfile(profileId)
+
+  const isDentist = user?.role === 'DENTIST'
+  const backPath = isDentist ? '/app/agenda' : '/app/equipe'
+  const backLabel = isDentist ? 'Voltar para agenda' : 'Voltar para equipe'
 
   return (
     <AppPage>
       {/* Back navigation */}
       <div>
         <Button variant="ghost" size="sm" className="-ml-2" asChild>
-          <Link to="/app/equipe">
+          <Link to={backPath}>
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Voltar para equipe
+            {backLabel}
           </Link>
         </Button>
       </div>
 
       {/* Status states */}
       {status === 'loading' && <LoadingState />}
-      {status === 'forbidden' && <ForbiddenState />}
-      {status === 'not-found' && <NotFoundState />}
+      {status === 'forbidden' && <ForbiddenState backPath={backPath} backLabel={backLabel} />}
+      {status === 'not-found' && <NotFoundState backPath={backPath} backLabel={backLabel} />}
       {status === 'error' && <ErrorState onRetry={load} />}
 
       {/* Main content */}
@@ -170,7 +174,7 @@ function LoadingState() {
   )
 }
 
-function ForbiddenState() {
+function ForbiddenState({ backPath, backLabel }: { backPath: string; backLabel: string }) {
   return (
     <PanelCard className="flex flex-col items-center gap-3 py-12 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
@@ -183,18 +187,18 @@ function ForbiddenState() {
         </p>
       </div>
       <Button variant="outline" size="sm" asChild>
-        <Link to="/app/equipe">Voltar para equipe</Link>
+        <Link to={backPath}>{backLabel}</Link>
       </Button>
     </PanelCard>
   )
 }
 
-function NotFoundState() {
+function NotFoundState({ backPath, backLabel }: { backPath: string; backLabel: string }) {
   return (
     <PanelCard className="flex flex-col items-center gap-3 py-12 text-center">
       <p className="font-semibold text-slate-900">Profissional não encontrado.</p>
       <Button variant="outline" size="sm" asChild>
-        <Link to="/app/equipe">Voltar para equipe</Link>
+        <Link to={backPath}>{backLabel}</Link>
       </Button>
     </PanelCard>
   )
