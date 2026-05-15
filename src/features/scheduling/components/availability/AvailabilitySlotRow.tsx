@@ -80,7 +80,7 @@ export function AvailabilitySlotRow({
           onClick={onDelete}
           disabled={isLoading}
           aria-label="Remover"
-          className="text-muted-foreground hover:bg-red-50 hover:text-red-600"
+          className="text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>

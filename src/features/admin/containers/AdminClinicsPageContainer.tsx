@@ -62,7 +62,7 @@ function AdminClinicMobileCard({
           </Button>
           <Button
             variant="ghost"
-            className="w-full text-red-600 hover:bg-red-50 hover:text-red-700"
+            className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:text-red-400"
             onClick={() => onDelete({ id: clinic.id, name: clinic.name })}
           >
             <Trash2 className="h-4 w-4" aria-hidden="true" />
@@ -232,7 +232,7 @@ export function AdminClinicsPageContainer() {
                                 variant="ghost"
                                 aria-label={`Excluir ${clinic.name}`}
                                 title="Excluir"
-                                className="text-red-500 hover:bg-red-50 hover:text-red-700"
+                                className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:text-red-400"
                                 onClick={() =>
                                   setDeleteTarget({ id: clinic.id, name: clinic.name })
                                 }

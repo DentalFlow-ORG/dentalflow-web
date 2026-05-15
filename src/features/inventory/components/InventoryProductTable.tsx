@@ -253,7 +253,7 @@ export function InventoryProductTable({
                                 title="Desativar produto"
                                 aria-label={`Desativar produto ${product.name}`}
                                 onClick={() => onDeactivate(product)}
-                                className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-3 focus:ring-red-500/15"
+                                className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 focus:outline-none focus:ring-3 focus:ring-red-500/15"
                               >
                                 <PowerOff className="h-4 w-4" aria-hidden="true" />
                               </button>
@@ -266,7 +266,7 @@ export function InventoryProductTable({
                             title="Reativar produto"
                             aria-label={`Reativar produto ${product.name}`}
                             onClick={() => onReactivate(product)}
-                            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-green-50 hover:text-green-700 focus:outline-none focus:ring-3 focus:ring-green-500/15"
+                            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-green-50 hover:text-green-700 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-400 focus:outline-none focus:ring-3 focus:ring-green-500/15"
                           >
                             <Power className="h-4 w-4" aria-hidden="true" />
                           </button>

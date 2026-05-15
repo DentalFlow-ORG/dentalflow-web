@@ -146,7 +146,7 @@ export function MemberAvailabilityDraft({
                   type="button"
                   size="icon-sm"
                   variant="ghost"
-                  className="self-start text-red-500 hover:bg-red-50 hover:text-red-700 sm:self-auto"
+                  className="self-start text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:text-red-400 sm:self-auto"
                   disabled={disabled}
                   title="Remover horario"
                   onClick={() => removeSlot(index)}
