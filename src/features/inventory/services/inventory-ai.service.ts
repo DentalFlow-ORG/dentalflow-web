@@ -15,7 +15,7 @@ export type AiAnalysisResult = {
 }
 
 export function analyzeInventoryWithAi(): Promise<AiAnalysisResult> {
-  return apiRequest<AiAnalysisResult>('/ai/inventory', {
+  return apiRequest<AiAnalysisResult>('/ai-assistant/inventory/analyze', {
     method: 'POST',
     accessToken: getAccessToken(),
     body: JSON.stringify({}),

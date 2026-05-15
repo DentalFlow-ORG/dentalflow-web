@@ -18,7 +18,7 @@ export function analyzeFinanceWithAi(params: {
   from?: string
   to?: string
 }): Promise<AiAnalysisResult> {
-  return apiRequest<AiAnalysisResult>('/ai/finance', {
+  return apiRequest<AiAnalysisResult>('/ai-assistant/finance/analyze', {
     method: 'POST',
     accessToken: getAccessToken(),
     body: JSON.stringify(params),
