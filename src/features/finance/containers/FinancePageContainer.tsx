@@ -12,6 +12,7 @@ import { CategoriesPanel } from '../components/CategoriesPanel'
 import { CategoryCreateForm } from '../components/CategoryCreateForm'
 import { CategoryEditModal } from '../components/CategoryEditModal'
 import { FinanceFiltersBar } from '../components/FinanceFiltersBar'
+import { FinancialAnalysisPanel } from '../components/FinancialAnalysisPanel'
 import { FixedExpenseForm } from '../components/FixedExpenseForm'
 import { FixedExpenseEditModal } from '../components/FixedExpenseEditModal'
 import { FixedExpensesList } from '../components/FixedExpensesList'
@@ -123,6 +124,8 @@ export function FinancePageContainer() {
         {summary && (
           <>
             <KpiGrid summary={summary} />
+
+            <FinancialAnalysisPanel summary={summary} />
 
             <div className="grid gap-6 lg:grid-cols-2">
               <PanelCard>
