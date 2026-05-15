@@ -6,6 +6,10 @@ import { AppShell } from '@/components/layout/AppShell'
 import { SubscriptionOnlyShell } from '@/components/layout/SubscriptionOnlyShell'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { getCurrentBillingStatus } from '@/features/billing/services/billing.service'
+import {
+  getCachedBillingStatus,
+  setCachedBillingStatus,
+} from '@/features/billing/services/billing-status-cache'
 import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
 
 import { useAuth } from '../hooks/useAuth'
@@ -37,14 +41,26 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
   // billingChecked is true when the result matches the current pathname (or no check needed).
   const [billingResult, setBillingResult] = useState<BillingResult | null>(null)
 
-  const billingChecked =
-    !needsBillingCheck || billingResult?.resolvedPathname === pathname
-  const billingStatus = billingChecked ? (billingResult?.status ?? null) : null
+  // Use the last cached status as an instant fallback so navigating between routes
+  // within the TTL does not show the full-page verification spinner.
+  // A background fetch always runs; if accessAllowed flips to false the redirect
+  // fires on the next render once the fresh result arrives.
+  const cachedStatus = needsBillingCheck ? getCachedBillingStatus() : null
+  const effectiveResult: BillingResult | null =
+    billingResult?.resolvedPathname === pathname
+      ? billingResult
+      : cachedStatus != null
+        ? { resolvedPathname: pathname, status: cachedStatus }
+        : null
+
+  const billingChecked = !needsBillingCheck || effectiveResult !== null
+  const billingStatus = billingChecked ? (effectiveResult?.status ?? null) : null
 
   useEffect(() => {
     if (!needsBillingCheck) return
     getCurrentBillingStatus()
       .then((status) => {
+        setCachedBillingStatus(status)
         setBillingResult({ resolvedPathname: pathname, status })
       })
       .catch(() => {

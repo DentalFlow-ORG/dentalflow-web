@@ -15,6 +15,7 @@ import {
   refresh,
   register as registerRequest,
 } from '../services/auth.service'
+import { clearBillingStatusCache } from '@/features/billing/services/billing-status-cache'
 import {
   clearSession,
   getAccessToken,
@@ -85,6 +86,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await logoutRequest()
     } finally {
       clearSession()
+      clearBillingStatusCache()
       setUser(null)
     }
   }, [])

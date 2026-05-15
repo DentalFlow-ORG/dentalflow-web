@@ -11,6 +11,7 @@ import {
   listBillingPlans,
   startTrial,
 } from '../services/billing.service'
+import { setCachedBillingStatus } from '../services/billing-status-cache'
 import type {
   BillingInterval,
   BillingCampaign,
@@ -75,7 +76,10 @@ export function useSubscriptionPage() {
     setIsLoadingBillingStatus(true)
     setBillingStatusError(null)
     getCurrentBillingStatus()
-      .then(setBillingStatus)
+      .then((status) => {
+        setCachedBillingStatus(status)
+        setBillingStatus(status)
+      })
       .catch((err) => {
         const msg =
           err instanceof Error
@@ -119,6 +123,7 @@ export function useSubscriptionPage() {
     setStartingTrialPlanKey(planKey)
     try {
       const nextStatus = await startTrial({ planKey, billingInterval })
+      setCachedBillingStatus(nextStatus)
       setBillingStatus(nextStatus)
       showAlert({
         title: 'Teste grátis iniciado',
@@ -152,6 +157,7 @@ export function useSubscriptionPage() {
     setChangingPlanKey(planKey)
     try {
       const nextStatus = await changeSubscriptionPlan({ planKey, billingInterval })
+      setCachedBillingStatus(nextStatus)
       setBillingStatus(nextStatus)
       showAlert({
         title: 'Plano atualizado',
