@@ -10,7 +10,10 @@ export type FinancialInsight = {
   tone: InsightTone
 }
 
-export function generateInsights(summary: FinanceSummary): FinancialInsight[] {
+export function generateInsights(
+  summary: FinanceSummary,
+  previousSummary?: FinanceSummary | null,
+): FinancialInsight[] {
   const { kpis, expensesByCategory, incomeByService } = summary
   const { totalIncome, totalExpenses, netProfit, fixedExpensesTotal } = kpis
 
@@ -28,7 +31,7 @@ export function generateInsights(summary: FinanceSummary): FinancialInsight[] {
 
   const insights: FinancialInsight[] = []
 
-  // 1. Net result
+  // 1. Net result (always first)
   if (netProfit > 0) {
     insights.push({
       id: 'surplus',
@@ -52,7 +55,24 @@ export function generateInsights(summary: FinanceSummary): FinancialInsight[] {
     })
   }
 
-  // 2. Expense pressure (only meaningful when there is income to compare)
+  // 2. Result trend vs previous period
+  if (previousSummary) {
+    const prevNetProfit = previousSummary.kpis.netProfit
+    const delta = netProfit - prevNetProfit
+    if (Math.abs(delta) >= 0.01) {
+      insights.push({
+        id: 'result-trend',
+        title: delta > 0 ? 'Resultado melhorou' : 'Resultado piorou',
+        description:
+          delta > 0
+            ? `O resultado melhorou ${formatCurrency(delta)} em comparação ao período anterior.`
+            : `O resultado piorou ${formatCurrency(Math.abs(delta))} em relação ao período anterior.`,
+        tone: delta > 0 ? 'positive' : 'warning',
+      })
+    }
+  }
+
+  // 3. Expense pressure (only meaningful when there is income to compare)
   if (totalIncome > 0 && totalExpenses > 0) {
     const ratio = (totalExpenses / totalIncome) * 100
     if (ratio >= 70) {
@@ -65,7 +85,56 @@ export function generateInsights(summary: FinanceSummary): FinancialInsight[] {
     }
   }
 
-  // 3. Top expense category
+  // 4. Revenue trend vs previous period
+  if (previousSummary) {
+    const prevIncome = previousSummary.kpis.totalIncome
+    if (prevIncome > 0 && totalIncome > 0) {
+      const pctChange = ((totalIncome - prevIncome) / prevIncome) * 100
+      if (Math.abs(pctChange) >= 5) {
+        insights.push({
+          id: 'income-trend',
+          title: pctChange > 0 ? 'Receita em crescimento' : 'Receita em queda',
+          description:
+            pctChange > 0
+              ? `A receita aumentou ${pctChange.toFixed(0)}% em relação ao período anterior.`
+              : `A receita caiu ${Math.abs(pctChange).toFixed(0)}% em relação ao período anterior.`,
+          tone: pctChange > 0 ? 'positive' : 'warning',
+        })
+      }
+    } else if (totalIncome > 0 && prevIncome === 0) {
+      insights.push({
+        id: 'income-trend',
+        title: 'Primeiro período com receita',
+        description: 'Não havia receita registrada no período anterior para comparação.',
+        tone: 'positive',
+      })
+    }
+  }
+
+  // 5. Expenses outpaced revenue — only when both periods have sufficient data
+  if (
+    previousSummary &&
+    previousSummary.kpis.totalExpenses > 0 &&
+    previousSummary.kpis.totalIncome > 0 &&
+    totalIncome > 0 &&
+    totalExpenses > 0
+  ) {
+    const expGrowth =
+      ((totalExpenses - previousSummary.kpis.totalExpenses) / previousSummary.kpis.totalExpenses) * 100
+    const incGrowth =
+      ((totalIncome - previousSummary.kpis.totalIncome) / previousSummary.kpis.totalIncome) * 100
+    if (expGrowth > incGrowth + 5 && expGrowth > 5) {
+      insights.push({
+        id: 'expense-outpaced',
+        title: 'Atenção ao crescimento das despesas',
+        description:
+          'As despesas cresceram mais rápido que as receitas em relação ao período anterior.',
+        tone: 'warning',
+      })
+    }
+  }
+
+  // 6. Top expense category
   const topExpense = expensesByCategory.find((item) => item.amount > 0)
   if (topExpense) {
     insights.push({
@@ -76,7 +145,7 @@ export function generateInsights(summary: FinanceSummary): FinancialInsight[] {
     })
   }
 
-  // 4. Top revenue service
+  // 7. Top revenue service
   const topService = incomeByService.find((item) => item.amount > 0)
   if (topService) {
     insights.push({
@@ -87,7 +156,7 @@ export function generateInsights(summary: FinanceSummary): FinancialInsight[] {
     })
   }
 
-  // 5. Fixed expense weight
+  // 8. Fixed expense weight
   if (fixedExpensesTotal > 0) {
     const fixedRatio = totalIncome > 0 ? (fixedExpensesTotal / totalIncome) * 100 : null
     const heavyWeight = fixedRatio !== null && fixedRatio >= 50

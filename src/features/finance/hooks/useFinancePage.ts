@@ -55,6 +55,20 @@ function formatDateInput(date: Date) {
   return `${year}-${month}-${day}`
 }
 
+function getPreviousPeriod(from: string, to: string): { from: string; to: string } {
+  const [fy, fm, fd] = from.split('-').map(Number)
+  const [ty, tm, td] = to.split('-').map(Number)
+  const fromDate = new Date(fy, fm - 1, fd)
+  const toDate = new Date(ty, tm - 1, td)
+  const durationDays = Math.round((toDate.getTime() - fromDate.getTime()) / 86400000) + 1
+  const prevToMs = fromDate.getTime() - 86400000
+  const prevFromMs = prevToMs - (durationDays - 1) * 86400000
+  return {
+    from: formatDateInput(new Date(prevFromMs)),
+    to: formatDateInput(new Date(prevToMs)),
+  }
+}
+
 const currentPeriod = getMonthRange()
 
 const initialFilters: FinanceFilters = {
@@ -86,6 +100,7 @@ export function useFinancePage() {
   const { showAlert } = useGlobalAlerts()
   const [filters, setFilters] = useState<FinanceFilters>(initialFilters)
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
+  const [previousSummary, setPreviousSummary] = useState<FinanceSummary | null>(null)
   const [categories, setCategories] = useState<FinancialCategory[]>([])
   const [transactions, setTransactions] = useState<FinancialTransaction[]>([])
   const [transactionsTotal, setTransactionsTotal] = useState(0)
@@ -150,19 +165,28 @@ export function useFinancePage() {
     setIsLoading(true)
     setLoadError(null)
 
+    const prevPeriod = getPreviousPeriod(filters.from, filters.to)
+    const previousFilters: FinanceFilters = {
+      from: prevPeriod.from,
+      to: prevPeriod.to,
+      groupBy: filters.groupBy,
+    }
+
     Promise.all([
       getFinanceSummary(filters),
       listFinancialCategories(),
       listFinancialTransactions(filters, 1, transactionsPageSize),
       listFixedExpenses(),
+      getFinanceSummary(previousFilters).catch(() => null),
     ])
-      .then(([summaryResponse, categoriesResponse, transactionsResponse, fixedResponse]) => {
+      .then(([summaryResponse, categoriesResponse, transactionsResponse, fixedResponse, prevSummaryResponse]) => {
         setSummary(summaryResponse)
         setCategories(categoriesResponse)
         setTransactions(transactionsResponse.data)
         setTransactionsTotal(transactionsResponse.total)
         setTransactionsPage(transactionsResponse.page)
         setFixedExpenses(fixedResponse)
+        setPreviousSummary(prevSummaryResponse)
       })
       .catch((err) => {
         const message =
@@ -601,6 +625,7 @@ export function useFinancePage() {
   return {
     filters,
     summary,
+    previousSummary,
     categories,
     transactions,
     transactionsTotal,

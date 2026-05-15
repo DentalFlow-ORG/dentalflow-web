@@ -35,8 +35,14 @@ function InsightCard({ insight }: { insight: FinancialInsight }) {
   )
 }
 
-export function FinancialAnalysisPanel({ summary }: { summary: FinanceSummary }) {
-  const insights = generateInsights(summary)
+export function FinancialAnalysisPanel({
+  summary,
+  previousSummary,
+}: {
+  summary: FinanceSummary
+  previousSummary?: FinanceSummary | null
+}) {
+  const insights = generateInsights(summary, previousSummary)
 
   // 5+ insights: 3-col grid (3+2 or 3+3). Fewer: 2-col to avoid sparse last rows.
   const gridClass =

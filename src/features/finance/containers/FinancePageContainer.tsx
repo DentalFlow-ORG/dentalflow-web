@@ -36,6 +36,7 @@ export function FinancePageContainer() {
     isLoading,
     isLoadingTransactions,
     loadError,
+    previousSummary,
     transactionForm,
     fixedExpenseForm,
     transactionError,
@@ -125,7 +126,7 @@ export function FinancePageContainer() {
           <>
             <KpiGrid summary={summary} />
 
-            <FinancialAnalysisPanel summary={summary} />
+            <FinancialAnalysisPanel summary={summary} previousSummary={previousSummary} />
 
             <div className="grid gap-6 lg:grid-cols-2">
               <PanelCard>
