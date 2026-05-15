@@ -167,6 +167,7 @@ export function ClinicalTemplatesContainer() {
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label="Editar modelo"
                     className="h-7 w-7 p-0 text-slate-500 hover:text-primary"
                     onClick={() => handleEdit(t)}
                   >
@@ -175,6 +176,7 @@ export function ClinicalTemplatesContainer() {
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label="Excluir modelo"
                     className="h-7 w-7 p-0 text-slate-500 hover:text-red-600"
                     onClick={() => deactivate(t.id)}
                   >
