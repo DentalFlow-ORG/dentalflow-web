@@ -1,6 +1,6 @@
 import { createContext, useContext, useLayoutEffect, useState, type ReactNode } from 'react'
 
-export type ThemeMode = 'light' | 'dark' | 'system'
+export type ThemeMode = 'light' | 'dark'
 
 const STORAGE_KEY = 'dentalflow.theme'
 
@@ -11,39 +11,22 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-function resolveTheme(mode: ThemeMode): 'light' | 'dark' {
-  if (mode === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  }
-  return mode
-}
-
 function readStoredTheme(): ThemeMode {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+    // 'system' was a valid value in earlier versions — treat it as 'light'
+    if (stored === 'light' || stored === 'dark') return stored
   } catch {
-    // localStorage unavailable (e.g. SSR or private browsing restriction)
+    // localStorage unavailable (SSR or private browsing restriction)
   }
-  return 'system'
+  return 'light'
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(readStoredTheme)
 
   useLayoutEffect(() => {
-    const apply = () => {
-      const resolved = resolveTheme(theme)
-      document.documentElement.classList.toggle('dark', resolved === 'dark')
-    }
-
-    apply()
-
-    if (theme !== 'system') return
-
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    mq.addEventListener('change', apply)
-    return () => mq.removeEventListener('change', apply)
+    document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme])
 
   function setTheme(mode: ThemeMode) {

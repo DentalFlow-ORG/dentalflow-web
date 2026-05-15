@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { BarChart3, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, Monitor, Moon, MoreHorizontal, Package, ShieldCheck, Sun, Users, Users2, X, Zap } from 'lucide-react'
+import { BarChart3, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, Moon, MoreHorizontal, Package, ShieldCheck, Sun, Users, Users2, X, Zap } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
@@ -113,19 +113,15 @@ const MOBILE_PRIMARY_ROUTES_BY_ROLE: Partial<Record<AuthUserRole, string[]>> = {
   ADMIN: ['/app/admin/users', '/app/admin/clinics', '/app/admin/financeiro'],
 }
 
-const THEME_CYCLE: ThemeMode[] = ['system', 'light', 'dark']
-
 function ThemeToggle() {
   const { theme, setTheme } = useTheme()
 
   function cycleTheme() {
-    const idx = THEME_CYCLE.indexOf(theme)
-    setTheme(THEME_CYCLE[(idx + 1) % THEME_CYCLE.length])
+    setTheme(theme === 'light' ? 'dark' : 'light')
   }
 
-  const label =
-    theme === 'light' ? 'Tema claro' : theme === 'dark' ? 'Tema escuro' : 'Tema do sistema'
-  const Icon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor
+  const label = theme === 'light' ? 'Tema claro' : 'Tema escuro'
+  const Icon = theme === 'light' ? Sun : Moon
 
   return (
     <Button variant="outline" size="sm" aria-label={label} onClick={cycleTheme}>
