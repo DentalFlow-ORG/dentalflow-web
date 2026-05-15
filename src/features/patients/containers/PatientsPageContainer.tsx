@@ -13,6 +13,7 @@ import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ClinicalTimeline } from '@/features/clinical-records/components/ClinicalTimeline'
 import { usePatientClinicalTimeline } from '@/features/clinical-records/hooks/usePatientClinicalTimeline'
 
@@ -179,9 +180,11 @@ function PatientDetailPanel({
   onClose: () => void
 }) {
   const [activeTab, setActiveTab] = useState<PanelTab>('consultas')
+  const { user } = useAuth()
+  const canViewClinicalTimeline = user?.role === 'OWNER' || user?.role === 'DENTIST'
   const { appointments, isLoading } = usePatientHistory(patient)
   const { records: clinicalRecords, isLoading: isLoadingTimeline } = usePatientClinicalTimeline(
-    patient?.identifier ?? null,
+    canViewClinicalTimeline ? patient?.identifier ?? null : null,
   )
 
   return (
@@ -284,16 +287,27 @@ function PatientDetailPanel({
 
             {activeTab === 'prontuarios' && (
               <div id="panel-patient-prontuarios" role="tabpanel" aria-labelledby="tab-patient-prontuarios">
-                <ListPageShell
-                  isLoading={isLoadingTimeline}
-                  loadingMessage="Carregando prontuários…"
-                  isEmpty={!isLoadingTimeline && clinicalRecords.length === 0}
-                  emptyState={
-                    <p className="text-sm text-slate-500">Nenhum prontuário encontrado.</p>
-                  }
-                >
-                  <ClinicalTimeline records={clinicalRecords} />
-                </ListPageShell>
+                {canViewClinicalTimeline ? (
+                  <ListPageShell
+                    isLoading={isLoadingTimeline}
+                    loadingMessage="Carregando prontuários…"
+                    isEmpty={!isLoadingTimeline && clinicalRecords.length === 0}
+                    emptyState={
+                      <p className="text-sm text-slate-500">Nenhum prontuário encontrado.</p>
+                    }
+                  >
+                    <ClinicalTimeline records={clinicalRecords} />
+                  </ListPageShell>
+                ) : (
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-5">
+                    <p className="text-sm font-medium text-slate-700">
+                      Informações clínicas restritas ao proprietário e dentistas.
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      O histórico administrativo de consultas continua disponível nesta tela.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

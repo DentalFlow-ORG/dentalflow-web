@@ -7,12 +7,14 @@ type State = { records: ClinicalRecord[]; isLoading: boolean; error: string | nu
 type Action =
   | { type: 'loading' }
   | { type: 'success'; records: ClinicalRecord[] }
+  | { type: 'idle' }
   | { type: 'error' }
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'loading': return { ...state, isLoading: true, error: null }
     case 'success': return { records: action.records, isLoading: false, error: null }
+    case 'idle': return { records: [], isLoading: false, error: null }
     case 'error': return { ...state, isLoading: false, error: 'Não foi possível carregar o histórico clínico.' }
   }
 }
@@ -21,7 +23,10 @@ export function usePatientClinicalTimeline(identifier: string | null) {
   const [state, dispatch] = useReducer(reducer, { records: [], isLoading: false, error: null })
 
   const load = useCallback(() => {
-    if (!identifier) return
+    if (!identifier) {
+      dispatch({ type: 'idle' })
+      return
+    }
     dispatch({ type: 'loading' })
     let isCurrent = true
 

@@ -299,13 +299,23 @@ function ClinicalRecordSection({
   onClose: () => void
 }) {
   const { user } = useAuth()
+  const canManage = user?.role === 'OWNER' || user?.role === 'DENTIST'
+  if (!canManage) return null
+
+  return <ClinicalRecordManagerSection appointment={appointment} onClose={onClose} />
+}
+
+function ClinicalRecordManagerSection({
+  appointment,
+  onClose,
+}: {
+  appointment: Appointment
+  onClose: () => void
+}) {
   const navigate = useNavigate()
   const { showAlert } = useGlobalAlerts()
   const { record, isLoading } = useClinicalRecordByAppointment(appointment.id)
   const [isCreating, setIsCreating] = useState(false)
-
-  const canManage = user?.role === 'OWNER' || user?.role === 'DENTIST'
-  if (!canManage) return null
 
   const handleOpen = () => {
     if (!record) return
