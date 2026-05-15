@@ -3,12 +3,14 @@ import { AuthHeader } from '../components/AuthHeader'
 import { AuthInfoPanel } from '../components/AuthInfoPanel'
 import { AuthModeTabs } from '../components/AuthModeTabs'
 import type { AuthMode } from '../types'
+import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
 
 type AuthPageProps = {
   mode: AuthMode
 }
 
 export function AuthPage({ mode }: AuthPageProps) {
+  useForceLightTheme()
   return (
     <section className="min-h-screen bg-slate-50 px-6 pb-20 pt-28 lg:px-8">
       <AuthHeader />

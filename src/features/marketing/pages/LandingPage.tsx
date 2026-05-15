@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { SiteFooter } from '@/components/layout/SiteFooter'
+import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
 
 import { ContactSection } from '../components/ContactSection'
 import { FeaturesSection } from '../components/FeaturesSection'
@@ -13,6 +14,7 @@ import { SolutionsSection } from '../components/SolutionsSection'
 import { TrialCtaSection } from '../components/TrialCtaSection'
 
 export function LandingPage() {
+  useForceLightTheme()
   const [isScrolled, setIsScrolled] = useState(false)
 
   useEffect(() => {

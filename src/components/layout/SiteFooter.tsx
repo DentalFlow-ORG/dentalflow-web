@@ -1,5 +1,19 @@
 import { companyInfo } from '@/config/company'
 import { onlyDigits } from '@/lib/field-formatters'
+import { useCookieConsent } from '@/features/privacy/components/CookieConsentContext'
+
+function CookiePreferencesButton() {
+  const { openPreferences } = useCookieConsent()
+  return (
+    <button
+      type="button"
+      onClick={openPreferences}
+      className="transition-colors hover:text-primary"
+    >
+      Cookies
+    </button>
+  )
+}
 
 export function SiteFooter() {
   const currentYear = new Date().getFullYear()
@@ -42,7 +56,7 @@ export function SiteFooter() {
               <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
                 CNPJ
               </dt>
-              <dd className="mt-1 text-slate-600">{companyInfo.cnpj}</dd>
+              <dd className="mt-1 text-slate-600">{companyInfo.documentNumber}</dd>
             </div>
             <div>
               <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
@@ -63,19 +77,29 @@ export function SiteFooter() {
               {companyInfo.phone}
             </a>
             <a
-              href={`mailto:${companyInfo.email}`}
+              href={`mailto:${companyInfo.supportEmail}`}
               className="block transition-colors hover:text-primary"
             >
-              {companyInfo.email}
+              {companyInfo.supportEmail}
             </a>
             <div className="flex flex-wrap gap-x-5 gap-y-2 pt-2">
-              <a href="/" className="transition-colors hover:text-primary">
+              <a href="/politica-de-privacidade" className="transition-colors hover:text-primary">
                 Privacidade
               </a>
-              <a href="/" className="transition-colors hover:text-primary">
+              <a href="/termos-de-uso" className="transition-colors hover:text-primary">
                 Termos
               </a>
-              <a href="/" className="transition-colors hover:text-primary">
+              <a href="/seguranca" className="transition-colors hover:text-primary">
+                Segurança
+              </a>
+              <a href="/direitos-do-titular" className="transition-colors hover:text-primary">
+                Seus dados
+              </a>
+              <CookiePreferencesButton />
+              <a
+                href={`mailto:${companyInfo.supportEmail}`}
+                className="transition-colors hover:text-primary"
+              >
                 Suporte
               </a>
             </div>

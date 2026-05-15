@@ -1,6 +1,6 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { ArrowRight, Building2, LockKeyhole, Mail, UserPlus } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useId, useState, type FormEvent } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
@@ -27,11 +27,14 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [responsibleName, setResponsibleName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const termsCheckboxId = useId()
 
   useEffect(() => {
     setError(null)
+    setAcceptedTerms(false)
   }, [mode])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -64,6 +67,13 @@ export function AuthForm({ mode }: AuthFormProps) {
       return
     }
 
+    if (!isLogin && !acceptedTerms) {
+      const message = 'Você precisa aceitar os Termos de Uso e a Política de Privacidade para criar uma conta.'
+      setError(message)
+      showAlert({ title: 'Cadastro incompleto', description: message, tone: 'warning' })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -83,6 +93,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           lastName,
           email: normalizedEmail,
           password,
+          acceptedTerms: true,
         })
         showAlert({
           title: 'Conta criada',
@@ -198,6 +209,40 @@ export function AuthForm({ mode }: AuthFormProps) {
             maxLength={72}
             onChange={setPassword}
           />
+
+          {!isLogin && (
+            <div className="flex items-start gap-3">
+              <input
+                id={termsCheckboxId}
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
+                required
+              />
+              <label htmlFor={termsCheckboxId} className="text-sm leading-snug text-slate-600">
+                Li e aceito os{' '}
+                <Link
+                  to="/termos-de-uso"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-primary hover:underline"
+                >
+                  Termos de Uso
+                </Link>{' '}
+                e a{' '}
+                <Link
+                  to="/politica-de-privacidade"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-primary hover:underline"
+                >
+                  Política de Privacidade
+                </Link>
+                .
+              </label>
+            </div>
+          )}
 
           {error && <InlineFeedback>{error}</InlineFeedback>}
 

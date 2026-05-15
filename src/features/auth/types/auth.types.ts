@@ -11,6 +11,7 @@ export type RegisterPayload = {
   lastName: string
   email: string
   password: string
+  acceptedTerms: boolean
 }
 
 export type AuthUserRole = 'ADMIN' | 'OWNER' | 'DENTIST' | 'ASSISTANT' | 'PATIENT'
