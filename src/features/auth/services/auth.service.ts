@@ -8,10 +8,13 @@ import type {
 } from '../types'
 import { getAccessToken } from '../utils/session-storage'
 
+let pendingRefresh: Promise<RefreshResponse> | null = null
+
 export function login(payload: LoginPayload) {
   return apiRequest<AuthResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(payload),
+    _skipRefresh: true,
   })
 }
 
@@ -19,6 +22,7 @@ export function register(payload: RegisterPayload) {
   return apiRequest<AuthResponse>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(payload),
+    _skipRefresh: true,
   })
 }
 
@@ -37,8 +41,14 @@ export function logout() {
 }
 
 export function refresh() {
-  return apiRequest<RefreshResponse>('/auth/refresh', {
-    method: 'POST',
-    _skipRefresh: true,
-  })
+  if (!pendingRefresh) {
+    pendingRefresh = apiRequest<RefreshResponse>('/auth/refresh', {
+      method: 'POST',
+      _skipRefresh: true,
+    }).finally(() => {
+      pendingRefresh = null
+    })
+  }
+
+  return pendingRefresh
 }

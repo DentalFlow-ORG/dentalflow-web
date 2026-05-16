@@ -6,6 +6,12 @@ export const LandingPage = lazy(() =>
   })),
 )
 
+export const FeaturesPage = lazy(() =>
+  import('@/features/marketing/pages/FeaturesPage').then((m) => ({
+    default: m.FeaturesPage,
+  })),
+)
+
 export const AuthRoutePage = lazy(() =>
   import('@/features/auth/pages/AuthRoutePage').then((m) => ({
     default: m.AuthRoutePage,
@@ -198,4 +204,3 @@ export const PrivacyRequestFormPage = lazy(() =>
     default: m.PrivacyRequestFormPage,
   })),
 )
-

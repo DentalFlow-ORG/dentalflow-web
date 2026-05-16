@@ -24,6 +24,7 @@ import {
   DentistHomePage,
   DpoContactPage,
   FinancePage,
+  FeaturesPage,
   FiscalInvoicesPage,
   InventoryPage,
   LandingPage,
@@ -60,6 +61,12 @@ const authRoute = createRoute({
     mode: search.mode === 'register' ? 'register' : 'login',
   }),
   component: AuthRoutePage,
+})
+
+const featuresRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades',
+  component: FeaturesPage,
 })
 
 const appRoute = createRoute({
@@ -276,7 +283,7 @@ const adminFinanceRoute = createRoute({
 
 const complianceRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/app/compliance',
+  path: '/app/admin/compliance',
   component: () => (
     <AdminRoute>
       <CompliancePage />
@@ -336,6 +343,7 @@ const privacyRequestFormRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
+  featuresRoute,
   appRoute,
   dentistHomeRoute,
   appointmentsRoute,

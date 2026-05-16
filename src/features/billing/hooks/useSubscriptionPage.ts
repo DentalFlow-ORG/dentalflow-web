@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { getPlanFeatureSummaries } from '@/features/marketing/config/features'
 
 import {
   cancelSubscription,
@@ -32,7 +33,7 @@ export const BILLING_STATUS_LABELS: Record<NormalizedBillingStatus, string> = {
 }
 
 export function getPlanFeatures(plan: BillingPlan): string[] {
-  const features: string[] = []
+  const features: string[] = getPlanFeatureSummaries(plan.slug)
   if (plan.maxProfiles != null) features.push(`Até ${plan.maxProfiles} perfis`)
   else features.push('Perfis ilimitados')
   if (plan.maxLeadsPerMonth != null) features.push(`Até ${plan.maxLeadsPerMonth} leads por mês`)
@@ -43,7 +44,7 @@ export function getPlanFeatures(plan: BillingPlan): string[] {
   if (plan.hasAnalytics) features.push('Relatórios e análises')
   if (plan.hasCustomDomain) features.push('Domínio personalizado')
   if (plan.hasPrioritySupport) features.push('Suporte prioritário')
-  return features
+  return [...new Set(features)]
 }
 
 export function intervalAvailableForPlan(plan: BillingPlan, interval: BillingInterval): boolean {

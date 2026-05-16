@@ -12,6 +12,10 @@ type LandingHeaderProps = {
   isScrolled: boolean
 }
 
+function isRouterLink(href: string): href is '/funcionalidades' {
+  return href === '/funcionalidades'
+}
+
 export function LandingHeader({ isScrolled }: LandingHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -29,13 +33,23 @@ export function LandingHeader({ isScrolled }: LandingHeaderProps) {
 
         <nav className="hidden items-center gap-7 text-sm font-medium text-slate-600 lg:flex">
           {navigationItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="transition-colors hover:text-primary"
-            >
-              {item.label}
-            </a>
+            isRouterLink(item.href) ? (
+              <Link
+                key={item.label}
+                to={item.href}
+                className="transition-colors hover:text-primary"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <a
+                key={item.label}
+                href={item.href}
+                className="transition-colors hover:text-primary"
+              >
+                {item.label}
+              </a>
+            )
           ))}
         </nav>
 
@@ -75,14 +89,25 @@ export function LandingHeader({ isScrolled }: LandingHeaderProps) {
         <div className="border-t border-slate-200 bg-white px-6 pb-5 pt-4 lg:hidden">
           <nav className="flex flex-col gap-1">
             {navigationItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.label}
-              </a>
+              isRouterLink(item.href) ? (
+                <Link
+                  key={item.label}
+                  to={item.href}
+                  className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.label}
+                </a>
+              )
             ))}
           </nav>
           <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4">

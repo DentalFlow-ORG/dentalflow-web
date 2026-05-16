@@ -1,7 +1,26 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { BarChart3, Building2, CalendarCheck, CalendarDays, ClipboardList, CreditCard, FileText, Landmark, LogOut, Moon, MoreHorizontal, Package, ShieldCheck, Sun, Users, Users2, X, Zap } from 'lucide-react'
-import { type ReactNode } from 'react'
+import {
+  BarChart3,
+  BookOpenCheck,
+  Building2,
+  CalendarDays,
+  ClipboardList,
+  CreditCard,
+  FileText,
+  Home,
+  Landmark,
+  LogOut,
+  Moon,
+  MoreHorizontal,
+  Package,
+  ShieldCheck,
+  Sun,
+  Users,
+  Users2,
+  X,
+  Zap,
+} from 'lucide-react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
 import { Button } from '@/components/ui/button'
@@ -22,19 +41,59 @@ type NavItem = {
   to: string
   icon: React.ElementType
   roles?: AuthUserRole[]
+  exact?: boolean
 }
 
 const appNavigation: NavItem[] = [
   {
-    label: 'Visão geral',
+    label: 'Início',
+    to: '/app/admin',
+    icon: Home,
+    roles: ['ADMIN'],
+    exact: true,
+  },
+  {
+    label: 'Início',
     to: '/app',
     icon: BarChart3,
     roles: ['OWNER', 'ASSISTANT'],
+    exact: true,
   },
   {
-    label: 'Agendamentos',
+    label: 'Início',
+    to: '/app/inicio',
+    icon: Home,
+    roles: ['DENTIST'],
+    exact: true,
+  },
+  {
+    label: 'Usuários',
+    to: '/app/admin/users',
+    icon: ShieldCheck,
+    roles: ['ADMIN'],
+  },
+  {
+    label: 'Clínicas',
+    to: '/app/admin/clinics',
+    icon: Building2,
+    roles: ['ADMIN'],
+  },
+  {
+    label: 'Financeiro SaaS',
+    to: '/app/admin/financeiro',
+    icon: CreditCard,
+    roles: ['ADMIN'],
+  },
+  {
+    label: 'Compliance',
+    to: '/app/admin/compliance',
+    icon: ShieldCheck,
+    roles: ['ADMIN'],
+  },
+  {
+    label: 'Agenda',
     to: '/app/agendamentos',
-    icon: CalendarCheck,
+    icon: CalendarDays,
     roles: ['OWNER', 'ASSISTANT'],
   },
   {
@@ -50,9 +109,15 @@ const appNavigation: NavItem[] = [
     roles: ['OWNER', 'ASSISTANT'],
   },
   {
-    label: 'Prontuário',
+    label: 'Prontuários',
     to: '/app/prontuario',
     icon: ClipboardList,
+    roles: ['OWNER', 'DENTIST'],
+  },
+  {
+    label: 'Modelos clínicos',
+    to: '/app/modelos-clinicos',
+    icon: BookOpenCheck,
     roles: ['OWNER', 'DENTIST'],
   },
   {
@@ -85,32 +150,13 @@ const appNavigation: NavItem[] = [
     icon: CreditCard,
     roles: ['OWNER'],
   },
-  {
-    label: 'Usuários',
-    to: '/app/admin/users',
-    icon: ShieldCheck,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Clínicas',
-    to: '/app/admin/clinics',
-    icon: Building2,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Financeiro SaaS',
-    to: '/app/admin/financeiro',
-    icon: CreditCard,
-    roles: ['ADMIN'],
-  },
 ]
 
-// Mobile primary items per role — max 4, rest goes in "Mais"
 const MOBILE_PRIMARY_ROUTES_BY_ROLE: Partial<Record<AuthUserRole, string[]>> = {
   OWNER: ['/app', '/app/agendamentos', '/app/pacientes', '/app/prontuario'],
-  DENTIST: ['/app/agenda', '/app/prontuario'],
-  ASSISTANT: ['/app/agendamentos', '/app/pacientes', '/app/estoque', '/app/notas-fiscais'],
-  ADMIN: ['/app/admin/users', '/app/admin/clinics', '/app/admin/financeiro'],
+  DENTIST: ['/app/inicio', '/app/agenda', '/app/prontuario'],
+  ASSISTANT: ['/app', '/app/agendamentos', '/app/pacientes', '/app/estoque'],
+  ADMIN: ['/app/admin', '/app/admin/users', '/app/admin/clinics', '/app/admin/financeiro'],
 }
 
 function ThemeToggle() {
@@ -141,63 +187,68 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
     await navigate({ to: '/' })
   }
 
-  const isActive = (to: string) =>
-    to === '/app'
-      ? location.pathname === to
-      : location.pathname === to || location.pathname.startsWith(`${to}/`)
+  const isActive = (item: NavItem) =>
+    item.exact
+      ? location.pathname === item.to
+      : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
 
   const visibleNav = appNavigation.filter(
     ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
   )
 
-  // Split into primary (visible in bottom bar) and secondary (in "Mais" sheet)
   const primaryRoutes = user?.role ? (MOBILE_PRIMARY_ROUTES_BY_ROLE[user.role] ?? []) : []
   const primaryNav = visibleNav.filter((item) => primaryRoutes.includes(item.to))
   const secondaryNav = visibleNav.filter((item) => !primaryRoutes.includes(item.to))
 
   return (
     <div className="min-h-svh bg-background text-foreground">
-      {/* Sidebar - desktop only */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-sidebar-border bg-sidebar lg:block print:hidden">
         <div className="flex h-20 items-center border-b border-sidebar-border px-6">
           <BrandLink />
         </div>
 
         <nav className="space-y-1 px-3 py-5">
-          {visibleNav.map(({ label, to, icon: Icon }) => (
-            <Link
-              key={to}
-              to={to}
-              aria-current={isActive(to) ? 'page' : undefined}
-              className={cn(
-                'flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                isActive(to) && 'bg-sidebar-accent text-sidebar-primary',
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
-          ))}
+          {visibleNav.map((item) => {
+            const { label, to, icon: Icon } = item
+            const active = isActive(item)
+            return (
+              <Link
+                key={to}
+                to={to}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                  active && 'bg-sidebar-accent text-sidebar-primary',
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </Link>
+            )
+          })}
         </nav>
       </aside>
 
-      {/* Bottom nav - mobile only */}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] lg:hidden print:hidden">
         <div className="flex h-16 items-stretch">
-          {primaryNav.map(({ label, to, icon: Icon }) => (
-            <Link
-              key={to}
-              to={to}
-              aria-current={isActive(to) ? 'page' : undefined}
-              className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold transition-colors',
-                isActive(to) ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              <span className="max-w-full truncate">{label}</span>
-            </Link>
-          ))}
+          {primaryNav.map((item) => {
+            const { label, to, icon: Icon } = item
+            const active = isActive(item)
+            return (
+              <Link
+                key={to}
+                to={to}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'flex flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold transition-colors',
+                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <Icon className="h-5 w-5" />
+                <span className="max-w-full truncate">{label}</span>
+              </Link>
+            )
+          })}
 
           {secondaryNav.length > 0 && (
             <button
@@ -215,7 +266,6 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
         </div>
       </nav>
 
-      {/* "Mais" sheet — mobile only */}
       {moreOpen && (
         <div className="fixed inset-0 z-30 lg:hidden print:hidden" onClick={() => setMoreOpen(false)}>
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
@@ -234,29 +284,32 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
               </button>
             </div>
             <nav className="grid grid-cols-3 gap-1 px-4 pb-4">
-              {secondaryNav.map(({ label, to, icon: Icon }) => (
-                <Link
-                  key={to}
-                  to={to}
-                  onClick={() => setMoreOpen(false)}
-                  aria-current={isActive(to) ? 'page' : undefined}
-                  className={cn(
-                    'flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center text-[11px] font-semibold transition-colors',
-                    isActive(to)
-                      ? 'bg-sidebar-accent text-sidebar-primary'
-                      : 'text-muted-foreground hover:bg-muted',
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{label}</span>
-                </Link>
-              ))}
+              {secondaryNav.map((item) => {
+                const { label, to, icon: Icon } = item
+                const active = isActive(item)
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    onClick={() => setMoreOpen(false)}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center text-[11px] font-semibold transition-colors',
+                      active
+                        ? 'bg-sidebar-accent text-sidebar-primary'
+                        : 'text-muted-foreground hover:bg-muted',
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{label}</span>
+                  </Link>
+                )
+              })}
             </nav>
           </div>
         </div>
       )}
 
-      {/* Main area */}
       <div className="lg:pl-64 print:pl-0">
         <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur-xl print:hidden">
           <div className="flex h-20 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
@@ -296,7 +349,6 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
 }
 
 function TrialBanner({ trialEndsAt }: { trialEndsAt: string }) {
-  // Computed once on mount — days remaining doesn't need live updates
   const [daysRemaining] = useState(() => {
     const diff = new Date(trialEndsAt).getTime() - Date.now()
     return Math.max(0, Math.ceil(diff / 86_400_000))

@@ -18,8 +18,6 @@ import {
 import { clearBillingStatusCache } from '@/features/billing/services/billing-status-cache'
 import {
   clearSession,
-  getAccessToken,
-  getStoredUser,
   setSession,
   setTokens,
   updateStoredUser,
@@ -32,7 +30,7 @@ type AuthProviderProps = {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<AuthUser | null>(() => getStoredUser())
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [isBootstrapping, setIsBootstrapping] = useState(true)
 
   useEffect(() => {
@@ -48,14 +46,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       },
     })
 
-    const accessToken = getAccessToken()
-
-    if (!accessToken) {
-      setIsBootstrapping(false)
-      return
-    }
-
-    getCurrentUser()
+    refresh()
+      .then(({ accessToken }) => {
+        setTokens(accessToken)
+        return getCurrentUser()
+      })
       .then((currentUser) => {
         setUser(currentUser)
         updateStoredUser(currentUser)

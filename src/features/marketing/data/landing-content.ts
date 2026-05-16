@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 
 export const navigationItems = [
+  { label: 'Funcionalidades', href: '/funcionalidades' },
   { label: 'Soluções', href: '#solucoes' },
   { label: 'Método', href: '#metodo' },
   { label: 'Resultados', href: '#resultados' },

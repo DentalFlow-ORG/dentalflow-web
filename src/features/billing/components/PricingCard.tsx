@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { ArrowRight, BadgeCheck, CheckCircle2, Flame, Loader2, Rocket } from 'lucide-react'
 
 import { PanelCard } from '@/components/common/PanelCard'
@@ -162,6 +163,10 @@ export function PricingCard({
               }
             />
           )}
+
+          <Button type="button" variant="outline" className="w-full" asChild>
+            <Link to="/funcionalidades">Ver mais funcionalidades</Link>
+          </Button>
 
           <p className="min-h-5 text-center text-xs leading-5 text-muted-foreground">
             {ctaState.secondary?.helperText ?? ctaState.primary.helperText}

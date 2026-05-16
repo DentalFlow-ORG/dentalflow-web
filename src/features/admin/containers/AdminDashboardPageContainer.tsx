@@ -24,7 +24,7 @@ const NAV_CARDS = [
     description: 'Receita recorrente, assinaturas ativas e planos.',
   },
   {
-    to: '/app/compliance' as const,
+    to: '/app/admin/compliance' as const,
     icon: Shield,
     label: 'Compliance',
     description: 'Privacidade, LGPD, auditoria e solicitações de titulares.',
