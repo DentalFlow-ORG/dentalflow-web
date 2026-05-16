@@ -1,4 +1,5 @@
 import { createContext, useContext, useLayoutEffect, useState, type ReactNode } from 'react'
+import { useRouterState } from '@tanstack/react-router'
 
 export type ThemeMode = 'light' | 'dark'
 
@@ -24,10 +25,21 @@ function readStoredTheme(): ThemeMode {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(readStoredTheme)
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   useLayoutEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-  }, [theme])
+    const isAppRoute = pathname.startsWith('/app')
+    // queueMicrotask fires after ALL child useLayoutEffects (including useForceLightTheme),
+    // making this the authoritative final rule on the dark class before each browser paint.
+    // Public routes always get light; /app routes respect the user's saved preference.
+    queueMicrotask(() => {
+      if (isAppRoute) {
+        document.documentElement.classList.toggle('dark', theme === 'dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    })
+  }, [theme, pathname])
 
   function setTheme(mode: ThemeMode) {
     try {
