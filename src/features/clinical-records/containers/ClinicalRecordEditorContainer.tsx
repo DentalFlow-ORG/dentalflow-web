@@ -280,7 +280,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
           </div>
 
           {!isReadOnly && (
-            <div className="rounded-xl border border-amber-100 bg-amber-50 p-5">
+            <div className="rounded-xl border border-amber-100 bg-amber-50 p-5 dark:border-amber-800/30 dark:bg-amber-950/20">
               <ClinicalSectionField
                 label="Notas privadas (não imprimíveis)"
                 value={field('privateNotes')}
@@ -426,7 +426,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
             {/* Private notes */}
             {!isReadOnly && (
-              <div className="rounded-xl border border-amber-100 bg-amber-50 p-5">
+              <div className="rounded-xl border border-amber-100 bg-amber-50 p-5 dark:border-amber-800/30 dark:bg-amber-950/20">
                 <ClinicalSectionField
                   label="Notas privadas (não imprimíveis)"
                   value={field('privateNotes')}

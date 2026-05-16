@@ -14,6 +14,25 @@ import { getClinicalRecordPrintData, getOdontogram } from '../services/clinical-
 import type { OdontogramData, PrintData } from '../types/clinical-record.types'
 import { CLINICAL_RECORD_STATUS_LABEL } from '../utils/clinical-record-labels'
 
+/*
+ * In @media print, CSS variables are reset to light-mode values so that
+ * dark:* Tailwind classes (which use var(--*)) render correctly on white paper,
+ * regardless of the active theme. No need to add print:! overrides per element.
+ */
+const PRINT_STYLE = `
+  @media print {
+    .prontuario-folha {
+      --foreground: #0f172a;
+      --card-foreground: #0f172a;
+      --muted-foreground: #475569;
+      --card: #ffffff;
+      --background: #ffffff;
+      --border: #e2e8f0;
+      background: #ffffff !important;
+    }
+  }
+`
+
 type Props = {
   recordId: string
 }
@@ -57,6 +76,9 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
 
   return (
     <div>
+      {/* Resets CSS variables to light-mode values in print so dark:* classes render correctly */}
+      <style dangerouslySetInnerHTML={{ __html: PRINT_STYLE }} />
+
       <div className="mb-6 flex items-center justify-between print:hidden">
         <Link
           to="/app/prontuario/$clinicalRecordId"
@@ -80,10 +102,13 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
         </Button>
       </div>
 
-      <div className="mx-auto max-w-3xl space-y-6 rounded-xl border border-slate-200 bg-white p-8 shadow-sm print:max-w-none print:rounded-none print:border-none print:p-0 print:shadow-none">
-        <header className="border-b border-slate-200 pb-5">
-          <h1 className="text-xl font-bold text-slate-900">{clinic?.name ?? 'Clínica'}</h1>
-          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+      {/* "prontuario-folha" class is targeted by PRINT_STYLE above */}
+      <div className="prontuario-folha mx-auto max-w-3xl space-y-6 rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-border dark:bg-card print:max-w-none print:rounded-none print:border-none print:p-0 print:shadow-none">
+        <header className="border-b border-slate-200 pb-5 dark:border-border">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-foreground">
+            {clinic?.name ?? 'Clínica'}
+          </h1>
+          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500 dark:text-muted-foreground">
             {clinic?.phone && <span>{formatPhoneBR(clinic.phone)}</span>}
             {clinic?.email && <span>{clinic.email}</span>}
             {clinic?.city && <span>{clinic.city}{clinic.state ? ` / ${clinic.state}` : ''}</span>}
@@ -92,24 +117,34 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
 
         <section className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-muted-foreground">
               Paciente
             </p>
-            <p className="mt-1 font-semibold text-slate-900">{record.patientName}</p>
-            {record.patientEmail && <p className="text-slate-600">{record.patientEmail}</p>}
-            {record.patientPhone && <p className="text-slate-600">{formatPhoneBR(record.patientPhone)}</p>}
+            <p className="mt-1 font-semibold text-slate-900 dark:text-foreground">
+              {record.patientName}
+            </p>
+            {record.patientEmail && (
+              <p className="text-slate-600 dark:text-muted-foreground">{record.patientEmail}</p>
+            )}
+            {record.patientPhone && (
+              <p className="text-slate-600 dark:text-muted-foreground">
+                {formatPhoneBR(record.patientPhone)}
+              </p>
+            )}
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-muted-foreground">
               Profissional
             </p>
-            <p className="mt-1 font-semibold text-slate-900">{record.profile.displayName}</p>
+            <p className="mt-1 font-semibold text-slate-900 dark:text-foreground">
+              {record.profile.displayName}
+            </p>
             {record.appointment && (
-              <p className="text-slate-600">
+              <p className="text-slate-600 dark:text-muted-foreground">
                 {formatDateBR(record.appointment.appointmentDate)}
               </p>
             )}
-            <p className="mt-1 text-slate-500">
+            <p className="mt-1 text-slate-500 dark:text-muted-foreground">
               Status: {CLINICAL_RECORD_STATUS_LABEL[record.status]}
             </p>
           </div>
@@ -150,20 +185,28 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
 
         <section className="mt-8 grid grid-cols-2 gap-8">
           <div>
-            <div className="border-t border-slate-400 pt-2">
-              <p className="text-sm text-slate-600">{record.profile.displayName}</p>
-              <p className="text-xs text-slate-400">Assinatura do profissional</p>
+            <div className="border-t border-slate-400 pt-2 dark:border-border">
+              <p className="text-sm text-slate-600 dark:text-muted-foreground">
+                {record.profile.displayName}
+              </p>
+              <p className="text-xs text-slate-400 dark:text-muted-foreground/70">
+                Assinatura do profissional
+              </p>
             </div>
           </div>
           <div>
-            <div className="border-t border-slate-400 pt-2">
-              <p className="text-sm text-slate-600">{record.patientName}</p>
-              <p className="text-xs text-slate-400">Assinatura do paciente</p>
+            <div className="border-t border-slate-400 pt-2 dark:border-border">
+              <p className="text-sm text-slate-600 dark:text-muted-foreground">
+                {record.patientName}
+              </p>
+              <p className="text-xs text-slate-400 dark:text-muted-foreground/70">
+                Assinatura do paciente
+              </p>
             </div>
           </div>
         </section>
 
-        <footer className="border-t border-slate-200 pt-4 text-center text-xs text-slate-400">
+        <footer className="border-t border-slate-200 pt-4 text-center text-xs text-slate-400 dark:border-border dark:text-muted-foreground/70">
           Documento gerado pelo DentalFlow em {new Date().toLocaleDateString('pt-BR', {
             day: '2-digit',
             month: 'long',
@@ -183,14 +226,14 @@ function PrintOdontogramSection({ data }: { data: OdontogramData }) {
 
   return (
     <section>
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-muted-foreground">
         Odontograma
       </p>
       <div className="mt-3 space-y-3">
         <OdontogramChart getTooth={getTooth} selected={null} readOnly printMode />
         <OdontogramLegend printMode />
         {data.notes && (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-foreground">
             {data.notes}
           </p>
         )}
@@ -202,7 +245,7 @@ function PrintOdontogramSection({ data }: { data: OdontogramData }) {
 function PrintAttachmentsSection({ attachments }: { attachments: PrintData['record']['attachments'] }) {
   return (
     <section>
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-muted-foreground">
         Imagens clínicas
       </p>
       <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
@@ -212,7 +255,7 @@ function PrintAttachmentsSection({ attachments }: { attachments: PrintData['reco
             : null
 
           return (
-            <div key={attachment.id} className="overflow-hidden rounded-lg border border-slate-200">
+            <div key={attachment.id} className="overflow-hidden rounded-lg border border-slate-200 dark:border-border">
               {src ? (
                 <img
                   src={src}
@@ -220,12 +263,12 @@ function PrintAttachmentsSection({ attachments }: { attachments: PrintData['reco
                   className="aspect-square w-full object-cover"
                 />
               ) : (
-                <div className="flex aspect-square w-full items-center justify-center bg-slate-100 text-[10px] text-slate-400">
+                <div className="flex aspect-square w-full items-center justify-center bg-slate-100 text-[10px] text-slate-400 dark:bg-muted dark:text-muted-foreground">
                   {attachment.fileName}
                 </div>
               )}
               {attachment.description && (
-                <p className="px-1.5 py-1 text-[10px] text-slate-600">
+                <p className="px-1.5 py-1 text-[10px] text-slate-600 dark:text-muted-foreground">
                   {attachment.description}
                 </p>
               )}
@@ -240,8 +283,12 @@ function PrintAttachmentsSection({ attachments }: { attachments: PrintData['reco
 function PrintSection({ title, content }: { title: string; content: string }) {
   return (
     <section>
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{title}</p>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-800">{content}</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-muted-foreground">
+        {title}
+      </p>
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-800 dark:text-foreground">
+        {content}
+      </p>
     </section>
   )
 }
