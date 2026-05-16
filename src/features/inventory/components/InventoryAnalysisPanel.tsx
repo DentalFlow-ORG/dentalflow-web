@@ -1,9 +1,12 @@
 import { AiAssistantCard } from '@/components/common/AiAssistantCard'
 import { PanelCard } from '@/components/common/PanelCard'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useAiAssistantInventory } from '../hooks/useAiAssistantInventory'
 import type { StockSummary } from '../types/inventory.types'
 
 export function InventoryAnalysisPanel({ summary }: { summary: StockSummary }) {
+  const { user } = useAuth()
+  const isOwner = user?.role === 'OWNER'
   const { savedAnalysis, isLoadingInitial, handleGenerate } = useAiAssistantInventory()
 
   const hasCritical =
@@ -22,6 +25,7 @@ export function InventoryAnalysisPanel({ summary }: { summary: StockSummary }) {
         onGenerate={handleGenerate}
         initialResult={savedAnalysis}
         isLoadingInitial={isLoadingInitial}
+        canGenerate={isOwner}
       />
     </PanelCard>
   )

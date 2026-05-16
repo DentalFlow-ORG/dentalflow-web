@@ -45,6 +45,14 @@ type AiAssistantCardProps = {
   initialResult?: AiAnalysisResult | null
   /** True while GET /latest is in flight — shows a loading indicator instead of idle state. */
   isLoadingInitial?: boolean
+  /**
+   * When false the card operates in read-only mode:
+   *  - "Gerar análise" and "Atualizar análise" buttons are hidden.
+   *  - Only "Copiar" is shown when a result exists.
+   *  - When no result exists, shows an informative message instead of an action button.
+   * Defaults to false — callers must opt-in explicitly for OWNER.
+   */
+  canGenerate?: boolean
 }
 
 type State = 'idle' | 'loading' | 'success' | 'error'
@@ -125,6 +133,7 @@ export function AiAssistantCard({
   disabledReason,
   initialResult,
   isLoadingInitial = false,
+  canGenerate = false,
 }: AiAssistantCardProps) {
   const [state, setState] = useState<State>('idle')
   const [result, setResult] = useState<AiAnalysisResult | null>(null)
@@ -233,15 +242,17 @@ export function AiAssistantCard({
               <ClipboardCopy className="h-3.5 w-3.5" />
               {copied ? 'Copiado!' : 'Copiar'}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={isLoading}
-              onClick={handleGenerate}
-            >
-              <RefreshCw className={cn('h-3.5 w-3.5', isLoading && 'animate-spin')} />
-              Atualizar análise
-            </Button>
+            {canGenerate && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isLoading}
+                onClick={handleGenerate}
+              >
+                <RefreshCw className={cn('h-3.5 w-3.5', isLoading && 'animate-spin')} />
+                Atualizar análise
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -260,27 +271,36 @@ export function AiAssistantCard({
         <>
           {/* Idle state */}
           {state === 'idle' && (
-            <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border px-6 py-8 text-center">
-              <Sparkles className="h-8 w-8 text-primary/40" aria-hidden="true" />
-              <div>
-                <p className="text-sm font-medium text-foreground">Assistente IA</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Gere uma análise profissional baseada nos dados reais do sistema.
+            canGenerate ? (
+              <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border px-6 py-8 text-center">
+                <Sparkles className="h-8 w-8 text-primary/40" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Assistente IA</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Gere uma análise profissional baseada nos dados reais do sistema.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleGenerate}
+                  size="sm"
+                  disabled={!!disabledReason}
+                  title={disabledReason}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Gerar análise
+                </Button>
+                {disabledReason && (
+                  <p className="text-xs text-muted-foreground">{disabledReason}</p>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-6 py-6 text-center">
+                <Sparkles className="h-6 w-6 text-primary/30" aria-hidden="true" />
+                <p className="text-sm text-muted-foreground">
+                  Nenhuma análise disponível. O responsável da clínica pode gerar a análise a qualquer momento.
                 </p>
               </div>
-              <Button
-                onClick={handleGenerate}
-                size="sm"
-                disabled={!!disabledReason}
-                title={disabledReason}
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                Gerar análise
-              </Button>
-              {disabledReason && (
-                <p className="text-xs text-muted-foreground">{disabledReason}</p>
-              )}
-            </div>
+            )
           )}
 
           {/* Loading state (no previous result) */}
@@ -352,8 +372,10 @@ export function AiAssistantCard({
                   <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                   <p className="text-sm text-blue-800 dark:text-blue-300">
                     {result.periodStart && result.periodEnd
-                      ? `Esta análise foi gerada para o período ${formatDate(result.periodStart)} – ${formatDate(result.periodEnd)}. Clique em "Atualizar análise" para gerar para o período atual.`
-                      : 'Esta análise pode estar desatualizada. Clique em "Atualizar análise" para gerar novamente.'}
+                      ? `Esta análise foi gerada para o período ${formatDate(result.periodStart)} – ${formatDate(result.periodEnd)}.${canGenerate ? ' Clique em "Atualizar análise" para gerar para o período atual.' : ' O responsável da clínica pode atualizá-la a qualquer momento.'}`
+                      : canGenerate
+                        ? 'Esta análise pode estar desatualizada. Clique em "Atualizar análise" para gerar novamente.'
+                        : 'Esta análise pode estar desatualizada. O responsável da clínica pode atualizá-la a qualquer momento.'}
                   </p>
                 </div>
               )}
