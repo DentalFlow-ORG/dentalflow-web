@@ -18,6 +18,8 @@ import {
   YAxis,
 } from 'recharts'
 
+import { useTheme } from '@/features/theme/ThemeProvider'
+
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { EmptyState } from '@/components/common/EmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
@@ -207,6 +209,7 @@ export function AdminFinancePageContainer() {
                   value: item.estimatedMrr,
                 }))}
                 valueFormatter={(value) => formatCurrencyFromCents(value, summary.kpis.currency)}
+                dataLabel="Receita"
               />
 
               <FinanceChart
@@ -219,6 +222,7 @@ export function AdminFinancePageContainer() {
                   value: item.count,
                 }))}
                 valueFormatter={(value) => String(value)}
+                dataLabel="Assinaturas"
               />
             </div>
 
@@ -303,6 +307,47 @@ function ExplainedMetricCard({
   )
 }
 
+type AdminChartTooltipProps = {
+  active?: boolean
+  payload?: Array<{ value?: number }>
+  label?: string
+  isDark: boolean
+  valueFormatter: (value: number) => string
+  dataLabel: string
+}
+
+function AdminChartTooltip({ active, payload, label, isDark, valueFormatter, dataLabel }: AdminChartTooltipProps) {
+  if (!active || !payload?.length) return null
+
+  const bgColor = isDark ? '#0f172a' : '#ffffff'
+  const borderColor = isDark ? 'rgba(226,232,240,0.18)' : '#E2E8F0'
+  const titleColor = isDark ? '#f8fafc' : '#0F172A'
+  const labelColor = isDark ? '#cbd5e1' : '#64748B'
+  const valueColor = isDark ? '#93C5FD' : '#2563EB'
+
+  return (
+    <div
+      style={{
+        border: `1px solid ${borderColor}`,
+        borderRadius: 8,
+        boxShadow: '0 12px 24px rgb(15 23 42 / 0.12)',
+        backgroundColor: bgColor,
+        padding: '8px 12px',
+        fontSize: 13,
+        lineHeight: 1.5,
+      }}
+    >
+      <p style={{ marginBottom: 4, fontWeight: 600, color: titleColor }}>{label}</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginTop: 2 }}>
+        <span style={{ color: labelColor }}>{dataLabel}</span>
+        <span style={{ color: valueColor, fontWeight: 600 }}>
+          {valueFormatter(Number(payload[0]?.value ?? 0))}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 function FinanceChart({
   title,
   description,
@@ -310,6 +355,7 @@ function FinanceChart({
   emptyDescription,
   data,
   valueFormatter,
+  dataLabel,
 }: {
   title: string
   description: string
@@ -317,7 +363,14 @@ function FinanceChart({
   emptyDescription: string
   data: Array<{ label: string; value: number }>
   valueFormatter: (value: number) => string
+  dataLabel: string
 }) {
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  const gridColor = isDark ? 'rgba(226,232,240,0.12)' : '#E2E8F0'
+  const tickColor = isDark ? '#cbd5e1' : '#64748B'
+  const barColor = isDark ? '#60A5FA' : '#2563EB'
+
   const visibleData = data.filter((item) => item.value > 0)
 
   return (
@@ -343,20 +396,29 @@ function FinanceChart({
       {visibleData.length === 0 ? (
         <EmptyState icon={BarChart3} title={emptyTitle} description={emptyDescription} />
       ) : (
-        <div className="h-72 min-w-0">
+        <div className="h-72 w-full overflow-hidden">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={visibleData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-              <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: '#64748B', fontSize: 12 }} tickLine={false} />
+              <CartesianGrid stroke={gridColor} strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: tickColor, fontSize: 12 }} tickLine={false} axisLine={false} />
               <YAxis
-                tick={{ fill: '#64748B', fontSize: 12 }}
+                tick={{ fill: tickColor, fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={valueFormatter}
                 width={80}
               />
-              <Tooltip formatter={(value) => valueFormatter(Number(value))} />
-              <Bar dataKey="value" fill="#1E3A8A" radius={[6, 6, 0, 0]} />
+              <Tooltip
+                cursor={{ fill: isDark ? 'rgba(226,232,240,0.06)' : 'rgba(15,23,42,0.04)' }}
+                content={
+                  <AdminChartTooltip
+                    isDark={isDark}
+                    valueFormatter={valueFormatter}
+                    dataLabel={dataLabel}
+                  />
+                }
+              />
+              <Bar dataKey="value" fill={barColor} radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
