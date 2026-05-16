@@ -238,17 +238,18 @@ export function FiscalInvoicesPageContainer() {
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Atualizar
             </Button>
-            {isFiscalConfigurationIncomplete && isOwner ? (
-              <Button onClick={openProfileForm} disabled={!isOwner}>
+            {isFiscalConfigurationIncomplete && isOwner && (
+              <Button onClick={openProfileForm}>
                 <Settings2 className="h-4 w-4" aria-hidden="true" />
                 Configurar dados fiscais
               </Button>
-            ) : !isFiscalConfigurationIncomplete ? (
+            )}
+            {(!isFiscalConfigurationIncomplete || isAssistant) && (
               <Button onClick={() => openInvoiceForm()}>
                 <FileText className="h-4 w-4" aria-hidden="true" />
                 Criar nota fiscal
               </Button>
-            ) : null}
+            )}
           </div>
         }
       />
