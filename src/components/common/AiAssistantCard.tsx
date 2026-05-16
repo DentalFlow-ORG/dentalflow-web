@@ -248,7 +248,7 @@ export function AiAssistantCard({
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
-        {isSuccess && (
+        {isSuccess && !showPremiumWall && (
           <div className="flex shrink-0 items-center gap-2">
             <Button
               variant="ghost"

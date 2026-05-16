@@ -43,7 +43,7 @@ export function PremiumBlurredPreview({ blockedReason }: { blockedReason: string
           </p>
         </div>
         <Button size="sm" asChild>
-          <a href="/billing">
+          <a href="/app/assinatura">
             <Sparkles className="h-3.5 w-3.5" />
             Ver planos
           </a>
