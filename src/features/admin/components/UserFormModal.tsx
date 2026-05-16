@@ -59,7 +59,6 @@ const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: 'OWNER', label: 'Proprietário' },
   { value: 'DENTIST', label: 'Profissional' },
   { value: 'ASSISTANT', label: 'Assistente' },
-  { value: 'PATIENT', label: 'Paciente' },
 ]
 
 function buildInitialForm(user: AdminUser): FormState {
