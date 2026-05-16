@@ -198,7 +198,7 @@ export function AdminFinancePageContainer() {
               />
             </section>
 
-            <div className="grid gap-6 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
               <FinanceChart
                 title="Receita por plano"
                 description="MRR calculado no backend com base nos itens ativos sincronizados do Stripe."
@@ -231,7 +231,7 @@ export function AdminFinancePageContainer() {
               defaultCurrency={summary.kpis.currency}
             />
 
-            <div className="grid gap-6 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
               <RecentSubscriptionsSection
                 title="Assinaturas recentes"
                 description="Últimas assinaturas criadas na plataforma."

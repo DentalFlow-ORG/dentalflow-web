@@ -128,7 +128,7 @@ export function FinancePageContainer() {
 
             <FinancialAnalysisPanel summary={summary} previousSummary={previousSummary} />
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <PanelCard>
                 <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -171,7 +171,7 @@ export function FinancePageContainer() {
               </PanelCard>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <TransactionsTable
                 transactions={transactions}
                 isLoading={isLoadingTransactions}
@@ -193,7 +193,7 @@ export function FinancePageContainer() {
               />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <FixedExpensesList
                 expenses={fixedExpenses}
                 generatingExpenseId={generatingExpenseId}
@@ -210,7 +210,7 @@ export function FinancePageContainer() {
                 onSubmit={handleCreateFixedExpense}
               />
             </div>
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <CategoriesPanel
                 categories={categories}
                 onEdit={handleOpenEditCategory}
