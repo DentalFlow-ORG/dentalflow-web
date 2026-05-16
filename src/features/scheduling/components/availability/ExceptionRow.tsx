@@ -51,7 +51,7 @@ export function ExceptionRow({
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           {exception.isDayOff ? (
-            <span className="font-medium text-red-600">Folga</span>
+            <span className="font-medium text-red-600 dark:text-red-400">Folga</span>
           ) : (
             <>
               Horário especial:{' '}

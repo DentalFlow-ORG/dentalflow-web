@@ -204,9 +204,9 @@ function ManagementBanner({
   buttonLabel: string
 }) {
   return (
-    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <p className="text-sm text-blue-700">{description}</p>
+        <p className="text-sm text-blue-700 dark:text-blue-300">{description}</p>
         <Button size="sm" asChild className="w-full shrink-0 sm:w-auto">
           <Link to="/app/equipe/$profileId" params={{ profileId }}>
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />

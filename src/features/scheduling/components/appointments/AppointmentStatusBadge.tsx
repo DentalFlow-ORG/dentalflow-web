@@ -11,18 +11,18 @@ type StatusConfig = {
 const STATUS_CONFIG: Record<AppointmentStatus, StatusConfig> = {
   PENDING: {
     label: 'Pendente',
-    className: 'border-amber-200 bg-amber-50 text-amber-700',
-    dotClass: 'bg-amber-400',
+    className: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-700/50 dark:bg-amber-900/25 dark:text-amber-300',
+    dotClass: 'bg-amber-400 dark:bg-amber-400/80',
   },
   CONFIRMED: {
     label: 'Confirmado',
-    className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    dotClass: 'bg-emerald-500',
+    className: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-700/50 dark:bg-emerald-900/25 dark:text-emerald-300',
+    dotClass: 'bg-emerald-500 dark:bg-emerald-400/80',
   },
   CANCELED: {
     label: 'Cancelado',
-    className: 'border-red-200 bg-red-50 text-red-700',
-    dotClass: 'bg-red-500',
+    className: 'border-red-200 bg-red-50 text-red-700 dark:border-red-700/50 dark:bg-red-900/25 dark:text-red-400',
+    dotClass: 'bg-red-500 dark:bg-red-400/80',
   },
   COMPLETED: {
     label: 'Concluído',
@@ -31,8 +31,8 @@ const STATUS_CONFIG: Record<AppointmentStatus, StatusConfig> = {
   },
   NO_SHOW: {
     label: 'Não compareceu',
-    className: 'border-orange-200 bg-orange-50 text-orange-700',
-    dotClass: 'bg-orange-400',
+    className: 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-700/50 dark:bg-orange-900/25 dark:text-orange-300',
+    dotClass: 'bg-orange-400 dark:bg-orange-400/80',
   },
 }
 

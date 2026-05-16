@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { Button } from '@/components/ui/button'
 import { FormField, TextInput, TimeInput } from '@/components/common/FormField'
+import { cn } from '@/lib/utils'
 import {
   formatDateBR,
   formatDateInputValue,
@@ -70,26 +71,28 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
       {/* Type toggle */}
       <div>
         <p className="mb-2 text-sm font-semibold text-foreground">Tipo</p>
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-1">
+        <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1">
           <button
             type="button"
             onClick={() => setIsDayOff(true)}
-            className={`flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors ${
+            className={cn(
+              'flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors',
               isDayOff
-                ? 'bg-foreground text-background'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
+                ? 'bg-primary/10 text-primary dark:bg-primary/15'
+                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+            )}
           >
             Folga
           </button>
           <button
             type="button"
             onClick={() => setIsDayOff(false)}
-            className={`flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors ${
+            className={cn(
+              'flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors',
               !isDayOff
-                ? 'bg-foreground text-background'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
+                ? 'bg-primary/10 text-primary dark:bg-primary/15'
+                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+            )}
           >
             Horário especial
           </button>
