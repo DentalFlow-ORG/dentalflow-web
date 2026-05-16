@@ -287,8 +287,6 @@ export function InventoryPageContainer() {
         <>
           {summary && <InventoryKpiGrid summary={summary} />}
 
-          {summary && <InventoryAnalysisPanel summary={summary} />}
-
           {hasFilters && products.length === 0 && !isLoadingProducts ? (
             <FilteredEmptyState icon={Package} onClear={handleClearFilters} />
           ) : (
@@ -309,6 +307,8 @@ export function InventoryPageContainer() {
               onQuickMove={handleQuickMove}
             />
           )}
+
+          {summary && <InventoryAnalysisPanel summary={summary} />}
         </>
       </ListPageShell>
       <ProductFormModal
