@@ -21,3 +21,15 @@ export function analyzeInventoryWithAi(): Promise<AiAnalysisResult> {
     body: JSON.stringify({}),
   })
 }
+
+export async function getLatestInventoryAnalysis(): Promise<AiAnalysisResult | null> {
+  try {
+    const response = await apiRequest<{ data: AiAnalysisResult | null }>(
+      '/ai-assistant/inventory/latest',
+      { method: 'GET', accessToken: getAccessToken() },
+    )
+    return response.data
+  } catch {
+    return null
+  }
+}

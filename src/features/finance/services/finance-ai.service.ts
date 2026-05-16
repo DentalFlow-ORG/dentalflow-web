@@ -12,6 +12,10 @@ export type AiAnalysisResult = {
   disclaimer: string
   generatedAt: string
   model: string
+  /** YYYY-MM-DD — present only for FINANCE analyses loaded from GET /latest */
+  periodStart?: string | null
+  /** YYYY-MM-DD — present only for FINANCE analyses loaded from GET /latest */
+  periodEnd?: string | null
 }
 
 export function analyzeFinanceWithAi(params: {
@@ -23,4 +27,16 @@ export function analyzeFinanceWithAi(params: {
     accessToken: getAccessToken(),
     body: JSON.stringify(params),
   })
+}
+
+export async function getLatestFinanceAnalysis(): Promise<AiAnalysisResult | null> {
+  try {
+    const response = await apiRequest<{ data: AiAnalysisResult | null }>(
+      '/ai-assistant/finance/latest',
+      { method: 'GET', accessToken: getAccessToken() },
+    )
+    return response.data
+  } catch {
+    return null
+  }
 }

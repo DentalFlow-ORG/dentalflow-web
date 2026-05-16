@@ -1,6 +1,6 @@
 import { AiAssistantCard } from '@/components/common/AiAssistantCard'
 import { PanelCard } from '@/components/common/PanelCard'
-import { analyzeFinanceWithAi } from '../services/finance-ai.service'
+import { useAiAssistantFinance } from '../hooks/useAiAssistantFinance'
 import type { FinanceSummary } from '../types/finance.types'
 
 export function FinancialAnalysisPanel({
@@ -9,8 +9,10 @@ export function FinancialAnalysisPanel({
   summary: FinanceSummary
   previousSummary?: FinanceSummary | null
 }) {
-  const handleGenerate = () =>
-    analyzeFinanceWithAi({ from: summary.period.from, to: summary.period.to })
+  const { savedAnalysis, isLoadingInitial, handleGenerate } = useAiAssistantFinance(
+    summary.period.from,
+    summary.period.to,
+  )
 
   return (
     <PanelCard>
@@ -20,6 +22,8 @@ export function FinancialAnalysisPanel({
         description="Recomendações baseadas nos dados reais do período selecionado."
         onGenerate={handleGenerate}
         invalidationKey={`${summary.period.from}|${summary.period.to}`}
+        initialResult={savedAnalysis}
+        isLoadingInitial={isLoadingInitial}
       />
     </PanelCard>
   )
