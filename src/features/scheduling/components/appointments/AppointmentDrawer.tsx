@@ -32,6 +32,7 @@ import {
   isTerminalStatus,
 } from '../../utils/appointment-state-machine'
 import { AppointmentStatusBadge } from './AppointmentStatusBadge'
+import { AppointmentPaymentSection } from './AppointmentPaymentSection'
 
 type AppointmentDrawerProps = {
   appointment: Appointment | null
@@ -42,6 +43,7 @@ type AppointmentDrawerProps = {
   onEdit?: (appointment: Appointment) => void
   onStatusChange: (id: string, status: AppointmentStatus) => void
   onCancelRequest: (appointment: Appointment) => void
+  onPaymentUpdated?: (updated: Appointment) => void
 }
 
 function getInitials(name: string): string {
@@ -63,7 +65,24 @@ export function AppointmentDrawer({
   onEdit,
   onStatusChange,
   onCancelRequest,
+  onPaymentUpdated,
 }: AppointmentDrawerProps) {
+  const [localAppointment, setLocalAppointment] = useState<Appointment | null>(appointment)
+
+  // Sync when parent passes a new appointment (e.g. after status change)
+  if (appointment?.id !== localAppointment?.id) {
+    setLocalAppointment(appointment)
+  } else if (appointment && localAppointment && appointment.updatedAt !== localAppointment.updatedAt) {
+    setLocalAppointment(appointment)
+  }
+
+  const handlePaymentUpdated = (updated: Appointment) => {
+    setLocalAppointment(updated)
+    onPaymentUpdated?.(updated)
+  }
+
+  const active = localAppointment ?? appointment
+
   return (
     <Dialog.Root open={!!appointment} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
@@ -77,7 +96,7 @@ export function AppointmentDrawer({
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          {appointment && (
+          {active && (
             <>
               {/* Header */}
               <div className="flex items-start justify-between gap-4 border-b border-border bg-card px-6 py-5">
@@ -86,26 +105,26 @@ export function AppointmentDrawer({
                     className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary"
                     aria-hidden="true"
                   >
-                    {getInitials(appointment.patientName)}
+                    {getInitials(active.patientName)}
                   </div>
                   <div className="min-w-0">
                     <Dialog.Title className="truncate text-lg font-semibold text-foreground">
-                      {appointment.patientName}
+                      {active.patientName}
                     </Dialog.Title>
                     <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
                       <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                      {formatAppointmentDateLong(appointment.appointmentDate)}
+                      {formatAppointmentDateLong(active.appointmentDate)}
                     </p>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   {onEdit &&
-                    (appointment.status === 'PENDING' || appointment.status === 'CONFIRMED') && (
+                    (active.status === 'PENDING' || active.status === 'CONFIRMED') && (
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon-sm"
-                        onClick={() => onEdit(appointment)}
+                        onClick={() => onEdit(active)}
                         aria-label="Editar agendamento"
                       >
                         <Pencil />
@@ -128,13 +147,13 @@ export function AppointmentDrawer({
                 {/* Status */}
                 <div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3">
                   <span className="text-sm font-medium text-muted-foreground">Status</span>
-                  <AppointmentStatusBadge status={appointment.status} />
+                  <AppointmentStatusBadge status={active.status} />
                 </div>
 
                 {/* Actions */}
                 {!readOnly && (
                   <DrawerActions
-                    appointment={appointment}
+                    appointment={active}
                     isLoading={isActionLoading}
                     allowedTransitions={allowedTransitions}
                     onStatusChange={onStatusChange}
@@ -145,53 +164,59 @@ export function AppointmentDrawer({
                 {/* Appointment details */}
                 <DrawerSection title="Consulta">
                   <DrawerRow label="Data">
-                    {formatAppointmentDate(appointment.appointmentDate)}
+                    {formatAppointmentDate(active.appointmentDate)}
                   </DrawerRow>
                   <DrawerRow label="Horário">
-                    {formatWallTime(appointment.startTime)}
+                    {formatWallTime(active.startTime)}
                     <span className="mx-1 text-muted-foreground/60">–</span>
-                    {formatWallTime(appointment.endTime)}
+                    {formatWallTime(active.endTime)}
                   </DrawerRow>
-                  <DrawerRow label="Duração">{appointment.durationMinutes} min</DrawerRow>
-                  <DrawerRow label="Profissional">{appointment.profile.displayName}</DrawerRow>
-                  {appointment.service && (
-                    <DrawerRow label="Serviço">{appointment.service.name}</DrawerRow>
+                  <DrawerRow label="Duração">{active.durationMinutes} min</DrawerRow>
+                  <DrawerRow label="Profissional">{active.profile.displayName}</DrawerRow>
+                  {active.service && (
+                    <DrawerRow label="Serviço">{active.service.name}</DrawerRow>
                   )}
                 </DrawerSection>
 
                 {/* Patient details */}
                 <DrawerSection title="Paciente">
-                  <DrawerRow label="Nome">{appointment.patientName}</DrawerRow>
-                  {appointment.patientEmail && (
-                    <DrawerRow label="E-mail">{appointment.patientEmail}</DrawerRow>
+                  <DrawerRow label="Nome">{active.patientName}</DrawerRow>
+                  {active.patientEmail && (
+                    <DrawerRow label="E-mail">{active.patientEmail}</DrawerRow>
                   )}
-                  {appointment.patientPhone && (
-                    <DrawerRow label="Telefone">{appointment.patientPhone}</DrawerRow>
+                  {active.patientPhone && (
+                    <DrawerRow label="Telefone">{active.patientPhone}</DrawerRow>
                   )}
                 </DrawerSection>
 
                 {/* Notes */}
-                {appointment.notes && (
+                {active.notes && (
                   <DrawerSection title="Observações">
                     <p className="px-4 py-3 text-sm leading-6 text-foreground">
-                      {appointment.notes}
+                      {active.notes}
                     </p>
                   </DrawerSection>
                 )}
 
+                {/* Payment */}
+                <AppointmentPaymentSection
+                  appointment={active}
+                  onUpdated={handlePaymentUpdated}
+                />
+
                 {/* Clinical record */}
-                <ClinicalRecordSection appointment={appointment} onClose={onClose} />
+                <ClinicalRecordSection appointment={active} onClose={onClose} />
 
                 {/* Cancellation info */}
-                {appointment.status === 'CANCELED' &&
-                  (appointment.cancellationReason || appointment.canceledAt) && (
+                {active.status === 'CANCELED' &&
+                  (active.cancellationReason || active.canceledAt) && (
                     <DrawerSection title="Cancelamento">
-                      {appointment.cancellationReason && (
-                        <DrawerRow label="Motivo">{appointment.cancellationReason}</DrawerRow>
+                      {active.cancellationReason && (
+                        <DrawerRow label="Motivo">{active.cancellationReason}</DrawerRow>
                       )}
-                      {appointment.canceledAt && (
+                      {active.canceledAt && (
                         <DrawerRow label="Cancelado em">
-                          {formatAppointmentDate(appointment.canceledAt)}
+                          {formatAppointmentDate(active.canceledAt)}
                         </DrawerRow>
                       )}
                     </DrawerSection>

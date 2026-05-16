@@ -5,6 +5,22 @@ export type AppointmentStatus =
   | 'COMPLETED'
   | 'NO_SHOW'
 
+export type AppointmentPaymentStatus =
+  | 'PAYMENT_PENDING'
+  | 'PAID'
+  | 'PARTIALLY_PAID'
+  | 'REFUNDED'
+  | 'CANCELED'
+
+export type AppointmentPaymentMethod =
+  | 'CASH'
+  | 'CREDIT_CARD'
+  | 'DEBIT_CARD'
+  | 'PIX'
+  | 'BANK_TRANSFER'
+  | 'HEALTH_INSURANCE'
+  | 'OTHER'
+
 export type CanceledBy = 'CLINIC' | 'PATIENT' | 'SYSTEM'
 
 export type AppointmentProfile = {
@@ -17,6 +33,8 @@ export type AppointmentService = {
   id: string
   name: string
   durationMinutes: number | null
+  priceFrom: string | null
+  priceTo: string | null
 }
 
 export type AppointmentPatient = {
@@ -48,6 +66,12 @@ export type Appointment = {
   cancellationReason: string | null
   confirmedAt: string | null
   completedAt: string | null
+  estimatedAmountCents: number | null
+  paidAmountCents: number | null
+  paymentStatus: AppointmentPaymentStatus
+  paymentMethod: AppointmentPaymentMethod | null
+  paymentDate: string | null
+  paymentNotes: string | null
   createdAt: string
   updatedAt: string
   profile: AppointmentProfile
@@ -99,6 +123,16 @@ export type UpdateAppointmentStatusDto = {
   status: AppointmentStatus
   canceledBy?: CanceledBy
   cancellationReason?: string
+}
+
+export type UpdateAppointmentPaymentDto = {
+  paymentStatus: AppointmentPaymentStatus
+  estimatedAmountCents?: number
+  paidAmountCents?: number
+  paymentMethod?: AppointmentPaymentMethod
+  paymentDate?: string
+  paymentNotes?: string
+  categoryId?: string
 }
 
 export type CreateAvailabilityDto = {

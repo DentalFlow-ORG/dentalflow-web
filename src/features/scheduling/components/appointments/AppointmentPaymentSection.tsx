@@ -1,0 +1,325 @@
+import { useState } from 'react'
+import { Ban, CheckCircle2, Clock } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { FormField, TextArea, TextInput } from '@/components/common/FormField'
+import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+
+import { updateAppointmentPayment } from '../../services/scheduling.service'
+import type {
+  Appointment,
+  AppointmentPaymentMethod,
+  AppointmentPaymentStatus,
+  UpdateAppointmentPaymentDto,
+} from '../../types/scheduling.types'
+import { AppointmentPaymentBadge } from './AppointmentPaymentBadge'
+
+const PAYMENT_METHOD_LABELS: Record<AppointmentPaymentMethod, string> = {
+  CASH: 'Dinheiro',
+  CREDIT_CARD: 'Cartão de crédito',
+  DEBIT_CARD: 'Cartão de débito',
+  PIX: 'PIX',
+  BANK_TRANSFER: 'Transferência bancária',
+  HEALTH_INSURANCE: 'Plano de saúde',
+  OTHER: 'Outro',
+}
+
+function centsToReais(cents: number | null | undefined): string {
+  if (cents == null) return ''
+  return (cents / 100).toFixed(2).replace('.', ',')
+}
+
+function reaisToCents(value: string): number | undefined {
+  const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '')
+  const parsed = parseFloat(normalized)
+  if (isNaN(parsed) || parsed < 0) return undefined
+  return Math.round(parsed * 100)
+}
+
+type DrawerSectionProps = { title: string; children: React.ReactNode }
+
+function DrawerSection({ title, children }: DrawerSectionProps) {
+  return (
+    <div>
+      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </p>
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <div className="divide-y divide-border">{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function DrawerRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="text-right font-medium text-foreground">{children}</span>
+    </div>
+  )
+}
+
+type AppointmentPaymentSectionProps = {
+  appointment: Appointment
+  onUpdated: (updated: Appointment) => void
+}
+
+export function AppointmentPaymentSection({
+  appointment,
+  onUpdated,
+}: AppointmentPaymentSectionProps) {
+  const { user } = useAuth()
+  const { showAlert } = useGlobalAlerts()
+
+  const canEdit = user?.role === 'OWNER' || user?.role === 'ASSISTANT'
+
+  if (!canEdit) {
+    return <PaymentReadOnly appointment={appointment} />
+  }
+
+  return <PaymentEditForm appointment={appointment} onUpdated={onUpdated} showAlert={showAlert} />
+}
+
+function PaymentReadOnly({ appointment }: { appointment: Appointment }) {
+  return (
+    <DrawerSection title="Pagamento">
+      <DrawerRow label="Status">
+        <AppointmentPaymentBadge status={appointment.paymentStatus} />
+      </DrawerRow>
+      {appointment.estimatedAmountCents != null && (
+        <DrawerRow label="Valor previsto">
+          R$ {centsToReais(appointment.estimatedAmountCents)}
+        </DrawerRow>
+      )}
+      {appointment.paidAmountCents != null && (
+        <DrawerRow label="Valor pago">
+          R$ {centsToReais(appointment.paidAmountCents)}
+        </DrawerRow>
+      )}
+      {appointment.paymentMethod && (
+        <DrawerRow label="Forma de pagamento">
+          {PAYMENT_METHOD_LABELS[appointment.paymentMethod]}
+        </DrawerRow>
+      )}
+      {appointment.paymentDate && (
+        <DrawerRow label="Data do pagamento">
+          {new Date(appointment.paymentDate).toLocaleDateString('pt-BR')}
+        </DrawerRow>
+      )}
+      {appointment.paymentNotes && (
+        <DrawerRow label="Observação">{appointment.paymentNotes}</DrawerRow>
+      )}
+    </DrawerSection>
+  )
+}
+
+type ShowAlert = ReturnType<typeof useGlobalAlerts>['showAlert']
+
+function PaymentEditForm({
+  appointment,
+  onUpdated,
+  showAlert,
+}: {
+  appointment: Appointment
+  onUpdated: (updated: Appointment) => void
+  showAlert: ShowAlert
+}) {
+  const [status, setStatus] = useState<AppointmentPaymentStatus>(appointment.paymentStatus)
+  const [estimated, setEstimated] = useState(centsToReais(appointment.estimatedAmountCents))
+  const [paid, setPaid] = useState(centsToReais(appointment.paidAmountCents))
+  const [method, setMethod] = useState<AppointmentPaymentMethod | ''>(
+    appointment.paymentMethod ?? '',
+  )
+  const [paymentDate, setPaymentDate] = useState(
+    appointment.paymentDate
+      ? new Date(appointment.paymentDate).toISOString().slice(0, 10)
+      : '',
+  )
+  const [notes, setNotes] = useState(appointment.paymentNotes ?? '')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const requiresPaid = status === 'PAID' || status === 'PARTIALLY_PAID'
+
+  const handleSubmit = async (overrideStatus?: AppointmentPaymentStatus) => {
+    const finalStatus = overrideStatus ?? status
+    const paidCents = requiresPaid || overrideStatus ? reaisToCents(paid) : undefined
+    const estimatedCents = reaisToCents(estimated)
+
+    if ((finalStatus === 'PAID' || finalStatus === 'PARTIALLY_PAID') && !paidCents) {
+      showAlert({
+        title: 'Valor obrigatório',
+        description: 'Informe o valor pago para confirmar o pagamento.',
+        tone: 'error',
+      })
+      return
+    }
+
+    const dto: UpdateAppointmentPaymentDto = {
+      paymentStatus: finalStatus,
+      estimatedAmountCents: estimatedCents,
+      paidAmountCents: paidCents,
+      paymentMethod: method || undefined,
+      paymentDate: paymentDate || undefined,
+      paymentNotes: notes.trim() || undefined,
+    }
+
+    setIsSubmitting(true)
+    try {
+      const updated = await updateAppointmentPayment(appointment.id, dto)
+      onUpdated(updated)
+      showAlert({
+        title: 'Pagamento atualizado',
+        description: 'As informações de pagamento foram salvas.',
+        tone: 'success',
+      })
+    } catch {
+      showAlert({
+        title: 'Erro',
+        description: 'Não foi possível atualizar o pagamento. Tente novamente.',
+        tone: 'error',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <div>
+      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Pagamento
+      </p>
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        {/* Status badge display */}
+        <div className="flex items-center justify-between px-4 py-3">
+          <span className="text-sm text-muted-foreground">Status atual</span>
+          <AppointmentPaymentBadge status={appointment.paymentStatus} />
+        </div>
+
+        {/* Form fields */}
+        <div className="space-y-4 border-t border-border p-4">
+          {/* Status select */}
+          <FormField label="Status de pagamento">
+            <Select value={status} onValueChange={(v) => setStatus(v as AppointmentPaymentStatus)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="PAYMENT_PENDING">Pagamento pendente</SelectItem>
+                <SelectItem value="PAID">Pago</SelectItem>
+                <SelectItem value="PARTIALLY_PAID">Pago parcialmente</SelectItem>
+                <SelectItem value="REFUNDED">Reembolsado</SelectItem>
+                <SelectItem value="CANCELED">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          {/* Estimated */}
+          <FormField label="Valor previsto (R$)" optional>
+            <TextInput
+              placeholder="Ex: 250,00"
+              value={estimated}
+              onChange={(e) => setEstimated(e.target.value)}
+            />
+          </FormField>
+
+          {/* Paid */}
+          <FormField label={requiresPaid ? 'Valor pago (R$)' : 'Valor pago (R$)'} optional={!requiresPaid}>
+            <TextInput
+              placeholder="Ex: 250,00"
+              value={paid}
+              onChange={(e) => setPaid(e.target.value)}
+            />
+          </FormField>
+
+          {/* Payment method */}
+          <FormField label="Forma de pagamento" optional>
+            <Select value={method} onValueChange={(v) => setMethod(v as AppointmentPaymentMethod)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.entries(PAYMENT_METHOD_LABELS) as [AppointmentPaymentMethod, string][]).map(
+                  ([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          {/* Payment date */}
+          <FormField label="Data do pagamento" optional>
+            <TextInput
+              type="date"
+              className="[color-scheme:light] dark:[color-scheme:dark]"
+              value={paymentDate}
+              onChange={(e) => setPaymentDate(e.target.value)}
+            />
+          </FormField>
+
+          {/* Notes */}
+          <FormField label="Observação financeira" optional>
+            <TextArea
+              placeholder="Observações sobre o pagamento..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className="min-h-0"
+            />
+          </FormField>
+
+          {/* Action buttons */}
+          <div className="flex flex-col gap-2 pt-1">
+            <Button
+              type="button"
+              size="sm"
+              className="w-full justify-start"
+              disabled={isSubmitting}
+              onClick={() => handleSubmit(status === 'PAYMENT_PENDING' ? 'PAID' : undefined)}
+            >
+              <CheckCircle2 />
+              {status === 'PARTIALLY_PAID' ? 'Salvar pagamento parcial' : 'Confirmar pagamento'}
+            </Button>
+            {appointment.paymentStatus !== 'PAYMENT_PENDING' && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="w-full justify-start"
+                disabled={isSubmitting}
+                onClick={() => handleSubmit('PAYMENT_PENDING')}
+              >
+                <Clock />
+                Marcar como pendente
+              </Button>
+            )}
+            {appointment.paymentStatus !== 'CANCELED' && appointment.status === 'CANCELED' && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-muted-foreground"
+                disabled={isSubmitting}
+                onClick={() => handleSubmit('CANCELED')}
+              >
+                <Ban />
+                Cancelar cobrança
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
