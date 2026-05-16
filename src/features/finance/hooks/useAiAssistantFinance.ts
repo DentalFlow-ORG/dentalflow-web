@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AiAnalysisResult } from '../services/finance-ai.service'
+import type { AiAnalysisResult, AiQuotaInfo } from '../services/finance-ai.service'
 import { analyzeFinanceWithAi, getLatestFinanceAnalysis } from '../services/finance-ai.service'
 
 export function useAiAssistantFinance(from: string, to: string) {
   const [savedAnalysis, setSavedAnalysis] = useState<AiAnalysisResult | null>(null)
+  const [quota, setQuota] = useState<AiQuotaInfo | null>(null)
   const [isLoadingInitial, setIsLoadingInitial] = useState(true)
   const cancelledRef = useRef(false)
 
@@ -12,10 +13,16 @@ export function useAiAssistantFinance(from: string, to: string) {
     setIsLoadingInitial(true)
     getLatestFinanceAnalysis()
       .then((result) => {
-        if (!cancelledRef.current) setSavedAnalysis(result)
+        if (!cancelledRef.current && result) {
+          setSavedAnalysis(result.data)
+          setQuota(result.quota)
+        }
       })
       .catch(() => {
-        if (!cancelledRef.current) setSavedAnalysis(null)
+        if (!cancelledRef.current) {
+          setSavedAnalysis(null)
+          setQuota(null)
+        }
       })
       .finally(() => {
         if (!cancelledRef.current) setIsLoadingInitial(false)
@@ -23,14 +30,15 @@ export function useAiAssistantFinance(from: string, to: string) {
     return () => {
       cancelledRef.current = true
     }
-  }, []) // Only on mount — reloads are intentional via handleGenerate
+  }, [])
 
   const handleGenerate = useCallback((): Promise<AiAnalysisResult> => {
     return analyzeFinanceWithAi({ from, to }).then((result) => {
-      setSavedAnalysis(result)
-      return result
+      setSavedAnalysis(result.data)
+      setQuota(result.quota)
+      return result.data
     })
   }, [from, to])
 
-  return { savedAnalysis, isLoadingInitial, handleGenerate }
+  return { savedAnalysis, quota, isLoadingInitial, handleGenerate }
 }

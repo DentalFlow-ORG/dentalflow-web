@@ -1,4 +1,5 @@
 import { getAccessToken } from '@/features/auth/utils/session-storage'
+import type { AiQuotaInfo } from '@/lib/ai-types'
 import { apiRequest } from '@/services/http'
 
 export type AiAnalysisSection = {
@@ -18,24 +19,28 @@ export type AiAnalysisResult = {
   periodEnd?: string | null
 }
 
+export type { AiQuotaInfo }
+
+type AnalyzeResponse = { data: AiAnalysisResult; quota: AiQuotaInfo }
+type LatestResponse = { data: AiAnalysisResult | null; quota: AiQuotaInfo }
+
 export function analyzeFinanceWithAi(params: {
   from?: string
   to?: string
-}): Promise<AiAnalysisResult> {
-  return apiRequest<AiAnalysisResult>('/ai-assistant/finance/analyze', {
+}): Promise<AnalyzeResponse> {
+  return apiRequest<AnalyzeResponse>('/ai-assistant/finance/analyze', {
     method: 'POST',
     accessToken: getAccessToken(),
     body: JSON.stringify(params),
   })
 }
 
-export async function getLatestFinanceAnalysis(): Promise<AiAnalysisResult | null> {
+export async function getLatestFinanceAnalysis(): Promise<LatestResponse | null> {
   try {
-    const response = await apiRequest<{ data: AiAnalysisResult | null }>(
-      '/ai-assistant/finance/latest',
-      { method: 'GET', accessToken: getAccessToken() },
-    )
-    return response.data
+    return await apiRequest<LatestResponse>('/ai-assistant/finance/latest', {
+      method: 'GET',
+      accessToken: getAccessToken(),
+    })
   } catch {
     return null
   }

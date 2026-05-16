@@ -11,8 +11,11 @@ import {
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import type { AiQuotaInfo } from '@/lib/ai-types'
 import { Button } from '@/components/ui/button'
 import { ApiError } from '@/services/http'
+import { AiUsageBadge } from './AiUsageBadge'
+import { PremiumBlurredPreview } from './PremiumBlurredPreview'
 
 export type AiSection = {
   title: string
@@ -30,6 +33,8 @@ export type AiAnalysisResult = {
   /** YYYY-MM-DD — only present for FINANCE analyses */
   periodEnd?: string | null
 }
+
+export type { AiQuotaInfo }
 
 type AiAssistantCardProps = {
   type: 'finance' | 'inventory'
@@ -53,6 +58,8 @@ type AiAssistantCardProps = {
    * Defaults to false — callers must opt-in explicitly for OWNER.
    */
   canGenerate?: boolean
+  /** Quota info from backend — drives usage badge and PremiumBlurredPreview. */
+  quota?: AiQuotaInfo | null
 }
 
 type State = 'idle' | 'loading' | 'success' | 'error'
@@ -134,6 +141,7 @@ export function AiAssistantCard({
   initialResult,
   isLoadingInitial = false,
   canGenerate = false,
+  quota,
 }: AiAssistantCardProps) {
   const [state, setState] = useState<State>('idle')
   const [result, setResult] = useState<AiAnalysisResult | null>(null)
@@ -179,7 +187,7 @@ export function AiAssistantCard({
   }, [invalidationKey, result])
 
   const handleGenerate = useCallback(async () => {
-    if (state === 'loading' || disabledReason) return
+    if (state === 'loading' || effectiveDisabledReason) return
     setState('loading')
     setErrorMessage(null)
     setIsStalePeriod(false)
@@ -220,6 +228,14 @@ export function AiAssistantCard({
   const isLoading = state === 'loading'
   const isSuccess = state === 'success' && result !== null
 
+  // Quota-derived disabled reason takes precedence over caller-provided one
+  const quotaDisabledReason =
+    quota && quota.allowed && quota.remaining === 0 ? quota.blockedReason : undefined
+  const effectiveDisabledReason = quotaDisabledReason ?? disabledReason
+
+  // Plan not allowed → show blurred premium preview instead of card contents
+  const showPremiumWall = !isLoadingInitial && quota !== undefined && quota !== null && !quota.allowed
+
   return (
     <div className="space-y-0">
       {/* Header */}
@@ -228,6 +244,7 @@ export function AiAssistantCard({
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
             <h2 className="text-base font-semibold text-foreground">{title}</h2>
+            <AiUsageBadge quota={quota ?? null} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
@@ -257,6 +274,11 @@ export function AiAssistantCard({
         )}
       </div>
 
+      {/* Premium plan wall */}
+      {showPremiumWall && (
+        <PremiumBlurredPreview blockedReason={quota!.blockedReason} />
+      )}
+
       {/* ── States that require isLoadingInitial=false ── */}
 
       {/* Loading initial saved analysis from DB */}
@@ -267,7 +289,7 @@ export function AiAssistantCard({
         </div>
       )}
 
-      {!isLoadingInitial && (
+      {!isLoadingInitial && !showPremiumWall && (
         <>
           {/* Idle state */}
           {state === 'idle' && (
@@ -283,14 +305,14 @@ export function AiAssistantCard({
                 <Button
                   onClick={handleGenerate}
                   size="sm"
-                  disabled={!!disabledReason}
-                  title={disabledReason}
+                  disabled={!!effectiveDisabledReason}
+                  title={effectiveDisabledReason}
                 >
                   <Sparkles className="h-3.5 w-3.5" />
                   Gerar análise
                 </Button>
-                {disabledReason && (
-                  <p className="text-xs text-muted-foreground">{disabledReason}</p>
+                {effectiveDisabledReason && (
+                  <p className="text-xs text-muted-foreground">{effectiveDisabledReason}</p>
                 )}
               </div>
             ) : (

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AiAnalysisResult } from '../services/inventory-ai.service'
+import type { AiAnalysisResult, AiQuotaInfo } from '../services/inventory-ai.service'
 import { analyzeInventoryWithAi, getLatestInventoryAnalysis } from '../services/inventory-ai.service'
 
 export function useAiAssistantInventory() {
   const [savedAnalysis, setSavedAnalysis] = useState<AiAnalysisResult | null>(null)
+  const [quota, setQuota] = useState<AiQuotaInfo | null>(null)
   const [isLoadingInitial, setIsLoadingInitial] = useState(true)
   const cancelledRef = useRef(false)
 
@@ -12,10 +13,16 @@ export function useAiAssistantInventory() {
     setIsLoadingInitial(true)
     getLatestInventoryAnalysis()
       .then((result) => {
-        if (!cancelledRef.current) setSavedAnalysis(result)
+        if (!cancelledRef.current && result) {
+          setSavedAnalysis(result.data)
+          setQuota(result.quota)
+        }
       })
       .catch(() => {
-        if (!cancelledRef.current) setSavedAnalysis(null)
+        if (!cancelledRef.current) {
+          setSavedAnalysis(null)
+          setQuota(null)
+        }
       })
       .finally(() => {
         if (!cancelledRef.current) setIsLoadingInitial(false)
@@ -27,10 +34,11 @@ export function useAiAssistantInventory() {
 
   const handleGenerate = useCallback((): Promise<AiAnalysisResult> => {
     return analyzeInventoryWithAi().then((result) => {
-      setSavedAnalysis(result)
-      return result
+      setSavedAnalysis(result.data)
+      setQuota(result.quota)
+      return result.data
     })
   }, [])
 
-  return { savedAnalysis, isLoadingInitial, handleGenerate }
+  return { savedAnalysis, quota, isLoadingInitial, handleGenerate }
 }

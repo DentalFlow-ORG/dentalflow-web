@@ -12,7 +12,7 @@ export function FinancialAnalysisPanel({
 }) {
   const { user } = useAuth()
   const isOwner = user?.role === 'OWNER'
-  const { savedAnalysis, isLoadingInitial, handleGenerate } = useAiAssistantFinance(
+  const { savedAnalysis, quota, isLoadingInitial, handleGenerate } = useAiAssistantFinance(
     summary.period.from,
     summary.period.to,
   )
@@ -28,6 +28,7 @@ export function FinancialAnalysisPanel({
         initialResult={savedAnalysis}
         isLoadingInitial={isLoadingInitial}
         canGenerate={isOwner}
+        quota={quota}
       />
     </PanelCard>
   )
