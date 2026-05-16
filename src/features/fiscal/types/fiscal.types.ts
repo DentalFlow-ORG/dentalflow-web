@@ -137,3 +137,63 @@ export type InvoicePayload = {
   competenceDate: string
   notes?: string
 }
+
+export type AppointmentPaymentStatus =
+  | 'PAYMENT_PENDING'
+  | 'PAID'
+  | 'PARTIALLY_PAID'
+  | 'REFUNDED'
+  | 'CANCELED'
+
+export type AppointmentForInvoice = {
+  id: string
+  patientName: string
+  patientEmail: string | null
+  patientPhone: string | null
+  appointmentDate: string
+  startTime: string
+  status: string
+  paymentStatus: AppointmentPaymentStatus
+  estimatedAmountCents: number | null
+  paidAmountCents: number | null
+  profile: { id: string; displayName: string }
+  service: { id: string; name: string } | null
+  hasActiveInvoice: boolean
+  activeInvoiceId: string | null
+}
+
+export type AppointmentsForInvoiceResponse = {
+  data: AppointmentForInvoice[]
+  total: number
+  page: number
+  limit: number
+}
+
+export type AppointmentInvoiceDraft = {
+  draft: InvoicePayload
+  appointment: {
+    id: string
+    patientName: string
+    appointmentDate: string
+    profileDisplayName: string
+    serviceName: string | null
+    paymentStatus: AppointmentPaymentStatus
+    estimatedAmountCents: number | null
+    paidAmountCents: number | null
+  }
+  existingInvoice: { id: string; status: ServiceInvoiceStatus } | null
+  warnings: {
+    paymentPending: boolean
+    hasExistingInvoice: boolean
+  }
+}
+
+export type AppointmentsForInvoiceFilters = {
+  patient?: string
+  from?: string
+  to?: string
+  profileId?: string
+  paymentStatus?: AppointmentPaymentStatus
+  page: number
+  limit: number
+}

@@ -1,4 +1,4 @@
-import { FileText, RefreshCw, Settings2, ShieldAlert } from 'lucide-react'
+import { FileText, Loader2, RefreshCw, Settings2, ShieldAlert, Stethoscope } from 'lucide-react'
 import { useRef, useState } from 'react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
@@ -17,11 +17,13 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 
+import { AppointmentInvoicePickerModal } from '../components/AppointmentInvoicePickerModal'
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
 import { InvoiceDetails } from '../components/InvoiceDetails'
 import { InvoiceForm } from '../components/InvoiceForm'
 import { INVOICE_STATUS_LABEL, INVOICE_STATUS_TONE } from '../constants/invoice-status'
 import { useFiscalInvoicesPage } from '../hooks/useFiscalInvoicesPage'
+import { getAppointmentInvoiceDraft } from '../services/fiscal.service'
 import type {
   FiscalProfilePayload,
   InvoicePayload,
@@ -80,6 +82,13 @@ export function FiscalInvoicesPageContainer() {
   const [isProfileFormOpen, setIsProfileFormOpen] = useState(false)
   const [profileForm, setProfileForm] = useState<FiscalProfilePayload>(emptyProfileForm)
   const [cancelTarget, setCancelTarget] = useState<ServiceInvoice | null>(null)
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false)
+  const [appointmentWarnings, setAppointmentWarnings] = useState<{
+    paymentPending: boolean
+    hasExistingInvoice: boolean
+    existingInvoiceId: string | null
+  } | null>(null)
 
   const {
     profileResponse,
@@ -175,6 +184,33 @@ export function FiscalInvoicesPageContainer() {
     scrollToWorkspace()
   }
 
+  async function handleAppointmentSelect(appointmentId: string) {
+    setIsLoadingDraft(true)
+    try {
+      const result = await getAppointmentInvoiceDraft(appointmentId)
+      setAppointmentWarnings({
+        paymentPending: result.warnings.paymentPending,
+        hasExistingInvoice: result.warnings.hasExistingInvoice,
+        existingInvoiceId: result.existingInvoice?.id ?? null,
+      })
+      setEditingInvoice(null)
+      setInvoiceForm({
+        ...emptyInvoiceForm,
+        ...result.draft,
+        customerDocument: '',
+        serviceCode: '',
+        notes: '',
+      })
+      setIsInvoiceFormOpen(true)
+      setActiveWorkspace('form')
+      scrollToWorkspace()
+    } catch {
+      // alert já via showAlert do hook não disponível aqui; fallback inline
+    } finally {
+      setIsLoadingDraft(false)
+    }
+  }
+
   async function submitInvoice() {
     try {
       await saveInvoice(invoiceForm, editingInvoice)
@@ -182,6 +218,7 @@ export function FiscalInvoicesPageContainer() {
       if (activeWorkspace === 'form') setActiveWorkspace('none')
       setEditingInvoice(null)
       setInvoiceForm(emptyInvoiceForm)
+      setAppointmentWarnings(null)
     } catch {
       // O hook já exibe o alerta em português; manter o formulário aberto ajuda na correção.
     }
@@ -245,10 +282,24 @@ export function FiscalInvoicesPageContainer() {
               </Button>
             )}
             {(!isFiscalConfigurationIncomplete || isAssistant) && (
-              <Button onClick={() => openInvoiceForm()}>
-                <FileText className="h-4 w-4" aria-hidden="true" />
-                Criar nota fiscal
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  disabled={isLoadingDraft}
+                  onClick={() => setIsPickerOpen(true)}
+                >
+                  {isLoadingDraft ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Stethoscope className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  Gerar a partir de consulta
+                </Button>
+                <Button onClick={() => { setAppointmentWarnings(null); openInvoiceForm() }}>
+                  <FileText className="h-4 w-4" aria-hidden="true" />
+                  Criar nota fiscal
+                </Button>
+              </>
             )}
           </div>
         }
@@ -362,7 +413,25 @@ export function FiscalInvoicesPageContainer() {
               )}
 
               {isInvoiceFormOpen && (
-                <div>
+                <div className="space-y-3">
+                  {appointmentWarnings?.paymentPending && (
+                    <InlineFeedback tone="warning">
+                      <p className="font-semibold">Consulta com pagamento pendente</p>
+                      <p className="mt-1 leading-6">
+                        O pagamento desta consulta ainda não foi registrado. Verifique o valor
+                        antes de salvar a nota.
+                      </p>
+                    </InlineFeedback>
+                  )}
+                  {appointmentWarnings?.hasExistingInvoice && (
+                    <InlineFeedback tone="warning">
+                      <p className="font-semibold">Já existe uma nota vinculada a esta consulta</p>
+                      <p className="mt-1 leading-6">
+                        Salvar irá criar uma nova nota separada. A nota existente não será alterada.
+                        Certifique-se de que uma duplicidade é intencional.
+                      </p>
+                    </InlineFeedback>
+                  )}
                   <InvoiceForm
                     form={invoiceForm}
                     editing={!!editingInvoice}
@@ -370,6 +439,7 @@ export function FiscalInvoicesPageContainer() {
                     onCancel={() => {
                       setIsInvoiceFormOpen(false)
                       if (activeWorkspace === 'form') setActiveWorkspace('none')
+                      setAppointmentWarnings(null)
                     }}
                     onSubmit={submitInvoice}
                   />
@@ -635,6 +705,15 @@ export function FiscalInvoicesPageContainer() {
         cancelLabel="Voltar"
         onCancel={() => setCancelTarget(null)}
         onConfirm={confirmCancel}
+      />
+
+      <AppointmentInvoicePickerModal
+        open={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        onSelect={(appointmentId) => {
+          setIsPickerOpen(false)
+          void handleAppointmentSelect(appointmentId)
+        }}
       />
     </AppPage>
   )

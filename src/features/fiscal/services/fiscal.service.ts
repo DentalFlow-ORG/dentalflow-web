@@ -2,6 +2,9 @@ import { getAccessToken } from '@/features/auth/utils/session-storage'
 import { apiRequest } from '@/services/http'
 
 import type {
+  AppointmentInvoiceDraft,
+  AppointmentsForInvoiceFilters,
+  AppointmentsForInvoiceResponse,
   FiscalProfilePayload,
   FiscalProfileResponse,
   FiscalSummary,
@@ -101,4 +104,26 @@ export function cancelInvoice(id: string, reason: string) {
     accessToken: getAccessToken(),
     body: JSON.stringify({ reason }),
   })
+}
+
+export function listAppointmentsForInvoice(filters: AppointmentsForInvoiceFilters) {
+  return apiRequest<AppointmentsForInvoiceResponse>(
+    `/clinic/invoices/appointments${buildQuery({
+      patient: filters.patient,
+      from: filters.from,
+      to: filters.to,
+      profileId: filters.profileId,
+      paymentStatus: filters.paymentStatus,
+      page: filters.page,
+      limit: filters.limit,
+    })}`,
+    { method: 'GET', accessToken: getAccessToken() },
+  )
+}
+
+export function getAppointmentInvoiceDraft(appointmentId: string) {
+  return apiRequest<AppointmentInvoiceDraft>(
+    `/clinic/invoices/from-appointment/${appointmentId}`,
+    { method: 'GET', accessToken: getAccessToken() },
+  )
 }
