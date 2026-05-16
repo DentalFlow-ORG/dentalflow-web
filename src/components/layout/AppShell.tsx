@@ -221,7 +221,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
                   active && 'bg-sidebar-accent text-sidebar-primary',
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" aria-hidden="true" />
                 {label}
               </Link>
             )
@@ -244,7 +244,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
                   active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
                 )}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5" aria-hidden="true" />
                 <span className="max-w-full truncate">{label}</span>
               </Link>
             )
@@ -259,7 +259,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
                 moreOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              <MoreHorizontal className="h-5 w-5" />
+              <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
               <span>Mais</span>
             </button>
           )}
@@ -277,10 +277,11 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
               <p className="text-sm font-semibold text-foreground">Mais opções</p>
               <button
                 type="button"
+                aria-label="Fechar"
                 onClick={() => setMoreOpen(false)}
                 className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
             <nav className="grid grid-cols-3 gap-1 px-4 pb-4">
@@ -300,7 +301,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
                         : 'text-muted-foreground hover:bg-muted',
                     )}
                   >
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-5 w-5" aria-hidden="true" />
                     <span>{label}</span>
                   </Link>
                 )
