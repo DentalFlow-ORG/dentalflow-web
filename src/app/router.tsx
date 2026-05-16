@@ -7,6 +7,7 @@ import {
 import { RootRoute } from '@/app/RootRoute'
 import {
   AdminClinicsPage,
+  AdminDashboardPage,
   AdminFinancePage,
   AdminUsersPage,
   CompliancePage,
@@ -20,6 +21,7 @@ import {
   DashboardPage,
   DataProcessingPage,
   DataRightsPage,
+  DentistHomePage,
   DpoContactPage,
   FinancePage,
   FiscalInvoicesPage,
@@ -64,9 +66,31 @@ const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app',
   component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT', 'ADMIN']}>
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
       <DashboardPage />
     </ProtectedAppRoute>
+  ),
+})
+
+// Home exclusiva do DENTIST — consultas do dia + atalhos
+const dentistHomeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/inicio',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['DENTIST']}>
+      <DentistHomePage />
+    </ProtectedAppRoute>
+  ),
+})
+
+// Dashboard administrativo — sem dados de clínica
+const adminDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/admin',
+  component: () => (
+    <AdminRoute>
+      <AdminDashboardPage />
+    </AdminRoute>
   ),
 })
 
@@ -313,6 +337,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
   appRoute,
+  dentistHomeRoute,
   appointmentsRoute,
   scheduleRoute,
   teamRoute,
@@ -328,6 +353,7 @@ const routeTree = rootRoute.addChildren([
   clinicalRecordPrintRoute,
   clinicalTemplatesRoute,
   inventoryRoute,
+  adminDashboardRoute,
   adminUsersRoute,
   adminClinicsRoute,
   adminFinanceRoute,

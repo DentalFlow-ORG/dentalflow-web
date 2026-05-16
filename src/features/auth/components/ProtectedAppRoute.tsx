@@ -128,8 +128,8 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
 }
 
 function getDeniedRedirectPath(role: AuthUserRole | undefined) {
-  if (role === 'ADMIN') return '/app/admin/users'
-  if (role === 'DENTIST') return '/app/agenda'
+  if (role === 'ADMIN') return '/app/admin'
+  if (role === 'DENTIST') return '/app/inicio'
   if (role === 'PATIENT') return '/'
   return '/app'
 }

@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Calendar, ClipboardList, DollarSign, Users } from 'lucide-react'
+import { Calendar, ClipboardList, CreditCard, DollarSign, Package, Receipt, Users } from 'lucide-react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
@@ -178,7 +178,7 @@ export function DashboardPageContainer() {
             </PanelCard>
           )}
 
-          {/* Quick shortcuts */}
+          {/* Quick shortcuts — role-aware */}
           <div className="grid gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap">
             <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
               <Link to="/app/agendamentos">
@@ -186,12 +186,14 @@ export function DashboardPageContainer() {
                 Agendamentos
               </Link>
             </Button>
-            <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
-              <Link to="/app/pacientes">
-                <Users className="h-4 w-4" aria-hidden="true" />
-                Pacientes
-              </Link>
-            </Button>
+            {isOwner && (
+              <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
+                <Link to="/app/equipe">
+                  <Users className="h-4 w-4" aria-hidden="true" />
+                  Equipe
+                </Link>
+              </Button>
+            )}
             {isOwner && (
               <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
                 <Link to="/app/prontuario">
@@ -205,6 +207,26 @@ export function DashboardPageContainer() {
                 <Link to="/app/financeiro">
                   <DollarSign className="h-4 w-4" aria-hidden="true" />
                   Financeiro
+                </Link>
+              </Button>
+            )}
+            <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
+              <Link to="/app/estoque">
+                <Package className="h-4 w-4" aria-hidden="true" />
+                Estoque
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
+              <Link to="/app/notas-fiscais">
+                <Receipt className="h-4 w-4" aria-hidden="true" />
+                Notas fiscais
+              </Link>
+            </Button>
+            {isOwner && (
+              <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
+                <Link to="/app/assinatura">
+                  <CreditCard className="h-4 w-4" aria-hidden="true" />
+                  Assinatura
                 </Link>
               </Button>
             )}

@@ -18,6 +18,12 @@ export const DashboardPage = lazy(() =>
   })),
 )
 
+export const DentistHomePage = lazy(() =>
+  import('@/features/dashboard/pages/DentistHomePage').then((m) => ({
+    default: m.DentistHomePage,
+  })),
+)
+
 export const AppointmentsPage = lazy(() =>
   import('@/features/scheduling/pages/AppointmentsPage').then((m) => ({
     default: m.AppointmentsPage,
@@ -57,6 +63,12 @@ export const FiscalInvoicesPage = lazy(() =>
 export const CreateMemberPage = lazy(() =>
   import('@/features/team/pages/CreateMemberPage').then((m) => ({
     default: m.CreateMemberPage,
+  })),
+)
+
+export const AdminDashboardPage = lazy(() =>
+  import('@/features/admin/pages/AdminDashboardPage').then((m) => ({
+    default: m.AdminDashboardPage,
   })),
 )
 
