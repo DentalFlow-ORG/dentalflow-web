@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import {
   BarChart3,
+  Bell,
   BookOpenCheck,
   Building2,
   CalendarDays,
@@ -143,6 +144,12 @@ const appNavigation: NavItem[] = [
     to: '/app/notas-fiscais',
     icon: FileText,
     roles: ['OWNER', 'ASSISTANT'],
+  },
+  {
+    label: 'Notificações',
+    to: '/app/configuracoes/notificacoes',
+    icon: Bell,
+    roles: ['OWNER'],
   },
   {
     label: 'Assinatura',

@@ -20,6 +20,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useClinicalRecordByAppointment } from '@/features/clinical-records/hooks/useClinicalRecord'
 import { createClinicalRecord } from '@/features/clinical-records/services/clinical-records.service'
+import { AppointmentNotificationActions } from '@/features/notifications/components/AppointmentNotificationActions'
 
 import {
   formatAppointmentDate,
@@ -181,6 +182,9 @@ export function AppointmentDrawer({
 
                 {/* Clinical record */}
                 <ClinicalRecordSection appointment={appointment} onClose={onClose} />
+
+                {/* WhatsApp notifications */}
+                <WhatsAppSection appointment={appointment} />
 
                 {/* Cancellation info */}
                 {appointment.status === 'CANCELED' &&
@@ -408,6 +412,25 @@ function ClinicalRecordManagerSection({
         </button>
       )}
     </DrawerSection>
+  )
+}
+
+function WhatsAppSection({ appointment }: { appointment: Appointment }) {
+  const { user } = useAuth()
+  const canSend = user?.role === 'OWNER' || user?.role === 'ASSISTANT'
+
+  if (!canSend || !appointment.patientPhone) return null
+
+  return (
+    <AppointmentNotificationActions
+      appointmentId={appointment.id}
+      appointmentStatus={appointment.status}
+      patientName={appointment.patientName}
+      patientPhone={appointment.patientPhone}
+      clinicName="Clínica"
+      appointmentDate={appointment.appointmentDate}
+      appointmentTime={formatWallTime(appointment.startTime)}
+    />
   )
 }
 

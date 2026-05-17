@@ -204,3 +204,9 @@ export const PrivacyRequestFormPage = lazy(() =>
     default: m.PrivacyRequestFormPage,
   })),
 )
+
+export const NotificationSettingsPage = lazy(() =>
+  import('@/features/notifications/pages/NotificationSettingsPage').then((m) => ({
+    default: m.NotificationSettingsPage,
+  })),
+)
