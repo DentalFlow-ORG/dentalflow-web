@@ -2,7 +2,6 @@ import { useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import {
   BarChart3,
-  Bell,
   Building2,
   CalendarDays,
   ClipboardList,
@@ -13,6 +12,7 @@ import {
   LogOut,
   Moon,
   MoreHorizontal,
+  Settings,
   Package,
   ShieldCheck,
   Sun,
@@ -139,9 +139,9 @@ const appNavigation: NavItem[] = [
     roles: ['OWNER', 'ASSISTANT'],
   },
   {
-    label: 'Notificações',
-    to: '/app/configuracoes/notificacoes',
-    icon: Bell,
+    label: 'Configurações',
+    to: '/app/configuracoes',
+    icon: Settings,
     roles: ['OWNER'],
   },
   {

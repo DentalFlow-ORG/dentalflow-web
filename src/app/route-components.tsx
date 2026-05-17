@@ -205,3 +205,9 @@ export const NotificationSettingsPage = lazy(() =>
     default: m.NotificationSettingsPage,
   })),
 )
+
+export const SettingsPage = lazy(() =>
+  import('@/features/settings/pages/SettingsPage').then((m) => ({
+    default: m.SettingsPage,
+  })),
+)

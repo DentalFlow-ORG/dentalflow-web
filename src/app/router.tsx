@@ -28,6 +28,7 @@ import {
   InventoryPage,
   LandingPage,
   NotificationSettingsPage,
+  SettingsPage,
   PatientsPage,
   PrivacyPolicyPage,
   PrivacyRequestFormPage,
@@ -241,6 +242,16 @@ const inventoryRoute = createRoute({
   ),
 })
 
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/configuracoes',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
+      <SettingsPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const notificationSettingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/configuracoes/notificacoes',
@@ -360,6 +371,7 @@ const routeTree = rootRoute.addChildren([
   clinicalRecordEditorRoute,
   clinicalRecordPrintRoute,
   inventoryRoute,
+  settingsRoute,
   notificationSettingsRoute,
   adminDashboardRoute,
   adminUsersRoute,
