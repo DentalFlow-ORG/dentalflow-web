@@ -211,3 +211,9 @@ export const SettingsPage = lazy(() =>
     default: m.SettingsPage,
   })),
 )
+
+export const FiscalProfilePage = lazy(() =>
+  import('@/features/fiscal/pages/FiscalProfilePage').then((m) => ({
+    default: m.FiscalProfilePage,
+  })),
+)

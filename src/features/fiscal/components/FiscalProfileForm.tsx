@@ -1,3 +1,5 @@
+import { Loader2 } from 'lucide-react'
+
 import { FormField, TextInput } from '@/components/common/FormField'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
@@ -11,9 +13,10 @@ type Props = {
   onChange: (form: FiscalProfilePayload) => void
   onCancel: () => void
   onSubmit: () => void
+  isSaving?: boolean
 }
 
-export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props) {
+export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving }: Props) {
   return (
     <PanelCard>
       <div className="mb-5">
@@ -22,8 +25,10 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
           Confirme as informações com o contador da clínica antes de ativar a emissão real.
         </p>
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
-        <FormField label="Razão social" htmlFor="legalName" className="lg:col-span-2">
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Dados da empresa */}
+        <FormField label="Razão social" htmlFor="legalName" className="sm:col-span-2 lg:col-span-2">
           <TextInput
             id="legalName"
             value={form.legalName}
@@ -46,14 +51,6 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
             maxLength={18}
           />
         </FormField>
-        <FormField label="Inscrição municipal" htmlFor="municipalRegistration" optional>
-          <TextInput
-            id="municipalRegistration"
-            placeholder="Informe a inscrição municipal"
-            value={form.municipalRegistration ?? ''}
-            onChange={(e) => onChange({ ...form, municipalRegistration: e.target.value })}
-          />
-        </FormField>
         <FormField label="Regime tributário" htmlFor="taxRegime">
           <Select
             value={form.taxRegime}
@@ -73,37 +70,24 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
             </SelectContent>
           </Select>
         </FormField>
-        <FormField label="Código de serviço" htmlFor="profileServiceCode" optional>
+        <FormField label="Inscrição municipal" htmlFor="municipalRegistration" optional>
           <TextInput
-            id="profileServiceCode"
-            placeholder="Ex: 04.12 ou código municipal"
-            value={form.serviceCode ?? ''}
-            onChange={(e) => onChange({ ...form, serviceCode: e.target.value })}
+            id="municipalRegistration"
+            placeholder="Informe a inscrição municipal"
+            value={form.municipalRegistration ?? ''}
+            onChange={(e) => onChange({ ...form, municipalRegistration: e.target.value })}
           />
         </FormField>
-        <FormField label="CNAE" htmlFor="cnae" optional>
+        <FormField label="Inscrição estadual" htmlFor="stateRegistration" optional>
           <TextInput
-            id="cnae"
-            placeholder="Ex: 8630-5/04"
-            value={form.cnae ?? ''}
-            onChange={(e) => onChange({ ...form, cnae: e.target.value })}
+            id="stateRegistration"
+            placeholder="Informe a inscrição estadual"
+            value={form.stateRegistration ?? ''}
+            onChange={(e) => onChange({ ...form, stateRegistration: e.target.value })}
           />
         </FormField>
-        <FormField label="Alíquota de ISS (%)" htmlFor="issRate" optional>
-          <TextInput
-            id="issRate"
-            inputMode="decimal"
-            placeholder="Ex: 2,00"
-            value={form.issRate != null ? String(form.issRate).replace('.', ',') : ''}
-            onChange={(e) => {
-              const raw = formatDecimalInput(e.target.value)
-              onChange({
-                ...form,
-                issRate: raw ? Number(raw.replace(',', '.')) : null,
-              })
-            }}
-          />
-        </FormField>
+
+        {/* Endereço fiscal */}
         <FormField label="CEP" htmlFor="zipCode">
           <TextInput
             id="zipCode"
@@ -113,7 +97,7 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
             maxLength={9}
           />
         </FormField>
-        <FormField label="Rua" htmlFor="street" className="lg:col-span-2">
+        <FormField label="Rua" htmlFor="street" className="sm:col-span-2">
           <TextInput
             id="street"
             value={form.addressStreet}
@@ -157,6 +141,39 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
             onChange={(e) => onChange({ ...form, addressState: formatUf(e.target.value) })}
           />
         </FormField>
+
+        {/* Informações complementares */}
+        <FormField label="Código de serviço municipal" htmlFor="profileServiceCode" optional>
+          <TextInput
+            id="profileServiceCode"
+            placeholder="Ex: 04.12"
+            value={form.serviceCode ?? ''}
+            onChange={(e) => onChange({ ...form, serviceCode: e.target.value })}
+          />
+        </FormField>
+        <FormField label="CNAE" htmlFor="cnae" optional>
+          <TextInput
+            id="cnae"
+            placeholder="Ex: 8630-5/04"
+            value={form.cnae ?? ''}
+            onChange={(e) => onChange({ ...form, cnae: e.target.value })}
+          />
+        </FormField>
+        <FormField label="Alíquota de ISS (%)" htmlFor="issRate" optional>
+          <TextInput
+            id="issRate"
+            inputMode="decimal"
+            placeholder="Ex: 2,00"
+            value={form.issRate != null ? String(form.issRate).replace('.', ',') : ''}
+            onChange={(e) => {
+              const raw = formatDecimalInput(e.target.value)
+              onChange({
+                ...form,
+                issRate: raw ? Number(raw.replace(',', '.')) : null,
+              })
+            }}
+          />
+        </FormField>
         <FormField label="Código IBGE do município" htmlFor="ibgeCode" optional>
           <TextInput
             id="ibgeCode"
@@ -167,14 +184,19 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit }: Props)
           />
         </FormField>
       </div>
-      <p className="mt-4 text-sm text-muted-foreground">
-        A integração real com provedor fiscal ainda não está habilitada.
+
+      <p className="mt-4 text-xs text-muted-foreground">
+        Estes dados organizam rascunhos fiscais internos. A emissão oficial de nota fiscal depende de integração fiscal habilitada.
       </p>
+
       <div className="mt-5 flex justify-end gap-2">
-        <Button variant="outline" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel} disabled={isSaving}>
           Cancelar
         </Button>
-        <Button onClick={onSubmit}>Salvar dados fiscais</Button>
+        <Button onClick={onSubmit} disabled={isSaving}>
+          {isSaving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+          Salvar dados fiscais
+        </Button>
       </div>
     </PanelCard>
   )

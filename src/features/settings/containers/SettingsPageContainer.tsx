@@ -11,6 +11,7 @@ import {
   Landmark,
   Loader2,
   Package,
+  Receipt,
   RefreshCw,
   Shield,
   Users,
@@ -511,6 +512,15 @@ export function SettingsPageContainer() {
       <div className="mx-auto max-w-3xl space-y-6">
         <SettingsSectionCard title="Perfil da Clínica">
           <ClinicProfileSection />
+        </SettingsSectionCard>
+
+        <SettingsSectionCard title="Perfil Fiscal">
+          <LinkRow
+            icon={Receipt}
+            label="Dados fiscais da clínica"
+            description="Razão social, CNPJ, regime tributário e endereço fiscal."
+            to="/app/configuracoes/fiscal"
+          />
         </SettingsSectionCard>
 
         <SettingsSectionCard title="Comunicação">

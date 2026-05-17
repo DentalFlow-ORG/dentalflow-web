@@ -27,6 +27,7 @@ import {
   FiscalInvoicesPage,
   InventoryPage,
   LandingPage,
+  FiscalProfilePage,
   NotificationSettingsPage,
   SettingsPage,
   PatientsPage,
@@ -262,6 +263,16 @@ const notificationSettingsRoute = createRoute({
   ),
 })
 
+const fiscalProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/configuracoes/fiscal',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
+      <FiscalProfilePage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const adminUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/admin/users',
@@ -373,6 +384,7 @@ const routeTree = rootRoute.addChildren([
   inventoryRoute,
   settingsRoute,
   notificationSettingsRoute,
+  fiscalProfileRoute,
   adminDashboardRoute,
   adminUsersRoute,
   adminClinicsRoute,
