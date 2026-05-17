@@ -16,6 +16,7 @@ import {
   Package,
   ShieldCheck,
   Sun,
+  TrendingUp,
   Users,
   Users2,
   X,
@@ -106,6 +107,12 @@ const appNavigation: NavItem[] = [
     label: 'Pacientes',
     to: '/app/pacientes',
     icon: Users2,
+    roles: ['OWNER', 'ASSISTANT'],
+  },
+  {
+    label: 'Leads',
+    to: '/app/leads',
+    icon: TrendingUp,
     roles: ['OWNER', 'ASSISTANT'],
   },
   {

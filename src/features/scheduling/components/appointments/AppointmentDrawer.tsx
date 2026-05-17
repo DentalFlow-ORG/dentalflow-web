@@ -209,7 +209,7 @@ export function AppointmentDrawer({
                 <ClinicalRecordSection appointment={active} onClose={onClose} />
 
                 {/* WhatsApp notifications */}
-                <WhatsAppSection appointment={appointment} />
+                <WhatsAppSection appointment={active} />
 
                 {/* Cancellation info */}
                 {active.status === 'CANCELED' &&
