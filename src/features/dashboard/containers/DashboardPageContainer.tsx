@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Calendar, ClipboardList, CreditCard, DollarSign, Package, Receipt, Users } from 'lucide-react'
+import { Calendar, ClipboardList, Package, Receipt } from 'lucide-react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
@@ -8,13 +8,12 @@ import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AppointmentDrawer } from '@/features/scheduling/components/appointments/AppointmentDrawer'
 import { formatWallTime } from '@/features/scheduling/utils/time'
 
 import { useDashboardPage } from '../hooks/useDashboardPage'
-
-const brl = (value: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+import { ProductivityCenter } from './ProductivityCenter'
 
 function formatTodayLabel(isoDate: string): string {
   const [year, month, day] = isoDate.split('-').map(Number)
@@ -28,20 +27,26 @@ function formatTodayLabel(isoDate: string): string {
 }
 
 export function DashboardPageContainer() {
+  const { user } = useAuth()
+
+  if (user?.role === 'OWNER') {
+    return <ProductivityCenter />
+  }
+
+  return <AssistantDashboard />
+}
+
+function AssistantDashboard() {
   const {
-    user,
     today,
     statusCounts,
     upcomingAppointments,
     activeDentists,
-    financeTodaySummary,
     isLoading,
     error,
     drawerAppointment,
     setDrawerAppointment,
   } = useDashboardPage()
-
-  const isOwner = user?.role === 'OWNER'
 
   return (
     <AppPage spacing="loose">
@@ -57,7 +62,6 @@ export function DashboardPageContainer() {
         <LoadingCard message="Carregando dados do dia..." />
       ) : (
         <>
-          {/* Status stat cards */}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <MetricCard
               value={String(statusCounts.total)}
@@ -65,7 +69,10 @@ export function DashboardPageContainer() {
               className="border-primary/30 bg-card sm:col-span-2 xl:col-span-1"
             />
             <MetricCard value={String(statusCounts.confirmed)} label="confirmadas" />
-            <MetricCard value={String(statusCounts.pending)} label="aguardando confirmação" />
+            <MetricCard
+              value={String(statusCounts.pending)}
+              label="aguardando confirmação"
+            />
             <MetricCard value={String(statusCounts.completed)} label="concluídas" />
             <MetricCard
               value={String(statusCounts.canceledOrNoShow)}
@@ -74,16 +81,22 @@ export function DashboardPageContainer() {
           </div>
 
           <div className="grid gap-5 lg:grid-cols-2">
-            {/* Upcoming appointments */}
             <PanelCard>
-              <h2 className="text-base font-semibold text-foreground">Próximas consultas</h2>
+              <h2 className="text-base font-semibold text-foreground">
+                Próximas consultas
+              </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Agendamentos pendentes ou confirmados do dia
               </p>
               {upcomingAppointments.length === 0 ? (
                 <div className="mt-4 flex flex-col items-center gap-2 py-6 text-center">
-                  <Calendar className="h-8 w-8 text-muted-foreground/40" aria-hidden="true" />
-                  <p className="text-sm text-muted-foreground">Nenhuma consulta pendente para hoje.</p>
+                  <Calendar
+                    className="h-8 w-8 text-muted-foreground/40"
+                    aria-hidden="true"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Nenhuma consulta pendente para hoje.
+                  </p>
                 </div>
               ) : (
                 <ul className="mt-4 divide-y divide-border">
@@ -108,7 +121,9 @@ export function DashboardPageContainer() {
                           <span className="block font-medium text-foreground">
                             {formatWallTime(appt.startTime)}
                           </span>
-                          <span className="block text-muted-foreground">{appt.profile.displayName}</span>
+                          <span className="block text-muted-foreground">
+                            {appt.profile.displayName}
+                          </span>
                         </span>
                       </button>
                     </li>
@@ -117,9 +132,10 @@ export function DashboardPageContainer() {
               )}
             </PanelCard>
 
-            {/* Alerts */}
             <PanelCard>
-              <h2 className="text-base font-semibold text-foreground">Alertas do dia</h2>
+              <h2 className="text-base font-semibold text-foreground">
+                Alertas do dia
+              </h2>
               <div className="mt-4 space-y-4">
                 {statusCounts.pending > 0 ? (
                   <InlineFeedback tone="warning">
@@ -157,28 +173,6 @@ export function DashboardPageContainer() {
             </PanelCard>
           </div>
 
-          {/* Financial summary — OWNER only */}
-          {isOwner && financeTodaySummary && (
-            <PanelCard>
-              <h2 className="text-base font-semibold text-foreground">Resumo financeiro de hoje</h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                <MetricCard
-                  value={brl(financeTodaySummary.received)}
-                  label="recebido hoje"
-                />
-                <MetricCard
-                  value={brl(financeTodaySummary.pendingReceivables)}
-                  label="a receber"
-                />
-                <MetricCard
-                  value={brl(financeTodaySummary.expectedTotal)}
-                  label="total esperado"
-                />
-              </div>
-            </PanelCard>
-          )}
-
-          {/* Quick shortcuts — role-aware */}
           <div className="grid gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap">
             <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
               <Link to="/app/agendamentos">
@@ -186,30 +180,12 @@ export function DashboardPageContainer() {
                 Agendamentos
               </Link>
             </Button>
-            {isOwner && (
-              <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
-                <Link to="/app/equipe">
-                  <Users className="h-4 w-4" aria-hidden="true" />
-                  Equipe
-                </Link>
-              </Button>
-            )}
-            {isOwner && (
-              <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
-                <Link to="/app/prontuario">
-                  <ClipboardList className="h-4 w-4" aria-hidden="true" />
-                  Prontuários
-                </Link>
-              </Button>
-            )}
-            {isOwner && (
-              <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
-                <Link to="/app/financeiro">
-                  <DollarSign className="h-4 w-4" aria-hidden="true" />
-                  Financeiro
-                </Link>
-              </Button>
-            )}
+            <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
+              <Link to="/app/prontuario">
+                <ClipboardList className="h-4 w-4" aria-hidden="true" />
+                Prontuários
+              </Link>
+            </Button>
             <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
               <Link to="/app/estoque">
                 <Package className="h-4 w-4" aria-hidden="true" />
@@ -222,19 +198,10 @@ export function DashboardPageContainer() {
                 Notas fiscais
               </Link>
             </Button>
-            {isOwner && (
-              <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
-                <Link to="/app/assinatura">
-                  <CreditCard className="h-4 w-4" aria-hidden="true" />
-                  Assinatura
-                </Link>
-              </Button>
-            )}
           </div>
         </>
       )}
 
-      {/* Appointment detail drawer — readOnly, no status actions */}
       <AppointmentDrawer
         appointment={drawerAppointment}
         readOnly

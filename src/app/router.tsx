@@ -16,7 +16,6 @@ import {
   ClinicalRecordEditorPage,
   ClinicalRecordPrintPage,
   ClinicalRecordsPage,
-  ClinicalTemplatesPage,
   CookiePolicyPage,
   DashboardPage,
   DataProcessingPage,
@@ -28,6 +27,10 @@ import {
   FiscalInvoicesPage,
   InventoryPage,
   LandingPage,
+  FiscalProfilePage,
+  NotificationSettingsPage,
+  PatientsAttentionPage,
+  SettingsPage,
   PatientsPage,
   PrivacyPolicyPage,
   PrivacyRequestFormPage,
@@ -231,22 +234,52 @@ const clinicalRecordPrintRoute = createRoute({
   ),
 })
 
-const clinicalTemplatesRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/app/modelos-clinicos',
-  component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
-      <ClinicalTemplatesPage />
-    </ProtectedAppRoute>
-  ),
-})
-
 const inventoryRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/estoque',
   component: () => (
     <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
       <InventoryPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/configuracoes',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
+      <SettingsPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const notificationSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/configuracoes/notificacoes',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
+      <NotificationSettingsPage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const fiscalProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/configuracoes/fiscal',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER']}>
+      <FiscalProfilePage />
+    </ProtectedAppRoute>
+  ),
+})
+
+const patientsAttentionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/pacientes/atencao',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
+      <PatientsAttentionPage />
     </ProtectedAppRoute>
   ),
 })
@@ -353,14 +386,17 @@ const routeTree = rootRoute.addChildren([
   financeRoute,
   fiscalInvoicesRoute,
   patientsRoute,
+  patientsAttentionRoute,
   subscriptionRoute,
   subscriptionSuccessRoute,
   subscriptionCancelRoute,
   clinicalRecordsRoute,
   clinicalRecordEditorRoute,
   clinicalRecordPrintRoute,
-  clinicalTemplatesRoute,
   inventoryRoute,
+  settingsRoute,
+  notificationSettingsRoute,
+  fiscalProfileRoute,
   adminDashboardRoute,
   adminUsersRoute,
   adminClinicsRoute,

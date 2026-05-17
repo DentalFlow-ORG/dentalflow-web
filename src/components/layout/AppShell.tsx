@@ -2,7 +2,6 @@ import { useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import {
   BarChart3,
-  BookOpenCheck,
   Building2,
   CalendarDays,
   ClipboardList,
@@ -13,6 +12,7 @@ import {
   LogOut,
   Moon,
   MoreHorizontal,
+  Settings,
   Package,
   ShieldCheck,
   Sun,
@@ -115,12 +115,6 @@ const appNavigation: NavItem[] = [
     roles: ['OWNER', 'DENTIST'],
   },
   {
-    label: 'Modelos clínicos',
-    to: '/app/modelos-clinicos',
-    icon: BookOpenCheck,
-    roles: ['OWNER', 'DENTIST'],
-  },
-  {
     label: 'Equipe',
     to: '/app/equipe',
     icon: Users,
@@ -143,6 +137,12 @@ const appNavigation: NavItem[] = [
     to: '/app/notas-fiscais',
     icon: FileText,
     roles: ['OWNER', 'ASSISTANT'],
+  },
+  {
+    label: 'Configurações',
+    to: '/app/configuracoes',
+    icon: Settings,
+    roles: ['OWNER'],
   },
   {
     label: 'Assinatura',

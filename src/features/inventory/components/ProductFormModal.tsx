@@ -36,7 +36,7 @@ type ProductFormState = {
 const EMPTY_FORM: ProductFormState = {
   name: '',
   categoryId: '',
-  unit: 'unidade',
+  unit: '',
   currentQuantity: '',
   minQuantity: '',
   purchasePrice: '',

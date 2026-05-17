@@ -144,11 +144,6 @@ export const ClinicalRecordPrintPage = lazy(() =>
   })),
 )
 
-export const ClinicalTemplatesPage = lazy(() =>
-  import('@/features/clinical-records/pages/ClinicalTemplatesPage').then((m) => ({
-    default: m.ClinicalTemplatesPage,
-  })),
-)
 
 export const InventoryPage = lazy(() =>
   import('@/features/inventory/pages/InventoryPage').then((m) => ({
@@ -202,5 +197,29 @@ export const DpoContactPage = lazy(() =>
 export const PrivacyRequestFormPage = lazy(() =>
   import('@/features/privacy/pages/PrivacyRequestFormPage').then((m) => ({
     default: m.PrivacyRequestFormPage,
+  })),
+)
+
+export const NotificationSettingsPage = lazy(() =>
+  import('@/features/notifications/pages/NotificationSettingsPage').then((m) => ({
+    default: m.NotificationSettingsPage,
+  })),
+)
+
+export const SettingsPage = lazy(() =>
+  import('@/features/settings/pages/SettingsPage').then((m) => ({
+    default: m.SettingsPage,
+  })),
+)
+
+export const FiscalProfilePage = lazy(() =>
+  import('@/features/fiscal/pages/FiscalProfilePage').then((m) => ({
+    default: m.FiscalProfilePage,
+  })),
+)
+
+export const PatientsAttentionPage = lazy(() =>
+  import('@/features/patients/pages/PatientsAttentionPage').then((m) => ({
+    default: m.PatientsAttentionPage,
   })),
 )
