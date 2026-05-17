@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ClipboardList,
   CreditCard,
+  FileDown,
   FileText,
   Home,
   Landmark,
@@ -143,6 +144,12 @@ const appNavigation: NavItem[] = [
     label: 'Notas fiscais',
     to: '/app/notas-fiscais',
     icon: FileText,
+    roles: ['OWNER', 'ASSISTANT'],
+  },
+  {
+    label: 'Relatórios',
+    to: '/app/relatorios',
+    icon: FileDown,
     roles: ['OWNER', 'ASSISTANT'],
   },
   {

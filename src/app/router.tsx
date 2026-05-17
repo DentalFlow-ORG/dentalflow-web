@@ -31,6 +31,7 @@ import {
   LeadsPage,
   NotificationSettingsPage,
   PatientsAttentionPage,
+  ReportsPage,
   SettingsPage,
   PatientsPage,
   PrivacyPolicyPage,
@@ -295,6 +296,16 @@ const leadsRoute = createRoute({
   ),
 })
 
+const reportsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/relatorios',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
+      <ReportsPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const adminUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/admin/users',
@@ -399,6 +410,7 @@ const routeTree = rootRoute.addChildren([
   patientsRoute,
   patientsAttentionRoute,
   leadsRoute,
+  reportsRoute,
   subscriptionRoute,
   subscriptionSuccessRoute,
   subscriptionCancelRoute,

@@ -229,3 +229,9 @@ export const LeadsPage = lazy(() =>
     default: m.LeadsPage,
   })),
 )
+
+export const ReportsPage = lazy(() =>
+  import('@/features/reports/pages/ReportsPage').then((m) => ({
+    default: m.ReportsPage,
+  })),
+)
