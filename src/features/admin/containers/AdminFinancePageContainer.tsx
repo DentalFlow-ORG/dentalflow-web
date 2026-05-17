@@ -18,7 +18,7 @@ import {
   YAxis,
 } from 'recharts'
 
-import { useTheme } from '@/features/theme/ThemeProvider'
+import { useTheme } from '@/features/theme/useTheme'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -459,7 +459,7 @@ function PriceBreakdownSection({
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-sm">
+            <table className="w-full min-w-215 text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Plano</th>
@@ -524,7 +524,7 @@ function RecentSubscriptionsSection({
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] text-sm">
+            <table className="w-full min-w-170 text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Clínica</th>
@@ -665,7 +665,7 @@ function SubscriptionsSection({
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] text-sm">
+            <table className="w-full min-w-245 text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Clínica</th>
@@ -750,7 +750,7 @@ function PlansSection({ plans }: { plans: AdminFinancePlan[] }) {
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-sm">
+            <table className="w-full min-w-190 text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Plano</th>
@@ -874,7 +874,7 @@ function StripeEventsSection({
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-sm">
+            <table className="w-full min-w-205 text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <th className="px-4 py-3">Evento</th>

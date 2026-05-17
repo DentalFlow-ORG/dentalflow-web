@@ -1,16 +1,8 @@
-import { createContext, useContext, useLayoutEffect, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useState, type ReactNode } from 'react'
 import { useRouterState } from '@tanstack/react-router'
-
-export type ThemeMode = 'light' | 'dark'
+import { ThemeContext, type ThemeMode } from './ThemeContext'
 
 const STORAGE_KEY = 'dentalflow.theme'
-
-type ThemeContextValue = {
-  theme: ThemeMode
-  setTheme: (mode: ThemeMode) => void
-}
-
-const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 function readStoredTheme(): ThemeMode {
   try {
@@ -51,10 +43,4 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }
 
   return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>
-}
-
-export function useTheme(): ThemeContextValue {
-  const ctx = useContext(ThemeContext)
-  if (!ctx) throw new Error('useTheme must be used inside ThemeProvider')
-  return ctx
 }

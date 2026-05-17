@@ -12,7 +12,7 @@ import {
 } from 'recharts'
 
 import { cn } from '@/lib/utils'
-import { useTheme } from '@/features/theme/ThemeProvider'
+import { useTheme } from '@/features/theme/useTheme'
 
 import type { FinanceSummary } from '../types/finance.types'
 import { formatCompactCurrency, formatCurrency, formatDate, formatShortDate } from '../utils/finance-format'
@@ -178,7 +178,7 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
         ))}
       </div>
 
-      <div className="h-[320px] w-full overflow-hidden">
+      <div className="h-80 w-full overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 12, right: 10, left: 0, bottom: 0 }}>
             <defs>
