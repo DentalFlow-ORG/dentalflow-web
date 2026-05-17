@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { CalendarDays, ChevronRight, RefreshCw, Users2, X } from 'lucide-react'
+import { AlertCircle, CalendarDays, ChevronRight, RefreshCw, Users2, X } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { Dialog } from 'radix-ui'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
@@ -348,10 +349,18 @@ export function PatientsPageContainer() {
         title="Pacientes"
         description="Lista de pacientes com base no histórico de consultas."
         action={
-          <Button variant="outline" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            Atualizar
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/app/pacientes/atencao">
+                <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                Atenção
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={handleRefresh}>
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              Atualizar
+            </Button>
+          </div>
         }
       />
 

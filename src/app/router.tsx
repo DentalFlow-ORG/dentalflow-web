@@ -29,6 +29,7 @@ import {
   LandingPage,
   FiscalProfilePage,
   NotificationSettingsPage,
+  PatientsAttentionPage,
   SettingsPage,
   PatientsPage,
   PrivacyPolicyPage,
@@ -273,6 +274,16 @@ const fiscalProfileRoute = createRoute({
   ),
 })
 
+const patientsAttentionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/pacientes/atencao',
+  component: () => (
+    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
+      <PatientsAttentionPage />
+    </ProtectedAppRoute>
+  ),
+})
+
 const adminUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/admin/users',
@@ -375,6 +386,7 @@ const routeTree = rootRoute.addChildren([
   financeRoute,
   fiscalInvoicesRoute,
   patientsRoute,
+  patientsAttentionRoute,
   subscriptionRoute,
   subscriptionSuccessRoute,
   subscriptionCancelRoute,
