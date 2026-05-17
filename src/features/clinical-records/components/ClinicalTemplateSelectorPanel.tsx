@@ -22,7 +22,7 @@ export function ClinicalTemplateSelectorPanel({ templates, onApply }: Props) {
           Nenhum modelo disponível
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Acesse <strong>Modelos clínicos</strong> no menu para criar modelos e agilizar o preenchimento.
+          Nenhum modelo clínico foi criado ainda para esta clínica.
         </p>
       </div>
     )

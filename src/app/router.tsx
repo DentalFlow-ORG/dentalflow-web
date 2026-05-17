@@ -16,7 +16,6 @@ import {
   ClinicalRecordEditorPage,
   ClinicalRecordPrintPage,
   ClinicalRecordsPage,
-  ClinicalTemplatesPage,
   CookiePolicyPage,
   DashboardPage,
   DataProcessingPage,
@@ -232,16 +231,6 @@ const clinicalRecordPrintRoute = createRoute({
   ),
 })
 
-const clinicalTemplatesRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/app/modelos-clinicos',
-  component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
-      <ClinicalTemplatesPage />
-    </ProtectedAppRoute>
-  ),
-})
-
 const inventoryRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/estoque',
@@ -370,7 +359,6 @@ const routeTree = rootRoute.addChildren([
   clinicalRecordsRoute,
   clinicalRecordEditorRoute,
   clinicalRecordPrintRoute,
-  clinicalTemplatesRoute,
   inventoryRoute,
   notificationSettingsRoute,
   adminDashboardRoute,

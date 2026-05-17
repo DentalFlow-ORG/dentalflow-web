@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import {
   BarChart3,
   Bell,
-  BookOpenCheck,
   Building2,
   CalendarDays,
   ClipboardList,
@@ -113,12 +112,6 @@ const appNavigation: NavItem[] = [
     label: 'Prontuários',
     to: '/app/prontuario',
     icon: ClipboardList,
-    roles: ['OWNER', 'DENTIST'],
-  },
-  {
-    label: 'Modelos clínicos',
-    to: '/app/modelos-clinicos',
-    icon: BookOpenCheck,
     roles: ['OWNER', 'DENTIST'],
   },
   {

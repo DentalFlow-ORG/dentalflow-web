@@ -144,11 +144,6 @@ export const ClinicalRecordPrintPage = lazy(() =>
   })),
 )
 
-export const ClinicalTemplatesPage = lazy(() =>
-  import('@/features/clinical-records/pages/ClinicalTemplatesPage').then((m) => ({
-    default: m.ClinicalTemplatesPage,
-  })),
-)
 
 export const InventoryPage = lazy(() =>
   import('@/features/inventory/pages/InventoryPage').then((m) => ({
