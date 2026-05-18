@@ -392,7 +392,7 @@ function AppointmentCard({
       </div>
       {!isShort && (
         <p className="mt-0.5 truncate text-[11px] font-medium opacity-75">
-          {appointment.service?.name ?? appointment.profile.displayName}
+          {appointment.service?.name ?? appointment.profile?.displayName ?? 'Profissional'}
         </p>
       )}
     </button>

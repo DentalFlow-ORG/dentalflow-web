@@ -16,7 +16,11 @@ import {
 import { getProfile, listProfiles } from '../../services/profiles.service'
 import type { ProfileListItem, ProfileService } from '../../types/profile.types'
 import { formatDateInputValue } from '@/lib/date-time-formatters'
-import { formatPhoneBR } from '@/lib/field-formatters'
+import {
+  WHATSAPP_PHONE_REQUIRED_MESSAGE,
+  formatPhoneBR,
+  isValidWhatsappPhoneBR,
+} from '@/lib/field-formatters'
 
 import {
   createAppointment,
@@ -156,11 +160,10 @@ export function CreateAppointmentModal({
     if (!form.profileId || !form.patientName || !form.appointmentDate || !form.startTime) {
       return
     }
-    const phoneDigits = form.patientPhone.replace(/\D/g, '')
-    if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+    if (!isValidWhatsappPhoneBR(form.patientPhone)) {
       showAlert({
         title: 'Telefone obrigatório',
-        description: 'Informe um telefone com WhatsApp válido.',
+        description: WHATSAPP_PHONE_REQUIRED_MESSAGE,
         tone: 'error',
       })
       return
@@ -191,7 +194,7 @@ export function CreateAppointmentModal({
         serviceId: form.serviceId || undefined,
         patientName: form.patientName.trim(),
         patientEmail: form.patientEmail.trim() || undefined,
-        patientPhone: form.patientPhone.trim() || undefined,
+        patientPhone: form.patientPhone.trim(),
         appointmentDate: form.appointmentDate,
         startTime: form.startTime,
         notes: form.notes.trim() || undefined,

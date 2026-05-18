@@ -267,7 +267,7 @@ function PaymentEditForm({
           <FormField label="Data do pagamento" optional>
             <TextInput
               type="date"
-              className="[color-scheme:light] dark:[color-scheme:dark]"
+              className="scheme-light dark:scheme-dark"
               value={paymentDate}
               onChange={(e) => setPaymentDate(e.target.value)}
             />

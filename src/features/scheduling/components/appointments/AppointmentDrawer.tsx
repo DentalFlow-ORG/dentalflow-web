@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   CalendarDays,
   Check,
@@ -70,12 +70,9 @@ export function AppointmentDrawer({
 }: AppointmentDrawerProps) {
   const [localAppointment, setLocalAppointment] = useState<Appointment | null>(appointment)
 
-  // Sync when parent passes a new appointment (e.g. after status change)
-  if (appointment?.id !== localAppointment?.id) {
+  useEffect(() => {
     setLocalAppointment(appointment)
-  } else if (appointment && localAppointment && appointment.updatedAt !== localAppointment.updatedAt) {
-    setLocalAppointment(appointment)
-  }
+  }, [appointment])
 
   const handlePaymentUpdated = (updated: Appointment) => {
     setLocalAppointment(updated)
@@ -173,7 +170,9 @@ export function AppointmentDrawer({
                     {formatWallTime(active.endTime)}
                   </DrawerRow>
                   <DrawerRow label="Duração">{active.durationMinutes} min</DrawerRow>
-                  <DrawerRow label="Profissional">{active.profile.displayName}</DrawerRow>
+                  <DrawerRow label="Profissional">
+                    {active.profile?.displayName ?? 'Profissional não informado'}
+                  </DrawerRow>
                   {active.service && (
                     <DrawerRow label="Serviço">{active.service.name}</DrawerRow>
                   )}
@@ -360,7 +359,7 @@ function ClinicalRecordManagerSection({
     try {
       const created = await createClinicalRecord({
         appointmentId: appointment.id,
-        profileId: appointment.profile.id,
+        profileId: appointment.profile?.id ?? appointment.profileId,
         patientName: appointment.patientName,
         patientEmail: appointment.patientEmail ?? undefined,
         patientPhone: appointment.patientPhone ?? undefined,

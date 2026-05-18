@@ -70,6 +70,13 @@ export function isValidPhoneBR(value: string): boolean {
   return digits.length >= 10 && digits.length <= 11
 }
 
+export function isValidWhatsappPhoneBR(value: string): boolean {
+  return isValidPhoneBR(value)
+}
+
+export const WHATSAPP_PHONE_REQUIRED_MESSAGE =
+  'Informe um telefone com WhatsApp válido.'
+
 export function isValidPersonName(value: string): boolean {
   return /^[\p{L}\s.'-]+$/u.test(value.trim())
 }

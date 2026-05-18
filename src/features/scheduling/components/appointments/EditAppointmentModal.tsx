@@ -19,7 +19,11 @@ import {
   formatDateInputValue,
   formatTimeInputValue,
 } from '@/lib/date-time-formatters'
-import { formatPhoneBR } from '@/lib/field-formatters'
+import {
+  WHATSAPP_PHONE_REQUIRED_MESSAGE,
+  formatPhoneBR,
+  isValidWhatsappPhoneBR,
+} from '@/lib/field-formatters'
 
 import {
   getAvailableSlots,
@@ -141,6 +145,14 @@ export function EditAppointmentModal({
     if (!form.patientName.trim() || !form.appointmentDate || !form.startTime) {
       return
     }
+    if (!isPastAppointment && !isValidWhatsappPhoneBR(form.patientPhone)) {
+      showAlert({
+        title: 'Telefone obrigatório',
+        description: WHATSAPP_PHONE_REQUIRED_MESSAGE,
+        tone: 'error',
+      })
+      return
+    }
     if (formatDateInputValue(form.appointmentDate) < todayInputValue) {
       showAlert({
         title: 'Data inválida',
@@ -174,7 +186,7 @@ export function EditAppointmentModal({
             serviceId: form.serviceId || undefined,
             patientName: form.patientName.trim(),
             patientEmail: form.patientEmail.trim() || undefined,
-            patientPhone: form.patientPhone.trim() || undefined,
+            patientPhone: form.patientPhone.trim(),
             notes: form.notes.trim() || undefined,
           }
       const updated = await updateAppointment(currentAppointment.id, dto)
@@ -257,11 +269,12 @@ export function EditAppointmentModal({
                   onChange={(event) => set('patientEmail', event.target.value)}
                 />
               </FormField>
-              <FormField label="Telefone" htmlFor="editPatientPhone" optional>
+              <FormField label="Telefone com WhatsApp" htmlFor="editPatientPhone">
                 <TextInput
                   id="editPatientPhone"
                   type="tel"
                   maxLength={20}
+                  required={!isPastAppointment}
                   disabled={isSubmitting || isPastAppointment}
                   value={form.patientPhone}
                   onChange={(event) => set('patientPhone', formatPhoneBR(event.target.value))}

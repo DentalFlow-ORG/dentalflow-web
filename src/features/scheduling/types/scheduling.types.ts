@@ -110,7 +110,7 @@ export type CreateAppointmentDto = {
   patientUserId?: string
   patientName: string
   patientEmail?: string
-  patientPhone?: string
+  patientPhone: string
   appointmentDate: string
   startTime: string
   durationMinutes?: number
