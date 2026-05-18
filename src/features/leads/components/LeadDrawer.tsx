@@ -2,7 +2,8 @@ import { Dialog } from 'radix-ui'
 import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { FormField, TextArea, TextInput, DateInput } from '@/components/common/FormField'
+import { FormField, TextArea, TextInput } from '@/components/common/FormField'
+import { DatePickerInput } from '@/components/common/DatePickerInput'
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import { SOURCE_LABELS } from './LeadSourceBadge'
 import { STATUS_CONFIG } from './LeadStatusBadge'
 import { LeadActivitiesTimeline } from './LeadActivitiesTimeline'
 import { formatPhoneBR, normalizeEmail } from '@/lib/field-formatters'
+import { validateFollowUpDate } from '@/lib/date-range-rules'
 
 export type DrawerMode = 'view' | 'edit' | 'create'
 
@@ -123,6 +125,9 @@ export function LeadDrawer({
   }
 
   const isEditing = mode === 'edit' || mode === 'create'
+  const followUpError = isEditing && nextFollowUpAt
+    ? validateFollowUpDate(nextFollowUpAt, mode === 'create')
+    : null
   const title =
     mode === 'create' ? 'Novo lead' : mode === 'edit' ? 'Editar lead' : (lead?.name ?? 'Lead')
 
@@ -248,13 +253,18 @@ export function LeadDrawer({
 
                 <FormField label="Próximo follow-up" htmlFor="lead-followup">
                   {isEditing ? (
-                    <DateInput
-                      id="lead-followup"
-                      value={nextFollowUpAt}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setNextFollowUpAt(e.target.value)
-                      }
-                    />
+                    <>
+                      <DatePickerInput
+                        id="lead-followup"
+                        value={nextFollowUpAt}
+                        onValueChange={setNextFollowUpAt}
+                      />
+                      {followUpError && (
+                        <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">
+                          {followUpError}
+                        </p>
+                      )}
+                    </>
                   ) : (
                     <p className="text-sm text-foreground">
                       {lead?.nextFollowUpAt
@@ -336,7 +346,7 @@ export function LeadDrawer({
               <Button variant="outline" onClick={onClose} disabled={isSaving}>
                 Cancelar
               </Button>
-              <Button onClick={handleSave} disabled={!name.trim() || isSaving}>
+              <Button onClick={handleSave} disabled={!name.trim() || isSaving || !!followUpError}>
                 {isSaving
                   ? 'Salvando...'
                   : mode === 'create'

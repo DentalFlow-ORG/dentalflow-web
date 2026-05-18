@@ -1,6 +1,8 @@
 import { AlertTriangle, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
-import { DateInput, FormField } from '@/components/common/FormField'
+import { FormField } from '@/components/common/FormField'
+import { DatePickerInput } from '@/components/common/DatePickerInput'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import {
@@ -11,6 +13,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import {
+  defaultLast30DaysRange,
+  validateReportDateRange,
+} from '@/lib/date-range-rules'
 import {
   exportAppointmentsReport,
   exportFinanceReport,
@@ -37,20 +43,16 @@ export function ReportsPageContainer() {
   const { user } = useAuth()
   const isOwner = user?.role === 'OWNER'
 
-  // Finance filters (OWNER only)
-  const [financeFilters, setFinanceFilters] = useState<FinanceReportFilters>({})
-
-  // Appointments filters
-  const [apptFilters, setApptFilters] = useState<AppointmentsReportFilters>({})
-
-  // Inventory filters
+  const [financeFilters, setFinanceFilters] = useState<FinanceReportFilters>(() => defaultLast30DaysRange())
+  const [apptFilters, setApptFilters] = useState<AppointmentsReportFilters>(() => defaultLast30DaysRange())
   const [invFilters, setInvFilters] = useState<InventoryReportFilters>({})
+  const [leadsFilters, setLeadsFilters] = useState<LeadsReportFilters>(() => defaultLast30DaysRange())
+  const [invoiceFilters, setInvoiceFilters] = useState<InvoicesReportFilters>(() => defaultLast30DaysRange())
 
-  // Leads filters
-  const [leadsFilters, setLeadsFilters] = useState<LeadsReportFilters>({})
-
-  // Invoices filters
-  const [invoiceFilters, setInvoiceFilters] = useState<InvoicesReportFilters>({})
+  const financeError = validateReportDateRange(financeFilters.startDate, financeFilters.endDate, { allowFuture: false })
+  const apptError = validateReportDateRange(apptFilters.startDate, apptFilters.endDate, { allowFuture: true })
+  const leadsError = validateReportDateRange(leadsFilters.startDate, leadsFilters.endDate, { allowFuture: false })
+  const invoiceError = validateReportDateRange(invoiceFilters.startDate, invoiceFilters.endDate, { allowFuture: false })
 
   return (
     <AppPage spacing="loose">
@@ -79,23 +81,24 @@ export function ReportsPageContainer() {
             title="Relatório financeiro"
             description="Receitas, despesas e resultado líquido por período."
             onExport={() => exportFinanceReport(financeFilters)}
+            disabled={!!financeError}
           >
             <FilterRow>
               <FormField label="Data inicial" htmlFor="fin-start">
-                <DateInput
+                <DatePickerInput
                   id="fin-start"
                   value={financeFilters.startDate ?? ''}
-                  onChange={(e) =>
-                    setFinanceFilters((f) => ({ ...f, startDate: e.target.value || undefined }))
+                  onValueChange={(v) =>
+                    setFinanceFilters((f) => ({ ...f, startDate: v || undefined }))
                   }
                 />
               </FormField>
               <FormField label="Data final" htmlFor="fin-end">
-                <DateInput
+                <DatePickerInput
                   id="fin-end"
                   value={financeFilters.endDate ?? ''}
-                  onChange={(e) =>
-                    setFinanceFilters((f) => ({ ...f, endDate: e.target.value || undefined }))
+                  onValueChange={(v) =>
+                    setFinanceFilters((f) => ({ ...f, endDate: v || undefined }))
                   }
                 />
               </FormField>
@@ -141,6 +144,7 @@ export function ReportsPageContainer() {
                 </Select>
               </FormField>
             </FilterRow>
+            {financeError && <InlineFeedback tone="error">{financeError}</InlineFeedback>}
           </ReportCard>
         </section>
       )}
@@ -154,23 +158,24 @@ export function ReportsPageContainer() {
           title="Relatório de agendamentos"
           description="Consultas por período com status e informações de pagamento. Não inclui notas clínicas."
           onExport={() => exportAppointmentsReport(apptFilters)}
+          disabled={!!apptError}
         >
           <FilterRow>
             <FormField label="Data inicial" htmlFor="appt-start">
-              <DateInput
+              <DatePickerInput
                 id="appt-start"
                 value={apptFilters.startDate ?? ''}
-                onChange={(e) =>
-                  setApptFilters((f) => ({ ...f, startDate: e.target.value || undefined }))
+                onValueChange={(v) =>
+                  setApptFilters((f) => ({ ...f, startDate: v || undefined }))
                 }
               />
             </FormField>
             <FormField label="Data final" htmlFor="appt-end">
-              <DateInput
+              <DatePickerInput
                 id="appt-end"
                 value={apptFilters.endDate ?? ''}
-                onChange={(e) =>
-                  setApptFilters((f) => ({ ...f, endDate: e.target.value || undefined }))
+                onValueChange={(v) =>
+                  setApptFilters((f) => ({ ...f, endDate: v || undefined }))
                 }
               />
             </FormField>
@@ -195,6 +200,7 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
+          {apptError && <InlineFeedback tone="error">{apptError}</InlineFeedback>}
         </ReportCard>
       </section>
 
@@ -243,23 +249,24 @@ export function ReportsPageContainer() {
           title="Relatório de leads"
           description="Lista de leads com origem, status e informações de contato. Não inclui notas livres por padrão."
           onExport={() => exportLeadsReport(leadsFilters)}
+          disabled={!!leadsError}
         >
           <FilterRow>
             <FormField label="Data inicial" htmlFor="leads-start">
-              <DateInput
+              <DatePickerInput
                 id="leads-start"
                 value={leadsFilters.startDate ?? ''}
-                onChange={(e) =>
-                  setLeadsFilters((f) => ({ ...f, startDate: e.target.value || undefined }))
+                onValueChange={(v) =>
+                  setLeadsFilters((f) => ({ ...f, startDate: v || undefined }))
                 }
               />
             </FormField>
             <FormField label="Data final" htmlFor="leads-end">
-              <DateInput
+              <DatePickerInput
                 id="leads-end"
                 value={leadsFilters.endDate ?? ''}
-                onChange={(e) =>
-                  setLeadsFilters((f) => ({ ...f, endDate: e.target.value || undefined }))
+                onValueChange={(v) =>
+                  setLeadsFilters((f) => ({ ...f, endDate: v || undefined }))
                 }
               />
             </FormField>
@@ -308,6 +315,7 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
+          {leadsError && <InlineFeedback tone="error">{leadsError}</InlineFeedback>}
         </ReportCard>
       </section>
 
@@ -321,23 +329,24 @@ export function ReportsPageContainer() {
           description="Registros internos de notas fiscais com status, competência e valor."
           notice="Relatório interno. Não substitui documentos fiscais oficiais emitidos pela prefeitura."
           onExport={() => exportInvoicesReport(invoiceFilters)}
+          disabled={!!invoiceError}
         >
           <FilterRow>
             <FormField label="Competência inicial" htmlFor="inv-start">
-              <DateInput
+              <DatePickerInput
                 id="inv-start"
                 value={invoiceFilters.startDate ?? ''}
-                onChange={(e) =>
-                  setInvoiceFilters((f) => ({ ...f, startDate: e.target.value || undefined }))
+                onValueChange={(v) =>
+                  setInvoiceFilters((f) => ({ ...f, startDate: v || undefined }))
                 }
               />
             </FormField>
             <FormField label="Competência final" htmlFor="inv-end">
-              <DateInput
+              <DatePickerInput
                 id="inv-end"
                 value={invoiceFilters.endDate ?? ''}
-                onChange={(e) =>
-                  setInvoiceFilters((f) => ({ ...f, endDate: e.target.value || undefined }))
+                onValueChange={(v) =>
+                  setInvoiceFilters((f) => ({ ...f, endDate: v || undefined }))
                 }
               />
             </FormField>
@@ -363,6 +372,7 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
+          {invoiceError && <InlineFeedback tone="error">{invoiceError}</InlineFeedback>}
         </ReportCard>
       </section>
 
