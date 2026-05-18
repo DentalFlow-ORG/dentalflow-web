@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { Bell, Check, ChevronDown, Loader2, MessageCircle, Settings } from 'lucide-react'
+import { ArrowLeft, Bell, Check, ChevronDown, Loader2, MessageCircle } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
 import { cn } from '@/lib/utils'
+import { AppPage } from '@/components/layout/AppPage'
+import { AppPageHeader } from '@/components/layout/AppPageHeader'
 
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
 import { useNotificationQuota } from '../hooks/useNotificationQuota'
@@ -63,21 +66,28 @@ export function NotificationSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16 text-muted-foreground">
-        <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
-      </div>
+      <AppPage>
+        <div className="flex items-center justify-center py-16 text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
+        </div>
+      </AppPage>
     )
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Notificações</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Configure mensagens WhatsApp para seus pacientes.
-        </p>
-      </div>
+    <AppPage>
+      <AppPageHeader
+        title="Notificações"
+        description="Configure mensagens WhatsApp para seus pacientes."
+        action={
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/app/configuracoes">
+              <ArrowLeft className="h-4 w-4" />
+              Voltar às configurações
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Status card */}
       <SectionCard title="Status do WhatsApp">
@@ -214,12 +224,6 @@ export function NotificationSettingsPage() {
           O consentimento do paciente é sempre verificado antes do envio.
         </span>
       </div>
-
-      {/* Session marker */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Settings className="h-3.5 w-3.5" aria-hidden="true" />
-        <span>Configurações de notificação — DentalFlow</span>
-      </div>
-    </div>
+    </AppPage>
   )
 }

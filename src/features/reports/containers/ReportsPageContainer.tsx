@@ -1,6 +1,8 @@
-import { AlertTriangle, FileDown, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { DateInput, FormField } from '@/components/common/FormField'
+import { AppPage } from '@/components/layout/AppPage'
+import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import {
   Select,
   SelectContent,
@@ -51,21 +53,11 @@ export function ReportsPageContainer() {
   const [invoiceFilters, setInvoiceFilters] = useState<InvoicesReportFilters>({})
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-4 py-8">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-            <FileDown className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold text-foreground">Relatórios</h1>
-            <p className="text-sm text-muted-foreground">
-              Exporte dados operacionais e financeiros da clínica com segurança.
-            </p>
-          </div>
-        </div>
-      </div>
+    <AppPage spacing="loose">
+      <AppPageHeader
+        title="Relatórios"
+        description="Exporte dados operacionais e financeiros da clínica com segurança."
+      />
 
       {/* LGPD notice */}
       <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3">
@@ -382,6 +374,6 @@ export function ReportsPageContainer() {
           aplique filtros de data.
         </span>
       </div>
-    </div>
+    </AppPage>
   )
 }

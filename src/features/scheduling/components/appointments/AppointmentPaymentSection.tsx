@@ -110,7 +110,7 @@ function PaymentReadOnly({ appointment }: { appointment: Appointment }) {
           {PAYMENT_METHOD_LABELS[appointment.paymentMethod]}
         </DrawerRow>
       )}
-      {appointment.paymentDate && (
+      {appointment.paymentDate && !isNaN(new Date(appointment.paymentDate).getTime()) && (
         <DrawerRow label="Data do pagamento">
           {new Date(appointment.paymentDate).toLocaleDateString('pt-BR')}
         </DrawerRow>
@@ -139,11 +139,16 @@ function PaymentEditForm({
   const [method, setMethod] = useState<AppointmentPaymentMethod | ''>(
     appointment.paymentMethod ?? '',
   )
-  const [paymentDate, setPaymentDate] = useState(
-    appointment.paymentDate
-      ? new Date(appointment.paymentDate).toISOString().slice(0, 10)
-      : '',
-  )
+  const [paymentDate, setPaymentDate] = useState(() => {
+    if (!appointment.paymentDate) return ''
+    try {
+      const d = new Date(appointment.paymentDate)
+      if (isNaN(d.getTime())) return ''
+      return d.toISOString().slice(0, 10)
+    } catch {
+      return ''
+    }
+  })
   const [notes, setNotes] = useState(appointment.paymentNotes ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
 

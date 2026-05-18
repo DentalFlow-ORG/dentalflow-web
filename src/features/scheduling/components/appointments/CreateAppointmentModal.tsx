@@ -156,6 +156,15 @@ export function CreateAppointmentModal({
     if (!form.profileId || !form.patientName || !form.appointmentDate || !form.startTime) {
       return
     }
+    const phoneDigits = form.patientPhone.replace(/\D/g, '')
+    if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+      showAlert({
+        title: 'Telefone obrigatório',
+        description: 'Informe um telefone com WhatsApp válido.',
+        tone: 'error',
+      })
+      return
+    }
     if (formatDateInputValue(form.appointmentDate) < todayInputValue) {
       showAlert({
         title: 'Data inválida',
@@ -357,11 +366,12 @@ export function CreateAppointmentModal({
                   onChange={(e) => set('patientEmail', e.target.value)}
                 />
               </FormField>
-              <FormField label="Telefone" htmlFor="patientPhone" optional>
+              <FormField label="Telefone com WhatsApp" htmlFor="patientPhone">
                 <TextInput
                   id="patientPhone"
                   type="tel"
                   maxLength={20}
+                  required
                   disabled={isSubmitting}
                   placeholder="(11) 99999-9999"
                   value={form.patientPhone}
