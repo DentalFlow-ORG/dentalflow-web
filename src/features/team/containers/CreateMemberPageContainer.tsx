@@ -1,10 +1,10 @@
-import { Link } from '@tanstack/react-router'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PanelCard } from '@/components/common/PanelCard'
 import { PasswordInput } from '@/components/common/PasswordInput'
+import { BackButton } from '@/components/common/BackButton'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { formatPhoneBR, formatUf, onlyDigits } from '@/lib/field-formatters'
@@ -35,14 +35,7 @@ export function CreateMemberPageContainer() {
         eyebrow="Equipe"
         title="Adicionar membro"
         description="Cadastre um profissional ou assistente para a sua clínica."
-        action={
-          <Button variant="outline" asChild>
-            <Link to="/app/equipe">
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </Link>
-          </Button>
-        }
+        action={<BackButton to="/app/equipe" />}
       />
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -228,9 +221,7 @@ export function CreateMemberPageContainer() {
         {error && <InlineFeedback>{error}</InlineFeedback>}
 
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" asChild>
-            <Link to="/app/equipe">Cancelar</Link>
-          </Button>
+          <BackButton to="/app/equipe" label="Cancelar" />
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
             {isSubmitting

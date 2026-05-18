@@ -1,9 +1,9 @@
-import { ArrowLeft, ShieldOff } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { ShieldOff } from 'lucide-react'
 
 import { AppPage } from '@/components/layout/AppPage'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { AvailabilityManager } from '@/features/scheduling/components/availability/AvailabilityManager'
 import { ExceptionManager } from '@/features/scheduling/components/availability/ExceptionManager'
@@ -26,12 +26,7 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
     <AppPage>
       {/* Back navigation */}
       <div>
-        <Button variant="ghost" size="sm" className="-ml-2" asChild>
-          <Link to={backPath}>
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            {backLabel}
-          </Link>
-        </Button>
+        <BackButton to={backPath} label={backLabel} variant="ghost" className="-ml-2" />
       </div>
 
       {/* Status states */}
@@ -187,9 +182,7 @@ function ForbiddenState({ backPath, backLabel }: { backPath: string; backLabel: 
           Você não tem permissão para acessar este perfil profissional.
         </p>
       </div>
-      <Button variant="outline" size="sm" asChild>
-        <Link to={backPath}>{backLabel}</Link>
-      </Button>
+      <BackButton to={backPath} label={backLabel} />
     </PanelCard>
   )
 }
@@ -198,9 +191,7 @@ function NotFoundState({ backPath, backLabel }: { backPath: string; backLabel: s
   return (
     <PanelCard className="flex flex-col items-center gap-3 py-12 text-center">
       <p className="font-semibold text-foreground">Profissional não encontrado.</p>
-      <Button variant="outline" size="sm" asChild>
-        <Link to={backPath}>{backLabel}</Link>
-      </Button>
+      <BackButton to={backPath} label={backLabel} />
     </PanelCard>
   )
 }

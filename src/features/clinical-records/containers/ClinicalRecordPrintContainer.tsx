@@ -80,15 +80,15 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
       <style dangerouslySetInnerHTML={{ __html: PRINT_STYLE }} />
 
       <div className="mb-6 flex items-center justify-between print:hidden">
-        <Link
-          to="/app/prontuario/$clinicalRecordId"
-          params={{ clinicalRecordId: recordId }}
-        >
-          <Button variant="outline">
-            <ArrowLeft className="h-4 w-4" />
+        <Button variant="outline" size="sm" asChild>
+          <Link
+            to="/app/prontuario/$clinicalRecordId"
+            params={{ clinicalRecordId: recordId }}
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             Voltar ao prontuário
-          </Button>
-        </Link>
+          </Link>
+        </Button>
         <Button
           onClick={() => {
             const prev = document.title

@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { ArrowLeft, Bell, Loader2, MessageCircle } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { Bell, Loader2, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { BackButton } from '@/components/common/BackButton'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
 import { cn } from '@/lib/utils'
@@ -88,14 +88,7 @@ export function NotificationSettingsPage() {
       <AppPageHeader
         title="Notificações"
         description="Configure mensagens WhatsApp para seus pacientes."
-        action={
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/app/configuracoes">
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </Link>
-          </Button>
-        }
+        action={<BackButton to="/app/configuracoes" />}
       />
 
       {/* Status card */}

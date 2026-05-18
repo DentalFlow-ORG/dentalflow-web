@@ -323,6 +323,9 @@ export function CreateAppointmentModal({
                     <SelectItem key={s.id} value={s.id}>
                       {s.name}
                       {s.durationMinutes ? ` (${s.durationMinutes} min)` : ''}
+                      {s.priceFrom != null
+                        ? ` — R$ ${s.priceFrom.toFixed(2).replace('.', ',')}`
+                        : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>

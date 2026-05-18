@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 
 export function SubscriptionCancelPage() {
@@ -15,9 +16,7 @@ export function SubscriptionCancelPage() {
         <Button asChild>
           <Link to="/app/assinatura">Escolher plano</Link>
         </Button>
-        <Button variant="outline" asChild>
-          <Link to="/app">Voltar ao painel</Link>
-        </Button>
+        <BackButton to="/app" label="Voltar ao painel" size="default" />
       </div>
     </AppPage>
   )

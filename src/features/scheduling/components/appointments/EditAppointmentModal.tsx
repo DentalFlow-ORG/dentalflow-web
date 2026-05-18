@@ -313,6 +313,9 @@ export function EditAppointmentModal({
                     <SelectItem key={service.id} value={service.id}>
                       {service.name}
                       {service.durationMinutes ? ` (${service.durationMinutes} min)` : ''}
+                      {service.priceFrom != null
+                        ? ` — R$ ${service.priceFrom.toFixed(2).replace('.', ',')}`
+                        : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
