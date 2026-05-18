@@ -87,14 +87,6 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: 'Configurações',
-    roles: ['OWNER'],
-    items: [
-      { label: 'Assinatura', to: '/app/assinatura', icon: CreditCard, roles: ['OWNER'] },
-      { label: 'Configurações', to: '/app/configuracoes', icon: Settings, roles: ['OWNER'] },
-    ],
-  },
-  {
     label: 'Administração',
     roles: ['ADMIN'],
     items: [
@@ -112,10 +104,16 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ]
 
+// ─── Footer items (pinned to bottom of desktop sidebar) ──────────────────────
+const FOOTER_ITEMS: NavItem[] = [
+  { label: 'Configurações', to: '/app/configuracoes', icon: Settings, roles: ['OWNER'] },
+]
+
 // ─── Legacy flat list (used for mobile nav primary/secondary split) ───────────
 const appNavigation: NavItem[] = [
   ...TOP_ITEMS,
   ...NAV_GROUPS.flatMap((g) => g.items),
+  ...FOOTER_ITEMS,
 ]
 
 const MOBILE_PRIMARY_ROUTES_BY_ROLE: Partial<Record<AuthUserRole, string[]>> = {
@@ -210,6 +208,10 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
     ),
   })).filter((group) => group.items.length > 0)
 
+  const visibleFooterItems = FOOTER_ITEMS.filter(
+    ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
+  )
+
   const visibleNav = appNavigation.filter(
     ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
   )
@@ -226,94 +228,120 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
           <BrandLink />
         </div>
 
-        <nav className="overflow-y-auto px-3 py-5" style={{ height: 'calc(100% - 5rem)' }}>
-          {/* Top-level flat items */}
-          <div className="space-y-0.5">
-            {visibleTopItems.map((item) => {
-              const { label, to, icon: Icon } = item
-              const active = isActive(item)
+        <div className="flex flex-col" style={{ height: 'calc(100% - 5rem)' }}>
+          <nav className="flex-1 overflow-y-auto px-3 py-5">
+            {/* Top-level flat items */}
+            <div className="space-y-0.5">
+              {visibleTopItems.map((item) => {
+                const { label, to, icon: Icon } = item
+                const active = isActive(item)
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'flex h-9 items-center gap-3 rounded-md px-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                      active && 'bg-sidebar-accent text-sidebar-primary',
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    {label}
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* Grouped sections */}
+            {visibleGroups.map((group) => {
+              const open = isGroupOpen(group.label, group)
+              const hasActive = isGroupActive(group)
               return (
-                <Link
-                  key={to}
-                  to={to}
-                  aria-current={active ? 'page' : undefined}
-                  className={cn(
-                    'flex h-9 items-center gap-3 rounded-md px-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                    active && 'bg-sidebar-accent text-sidebar-primary',
-                  )}
-                >
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  {label}
-                </Link>
+                <div key={group.label} className="mt-4">
+                  <Collapsible.Root
+                    open={open}
+                    onOpenChange={() => toggleGroup(group.label, group)}
+                  >
+                    <Collapsible.Trigger
+                      className={cn(
+                        'flex w-full items-center justify-between rounded-md px-3 py-1.5 text-left transition-colors',
+                        'hover:bg-sidebar-accent/60',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+                      )}
+                      aria-expanded={open}
+                    >
+                      <span
+                        className={cn(
+                          'text-[11px] font-semibold uppercase tracking-wider',
+                          hasActive
+                            ? 'text-sidebar-primary'
+                            : 'text-sidebar-foreground/50',
+                        )}
+                      >
+                        {group.label}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          'h-3.5 w-3.5 shrink-0 transition-transform duration-200',
+                          hasActive ? 'text-sidebar-primary' : 'text-sidebar-foreground/40',
+                          open && 'rotate-180',
+                        )}
+                        aria-hidden="true"
+                      />
+                    </Collapsible.Trigger>
+
+                    <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+                      <div className="mt-0.5 space-y-0.5 pl-1">
+                        {group.items.map((item) => {
+                          const { label, to, icon: Icon } = item
+                          const active = isActive(item)
+                          return (
+                            <Link
+                              key={to}
+                              to={to}
+                              aria-current={active ? 'page' : undefined}
+                              className={cn(
+                                'flex h-9 items-center gap-3 rounded-md px-3 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                                active && 'bg-sidebar-accent font-semibold text-sidebar-primary',
+                              )}
+                            >
+                              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                              {label}
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </Collapsible.Content>
+                  </Collapsible.Root>
+                </div>
               )
             })}
-          </div>
+          </nav>
 
-          {/* Grouped sections */}
-          {visibleGroups.map((group) => {
-            const open = isGroupOpen(group.label, group)
-            const hasActive = isGroupActive(group)
-            return (
-              <div key={group.label} className="mt-4">
-                <Collapsible.Root
-                  open={open}
-                  onOpenChange={() => toggleGroup(group.label, group)}
-                >
-                  <Collapsible.Trigger
+          {/* Footer: pinned settings item */}
+          {visibleFooterItems.length > 0 && (
+            <div className="shrink-0 border-t border-sidebar-border px-3 py-3">
+              {visibleFooterItems.map((item) => {
+                const { label, to, icon: Icon } = item
+                const active = isActive(item)
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'flex w-full items-center justify-between rounded-md px-3 py-1.5 text-left transition-colors',
-                      'hover:bg-sidebar-accent/60',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+                      'flex h-9 items-center gap-3 rounded-md px-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                      active && 'bg-sidebar-accent text-sidebar-primary',
                     )}
-                    aria-expanded={open}
                   >
-                    <span
-                      className={cn(
-                        'text-[11px] font-semibold uppercase tracking-wider',
-                        hasActive
-                          ? 'text-sidebar-primary'
-                          : 'text-sidebar-foreground/50',
-                      )}
-                    >
-                      {group.label}
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        'h-3.5 w-3.5 shrink-0 transition-transform duration-200',
-                        hasActive ? 'text-sidebar-primary' : 'text-sidebar-foreground/40',
-                        open && 'rotate-180',
-                      )}
-                      aria-hidden="true"
-                    />
-                  </Collapsible.Trigger>
-
-                  <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
-                    <div className="mt-0.5 space-y-0.5 pl-1">
-                      {group.items.map((item) => {
-                        const { label, to, icon: Icon } = item
-                        const active = isActive(item)
-                        return (
-                          <Link
-                            key={to}
-                            to={to}
-                            aria-current={active ? 'page' : undefined}
-                            className={cn(
-                              'flex h-9 items-center gap-3 rounded-md px-3 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                              active && 'bg-sidebar-accent font-semibold text-sidebar-primary',
-                            )}
-                          >
-                            <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                            {label}
-                          </Link>
-                        )
-                      })}
-                    </div>
-                  </Collapsible.Content>
-                </Collapsible.Root>
-              </div>
-            )
-          })}
-        </nav>
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    {label}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* ── Mobile Bottom Nav ──────────────────────────────────────────────── */}
