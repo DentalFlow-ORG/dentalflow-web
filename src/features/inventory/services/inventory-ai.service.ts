@@ -17,8 +17,13 @@ export type AiAnalysisResult = {
 
 export type { AiQuotaInfo }
 
+export type DataReadiness = {
+  ready: boolean
+  reason?: string
+}
+
 type AnalyzeResponse = { data: AiAnalysisResult; quota: AiQuotaInfo }
-type LatestResponse = { data: AiAnalysisResult | null; quota: AiQuotaInfo }
+type LatestResponse = { data: AiAnalysisResult | null; quota: AiQuotaInfo; dataReadiness: DataReadiness }
 
 export function analyzeInventoryWithAi(): Promise<AnalyzeResponse> {
   return apiRequest<AnalyzeResponse>('/ai-assistant/inventory/analyze', {

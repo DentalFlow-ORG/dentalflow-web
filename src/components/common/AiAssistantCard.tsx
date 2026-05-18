@@ -158,12 +158,15 @@ export function AiAssistantCard({
       if (initialResult != null) {
         setResult(initialResult)
         setState('success')
-        // Check if the saved analysis is for a different period
-        if (
+        // Time-based staleness: analysis older than 30 days
+        const isTimeStale =
+          (Date.now() - new Date(initialResult.generatedAt).getTime()) > 30 * 24 * 60 * 60 * 1000
+        // Period-based staleness: analysis from a different period
+        const isPeriodStale =
           invalidationKey !== undefined &&
           initialResult.periodStart != null &&
           `${initialResult.periodStart}|${initialResult.periodEnd}` !== invalidationKey
-        ) {
+        if (isPeriodStale || isTimeStale) {
           setIsStalePeriod(true)
         }
       }

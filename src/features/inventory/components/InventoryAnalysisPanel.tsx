@@ -7,10 +7,14 @@ import type { StockSummary } from '../types/inventory.types'
 export function InventoryAnalysisPanel({ summary }: { summary: StockSummary }) {
   const { user } = useAuth()
   const isOwner = user?.role === 'OWNER'
-  const { savedAnalysis, quota, isLoadingInitial, handleGenerate } = useAiAssistantInventory()
+  const { savedAnalysis, quota, dataReadiness, isLoadingInitial, handleGenerate } =
+    useAiAssistantInventory()
 
   const hasCritical =
     summary.emptyStock > 0 || summary.expired > 0 || summary.lowStock > 0 || summary.expiring > 0
+
+  const dataDisabledReason =
+    dataReadiness && !dataReadiness.ready ? dataReadiness.reason : undefined
 
   return (
     <PanelCard>
@@ -27,6 +31,7 @@ export function InventoryAnalysisPanel({ summary }: { summary: StockSummary }) {
         isLoadingInitial={isLoadingInitial}
         canGenerate={isOwner}
         quota={quota}
+        disabledReason={dataDisabledReason}
       />
     </PanelCard>
   )
