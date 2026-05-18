@@ -21,7 +21,7 @@ export function FinancialAnalysisPanel({
     dataReadiness && !dataReadiness.ready ? dataReadiness.reason : undefined
 
   useEffect(() => {
-    if (window.location.hash !== '#finance-ai') return
+    if (!['#ai-analysis', '#finance-ai'].includes(window.location.hash)) return
     window.setTimeout(() => {
       sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       sectionRef.current?.focus({ preventScroll: true })
@@ -29,7 +29,7 @@ export function FinancialAnalysisPanel({
   }, [isLoadingInitial])
 
   return (
-    <div id="finance-ai" ref={sectionRef} tabIndex={-1} className="scroll-mt-24 outline-none">
+    <div id="ai-analysis" ref={sectionRef} tabIndex={-1} className="scroll-mt-24 outline-none">
       <PanelCard>
         <AiAssistantCard
           type="finance"

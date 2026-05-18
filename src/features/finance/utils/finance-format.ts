@@ -1,8 +1,8 @@
+import { safeFormatDateBR } from '@/lib/date-time-formatters'
+import { formatCurrencyBRL } from '@/lib/number-formatters'
+
 export function formatCurrency(value: string | number) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(Number(value))
+  return formatCurrencyBRL(Number(value))
 }
 
 export function formatCompactCurrency(value: string | number) {
@@ -15,16 +15,10 @@ export function formatCompactCurrency(value: string | number) {
 }
 
 export function formatDate(value: string) {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date(value))
+  return safeFormatDateBR(value)
 }
 
 export function formatShortDate(value: string) {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-  }).format(new Date(value))
+  const formatted = safeFormatDateBR(value, '')
+  return formatted ? formatted.slice(0, 5) : 'Data não informada'
 }

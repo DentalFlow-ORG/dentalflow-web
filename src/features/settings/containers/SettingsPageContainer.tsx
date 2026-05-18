@@ -583,7 +583,7 @@ export function SettingsPageContainer() {
             <div className="grid gap-2 sm:grid-cols-2">
               <Link
                 to="/app/financeiro"
-                hash="finance-ai"
+                hash="ai-analysis"
                 className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm transition-colors hover:bg-muted"
               >
                 <Landmark className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -592,7 +592,7 @@ export function SettingsPageContainer() {
               </Link>
               <Link
                 to="/app/estoque"
-                hash="inventory-ai"
+                hash="inventory-ai-analysis"
                 className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm transition-colors hover:bg-muted"
               >
                 <Package className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
