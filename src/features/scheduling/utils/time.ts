@@ -4,10 +4,11 @@
 
 import {
   addDays,
-  formatDateBR,
   formatDateInputValue,
   formatDateLongBR,
   formatTimeInputValue,
+  safeFormatDateBR,
+  safeFormatTimeBR,
   formatWeekDayHeader,
   formatWeekRangeLabel,
   getWeekDates,
@@ -19,19 +20,19 @@ import {
 export const BUSINESS_START_TIME = '08:00'
 export const BUSINESS_END_TIME = '18:00'
 
-export function formatWallTime(isoTime: string): string {
-  return formatTimeInputValue(isoTime)
+export function formatWallTime(isoTime: string | Date | null | undefined): string {
+  return safeFormatTimeBR(isoTime)
 }
 
-export function formatAppointmentDate(isoDate: string): string {
-  return formatDateBR(isoDate)
+export function formatAppointmentDate(isoDate: string | Date | null | undefined): string {
+  return safeFormatDateBR(isoDate)
 }
 
-export function formatAppointmentDateLong(isoDate: string): string {
-  return formatDateLongBR(isoDate)
+export function formatAppointmentDateLong(isoDate: string | Date | null | undefined): string {
+  return formatDateLongBR(isoDate) || 'Data não informada'
 }
 
-export function isoDateToString(isoDate: string): string {
+export function isoDateToString(isoDate: string | Date | null | undefined): string {
   return formatDateInputValue(isoDate)
 }
 

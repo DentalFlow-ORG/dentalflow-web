@@ -54,10 +54,10 @@ export type Appointment = {
   patientName: string
   patientEmail: string | null
   patientPhone: string | null
-  appointmentDate: string
-  startTime: string
-  endTime: string
-  durationMinutes: number
+  appointmentDate: string | null
+  startTime: string | null
+  endTime: string | null
+  durationMinutes: number | null
   status: AppointmentStatus
   notes: string | null
   patientNotes: string | null
@@ -74,7 +74,7 @@ export type Appointment = {
   paymentNotes: string | null
   createdAt: string
   updatedAt: string
-  profile: AppointmentProfile
+  profile: AppointmentProfile | null
   service: AppointmentService | null
   patient: AppointmentPatient | null
 }

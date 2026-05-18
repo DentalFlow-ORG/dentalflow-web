@@ -229,7 +229,7 @@ export function EditAppointmentModal({
               <p className="mt-1 text-sm text-muted-foreground">
                 {isPastAppointment
                   ? 'Esta consulta ja passou. Ajuste data e horario para remarcar.'
-                  : currentAppointment.profile.displayName}
+                  : currentAppointment.profile?.displayName ?? 'Profissional não informado'}
               </p>
             </div>
             <Button

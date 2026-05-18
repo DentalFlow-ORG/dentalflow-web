@@ -88,7 +88,7 @@ export function AppointmentTable({
                   )}
                 </td>
                 <td className="px-4 py-3 text-foreground">
-                  {appt.profile.displayName}
+                  {appt.profile?.displayName ?? 'Profissional não informado'}
                   {appt.service && (
                     <p className="mt-0.5 text-xs text-muted-foreground">{appt.service.name}</p>
                   )}
@@ -172,7 +172,9 @@ function AppointmentCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-semibold text-foreground">{appt.patientName}</p>
-          <p className="mt-0.5 text-sm text-muted-foreground">{appt.profile.displayName}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {appt.profile?.displayName ?? 'Profissional não informado'}
+          </p>
         </div>
         <AppointmentStatusBadge status={appt.status} />
       </div>

@@ -104,7 +104,7 @@ export function WeekCalendar({
       const dateStr = toDateInputValue(date)
       const dayAppointments = visibleAppointments
         .filter((appt) => isoDateToString(appt.appointmentDate) === dateStr)
-        .sort((a, b) => a.startTime.localeCompare(b.startTime))
+        .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
       return { date, appointments: computeDayLayout(dayAppointments) }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -330,9 +330,9 @@ export function WeekCalendar({
                     className="pointer-events-auto relative"
                   >
                     {dayAppts.map((appt) => {
-                      const startMin = wallTimeToMinutes(appt.startTime)
+                      const startMin = wallTimeToMinutes(appt.startTime ?? '')
                       const top = (startMin - firstSlotMinutes) * PX_PER_MINUTE
-                      const height = Math.max(appt.durationMinutes * PX_PER_MINUTE, SLOT_HEIGHT_PX / 2)
+                      const height = Math.max((appt.durationMinutes ?? 30) * PX_PER_MINUTE, SLOT_HEIGHT_PX / 2)
                       const leftPct = (appt.colIndex / appt.colCount) * 100
                       const widthPct = 100 / appt.colCount
 
@@ -370,7 +370,7 @@ function AppointmentCard({
   style: CSSProperties
   onClick: (appointment: Appointment) => void
 }) {
-  const isShort = appointment.durationMinutes < 30
+  const isShort = (appointment.durationMinutes ?? 30) < 30
 
   return (
     <button
@@ -404,7 +404,8 @@ function computeDayLayout(appointments: Appointment[]): PositionedAppointment[] 
 
   return appointments.map((appt) => {
     const concurrent = appointments.filter((other) =>
-      appt.startTime < other.endTime && other.startTime < appt.endTime,
+      (appt.startTime ?? '') < (other.endTime ?? '') &&
+        (other.startTime ?? '') < (appt.endTime ?? ''),
     )
     const colCount = concurrent.length
     const colIndex = concurrent.indexOf(appt)
@@ -495,8 +496,8 @@ function buildTimeSlots(
   }
 
   for (const appt of visibleAppointments) {
-    const start = wallTimeToMinutes(appt.startTime)
-    const end = wallTimeToMinutes(appt.endTime)
+    const start = wallTimeToMinutes(appt.startTime ?? '')
+    const end = wallTimeToMinutes(appt.endTime ?? '')
     if (start < minMinutes) minMinutes = Math.floor(start / SLOT_MINUTES) * SLOT_MINUTES
     if (end > maxMinutes) maxMinutes = Math.ceil(end / SLOT_MINUTES) * SLOT_MINUTES
   }
