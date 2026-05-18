@@ -36,6 +36,8 @@ export type NotificationConsent = {
   updatedAt: string
 }
 
+export type NotificationProviderType = 'local' | 'whatsapp_cloud'
+
 export type NotificationPreference = {
   clinicId: string
   whatsappEnabled: boolean
@@ -44,6 +46,9 @@ export type NotificationPreference = {
   reminderHoursBefore: number
   createdAt: string | null
   updatedAt: string | null
+  /** Provider type resolved server-side from NOTIFICATION_PROVIDER env var */
+  providerType?: NotificationProviderType
+  providerConfigured?: boolean
 }
 
 export type NotificationQuota = {

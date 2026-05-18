@@ -10,6 +10,7 @@ import type { NotificationTemplate } from '../types/notifications.types'
 import { useNotificationQuota } from '../hooks/useNotificationQuota'
 import { useNotificationConsent } from '../hooks/useNotificationConsent'
 import { useNotificationTemplates } from '../hooks/useNotificationTemplates'
+import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
 import { sendNotification, TEMPLATE_LABELS, TEMPLATES_BY_STATUS } from '../services/notifications.service'
 import { MessageStatusBadge } from './MessageStatusBadge'
 import { MessageHistoryDrawer } from './MessageHistoryDrawer'
@@ -23,18 +24,60 @@ type AppointmentNotificationActionsProps = {
   patientName: string
   patientPhone: string | null
   clinicName: string
-  appointmentDate: string  // ISO date string "2026-05-17"
-  appointmentTime: string  // "09:00"
+  appointmentDate: string | Date | null | undefined
+  appointmentTime: string | Date | null | undefined
 }
 
 function normalizePhone(phone: string) {
   return phone.replace(/\D/g, '')
 }
 
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(
-    new Date(iso + 'T00:00:00'),
-  )
+function safeFormatDate(value: unknown): string {
+  if (!value) return 'Data não informada'
+
+  const raw = value instanceof Date ? value : String(value)
+  const date =
+    raw instanceof Date
+      ? raw
+      : /^\d{4}-\d{2}-\d{2}$/.test(raw)
+        ? new Date(`${raw}T00:00:00`)
+        : new Date(raw)
+
+  if (Number.isNaN(date.getTime())) return 'Data não informada'
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date)
+}
+
+function safeFormatTime(value: unknown): string {
+  if (!value) return 'Hora não informada'
+
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return 'Hora não informada'
+    return value.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  const raw = String(value).trim()
+  const timeMatch = raw.match(/^(\d{2}):(\d{2})/)
+  if (timeMatch) return `${timeMatch[1]}:${timeMatch[2]}`
+
+  const date = new Date(raw)
+  if (Number.isNaN(date.getTime())) return 'Hora não informada'
+
+  return date.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function canPrepareMessage(dateLabel: string, timeLabel: string) {
+  return dateLabel !== 'Data não informada' && timeLabel !== 'Hora não informada'
 }
 
 type SendDrawerProps = {
@@ -45,8 +88,8 @@ type SendDrawerProps = {
   patientName: string
   patientPhone: string
   clinicName: string
-  appointmentDate: string
-  appointmentTime: string
+  appointmentDate: string | Date | null | undefined
+  appointmentTime: string | Date | null | undefined
   onSent: () => void
 }
 
@@ -67,13 +110,18 @@ function SendDrawer({
   const [lastStatus, setLastStatus] = useState<'SENT' | 'FAILED' | null>(null)
   const phone = normalizePhone(patientPhone)
   const { quota, isLoading: quotaLoading } = useNotificationQuota()
+  const { preferences } = useNotificationPreferences()
   const { consent, isLoading: consentLoading, isSaving: consentSaving, grant, revoke } = useNotificationConsent(phone)
+  const isRealProvider = preferences?.providerType === 'whatsapp_cloud' && preferences.providerConfigured
 
   const hasConsent = !!consent?.granted && !consent.revokedAt
   const quotaExhausted = !quotaLoading && quota !== null && quota.available === 0
   const quotaBlocked = !quotaLoading && quota !== null && quota.limit === 0
+  const formattedDate = safeFormatDate(appointmentDate)
+  const formattedTime = safeFormatTime(appointmentTime)
+  const hasValidMessageData = canPrepareMessage(formattedDate, formattedTime)
 
-  const canSend = hasConsent && !quotaExhausted && !quotaBlocked && !isSending
+  const canSend = hasConsent && hasValidMessageData && !quotaExhausted && !quotaBlocked && !isSending
 
   const handleSend = async () => {
     if (!template || !canSend) return
@@ -86,7 +134,13 @@ function SendDrawer({
       })
       setLastStatus(res.status === 'SENT' ? 'SENT' : 'FAILED')
       if (res.status === 'SENT') {
-        showAlert({ title: 'Mensagem enviada', description: 'Mensagem simulada registrada com sucesso.', tone: 'success' })
+        showAlert({
+          title: 'Mensagem enviada',
+          description: isRealProvider
+            ? 'Mensagem real enviada via WhatsApp Cloud API.'
+            : 'Mensagem simulada registrada com sucesso.',
+          tone: 'success',
+        })
         onSent()
       }
     } catch (err) {
@@ -108,8 +162,8 @@ function SendDrawer({
 
   const previewVars = {
     patientName,
-    date: formatDate(appointmentDate),
-    time: appointmentTime,
+    date: formattedDate,
+    time: formattedTime,
     clinicName,
     amount: 'R$ —',
   }
@@ -180,6 +234,11 @@ function SendDrawer({
             {quotaBlocked && <WhatsAppLockedPreview reason="starter_plan" />}
             {!quotaBlocked && quotaExhausted && <WhatsAppLockedPreview reason="quota_exceeded" />}
             {!hasConsent && !consentLoading && <WhatsAppLockedPreview reason="no_consent" />}
+            {!hasValidMessageData && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-300">
+                Não foi possível preparar a mensagem porque a consulta não possui data/hora válida.
+              </div>
+            )}
 
             {/* Last status */}
             {lastStatus && (
@@ -204,7 +263,7 @@ function SendDrawer({
               ) : (
                 <>
                   <Send />
-                  Enviar mensagem simulada
+                  {isRealProvider ? 'Enviar WhatsApp real' : 'Enviar mensagem simulada'}
                 </>
               )}
             </Button>

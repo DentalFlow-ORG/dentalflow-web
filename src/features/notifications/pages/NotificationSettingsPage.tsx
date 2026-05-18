@@ -34,6 +34,8 @@ export function NotificationSettingsPage() {
   const [hoursMenuOpen, setHoursMenuOpen] = useState(false)
 
   const whatsappEnabled = localEnabled ?? preferences?.whatsappEnabled ?? false
+  const isRealProvider = preferences?.providerType === 'whatsapp_cloud'
+  const providerConfigured = preferences?.providerConfigured ?? false
   const reminderHours = localHours ?? preferences?.reminderHoursBefore ?? 24
 
   const handleToggleWhatsApp = async (enabled: boolean) => {
@@ -43,7 +45,9 @@ export function NotificationSettingsPage() {
       showAlert({
         title: enabled ? 'WhatsApp ativado' : 'WhatsApp desativado',
         description: enabled
-          ? 'Modo simulado ativo. Nenhuma mensagem real será enviada.'
+          ? isRealProvider
+            ? 'WhatsApp real ativo. Mensagens só serão enviadas por ação explícita.'
+            : 'Modo simulado ativo. Nenhuma mensagem real será enviada.'
           : 'Notificações WhatsApp desativadas.',
         tone: 'success',
       })
@@ -106,12 +110,22 @@ export function NotificationSettingsPage() {
               </div>
               <div>
                 <p className="font-medium text-foreground">
-                  {whatsappEnabled ? 'Modo simulado ativo' : 'Não configurado'}
+                  {whatsappEnabled
+                    ? isRealProvider
+                      ? 'WhatsApp real ativo'
+                      : 'Modo simulado'
+                    : 'WhatsApp não configurado'}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {whatsappEnabled
-                    ? 'Mensagens são registradas sem envio real.'
-                    : 'Ative para registrar mensagens simuladas.'}
+                    ? isRealProvider
+                      ? 'Mensagens enviadas via Meta WhatsApp Business Cloud API.'
+                      : 'Mensagens são registradas sem envio real.'
+                    : isRealProvider && providerConfigured
+                      ? 'Ative para enviar mensagens via WhatsApp Cloud API.'
+                      : isRealProvider
+                        ? 'Configure as credenciais da Meta antes de ativar o envio real.'
+                        : 'Ative para registrar mensagens simuladas.'}
                 </p>
               </div>
             </div>
@@ -131,9 +145,19 @@ export function NotificationSettingsPage() {
             </Button>
           </div>
 
-          {whatsappEnabled && (
+          {whatsappEnabled && !isRealProvider && (
             <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
               Fase 0 — simulação. Nenhuma mensagem real é enviada. O envio real será habilitado em uma fase futura.
+            </div>
+          )}
+          {whatsappEnabled && isRealProvider && providerConfigured && (
+            <div className="rounded-md bg-green-50 px-3 py-2 text-xs text-green-800 dark:bg-green-900/20 dark:text-green-300">
+              Provedor real ativo. Mensagens são enviadas via Meta WhatsApp Business Cloud API. Templates devem estar aprovados no Meta Business Manager.
+            </div>
+          )}
+          {isRealProvider && !providerConfigured && (
+            <div className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-900/20 dark:text-red-300">
+              WhatsApp Cloud API selecionado, mas as credenciais obrigatórias não estão configuradas.
             </div>
           )}
         </div>
@@ -181,7 +205,7 @@ export function NotificationSettingsPage() {
                 <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
               </button>
               {hoursMenuOpen && (
-                <div className="absolute right-0 z-10 mt-1 min-w-[5rem] overflow-hidden rounded-md border border-border bg-card shadow-md">
+                <div className="absolute right-0 z-50 mt-1 max-h-60 min-w-[7rem] overflow-y-auto rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg">
                   {REMINDER_HOURS_OPTIONS.map((h) => (
                     <button
                       key={h}
