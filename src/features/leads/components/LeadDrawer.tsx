@@ -14,6 +14,7 @@ import type { Lead, LeadActivity, LeadSource, LeadStatus } from '../types/leads.
 import { SOURCE_LABELS } from './LeadSourceBadge'
 import { STATUS_CONFIG } from './LeadStatusBadge'
 import { LeadActivitiesTimeline } from './LeadActivitiesTimeline'
+import { formatPhoneBR, normalizeEmail } from '@/lib/field-formatters'
 
 export type DrawerMode = 'view' | 'edit' | 'create'
 
@@ -93,9 +94,9 @@ export function LeadDrawer({
 
   async function handleSave() {
     await onSave({
-      name,
-      phone: phone || undefined,
-      email: email || undefined,
+      name: name.trim(),
+      phone: phone.trim() || undefined,
+      email: normalizeEmail(email) || undefined,
       source,
       message: message || undefined,
       nextFollowUpAt: nextFollowUpAt || undefined,
@@ -198,7 +199,7 @@ export function LeadDrawer({
                     <TextInput
                       id="lead-phone"
                       value={phone}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(formatPhoneBR(e.target.value))}
                       placeholder="(11) 99999-9999"
                     />
                   ) : (
@@ -211,7 +212,7 @@ export function LeadDrawer({
                       id="lead-email"
                       type="email"
                       value={email}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(normalizeEmail(e.target.value))}
                       placeholder="email@exemplo.com"
                     />
                   ) : (

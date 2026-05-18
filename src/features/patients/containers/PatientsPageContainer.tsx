@@ -18,14 +18,14 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ClinicalTimeline } from '@/features/clinical-records/components/ClinicalTimeline'
 import { usePatientClinicalTimeline } from '@/features/clinical-records/hooks/usePatientClinicalTimeline'
 
-import { formatDateBR, formatTimeInputValue } from '@/lib/date-time-formatters'
+import { formatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
 
 import { usePatientHistory } from '../hooks/usePatientHistory'
 import { usePatientsPage } from '../hooks/usePatientsPage'
 import type { PatientAppointment, PatientSummary } from '../types/patients.types'
 
 const formatDate = formatDateBR
-const formatTime = (t: string) => formatTimeInputValue(t).slice(0, 5)
+const formatTime = (t: string | null | undefined) => safeFormatTimeBR(t)
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pendente',
