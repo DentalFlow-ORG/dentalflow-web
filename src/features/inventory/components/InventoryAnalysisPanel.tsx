@@ -9,7 +9,7 @@ export function InventoryAnalysisPanel({ summary }: { summary: StockSummary }) {
   const { user } = useAuth()
   const sectionRef = useRef<HTMLDivElement>(null)
   const isOwner = user?.role === 'OWNER'
-  const { savedAnalysis, quota, dataReadiness, isLoadingInitial, handleGenerate } =
+  const { savedAnalysis, quota, dataReadiness, visibility, isLoadingInitial, handleGenerate } =
     useAiAssistantInventory()
 
   const hasCritical =
@@ -42,6 +42,7 @@ export function InventoryAnalysisPanel({ summary }: { summary: StockSummary }) {
           isLoadingInitial={isLoadingInitial}
           canGenerate={isOwner}
           quota={quota}
+          visibility={visibility}
           disabledReason={dataDisabledReason}
         />
       </PanelCard>

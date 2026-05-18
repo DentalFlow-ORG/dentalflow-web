@@ -26,8 +26,15 @@ export type DataReadiness = {
   reason?: string
 }
 
+export type AiVisibility = 'FULL' | 'TEASER' | 'LOCKED' | 'INSUFFICIENT_DATA'
+
 type AnalyzeResponse = { data: AiAnalysisResult; quota: AiQuotaInfo }
-type LatestResponse = { data: AiAnalysisResult | null; quota: AiQuotaInfo; dataReadiness: DataReadiness }
+type LatestResponse = {
+  data: AiAnalysisResult | null
+  quota: AiQuotaInfo
+  dataReadiness: DataReadiness
+  visibility: AiVisibility
+}
 
 export function analyzeFinanceWithAi(params: {
   from?: string

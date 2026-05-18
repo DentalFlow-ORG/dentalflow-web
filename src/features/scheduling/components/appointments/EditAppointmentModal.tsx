@@ -54,6 +54,7 @@ type FormState = {
   appointmentDate: string
   startTime: string
   notes: string
+  estimatedAmount: string
 }
 
 const NO_SERVICE_SENTINEL = '__NO_SERVICE__'
@@ -72,11 +73,15 @@ export function EditAppointmentModal({
   const [isLoadingServices, setIsLoadingServices] = useState(false)
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [estimateManuallyEdited, setEstimateManuallyEdited] = useState(
+    () => appointment?.estimatedAmountCents != null,
+  )
   const todayInputValue = formatDateInputValue(new Date())
   const nowTimeInputValue = getCurrentTimeInputValue()
 
   useEffect(() => {
     setForm(buildFormState(appointment))
+    setEstimateManuallyEdited(appointment?.estimatedAmountCents != null)
   }, [appointment])
 
   useEffect(() => {
@@ -105,6 +110,22 @@ export function EditAppointmentModal({
       })
       .finally(() => setIsLoadingServices(false))
   }, [appointment])
+
+  useEffect(() => {
+    if (estimateManuallyEdited) return
+    if (!form.serviceId) {
+      set('estimatedAmount', '')
+      return
+    }
+    const service = services.find((s) => s.id === form.serviceId)
+    if (service?.priceFrom != null) {
+      const cents = Math.round(service.priceFrom * 100)
+      set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
+    } else {
+      set('estimatedAmount', '')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.serviceId, services, estimateManuallyEdited])
 
   useEffect(() => {
     if (!appointment || !form.appointmentDate) {
@@ -188,6 +209,7 @@ export function EditAppointmentModal({
             patientEmail: form.patientEmail.trim() || undefined,
             patientPhone: form.patientPhone.trim(),
             notes: form.notes.trim() || undefined,
+            estimatedAmountCents: reaisToCents(form.estimatedAmount),
           }
       const updated = await updateAppointment(currentAppointment.id, dto)
 
@@ -294,6 +316,7 @@ export function EditAppointmentModal({
                 onValueChange={(value) => {
                   set('serviceId', value === NO_SERVICE_SENTINEL ? '' : value)
                   set('startTime', '')
+                  setEstimateManuallyEdited(false)
                 }}
               >
                 <SelectTrigger id="editServiceId">
@@ -321,6 +344,44 @@ export function EditAppointmentModal({
                 </SelectContent>
               </Select>
             </FormField>
+
+            {/* Estimated amount */}
+            {!isPastAppointment && (
+              <FormField
+                label="Valor previsto (R$)"
+                htmlFor="editEstimatedAmount"
+                optional
+                hint="Preenchido pelo serviço selecionado. Ajuste para desconto ou negociação."
+              >
+                <TextInput
+                  id="editEstimatedAmount"
+                  inputMode="decimal"
+                  disabled={isSubmitting}
+                  placeholder="Ex: 250,00"
+                  value={form.estimatedAmount}
+                  onChange={(e) => {
+                    set('estimatedAmount', e.target.value)
+                    setEstimateManuallyEdited(true)
+                  }}
+                />
+                {estimateManuallyEdited && form.serviceId && (() => {
+                  const svc = services.find((s) => s.id === form.serviceId)
+                  return svc?.priceFrom != null ? (
+                    <button
+                      type="button"
+                      className="mt-1 text-xs text-primary hover:underline"
+                      onClick={() => {
+                        const cents = Math.round(svc.priceFrom! * 100)
+                        set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
+                        setEstimateManuallyEdited(false)
+                      }}
+                    >
+                      Restaurar valor do serviço (R$ {svc.priceFrom.toFixed(2).replace('.', ',')})
+                    </button>
+                  ) : null
+                })()}
+              </FormField>
+            )}
 
             {/* Date */}
             <FormField label="Data" htmlFor="editAppointmentDate">
@@ -401,7 +462,18 @@ function buildFormState(appointment: Appointment | null): FormState {
     appointmentDate: appointment ? formatDateInputValue(appointment.appointmentDate) : '',
     startTime: appointment ? formatTimeInputValue(appointment.startTime) : '',
     notes: appointment?.notes ?? '',
+    estimatedAmount:
+      appointment?.estimatedAmountCents != null
+        ? (appointment.estimatedAmountCents / 100).toFixed(2).replace('.', ',')
+        : '',
   }
+}
+
+function reaisToCents(value: string): number | undefined {
+  const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '')
+  const parsed = parseFloat(normalized)
+  if (isNaN(parsed) || parsed < 0) return undefined
+  return Math.round(parsed * 100)
 }
 
 function hasAppointmentTimePassed(appointment: Appointment) {

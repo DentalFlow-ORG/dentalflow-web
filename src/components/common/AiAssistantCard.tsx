@@ -6,6 +6,7 @@ import {
   ClipboardCopy,
   Info,
   Loader2,
+  Lock,
   RefreshCw,
   Sparkles,
 } from 'lucide-react'
@@ -16,6 +17,8 @@ import { Button } from '@/components/ui/button'
 import { ApiError } from '@/services/http'
 import { AiUsageBadge } from './AiUsageBadge'
 import { PremiumBlurredPreview } from './PremiumBlurredPreview'
+
+export type AiVisibility = 'FULL' | 'TEASER' | 'LOCKED' | 'INSUFFICIENT_DATA'
 
 export type AiSection = {
   title: string
@@ -60,6 +63,8 @@ type AiAssistantCardProps = {
   canGenerate?: boolean
   /** Quota info from backend — drives usage badge and PremiumBlurredPreview. */
   quota?: AiQuotaInfo | null
+  /** Visibility from GET /latest — controls teaser vs full rendering for blocked plans. */
+  visibility?: AiVisibility
 }
 
 type State = 'idle' | 'loading' | 'success' | 'error'
@@ -132,6 +137,65 @@ function formatDate(ymd: string) {
   }
 }
 
+function TeaserContent({
+  sections,
+  disclaimer,
+  generatedAt,
+}: {
+  sections: AiSection[]
+  disclaimer: string
+  generatedAt: string
+}) {
+  const visibleSections = sections.slice(0, 2)
+  const blurredSections = sections.slice(2)
+
+  return (
+    <div className="space-y-3">
+      <div className={visibleSections.length === 1 ? undefined : 'grid gap-3 sm:grid-cols-2'}>
+        {visibleSections.map((section) => (
+          <SectionCard key={section.title} section={section} />
+        ))}
+      </div>
+
+      {blurredSections.length > 0 && (
+        <div className="relative">
+          <div className="pointer-events-none select-none blur-sm" aria-hidden="true">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {blurredSections.map((section) => (
+                <SectionCard key={section.title} section={section} />
+              ))}
+            </div>
+          </div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-xl bg-background/80 px-6 text-center backdrop-blur-[2px]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+              <Lock className="h-4 w-4 text-primary" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Veja a análise completa</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Faça upgrade para Professional ou Premium para acessar todas as seções.
+              </p>
+            </div>
+            <Button size="sm" asChild>
+              <a href="/app/assinatura">
+                <Sparkles className="h-3.5 w-3.5" />
+                Ver planos
+              </a>
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 space-y-1.5 border-t border-border pt-3">
+        <p className="text-xs text-muted-foreground">{disclaimer}</p>
+        <p className="text-xs text-muted-foreground/60">
+          Prévia gerada em {formatTimestamp(generatedAt)}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export function AiAssistantCard({
   title,
   description,
@@ -142,6 +206,7 @@ export function AiAssistantCard({
   isLoadingInitial = false,
   canGenerate = false,
   quota,
+  visibility,
 }: AiAssistantCardProps) {
   const [state, setState] = useState<State>('idle')
   const [result, setResult] = useState<AiAnalysisResult | null>(null)
@@ -236,8 +301,15 @@ export function AiAssistantCard({
     quota && quota.allowed && quota.remaining === 0 ? quota.blockedReason : undefined
   const effectiveDisabledReason = quotaDisabledReason ?? disabledReason
 
-  // Plan not allowed → show blurred premium preview instead of card contents
-  const showPremiumWall = !isLoadingInitial && quota !== undefined && quota !== null && !quota.allowed
+  // Plan not allowed and no teaser → show blurred premium preview instead of card contents
+  const showPremiumWall =
+    !isLoadingInitial &&
+    quota !== undefined &&
+    quota !== null &&
+    !quota.allowed &&
+    visibility !== 'TEASER'
+
+  const showTeaser = visibility === 'TEASER' && state === 'success' && result !== null
 
   return (
     <div className="space-y-0">
@@ -251,7 +323,7 @@ export function AiAssistantCard({
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
-        {isSuccess && !showPremiumWall && (
+        {isSuccess && !showPremiumWall && !showTeaser && (
           <div className="flex shrink-0 items-center gap-2">
             <Button
               variant="ghost"
@@ -388,8 +460,13 @@ export function AiAssistantCard({
             </>
           )}
 
-          {/* Success state */}
-          {isSuccess && (
+          {/* Teaser state — first 2 sections visible, rest blurred + upgrade CTA */}
+          {showTeaser && (
+            <TeaserContent sections={result!.sections} disclaimer={result!.disclaimer} generatedAt={result!.generatedAt} />
+          )}
+
+          {/* Success state (full) */}
+          {isSuccess && !showTeaser && (
             <>
               {/* Stale period banner */}
               {isStalePeriod && (

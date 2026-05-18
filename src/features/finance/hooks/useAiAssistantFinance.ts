@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AiAnalysisResult, AiQuotaInfo, DataReadiness } from '../services/finance-ai.service'
+import type { AiAnalysisResult, AiQuotaInfo, AiVisibility, DataReadiness } from '../services/finance-ai.service'
 import { analyzeFinanceWithAi, getLatestFinanceAnalysis } from '../services/finance-ai.service'
 
 export function useAiAssistantFinance(from: string, to: string) {
   const [savedAnalysis, setSavedAnalysis] = useState<AiAnalysisResult | null>(null)
   const [quota, setQuota] = useState<AiQuotaInfo | null>(null)
   const [dataReadiness, setDataReadiness] = useState<DataReadiness | null>(null)
+  const [visibility, setVisibility] = useState<AiVisibility | undefined>(undefined)
   const [isLoadingInitial, setIsLoadingInitial] = useState(true)
   const cancelledRef = useRef(false)
 
@@ -18,6 +19,7 @@ export function useAiAssistantFinance(from: string, to: string) {
           setSavedAnalysis(result.data)
           setQuota(result.quota)
           setDataReadiness(result.dataReadiness)
+          setVisibility(result.visibility)
         }
       })
       .catch(() => {
@@ -25,6 +27,7 @@ export function useAiAssistantFinance(from: string, to: string) {
           setSavedAnalysis(null)
           setQuota(null)
           setDataReadiness(null)
+          setVisibility(undefined)
         }
       })
       .finally(() => {
@@ -39,9 +42,10 @@ export function useAiAssistantFinance(from: string, to: string) {
     return analyzeFinanceWithAi({ from, to }).then((result) => {
       setSavedAnalysis(result.data)
       setQuota(result.quota)
+      setVisibility('FULL')
       return result.data
     })
   }, [from, to])
 
-  return { savedAnalysis, quota, dataReadiness, isLoadingInitial, handleGenerate }
+  return { savedAnalysis, quota, dataReadiness, visibility, isLoadingInitial, handleGenerate }
 }

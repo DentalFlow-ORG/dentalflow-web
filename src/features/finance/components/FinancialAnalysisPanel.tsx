@@ -14,7 +14,7 @@ export function FinancialAnalysisPanel({
   const { user } = useAuth()
   const sectionRef = useRef<HTMLDivElement>(null)
   const isOwner = user?.role === 'OWNER'
-  const { savedAnalysis, quota, dataReadiness, isLoadingInitial, handleGenerate } =
+  const { savedAnalysis, quota, dataReadiness, visibility, isLoadingInitial, handleGenerate } =
     useAiAssistantFinance(summary.period.from, summary.period.to)
 
   const dataDisabledReason =
@@ -41,6 +41,7 @@ export function FinancialAnalysisPanel({
           isLoadingInitial={isLoadingInitial}
           canGenerate={isOwner}
           quota={quota}
+          visibility={visibility}
           disabledReason={dataDisabledReason}
         />
       </PanelCard>
