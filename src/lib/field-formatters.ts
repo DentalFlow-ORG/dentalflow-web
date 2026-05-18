@@ -2,6 +2,10 @@ export function onlyDigits(value: string) {
   return value.replace(/\D/g, '')
 }
 
+export function normalizePhoneBR(value: string | null | undefined) {
+  return onlyDigits(value ?? '')
+}
+
 export function formatPhoneBR(value: string) {
   const digits = onlyDigits(value).slice(0, 11)
 
@@ -79,4 +83,8 @@ export const WHATSAPP_PHONE_REQUIRED_MESSAGE =
 
 export function isValidPersonName(value: string): boolean {
   return /^[\p{L}\s.'-]+$/u.test(value.trim())
+}
+
+export function normalizeEmail(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? ''
 }
