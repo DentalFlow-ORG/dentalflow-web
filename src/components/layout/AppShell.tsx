@@ -1,9 +1,11 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
+import { Collapsible } from 'radix-ui'
 import {
   BarChart3,
   Building2,
   CalendarDays,
+  ChevronDown,
   ClipboardList,
   CreditCard,
   FileDown,
@@ -46,124 +48,74 @@ type NavItem = {
   exact?: boolean
 }
 
-const appNavigation: NavItem[] = [
+type NavGroup = {
+  label: string
+  roles: AuthUserRole[]
+  items: NavItem[]
+}
+
+// ─── Flat items (always visible at top, ungrouped) ────────────────────────────
+const TOP_ITEMS: NavItem[] = [
+  { label: 'Início', to: '/app/admin', icon: Home, roles: ['ADMIN'], exact: true },
+  { label: 'Início', to: '/app', icon: BarChart3, roles: ['OWNER', 'ASSISTANT'], exact: true },
+  { label: 'Início', to: '/app/inicio', icon: Home, roles: ['DENTIST'], exact: true },
+  { label: 'Minha agenda', to: '/app/agenda', icon: CalendarDays, roles: ['DENTIST'] },
+  { label: 'Prontuários', to: '/app/prontuario', icon: ClipboardList, roles: ['DENTIST'] },
+]
+
+// ─── Grouped items (collapsible sections per role) ────────────────────────────
+const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Início',
-    to: '/app/admin',
-    icon: Home,
-    roles: ['ADMIN'],
-    exact: true,
-  },
-  {
-    label: 'Início',
-    to: '/app',
-    icon: BarChart3,
+    label: 'Clínica',
     roles: ['OWNER', 'ASSISTANT'],
-    exact: true,
+    items: [
+      { label: 'Agenda', to: '/app/agendamentos', icon: CalendarDays, roles: ['OWNER', 'ASSISTANT'] },
+      { label: 'Pacientes', to: '/app/pacientes', icon: Users2, roles: ['OWNER', 'ASSISTANT'] },
+      { label: 'Prontuários', to: '/app/prontuario', icon: ClipboardList, roles: ['OWNER'] },
+      { label: 'Leads', to: '/app/leads', icon: TrendingUp, roles: ['OWNER', 'ASSISTANT'] },
+    ],
   },
   {
-    label: 'Início',
-    to: '/app/inicio',
-    icon: Home,
-    roles: ['DENTIST'],
-    exact: true,
-  },
-  {
-    label: 'Usuários',
-    to: '/app/admin/users',
-    icon: ShieldCheck,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Clínicas',
-    to: '/app/admin/clinics',
-    icon: Building2,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Financeiro SaaS',
-    to: '/app/admin/financeiro',
-    icon: CreditCard,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Compliance',
-    to: '/app/admin/compliance',
-    icon: ShieldCheck,
-    roles: ['ADMIN'],
-  },
-  {
-    label: 'Agenda',
-    to: '/app/agendamentos',
-    icon: CalendarDays,
+    label: 'Gestão',
     roles: ['OWNER', 'ASSISTANT'],
-  },
-  {
-    label: 'Minha agenda',
-    to: '/app/agenda',
-    icon: CalendarDays,
-    roles: ['DENTIST'],
-  },
-  {
-    label: 'Pacientes',
-    to: '/app/pacientes',
-    icon: Users2,
-    roles: ['OWNER', 'ASSISTANT'],
-  },
-  {
-    label: 'Leads',
-    to: '/app/leads',
-    icon: TrendingUp,
-    roles: ['OWNER', 'ASSISTANT'],
-  },
-  {
-    label: 'Prontuários',
-    to: '/app/prontuario',
-    icon: ClipboardList,
-    roles: ['OWNER', 'DENTIST'],
-  },
-  {
-    label: 'Equipe',
-    to: '/app/equipe',
-    icon: Users,
-    roles: ['OWNER'],
-  },
-  {
-    label: 'Estoque',
-    to: '/app/estoque',
-    icon: Package,
-    roles: ['OWNER', 'ASSISTANT'],
-  },
-  {
-    label: 'Financeiro',
-    to: '/app/financeiro',
-    icon: Landmark,
-    roles: ['OWNER'],
-  },
-  {
-    label: 'Notas fiscais',
-    to: '/app/notas-fiscais',
-    icon: FileText,
-    roles: ['OWNER', 'ASSISTANT'],
-  },
-  {
-    label: 'Relatórios',
-    to: '/app/relatorios',
-    icon: FileDown,
-    roles: ['OWNER', 'ASSISTANT'],
+    items: [
+      { label: 'Equipe', to: '/app/equipe', icon: Users, roles: ['OWNER'] },
+      { label: 'Estoque', to: '/app/estoque', icon: Package, roles: ['OWNER', 'ASSISTANT'] },
+      { label: 'Financeiro', to: '/app/financeiro', icon: Landmark, roles: ['OWNER'] },
+      { label: 'Notas fiscais', to: '/app/notas-fiscais', icon: FileText, roles: ['OWNER', 'ASSISTANT'] },
+      { label: 'Relatórios', to: '/app/relatorios', icon: FileDown, roles: ['OWNER', 'ASSISTANT'] },
+    ],
   },
   {
     label: 'Configurações',
-    to: '/app/configuracoes',
-    icon: Settings,
     roles: ['OWNER'],
+    items: [
+      { label: 'Assinatura', to: '/app/assinatura', icon: CreditCard, roles: ['OWNER'] },
+      { label: 'Configurações', to: '/app/configuracoes', icon: Settings, roles: ['OWNER'] },
+    ],
   },
   {
-    label: 'Assinatura',
-    to: '/app/assinatura',
-    icon: CreditCard,
-    roles: ['OWNER'],
+    label: 'Administração',
+    roles: ['ADMIN'],
+    items: [
+      { label: 'Usuários', to: '/app/admin/users', icon: ShieldCheck, roles: ['ADMIN'] },
+      { label: 'Clínicas', to: '/app/admin/clinics', icon: Building2, roles: ['ADMIN'] },
+    ],
   },
+  {
+    label: 'Plataforma',
+    roles: ['ADMIN'],
+    items: [
+      { label: 'Financeiro SaaS', to: '/app/admin/financeiro', icon: CreditCard, roles: ['ADMIN'] },
+      { label: 'Compliance', to: '/app/admin/compliance', icon: ShieldCheck, roles: ['ADMIN'] },
+    ],
+  },
+]
+
+// ─── Legacy flat list (used for mobile nav primary/secondary split) ───────────
+const appNavigation: NavItem[] = [
+  ...TOP_ITEMS,
+  ...NAV_GROUPS.flatMap((g) => g.items),
 ]
 
 const MOBILE_PRIMARY_ROUTES_BY_ROLE: Partial<Record<AuthUserRole, string[]>> = {
@@ -171,6 +123,25 @@ const MOBILE_PRIMARY_ROUTES_BY_ROLE: Partial<Record<AuthUserRole, string[]>> = {
   DENTIST: ['/app/inicio', '/app/agenda', '/app/prontuario'],
   ASSISTANT: ['/app', '/app/agendamentos', '/app/pacientes', '/app/estoque'],
   ADMIN: ['/app/admin', '/app/admin/users', '/app/admin/clinics', '/app/admin/financeiro'],
+}
+
+const STORAGE_KEY = 'dentalflow.sidebar.groups'
+
+function loadOpenGroups(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? (JSON.parse(raw) as Record<string, boolean>) : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveOpenGroups(state: Record<string, boolean>) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  } catch {
+    // ignore storage errors
+  }
 }
 
 function ThemeToggle() {
@@ -195,6 +166,10 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
   const location = useLocation()
   const { user, logout } = useAuth()
   const [moreOpen, setMoreOpen] = useState(false)
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const saved = loadOpenGroups()
+    return saved
+  })
 
   const handleLogout = async () => {
     await logout()
@@ -206,6 +181,35 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
       ? location.pathname === item.to
       : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
 
+  const isGroupActive = (group: NavGroup) =>
+    group.items.some((item) => isActive(item))
+
+  function isGroupOpen(groupLabel: string, group: NavGroup): boolean {
+    if (groupLabel in openGroups) return openGroups[groupLabel]
+    // Default: open if contains active route
+    return isGroupActive(group)
+  }
+
+  function toggleGroup(groupLabel: string, group: NavGroup) {
+    const current = isGroupOpen(groupLabel, group)
+    const next = { ...openGroups, [groupLabel]: !current }
+    setOpenGroups(next)
+    saveOpenGroups(next)
+  }
+
+  const visibleTopItems = TOP_ITEMS.filter(
+    ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
+  )
+
+  const visibleGroups = NAV_GROUPS.filter(
+    (group) => user?.role && group.roles.includes(user.role),
+  ).map((group) => ({
+    ...group,
+    items: group.items.filter(
+      ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
+    ),
+  })).filter((group) => group.items.length > 0)
+
   const visibleNav = appNavigation.filter(
     ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
   )
@@ -216,33 +220,103 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
 
   return (
     <div className="min-h-svh bg-background text-foreground">
+      {/* ── Desktop Sidebar ────────────────────────────────────────────────── */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r border-sidebar-border bg-sidebar lg:block print:hidden">
         <div className="flex h-20 items-center border-b border-sidebar-border px-6">
           <BrandLink />
         </div>
 
-        <nav className="space-y-1 px-3 py-5">
-          {visibleNav.map((item) => {
-            const { label, to, icon: Icon } = item
-            const active = isActive(item)
+        <nav className="overflow-y-auto px-3 py-5" style={{ height: 'calc(100% - 5rem)' }}>
+          {/* Top-level flat items */}
+          <div className="space-y-0.5">
+            {visibleTopItems.map((item) => {
+              const { label, to, icon: Icon } = item
+              const active = isActive(item)
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'flex h-9 items-center gap-3 rounded-md px-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                    active && 'bg-sidebar-accent text-sidebar-primary',
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {label}
+                </Link>
+              )
+            })}
+          </div>
+
+          {/* Grouped sections */}
+          {visibleGroups.map((group) => {
+            const open = isGroupOpen(group.label, group)
+            const hasActive = isGroupActive(group)
             return (
-              <Link
-                key={to}
-                to={to}
-                aria-current={active ? 'page' : undefined}
-                className={cn(
-                  'flex h-10 items-center gap-3 rounded-md px-3 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-                  active && 'bg-sidebar-accent text-sidebar-primary',
-                )}
-              >
-                <Icon className="h-4 w-4" aria-hidden="true" />
-                {label}
-              </Link>
+              <div key={group.label} className="mt-4">
+                <Collapsible.Root
+                  open={open}
+                  onOpenChange={() => toggleGroup(group.label, group)}
+                >
+                  <Collapsible.Trigger
+                    className={cn(
+                      'flex w-full items-center justify-between rounded-md px-3 py-1.5 text-left transition-colors',
+                      'hover:bg-sidebar-accent/60',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
+                    )}
+                    aria-expanded={open}
+                  >
+                    <span
+                      className={cn(
+                        'text-[11px] font-semibold uppercase tracking-wider',
+                        hasActive
+                          ? 'text-sidebar-primary'
+                          : 'text-sidebar-foreground/50',
+                      )}
+                    >
+                      {group.label}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        'h-3.5 w-3.5 shrink-0 transition-transform duration-200',
+                        hasActive ? 'text-sidebar-primary' : 'text-sidebar-foreground/40',
+                        open && 'rotate-180',
+                      )}
+                      aria-hidden="true"
+                    />
+                  </Collapsible.Trigger>
+
+                  <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+                    <div className="mt-0.5 space-y-0.5 pl-1">
+                      {group.items.map((item) => {
+                        const { label, to, icon: Icon } = item
+                        const active = isActive(item)
+                        return (
+                          <Link
+                            key={to}
+                            to={to}
+                            aria-current={active ? 'page' : undefined}
+                            className={cn(
+                              'flex h-9 items-center gap-3 rounded-md px-3 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                              active && 'bg-sidebar-accent font-semibold text-sidebar-primary',
+                            )}
+                          >
+                            <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                            {label}
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </Collapsible.Content>
+                </Collapsible.Root>
+              </div>
             )
           })}
         </nav>
       </aside>
 
+      {/* ── Mobile Bottom Nav ──────────────────────────────────────────────── */}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] lg:hidden print:hidden">
         <div className="flex h-16 items-stretch">
           {primaryNav.map((item) => {
@@ -280,6 +354,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
         </div>
       </nav>
 
+      {/* ── Mobile More Sheet ──────────────────────────────────────────────── */}
       {moreOpen && (
         <div className="fixed inset-0 z-30 lg:hidden print:hidden" onClick={() => setMoreOpen(false)}>
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
@@ -325,6 +400,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
         </div>
       )}
 
+      {/* ── Main Content ───────────────────────────────────────────────────── */}
       <div className="lg:pl-64 print:pl-0">
         <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur-xl print:hidden">
           <div className="flex h-20 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
