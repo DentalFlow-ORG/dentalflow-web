@@ -122,7 +122,7 @@ function AssistantDashboard() {
                             {formatWallTime(appt.startTime)}
                           </span>
                           <span className="block text-muted-foreground">
-                            {appt.profile.displayName}
+                            {appt.profile?.displayName ?? 'Profissional não informado'}
                           </span>
                         </span>
                       </button>

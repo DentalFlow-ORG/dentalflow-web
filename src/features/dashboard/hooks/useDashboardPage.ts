@@ -62,13 +62,13 @@ export function useDashboardPage() {
     () =>
       appointments
         .filter((a) => a.status === 'PENDING' || a.status === 'CONFIRMED')
-        .sort((a, b) => a.startTime.localeCompare(b.startTime))
+        .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
         .slice(0, 6),
     [appointments],
   )
 
   const activeDentists = useMemo(() => {
-    const names = appointments.map((a) => a.profile.displayName)
+    const names = appointments.map((a) => a.profile?.displayName ?? 'Profissional não informado')
     return [...new Set(names)]
   }, [appointments])
 

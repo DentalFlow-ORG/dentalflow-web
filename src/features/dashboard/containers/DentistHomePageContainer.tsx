@@ -59,7 +59,7 @@ export function DentistHomePageContainer() {
     () =>
       appointments
         .filter((a) => a.status === 'PENDING' || a.status === 'CONFIRMED')
-        .sort((a, b) => a.startTime.localeCompare(b.startTime))
+        .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
         .slice(0, 5),
     [appointments],
   )
@@ -127,7 +127,7 @@ export function DentistHomePageContainer() {
                           {formatWallTime(appt.startTime)}
                         </span>
                         <span className="block text-muted-foreground">
-                          {appt.profile.displayName}
+                          {appt.profile?.displayName ?? 'Profissional não informado'}
                         </span>
                       </span>
                     </button>
