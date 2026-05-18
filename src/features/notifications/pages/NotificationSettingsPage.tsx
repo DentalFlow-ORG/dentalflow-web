@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, Bell, Check, ChevronDown, Loader2, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Bell, Loader2, MessageCircle } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -7,6 +7,13 @@ import { ApiError } from '@/services/http'
 import { cn } from '@/lib/utils'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
 import { useNotificationQuota } from '../hooks/useNotificationQuota'
@@ -31,7 +38,6 @@ export function NotificationSettingsPage() {
   const { quota, isLoading: quotaLoading } = useNotificationQuota()
   const [localEnabled, setLocalEnabled] = useState<boolean | null>(null)
   const [localHours, setLocalHours] = useState<number | null>(null)
-  const [hoursMenuOpen, setHoursMenuOpen] = useState(false)
 
   const whatsappEnabled = localEnabled ?? preferences?.whatsappEnabled ?? false
   const isRealProvider = preferences?.providerType === 'whatsapp_cloud'
@@ -60,7 +66,6 @@ export function NotificationSettingsPage() {
 
   const handleHoursChange = async (hours: number) => {
     setLocalHours(hours)
-    setHoursMenuOpen(false)
     try {
       await save({ reminderHoursBefore: hours })
     } catch {
@@ -87,7 +92,7 @@ export function NotificationSettingsPage() {
           <Button variant="outline" size="sm" asChild>
             <Link to="/app/configuracoes">
               <ArrowLeft className="h-4 w-4" />
-              Voltar às configurações
+              Voltar
             </Link>
           </Button>
         }
@@ -195,34 +200,22 @@ export function NotificationSettingsPage() {
                 Com quantas horas de antecedência enviar o lembrete de consulta.
               </p>
             </div>
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => setHoursMenuOpen((o) => !o)}
-                className="flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                {reminderHours}h
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-              </button>
-              {hoursMenuOpen && (
-                <div className="absolute right-0 z-50 mt-1 max-h-60 min-w-[7rem] overflow-y-auto rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg">
-                  {REMINDER_HOURS_OPTIONS.map((h) => (
-                    <button
-                      key={h}
-                      type="button"
-                      onClick={() => handleHoursChange(h)}
-                      className={cn(
-                        'flex w-full items-center justify-between px-3 py-1.5 text-sm transition-colors hover:bg-muted',
-                        h === reminderHours && 'font-semibold text-primary',
-                      )}
-                    >
-                      {h}h
-                      {h === reminderHours && <Check className="h-3.5 w-3.5" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Select
+              value={String(reminderHours)}
+              onValueChange={(value) => handleHoursChange(Number(value))}
+              disabled={isSaving}
+            >
+              <SelectTrigger className="w-28 shrink-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-60 overflow-y-auto">
+                {REMINDER_HOURS_OPTIONS.map((h) => (
+                  <SelectItem key={h} value={String(h)}>
+                    {h}h
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Auto-reminder (future) */}

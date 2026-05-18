@@ -2,6 +2,7 @@ import { History, Loader2, MessageCircle, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { safeFormatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
 import { useNotificationMessages } from '../hooks/useNotificationMessages'
 import { MessageStatusBadge } from './MessageStatusBadge'
 import { TEMPLATE_LABELS } from '../services/notifications.service'
@@ -14,13 +15,9 @@ type MessageHistoryDrawerProps = {
 }
 
 function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(iso))
+  const date = safeFormatDateBR(iso)
+  const time = safeFormatTimeBR(iso, '')
+  return time ? `${date} ${time}` : date
 }
 
 export function MessageHistoryDrawer({

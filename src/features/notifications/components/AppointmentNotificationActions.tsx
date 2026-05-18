@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
+import { safeFormatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
+import { normalizePhoneBR } from '@/lib/field-formatters'
 
 import type { NotificationTemplate } from '../types/notifications.types'
 import { useNotificationQuota } from '../hooks/useNotificationQuota'
@@ -29,55 +31,11 @@ type AppointmentNotificationActionsProps = {
 }
 
 function normalizePhone(phone: string) {
-  return phone.replace(/\D/g, '')
-}
-
-function safeFormatDate(value: unknown): string {
-  if (!value) return 'Data não informada'
-
-  const raw = value instanceof Date ? value : String(value)
-  const date =
-    raw instanceof Date
-      ? raw
-      : /^\d{4}-\d{2}-\d{2}$/.test(raw)
-        ? new Date(`${raw}T00:00:00`)
-        : new Date(raw)
-
-  if (Number.isNaN(date.getTime())) return 'Data não informada'
-
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date)
-}
-
-function safeFormatTime(value: unknown): string {
-  if (!value) return 'Hora não informada'
-
-  if (value instanceof Date) {
-    if (Number.isNaN(value.getTime())) return 'Hora não informada'
-    return value.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-
-  const raw = String(value).trim()
-  const timeMatch = raw.match(/^(\d{2}):(\d{2})/)
-  if (timeMatch) return `${timeMatch[1]}:${timeMatch[2]}`
-
-  const date = new Date(raw)
-  if (Number.isNaN(date.getTime())) return 'Hora não informada'
-
-  return date.toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return normalizePhoneBR(phone)
 }
 
 function canPrepareMessage(dateLabel: string, timeLabel: string) {
-  return dateLabel !== 'Data não informada' && timeLabel !== 'Hora não informada'
+  return dateLabel !== safeFormatDateBR(null) && timeLabel !== safeFormatTimeBR(null)
 }
 
 type SendDrawerProps = {
@@ -117,8 +75,8 @@ function SendDrawer({
   const hasConsent = !!consent?.granted && !consent.revokedAt
   const quotaExhausted = !quotaLoading && quota !== null && quota.available === 0
   const quotaBlocked = !quotaLoading && quota !== null && quota.limit === 0
-  const formattedDate = safeFormatDate(appointmentDate)
-  const formattedTime = safeFormatTime(appointmentTime)
+  const formattedDate = safeFormatDateBR(appointmentDate)
+  const formattedTime = safeFormatTimeBR(appointmentTime)
   const hasValidMessageData = canPrepareMessage(formattedDate, formattedTime)
 
   const canSend = hasConsent && hasValidMessageData && !quotaExhausted && !quotaBlocked && !isSending
