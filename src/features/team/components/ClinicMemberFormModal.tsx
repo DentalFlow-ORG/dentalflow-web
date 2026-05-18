@@ -20,8 +20,9 @@ import {
 } from '@/components/ui/select'
 import { onlyDigits } from '@/lib/field-formatters'
 import { AvailabilityManager } from '@/features/scheduling/components/availability/AvailabilityManager'
-import { listAvailability } from '@/features/scheduling/services/scheduling.service'
-import type { Availability } from '@/features/scheduling/types/scheduling.types'
+import { ExceptionManager } from '@/features/scheduling/components/availability/ExceptionManager'
+import { listAvailability, listAvailabilityExceptions } from '@/features/scheduling/services/scheduling.service'
+import type { Availability, AvailabilityException } from '@/features/scheduling/types/scheduling.types'
 
 import { createMember, updateClinicMember } from '../services/team.service'
 import type { MemberListItem, MemberRole } from '../types/team.types'
@@ -67,6 +68,7 @@ export function ClinicMemberFormModal({
   const isEditMode = Boolean(initialData)
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [availability, setAvailability] = useState<Availability[]>([])
+  const [exceptions, setExceptions] = useState<AvailabilityException[]>([])
   const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -83,13 +85,17 @@ export function ClinicMemberFormModal({
   useEffect(() => {
     if (!open || !profileId) {
       setAvailability([])
+      setExceptions([])
       setIsAvailabilityLoading(false)
       return
     }
 
     setIsAvailabilityLoading(true)
-    listAvailability(profileId)
-      .then(setAvailability)
+    Promise.all([listAvailability(profileId), listAvailabilityExceptions(profileId)])
+      .then(([avail, excs]) => {
+        setAvailability(avail)
+        setExceptions(excs)
+      })
       .catch((err) => {
         const msg =
           err instanceof Error
@@ -257,18 +263,28 @@ export function ClinicMemberFormModal({
               </form>
 
               {canManageAvailability && (
-                <div className="mt-6 border-t border-border pt-5">
+                <div className="mt-6 space-y-6 border-t border-border pt-5">
                   {isAvailabilityLoading ? (
                     <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Carregando horarios...
                     </div>
                   ) : (
-                    <AvailabilityManager
-                      profileId={profileId!}
-                      slots={availability}
-                      onSlotsChange={setAvailability}
-                    />
+                    <>
+                      <AvailabilityManager
+                        profileId={profileId!}
+                        slots={availability}
+                        onSlotsChange={setAvailability}
+                      />
+                      <div className="border-t border-border pt-5">
+                        <ExceptionManager
+                          profileId={profileId!}
+                          exceptions={exceptions}
+                          onExceptionsChange={setExceptions}
+                          title="Exceções de agenda"
+                        />
+                      </div>
+                    </>
                   )}
                 </div>
               )}

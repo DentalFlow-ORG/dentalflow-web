@@ -115,6 +115,7 @@ export type CreateAppointmentDto = {
   startTime: string
   durationMinutes?: number
   notes?: string
+  estimatedAmountCents?: number
 }
 
 export type UpdateAppointmentDto = Partial<Omit<CreateAppointmentDto, 'profileId'>>
