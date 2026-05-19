@@ -8,97 +8,115 @@ function CookiePreferencesButton() {
     <button
       type="button"
       onClick={openPreferences}
-      className="transition-colors hover:text-primary"
+      className="transition-colors hover:text-white"
     >
       Cookies
     </button>
   )
 }
 
+const isPlaceholderPhone = companyInfo.phone === '(00) 00000-0000'
+const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
+const isPlaceholderAddress = companyInfo.address.includes('TODO')
+const hasRealCompanyData = !isPlaceholderCnpj && !isPlaceholderAddress
+
 export function SiteFooter() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 text-sm text-slate-500 md:grid-cols-[1.1fr_0.9fr_0.8fr] lg:px-8">
+    <footer className="border-t border-white/15 bg-[#082f5f]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 text-sm text-blue-200 md:grid-cols-[1.1fr_0.9fr_0.8fr] lg:px-8">
+
+        {/* Brand + description */}
         <div>
           <div className="flex items-center gap-3">
             <img
               src="/logo-without-bg.png"
               alt={companyInfo.tradeName}
               className="h-12 w-12 shrink-0 object-contain"
+              style={{ filter: 'brightness(0) invert(1)' }}
             />
-            <span className="h-10 w-px shrink-0 bg-slate-200" aria-hidden="true" />
+            <span className="h-10 w-px shrink-0 bg-white/15" aria-hidden="true" />
             <div>
-              <p className="font-semibold text-slate-900">
-                {companyInfo.tradeName}
-              </p>
-              <p>Plataforma de crescimento para clínicas odontológicas.</p>
+              <p className="font-semibold text-white">{companyInfo.tradeName}</p>
+              <p>Gestão moderna para clínicas odontológicas.</p>
             </div>
           </div>
-
           <p className="mt-6 max-w-md leading-6">
-            Estrutura digital para fortalecer posicionamento, aquisição de
-            pacientes, rotina comercial e indicadores de crescimento.
+            Organize consultas, pacientes, equipe e permissões em uma plataforma simples e segura, feita para a rotina real de clínicas odontológicas.
           </p>
         </div>
 
+        {/* Company data — only shown when real values exist */}
         <div>
-          <h3 className="font-semibold text-slate-950">Dados da empresa</h3>
-          <dl className="mt-4 space-y-3">
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Razão social
-              </dt>
-              <dd className="mt-1 text-slate-600">{companyInfo.legalName}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                CNPJ
-              </dt>
-              <dd className="mt-1 text-slate-600">{companyInfo.documentNumber}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Endereço
-              </dt>
-              <dd className="mt-1 text-slate-600">{companyInfo.address}</dd>
-            </div>
-          </dl>
+          <h3 className="font-semibold text-white">Dados da empresa</h3>
+          {hasRealCompanyData ? (
+            <dl className="mt-4 space-y-3">
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-300">
+                  Razão social
+                </dt>
+                <dd className="mt-1">{companyInfo.legalName}</dd>
+              </div>
+              {!isPlaceholderCnpj && (
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-300">
+                    CNPJ
+                  </dt>
+                  <dd className="mt-1">{companyInfo.documentNumber}</dd>
+                </div>
+              )}
+              {!isPlaceholderAddress && (
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-300">
+                    Endereço
+                  </dt>
+                  <dd className="mt-1">{companyInfo.address}</dd>
+                </div>
+              )}
+            </dl>
+          ) : (
+            <p className="mt-4 leading-6">
+              Dados legais disponíveis nos canais oficiais da empresa.
+            </p>
+          )}
         </div>
 
+        {/* Contact + legal links */}
         <div>
-          <h3 className="font-semibold text-slate-950">Contato e legal</h3>
+          <h3 className="font-semibold text-white">Contato e legal</h3>
           <div className="mt-4 space-y-3">
-            <a
-              href={`tel:${onlyDigits(companyInfo.phone)}`}
-              className="block transition-colors hover:text-primary"
-            >
-              {companyInfo.phone}
-            </a>
+            {!isPlaceholderPhone && (
+              <a
+                href={`tel:${onlyDigits(companyInfo.phone)}`}
+                className="block transition-colors hover:text-white"
+              >
+                {companyInfo.phone}
+              </a>
+            )}
             <a
               href={`mailto:${companyInfo.supportEmail}`}
-              className="block transition-colors hover:text-primary"
+              className="block transition-colors hover:text-white"
             >
               {companyInfo.supportEmail}
             </a>
             <div className="flex flex-wrap gap-x-5 gap-y-2 pt-2">
-              <a href="/politica-de-privacidade" className="transition-colors hover:text-primary">
+              <a href="/politica-de-privacidade" className="transition-colors hover:text-white">
                 Privacidade
               </a>
-              <a href="/termos-de-uso" className="transition-colors hover:text-primary">
+              <a href="/termos-de-uso" className="transition-colors hover:text-white">
                 Termos
               </a>
-              <a href="/seguranca" className="transition-colors hover:text-primary">
+              <a href="/seguranca" className="transition-colors hover:text-white">
                 Segurança
               </a>
-              <a href="/direitos-do-titular" className="transition-colors hover:text-primary">
+              <a href="/direitos-do-titular" className="transition-colors hover:text-white">
                 Seus dados
               </a>
               <CookiePreferencesButton />
               <a
                 href={`mailto:${companyInfo.supportEmail}`}
-                className="transition-colors hover:text-primary"
+                className="transition-colors hover:text-white"
               >
                 Suporte
               </a>
@@ -107,15 +125,13 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="border-t border-slate-200">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-5 text-xs leading-5 text-slate-500 md:flex-row md:items-center md:justify-between lg:px-8">
+      <div className="border-t border-white/15">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-5 text-xs leading-5 text-blue-300 md:flex-row md:items-center md:justify-between lg:px-8">
           <p>
-            Copyright © {currentYear} {companyInfo.legalName}. Todos os direitos
-            reservados.
+            Copyright © {currentYear} {companyInfo.legalName}. Todos os direitos reservados.
           </p>
           <p>
-            {companyInfo.tradeName} e marcas relacionadas pertencem aos seus
-            respectivos titulares.
+            {companyInfo.tradeName} e marcas relacionadas pertencem aos seus respectivos titulares.
           </p>
         </div>
       </div>

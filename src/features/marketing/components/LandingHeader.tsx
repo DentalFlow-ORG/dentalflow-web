@@ -54,9 +54,6 @@ export function LandingHeader({ isScrolled }: LandingHeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" className="hidden md:inline-flex">
-            Falar com vendas
-          </Button>
           <Button variant="outline" className="hidden sm:inline-flex" asChild>
             <Link to="/acessar" search={{ mode: 'login' }}>
               Entrar
@@ -64,7 +61,7 @@ export function LandingHeader({ isScrolled }: LandingHeaderProps) {
           </Button>
           <Button asChild>
             <Link to="/acessar" search={{ mode: 'register' }}>
-              Testar grátis
+              Iniciar teste grátis
               <ChevronRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -126,7 +123,7 @@ export function LandingHeader({ isScrolled }: LandingHeaderProps) {
                 search={{ mode: 'register' }}
                 onClick={() => setIsMenuOpen(false)}
               >
-                Testar grátis
+                Iniciar teste grátis
                 <ChevronRight className="h-4 w-4" />
               </Link>
             </Button>

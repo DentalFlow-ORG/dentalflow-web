@@ -1,51 +1,47 @@
-import { CheckCircle2, PhoneCall, TrendingUp } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { Button } from '@/components/ui/button'
 
-const contactChecklist = [
-  'Diagnóstico de presença digital e jornada comercial.',
-  'Organização de páginas, mensagens e chamadas para ação.',
-  'Indicadores para acompanhar evolução e tomar decisões.',
-] as const
+import { trustPoints } from '../data/landing-content'
 
 export function ContactSection() {
   return (
-    <section id="contato" className="py-20">
+    <section id="seguranca" className="border-t border-slate-200 bg-white py-20">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-950/5 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="p-8 lg:p-12">
-            <SectionHeading
-              eyebrow="Próximo passo"
-              title="Veja como o DentalFlow pode organizar o crescimento da sua clínica."
-              description="Uma conversa inicial ajuda a entender maturidade digital, oportunidades comerciais e prioridades para os próximos ciclos."
-            />
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button size="xl">
-                Agendar conversa
-                <PhoneCall className="h-4 w-4" />
-              </Button>
-              <Button variant="secondary" size="xl">
-                Receber proposta
-              </Button>
-            </div>
-          </div>
+        <div className="mb-12 text-center">
+          <SectionHeading
+            eyebrow="Segurança"
+            title="Construído com segurança e boas práticas."
+            description="O DentalFlow foi desenvolvido com controle de acesso por função, autenticação segura e organização responsável de dados — sem promessas jurídicas, mas com cuidado real."
+            align="center"
+          />
+        </div>
 
-          <div className="bg-slate-950 p-8 text-white lg:p-12">
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-white/10 text-emerald-300">
-              <TrendingUp className="h-7 w-7" />
-            </div>
-            <h3 className="mt-8 text-2xl font-semibold">
-              Estrutura comercial com aparência premium e leitura executiva.
-            </h3>
-            <ul className="mt-6 space-y-4 text-sm leading-6 text-slate-300">
-              {contactChecklist.map((item) => (
-                <li key={item} className="flex gap-3">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+        <div className="grid gap-6 md:grid-cols-3">
+          {trustPoints.map((point) => {
+            const Icon = point.icon
+            return (
+              <article
+                key={point.title}
+                className="flex flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="h-6 w-6" aria-hidden="true" />
+                </div>
+                <h3 className="mt-5 text-lg font-semibold text-slate-900">{point.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-500">{point.description}</p>
+              </article>
+            )
+          })}
+        </div>
+
+        <div className="mt-10 rounded-xl border border-slate-200 bg-slate-50 px-6 py-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" aria-hidden="true" />
+            <p className="text-sm leading-6 text-slate-600">
+              <span className="font-semibold text-slate-900">Sem certificações exageradas.</span>{' '}
+              O DentalFlow aplica boas práticas de segurança e controle de acesso por função. Não fazemos promessas de conformidade jurídica sem base técnica ou legal comprovada.
+            </p>
           </div>
         </div>
       </div>

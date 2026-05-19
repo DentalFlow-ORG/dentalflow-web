@@ -47,7 +47,7 @@ export function BrandLink({ compact = false, className, to = '/' }: BrandLinkPro
         </span>
         {!compact && (
           <span className="hidden text-sm text-muted-foreground sm:block">
-            Growth platform for clinics
+            Gestão para clínicas odontológicas
           </span>
         )}
       </div>
