@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 
 import { SectionHeading } from '@/components/common/SectionHeading'
 
@@ -10,7 +10,7 @@ export function ContactSection() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-12 text-center">
           <SectionHeading
-            eyebrow="Segurança"
+            eyebrow="Confiança e privacidade"
             title="Construído com segurança e boas práticas."
             description="O DentalFlow foi desenvolvido com controle de acesso por função, autenticação segura e organização responsável de dados — sem promessas jurídicas, mas com cuidado real."
             align="center"
@@ -35,9 +35,9 @@ export function ContactSection() {
           })}
         </div>
 
-        <div className="mt-10 rounded-xl border border-slate-200 bg-slate-50 px-6 py-5">
+        <div className="mt-10 rounded-xl border border-emerald-200 bg-emerald-50 px-6 py-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
-            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" aria-hidden="true" />
+            <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600" aria-hidden="true" />
             <p className="text-sm leading-6 text-slate-600">
               <span className="font-semibold text-slate-900">Sem certificações exageradas.</span>{' '}
               O DentalFlow aplica boas práticas de segurança e controle de acesso por função. Não fazemos promessas de conformidade jurídica sem base técnica ou legal comprovada.

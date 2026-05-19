@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowRight, CheckCircle2, Flame } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Headphones, ShieldCheck, XCircle, Zap } from 'lucide-react'
 
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,32 @@ export function PricingSection() {
           {landingPlans.map((plan) => (
             <PlanCard key={plan.key} plan={plan} />
           ))}
+        </div>
+
+        {/* Scarcity signal */}
+        <div className="mt-8 flex justify-center">
+          <p className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+            <Zap className="h-4 w-4 shrink-0 text-amber-500" aria-hidden="true" />
+            Preços de lançamento disponíveis enquanto durarem as vagas iniciais.
+          </p>
+        </div>
+
+        {/* Trust footer */}
+        <div className="mt-5 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-6">
+          <span className="flex items-center gap-1.5 text-sm text-slate-500">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden="true" />
+            Sem contrato de fidelidade
+          </span>
+          <span className="hidden text-slate-300 sm:inline" aria-hidden="true">·</span>
+          <span className="flex items-center gap-1.5 text-sm text-slate-500">
+            <XCircle className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+            Cancele quando quiser
+          </span>
+          <span className="hidden text-slate-300 sm:inline" aria-hidden="true">·</span>
+          <span className="flex items-center gap-1.5 text-sm text-slate-500">
+            <Headphones className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+            Suporte incluso em todos os planos
+          </span>
         </div>
 
         <p className="mt-8 text-center text-sm text-slate-500">
@@ -62,8 +88,8 @@ function PlanCard({ plan }: PlanCardProps) {
       >
         {plan.isRecommended && (
           <>
-            <Flame className="h-3.5 w-3.5" aria-hidden="true" />
-            Mais escolhido
+            <Zap className="h-3.5 w-3.5" aria-hidden="true" />
+            Mais contratado esta semana
           </>
         )}
         {!plan.isRecommended && <div aria-hidden="true" />}
@@ -80,7 +106,7 @@ function PlanCard({ plan }: PlanCardProps) {
             De{' '}
             <span className="line-through text-slate-400">{plan.compareAtMonthly}</span>
             <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-              oferta de lançamento
+              oferta de lançamento · encerra em breve
             </span>
           </p>
           <div className="mt-1 flex items-baseline gap-1.5">

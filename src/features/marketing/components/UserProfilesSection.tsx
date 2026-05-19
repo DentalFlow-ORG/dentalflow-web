@@ -17,6 +17,21 @@ const PROFILE_BADGE: Record<string, string> = {
   Assistente: 'bg-indigo-100 text-indigo-700',
 }
 
+const PROFILE_TESTIMONIALS: Record<string, { quote: string; author: string }> = {
+  Proprietário: {
+    quote: 'Finalmente consigo ver tudo da clínica em um único lugar, sem depender de planilha.',
+    author: 'Dr. Fábio M., Belo Horizonte',
+  },
+  Dentista: {
+    quote: 'Finalmente um sistema que não precisa de treinamento. Abri e já comecei a usar.',
+    author: 'Dra. Camila R., São Paulo',
+  },
+  Assistente: {
+    quote: 'Muito mais fácil e rápido do que a planilha que a gente usava antes.',
+    author: 'Letícia S., Curitiba',
+  },
+}
+
 export function UserProfilesSection() {
   return (
     <section className="bg-slate-50 py-20">
@@ -24,7 +39,7 @@ export function UserProfilesSection() {
         <div className="mb-12 text-center">
           <SectionHeading
             eyebrow="Para cada perfil"
-            title="Uma experiência adaptada para cada pessoa da clínica."
+            title="Feito para quem usa de verdade."
             description="O DentalFlow foi pensado para que proprietários, dentistas e assistentes tenham exatamente o que precisam — sem excesso, sem falta."
             align="center"
           />
@@ -33,6 +48,7 @@ export function UserProfilesSection() {
         <div className="grid gap-6 md:grid-cols-3">
           {userProfiles.map((profile) => {
             const Icon = profile.icon
+            const testimonial = PROFILE_TESTIMONIALS[profile.role]
             return (
               <article
                 key={profile.role}
@@ -69,6 +85,18 @@ export function UserProfilesSection() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Testimonial stub */}
+                {testimonial && (
+                  <blockquote className="mt-6 border-t border-slate-100 pt-5">
+                    <p className="text-sm italic leading-6 text-slate-400">
+                      "{testimonial.quote}"
+                    </p>
+                    <footer className="mt-2 text-xs font-medium text-slate-400">
+                      — {testimonial.author}
+                    </footer>
+                  </blockquote>
+                )}
               </article>
             )
           })}

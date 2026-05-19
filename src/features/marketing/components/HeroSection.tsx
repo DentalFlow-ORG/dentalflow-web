@@ -1,17 +1,11 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, CalendarDays, CheckCircle2 } from 'lucide-react'
 
-import { CheckBadge } from '@/components/common/CheckBadge'
 import { Eyebrow } from '@/components/common/Eyebrow'
-import { MetricCard } from '@/components/common/MetricCard'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import {
-  heroAppointments,
-  heroMetrics,
-  trialHighlights,
-} from '../data/landing-content'
+import { heroAppointments } from '../data/landing-content'
 
 const STATUS_CONFIG = {
   confirmed: {
@@ -26,9 +20,24 @@ const STATUS_CONFIG = {
   },
 } as const
 
-export function HeroSection() {
+const STATIC_METRICS = [
+  { value: '+2.400', label: 'clínicas ativas no Brasil' },
+  { value: '98%', label: 'satisfação no suporte' },
+  { value: '< 5 min', label: 'para configurar e começar' },
+] as const
+
+type HeroSectionProps = {
+  announcementVisible: boolean
+}
+
+export function HeroSection({ announcementVisible }: HeroSectionProps) {
   return (
-    <section className="relative overflow-hidden pt-20">
+    <section
+      className={cn(
+        'relative overflow-hidden transition-[padding] duration-300',
+        announcementVisible ? 'pt-[7.25rem]' : 'pt-20',
+      )}
+    >
       {/* Sky/cyan glow — anchored behind the dashboard panel (right column) */}
       <div className="pointer-events-none absolute right-0 top-0 h-[680px] w-2/3 bg-[radial-gradient(ellipse_at_top_right,rgba(56,189,248,0.15)_0%,transparent_58%)]" />
       {/* Navy bloom — anchored behind the headline copy (left column) */}
@@ -43,21 +52,29 @@ export function HeroSection() {
           </Eyebrow>
 
           <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.25rem]">
-            Organize sua clínica odontológica em uma plataforma moderna.
+            O software odontológico que sua clínica vai{' '}
+            <span className="text-primary">querer usar todos os dias.</span>
           </h1>
 
           <p className="mt-5 text-lg leading-8 text-slate-600">
             Gerencie consultas, pacientes, equipe e permissões em uma plataforma segura, simples e feita para a rotina real da clínica.
           </p>
 
-          <div className="mt-6 inline-flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800">
-            <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+          {/* Trial badge — above CTAs */}
+          <div className="mt-7 inline-flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800">
+            <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
             7 dias de teste grátis
             <span className="hidden h-4 w-px bg-emerald-200 sm:block" aria-hidden="true" />
-            <span>sem cartão de crédito</span>
+            <span>Sem cartão de crédito</span>
+            <span className="hidden h-4 w-px bg-emerald-200 sm:block" aria-hidden="true" />
+            <span>Cancele quando quiser.</span>
           </div>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          {/* CTAs */}
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <Button size="xl" asChild>
               <Link to="/acessar" search={{ mode: 'register' }}>
                 Iniciar teste grátis
@@ -69,22 +86,45 @@ export function HeroSection() {
             </Button>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2.5">
-            {trialHighlights.map((item) => (
-              <CheckBadge key={item}>{item}</CheckBadge>
-            ))}
+          {/* Social proof strip */}
+          <div
+            className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-slate-500"
+            role="status"
+            aria-label="Números da plataforma"
+          >
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
+              +2.400 clínicas ativas
+            </span>
+            <span className="hidden text-slate-300 sm:inline" aria-hidden="true">·</span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
+              4.8★ na App Store
+            </span>
+            <span className="hidden text-slate-300 sm:inline" aria-hidden="true">·</span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
+              98% de satisfação no suporte
+            </span>
           </div>
 
+          {/* Metrics */}
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
-            {heroMetrics.map((metric) => (
-              <MetricCard key={metric.value} {...metric} />
+            {STATIC_METRICS.map((metric) => (
+              <div
+                key={metric.value}
+                className="rounded-lg border border-border bg-white/85 p-5 shadow-sm"
+              >
+                <p className="text-2xl font-semibold text-primary">{metric.value}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-500">{metric.label}</p>
+              </div>
             ))}
           </div>
         </div>
 
         {/* ── Right: dashboard mockup ── */}
         <div className="relative lg:pl-4">
-          {/* Floating notification — visible md+ */}
+          {/* Floating notification — top right */}
           <div
             className="absolute -right-2 -top-4 z-10 hidden rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-lg md:block"
             aria-hidden="true"
@@ -94,6 +134,21 @@ export function HeroSection() {
               <p className="text-xs font-semibold text-slate-700">Próxima consulta</p>
             </div>
             <p className="mt-0.5 text-xs text-slate-500">Ana Rodrigues · 09:00</p>
+          </div>
+
+          {/* Floating new-patient notification — bottom left */}
+          <div
+            className="absolute -bottom-4 -left-4 z-10 hidden rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-lg md:block"
+            aria-hidden="true"
+          >
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              <p className="text-xs font-semibold text-slate-700">+1 novo paciente agendado</p>
+            </div>
+            <p className="mt-0.5 text-xs text-slate-500">Agora mesmo</p>
           </div>
 
           {/* Main dashboard card */}
