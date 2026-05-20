@@ -10,6 +10,7 @@ export type CommercialFeatureCategory =
   | 'fiscal'
   | 'team'
   | 'intelligence'
+  | 'communication'
   | 'security'
   | 'support'
 
@@ -33,12 +34,13 @@ export const PLAN_ORDER: CommercialPlanKey[] = ['starter', 'professional', 'prem
 
 export const FEATURE_CATEGORY_LABELS: Record<CommercialFeatureCategory, string> = {
   agenda: 'Agenda e atendimento',
-  patients: 'Pacientes e prontuarios',
+  patients: 'Pacientes, prontuarios e leads',
   finance: 'Gestao financeira',
   inventory: 'Estoque',
   fiscal: 'Fiscal e notas',
   team: 'Equipe e permissoes',
   intelligence: 'Inteligencia e relatorios',
+  communication: 'Comunicacao e notificacoes',
   security: 'Seguranca e LGPD',
   support: 'Suporte e operacao',
 }
@@ -51,6 +53,7 @@ export const FEATURE_CATEGORY_ORDER: CommercialFeatureCategory[] = [
   'fiscal',
   'team',
   'intelligence',
+  'communication',
   'security',
   'support',
 ]
@@ -70,6 +73,12 @@ const professionalAndPremium: Record<CommercialPlanKey, PlanFeatureAvailability>
 const premiumIncluded: Record<CommercialPlanKey, PlanFeatureAvailability> = {
   starter: 'not_included',
   professional: 'not_included',
+  premium: 'included',
+}
+
+const aiAvailability: Record<CommercialPlanKey, PlanFeatureAvailability> = {
+  starter: 'not_included',
+  professional: 'included',
   premium: 'included',
 }
 
@@ -123,6 +132,16 @@ export const commercialFeatures: CommercialFeature[] = [
     availability: allPlansIncluded,
   },
   {
+    id: 'crm-leads',
+    title: 'CRM de leads',
+    category: 'patients',
+    description: 'Organize e acompanhe potenciais pacientes desde o primeiro contato ate a conversao.',
+    clientFriendlyExplanation:
+      'Limite mensal de novos leads por plano: Starter ate 30, Professional ate 150, Premium sem limite.',
+    audience: 'public',
+    availability: allPlansIncluded,
+  },
+  {
     id: 'clinic-finance',
     title: 'Gestao financeira da clinica',
     category: 'finance',
@@ -145,6 +164,16 @@ export const commercialFeatures: CommercialFeature[] = [
     description: 'Organize dados fiscais, rascunhos e acompanhamento interno.',
     clientFriendlyExplanation:
       'Nao promete emissao fiscal real ou automatica. Emissao integrada depende de provedor, configuracao e regras aplicaveis.',
+    audience: 'public',
+    availability: professionalAndPremium,
+  },
+  {
+    id: 'google-calendar',
+    title: 'Integracao com Google Calendar',
+    category: 'agenda',
+    description: 'Sincronize a agenda da clinica com o Google Calendar.',
+    clientFriendlyExplanation:
+      'Requer conta Google e configuracao pelo proprietario da clinica.',
     audience: 'public',
     availability: professionalAndPremium,
   },
@@ -188,9 +217,9 @@ export const commercialFeatures: CommercialFeature[] = [
     category: 'intelligence',
     description: 'Apoio para analisar dados financeiros e de estoque registrados no sistema.',
     clientFriendlyExplanation:
-      'A IA apoia a analise. Ela nao substitui decisao administrativa, contabil ou clinica.',
+      'A IA apoia a analise. Ela nao substitui decisao administrativa, contabil ou clinica. Professional inclui 1 analise por tipo por mes; Premium inclui 10.',
     audience: 'public',
-    availability: premiumIncluded,
+    availability: aiAvailability,
   },
   {
     id: 'inventory-ai-analysis',
@@ -198,9 +227,19 @@ export const commercialFeatures: CommercialFeature[] = [
     category: 'intelligence',
     description: 'Identifique pontos de atencao no estoque com base nos dados registrados.',
     clientFriendlyExplanation:
-      'Recurso de apoio a analise, sem compra automatica e sem decisao automatica.',
+      'Recurso de apoio a analise, sem compra automatica e sem decisao automatica. Professional inclui 1 analise por tipo por mes; Premium inclui 10.',
     audience: 'public',
-    availability: premiumIncluded,
+    availability: aiAvailability,
+  },
+  {
+    id: 'whatsapp-notifications',
+    title: 'WhatsApp e notificacoes',
+    category: 'communication',
+    description: 'Lembretes, confirmacoes e avisos operacionais enviados via WhatsApp para os pacientes.',
+    clientFriendlyExplanation:
+      'Requer conta Business aprovada pela Meta e configuracao de templates. Professional inclui ate 50 mensagens/mes; Premium inclui ate 300. Starter nao inclui envio via WhatsApp.',
+    audience: 'public',
+    availability: professionalAndPremium,
   },
   {
     id: 'audit-records',
@@ -260,24 +299,25 @@ const PLAN_CARD_FEATURE_IDS: Record<CommercialPlanKey, string[]> = {
     'patients-register',
     'clinical-records',
     'basic-clinical-templates',
-    'team-essential',
+    'crm-leads',
     'lgpd-organization',
   ],
   professional: [
     'clinic-finance',
     'inventory-control',
     'internal-fiscal-control',
-    'role-permissions',
     'management-reports',
-    'subscription-management',
+    'whatsapp-notifications',
+    'google-calendar',
+    'ai-assistant',
   ],
   premium: [
     'ai-assistant',
     'inventory-ai-analysis',
+    'whatsapp-notifications',
     'management-reports',
     'audit-records',
     'priority-support',
-    'subscription-management',
   ],
 }
 
