@@ -3,8 +3,10 @@ import { useState } from 'react'
 import { FormField } from '@/components/common/FormField'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
 import {
   Select,
   SelectContent,
@@ -42,6 +44,11 @@ function FilterRow({ children }: { children: React.ReactNode }) {
 export function ReportsPageContainer() {
   const { user } = useAuth()
   const isOwner = user?.role === 'OWNER'
+
+  const planKey = getCachedBillingStatus()?.planKey
+  if (user?.role !== 'ADMIN' && planKey === 'starter') {
+    return <PlanUpgradeNotice title="Relatórios" />
+  }
 
   const [financeFilters, setFinanceFilters] = useState<FinanceReportFilters>(() => defaultLast30DaysRange())
   const [apptFilters, setApptFilters] = useState<AppointmentsReportFilters>(() => defaultLast30DaysRange())

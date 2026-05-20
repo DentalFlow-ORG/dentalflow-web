@@ -34,6 +34,7 @@ export function useInventoryPage() {
 
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingProducts, setIsLoadingProducts] = useState(false)
+  const [planBlocked, setPlanBlocked] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -84,6 +85,10 @@ export function useInventoryPage() {
         initializedRef.current = true
       })
       .catch((err) => {
+        if (err instanceof ApiError && err.status === 403) {
+          setPlanBlocked(true)
+          return
+        }
         const message =
           err instanceof ApiError
             ? err.message
@@ -388,6 +393,7 @@ export function useInventoryPage() {
     total,
     isLoading,
     isLoadingProducts,
+    planBlocked,
     error,
     search,
     categoryId,

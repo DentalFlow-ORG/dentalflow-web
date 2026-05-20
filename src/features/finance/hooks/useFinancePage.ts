@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { ApiError } from '@/services/http'
 
 import {
   createFinancialCategory,
@@ -110,6 +111,7 @@ export function useFinancePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [planBlocked, setPlanBlocked] = useState(false)
   const [transactionForm, setTransactionForm] =
     useState<TransactionFormState>(emptyTransactionForm)
   const [fixedExpenseForm, setFixedExpenseForm] =
@@ -192,6 +194,10 @@ export function useFinancePage() {
         setPreviousSummary(prevSummaryResponse)
       })
       .catch((err) => {
+        if (err instanceof ApiError && err.status === 403) {
+          setPlanBlocked(true)
+          return
+        }
         const message =
           err instanceof Error ? err.message : 'Não foi possível carregar o financeiro.'
         setLoadError(message)
@@ -638,6 +644,7 @@ export function useFinancePage() {
     isLoading,
     isLoadingTransactions,
     loadError,
+    planBlocked,
     transactionForm,
     fixedExpenseForm,
     transactionError,

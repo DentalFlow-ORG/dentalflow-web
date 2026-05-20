@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { FilteredEmptyState } from '@/components/common/FilteredEmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { ListPageShell } from '@/components/common/ListPageShell'
+import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
@@ -141,7 +142,10 @@ export function InventoryPageContainer() {
     handleReactivateConfirm,
     quickMovingIds,
     handleQuickMove,
+    planBlocked,
   } = useInventoryPage()
+
+  if (planBlocked) return <PlanUpgradeNotice title="Controle de Estoque" />
 
   return (
     <AppPage>

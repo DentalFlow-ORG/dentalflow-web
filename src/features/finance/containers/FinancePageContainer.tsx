@@ -2,6 +2,7 @@ import { RefreshCw } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { ListPageShell } from '@/components/common/ListPageShell'
+import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
@@ -36,6 +37,7 @@ export function FinancePageContainer() {
     isLoading,
     isLoadingTransactions,
     loadError,
+    planBlocked,
     previousSummary,
     transactionForm,
     fixedExpenseForm,
@@ -98,6 +100,8 @@ export function FinancePageContainer() {
     setTransactionsPage,
     setTransactionsPageSize,
   } = useFinancePage()
+
+  if (planBlocked) return <PlanUpgradeNotice title="Gestão financeira" />
 
   return (
     <AppPage>

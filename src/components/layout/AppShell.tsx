@@ -46,6 +46,7 @@ type NavItem = {
   icon: React.ElementType
   roles?: AuthUserRole[]
   exact?: boolean
+  minPlan?: 'professional' | 'premium'
 }
 
 type NavGroup = {
@@ -80,10 +81,10 @@ const NAV_GROUPS: NavGroup[] = [
     roles: ['OWNER', 'ASSISTANT'],
     items: [
       { label: 'Equipe', to: '/app/equipe', icon: Users, roles: ['OWNER'] },
-      { label: 'Estoque', to: '/app/estoque', icon: Package, roles: ['OWNER', 'ASSISTANT'] },
-      { label: 'Financeiro', to: '/app/financeiro', icon: Landmark, roles: ['OWNER'] },
-      { label: 'Notas fiscais', to: '/app/notas-fiscais', icon: FileText, roles: ['OWNER', 'ASSISTANT'] },
-      { label: 'Relatórios', to: '/app/relatorios', icon: FileDown, roles: ['OWNER', 'ASSISTANT'] },
+      { label: 'Estoque', to: '/app/estoque', icon: Package, roles: ['OWNER', 'ASSISTANT'], minPlan: 'professional' },
+      { label: 'Financeiro', to: '/app/financeiro', icon: Landmark, roles: ['OWNER'], minPlan: 'professional' },
+      { label: 'Notas fiscais', to: '/app/notas-fiscais', icon: FileText, roles: ['OWNER', 'ASSISTANT'], minPlan: 'professional' },
+      { label: 'Relatórios', to: '/app/relatorios', icon: FileDown, roles: ['OWNER', 'ASSISTANT'], minPlan: 'professional' },
     ],
   },
   {
@@ -124,6 +125,13 @@ const MOBILE_PRIMARY_ROUTES_BY_ROLE: Partial<Record<AuthUserRole, string[]>> = {
 }
 
 const STORAGE_KEY = 'dentalflow.sidebar.groups'
+
+const PLAN_ORDER: Record<string, number> = { starter: 0, professional: 1, premium: 2 }
+
+function isPlanSufficient(planKey: string | null | undefined, minPlan: 'professional' | 'premium'): boolean {
+  const current = PLAN_ORDER[planKey ?? ''] ?? -1
+  return current >= PLAN_ORDER[minPlan]
+}
 
 function loadOpenGroups(): Record<string, boolean> {
   try {
@@ -199,22 +207,28 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
     ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
   )
 
+  const planKey = billingStatus?.planKey ?? null
+
   const visibleGroups = NAV_GROUPS.filter(
     (group) => user?.role && group.roles.includes(user.role),
   ).map((group) => ({
     ...group,
-    items: group.items.filter(
-      ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
-    ),
+    items: group.items.filter(({ roles, minPlan }) => {
+      if (roles && !(user?.role && roles.includes(user.role))) return false
+      if (minPlan && user?.role !== 'ADMIN' && !isPlanSufficient(planKey, minPlan)) return false
+      return true
+    }),
   })).filter((group) => group.items.length > 0)
 
   const visibleFooterItems = FOOTER_ITEMS.filter(
     ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
   )
 
-  const visibleNav = appNavigation.filter(
-    ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
-  )
+  const visibleNav = appNavigation.filter(({ roles, minPlan }) => {
+    if (roles && !(user?.role && roles.includes(user.role))) return false
+    if (minPlan && user?.role !== 'ADMIN' && !isPlanSufficient(planKey, minPlan)) return false
+    return true
+  })
 
   const primaryRoutes = user?.role ? (MOBILE_PRIMARY_ROUTES_BY_ROLE[user.role] ?? []) : []
   const primaryNav = visibleNav.filter((item) => primaryRoutes.includes(item.to))

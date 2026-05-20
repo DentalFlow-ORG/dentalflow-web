@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { ApiError } from '@/services/http'
 
 import {
   cancelInvoice,
@@ -38,6 +39,7 @@ export function useFiscalInvoicesPage() {
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [planBlocked, setPlanBlocked] = useState(false)
   const [filters, setFilters] = useState<InvoiceFilters>({ page: 1, limit: PAGE_SIZE })
 
   const isInitialLoad = useRef(true)
@@ -64,6 +66,10 @@ export function useFiscalInvoicesPage() {
     loadFiscalData(filters)
       .then(applyData)
       .catch((error: unknown) => {
+        if (error instanceof ApiError && error.status === 403) {
+          setPlanBlocked(true)
+          return
+        }
         const message = getErrorMessage(error, 'Não foi possível carregar as notas fiscais.')
         setLoadError(message)
         showAlert({ title: 'Erro ao carregar notas fiscais', description: message, tone: 'error' })
@@ -79,6 +85,10 @@ export function useFiscalInvoicesPage() {
       })
       .catch((error: unknown) => {
         if (!isMounted) return
+        if (error instanceof ApiError && error.status === 403) {
+          setPlanBlocked(true)
+          return
+        }
         const message = getErrorMessage(error, 'Não foi possível carregar as notas fiscais.')
         setLoadError(message)
         showAlert({ title: 'Erro ao carregar notas fiscais', description: message, tone: 'error' })
@@ -196,6 +206,7 @@ export function useFiscalInvoicesPage() {
     totalPages,
     isLoading,
     loadError,
+    planBlocked,
     filters,
     setFilters,
     setFilter,

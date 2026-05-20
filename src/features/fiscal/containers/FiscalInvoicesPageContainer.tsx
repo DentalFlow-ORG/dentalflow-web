@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
+import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { MetricCard } from '@/components/common/MetricCard'
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
@@ -100,6 +101,7 @@ export function FiscalInvoicesPageContainer() {
     totalPages,
     isLoading,
     loadError,
+    planBlocked,
     filters,
     setFilters,
     setFilter,
@@ -262,6 +264,8 @@ export function FiscalInvoicesPageContainer() {
     setSelectedInvoice(null)
     if (activeWorkspace === 'details') setActiveWorkspace('none')
   }
+
+  if (planBlocked) return <PlanUpgradeNotice title="Notas fiscais" />
 
   return (
     <AppPage>
