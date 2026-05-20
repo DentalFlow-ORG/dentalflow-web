@@ -171,8 +171,16 @@ export function useLeadsPage() {
       loadLeads(filters, debouncedSearch || undefined)
       loadSummary()
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Erro ao salvar lead.'
-      showAlert({ title: 'Erro', description: message, tone: 'error' })
+      if (err instanceof ApiError && err.status === 422) {
+        showAlert({
+          title: 'Limite de leads atingido',
+          description: `${err.message} Faça upgrade para continuar cadastrando leads.`,
+          tone: 'warning',
+        })
+      } else {
+        const message = err instanceof ApiError ? err.message : 'Erro ao salvar lead.'
+        showAlert({ title: 'Erro', description: message, tone: 'error' })
+      }
     } finally {
       setIsSaving(false)
     }
