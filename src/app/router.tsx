@@ -10,6 +10,9 @@ import {
   AdminDashboardPage,
   AdminFinancePage,
   AdminUsersPage,
+  AgendaFeaturePage,
+  AiFeaturePage,
+  ClinicalRecordsFeaturePage,
   CompliancePage,
   AppointmentsPage,
   AuthRoutePage,
@@ -22,15 +25,28 @@ import {
   DataRightsPage,
   DentistHomePage,
   DpoContactPage,
+  FaqPage,
   FinancePage,
+  FinanceFeaturePage,
   FeaturesPage,
   FiscalInvoicesPage,
+  ForDentistPage,
+  ForManagerPage,
+  ForNewClinicPage,
+  ForSecretaryPage,
+  IntegrationsPage,
   InventoryPage,
   LandingPage,
+  FiscalFeaturePage,
   FiscalProfilePage,
+  InventoryFeaturePage,
+  LeadsFeaturePage,
   LeadsPage,
   NotificationSettingsPage,
   PatientsAttentionPage,
+  PatientsFeaturePage,
+  PlansPage,
+  ReportsFeaturePage,
   ReportsPage,
   SettingsPage,
   PatientsPage,
@@ -44,6 +60,7 @@ import {
   TeamMemberProfilePage,
   TeamPage,
   TermsOfUsePage,
+  WhatsappFeaturePage,
 } from '@/app/route-components'
 import { AdminRoute } from '@/features/admin/components/AdminRoute'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
@@ -395,6 +412,110 @@ const privacyRequestFormRoute = createRoute({
   component: PrivacyRequestFormPage,
 })
 
+// ── New public marketing routes ──
+
+const plansRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/planos',
+  component: PlansPage,
+})
+
+const integrationsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/integracoes',
+  component: IntegrationsPage,
+})
+
+const faqRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/perguntas-frequentes',
+  component: FaqPage,
+})
+
+const forSecretaryRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/para-secretarias',
+  component: ForSecretaryPage,
+})
+
+const forDentistRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/para-dentistas',
+  component: ForDentistPage,
+})
+
+const forManagerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/para-gestores',
+  component: ForManagerPage,
+})
+
+const forNewClinicRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/para-clinicas-em-abertura',
+  component: ForNewClinicPage,
+})
+
+const agendaFeatureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades/agenda',
+  component: AgendaFeaturePage,
+})
+
+const financeFeatureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades/financeiro',
+  component: FinanceFeaturePage,
+})
+
+const aiFeatureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades/ia',
+  component: AiFeaturePage,
+})
+
+const whatsappFeatureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades/whatsapp',
+  component: WhatsappFeaturePage,
+})
+
+const patientsFeatureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades/pacientes',
+  component: PatientsFeaturePage,
+})
+
+const clinicalRecordsFeatureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades/prontuarios',
+  component: ClinicalRecordsFeaturePage,
+})
+
+const inventoryFeatureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades/estoque',
+  component: InventoryFeaturePage,
+})
+
+const leadsFeatureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades/leads',
+  component: LeadsFeaturePage,
+})
+
+const reportsFeatureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades/relatorios',
+  component: ReportsFeaturePage,
+})
+
+const fiscalFeatureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/funcionalidades/controle-fiscal',
+  component: FiscalFeaturePage,
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
@@ -434,6 +555,23 @@ const routeTree = rootRoute.addChildren([
   dataRightsRoute,
   dpoContactRoute,
   privacyRequestFormRoute,
+  plansRoute,
+  integrationsRoute,
+  faqRoute,
+  forSecretaryRoute,
+  forDentistRoute,
+  forManagerRoute,
+  forNewClinicRoute,
+  agendaFeatureRoute,
+  financeFeatureRoute,
+  aiFeatureRoute,
+  whatsappFeatureRoute,
+  patientsFeatureRoute,
+  clinicalRecordsFeatureRoute,
+  inventoryFeatureRoute,
+  leadsFeatureRoute,
+  reportsFeatureRoute,
+  fiscalFeatureRoute,
 ])
 
 export const router = createRouter({

@@ -1,58 +1,67 @@
 import { Link } from '@tanstack/react-router'
-import { Check, Clock3, X } from 'lucide-react'
+import { ArrowRight, Check, Clock3, X } from 'lucide-react'
 
-import { BrandLink } from '@/components/brand/BrandLink'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+import { PublicLayout } from '../components/PublicLayout'
+import { usePageMeta } from '../hooks/usePageMeta'
 import {
   COMMERCIAL_PLAN_LABELS,
+  type CommercialFeatureCategory,
   PLAN_ORDER,
   type PlanFeatureAvailability,
   getFeatureAvailability,
   getFeaturesByCategory,
 } from '../config/features'
 
+const CATEGORY_DETAIL_ROUTES: Partial<Record<CommercialFeatureCategory, string>> = {
+  agenda: '/funcionalidades/agenda',
+  patients: '/funcionalidades/pacientes',
+  finance: '/funcionalidades/financeiro',
+  inventory: '/funcionalidades/estoque',
+  fiscal: '/funcionalidades/controle-fiscal',
+  intelligence: '/funcionalidades/relatorios',
+}
+
 export function FeaturesPage() {
+  usePageMeta(
+    'DentalFlow | Funcionalidades por plano',
+    'Compare todos os recursos do DentalFlow por plano. Veja o que está incluído em Starter, Professional e Premium.',
+  )
   const featureGroups = getFeaturesByCategory()
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <BrandLink />
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/">Início</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link to="/app/assinatura">Ver planos</Link>
+    <PublicLayout showAnnouncement={false}>
+      {/* ── Hero ── */}
+      <section className="bg-gradient-to-b from-blue-50 to-white pb-10 pt-28">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Comparativo DentalFlow
+          </p>
+          <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+                Funcionalidades por plano
+              </h1>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-slate-500">
+                Compare os recursos disponíveis em cada plano. A matriz organiza o que está incluído, o que não está incluído e o que ainda está em evolução.
+              </p>
+            </div>
+            <Button asChild className="shrink-0">
+              <Link to="/planos">
+                Ver planos e preços
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </div>
-      </header>
+      </section>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <section className="flex flex-col gap-4 border-b border-border pb-6 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Comparativo DentalFlow
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Funcionalidades por plano
-            </h1>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
-              Compare os recursos disponíveis em cada plano. A matriz abaixo é comercial e foi
-              organizada para deixar claro o que está incluído, o que não está incluído e o que
-              ainda está em evolução.
-            </p>
-          </div>
-          <Button variant="outline" asChild>
-            <Link to="/app/assinatura">Ir para assinatura</Link>
-          </Button>
-        </section>
-
-        <section className="mt-8 hidden overflow-hidden rounded-lg border border-border bg-card shadow-sm lg:block">
+      {/* ── Feature matrix ── */}
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        {/* Desktop table */}
+        <section className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-sm lg:block">
           <div className="grid grid-cols-[minmax(24rem,1fr)_12rem_12rem_12rem] border-b border-border bg-muted/60">
             <div className="px-5 py-4 text-sm font-semibold text-foreground">Funcionalidade</div>
             {PLAN_ORDER.map((plan) => (
@@ -65,9 +74,19 @@ export function FeaturesPage() {
           {featureGroups.map((group) => (
             <div key={group.category}>
               <div className="border-b border-border bg-background px-5 py-3">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {group.label}
-                </h2>
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {group.label}
+                  </h2>
+                  {CATEGORY_DETAIL_ROUTES[group.category] && (
+                    <Link
+                      to={CATEGORY_DETAIL_ROUTES[group.category] as string}
+                      className="text-xs font-medium text-primary hover:underline"
+                    >
+                      Saiba mais →
+                    </Link>
+                  )}
+                </div>
               </div>
 
               {group.features.map((feature) => (
@@ -101,12 +120,23 @@ export function FeaturesPage() {
           ))}
         </section>
 
-        <section className="mt-8 space-y-5 lg:hidden">
+        {/* Mobile cards */}
+        <section className="space-y-5 lg:hidden">
           {featureGroups.map((group) => (
             <div key={group.category} className="rounded-lg border border-border bg-card p-4 shadow-sm">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                {group.label}
-              </h2>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                  {group.label}
+                </h2>
+                {CATEGORY_DETAIL_ROUTES[group.category] && (
+                  <Link
+                    to={CATEGORY_DETAIL_ROUTES[group.category] as string}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Saiba mais →
+                  </Link>
+                )}
+              </div>
               <div className="mt-4 space-y-4">
                 {group.features.map((feature) => (
                   <article key={feature.id} className="rounded-md border border-border bg-background p-4">
@@ -137,40 +167,33 @@ export function FeaturesPage() {
           ))}
         </section>
 
+        {/* Notes */}
         <section className="mt-8 rounded-lg border border-border bg-card p-5">
           <h2 className="text-base font-semibold text-foreground">Observações importantes</h2>
           <div className="mt-3 grid gap-3 text-sm leading-6 text-muted-foreground md:grid-cols-2">
             <p>
-              Financeiro SaaS é uma área interna da administração do DentalFlow e não aparece como
-              funcionalidade comercial da clínica.
+              Financeiro SaaS é uma área interna da administração do DentalFlow e não aparece como funcionalidade comercial da clínica.
             </p>
             <p>
-              Controle interno de notas organiza dados fiscais, rascunhos e acompanhamento. Não
-              promete emissão fiscal automática ou real sem provedor e configuração adequados.
+              Controle interno de notas organiza dados fiscais, rascunhos e acompanhamento. Não promete emissão fiscal automática ou real sem provedor e configuração adequados.
             </p>
             <p>
-              Assistente IA apoia análises baseadas nos dados registrados no sistema. Ele não toma
-              decisões administrativas, contábeis ou clínicas.
+              Assistente IA apoia análises baseadas nos dados registrados no sistema. Ele não toma decisões administrativas, contábeis ou clínicas.
             </p>
             <p>
-              Recursos marcados como “Em breve” representam evolução planejada ou controlada e não
-              devem ser tratados como entrega imediata.
+              Recursos marcados como "Em breve" representam evolução planejada ou controlada e não devem ser tratados como entrega imediata.
             </p>
           </div>
         </section>
       </main>
-
-      <footer className="border-t border-border px-4 py-6 text-center text-xs text-muted-foreground">
-        DentalFlow - comparativo comercial de funcionalidades.
-      </footer>
-    </div>
+    </PublicLayout>
   )
 }
 
 function AvailabilityIndicator({ availability }: { availability: PlanFeatureAvailability }) {
   if (availability === 'included') {
     return (
-      <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-200 dark:bg-green-950/40 dark:text-green-300 dark:ring-green-900">
+      <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-200">
         <Check className="h-3.5 w-3.5" aria-hidden="true" />
         Incluído
       </span>
@@ -179,7 +202,7 @@ function AvailabilityIndicator({ availability }: { availability: PlanFeatureAvai
 
   if (availability === 'soon') {
     return (
-      <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900">
+      <span className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
         <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
         Em breve
       </span>

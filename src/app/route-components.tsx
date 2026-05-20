@@ -235,3 +235,106 @@ export const ReportsPage = lazy(() =>
     default: m.ReportsPage,
   })),
 )
+
+// Public marketing pages
+export const PlansPage = lazy(() =>
+  import('@/features/marketing/pages/PlansPage').then((m) => ({
+    default: m.PlansPage,
+  })),
+)
+
+export const IntegrationsPage = lazy(() =>
+  import('@/features/marketing/pages/IntegrationsPage').then((m) => ({
+    default: m.IntegrationsPage,
+  })),
+)
+
+export const FaqPage = lazy(() =>
+  import('@/features/marketing/pages/FaqPage').then((m) => ({
+    default: m.FaqPage,
+  })),
+)
+
+export const ForSecretaryPage = lazy(() =>
+  import('@/features/marketing/pages/ForSecretaryPage').then((m) => ({
+    default: m.ForSecretaryPage,
+  })),
+)
+
+export const ForDentistPage = lazy(() =>
+  import('@/features/marketing/pages/ForDentistPage').then((m) => ({
+    default: m.ForDentistPage,
+  })),
+)
+
+export const ForManagerPage = lazy(() =>
+  import('@/features/marketing/pages/ForManagerPage').then((m) => ({
+    default: m.ForManagerPage,
+  })),
+)
+
+export const ForNewClinicPage = lazy(() =>
+  import('@/features/marketing/pages/ForNewClinicPage').then((m) => ({
+    default: m.ForNewClinicPage,
+  })),
+)
+
+export const AgendaFeaturePage = lazy(() =>
+  import('@/features/marketing/pages/AgendaFeaturePage').then((m) => ({
+    default: m.AgendaFeaturePage,
+  })),
+)
+
+export const FinanceFeaturePage = lazy(() =>
+  import('@/features/marketing/pages/FinanceFeaturePage').then((m) => ({
+    default: m.FinanceFeaturePage,
+  })),
+)
+
+export const AiFeaturePage = lazy(() =>
+  import('@/features/marketing/pages/AiFeaturePage').then((m) => ({
+    default: m.AiFeaturePage,
+  })),
+)
+
+export const WhatsappFeaturePage = lazy(() =>
+  import('@/features/marketing/pages/WhatsappFeaturePage').then((m) => ({
+    default: m.WhatsappFeaturePage,
+  })),
+)
+
+export const PatientsFeaturePage = lazy(() =>
+  import('@/features/marketing/pages/PatientsFeaturePage').then((m) => ({
+    default: m.PatientsFeaturePage,
+  })),
+)
+
+export const ClinicalRecordsFeaturePage = lazy(() =>
+  import('@/features/marketing/pages/ClinicalRecordsFeaturePage').then((m) => ({
+    default: m.ClinicalRecordsFeaturePage,
+  })),
+)
+
+export const InventoryFeaturePage = lazy(() =>
+  import('@/features/marketing/pages/InventoryFeaturePage').then((m) => ({
+    default: m.InventoryFeaturePage,
+  })),
+)
+
+export const LeadsFeaturePage = lazy(() =>
+  import('@/features/marketing/pages/LeadsFeaturePage').then((m) => ({
+    default: m.LeadsFeaturePage,
+  })),
+)
+
+export const ReportsFeaturePage = lazy(() =>
+  import('@/features/marketing/pages/ReportsFeaturePage').then((m) => ({
+    default: m.ReportsFeaturePage,
+  })),
+)
+
+export const FiscalFeaturePage = lazy(() =>
+  import('@/features/marketing/pages/FiscalFeaturePage').then((m) => ({
+    default: m.FiscalFeaturePage,
+  })),
+)
