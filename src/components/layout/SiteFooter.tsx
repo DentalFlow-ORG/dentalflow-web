@@ -8,7 +8,7 @@ function CookiePreferencesButton() {
     <button
       type="button"
       onClick={openPreferences}
-      className="transition-colors hover:text-white"
+      className="cursor-pointer rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
     >
       Cookies
     </button>
@@ -96,27 +96,27 @@ export function SiteFooter() {
             )}
             <a
               href={`mailto:${companyInfo.supportEmail}`}
-              className="block transition-colors hover:text-white"
+              className="block rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
             >
               {companyInfo.supportEmail}
             </a>
             <div className="flex flex-wrap gap-x-5 gap-y-2 pt-2">
-              <a href="/politica-de-privacidade" className="transition-colors hover:text-white">
+              <a href="/politica-de-privacidade" className="rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
                 Privacidade
               </a>
-              <a href="/termos-de-uso" className="transition-colors hover:text-white">
+              <a href="/termos-de-uso" className="rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
                 Termos
               </a>
-              <a href="/seguranca" className="transition-colors hover:text-white">
+              <a href="/seguranca" className="rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
                 Segurança
               </a>
-              <a href="/direitos-do-titular" className="transition-colors hover:text-white">
+              <a href="/direitos-do-titular" className="rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
                 Seus dados
               </a>
               <CookiePreferencesButton />
               <a
                 href={`mailto:${companyInfo.supportEmail}`}
-                className="transition-colors hover:text-white"
+                className="rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
               >
                 Suporte
               </a>

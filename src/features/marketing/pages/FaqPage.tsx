@@ -44,7 +44,7 @@ export function FaqPage() {
     'Respostas sobre planos, funcionalidades, segurança, LGPD, WhatsApp e muito mais. Tire suas dúvidas sobre o DentalFlow.',
   )
   return (
-    <PublicLayout showAnnouncement={false}>
+    <PublicLayout>
       {/* Hero */}
       <section className="bg-gradient-to-b from-blue-50 to-white pb-12 pt-28 lg:pb-16 lg:pt-32">
         <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
@@ -125,7 +125,7 @@ export function FaqPage() {
                 <ArrowRight className="h-4 w-4" />
               </a>
             </Button>
-            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10" asChild>
+            <Button size="lg" variant="outline" className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white focus-visible:ring-white" asChild>
               <a href="/planos">Ver planos e preços</a>
             </Button>
           </div>

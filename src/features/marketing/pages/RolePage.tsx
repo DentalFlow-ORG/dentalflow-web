@@ -14,7 +14,7 @@ export function RolePage({ content }: RolePageProps) {
   const Icon = content.icon
 
   return (
-    <PublicLayout showAnnouncement={false}>
+    <PublicLayout>
       {/* Hero */}
       <section className="bg-gradient-to-b from-blue-50 to-white pb-14 pt-28 lg:pb-20 lg:pt-36">
         <div className="mx-auto max-w-5xl px-6 lg:px-8">

@@ -45,7 +45,7 @@ export function TrialCtaSection() {
           <Button
             variant="outline"
             size="xl"
-            className="border-white/50 text-white hover:bg-white/10 hover:text-white focus-visible:ring-white"
+            className="border-white/50 bg-transparent text-white hover:bg-white/10 hover:text-white focus-visible:ring-white"
             asChild
           >
             <a href="#planos">Ver planos</a>

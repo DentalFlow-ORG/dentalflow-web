@@ -23,7 +23,7 @@ export function PlansPage() {
   const featureGroups = getFeaturesByCategory()
 
   return (
-    <PublicLayout showAnnouncement={false}>
+    <PublicLayout>
       {/* ── Hero ── */}
       <section className="bg-gradient-to-b from-blue-50 to-white pb-12 pt-28 lg:pb-16 lg:pt-32">
         <div className="mx-auto max-w-4xl px-6 text-center lg:px-8">

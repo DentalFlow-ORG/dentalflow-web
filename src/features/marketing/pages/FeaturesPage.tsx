@@ -32,7 +32,7 @@ export function FeaturesPage() {
   const featureGroups = getFeaturesByCategory()
 
   return (
-    <PublicLayout showAnnouncement={false}>
+    <PublicLayout>
       {/* ── Hero ── */}
       <section className="bg-gradient-to-b from-blue-50 to-white pb-10 pt-28">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
