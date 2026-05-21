@@ -8,45 +8,30 @@ import { PublicHeader } from './PublicHeader'
 
 type PublicLayoutProps = {
   children: React.ReactNode
-  showAnnouncement?: boolean
   bgClassName?: string
-  /** Controlled mode: pass these to coordinate with HeroSection padding */
-  announcementDismissed?: boolean
-  onDismissAnnouncement?: () => void
+  /** Pass true when the first visible section has a dark background (e.g. landing page) */
+  darkHero?: boolean
 }
 
-export function PublicLayout({
-  children,
-  showAnnouncement = true,
-  bgClassName,
-  announcementDismissed: externalDismissed,
-  onDismissAnnouncement: externalOnDismiss,
-}: PublicLayoutProps) {
+export function PublicLayout({ children, bgClassName, darkHero = false }: PublicLayoutProps) {
   useForceLightTheme()
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [internalDismissed, setInternalDismissed] = useState(false)
-
-  const isControlled = externalDismissed !== undefined
-  const announcementDismissed = isControlled ? externalDismissed : internalDismissed
-  const handleDismiss = isControlled
-    ? externalOnDismiss
-    : () => setInternalDismissed(true)
+  const [scrollY, setScrollY] = useState(0)
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 16)
+    const handleScroll = () => setScrollY(window.scrollY)
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  const isScrolled = scrollY > 16
+  // Stay in "dark hero" mode until the user scrolls past ~70px, then hand off
+  // to the standard light header so the transition feels intentional and smooth.
+  const isDarkHero = darkHero && scrollY < 70
+
   return (
     <div className={bgClassName ?? 'min-h-screen bg-white text-slate-950'}>
-      <PublicHeader
-        isScrolled={isScrolled}
-        showAnnouncement={showAnnouncement}
-        announcementDismissed={announcementDismissed}
-        onDismissAnnouncement={handleDismiss}
-      />
+      <PublicHeader isScrolled={isScrolled} isDarkHero={isDarkHero} />
       <main>{children}</main>
       <SiteFooter />
       <LeadChatWidget />

@@ -20,18 +20,9 @@ const STATUS_CONFIG = {
   },
 } as const
 
-type HeroSectionProps = {
-  announcementVisible?: boolean
-}
-
-export function HeroSection({ announcementVisible = true }: HeroSectionProps) {
+export function HeroSection() {
   return (
-    <section
-      className={cn(
-        'relative overflow-hidden transition-[padding] duration-300',
-        announcementVisible ? 'pt-[7.25rem]' : 'pt-20',
-      )}
-    >
+    <section className="relative overflow-hidden pt-20">
       {/* Sky/cyan glow */}
       <div className="pointer-events-none absolute right-0 top-0 h-[680px] w-2/3 bg-[radial-gradient(ellipse_at_top_right,rgba(56,189,248,0.15)_0%,transparent_58%)]" />
       {/* Navy bloom */}
