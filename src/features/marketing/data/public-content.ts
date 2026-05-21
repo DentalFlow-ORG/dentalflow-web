@@ -11,7 +11,6 @@ import {
   Lock,
   MessageCircle,
   Package,
-  ShieldCheck,
   Sparkles,
   Stethoscope,
   TrendingUp,
@@ -21,275 +20,16 @@ import {
   Zap,
 } from 'lucide-react'
 
-export type SituationOption = {
-  id: string
-  icon: typeof CalendarDays
-  label: string
-  problems: string[]
-  solution: string
-  solutionItems: string[]
-}
-
-export const situationOptions: SituationOption[] = [
-  {
-    id: 'paper',
-    icon: FileText,
-    label: 'Uso papel e anotações manuais',
-    problems: [
-      'Perda de tempo procurando informações',
-      'Dificuldade de encontrar histórico de pacientes',
-      'Alto risco de erro e perda de dados',
-      'Baixa visão financeira da clínica',
-    ],
-    solution: 'O DentalFlow digitaliza toda a operação da clínica — agenda, prontuário, financeiro e relatórios em um só lugar.',
-    solutionItems: [
-      'Prontuário digital por paciente',
-      'Agenda organizada com status de cada consulta',
-      'Financeiro com entradas e saídas centralizadas',
-      'Relatórios para acompanhar a operação',
-    ],
-  },
-  {
-    id: 'spreadsheet',
-    icon: LayoutDashboard,
-    label: 'Uso planilhas',
-    problems: [
-      'Dados espalhados em vários arquivos',
-      'Retrabalho para consolidar informações',
-      'Risco de inconsistência entre arquivos',
-      'Dificuldade de acessar informações de outro dispositivo',
-    ],
-    solution: 'O DentalFlow centraliza tudo que hoje está em planilhas em uma plataforma acessível de qualquer dispositivo.',
-    solutionItems: [
-      'Centralização de agenda, pacientes e financeiro',
-      'Automação de processos repetitivos',
-      'Controle por usuário e perfil de acesso',
-      'Relatórios consolidados automaticamente',
-    ],
-  },
-  {
-    id: 'other-software',
-    icon: Globe,
-    label: 'Uso outro software',
-    problems: [
-      'Ferramenta com interface desatualizada',
-      'Pouco suporte quando preciso',
-      'Poucos recursos de automação',
-      'Dificuldade de adaptar aos processos da clínica',
-    ],
-    solution: 'O DentalFlow foi desenvolvido com foco em experiência moderna, suporte próximo e evolução contínua.',
-    solutionItems: [
-      'Interface moderna e simples de usar',
-      'Dados organizados por módulo',
-      'Possibilidade de migrar com suporte',
-      'Agilidade nas rotinas mais comuns',
-    ],
-  },
-  {
-    id: 'opening',
-    icon: Sparkles,
-    label: 'Estou abrindo uma clínica',
-    problems: [
-      'Começar sem processos definidos gera desorganização',
-      'Difícil estruturar rotina operacional do zero',
-      'Risco de perder pacientes por falta de controle',
-      'Decisões financeiras sem base de dados',
-    ],
-    solution: 'O DentalFlow ajuda a estruturar agenda, pacientes, financeiro, estoque e rotina desde o primeiro dia.',
-    solutionItems: [
-      'Processo definido para agenda e atendimento',
-      'Cadastro de pacientes organizado desde o início',
-      'Financeiro estruturado desde a abertura',
-      'Permissões por função para cada membro da equipe',
-    ],
-  },
-  {
-    id: 'growing',
-    icon: TrendingUp,
-    label: 'Tenho uma clínica em crescimento',
-    problems: [
-      'Mais pacientes aumentam a complexidade da operação',
-      'Equipe maior exige mais controle e organização',
-      'Dificuldade de acompanhar resultados financeiros',
-      'Falta de visão clara sobre indicadores da clínica',
-    ],
-    solution: 'O DentalFlow escala com a clínica — permissões, relatórios, leads, financeiro e automações para equipes em crescimento.',
-    solutionItems: [
-      'Perfis de acesso por função na equipe',
-      'Relatórios e indicadores da operação',
-      'Gestão de leads e relacionamento',
-      'IA de gestão para apoiar decisões',
-    ],
-  },
-  {
-    id: 'processes',
-    icon: UsersRound,
-    label: 'Tenho equipe e preciso organizar processos',
-    problems: [
-      'Cada pessoa usa um processo diferente',
-      'Informações não chegam para quem precisa',
-      'Falta de padronização na operação diária',
-      'Dificuldade de delegar com confiança',
-    ],
-    solution: 'O DentalFlow padroniza processos com permissões, agenda compartilhada, prontuários e comunicação centralizada.',
-    solutionItems: [
-      'Agenda compartilhada e organizada por dentista',
-      'Acesso controlado por perfil de função',
-      'Prontuários digitais acessíveis para toda a equipe',
-      'Notificações e lembretes automatizados',
-    ],
-  },
-]
-
-export type FeatureBlock = {
-  id: string
-  icon: typeof CalendarDays
-  title: string
-  description: string
-  problem: string
-  gain: string
-  route: string
-  badge?: string
-}
-
-export const featureBlocks: FeatureBlock[] = [
-  {
-    id: 'agenda',
-    icon: CalendarDays,
-    title: 'Agenda inteligente',
-    description: 'Gerencie consultas por dentista, horário e status. Menos conflitos, mais controle e organização no dia a dia da recepção.',
-    problem: 'Horários perdidos e remarcações manuais comprometem a produtividade.',
-    gain: 'Clínica com agenda sempre atualizada e equipe alinhada.',
-    route: '/funcionalidades/agenda',
-  },
-  {
-    id: 'prontuarios',
-    icon: ClipboardList,
-    title: 'Prontuários digitais',
-    description: 'Histórico clínico completo por paciente, acessível para dentistas a qualquer momento, sem depender de papel ou arquivo físico.',
-    problem: 'Prontuários em papel se perdem e atrasam o atendimento.',
-    gain: 'Dentista acessa o histórico do paciente antes de cada consulta.',
-    route: '/funcionalidades/prontuarios',
-  },
-  {
-    id: 'financeiro',
-    icon: CreditCard,
-    title: 'Gestão financeira',
-    description: 'Controle entradas, saídas e situação de pagamento das consultas. Tenha visão clara do caixa da clínica sem depender de planilhas.',
-    problem: 'Clínica atende muito mas não sabe exatamente se está lucrando.',
-    gain: 'Clareza financeira para tomar decisões com mais segurança.',
-    route: '/funcionalidades/financeiro',
-  },
-  {
-    id: 'estoque',
-    icon: Package,
-    title: 'Controle de estoque',
-    description: 'Acompanhe materiais e insumos odontológicos. Registre entradas, saídas e receba alertas de itens com estoque baixo.',
-    problem: 'Materiais acabam sem aviso e interrompem atendimentos.',
-    gain: 'Clínica abastecida e sem surpresas no meio do expediente.',
-    route: '/funcionalidades/estoque',
-  },
-  {
-    id: 'leads',
-    icon: Users,
-    title: 'Leads e relacionamento',
-    description: 'Cadastre e acompanhe potenciais pacientes com timeline de interações, status e follow-up estruturado para a equipe.',
-    problem: 'Contatos interessados são perdidos por falta de acompanhamento.',
-    gain: 'Mais conversões de potenciais pacientes com processo definido.',
-    route: '/funcionalidades/leads',
-  },
-  {
-    id: 'relatorios',
-    icon: TrendingUp,
-    title: 'Relatórios e indicadores',
-    description: 'Acompanhe a operação com dados de agenda, financeiro e estoque. Indicadores para que o gestor tome decisões com mais base.',
-    problem: 'Sem dados, as decisões são baseadas em intuição.',
-    gain: 'Visão objetiva da saúde operacional da clínica.',
-    route: '/funcionalidades/relatorios',
-  },
-  {
-    id: 'ia',
-    icon: Bot,
-    title: 'IA de gestão',
-    description: 'O assistente de IA analisa dados da clínica e apoia o gestor com visão gerencial, alertas e sugestões práticas baseadas em evidências.',
-    problem: 'Dados existem no sistema, mas o gestor não sabe interpretá-los.',
-    gain: 'Apoio inteligente para decisões mais informadas.',
-    route: '/funcionalidades/ia',
-    badge: 'IA',
-  },
-  {
-    id: 'whatsapp',
-    icon: MessageCircle,
-    title: 'WhatsApp e notificações',
-    description: 'Configure lembretes, confirmações e notificações via WhatsApp para reduzir faltas e manter pacientes informados sobre suas consultas.',
-    problem: 'Confirmações manuais tomam tempo e faltas não são evitadas.',
-    gain: 'Menos faltas com lembretes automatizados para pacientes.',
-    route: '/funcionalidades/whatsapp',
-  },
-  {
-    id: 'seguranca',
-    icon: ShieldCheck,
-    title: 'Segurança e LGPD',
-    description: 'Acesso por perfil de função, dados isolados por clínica, autenticação segura e estrutura em conformidade com a LGPD desde o início.',
-    problem: 'Dados de pacientes acessados por quem não deveria.',
-    gain: 'Conformidade, controle e responsabilidade no tratamento de dados.',
-    route: '/funcionalidades',
-  },
-]
-
-export type WhyDifferentCard = {
-  icon: typeof CalendarDays
-  title: string
-  description: string
-}
-
-export const whyDifferentCards: WhyDifferentCard[] = [
-  {
-    icon: Zap,
-    title: 'Simples para a equipe usar',
-    description: 'Interface pensada para o dia a dia da clínica. Secretárias, dentistas e gestores usam o que precisam sem treinamento extenso.',
-  },
-  {
-    icon: LayoutDashboard,
-    title: 'Completo para o gestor decidir',
-    description: 'Financeiro, estoque, relatórios, leads e IA de gestão em uma plataforma só. Visão clara para quem precisa tomar decisões.',
-  },
-  {
-    icon: Bot,
-    title: 'IA aplicada à gestão da clínica',
-    description: 'Análise baseada nos dados reais da clínica. O assistente de IA apoia o gestor com insights e alertas práticos.',
-  },
-  {
-    icon: CalendarDays,
-    title: 'Agenda, financeiro e pacientes conectados',
-    description: 'Todas as áreas se comunicam. Uma consulta agendada aparece no financeiro, no prontuário e nas notificações ao mesmo tempo.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Segurança e LGPD desde o início',
-    description: 'Acesso por perfil, dados isolados por clínica, autenticação segura e conformidade com a LGPD nativa na plataforma.',
-  },
-  {
-    icon: TrendingUp,
-    title: 'Pronto para crescer com a clínica',
-    description: 'Do primeiro paciente à equipe completa. Os planos e os módulos do DentalFlow acompanham o crescimento da operação.',
-  },
-  {
-    icon: MessageCircle,
-    title: 'WhatsApp e automações integrados',
-    description: 'Lembretes, confirmações e notificações automatizadas via WhatsApp. Menos retrabalho para a recepção, menos faltas.',
-  },
-  {
-    icon: UserCheck,
-    title: 'Suporte humano próximo',
-    description: 'Equipe de suporte disponível para ajudar na configuração inicial e no uso diário. Sem deixar a clínica sem resposta.',
-  },
-]
 
 export type IntegrationCard = {
   name: string
+  category: string
   description: string
   where: string
+  benefit: string
+  logoSrc: string
+  logoAlt: string
+  sourceLabel: string
   status: 'available' | 'configuring' | 'soon' | 'simulated'
   statusLabel: string
   icon: typeof CalendarDays
@@ -298,50 +38,80 @@ export type IntegrationCard = {
 export const integrationCards: IntegrationCard[] = [
   {
     name: 'Google Calendar',
-    description: 'Sincronize a agenda do DentalFlow com o Google Calendar para visualização em outros dispositivos e integração com a rotina pessoal dos dentistas.',
+    category: 'Agenda e disponibilidade',
+    benefit: 'Dentistas acompanham seus horários em qualquer dispositivo, sem precisar abrir o sistema.',
+    description: 'A agenda do DentalFlow sincroniza com o Google Calendar. Horários, confirmações e disponibilidade ficam acessíveis fora do sistema — sem retrabalho de atualização manual.',
     where: 'Módulo de agenda e configurações de notificações.',
+    logoSrc: '/brands/integrations/google-calendar.svg',
+    logoAlt: 'Logo do Google Calendar',
+    sourceLabel: 'Simple Icons',
     status: 'available',
     statusLabel: 'Disponível',
     icon: CalendarDays,
   },
   {
     name: 'Stripe',
-    description: 'Plataforma de pagamentos utilizada para processar assinaturas e cobranças da plataforma DentalFlow. Conexão server-side sem exposição de tokens no frontend.',
+    category: 'Assinaturas e cobrança',
+    benefit: 'Assinaturas da plataforma processadas de forma segura, sem exposição de tokens no frontend.',
+    description: 'A cobrança da assinatura do DentalFlow passa pelo Stripe com integração server-side. Nenhum dado sensível de pagamento trafega pelo frontend da clínica.',
     where: 'Gestão da assinatura e cobrança da clínica.',
+    logoSrc: '/brands/integrations/stripe.svg',
+    logoAlt: 'Logo da Stripe',
+    sourceLabel: 'Simple Icons',
     status: 'available',
     statusLabel: 'Disponível',
     icon: CreditCard,
   },
   {
     name: 'OpenAI',
-    description: 'Base do assistente de IA de gestão do DentalFlow. Analisa dados da clínica e gera insights baseados em financeiro, estoque e agenda.',
+    category: 'IA de gestão',
+    benefit: 'O gestor recebe análises e alertas baseados nos dados reais da operação, sem precisar interpretar planilhas.',
+    description: 'O assistente de IA do DentalFlow usa a API da OpenAI para analisar financeiro, estoque e agenda da clínica, gerando insights práticos e alertas contextualizados.',
     where: 'Módulo de IA de gestão.',
+    logoSrc: '/brands/integrations/openai.svg',
+    logoAlt: 'Logo da OpenAI',
+    sourceLabel: 'Wikimedia Commons, fonte OpenAI',
     status: 'available',
     statusLabel: 'Disponível',
     icon: Bot,
   },
   {
     name: 'WhatsApp Cloud API',
-    description: 'Envio de notificações, lembretes e confirmações de consultas via WhatsApp. Requer conta Business aprovada pela Meta e configuração de templates.',
+    category: 'Comunicação com pacientes',
+    benefit: 'Lembretes e confirmações enviados automaticamente — sem ligações manuais da recepção.',
+    description: 'Notificações de consulta, lembretes e confirmações via WhatsApp. Requer conta Business aprovada pela Meta e configuração de templates. Nosso suporte orienta o processo.',
     where: 'Notificações e lembretes de consultas.',
+    logoSrc: '/brands/integrations/whatsapp-business.svg',
+    logoAlt: 'Logo do WhatsApp',
+    sourceLabel: 'Simple Icons',
     status: 'configuring',
-    statusLabel: 'Em configuração',
+    statusLabel: 'Requer configuração externa',
     icon: MessageCircle,
   },
   {
-    name: 'Supabase / PostgreSQL',
-    description: 'Infraestrutura de banco de dados relacional. Dados de cada clínica são isolados e armazenados com boas práticas de segurança.',
+    name: 'Supabase',
+    category: 'Infraestrutura de dados',
+    benefit: 'Dados de cada clínica isolados, seguros e acessíveis — sem depender de servidores próprios.',
+    description: 'Banco de dados moderno usado para armazenar as informações da clínica com segurança, organização e escalabilidade. Cada clínica tem seus dados completamente separados das demais.',
     where: 'Infraestrutura de armazenamento de dados.',
+    logoSrc: '/brands/integrations/supabase.svg',
+    logoAlt: 'Logo do Supabase',
+    sourceLabel: 'Asset interno DentalFlow',
     status: 'available',
     statusLabel: 'Disponível',
     icon: Database,
   },
   {
     name: 'Provedor NFS-e',
-    description: 'Integração futura com provedor homologado para emissão de notas fiscais eletrônicas de serviços. O módulo atual organiza dados fiscais internamente.',
+    category: 'Fiscal e conformidade',
+    benefit: 'Dados fiscais organizados internamente hoje, prontos para emissão oficial quando o provedor estiver disponível.',
+    description: 'O módulo fiscal centraliza rascunhos de notas e vincula serviços a consultas. A emissão de NFS-e oficial via provedor homologado está em desenvolvimento.',
     where: 'Módulo fiscal — emissão de notas.',
+    logoSrc: '/brands/integrations/nfse.svg',
+    logoAlt: 'Ícone vetorial de NFS-e',
+    sourceLabel: 'Asset interno DentalFlow',
     status: 'soon',
-    statusLabel: 'Em breve',
+    statusLabel: 'Em desenvolvimento',
     icon: FileText,
   },
 ]
@@ -403,35 +173,6 @@ export const faqItems: FaqItem[] = [
   {
     question: 'O que cada plano inclui?',
     answer: 'O plano Starter cobre o essencial: agenda, pacientes, prontuários e equipe básica. O plano Professional adiciona mais recursos para equipes em crescimento e indicadores da operação. O plano Premium oferece capacidade máxima e suporte prioritário. Veja o comparativo completo na página de planos.',
-  },
-]
-
-export type ImpactMetric = {
-  value: string
-  label: string
-  note?: string
-}
-
-export const impactMetrics: ImpactMetric[] = [
-  {
-    value: '9',
-    label: 'módulos integrados em uma plataforma',
-    note: 'agenda, pacientes, financeiro, estoque, leads, prontuários, IA, fiscal e notificações',
-  },
-  {
-    value: '4',
-    label: 'perfis de acesso distintos',
-    note: 'proprietário, dentista, assistente e administrador',
-  },
-  {
-    value: '7 dias',
-    label: 'de teste gratuito, sem cartão',
-    note: 'sem compromisso, cancele quando quiser',
-  },
-  {
-    value: '100%',
-    label: 'web, sem instalação',
-    note: 'acesse de qualquer dispositivo com navegador',
   },
 ]
 

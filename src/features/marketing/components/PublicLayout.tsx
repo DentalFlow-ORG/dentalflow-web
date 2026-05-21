@@ -30,7 +30,7 @@ export function PublicLayout({ children, bgClassName, darkHero = false }: Public
   const isDarkHero = darkHero && scrollY < 70
 
   return (
-    <div className={bgClassName ?? 'min-h-screen bg-white text-slate-950'}>
+    <div className={bgClassName ? `${bgClassName} overflow-x-hidden` : 'min-h-screen overflow-x-hidden bg-white text-slate-950'}>
       <PublicHeader isScrolled={isScrolled} isDarkHero={isDarkHero} />
       <main>{children}</main>
       <SiteFooter />

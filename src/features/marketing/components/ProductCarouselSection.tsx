@@ -3,6 +3,8 @@ import { useCallback, useState } from 'react'
 
 import { cn } from '@/lib/utils'
 
+import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
+
 const SLIDES = [
   {
     src: '/carousel.png',
@@ -41,6 +43,7 @@ const SLIDES = [
 
 export function ProductCarouselSection() {
   const [current, setCurrent] = useState(0)
+  const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.2)
 
   const go = useCallback((index: number) => {
     setCurrent(index)
@@ -50,8 +53,13 @@ export function ProductCarouselSection() {
   const next = () => go((current + 1) % SLIDES.length)
 
   return (
-    <section className="bg-white py-20">
-      <div className="mx-auto max-w-5xl px-6 lg:px-8">
+    <section ref={ref} className="bg-white py-20">
+      <div
+        className={cn(
+          'mx-auto max-w-5xl px-6 transition-all duration-700 lg:px-8 motion-reduce:translate-y-0 motion-reduce:opacity-100',
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',
+        )}
+      >
         {/* Heading */}
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-primary">

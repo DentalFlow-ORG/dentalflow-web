@@ -23,11 +23,7 @@ const STATUS_CONFIG = {
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden pt-20">
-      {/* Sky/cyan glow */}
-      <div className="pointer-events-none absolute right-0 top-0 h-[680px] w-2/3 bg-[radial-gradient(ellipse_at_top_right,rgba(56,189,248,0.15)_0%,transparent_58%)]" />
-      {/* Navy bloom */}
-      <div className="pointer-events-none absolute left-0 top-0 h-[520px] w-1/2 bg-[radial-gradient(ellipse_at_top_left,rgba(30,58,138,0.09)_0%,transparent_65%)]" />
+    <section className="relative overflow-hidden bg-white pt-20">
 
       <div className="relative mx-auto grid min-h-[calc(100svh-5rem)] w-full max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[1fr_1fr] lg:items-center lg:px-8 lg:py-20">
 
@@ -70,11 +66,6 @@ export function HeroSection() {
             <Button variant="outline" size="xl" asChild>
               <Link to="/funcionalidades">
                 Ver funcionalidades
-              </Link>
-            </Button>
-            <Button variant="ghost" size="xl" asChild>
-              <Link to="/perguntas-frequentes">
-                Falar com especialista
               </Link>
             </Button>
           </div>
@@ -217,9 +208,6 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Background glow decorations */}
-          <div className="pointer-events-none absolute -bottom-6 -right-6 -z-10 h-56 w-56 rounded-full bg-blue-100/70 blur-3xl" aria-hidden="true" />
-          <div className="pointer-events-none absolute -left-8 -top-8 -z-10 h-40 w-40 rounded-full bg-emerald-100/60 blur-2xl" aria-hidden="true" />
         </div>
 
       </div>

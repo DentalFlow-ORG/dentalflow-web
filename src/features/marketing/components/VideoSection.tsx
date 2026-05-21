@@ -1,59 +1,131 @@
-import { PlayCircle } from 'lucide-react'
+import { Play, PlayCircle, ShieldCheck, Sparkles } from 'lucide-react'
+import { useState } from 'react'
 
-// Set VITE_DEMO_VIDEO_URL in your .env file to embed a real YouTube video.
-const VIDEO_URL = import.meta.env.VITE_DEMO_VIDEO_URL as string | undefined
+import { cn } from '@/lib/utils'
+
+import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
+
+const VIDEO_ID = 'D7vvikAJGyc'
+const THUMBNAIL_URL = `https://img.youtube.com/vi/${VIDEO_ID}/maxresdefault.jpg`
+const VIDEO_EMBED_URL = `https://www.youtube-nocookie.com/embed/${VIDEO_ID}?rel=0&modestbranding=1&autoplay=1`
 
 export function VideoSection() {
-  return (
-    <section className="bg-slate-50 py-20 lg:py-24">
-      <div className="mx-auto max-w-5xl px-6 text-center lg:px-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-          Conheça a plataforma
-        </p>
-        <h2 className="mt-4 text-3xl font-semibold text-slate-900 sm:text-4xl">
-          Veja o DentalFlow em ação
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-500">
-          Em poucos minutos, veja como a plataforma organiza a rotina de uma clínica — da agenda ao financeiro.
-        </p>
+  const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.22)
+  const [isPlaying, setIsPlaying] = useState(false)
 
-        <div className="mt-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-950/5">
-          {VIDEO_URL ? (
-            <div className="relative aspect-video w-full">
-              <iframe
-                src={VIDEO_URL}
-                title="Demonstração DentalFlow"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 h-full w-full"
-              />
-            </div>
-          ) : (
-            <div
-              className="flex aspect-video w-full flex-col items-center justify-center gap-4 bg-gradient-to-br from-slate-900 to-primary/90"
-              aria-label="Espaço para vídeo institucional"
-            >
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm">
-                <PlayCircle className="h-8 w-8 text-white" aria-hidden="true" />
-              </div>
-              <div className="text-center">
-                <p className="text-lg font-semibold text-white">
-                  Vídeo institucional em preparação
-                </p>
-                <p className="mt-1 text-sm text-white/70">
-                  Em breve, veja como o DentalFlow organiza a rotina da clínica
-                </p>
-              </div>
-            </div>
+  return (
+    <section
+      ref={ref}
+      className="relative overflow-hidden bg-slate-950 py-18 lg:py-22"
+      aria-labelledby="landing-video-title"
+    >
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        {/* Top-right ambient — radial gradient, no blur filter */}
+        <div
+          className="absolute right-0 top-0 h-full w-1/2"
+          style={{
+            backgroundImage:
+              'radial-gradient(ellipse 75% 50% at 100% 20%, rgba(34,211,238,0.09) 0%, transparent 65%)',
+          }}
+        />
+        {/* Bottom-left ambient */}
+        <div
+          className="absolute bottom-0 left-0 h-full w-1/2"
+          style={{
+            backgroundImage:
+              'radial-gradient(ellipse 75% 50% at 0% 85%, rgba(52,211,153,0.07) 0%, transparent 65%)',
+          }}
+        />
+      </div>
+
+      <div className="relative mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:px-8">
+        <div
+          className={cn(
+            'transition-all duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100',
+            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',
           )}
+        >
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cyan-300">
+            Visão geral da plataforma
+          </p>
+          <h2
+            id="landing-video-title"
+            className="mt-4 max-w-xl text-3xl font-semibold leading-tight text-white sm:text-4xl"
+          >
+            Conheça o DentalFlow em poucos minutos
+          </h2>
+          <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">
+            Veja como o DentalFlow conecta gestão, automação e clareza operacional para
+            clínicas que querem crescer com mais controle e menos retrabalho.
+          </p>
+
+          <div className="mt-8 grid gap-3 text-sm text-slate-300">
+            {(
+              [
+                ['Plataforma SaaS para a rotina odontológica', Sparkles],
+                ['Controle da clínica sem promessa exagerada', ShieldCheck],
+                ['Agenda, pacientes, financeiro e relatórios em um fluxo', PlayCircle],
+              ] as const
+            ).map(([label, Icon]) => (
+              <div
+                key={label}
+                className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3"
+              >
+                <Icon className="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true" />
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <p className="mt-6 text-sm text-slate-400">
-          Prefere uma demonstração ao vivo?{' '}
-          <a href="/perguntas-frequentes#contato" className="font-medium text-primary hover:underline">
-            Fale com nosso time.
-          </a>
-        </p>
+        <div
+          className={cn(
+            'rounded-2xl border border-white/10 bg-white/[0.07] p-2 shadow-2xl shadow-black/25 transition-all duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100',
+            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',
+          )}
+          style={{ transitionDelay: isVisible ? '120ms' : '0ms' }}
+        >
+          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-900">
+            {isPlaying ? (
+              <iframe
+                src={VIDEO_EMBED_URL}
+                title="Conheça o DentalFlow em poucos minutos"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+                className="absolute inset-0 h-full w-full"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsPlaying(true)}
+                className="group absolute inset-0 w-full cursor-pointer"
+                aria-label="Assistir vídeo do DentalFlow"
+              >
+                <img
+                  src={THUMBNAIL_URL}
+                  alt="Miniatura do vídeo DentalFlow"
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+                {/* Dimming overlay */}
+                <div className="absolute inset-0 bg-slate-950/35 transition-colors duration-300 group-hover:bg-slate-950/45" />
+                {/* Play button */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-xl shadow-black/40 ring-4 ring-white/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-white group-hover:shadow-2xl sm:h-20 sm:w-20">
+                    <Play
+                      className="ml-1 h-6 w-6 text-slate-900 sm:h-8 sm:w-8"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    />
+                  </div>
+                </div>
+                {/* Bottom vignette */}
+                <div className="absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-black/30 to-transparent" />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   )

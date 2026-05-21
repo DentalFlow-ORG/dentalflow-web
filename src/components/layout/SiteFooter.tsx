@@ -2,13 +2,16 @@ import { companyInfo } from '@/config/company'
 import { onlyDigits } from '@/lib/field-formatters'
 import { useCookieConsent } from '@/features/privacy/components/CookieConsentContext'
 
+const footerLinkClass =
+  'df-animated-link rounded text-blue-100 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40'
+
 function CookiePreferencesButton() {
   const { openPreferences } = useCookieConsent()
   return (
     <button
       type="button"
       onClick={openPreferences}
-      className="cursor-pointer rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+      className={`cursor-pointer ${footerLinkClass}`}
     >
       Cookies
     </button>
@@ -89,35 +92,32 @@ export function SiteFooter() {
             {!isPlaceholderPhone && (
               <a
                 href={`tel:${onlyDigits(companyInfo.phone)}`}
-                className="block transition-colors hover:text-white"
+                className={`block ${footerLinkClass}`}
               >
                 {companyInfo.phone}
               </a>
             )}
             <a
               href={`mailto:${companyInfo.supportEmail}`}
-              className="block rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              className={`block ${footerLinkClass}`}
             >
               {companyInfo.supportEmail}
             </a>
             <div className="flex flex-wrap gap-x-5 gap-y-2 pt-2">
-              <a href="/politica-de-privacidade" className="rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
+              <a href="/politica-de-privacidade" className={footerLinkClass}>
                 Privacidade
               </a>
-              <a href="/termos-de-uso" className="rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
+              <a href="/termos-de-uso" className={footerLinkClass}>
                 Termos
               </a>
-              <a href="/seguranca" className="rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
+              <a href="/seguranca" className={footerLinkClass}>
                 Segurança
               </a>
-              <a href="/direitos-do-titular" className="rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40">
+              <a href="/direitos-do-titular" className={footerLinkClass}>
                 Seus dados
               </a>
               <CookiePreferencesButton />
-              <a
-                href={`mailto:${companyInfo.supportEmail}`}
-                className="rounded transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-              >
+              <a href={`mailto:${companyInfo.supportEmail}`} className={footerLinkClass}>
                 Suporte
               </a>
             </div>

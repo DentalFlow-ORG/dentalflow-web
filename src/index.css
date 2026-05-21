@@ -223,6 +223,68 @@
   .df-rocket-boost {
     animation: df-rocket-boost 420ms ease-out;
   }
+
+  @keyframes df-line-scan {
+    0%,
+    10% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+
+    15% {
+      opacity: 1;
+    }
+
+    85% {
+      opacity: 1;
+    }
+
+    90%,
+    100% {
+      transform: translateX(200%);
+      opacity: 0;
+    }
+  }
+}
+
+/* ── Animated underline link: linha animada da esquerda para a direita no hover ── */
+@utility df-animated-link {
+  position: relative;
+
+  /* Linha base sempre visível: sinaliza que o elemento é clicável */
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.22;
+  }
+
+  /* Linha que anima da esquerda para a direita no hover */
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    height: 1px;
+    width: 0%;
+    background: currentColor;
+    transition: width 250ms ease;
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .df-animated-link::after {
+    transition: none;
+  }
 }
 
 .app-scrollbar {

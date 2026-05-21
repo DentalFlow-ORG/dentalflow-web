@@ -68,11 +68,20 @@ export function IntegrationsPage() {
               return (
                 <article
                   key={integration.name}
-                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
-                      <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm">
+                      {integration.logoSrc ? (
+                        <img
+                          src={integration.logoSrc}
+                          alt={integration.logoAlt}
+                          className="h-7 w-7 object-contain"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                      )}
                     </div>
                     <span
                       className={cn(
@@ -85,20 +94,24 @@ export function IntegrationsPage() {
                         className={cn('h-1.5 w-1.5 rounded-full', style.dot)}
                         aria-hidden="true"
                       />
-                      {style.label}
+                      {integration.statusLabel || style.label}
                     </span>
                   </div>
 
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                    {integration.category}
+                  </p>
                   <h2 className="mt-4 text-base font-semibold text-slate-800">{integration.name}</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-500">{integration.description}</p>
 
                   <div className="mt-4 flex items-start gap-2 rounded-lg bg-slate-50 p-3">
                     <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
                     <p className="text-xs leading-5 text-slate-600">
-                      <span className="font-semibold">Onde aparece:</span>{' '}
-                      {integration.where}
+                      <span className="font-semibold">Benefício:</span>{' '}
+                      {integration.benefit}
                     </p>
                   </div>
+                  <p className="mt-3 text-xs leading-5 text-slate-400">{integration.where}</p>
                 </article>
               )
             })}

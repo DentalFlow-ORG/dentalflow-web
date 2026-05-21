@@ -1,23 +1,16 @@
-import { ContactSection } from '../components/ContactSection'
+import { useEffect } from 'react'
+
+import { AnimatedImpactSection } from '../components/AnimatedImpactSection'
 import { usePageMeta } from '../hooks/usePageMeta'
-import { FeatureBlocksSection } from '../components/FeatureBlocksSection'
-import { FeaturesSection } from '../components/FeaturesSection'
 import { HeroSection } from '../components/HeroSection'
+import { LandingIntegrationsSection } from '../components/LandingIntegrationsSection'
 import { MacbookIntroSection } from '../components/MacbookIntroSection'
-import { MetricsSection } from '../components/MetricsSection'
 import { PricingSection } from '../components/PricingSection'
-import { ProblemSection } from '../components/ProblemSection'
-import { ProcessSection } from '../components/ProcessSection'
 import { ProductCarouselSection } from '../components/ProductCarouselSection'
 import { PublicLayout } from '../components/PublicLayout'
-import { ResultsSection } from '../components/ResultsSection'
-import { SituationSection } from '../components/SituationSection'
-import { SolutionsSection } from '../components/SolutionsSection'
+import { SectionDivider } from '../components/SectionDivider'
 import { TrialCtaSection } from '../components/TrialCtaSection'
-import { TrustSection } from '../components/TrustSection'
-import { UserProfilesSection } from '../components/UserProfilesSection'
 import { VideoSection } from '../components/VideoSection'
-import { WhyDifferentSection } from '../components/WhyDifferentSection'
 
 export function LandingPage() {
   usePageMeta(
@@ -25,41 +18,38 @@ export function LandingPage() {
     'Centralize agenda, pacientes, financeiro, estoque, leads e IA em uma plataforma moderna para clínicas odontológicas. 7 dias grátis.',
   )
 
+  useEffect(() => {
+    if (!window.location.hash) return
+
+    const timeout = window.setTimeout(() => {
+      const target = document.getElementById(window.location.hash.slice(1))
+      target?.scrollIntoView({ block: 'start' })
+    }, 250)
+
+    return () => window.clearTimeout(timeout)
+  }, [])
+
   return (
-    <PublicLayout
-      darkHero
-      bgClassName="min-h-screen bg-[radial-gradient(ellipse_90%_50%_at_95%_-5%,rgba(56,189,248,0.11)_0%,transparent_52%),linear-gradient(180deg,#eff6ff_0%,#ffffff_50%,#f8fafc_100%)] text-slate-950"
-    >
+    <PublicLayout darkHero bgClassName="min-h-screen bg-white text-slate-950">
       <MacbookIntroSection />
 
-      {/* Gradient bridge: dark → light hero */}
-      <div aria-hidden="true" className="h-16 bg-linear-to-b from-slate-950 via-[#0c2a55] to-[#eff6ff]" />
+      <SectionDivider variant="dark-to-light" />
 
       <HeroSection />
 
       <ProductCarouselSection />
+      <SectionDivider variant="light-to-dark" />
+      <LandingIntegrationsSection />
+      <SectionDivider variant="dark-to-gray" />
+      <AnimatedImpactSection />
 
-      {/* ── Gradient bridge: light → blue ── */}
-      <div aria-hidden="true" className="h-20 bg-linear-to-b from-sky-50 via-[#1e5baa] to-[#0f3b73]" />
-      <ProblemSection />
-      {/* ── Gradient bridge: blue → light ── */}
-      <div aria-hidden="true" className="h-20 bg-linear-to-b from-[#0f3b73] via-sky-100 to-white" />
-
-      <SolutionsSection />
-      <FeatureBlocksSection />
-      <SituationSection />
-      <FeaturesSection />
-      <ProcessSection />
-      <WhyDifferentSection />
-      <UserProfilesSection />
-      <MetricsSection />
-      <PricingSection />
-      <TrustSection />
+      <SectionDivider variant="gray-to-dark" />
       <VideoSection />
-      <ResultsSection />
-      <ContactSection />
-      {/* ── Gradient bridge: light → blue ── */}
-      <div aria-hidden="true" className="h-24 bg-linear-to-b from-white via-sky-100 to-[#0f3b73]" />
+
+      <SectionDivider variant="dark-to-light" />
+      <PricingSection />
+
+      <SectionDivider variant="light-to-blue" />
       <TrialCtaSection />
     </PublicLayout>
   )

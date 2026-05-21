@@ -271,10 +271,10 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
               key={item.href}
               href={item.href}
               className={cn(
-                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'df-animated-link rounded-md px-3 py-2 text-sm font-medium transition-colors',
                 isDarkHero
-                  ? 'text-white/80 hover:bg-white/10 hover:text-white'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-primary',
+                  ? 'text-white/80 hover:text-white'
+                  : 'text-slate-600 hover:text-primary',
               )}
             >
               {item.label}
