@@ -2,6 +2,7 @@ import { AlertCircle, CheckCircle2, MessageCircle, Send, X } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { submitPublicLead } from '@/services/public-leads.service'
 
@@ -321,19 +322,24 @@ export function LeadChatWidget() {
                     >
                       Melhor horário para contato
                     </label>
-                    <select
-                      id="chat-time"
-                      value={form.time}
-                      onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20"
+                    <Select
+                      value={form.time || undefined}
+                      onValueChange={(value) => setForm((f) => ({ ...f, time: value }))}
                     >
-                      <option value="">Selecione...</option>
-                      {TIME_OPTIONS.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger
+                        id="chat-time"
+                        className="rounded-xl border-slate-200 px-4"
+                      >
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIME_OPTIONS.map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* LGPD consent */}
