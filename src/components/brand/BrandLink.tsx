@@ -9,9 +9,11 @@ type BrandLinkProps = {
   compact?: boolean
   className?: string
   to?: string
+  /** Use white text + dark-background logo (e.g. header over dark hero) */
+  darkMode?: boolean
 }
 
-export function BrandLink({ compact = false, className, to = '/' }: BrandLinkProps) {
+export function BrandLink({ compact = false, className, to = '/', darkMode = false }: BrandLinkProps) {
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (to !== '/' || window.location.pathname !== '/') {
       return
@@ -27,20 +29,21 @@ export function BrandLink({ compact = false, className, to = '/' }: BrandLinkPro
       className={cn('flex min-w-0 items-center gap-3', className)}
       onClick={handleClick}
     >
-      <BrandLogo className={compact ? 'h-11 w-11' : 'h-12 w-12'} />
+      <BrandLogo className={compact ? 'h-11 w-11' : 'h-12 w-12'} forceDark={darkMode} />
       <span
         className={cn(
-          'w-px shrink-0 bg-border',
+          'w-px shrink-0',
+          darkMode ? 'bg-white/20' : 'bg-border',
           compact ? 'h-9' : 'h-10',
         )}
         aria-hidden="true"
       />
       <div className="text-left">
-        <span className="block text-lg font-semibold text-foreground">
+        <span className={cn('block text-lg font-semibold', darkMode ? 'text-white' : 'text-foreground')}>
           {companyInfo.tradeName}
         </span>
         {!compact && (
-          <span className="hidden text-sm text-muted-foreground sm:block">
+          <span className={cn('hidden text-sm sm:block', darkMode ? 'text-white/60' : 'text-muted-foreground')}>
             Gestão para clínicas odontológicas
           </span>
         )}
