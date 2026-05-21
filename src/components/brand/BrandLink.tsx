@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import type { MouseEvent } from 'react'
 
+import { BrandLogo } from '@/components/common/BrandLogo'
 import { companyInfo } from '@/config/company'
 import { cn } from '@/lib/utils'
 
@@ -26,14 +27,7 @@ export function BrandLink({ compact = false, className, to = '/' }: BrandLinkPro
       className={cn('flex min-w-0 items-center gap-3', className)}
       onClick={handleClick}
     >
-      <img
-        src="/logo-without-bg.png"
-        alt={companyInfo.tradeName}
-        className={cn(
-          'shrink-0 object-contain',
-          compact ? 'h-11 w-11' : 'h-12 w-12',
-        )}
-      />
+      <BrandLogo className={compact ? 'h-11 w-11' : 'h-12 w-12'} />
       <span
         className={cn(
           'w-px shrink-0 bg-border',
