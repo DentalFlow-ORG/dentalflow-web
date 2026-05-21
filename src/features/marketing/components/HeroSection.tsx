@@ -3,6 +3,7 @@ import { ArrowRight, CalendarDays, CheckCircle2 } from 'lucide-react'
 
 import { Eyebrow } from '@/components/common/Eyebrow'
 import { Button } from '@/components/ui/button'
+import { companyInfo } from '@/config/company'
 import { cn } from '@/lib/utils'
 
 import { heroAppointments } from '../data/landing-content'
@@ -99,6 +100,8 @@ export function HeroSection() {
               100% web, sem instalação
             </span>
           </div>
+
+          <p className="mt-5 text-sm italic text-slate-400">{companyInfo.brandSlogan}</p>
         </div>
 
         {/* ── Right: dashboard mockup ── */}

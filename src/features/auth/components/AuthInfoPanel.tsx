@@ -6,6 +6,8 @@ import {
   Stethoscope,
 } from 'lucide-react'
 
+import { companyInfo } from '@/config/company'
+
 const agendaItems = [
   'Organize horários, serviços e responsáveis em uma rotina única.',
   'Acompanhe solicitações de pacientes sem perder o contexto da clínica.',
@@ -76,6 +78,8 @@ export function AuthInfoPanel() {
           expõe regras internas de acesso.
         </p>
       </div>
+
+      <p className="mt-6 text-xs italic text-slate-400">{companyInfo.brandSlogan}</p>
     </div>
   )
 }

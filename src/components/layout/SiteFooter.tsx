@@ -39,7 +39,7 @@ export function SiteFooter() {
             <span className="h-10 w-px shrink-0 bg-white/15" aria-hidden="true" />
             <div>
               <p className="font-semibold text-white">{companyInfo.tradeName}</p>
-              <p>Gestão moderna para clínicas odontológicas.</p>
+              <p className="italic text-blue-300/80">{companyInfo.brandSlogan}</p>
             </div>
           </div>
           <p className="mt-6 max-w-md leading-6">

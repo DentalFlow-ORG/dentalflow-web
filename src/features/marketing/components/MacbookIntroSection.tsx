@@ -1,5 +1,7 @@
 import { Calendar, Layers, Monitor, TrendingUp } from 'lucide-react'
 
+import { companyInfo } from '@/config/company'
+
 const HIGHLIGHTS = [
   { icon: Calendar, label: 'Agenda integrada', desc: 'Horários, status e Google Calendar' },
   { icon: TrendingUp, label: 'Financeiro claro', desc: 'Fluxo de caixa em tempo real' },
@@ -58,6 +60,8 @@ export function MacbookIntroSection() {
             </div>
           ))}
         </div>
+
+        <p className="mt-8 text-sm italic text-cyan-300/60">{companyInfo.brandSlogan}</p>
 
         {/* MacBook product image */}
         <div className="relative mt-12">

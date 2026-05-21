@@ -16,6 +16,9 @@ export const companyInfo = {
   /** Nome fantasia exibido na interface. */
   tradeName: 'DentalFlow',
 
+  /** Slogan oficial da marca. */
+  brandSlogan: 'Sua clínica no flow, seu crescimento é show!',
+
   /** CNPJ formatado. TODO: preencher com CNPJ real antes da produção. */
   documentNumber: '00.000.000/0001-00',
 
