@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Loader2, X } from 'lucide-react'
-import { Dialog } from 'radix-ui'
+import { Dialog, VisuallyHidden } from 'radix-ui'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
@@ -185,9 +185,9 @@ export function ProductFormModal({
           onInteractOutside={onClose}
         >
           {/* ── Header ── */}
-          <Dialog.Title className="sr-only">
-            {isEditMode ? 'Editar produto' : 'Novo produto'}
-          </Dialog.Title>
+          <VisuallyHidden.Root asChild>
+            <Dialog.Title>{isEditMode ? 'Editar produto' : 'Novo produto'}</Dialog.Title>
+          </VisuallyHidden.Root>
           <Dialog.Description className="sr-only">
             Preencha os dados do produto, selecione a categoria e salve o cadastro no estoque.
           </Dialog.Description>

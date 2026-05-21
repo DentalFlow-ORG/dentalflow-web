@@ -444,7 +444,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
 
       {/* ── Main Content ───────────────────────────────────────────────────── */}
       <div className="lg:pl-64 print:pl-0">
-        <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur-xl print:hidden">
+        <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-xl print:hidden">
           <div className="flex h-20 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <div className="lg:hidden">
               <BrandLink />

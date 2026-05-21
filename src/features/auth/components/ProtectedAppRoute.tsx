@@ -57,7 +57,7 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
   const billingStatus = billingChecked ? (effectiveResult?.status ?? null) : null
 
   useEffect(() => {
-    if (!needsBillingCheck) return
+    if (!needsBillingCheck || !isAuthenticated) return
     getCurrentBillingStatus()
       .then((status) => {
         setCachedBillingStatus(status)
@@ -67,7 +67,7 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
         // Fail open on network/server errors — backend enforces billing per-request
         setBillingResult({ resolvedPathname: pathname, status: null })
       })
-  }, [pathname, needsBillingCheck])
+  }, [pathname, needsBillingCheck, isAuthenticated])
 
   if (isBootstrapping) {
     return (

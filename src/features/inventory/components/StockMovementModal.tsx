@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Loader2, MoveRight, X } from 'lucide-react'
-import { Dialog } from 'radix-ui'
+import { Dialog, VisuallyHidden } from 'radix-ui'
 
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
@@ -135,7 +135,9 @@ export function StockMovementModal({
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          <Dialog.Title className="sr-only">Movimentar estoque</Dialog.Title>
+          <VisuallyHidden.Root asChild>
+            <Dialog.Title>Movimentar estoque</Dialog.Title>
+          </VisuallyHidden.Root>
           <Dialog.Description className="sr-only">
             Registre uma entrada, saída, ajuste ou perda para manter o estoque atualizado.
           </Dialog.Description>

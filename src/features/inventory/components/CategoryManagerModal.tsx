@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Loader2, Pencil, Plus, Tag, Trash2, X } from 'lucide-react'
-import { Dialog } from 'radix-ui'
+import { Dialog, VisuallyHidden } from 'radix-ui'
 
 import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { FormField, TextInput } from '@/components/common/FormField'
@@ -191,7 +191,9 @@ export function CategoryManagerModal({
             onEscapeKeyDown={onClose}
             onInteractOutside={onClose}
           >
-            <Dialog.Title className="sr-only">Gerenciar categorias</Dialog.Title>
+            <VisuallyHidden.Root asChild>
+              <Dialog.Title>Gerenciar categorias</Dialog.Title>
+            </VisuallyHidden.Root>
             <Dialog.Description className="sr-only">
               Crie, edite e exclua categorias usadas nos produtos do estoque.
             </Dialog.Description>
@@ -405,7 +407,9 @@ function DeleteCategoryDialog({
           onEscapeKeyDown={onCancel}
           onInteractOutside={onCancel}
         >
-          <Dialog.Title className="sr-only">Excluir categoria</Dialog.Title>
+          <VisuallyHidden.Root asChild>
+            <Dialog.Title>Excluir categoria</Dialog.Title>
+          </VisuallyHidden.Root>
           <Dialog.Description className="sr-only">
             Tem certeza que deseja excluir esta categoria? Categorias com produtos
             vinculados não podem ser excluídas.
