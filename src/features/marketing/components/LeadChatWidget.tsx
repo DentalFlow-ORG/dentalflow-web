@@ -5,21 +5,34 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { submitPublicLead } from '@/services/public-leads.service'
 
-type ChatStep = 'options' | 'form' | 'success'
+type ChatStep = 'goal' | 'process' | 'form' | 'success'
 
 type QuickOption = {
   id: string
   label: string
-  context: string
+  contextGoal: string
 }
 
-const QUICK_OPTIONS: QuickOption[] = [
-  { id: 'trial', label: 'Quero testar grátis', context: 'Interesse em teste gratuito' },
-  { id: 'specialist', label: 'Quero falar com especialista', context: 'Demonstração com especialista' },
-  { id: 'opening', label: 'Estou abrindo uma clínica', context: 'Clínica em abertura' },
-  { id: 'migrate', label: 'Uso outro software', context: 'Interesse em migração' },
-  { id: 'plans', label: 'Quero saber os planos', context: 'Informações sobre planos' },
-  { id: 'whatsapp', label: 'Quero WhatsApp e lembretes', context: 'Notificações e WhatsApp' },
+type ProcessOption = {
+  id: string
+  label: string
+  contextProcess: string
+}
+
+const GOAL_OPTIONS: QuickOption[] = [
+  { id: 'agenda', label: 'Quero organizar minha agenda', contextGoal: 'Organizar agenda' },
+  { id: 'finance', label: 'Quero melhorar o financeiro', contextGoal: 'Melhorar controle financeiro' },
+  { id: 'patients', label: 'Quero captar mais pacientes', contextGoal: 'Captação de pacientes' },
+  { id: 'plans', label: 'Quero entender os planos', contextGoal: 'Informações sobre planos' },
+  { id: 'specialist', label: 'Quero falar com um especialista', contextGoal: 'Demonstração com especialista' },
+  { id: 'opening', label: 'Estou abrindo uma clínica', contextGoal: 'Clínica em abertura' },
+]
+
+const PROCESS_OPTIONS: ProcessOption[] = [
+  { id: 'paper', label: 'Uso papel hoje', contextProcess: 'Usa papel' },
+  { id: 'sheet', label: 'Uso planilha', contextProcess: 'Usa planilha' },
+  { id: 'software', label: 'Já uso outro software', contextProcess: 'Usa outro software' },
+  { id: 'none', label: 'Ainda não tenho sistema', contextProcess: 'Sem sistema' },
 ]
 
 const TIME_OPTIONS = ['Manhã (8h–12h)', 'Tarde (12h–17h)', 'Noite (17h–20h)', 'Qualquer horário']
@@ -29,7 +42,6 @@ type FormData = {
   whatsapp: string
   clinic: string
   time: string
-  context: string
 }
 
 function formatWhatsApp(value: string): string {
@@ -45,14 +57,10 @@ function isValidWhatsApp(value: string): boolean {
 
 export function LeadChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
-  const [step, setStep] = useState<ChatStep>('options')
-  const [selectedOption, setSelectedOption] = useState<QuickOption | null>(null)
-  const [form, setForm] = useState<Omit<FormData, 'context'>>({
-    name: '',
-    whatsapp: '',
-    clinic: '',
-    time: '',
-  })
+  const [step, setStep] = useState<ChatStep>('goal')
+  const [selectedGoal, setSelectedGoal] = useState<QuickOption | null>(null)
+  const [selectedProcess, setSelectedProcess] = useState<ProcessOption | null>(null)
+  const [form, setForm] = useState<FormData>({ name: '', whatsapp: '', clinic: '', time: '' })
   const [lgpdConsent, setLgpdConsent] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
@@ -60,8 +68,9 @@ export function LeadChatWidget() {
 
   const handleOpen = () => {
     setIsOpen(true)
-    setStep('options')
-    setSelectedOption(null)
+    setStep('goal')
+    setSelectedGoal(null)
+    setSelectedProcess(null)
     setForm({ name: '', whatsapp: '', clinic: '', time: '' })
     setLgpdConsent(false)
     setErrors({})
@@ -69,8 +78,13 @@ export function LeadChatWidget() {
     setSubmitError(null)
   }
 
-  const handleSelectOption = (option: QuickOption) => {
-    setSelectedOption(option)
+  const handleSelectGoal = (option: QuickOption) => {
+    setSelectedGoal(option)
+    setStep('process')
+  }
+
+  const handleSelectProcess = (option: ProcessOption) => {
+    setSelectedProcess(option)
     setStep('form')
   }
 
@@ -91,13 +105,19 @@ export function LeadChatWidget() {
     if (!validate()) return
     setLoading(true)
     setSubmitError(null)
+    const context = [
+      selectedGoal?.contextGoal ?? 'Contato pelo chat',
+      selectedProcess ? `· ${selectedProcess.contextProcess}` : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
     try {
       await submitPublicLead({
         name: form.name.trim(),
         phone: form.whatsapp,
         clinicName: form.clinic.trim() || undefined,
         preferredTime: form.time || undefined,
-        context: selectedOption?.context ?? 'Contato pelo chat',
+        context,
         acceptedPrivacyPolicy: lgpdConsent,
       })
       setStep('success')
@@ -139,42 +159,46 @@ export function LeadChatWidget() {
           role="dialog"
           aria-modal="true"
           aria-label="Chat de contato DentalFlow"
-          className="fixed bottom-24 right-5 z-50 flex w-[22rem] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 max-sm:inset-x-3 max-sm:right-3 max-sm:w-auto"
+          className="fixed bottom-24 right-5 z-50 flex w-[28rem] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 max-sm:bottom-20 max-sm:left-3 max-sm:right-3 max-sm:w-auto"
         >
           {/* Header */}
-          <div className="flex items-center gap-3 bg-primary px-4 py-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
-              <MessageCircle className="h-4.5 w-4.5 text-white" />
+          <div className="flex items-center gap-3 bg-primary px-5 py-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15">
+              <MessageCircle className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-white">DentalFlow</p>
-              <p className="text-xs text-blue-200">Resposta rápida</p>
+              <p className="text-base font-semibold text-white">DentalFlow</p>
+              <p className="flex items-center gap-1.5 text-sm text-blue-200">
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" aria-hidden="true" />
+                Online agora
+              </p>
             </div>
             <button
               type="button"
               aria-label="Fechar chat"
               onClick={() => setIsOpen(false)}
-              className="ml-auto rounded p-1 text-white/70 hover:text-white"
+              className="ml-auto rounded p-1.5 text-white/70 hover:text-white"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto p-4" style={{ maxHeight: '28rem' }}>
-            {step === 'options' && (
-              <div className="flex flex-col gap-3">
-                <div className="rounded-xl bg-slate-100 px-3.5 py-3 text-sm text-slate-700">
-                  Olá! Posso te ajudar a entender se o DentalFlow faz sentido para sua clínica?
+          <div className="flex-1 overflow-y-auto p-5" style={{ maxHeight: '36rem' }}>
+
+            {/* Step 1 — Goal selection */}
+            {step === 'goal' && (
+              <div className="flex flex-col gap-4">
+                <div className="rounded-xl bg-slate-100 px-4 py-3.5 text-base text-slate-700 leading-relaxed">
+                  Olá! 👋 O que você quer melhorar na sua clínica?
                 </div>
-                <p className="text-xs font-medium text-slate-400">Selecione uma opção:</p>
-                <div className="flex flex-col gap-2">
-                  {QUICK_OPTIONS.map((option) => (
+                <div className="flex flex-col gap-2.5">
+                  {GOAL_OPTIONS.map((option) => (
                     <button
                       key={option.id}
                       type="button"
-                      onClick={() => handleSelectOption(option)}
-                      className="rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-left text-sm font-medium text-slate-700 transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+                      onClick={() => handleSelectGoal(option)}
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
                     >
                       {option.label}
                     </button>
@@ -183,18 +207,47 @@ export function LeadChatWidget() {
               </div>
             )}
 
+            {/* Step 2 — Current process */}
+            {step === 'process' && selectedGoal && (
+              <div className="flex flex-col gap-4">
+                <div className="rounded-xl bg-slate-100 px-4 py-3.5 text-base text-slate-700 leading-relaxed">
+                  Entendido! Como você gerencia sua clínica hoje?
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  {PROCESS_OPTIONS.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => handleSelectProcess(option)}
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-700 transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep('goal')}
+                  className="text-sm text-slate-400 hover:text-slate-600"
+                >
+                  ← Voltar
+                </button>
+              </div>
+            )}
+
+            {/* Step 3 — Contact form */}
             {step === 'form' && (
-              <div className="flex flex-col gap-3">
-                <div className="rounded-xl bg-slate-100 px-3.5 py-3 text-sm text-slate-700">
-                  Ótimo! Para conectar você com o nosso time, precisamos de algumas informações:
+              <div className="flex flex-col gap-4">
+                <div className="rounded-xl bg-slate-100 px-4 py-3.5 text-base text-slate-700 leading-relaxed">
+                  Ótimo! Para conectar você com nosso time, precisamos de algumas informações:
                 </div>
 
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3.5">
                   {/* Nome */}
                   <div>
                     <label
                       htmlFor="chat-name"
-                      className="mb-1 block text-xs font-medium text-slate-600"
+                      className="mb-1.5 block text-sm font-medium text-slate-600"
                     >
                       Seu nome *
                     </label>
@@ -206,7 +259,7 @@ export function LeadChatWidget() {
                       onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                       placeholder="Como podemos te chamar?"
                       className={cn(
-                        'w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20',
+                        'w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20',
                         errors.name ? 'border-red-400' : 'border-slate-200',
                       )}
                     />
@@ -219,7 +272,7 @@ export function LeadChatWidget() {
                   <div>
                     <label
                       htmlFor="chat-whatsapp"
-                      className="mb-1 block text-xs font-medium text-slate-600"
+                      className="mb-1.5 block text-sm font-medium text-slate-600"
                     >
                       WhatsApp *
                     </label>
@@ -233,7 +286,7 @@ export function LeadChatWidget() {
                       }
                       placeholder="(11) 99999-9999"
                       className={cn(
-                        'w-full rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20',
+                        'w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20',
                         errors.whatsapp ? 'border-red-400' : 'border-slate-200',
                       )}
                     />
@@ -246,7 +299,7 @@ export function LeadChatWidget() {
                   <div>
                     <label
                       htmlFor="chat-clinic"
-                      className="mb-1 block text-xs font-medium text-slate-600"
+                      className="mb-1.5 block text-sm font-medium text-slate-600"
                     >
                       Nome da clínica
                     </label>
@@ -256,7 +309,7 @@ export function LeadChatWidget() {
                       value={form.clinic}
                       onChange={(e) => setForm((f) => ({ ...f, clinic: e.target.value }))}
                       placeholder="Como se chama sua clínica?"
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20"
                     />
                   </div>
 
@@ -264,7 +317,7 @@ export function LeadChatWidget() {
                   <div>
                     <label
                       htmlFor="chat-time"
-                      className="mb-1 block text-xs font-medium text-slate-600"
+                      className="mb-1.5 block text-sm font-medium text-slate-600"
                     >
                       Melhor horário para contato
                     </label>
@@ -272,7 +325,7 @@ export function LeadChatWidget() {
                       id="chat-time"
                       value={form.time}
                       onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20"
                     >
                       <option value="">Selecione...</option>
                       {TIME_OPTIONS.map((t) => (
@@ -284,13 +337,13 @@ export function LeadChatWidget() {
                   </div>
 
                   {/* LGPD consent */}
-                  <div className="rounded-lg bg-slate-50 p-3">
-                    <label className="flex cursor-pointer items-start gap-2.5">
+                  <div className="rounded-xl bg-slate-50 p-3.5">
+                    <label className="flex cursor-pointer items-start gap-3">
                       <input
                         type="checkbox"
                         checked={lgpdConsent}
                         onChange={(e) => setLgpdConsent(e.target.checked)}
-                        className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded accent-primary"
+                        className="mt-0.5 h-4 w-4 shrink-0 rounded accent-primary"
                         aria-describedby="lgpd-description"
                       />
                       <span id="lgpd-description" className="text-xs leading-5 text-slate-600">
@@ -312,9 +365,9 @@ export function LeadChatWidget() {
                   </div>
 
                   {submitError && (
-                    <div className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2.5">
-                      <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" aria-hidden="true" />
-                      <p className="text-xs leading-5 text-red-600">{submitError}</p>
+                    <div className="flex items-start gap-2 rounded-xl bg-red-50 px-4 py-3">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" aria-hidden="true" />
+                      <p className="text-sm leading-5 text-red-600">{submitError}</p>
                     </div>
                   )}
 
@@ -322,22 +375,21 @@ export function LeadChatWidget() {
                     onClick={handleSubmit}
                     disabled={loading}
                     className="w-full"
-                    size="sm"
                   >
                     {loading ? (
                       'Enviando...'
                     ) : (
                       <>
-                        Enviar
-                        <Send className="h-3.5 w-3.5" />
+                        Enviar mensagem
+                        <Send className="h-4 w-4" />
                       </>
                     )}
                   </Button>
 
                   <button
                     type="button"
-                    onClick={() => setStep('options')}
-                    className="text-xs text-slate-400 hover:text-slate-600"
+                    onClick={() => setStep('process')}
+                    className="text-sm text-slate-400 hover:text-slate-600"
                   >
                     ← Voltar
                   </button>
@@ -345,21 +397,22 @@ export function LeadChatWidget() {
               </div>
             )}
 
+            {/* Step 4 — Success */}
             {step === 'success' && (
-              <div className="flex flex-col items-center gap-4 py-6 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-                  <CheckCircle2 className="h-7 w-7 text-emerald-600" />
+              <div className="flex flex-col items-center gap-5 py-8 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                  <CheckCircle2 className="h-8 w-8 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-800">Recebemos seu contato!</p>
-                  <p className="mt-1.5 text-sm text-slate-500">
-                    Em breve um especialista falará com você.
+                  <p className="text-lg font-semibold text-slate-800">Recebemos seu contato!</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Em breve um especialista do DentalFlow falará com você pelo WhatsApp.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="mt-2 text-sm font-medium text-primary hover:underline"
+                  className="text-sm font-medium text-primary hover:underline"
                 >
                   Fechar
                 </button>
