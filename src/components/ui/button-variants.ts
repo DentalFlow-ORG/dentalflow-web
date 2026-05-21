@@ -20,6 +20,8 @@ export const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/40 dark:focus-visible:ring-destructive/40",
         link: "h-auto rounded-none border-0 px-0 py-0 text-primary underline-offset-4 hover:underline",
+        inverse:
+          "border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/40",
       },
       size: {
         default: "h-10 gap-2 px-4",

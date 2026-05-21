@@ -42,12 +42,7 @@ export function TrialCtaSection() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          <Button
-            variant="outline"
-            size="xl"
-            className="border-white/50 bg-transparent text-white hover:bg-white/10 hover:text-white focus-visible:ring-white"
-            asChild
-          >
+          <Button variant="inverse" size="xl" asChild>
             <a href="#planos">Ver planos</a>
           </Button>
         </div>

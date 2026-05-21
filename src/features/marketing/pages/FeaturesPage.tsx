@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight, Check, Clock3, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { companyInfo } from '@/config/company'
 import { cn } from '@/lib/utils'
 
 import { PublicLayout } from '../components/PublicLayout'
@@ -47,6 +48,7 @@ export function FeaturesPage() {
               <p className="mt-3 max-w-2xl text-base leading-7 text-slate-500">
                 Compare os recursos disponíveis em cada plano. A matriz organiza o que está incluído, o que não está incluído e o que ainda está em evolução.
               </p>
+              <p className="mt-3 text-sm italic text-slate-400">{companyInfo.brandSlogan}</p>
             </div>
             <Button asChild className="shrink-0">
               <Link to="/planos">
@@ -62,62 +64,66 @@ export function FeaturesPage() {
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
         {/* Desktop table */}
         <section className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-sm lg:block">
-          <div className="grid grid-cols-[minmax(24rem,1fr)_12rem_12rem_12rem] border-b border-border bg-muted/60">
-            <div className="px-5 py-4 text-sm font-semibold text-foreground">Funcionalidade</div>
-            {PLAN_ORDER.map((plan) => (
-              <div key={plan} className="px-5 py-4 text-center text-sm font-semibold text-foreground">
-                {COMMERCIAL_PLAN_LABELS[plan]}
-              </div>
-            ))}
-          </div>
-
-          {featureGroups.map((group) => (
-            <div key={group.category}>
-              <div className="border-b border-border bg-background px-5 py-3">
-                <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {group.label}
-                  </h2>
-                  {CATEGORY_DETAIL_ROUTES[group.category] && (
-                    <Link
-                      to={CATEGORY_DETAIL_ROUTES[group.category] as string}
-                      className="text-xs font-medium text-primary hover:underline"
-                    >
-                      Saiba mais →
-                    </Link>
-                  )}
-                </div>
+          <div className="overflow-x-auto">
+            <div className="min-w-[60rem]">
+              <div className="grid grid-cols-[minmax(24rem,1fr)_12rem_12rem_12rem] border-b border-border bg-muted/60">
+                <div className="px-5 py-4 text-sm font-semibold text-foreground">Funcionalidade</div>
+                {PLAN_ORDER.map((plan) => (
+                  <div key={plan} className="px-5 py-4 text-center text-sm font-semibold text-foreground">
+                    {COMMERCIAL_PLAN_LABELS[plan]}
+                  </div>
+                ))}
               </div>
 
-              {group.features.map((feature) => (
-                <div
-                  key={feature.id}
-                  className="grid grid-cols-[minmax(24rem,1fr)_12rem_12rem_12rem] border-b border-border last:border-b-0"
-                >
-                  <div className="px-5 py-4">
-                    <p className="text-sm font-semibold text-foreground">{feature.title}</p>
-                    <p className="mt-1 text-sm leading-5 text-muted-foreground">
-                      {feature.description}
-                    </p>
-                    {feature.clientFriendlyExplanation && (
-                      <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                        {feature.clientFriendlyExplanation}
-                      </p>
-                    )}
+              {featureGroups.map((group) => (
+                <div key={group.category}>
+                  <div className="border-b border-border bg-background px-5 py-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {group.label}
+                      </h2>
+                      {CATEGORY_DETAIL_ROUTES[group.category] && (
+                        <Link
+                          to={CATEGORY_DETAIL_ROUTES[group.category] as string}
+                          className="text-xs font-medium text-primary hover:underline"
+                        >
+                          Saiba mais →
+                        </Link>
+                      )}
+                    </div>
                   </div>
 
-                  {PLAN_ORDER.map((plan) => (
+                  {group.features.map((feature) => (
                     <div
-                      key={plan}
-                      className="flex items-center justify-center border-l border-border px-5 py-4"
+                      key={feature.id}
+                      className="grid grid-cols-[minmax(24rem,1fr)_12rem_12rem_12rem] border-b border-border last:border-b-0"
                     >
-                      <AvailabilityIndicator availability={getFeatureAvailability(feature, plan)} />
+                      <div className="px-5 py-4">
+                        <p className="text-sm font-semibold text-foreground">{feature.title}</p>
+                        <p className="mt-1 text-sm leading-5 text-muted-foreground">
+                          {feature.description}
+                        </p>
+                        {feature.clientFriendlyExplanation && (
+                          <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                            {feature.clientFriendlyExplanation}
+                          </p>
+                        )}
+                      </div>
+
+                      {PLAN_ORDER.map((plan) => (
+                        <div
+                          key={plan}
+                          className="flex items-center justify-center border-l border-border px-5 py-4"
+                        >
+                          <AvailabilityIndicator availability={getFeatureAvailability(feature, plan)} />
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
               ))}
             </div>
-          ))}
+          </div>
         </section>
 
         {/* Mobile cards */}

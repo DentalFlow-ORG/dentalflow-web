@@ -194,7 +194,7 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10" asChild>
+            <Button size="lg" variant="inverse" asChild>
               <Link to="/planos">Ver todos os planos</Link>
             </Button>
           </div>

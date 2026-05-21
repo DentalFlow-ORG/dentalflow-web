@@ -2,6 +2,7 @@ import { ArrowRight, HelpCircle, Mail, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { companyInfo } from '@/config/company'
 import { cn } from '@/lib/utils'
 
 import { PublicLayout } from '../components/PublicLayout'
@@ -118,6 +119,7 @@ export function FaqPage() {
             Quer experimentar sem compromisso?
           </h2>
           <p className="mt-3 text-blue-200">7 dias gratuitos, sem cartão de crédito.</p>
+          <p className="mt-2 text-sm italic text-blue-200/60">{companyInfo.brandSlogan}</p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button size="lg" variant="secondary" asChild>
               <a href="/acessar?mode=register">
@@ -125,7 +127,7 @@ export function FaqPage() {
                 <ArrowRight className="h-4 w-4" />
               </a>
             </Button>
-            <Button size="lg" variant="outline" className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white focus-visible:ring-white" asChild>
+            <Button size="lg" variant="inverse" asChild>
               <a href="/planos">Ver planos e preços</a>
             </Button>
           </div>

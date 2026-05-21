@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight, Check, Clock3, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { companyInfo } from '@/config/company'
 import {
   COMMERCIAL_PLAN_LABELS,
   PLAN_ORDER,
@@ -36,6 +37,7 @@ export function PlansPage() {
           <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-slate-500">
             7 dias de teste gratuito em todos os planos. Sem cartão de crédito, sem compromisso.
           </p>
+          <p className="mt-4 text-sm italic text-slate-400">{companyInfo.brandSlogan}</p>
         </div>
       </section>
 
@@ -159,47 +161,51 @@ export function PlansPage() {
 
           {/* Desktop table */}
           <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:block">
-            <div className="grid grid-cols-[minmax(22rem,1fr)_10rem_10rem_10rem] border-b border-slate-200 bg-slate-50">
-              <div className="px-5 py-4 text-sm font-semibold text-slate-700">Funcionalidade</div>
-              {PLAN_ORDER.map((plan) => (
-                <div key={plan} className="px-4 py-4 text-center text-sm font-semibold text-slate-700">
-                  {COMMERCIAL_PLAN_LABELS[plan]}
-                </div>
-              ))}
-            </div>
-
-            {featureGroups.map((group) => (
-              <div key={group.category}>
-                <div className="border-b border-slate-100 bg-white px-5 py-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    {group.label}
-                  </h3>
-                </div>
-                {group.features.map((feature) => (
-                  <div
-                    key={feature.id}
-                    className="grid grid-cols-[minmax(22rem,1fr)_10rem_10rem_10rem] border-b border-slate-100 last:border-b-0"
-                  >
-                    <div className="px-5 py-3.5">
-                      <p className="text-sm font-medium text-slate-800">{feature.title}</p>
-                      {feature.clientFriendlyExplanation && (
-                        <p className="mt-0.5 text-xs text-slate-400">
-                          {feature.clientFriendlyExplanation}
-                        </p>
-                      )}
+            <div className="overflow-x-auto">
+              <div className="min-w-[52rem]">
+                <div className="grid grid-cols-[minmax(22rem,1fr)_10rem_10rem_10rem] border-b border-slate-200 bg-slate-50">
+                  <div className="px-5 py-4 text-sm font-semibold text-slate-700">Funcionalidade</div>
+                  {PLAN_ORDER.map((plan) => (
+                    <div key={plan} className="px-4 py-4 text-center text-sm font-semibold text-slate-700">
+                      {COMMERCIAL_PLAN_LABELS[plan]}
                     </div>
-                    {PLAN_ORDER.map((plan) => (
+                  ))}
+                </div>
+
+                {featureGroups.map((group) => (
+                  <div key={group.category}>
+                    <div className="border-b border-slate-100 bg-white px-5 py-3">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        {group.label}
+                      </h3>
+                    </div>
+                    {group.features.map((feature) => (
                       <div
-                        key={plan}
-                        className="flex items-center justify-center border-l border-slate-100 px-4 py-3.5"
+                        key={feature.id}
+                        className="grid grid-cols-[minmax(22rem,1fr)_10rem_10rem_10rem] border-b border-slate-100 last:border-b-0"
                       >
-                        <AvailabilityIndicator availability={getFeatureAvailability(feature, plan)} />
+                        <div className="px-5 py-3.5">
+                          <p className="text-sm font-medium text-slate-800">{feature.title}</p>
+                          {feature.clientFriendlyExplanation && (
+                            <p className="mt-0.5 text-xs text-slate-400">
+                              {feature.clientFriendlyExplanation}
+                            </p>
+                          )}
+                        </div>
+                        {PLAN_ORDER.map((plan) => (
+                          <div
+                            key={plan}
+                            className="flex items-center justify-center border-l border-slate-100 px-4 py-3.5"
+                          >
+                            <AvailabilityIndicator availability={getFeatureAvailability(feature, plan)} />
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
                 ))}
               </div>
-            ))}
+            </div>
           </div>
 
           {/* Mobile cards */}
@@ -270,7 +276,7 @@ export function PlansPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10" asChild>
+            <Button size="lg" variant="inverse" asChild>
               <Link to="/perguntas-frequentes">
                 Ver perguntas frequentes
               </Link>
