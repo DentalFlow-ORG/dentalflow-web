@@ -2,29 +2,34 @@ import { useRouterState } from '@tanstack/react-router'
 
 import { companyInfo } from '@/config/company'
 import { useTheme } from '@/features/theme/useTheme'
+import { shouldForceLightTheme } from '@/features/theme/force-light-routes'
 import { cn } from '@/lib/utils'
 
 type BrandLogoProps = {
   className?: string
-  /** Force the dark-background variant regardless of theme/route */
+  /** Force the dark-background variant regardless of theme/route. */
   forceDark?: boolean
 }
 
 /**
- * Renders the DentalFlow logo mark, choosing the correct asset for the current
- * effective theme:
- *   - Light logo on public pages (always light) and in light app mode
- *   - Dark-mode logo only when inside /app with dark theme active, or when
- *     forceDark is explicitly set (e.g. header over a dark hero section)
+ * Renders the DentalFlow logo mark choosing the correct asset:
+ * - Dark logo: when forceDark is explicitly true, OR when inside /app on a
+ *   non-force-light route with dark theme active.
+ * - Light logo: everywhere else (public pages, forced-light routes, light mode).
  *
- * Never duplicates the asset path decision — all logo consumers should use
- * this component instead of hardcoded img src strings.
+ * NOTE: passing forceDark={false} is equivalent to not passing it at all — both
+ * fall through to the automatic detection. This prevents the {false ?? x} = false
+ * footgun when the prop is bound to a boolean variable that defaults to false.
  */
 export function BrandLogo({ className, forceDark }: BrandLogoProps) {
   const ctx = useTheme()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
-  const isDark = forceDark ?? (pathname.startsWith('/app') && ctx?.theme === 'dark')
+  const isDark =
+    forceDark === true ||
+    (pathname.startsWith('/app') &&
+      !shouldForceLightTheme(pathname) &&
+      ctx.theme === 'dark')
 
   return (
     <img

@@ -274,6 +274,17 @@
     animation: df-rocket-boost 420ms ease-out;
   }
 
+  @keyframes df-particle {
+    0% { transform: translate(0, 0) scale(0); opacity: 0; }
+    25% { opacity: 1; transform: translate(calc(var(--dx, 0px) * 0.4), calc(var(--dy, 0px) * 0.4)) scale(1.2); }
+    100% { transform: translate(var(--dx, 0px), var(--dy, 0px)) scale(0.5); opacity: 0; }
+  }
+
+  .df-particle {
+    animation: df-particle 1.4s ease-out both;
+    pointer-events: none;
+  }
+
   @keyframes df-line-scan {
     0%,
     10% {

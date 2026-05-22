@@ -1,6 +1,6 @@
 import { Loader2 } from 'lucide-react'
 import { Navigate, useRouterState } from '@tanstack/react-router'
-import { Suspense, useEffect, useState, type ReactNode } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useState, type ReactNode } from 'react'
 
 import { AppShell } from '@/components/layout/AppShell'
 import { SubscriptionOnlyShell } from '@/components/layout/SubscriptionOnlyShell'
@@ -11,6 +11,7 @@ import {
   setCachedBillingStatus,
 } from '@/features/billing/services/billing-status-cache'
 import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
+import { setBillingAccess } from '@/features/theme/billing-theme-override'
 
 import { useAuth } from '../hooks/useAuth'
 import type { AuthUserRole } from '../types'
@@ -68,6 +69,18 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
         setBillingResult({ resolvedPathname: pathname, status: null })
       })
   }, [pathname, needsBillingCheck, isAuthenticated])
+
+  // Inform ThemeProvider whether billing routes should allow dark mode.
+  // Children's useLayoutEffect runs before parents', so by the time ThemeProvider
+  // evaluates shouldForceLightTheme, this value is already set.
+  useLayoutEffect(() => {
+    if (!needsBillingCheck || isAdmin) {
+      setBillingAccess(true)
+    } else {
+      setBillingAccess(billingChecked ? (billingStatus?.accessAllowed ?? true) : null)
+    }
+    return () => { setBillingAccess(null) }
+  }, [needsBillingCheck, isAdmin, billingChecked, billingStatus?.accessAllowed])
 
   if (isBootstrapping) {
     return (
