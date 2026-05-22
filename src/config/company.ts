@@ -123,8 +123,8 @@ const PLACEHOLDER_CHECKS: PlaceholderCheck[] = [
 // TODO: preencher com URLs reais antes de ir para produção.
 
 export const socialLinks = {
-  /** Canal oficial no YouTube. TODO: preencher. */
-  youtube: null as string | null,
+  /** Canal oficial no YouTube. */
+  youtube: 'https://www.youtube.com/@DentalFlowCorp' as string | null,
 
   /** Perfil oficial no Instagram. TODO: preencher. */
   instagram: null as string | null,
