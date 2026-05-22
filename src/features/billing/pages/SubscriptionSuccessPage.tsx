@@ -1,12 +1,16 @@
 import { Link, useSearch } from '@tanstack/react-router'
 import {
   ArrowRight,
+  CalendarCheck2,
   CheckCircle2,
   Clock3,
   CreditCard,
   Loader2,
   RefreshCw,
   ShieldCheck,
+  Sparkles,
+  UserPlus,
+  Users,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
@@ -30,9 +34,31 @@ const MAX_ATTEMPTS = 6
 const RETRY_INTERVAL_MS = 2500
 
 const onboardingSteps = [
-  'Complete os dados da clínica',
-  'Configure equipe e agenda',
-  'Cadastre pacientes e comece a usar',
+  {
+    icon: ShieldCheck,
+    label: 'Complete os dados da clínica',
+    description: 'Adicione endereço, telefone e logotipo.',
+  },
+  {
+    icon: Users,
+    label: 'Cadastre sua equipe',
+    description: 'Convide dentistas e assistentes.',
+  },
+  {
+    icon: CalendarCheck2,
+    label: 'Configure a agenda',
+    description: 'Defina horários e disponibilidades.',
+  },
+  {
+    icon: UserPlus,
+    label: 'Adicione seus pacientes',
+    description: 'Importe ou cadastre manualmente.',
+  },
+  {
+    icon: Sparkles,
+    label: 'Comece a usar',
+    description: 'Agende consultas e acompanhe resultados.',
+  },
 ] as const
 
 export function SubscriptionSuccessPage() {
@@ -125,7 +151,7 @@ export function SubscriptionSuccessPage() {
 
   return (
     <section className="mx-auto flex min-h-[calc(100svh-8rem)] w-full max-w-5xl items-center justify-center overflow-x-hidden py-6 text-slate-950">
-      <div className="w-full rounded-lg border border-slate-200 bg-white p-4 shadow-xl shadow-slate-950/10 sm:p-7 lg:p-8">
+      <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-950/10 sm:p-7 lg:p-8">
         <div className="flex justify-center">
           <BrandLink compact />
         </div>
@@ -148,7 +174,11 @@ export function SubscriptionSuccessPage() {
               : 'A Stripe confirmou o retorno do checkout. Estamos atualizando a assinatura no DentalFlow para liberar o acesso com segurança.'}
           </p>
 
-          {message && <div className="mt-5 w-full"><InlineFeedback tone="warning">{message}</InlineFeedback></div>}
+          {message && (
+            <div className="mt-5 w-full">
+              <InlineFeedback tone="warning">{message}</InlineFeedback>
+            </div>
+          )}
           {!message && visualState === 'attention' && (
             <div className="mt-5 w-full">
               <InlineFeedback tone="warning">
@@ -158,15 +188,26 @@ export function SubscriptionSuccessPage() {
           )}
         </div>
 
-        <div className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
-          {onboardingSteps.map((step, index) => (
-            <div key={step} className="rounded-md border border-slate-200 bg-slate-50 p-4 text-left">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                {index + 1}
-              </span>
-              <p className="mt-3 text-sm font-semibold leading-6 text-slate-800">{step}</p>
-            </div>
-          ))}
+        {/* Onboarding steps */}
+        <div className="mx-auto mt-10 max-w-4xl">
+          <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-slate-400">
+            Próximos passos
+          </p>
+          <div className="grid gap-3 sm:grid-cols-5">
+            {onboardingSteps.map((step, index) => (
+              <div
+                key={step.label}
+                className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left transition-colors duration-200 hover:border-primary/30 hover:bg-primary/5 animate-in fade-in-0 slide-in-from-bottom-2 duration-500"
+                style={{ animationDelay: `${index * 80}ms`, animationFillMode: 'both' }}
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <step.icon className="h-4.5 w-4.5" aria-hidden="true" />
+                </div>
+                <p className="mt-3 text-sm font-semibold leading-5 text-slate-800">{step.label}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{step.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -210,16 +251,30 @@ export function SubscriptionSuccessPage() {
 }
 
 function StatusIcon({ state }: { state: 'confirmed' | 'processing' | 'attention' }) {
+  if (state === 'confirmed') {
+    return (
+      <div className="relative flex h-20 w-20 items-center justify-center">
+        <div className="absolute inset-0 rounded-full bg-emerald-300/40 df-ring-pulse" />
+        <div
+          className="absolute inset-0 rounded-full bg-emerald-200/30 df-ring-pulse"
+          style={{ animationDelay: '0.4s' }}
+        />
+        <div className="relative flex h-full w-full items-center justify-center rounded-full bg-emerald-100 df-success-pop">
+          <CheckCircle2 className="h-10 w-10 text-emerald-600" aria-hidden="true" />
+        </div>
+      </div>
+    )
+  }
+
   const classes = {
-    confirmed: 'bg-emerald-100 text-emerald-700',
     processing: 'bg-blue-100 text-primary',
     attention: 'bg-amber-100 text-amber-700',
   }
-  const Icon = state === 'confirmed' ? CheckCircle2 : state === 'processing' ? Clock3 : ShieldCheck
+  const Icon = state === 'processing' ? Clock3 : ShieldCheck
 
   return (
-    <div className={`flex h-16 w-16 items-center justify-center rounded-full ${classes[state]}`}>
-      <Icon className="h-8 w-8" aria-hidden="true" />
+    <div className={`flex h-20 w-20 items-center justify-center rounded-full ${classes[state]}`}>
+      <Icon className="h-10 w-10" aria-hidden="true" />
     </div>
   )
 }

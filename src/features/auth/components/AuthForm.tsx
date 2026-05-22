@@ -17,6 +17,8 @@ import { env } from '@/config/env'
 import { isValidPersonName } from '@/lib/field-formatters'
 import { ApiError } from '@/services/http'
 
+import { cn } from '@/lib/utils'
+
 import { useAuth } from '../hooks/useAuth'
 import { getGoogleOAuthStartUrl } from '../services/auth.service'
 import type { AuthMode } from '../types'
@@ -215,17 +217,22 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
           />
 
           {!isLogin && (
-            <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+            <div className={cn(
+              'rounded-xl border p-4 transition-colors duration-200',
+              acceptedTerms
+                ? 'border-primary/30 bg-primary/5'
+                : 'border-slate-200 bg-slate-50 hover:border-slate-300',
+            )}>
               <div className="flex items-start gap-3">
                 <input
                   id={termsCheckboxId}
                   type="checkbox"
                   checked={acceptedTerms}
                   onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
+                  className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                   required
                 />
-                <label htmlFor={termsCheckboxId} className="text-sm leading-6 text-slate-600">
+                <label htmlFor={termsCheckboxId} className="cursor-pointer text-sm leading-6 text-slate-600">
                   Li e aceito os{' '}
                   <Link
                     to="/termos-de-uso"

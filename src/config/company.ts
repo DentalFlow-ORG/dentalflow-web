@@ -118,6 +118,24 @@ const PLACEHOLDER_CHECKS: PlaceholderCheck[] = [
   },
 ]
 
+// ── Redes sociais ─────────────────────────────────────────────────────────────
+// Use `null` para redes não configuradas — o componente SiteFooter omite links nulos.
+// TODO: preencher com URLs reais antes de ir para produção.
+
+export const socialLinks = {
+  /** Canal oficial no YouTube. TODO: preencher. */
+  youtube: null as string | null,
+
+  /** Perfil oficial no Instagram. TODO: preencher. */
+  instagram: null as string | null,
+
+  /** Página oficial no LinkedIn. TODO: preencher. */
+  linkedin: null as string | null,
+
+  /** Link de contato via WhatsApp Business. TODO: preencher. */
+  whatsapp: null as string | null,
+} as const
+
 export function validateCompanyConfig(): void {
   const failures = PLACEHOLDER_CHECKS.filter(({ field, isPlaceholder }) =>
     isPlaceholder(companyInfo[field] as string),
