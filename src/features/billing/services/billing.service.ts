@@ -48,6 +48,14 @@ export function createCheckoutSession(dto: CheckoutSessionRequest) {
   })
 }
 
+export function syncCheckoutSession(sessionId: string) {
+  return apiRequest<CurrentBillingStatus>('/billing/checkout-session/sync', {
+    method: 'POST',
+    accessToken: getAccessToken(),
+    body: JSON.stringify({ sessionId }),
+  })
+}
+
 export function startTrial(dto: StartTrialRequest) {
   return apiRequest<CurrentBillingStatus>('/billing/trial/start', {
     method: 'POST',
