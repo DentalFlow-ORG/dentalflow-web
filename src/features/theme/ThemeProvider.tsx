@@ -1,6 +1,7 @@
 import { useLayoutEffect, useState, type ReactNode } from 'react'
 import { useRouterState } from '@tanstack/react-router'
 import { ThemeContext, type ThemeMode } from './ThemeContext'
+import { shouldForceLightTheme } from './force-light-routes'
 
 const STORAGE_KEY = 'dentalflow.theme'
 
@@ -20,12 +21,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   useLayoutEffect(() => {
-    const isAppRoute = pathname.startsWith('/app')
+    const shouldUseSavedTheme = pathname.startsWith('/app') && !shouldForceLightTheme(pathname)
     // queueMicrotask fires after ALL child useLayoutEffects (including useForceLightTheme),
     // making this the authoritative final rule on the dark class before each browser paint.
-    // Public routes always get light; /app routes respect the user's saved preference.
+    // Public/onboarding routes always get light; operational /app routes respect the saved preference.
     queueMicrotask(() => {
-      if (isAppRoute) {
+      if (shouldUseSavedTheme) {
         document.documentElement.classList.toggle('dark', theme === 'dark')
       } else {
         document.documentElement.classList.remove('dark')
