@@ -4,6 +4,7 @@ import type {
   AuthResponse,
   CompleteProfilePayload,
   LoginPayload,
+  MessageResponse,
   RefreshResponse,
   RegisterPayload,
 } from '../types'
@@ -50,6 +51,22 @@ export function logout() {
   return apiRequest<void>('/auth/logout', {
     method: 'POST',
     accessToken: getAccessToken(),
+  })
+}
+
+export function forgotPassword(email: string) {
+  return apiRequest<MessageResponse>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+    _skipRefresh: true,
+  })
+}
+
+export function resetPassword(token: string, newPassword: string) {
+  return apiRequest<MessageResponse>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, newPassword }),
+    _skipRefresh: true,
   })
 }
 

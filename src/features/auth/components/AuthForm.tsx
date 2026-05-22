@@ -216,6 +216,17 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
             onChange={setPassword}
           />
 
+          {isLogin && (
+            <div className="flex justify-end -mt-2">
+              <Link
+                to="/recuperar-senha"
+                className="text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
+          )}
+
           {!isLogin && (
             <div className={cn(
               'rounded-xl border p-4 transition-colors duration-200',

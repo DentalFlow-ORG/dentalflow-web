@@ -30,6 +30,18 @@ export const CompleteProfilePage = lazy(() =>
   })),
 )
 
+export const ForgotPasswordPage = lazy(() =>
+  import('@/features/auth/pages/ForgotPasswordPage').then((m) => ({
+    default: m.ForgotPasswordPage,
+  })),
+)
+
+export const ResetPasswordPage = lazy(() =>
+  import('@/features/auth/pages/ResetPasswordPage').then((m) => ({
+    default: m.ResetPasswordPage,
+  })),
+)
+
 export const DashboardPage = lazy(() =>
   import('@/features/dashboard/pages/DashboardPage').then((m) => ({
     default: m.DashboardPage,
