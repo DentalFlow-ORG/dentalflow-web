@@ -95,6 +95,8 @@ function formatValue(raw: number, decimalDigits?: number): string {
   }).format(raw / divisor)
 }
 
+const COUNT_UP_DURATION_MS = 2200
+
 function useCountUp(target: number, isActive: boolean): number {
   const [value, setValue] = useState(0)
 
@@ -107,13 +109,13 @@ function useCountUp(target: number, isActive: boolean): number {
       return
     }
 
-    let frame = 0
+    const startTime = performance.now()
     let raf = 0
-    const frames = 72
 
-    const tick = () => {
-      frame += 1
-      const progress = Math.min(frame / frames, 1)
+    const tick = (now: number) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / COUNT_UP_DURATION_MS, 1)
+      // Cubic ease-out: fast start, decelerates near the final value
       const eased = 1 - Math.pow(1 - progress, 3)
       setValue(Math.round(target * eased))
       if (progress < 1) raf = window.requestAnimationFrame(tick)
@@ -126,18 +128,11 @@ function useCountUp(target: number, isActive: boolean): number {
   return value
 }
 
-function ImpactCard({
-  metric,
-  isActive,
-  index,
-}: {
-  metric: ImpactMetric
-  isActive: boolean
-  index: number
-}) {
+function ImpactCard({ metric, index }: { metric: ImpactMetric; index: number }) {
   const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.12)
   const Icon = metric.icon
-  const animatedValue = useCountUp(metric.value, isActive)
+  // Each card drives its own counter: animation starts when the card enters the viewport
+  const animatedValue = useCountUp(metric.value, isVisible)
 
   return (
     <article
@@ -208,7 +203,7 @@ export function AnimatedImpactSection() {
         {/* Metrics grid — 3 cols desktop / 2 cols tablet / 1 col mobile */}
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {IMPACT_METRICS.map((metric, index) => (
-            <ImpactCard key={metric.id} metric={metric} isActive={isVisible} index={index} />
+            <ImpactCard key={metric.id} metric={metric} index={index} />
           ))}
         </div>
 

@@ -14,11 +14,9 @@ export function useRevealOnScroll<T extends HTMLElement>(threshold = 0.18) {
       return
     }
 
-    const fallback = window.setTimeout(() => setIsVisible(true), 900)
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          window.clearTimeout(fallback)
           setIsVisible(true)
           observer.disconnect()
         }
@@ -27,10 +25,7 @@ export function useRevealOnScroll<T extends HTMLElement>(threshold = 0.18) {
     )
 
     observer.observe(element)
-    return () => {
-      window.clearTimeout(fallback)
-      observer.disconnect()
-    }
+    return () => observer.disconnect()
   }, [isVisible, threshold])
 
   return { ref, isVisible }
