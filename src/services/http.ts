@@ -77,7 +77,7 @@ export async function apiRequest<TResponse>(
 
       if (response.status === 402) {
         if (!window.location.pathname.startsWith('/app/assinatura')) {
-          window.location.replace('/app/assinatura')
+          setTimeout(() => window.location.replace('/app/assinatura'), 0)
         }
         throw new ApiError(
           'Escolha um plano para continuar usando o DentalFlow.',
