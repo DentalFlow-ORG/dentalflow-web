@@ -43,7 +43,7 @@ export function useTeamMemberProfile(profileId: string) {
 
       if (user?.role === 'OWNER') {
         try {
-          const members = await listClinicMembers()
+          const { members } = await listClinicMembers()
           setMember(members.find((m) => m.profile?.id === profileId) ?? null)
         } catch {
           // non-critical — profile data is still shown

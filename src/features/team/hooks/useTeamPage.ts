@@ -5,10 +5,9 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useListFilter } from '@/hooks/useListFilter'
 
 import { deleteClinicMember, listClinicMembers } from '../services/team.service'
-import type { MemberListItem } from '../types/team.types'
+import type { MemberListItem, UserLimitUsage } from '../types/team.types'
 
 const PAGE_SIZE = 10
-const DEFAULT_USER_LIMIT = 8
 
 export const TEAM_ROLE_LABEL: Record<string, string> = {
   DENTIST: 'Profissional',
@@ -46,10 +45,19 @@ const FILTER_FNS = {
 type DeleteTarget = { id: string; name: string }
 type PasswordTarget = { id: string; name: string }
 
+const DEFAULT_USAGE: UserLimitUsage = {
+  limit: 0,
+  used: 0,
+  remaining: 0,
+  planSlug: '',
+  planName: null,
+}
+
 export function useTeamPage() {
   const { showAlert } = useGlobalAlerts()
 
   const [allMembers, setAllMembers] = useState<MemberListItem[]>([])
+  const [usage, setUsage] = useState<UserLimitUsage>(DEFAULT_USAGE)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
@@ -75,14 +83,16 @@ export function useTeamPage() {
     pageSize: PAGE_SIZE,
   })
 
-  const activeUserCount = allMembers.filter((m) => m.isActive).length + 1
-  const hasReachedUserLimit = activeUserCount >= DEFAULT_USER_LIMIT
+  const hasReachedUserLimit = usage.remaining <= 0 && usage.limit > 0
 
   const load = useCallback(() => {
     setIsLoading(true)
     setError(null)
     listClinicMembers()
-      .then(setAllMembers)
+      .then(({ members: fetchedMembers, usage: fetchedUsage }) => {
+        setAllMembers(fetchedMembers)
+        setUsage(fetchedUsage)
+      })
       .catch((err) => {
         const msg =
           err instanceof Error ? err.message : 'Não foi possível carregar a equipe.'
@@ -100,7 +110,7 @@ export function useTeamPage() {
     if (hasReachedUserLimit) {
       showAlert({
         title: 'Limite de usuários atingido',
-        description: `O plano atual permite até ${DEFAULT_USER_LIMIT} usuários ativos.`,
+        description: `O plano atual permite até ${usage.limit} usuários ativos. Acesse Assinatura para fazer upgrade.`,
         tone: 'warning',
       })
       return
@@ -125,9 +135,7 @@ export function useTeamPage() {
       description: `Dados de ${member.firstName} ${member.lastName} salvos.`,
       tone: 'success',
     })
-    setAllMembers((prev) =>
-      prev.map((existing) => (existing.id === member.id ? member : existing)),
-    )
+    load()
   }
 
   function handlePasswordSuccess() {
@@ -150,7 +158,7 @@ export function useTeamPage() {
         tone: 'success',
       })
       setDeleteTarget(null)
-      setAllMembers((prev) => prev.filter((m) => m.id !== deleteTarget.id))
+      load()
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erro ao desativar usuário.'
       showAlert({ title: 'Erro ao desativar', description: msg, tone: 'error' })
@@ -176,9 +184,8 @@ export function useTeamPage() {
     pageSize: PAGE_SIZE,
     filterDefs: FILTER_DEFS,
     roleLabel: TEAM_ROLE_LABEL,
-    activeUserCount,
+    usage,
     hasReachedUserLimit,
-    userLimit: DEFAULT_USER_LIMIT,
     createOpen,
     setCreateOpen,
     editTarget,

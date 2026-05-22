@@ -5,6 +5,7 @@ import { Link } from '@tanstack/react-router'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { FilteredEmptyState } from '@/components/common/FilteredEmptyState'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { ListToolbar } from '@/components/common/ListToolbar'
 import { Pagination } from '@/components/common/Pagination'
@@ -110,9 +111,8 @@ export function TeamPageContainer() {
     pageSize,
     filterDefs,
     roleLabel,
-    activeUserCount,
+    usage,
     hasReachedUserLimit,
-    userLimit,
     createOpen,
     setCreateOpen,
     editTarget,
@@ -130,7 +130,7 @@ export function TeamPageContainer() {
     handleDeleteConfirm,
   } = useTeamPage()
 
-  const availableUserSlots = Math.max(userLimit - activeUserCount, 0)
+  const { used: activeUserCount, limit: userLimit, remaining: availableUserSlots } = usage
   const userLimitUsagePercent =
     userLimit > 0 ? Math.min(100, Math.round((activeUserCount / userLimit) * 100)) : 0
 
@@ -177,6 +177,17 @@ export function TeamPageContainer() {
           </div>
         </div>
       </PanelCard>
+
+      {hasReachedUserLimit && (
+        <InlineFeedback tone="warning">
+          Limite de {userLimit} usuários ativos atingido para o plano{' '}
+          {usage.planName ?? usage.planSlug}.{' '}
+          <Link to="/app/assinatura" className="font-semibold underline underline-offset-2">
+            Faça upgrade do plano
+          </Link>{' '}
+          para adicionar mais membros.
+        </InlineFeedback>
+      )}
 
       <ListPageShell
         isLoading={isLoading}

@@ -59,6 +59,19 @@ export type CreateMemberResponse = {
   profile: MemberProfile | null
 }
 
+export type UserLimitUsage = {
+  limit: number
+  used: number
+  remaining: number
+  planSlug: string
+  planName: string | null
+}
+
+export type TeamMembersResponse = {
+  members: MemberListItem[]
+  usage: UserLimitUsage
+}
+
 export type ProfileSpecialtyItem = {
   specialty: {
     id: string

@@ -7,6 +7,7 @@ import type {
   MemberListItem,
   ProfileDetail,
   Specialty,
+  TeamMembersResponse,
   UpdateMemberDto,
   UpdateMemberPasswordDto,
 } from '../types/team.types'
@@ -19,7 +20,7 @@ export function listSpecialties() {
 }
 
 export function listClinicMembers() {
-  return apiRequest<MemberListItem[]>('/users/clinic/members', {
+  return apiRequest<TeamMembersResponse>('/users/clinic/members', {
     method: 'GET',
     accessToken: getAccessToken(),
   })
