@@ -162,6 +162,22 @@ describe('AuthForm', () => {
     })
   })
 
+  describe('forgot password link', () => {
+    it('shows "Esqueci minha senha" link in login mode', () => {
+      renderWithProviders(<AuthForm mode="login" />)
+      expect(
+        screen.getByRole('link', { name: 'Esqueci minha senha' }),
+      ).toBeInTheDocument()
+    })
+
+    it('does not show "Esqueci minha senha" link in register mode', () => {
+      renderWithProviders(<AuthForm mode="register" />)
+      expect(
+        screen.queryByRole('link', { name: 'Esqueci minha senha' }),
+      ).not.toBeInTheDocument()
+    })
+  })
+
   describe('Google OAuth', () => {
     it('calls window.location.assign with the OAuth URL', async () => {
       const assignSpy = vi.fn()

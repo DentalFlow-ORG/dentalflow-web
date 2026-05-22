@@ -41,3 +41,7 @@ export type CompleteProfilePayload = {
   lastName: string
   acceptedTerms: boolean
 }
+
+export type MessageResponse = {
+  message: string
+}

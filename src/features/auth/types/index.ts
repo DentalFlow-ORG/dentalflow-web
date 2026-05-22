@@ -5,6 +5,7 @@ export type {
   AuthUserRole,
   CompleteProfilePayload,
   LoginPayload,
+  MessageResponse,
   RefreshResponse,
   RegisterPayload,
 } from './auth.types'

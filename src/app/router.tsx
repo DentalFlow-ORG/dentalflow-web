@@ -17,6 +17,8 @@ import {
   AppointmentsPage,
   AuthRoutePage,
   CompleteProfilePage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
   ClinicalRecordEditorPage,
   ClinicalRecordPrintPage,
   ClinicalRecordsPage,
@@ -105,6 +107,21 @@ const completeProfileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/acessar/completar-perfil',
   component: CompleteProfilePage,
+})
+
+const forgotPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/recuperar-senha',
+  component: ForgotPasswordPage,
+})
+
+const resetPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/recuperar-senha/redefinir',
+  validateSearch: (search: Record<string, unknown>): { token?: string } => ({
+    token: typeof search.token === 'string' ? search.token : undefined,
+  }),
+  component: ResetPasswordPage,
 })
 
 const featuresRoute = createRoute({
@@ -546,6 +563,8 @@ const routeTree = rootRoute.addChildren([
   authRoute,
   oauthSuccessRoute,
   completeProfileRoute,
+  forgotPasswordRoute,
+  resetPasswordRoute,
   featuresRoute,
   appRoute,
   dentistHomeRoute,
