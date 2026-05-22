@@ -9,6 +9,7 @@ import {
 import { setupAuthRefresh } from '@/services/http'
 
 import {
+  completeProfile as completeProfileRequest,
   getCurrentUser,
   login as loginRequest,
   logout as logoutRequest,
@@ -22,7 +23,12 @@ import {
   setTokens,
   updateStoredUser,
 } from '../utils/session-storage'
-import type { AuthUser, LoginPayload, RegisterPayload } from '../types'
+import type {
+  AuthUser,
+  CompleteProfilePayload,
+  LoginPayload,
+  RegisterPayload,
+} from '../types'
 import { AuthContext, type AuthContextValue } from './auth-context'
 
 type AuthProviderProps = {
@@ -76,6 +82,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(response.user)
   }, [])
 
+  const completeProfile = useCallback(async (payload: CompleteProfilePayload) => {
+    const response = await completeProfileRequest(payload)
+    setSession(response.accessToken, response.user)
+    setUser(response.user)
+  }, [])
+
   const logout = useCallback(async () => {
     try {
       await logoutRequest()
@@ -93,9 +105,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isBootstrapping,
       login,
       register,
+      completeProfile,
       logout,
     }),
-    [isBootstrapping, login, logout, register, user],
+    [completeProfile, isBootstrapping, login, logout, register, user],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

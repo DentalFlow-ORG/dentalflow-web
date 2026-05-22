@@ -18,6 +18,18 @@ export const AuthRoutePage = lazy(() =>
   })),
 )
 
+export const OAuthSuccessPage = lazy(() =>
+  import('@/features/auth/pages/OAuthSuccessPage').then((m) => ({
+    default: m.OAuthSuccessPage,
+  })),
+)
+
+export const CompleteProfilePage = lazy(() =>
+  import('@/features/auth/pages/CompleteProfilePage').then((m) => ({
+    default: m.CompleteProfilePage,
+  })),
+)
+
 export const DashboardPage = lazy(() =>
   import('@/features/dashboard/pages/DashboardPage').then((m) => ({
     default: m.DashboardPage,

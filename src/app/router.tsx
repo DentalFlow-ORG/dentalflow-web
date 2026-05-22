@@ -16,6 +16,7 @@ import {
   CompliancePage,
   AppointmentsPage,
   AuthRoutePage,
+  CompleteProfilePage,
   ClinicalRecordEditorPage,
   ClinicalRecordPrintPage,
   ClinicalRecordsPage,
@@ -43,6 +44,7 @@ import {
   LeadsFeaturePage,
   LeadsPage,
   NotificationSettingsPage,
+  OAuthSuccessPage,
   PatientsAttentionPage,
   PatientsFeaturePage,
   PlansPage,
@@ -79,10 +81,30 @@ const indexRoute = createRoute({
 const authRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/acessar',
-  validateSearch: (search: Record<string, unknown>): { mode: AuthMode } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { mode: AuthMode; googleAuth?: 'disabled' | 'error' | 'cancelled' } => ({
     mode: search.mode === 'register' ? 'register' : 'login',
+    googleAuth:
+      search.googleAuth === 'disabled' ||
+      search.googleAuth === 'error' ||
+      search.googleAuth === 'cancelled'
+        ? search.googleAuth
+        : undefined,
   }),
   component: AuthRoutePage,
+})
+
+const oauthSuccessRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/acessar/oauth/sucesso',
+  component: OAuthSuccessPage,
+})
+
+const completeProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/acessar/completar-perfil',
+  component: CompleteProfilePage,
 })
 
 const featuresRoute = createRoute({
@@ -206,6 +228,9 @@ const subscriptionRoute = createRoute({
 const subscriptionSuccessRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/assinatura/sucesso',
+  validateSearch: (search: Record<string, unknown>): { session_id?: string } => ({
+    session_id: typeof search.session_id === 'string' ? search.session_id : undefined,
+  }),
   component: () => (
     <ProtectedAppRoute allowedRoles={['OWNER']}>
       <SubscriptionSuccessPage />
@@ -519,6 +544,8 @@ const fiscalFeatureRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   authRoute,
+  oauthSuccessRoute,
+  completeProfileRoute,
   featuresRoute,
   appRoute,
   dentistHomeRoute,

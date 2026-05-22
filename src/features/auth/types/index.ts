@@ -3,6 +3,7 @@ export type {
   AuthResponse,
   AuthUser,
   AuthUserRole,
+  CompleteProfilePayload,
   LoginPayload,
   RefreshResponse,
   RegisterPayload,

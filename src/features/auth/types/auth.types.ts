@@ -23,6 +23,7 @@ export type AuthUser = {
   email: string
   firstName: string
   lastName: string
+  isProfileComplete: boolean
 }
 
 export type AuthResponse = {
@@ -32,4 +33,11 @@ export type AuthResponse = {
 
 export type RefreshResponse = {
   accessToken: string
+}
+
+export type CompleteProfilePayload = {
+  clinicName: string
+  firstName: string
+  lastName: string
+  acceptedTerms: boolean
 }

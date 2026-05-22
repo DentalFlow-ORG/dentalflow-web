@@ -82,6 +82,10 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
     return <Navigate to="/acessar" search={{ mode: 'login' }} />
   }
 
+  if (user?.isProfileComplete === false) {
+    return <Navigate to="/acessar/completar-perfil" />
+  }
+
   if (allowedRoles && (!user?.role || !allowedRoles.includes(user.role))) {
     return <Navigate to={getDeniedRedirectPath(user?.role)} />
   }
