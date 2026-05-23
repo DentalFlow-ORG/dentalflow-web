@@ -1,5 +1,5 @@
 import { ArrowRight, HelpCircle, Mail, MessageCircle } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { companyInfo } from '@/config/company'
@@ -39,7 +39,23 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   )
 }
 
+function useChatWidgetState() {
+  const [chatOpen, setChatOpen] = useState(false)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setChatOpen((e as CustomEvent<{ isOpen: boolean }>).detail.isOpen)
+    }
+    window.addEventListener('dentalflow:chat:state', handler)
+    return () => window.removeEventListener('dentalflow:chat:state', handler)
+  }, [])
+  const toggleChat = () => {
+    window.dispatchEvent(new CustomEvent(chatOpen ? 'dentalflow:chat:close' : 'dentalflow:chat:open'))
+  }
+  return { chatOpen, toggleChat }
+}
+
 export function FaqPage() {
+  const { chatOpen, toggleChat } = useChatWidgetState()
   usePageMeta(
     'DentalFlow | Perguntas frequentes',
     'Respostas sobre planos, funcionalidades, segurança, LGPD, WhatsApp e muito mais. Tire suas dúvidas sobre o DentalFlow.',
@@ -99,15 +115,25 @@ export function FaqPage() {
                 <p className="mt-0.5 text-sm text-primary">{companyInfo.supportEmail}</p>
               </div>
             </a>
-            <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                <MessageCircle className="h-5 w-5 text-primary" aria-hidden="true" />
+            <button
+              type="button"
+              onClick={toggleChat}
+              aria-pressed={chatOpen}
+              className="flex w-full items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 text-left transition-all hover:border-primary/25 hover:shadow-md"
+            >
+              <div className={cn(
+                'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors',
+                chatOpen ? 'bg-primary' : 'bg-primary/10',
+              )}>
+                <MessageCircle className={cn('h-5 w-5', chatOpen ? 'text-white' : 'text-primary')} aria-hidden="true" />
               </div>
               <div>
                 <p className="font-semibold text-slate-800">Chat de contato</p>
-                <p className="mt-0.5 text-sm text-slate-500">Disponível no botão inferior direito da página.</p>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  {chatOpen ? 'Clique para fechar o chat.' : 'Clique para abrir o chat de contato.'}
+                </p>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </section>

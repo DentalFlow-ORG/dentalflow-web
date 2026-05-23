@@ -85,6 +85,24 @@ export function LeadChatWidget() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [history, step])
 
+  // Expose open/close to sibling components via custom DOM events.
+  // resetChat only calls setState setters — no state reads — so empty deps is safe.
+  useEffect(() => {
+    const onOpen = () => { resetChat(); setIsOpen(true) }
+    const onClose = () => setIsOpen(false)
+    window.addEventListener('dentalflow:chat:open', onOpen)
+    window.addEventListener('dentalflow:chat:close', onClose)
+    return () => {
+      window.removeEventListener('dentalflow:chat:open', onOpen)
+      window.removeEventListener('dentalflow:chat:close', onClose)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Broadcast state changes so listeners can sync their UI.
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('dentalflow:chat:state', { detail: { isOpen } }))
+  }, [isOpen])
+
   const resetChat = () => {
     setStep('situation')
     setHistory([MSG_INIT])
