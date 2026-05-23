@@ -40,7 +40,7 @@ function CategoryRow({ title, description, required, enabled, onChange }: Catego
         className={[
           'relative mt-1 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
           required ? 'cursor-not-allowed opacity-60' : '',
-          enabled ? 'bg-primary' : 'bg-muted',
+          enabled ? 'bg-primary' : 'bg-input',
         ].join(' ')}
         aria-label={`${enabled ? 'Desativar' : 'Ativar'} cookies ${title.toLowerCase()}`}
       >
@@ -138,7 +138,7 @@ export function CookiePreferencesModal() {
           <Button
             variant="outline"
             size="sm"
-            onClick={rejectOptional}
+            onClick={() => { rejectOptional(); closePreferences(); }}
             className="flex-1 sm:flex-none"
           >
             Recusar opcionais
@@ -146,7 +146,7 @@ export function CookiePreferencesModal() {
           <Button
             variant="outline"
             size="sm"
-            onClick={acceptAll}
+            onClick={() => { acceptAll(); closePreferences(); }}
             className="flex-1 sm:flex-none"
           >
             Aceitar todos
