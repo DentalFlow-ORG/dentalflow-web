@@ -82,4 +82,30 @@ describe('ResetPasswordPage', () => {
       await screen.findByText('Token expirado ou inválido.'),
     ).toBeInTheDocument()
   })
+
+  describe('PasswordRequirements', () => {
+    it('shows requirements when password field is focused', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ResetPasswordPage />)
+
+      await user.click(screen.getByLabelText('Nova senha'))
+
+      expect(screen.getByRole('list', { name: 'Requisitos de senha' })).toBeInTheDocument()
+    })
+
+    it('marks met requirements as typing progresses', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<ResetPasswordPage />)
+
+      await user.type(screen.getByLabelText('Nova senha'), 'Abcdefg1@')
+
+      const items = screen.getAllByRole('listitem')
+      expect(items.length).toBe(5)
+      expect(screen.getByText('Mínimo de 8 caracteres')).toBeInTheDocument()
+      expect(screen.getByText('Letra maiúscula (A–Z)')).toBeInTheDocument()
+      expect(screen.getByText('Letra minúscula (a–z)')).toBeInTheDocument()
+      expect(screen.getByText('Número (0–9)')).toBeInTheDocument()
+      expect(screen.getByText('Caractere especial (!@#$…)')).toBeInTheDocument()
+    })
+  })
 })

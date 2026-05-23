@@ -162,6 +162,61 @@ describe('AuthForm', () => {
     })
   })
 
+  describe('PasswordRequirements', () => {
+    it('shows requirements when password field is focused in register mode', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="register" />)
+
+      await user.click(screen.getByLabelText('Senha'))
+
+      expect(screen.getByRole('list', { name: 'Requisitos de senha' })).toBeInTheDocument()
+    })
+
+    it('updates requirement indicators while typing in register mode', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="register" />)
+
+      await user.click(screen.getByLabelText('Senha'))
+      await user.type(screen.getByLabelText('Senha'), 'Abc1')
+
+      expect(screen.getByText('Mínimo de 8 caracteres')).toBeInTheDocument()
+      expect(screen.getByText('Letra maiúscula (A–Z)')).toBeInTheDocument()
+      const icons = screen.getAllByRole('listitem')
+      expect(icons.length).toBe(5)
+    })
+
+    it('hides requirements after blur when password field is empty in register mode', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="register" />)
+
+      await user.click(screen.getByLabelText('Senha'))
+      expect(screen.getByRole('list', { name: 'Requisitos de senha' })).toBeInTheDocument()
+
+      await user.tab()
+      expect(screen.queryByRole('list', { name: 'Requisitos de senha' })).not.toBeInTheDocument()
+    })
+
+    it('keeps requirements visible after blur when password has content in register mode', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="register" />)
+
+      await user.type(screen.getByLabelText('Senha'), 'abc')
+      await user.tab()
+
+      expect(screen.getByRole('list', { name: 'Requisitos de senha' })).toBeInTheDocument()
+    })
+
+    it('does not show requirements in login mode', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="login" />)
+
+      await user.click(screen.getByLabelText('Senha'))
+      await user.type(screen.getByLabelText('Senha'), 'Test@1234')
+
+      expect(screen.queryByRole('list', { name: 'Requisitos de senha' })).not.toBeInTheDocument()
+    })
+  })
+
   describe('forgot password link', () => {
     it('shows "Esqueci minha senha" link in login mode', () => {
       renderWithProviders(<AuthForm mode="login" />)
