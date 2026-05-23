@@ -1,4 +1,4 @@
-import { companyInfo } from '@/config/company'
+import { companyInfo, companyStatus } from '@/config/company'
 
 // Versões e contatos extraídos de config/company.ts — não duplique aqui
 
@@ -12,7 +12,7 @@ import {
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 const DPO_EMAIL = companyInfo.dpoEmail
-const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
+const isPlaceholderCnpj = !companyStatus.hasRealDocumentNumber
 
 export function PrivacyPolicyPage() {
   return (

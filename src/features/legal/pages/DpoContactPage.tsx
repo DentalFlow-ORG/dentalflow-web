@@ -1,14 +1,14 @@
 import { Mail, Clock, Shield, FileText } from 'lucide-react'
 
-import { companyInfo } from '@/config/company'
+import { companyInfo, companyStatus } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import { LegalPageHeader, LegalSection, LegalList } from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 const DPO_EMAIL = companyInfo.dpoEmail
-const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
-const isPlaceholderAddress = companyInfo.address.includes('TODO')
+const isPlaceholderCnpj = !companyStatus.hasRealDocumentNumber
+const isPlaceholderAddress = !companyStatus.hasRealAddress
 
 export function DpoContactPage() {
   return (
