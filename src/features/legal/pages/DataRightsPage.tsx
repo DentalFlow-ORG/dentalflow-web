@@ -11,7 +11,7 @@ import {
   legalInlineLinkClass,
 } from '../components/LegalSection'
 
-const LAST_UPDATED = '15 de maio de 2026'
+const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 
 const rights = [
   {

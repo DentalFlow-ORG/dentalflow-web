@@ -2,6 +2,7 @@ import { Mail, Clock, Shield, FileText } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
 import { companyInfo } from '@/config/company'
+import { cn } from '@/lib/utils'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
@@ -38,7 +39,7 @@ export function DpoContactPage() {
             </p>
             <a
               href={`mailto:${DPO_EMAIL}`}
-              className={`mt-2 inline-flex items-center gap-2 text-sm ${legalInlineLinkClass}`}
+              className={cn('mt-2 inline-flex items-center gap-2 text-sm', legalInlineLinkClass)}
             >
               <Mail className="h-4 w-4" aria-hidden="true" />
               {DPO_EMAIL}

@@ -10,6 +10,7 @@ import {
 import { Link } from '@tanstack/react-router'
 
 import { companyInfo } from '@/config/company'
+import { cn } from '@/lib/utils'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
@@ -180,7 +181,7 @@ export function SecurityPage() {
       <div className="mt-10">
         <Link
           to="/politica-de-privacidade"
-          className={`text-sm ${legalInlineLinkClass}`}
+          className={cn('text-sm', legalInlineLinkClass)}
         >
           Ver também: Política de Privacidade
         </Link>
