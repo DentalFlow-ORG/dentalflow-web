@@ -153,7 +153,7 @@ type LegalTableProps = {
 export function LegalTable({ headers, rows }: LegalTableProps) {
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200">
-      <table className="w-full min-w-[640px] text-sm">
+      <table className="w-full min-w-160 text-sm">
         <thead className="bg-slate-50">
           <tr>
             {headers.map((h) => (
