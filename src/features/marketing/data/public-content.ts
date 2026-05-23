@@ -176,7 +176,22 @@ export const faqItems: FaqItem[] = [
   },
 ]
 
+export type RoleWorkflowStep = {
+  step: number
+  icon: typeof CalendarDays
+  title: string
+  description: string
+}
+
+export type RoleFinalCta = {
+  headline: string
+  subtext: string
+  secondaryCtaLabel: string
+  secondaryCtaTo: string
+}
+
 export type RoleContent = {
+  // ── Existing fields ─────────────────────────────────────
   role: string
   tagline: string
   description: string
@@ -184,6 +199,14 @@ export type RoleContent = {
   benefits: { icon: typeof CalendarDays; title: string; description: string }[]
   modules: string[]
   cta: string
+  // ── New fields ──────────────────────────────────────────
+  path: string
+  accent: 'standard' | 'navy' | 'fresh'
+  mockupType: 'dashboard' | 'checklist' | 'agenda' | 'schedule'
+  highlightedBenefitIndex: number
+  moduleIcons: (typeof CalendarDays)[]
+  workflow: RoleWorkflowStep[]
+  finalCta: RoleFinalCta
 }
 
 export const roleContents: Record<string, RoleContent> = {
@@ -216,11 +239,48 @@ export const roleContents: Record<string, RoleContent> = {
     ],
     modules: ['Agenda', 'Pacientes', 'Notificações WhatsApp', 'Leads'],
     cta: 'Começar agora',
+    path: '/para-secretarias',
+    accent: 'standard',
+    mockupType: 'schedule',
+    highlightedBenefitIndex: 0,
+    moduleIcons: [CalendarDays, Users, MessageCircle, TrendingUp],
+    workflow: [
+      {
+        step: 1,
+        icon: CalendarDays,
+        title: 'Abre o sistema',
+        description: 'Agenda do dia atualizada. Status de confirmação de cada consulta visível de imediato.',
+      },
+      {
+        step: 2,
+        icon: Users,
+        title: 'Paciente liga para remarcar',
+        description: 'Busca o nome, vê o histórico de agendamentos e remarca em segundos.',
+      },
+      {
+        step: 3,
+        icon: MessageCircle,
+        title: 'Lembretes automáticos',
+        description: 'Confirmações enviadas via WhatsApp sem ligação manual. Menos faltas sem esforço.',
+      },
+      {
+        step: 4,
+        icon: TrendingUp,
+        title: 'Lead novo cadastrado',
+        description: 'Contato interessado registrado com origem e status. Nenhuma oportunidade perdida.',
+      },
+    ],
+    finalCta: {
+      headline: 'Recepção mais ágil. Pacientes mais bem atendidos.',
+      subtext: 'Configure em minutos. Sua agenda organizada desde o primeiro acesso.',
+      secondaryCtaLabel: 'Ver planos',
+      secondaryCtaTo: '/planos',
+    },
   },
   dentistas: {
     role: 'Dentista',
-    tagline: 'Consultas organizadas. Foco no paciente.',
-    description: 'O DentalFlow dá ao dentista visão clara da sua agenda do dia e acesso rápido ao histórico clínico de cada paciente, sem depender de papel ou de outra pessoa.',
+    tagline: 'Sua agenda do dia. Histórico de cada paciente. Tudo no sistema.',
+    description: 'O DentalFlow dá ao dentista visão clara da agenda e acesso rápido ao histórico clínico — sem depender de papel, de arquivo ou de outra pessoa.',
     icon: Stethoscope,
     benefits: [
       {
@@ -246,11 +306,48 @@ export const roleContents: Record<string, RoleContent> = {
     ],
     modules: ['Minha agenda', 'Prontuários digitais', 'Pacientes', 'Histórico clínico'],
     cta: 'Começar agora',
+    path: '/para-dentistas',
+    accent: 'standard',
+    mockupType: 'agenda',
+    highlightedBenefitIndex: 1,
+    moduleIcons: [CalendarDays, ClipboardList, Users, FileText],
+    workflow: [
+      {
+        step: 1,
+        icon: CalendarDays,
+        title: 'Chega na clínica',
+        description: 'Agenda do dia carregada — horários, pacientes e procedimentos de um vistaço.',
+      },
+      {
+        step: 2,
+        icon: ClipboardList,
+        title: 'Antes de entrar na sala',
+        description: 'Clica no paciente e vê o histórico clínico completo. Último atendimento, observações, tratamentos.',
+      },
+      {
+        step: 3,
+        icon: FileText,
+        title: 'Consulta realizada',
+        description: 'Registra a evolução no prontuário digital. Sem papel, sem ficha física.',
+      },
+      {
+        step: 4,
+        icon: CheckCircle2,
+        title: 'Próximo paciente',
+        description: 'Histórico salvo e disponível para a próxima consulta a qualquer momento.',
+      },
+    ],
+    finalCta: {
+      headline: 'Seus prontuários no digital. Sua agenda no controle.',
+      subtext: 'Sem papel. Sem depender de arquivo. Disponível em qualquer dispositivo.',
+      secondaryCtaLabel: 'Ver funcionalidades',
+      secondaryCtaTo: '/funcionalidades',
+    },
   },
   gestores: {
     role: 'Administrador / Gestor',
-    tagline: 'Visão completa. Decisões com base em dados.',
-    description: 'O gestor precisa de visibilidade em toda a operação. O DentalFlow reúne financeiro, estoque, leads, relatórios e IA em uma plataforma para que você decida com mais confiança.',
+    tagline: 'Visão completa da clínica. Decisões com base em dados.',
+    description: 'O DentalFlow reúne financeiro, estoque, leads, relatórios e IA em um painel que qualquer gestor entende — sem precisar abrir planilha.',
     icon: LayoutDashboard,
     benefits: [
       {
@@ -276,11 +373,48 @@ export const roleContents: Record<string, RoleContent> = {
     ],
     modules: ['Financeiro', 'Estoque', 'Leads/CRM', 'Relatórios', 'IA de gestão', 'Equipe'],
     cta: 'Começar agora',
+    path: '/para-gestores',
+    accent: 'navy',
+    mockupType: 'dashboard',
+    highlightedBenefitIndex: 0,
+    moduleIcons: [CreditCard, Package, TrendingUp, LayoutDashboard, Bot, UsersRound],
+    workflow: [
+      {
+        step: 1,
+        icon: LayoutDashboard,
+        title: 'Abre o painel',
+        description: 'Dados de agenda, financeiro e estoque atualizados. Visão completa da operação em segundos.',
+      },
+      {
+        step: 2,
+        icon: Bot,
+        title: 'IA identifica pontos de atenção',
+        description: 'Estoque crítico, pagamentos pendentes e variações na agenda identificados automaticamente.',
+      },
+      {
+        step: 3,
+        icon: TrendingUp,
+        title: 'Relatório em segundos',
+        description: 'Receita, despesas e saldo do mês por período. Sem consolidação manual de planilhas.',
+      },
+      {
+        step: 4,
+        icon: CheckCircle2,
+        title: 'Decisão fundamentada',
+        description: 'Planejar reposição, cobrar pendências, ajustar equipe — tudo com base em dados reais da clínica.',
+      },
+    ],
+    finalCta: {
+      headline: 'Painel completo da sua clínica. Sem planilha, sem suposição.',
+      subtext: 'Configure em minutos. Resultados desde o primeiro acesso.',
+      secondaryCtaLabel: 'Ver planos',
+      secondaryCtaTo: '/planos',
+    },
   },
   'clinicas-em-abertura': {
     role: 'Clínica em abertura',
-    tagline: 'Comece organizado. Evite o caos operacional.',
-    description: 'Abrir uma clínica do zero é complexo. Com o DentalFlow, você estrutura agenda, pacientes, financeiro e equipe desde o primeiro atendimento, evitando retrabalho mais tarde.',
+    tagline: 'Comece organizado. Evite o caos desde o primeiro atendimento.',
+    description: 'Abrir uma clínica do zero é complexo. Com o DentalFlow, você estrutura agenda, pacientes, financeiro e equipe desde o dia 1 — e escala sem precisar refazer tudo.',
     icon: Sparkles,
     benefits: [
       {
@@ -306,6 +440,43 @@ export const roleContents: Record<string, RoleContent> = {
     ],
     modules: ['Agenda', 'Pacientes', 'Financeiro', 'Estoque', 'Equipe'],
     cta: 'Começar agora',
+    path: '/para-clinicas-em-abertura',
+    accent: 'fresh',
+    mockupType: 'checklist',
+    highlightedBenefitIndex: 3,
+    moduleIcons: [CalendarDays, Users, CreditCard, Package, UsersRound],
+    workflow: [
+      {
+        step: 1,
+        icon: Sparkles,
+        title: 'Dia 1: Estrutura pronta',
+        description: 'Agenda criada, equipe adicionada, permissões definidas. Operação pronta antes do primeiro paciente.',
+      },
+      {
+        step: 2,
+        icon: Users,
+        title: 'Dia 3: Primeiros pacientes',
+        description: 'Cadastro, agendamento e prontuário digital desde a primeira consulta.',
+      },
+      {
+        step: 3,
+        icon: CreditCard,
+        title: 'Semana 2: Financeiro no controle',
+        description: 'Entradas e saídas registradas. Você sabe se a clínica está no caminho certo financeiramente.',
+      },
+      {
+        step: 4,
+        icon: TrendingUp,
+        title: 'Mês 1: Base para crescer',
+        description: 'Dados organizados, estoque sob controle. Adicione módulos conforme a operação expande.',
+      },
+    ],
+    finalCta: {
+      headline: 'Sua clínica começa certa. Abra organizado.',
+      subtext: '7 dias grátis para configurar tudo antes do primeiro atendimento.',
+      secondaryCtaLabel: 'Ver planos',
+      secondaryCtaTo: '/planos',
+    },
   },
 }
 
