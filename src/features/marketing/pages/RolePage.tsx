@@ -8,9 +8,11 @@ import { RoleBenefitGrid } from '../components/RoleBenefitGrid'
 import { RoleFinalCta } from '../components/RoleFinalCta'
 import { RoleHeroMockup } from '../components/RoleHeroMockup'
 import { RoleModulesPanel } from '../components/RoleModulesPanel'
+import { RoleSwitcher } from '../components/RoleSwitcher'
 import { RoleTrustStrip } from '../components/RoleTrustStrip'
 import { RoleWorkflow } from '../components/RoleWorkflow'
 import { PublicLayout } from '../components/PublicLayout'
+import { usePageMeta } from '../hooks/usePageMeta'
 import type { RoleContent } from '../data/public-content'
 
 type RolePageProps = {
@@ -18,6 +20,8 @@ type RolePageProps = {
 }
 
 export function RolePage({ content }: RolePageProps) {
+  usePageMeta(`${content.role} | DentalFlow`, content.description)
+
   const Icon = content.icon
   const isNavy = content.accent === 'navy'
   const isFresh = content.accent === 'fresh'
@@ -121,8 +125,8 @@ export function RolePage({ content }: RolePageProps) {
               </div>
             </div>
 
-            {/* Right: role mockup */}
-            <div className="w-full lg:max-w-sm xl:max-w-md">
+            {/* Right: role mockup — hidden on xs, visible from sm up */}
+            <div className="hidden w-full sm:block lg:max-w-sm xl:max-w-md">
               <RoleHeroMockup
                 type={content.mockupType}
                 accent={content.accent}
@@ -157,7 +161,10 @@ export function RolePage({ content }: RolePageProps) {
         roleLabel={content.role}
       />
 
-      {/* ── 6. Final CTA ────────────────────────────────────────── */}
+      {/* ── 6. Cross-role navigation ─────────────────────────────── */}
+      <RoleSwitcher currentPath={content.path} />
+
+      {/* ── 7. Final CTA ────────────────────────────────────────── */}
       <RoleFinalCta finalCta={content.finalCta} />
     </PublicLayout>
   )
