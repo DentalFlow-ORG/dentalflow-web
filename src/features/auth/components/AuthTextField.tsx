@@ -14,6 +14,8 @@ type AuthTextFieldProps = {
   minLength?: number
   required?: boolean
   onChange: (value: string) => void
+  onFocus?: () => void
+  onBlur?: () => void
 }
 
 export function AuthTextField({
@@ -28,6 +30,8 @@ export function AuthTextField({
   minLength,
   required = true,
   onChange,
+  onFocus,
+  onBlur,
 }: AuthTextFieldProps) {
   if (type === 'password') {
     return (
@@ -47,6 +51,8 @@ export function AuthTextField({
           icon={Icon}
           variant="auth"
           onChange={(event) => onChange(event.target.value)}
+          onFocus={onFocus}
+          onBlur={onBlur}
         />
       </div>
     )

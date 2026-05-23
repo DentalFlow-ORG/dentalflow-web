@@ -24,6 +24,7 @@ import { getGoogleOAuthStartUrl } from '../services/auth.service'
 import type { AuthMode } from '../types'
 import { splitFullName } from '../utils/name'
 import { AuthTextField } from './AuthTextField'
+import { PasswordRequirements } from './PasswordRequirements'
 
 type AuthFormProps = {
   mode: AuthMode
@@ -46,6 +47,7 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [passwordFocused, setPasswordFocused] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [googleError, setGoogleError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -214,7 +216,12 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
             minLength={8}
             maxLength={72}
             onChange={setPassword}
+            onFocus={() => setPasswordFocused(true)}
+            onBlur={() => setPasswordFocused(false)}
           />
+          {!isLogin && (
+            <PasswordRequirements password={password} visible={passwordFocused} />
+          )}
 
           {isLogin && (
             <div className="flex justify-end -mt-2">
