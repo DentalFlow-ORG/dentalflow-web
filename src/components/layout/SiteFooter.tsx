@@ -1,9 +1,56 @@
+import type { ReactNode } from 'react'
+import { Link } from '@tanstack/react-router'
+import { ChevronRight, Mail } from 'lucide-react'
+
 import { companyInfo, socialLinks } from '@/config/company'
-import { onlyDigits } from '@/lib/field-formatters'
+import { cn } from '@/lib/utils'
 import { useCookieConsent } from '@/features/privacy/components/CookieConsentContext'
 
-const footerLinkClass =
-  'df-animated-link rounded text-blue-100 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40'
+// ── Shared link base ──────────────────────────────────────────────────────────
+
+const footerLinkBase =
+  'group inline-flex items-center gap-1.5 rounded-sm py-1 text-sm text-slate-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40'
+
+function FooterChevron() {
+  return (
+    <ChevronRight
+      className="h-3 w-3 shrink-0 text-slate-600 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-emerald-500"
+      aria-hidden="true"
+    />
+  )
+}
+
+function FooterNavLink({ to, children }: { to: string; children: ReactNode }) {
+  return (
+    <Link to={to as never} className={footerLinkBase}>
+      <FooterChevron />
+      {children}
+    </Link>
+  )
+}
+
+function FooterHrefLink({
+  href,
+  children,
+  external,
+  icon,
+}: {
+  href: string
+  children: ReactNode
+  external?: boolean
+  icon?: ReactNode
+}) {
+  return (
+    <a
+      href={href}
+      className={cn(footerLinkBase)}
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+    >
+      {icon ?? <FooterChevron />}
+      {children}
+    </a>
+  )
+}
 
 function CookiePreferencesButton() {
   const { openPreferences } = useCookieConsent()
@@ -11,14 +58,15 @@ function CookiePreferencesButton() {
     <button
       type="button"
       onClick={openPreferences}
-      className={`cursor-pointer ${footerLinkClass}`}
+      className={cn('cursor-pointer text-left', footerLinkBase)}
     >
-      Cookies
+      <FooterChevron />
+      Política de cookies
     </button>
   )
 }
 
-// ── Social icon SVGs ──────────────────────────────────────────────────────────
+// ── Social ────────────────────────────────────────────────────────────────────
 
 function YouTubeIcon() {
   return (
@@ -28,221 +76,146 @@ function YouTubeIcon() {
   )
 }
 
-function InstagramIcon() {
+// ── Nav data ──────────────────────────────────────────────────────────────────
+
+type NavItem = { label: string; href: string }
+
+const PRODUTO: NavItem[] = [
+  { label: 'Funcionalidades', href: '/funcionalidades' },
+  { label: 'Planos', href: '/planos' },
+  { label: 'Para gestores', href: '/para-gestores' },
+  { label: 'Para clínicas em abertura', href: '/para-clinicas-em-abertura' },
+  { label: 'Para dentistas', href: '/para-dentistas' },
+  { label: 'Para secretárias', href: '/para-secretarias' },
+]
+
+const RECURSOS: NavItem[] = [
+  { label: 'Agenda inteligente', href: '/funcionalidades/agenda' },
+  { label: 'Prontuário eletrônico', href: '/funcionalidades/prontuarios' },
+  { label: 'Gestão financeira', href: '/funcionalidades/financeiro' },
+  { label: 'Relatórios e indicadores', href: '/funcionalidades/relatorios' },
+  { label: 'IA de gestão', href: '/funcionalidades/ia' },
+  { label: 'Integrações', href: '/integracoes' },
+]
+
+const LEGAL: NavItem[] = [
+  { label: 'Termos de uso', href: '/termos-de-uso' },
+  { label: 'Política de privacidade', href: '/politica-de-privacidade' },
+  { label: 'Segurança', href: '/seguranca' },
+  { label: 'Tratamento de dados', href: '/tratamento-de-dados' },
+  { label: 'Encarregado / DPO', href: '/encarregado' },
+]
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function ColumnHeading({ children }: { children: ReactNode }) {
   return (
-    <svg role="img" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
-      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z" />
-    </svg>
+    <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500">{children}</h3>
   )
 }
 
-function LinkedInIcon() {
+function NavColumn({ heading, items }: { heading: string; items: NavItem[] }) {
   return (
-    <svg role="img" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
-      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-    </svg>
+    <div>
+      <ColumnHeading>{heading}</ColumnHeading>
+      <ul className="mt-4 space-y-2.5">
+        {items.map((item) => (
+          <li key={item.href}>
+            <FooterNavLink to={item.href}>{item.label}</FooterNavLink>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
-function WhatsAppIcon() {
-  return (
-    <svg role="img" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" />
-    </svg>
-  )
-}
-
-type SocialButtonProps = {
-  href: string
-  label: string
-  icon: React.ReactNode
-}
-
-function SocialButton({ href, label, icon }: SocialButtonProps) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={label}
-      title={label}
-      className="group flex h-10 w-10 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-blue-200 transition-all duration-200 hover:border-white/30 hover:bg-white/15 hover:text-white hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 active:scale-95"
-    >
-      {icon}
-    </a>
-  )
-}
-
-const isPlaceholderPhone = companyInfo.phone === '(00) 00000-0000'
-const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
-const isPlaceholderAddress = companyInfo.address.includes('TODO')
-const hasRealCompanyData = !isPlaceholderCnpj && !isPlaceholderAddress
-
-const activeSocialLinks = [
-  socialLinks.youtube && { href: socialLinks.youtube, label: 'DentalFlow no YouTube', icon: <YouTubeIcon /> },
-  socialLinks.instagram && { href: socialLinks.instagram, label: 'DentalFlow no Instagram', icon: <InstagramIcon /> },
-  socialLinks.linkedin && { href: socialLinks.linkedin, label: 'DentalFlow no LinkedIn', icon: <LinkedInIcon /> },
-  socialLinks.whatsapp && { href: socialLinks.whatsapp, label: 'Contato via WhatsApp', icon: <WhatsAppIcon /> },
-].filter(Boolean) as SocialButtonProps[]
+// ── Footer ────────────────────────────────────────────────────────────────────
 
 export function SiteFooter() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-white/15 bg-[#082f5f]">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 text-sm text-blue-200 md:grid-cols-[1.1fr_0.9fr_0.8fr] lg:px-8">
+    <footer className="border-t border-white/10 bg-slate-950">
+      <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
 
-        {/* Brand + description + social */}
-        <div>
-          <div className="flex items-center gap-3">
-            <img
-              src="/logo-without-bg.png"
-              alt={companyInfo.tradeName}
-              className="h-12 w-12 shrink-0 object-contain"
-              style={{ filter: 'brightness(0) invert(1)' }}
-            />
-            <span className="h-10 w-px shrink-0 bg-white/15" aria-hidden="true" />
-            <div>
-              <p className="font-semibold text-white">{companyInfo.tradeName}</p>
-              <p className="italic text-blue-300/80">{companyInfo.brandSlogan}</p>
+        {/* Top grid */}
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
+
+          {/* Brand */}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <div className="flex items-center gap-2.5">
+              <img
+                src="/logo-without-bg.png"
+                alt={companyInfo.tradeName}
+                className="h-9 w-9 shrink-0 object-contain"
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+              <span className="text-base font-semibold text-white">{companyInfo.tradeName}</span>
             </div>
-          </div>
-          <p className="mt-6 max-w-md leading-6">
-            Organize consultas, pacientes, equipe e permissões em uma plataforma simples e segura, feita para a rotina real de clínicas odontológicas.
-          </p>
-
-          {/* Social links — only rendered when at least one URL is configured */}
-          {activeSocialLinks.length > 0 && (
-            <div className="mt-6">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-blue-400">
-                Siga-nos
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {activeSocialLinks.map((link) => (
-                  <SocialButton key={link.href} {...link} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Placeholder notice — only in dev when no social links are set */}
-          {activeSocialLinks.length === 0 && (
-            <div className="mt-6 flex flex-wrap gap-2">
-              <span
-                aria-label="DentalFlow no YouTube (em breve)"
-                title="YouTube — em breve"
-                className="flex h-10 w-10 cursor-default items-center justify-center rounded-lg border border-white/10 bg-white/5 text-blue-300/50"
-              >
-                <YouTubeIcon />
-              </span>
-              <span
-                aria-label="DentalFlow no Instagram (em breve)"
-                title="Instagram — em breve"
-                className="flex h-10 w-10 cursor-default items-center justify-center rounded-lg border border-white/10 bg-white/5 text-blue-300/50"
-              >
-                <InstagramIcon />
-              </span>
-              <span
-                aria-label="DentalFlow no LinkedIn (em breve)"
-                title="LinkedIn — em breve"
-                className="flex h-10 w-10 cursor-default items-center justify-center rounded-lg border border-white/10 bg-white/5 text-blue-300/50"
-              >
-                <LinkedInIcon />
-              </span>
-              <span
-                aria-label="Contato WhatsApp (em breve)"
-                title="WhatsApp — em breve"
-                className="flex h-10 w-10 cursor-default items-center justify-center rounded-lg border border-white/10 bg-white/5 text-blue-300/50"
-              >
-                <WhatsAppIcon />
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Company data */}
-        <div>
-          <h3 className="font-semibold text-white">Dados da empresa</h3>
-          {hasRealCompanyData ? (
-            <dl className="mt-4 space-y-3">
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-300">
-                  Razão social
-                </dt>
-                <dd className="mt-1">{companyInfo.legalName}</dd>
-              </div>
-              {!isPlaceholderCnpj && (
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-300">
-                    CNPJ
-                  </dt>
-                  <dd className="mt-1">{companyInfo.documentNumber}</dd>
-                </div>
-              )}
-              {!isPlaceholderAddress && (
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-300">
-                    Endereço
-                  </dt>
-                  <dd className="mt-1">{companyInfo.address}</dd>
-                </div>
-              )}
-            </dl>
-          ) : (
-            <p className="mt-4 leading-6">
-              Dados legais disponíveis nos canais oficiais da empresa.
+            <p className="mt-5 max-w-[22rem] text-sm leading-6 text-slate-400">
+              Plataforma de gestão odontológica para organizar agenda, pacientes, equipe e finanças em um só lugar.
             </p>
-          )}
-        </div>
 
-        {/* Contact + legal links */}
-        <div>
-          <h3 className="font-semibold text-white">Contato e legal</h3>
-          <div className="mt-4 space-y-3">
-            {!isPlaceholderPhone && (
-              <a
-                href={`tel:${onlyDigits(companyInfo.phone)}`}
-                className={`block ${footerLinkClass}`}
-              >
-                {companyInfo.phone}
-              </a>
+            {socialLinks.youtube && (
+              <div className="mt-6">
+                <a
+                  href={socialLinks.youtube}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="DentalFlow no YouTube"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-slate-400 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                >
+                  <YouTubeIcon />
+                </a>
+              </div>
             )}
-            <a
-              href={`mailto:${companyInfo.supportEmail}`}
-              className={`block ${footerLinkClass}`}
-            >
-              {companyInfo.supportEmail}
-            </a>
-            <div className="flex flex-wrap gap-x-5 gap-y-2 pt-2">
-              <a href="/politica-de-privacidade" className={footerLinkClass}>
-                Privacidade
-              </a>
-              <a href="/termos-de-uso" className={footerLinkClass}>
-                Termos
-              </a>
-              <a href="/seguranca" className={footerLinkClass}>
-                Segurança
-              </a>
-              <a href="/direitos-do-titular" className={footerLinkClass}>
-                Seus dados
-              </a>
-              <CookiePreferencesButton />
-              <a href={`mailto:${companyInfo.supportEmail}`} className={footerLinkClass}>
-                Suporte
-              </a>
-            </div>
+          </div>
+
+          <NavColumn heading="Produto" items={PRODUTO} />
+          <NavColumn heading="Recursos" items={RECURSOS} />
+
+          {/* Suporte */}
+          <div>
+            <ColumnHeading>Suporte</ColumnHeading>
+            <ul className="mt-4 space-y-2.5">
+              <li>
+                <FooterNavLink to="/faq">FAQ</FooterNavLink>
+              </li>
+              <li>
+                <FooterHrefLink
+                  href={`mailto:${companyInfo.supportEmail}`}
+                  icon={
+                    <Mail className="h-3 w-3 shrink-0 text-slate-600 transition-colors group-hover:text-emerald-500" aria-hidden="true" />
+                  }
+                >
+                  {companyInfo.supportEmail}
+                </FooterHrefLink>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <ColumnHeading>Legal</ColumnHeading>
+            <ul className="mt-4 space-y-2.5">
+              {LEGAL.map((item) => (
+                <li key={item.href}>
+                  <FooterNavLink to={item.href}>{item.label}</FooterNavLink>
+                </li>
+              ))}
+              <li>
+                <CookiePreferencesButton />
+              </li>
+            </ul>
           </div>
         </div>
-      </div>
 
-      <div className="border-t border-white/15">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-5 text-xs leading-5 text-blue-300 md:flex-row md:items-center md:justify-between lg:px-8">
-          <p>
-            Copyright © {currentYear} {companyInfo.legalName}. Todos os direitos reservados.
-          </p>
-          <p>
-            {companyInfo.tradeName} e marcas relacionadas pertencem aos seus respectivos titulares.
-          </p>
+        {/* Copyright bar */}
+        <div className="mt-14 border-t border-white/10 pt-6">
+          <div className="flex flex-col gap-2 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+            <p>© {currentYear} {companyInfo.legalName}. Todos os direitos reservados.</p>
+            <p>{companyInfo.tradeName} e marcas relacionadas pertencem aos seus respectivos titulares.</p>
+          </div>
         </div>
       </div>
     </footer>

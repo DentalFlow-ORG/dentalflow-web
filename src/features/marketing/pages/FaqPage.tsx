@@ -88,15 +88,15 @@ export function FaqPage() {
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <a
-              href="mailto:contato@dentalflow.com.br"
-              className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md"
+              href={`mailto:${companyInfo.supportEmail}`}
+              className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-primary/25 hover:shadow-md"
             >
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
                 <Mail className="h-5 w-5 text-primary" aria-hidden="true" />
               </div>
               <div>
                 <p className="font-semibold text-slate-800">E-mail de suporte</p>
-                <p className="mt-0.5 text-sm text-primary">contato@dentalflow.com.br</p>
+                <p className="mt-0.5 text-sm text-primary">{companyInfo.supportEmail}</p>
               </div>
             </a>
             <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5">
@@ -119,7 +119,6 @@ export function FaqPage() {
             Quer experimentar sem compromisso?
           </h2>
           <p className="mt-3 text-blue-200">7 dias gratuitos, sem cartão de crédito.</p>
-          <p className="mt-2 text-sm italic text-blue-200/60">{companyInfo.brandSlogan}</p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button size="lg" variant="secondary" asChild>
               <a href="/acessar?mode=register">

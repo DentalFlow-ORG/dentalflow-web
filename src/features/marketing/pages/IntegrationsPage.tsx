@@ -1,7 +1,6 @@
 import { ArrowRight, CheckCircle2, Settings, Zap } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { companyInfo } from '@/config/company'
 import { cn } from '@/lib/utils'
 
 import { PublicLayout } from '../components/PublicLayout'
@@ -54,7 +53,6 @@ export function IntegrationsPage() {
           <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-slate-500">
             O DentalFlow conecta-se a serviços reconhecidos do mercado para entregar uma experiência completa e confiável.
           </p>
-          <p className="mt-4 text-sm italic text-slate-400">{companyInfo.brandSlogan}</p>
         </div>
       </section>
 
