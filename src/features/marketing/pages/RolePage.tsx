@@ -23,7 +23,7 @@ export function RolePage({ content }: RolePageProps) {
   const isFresh = content.accent === 'fresh'
 
   return (
-    <PublicLayout>
+    <PublicLayout darkHero={isNavy}>
       {/* ── 1. Hero ─────────────────────────────────────────────── */}
       <section
         className={cn(
@@ -89,10 +89,7 @@ export function RolePage({ content }: RolePageProps) {
                 </Button>
                 <Button
                   size="lg"
-                  variant="outline"
-                  className={cn(
-                    isNavy && 'border-white/20 text-white hover:bg-white/10 hover:text-white',
-                  )}
+                  variant={isNavy ? 'inverse' : 'outline'}
                   asChild
                 >
                   <Link to="/planos">Ver planos</Link>

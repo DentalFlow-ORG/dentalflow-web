@@ -19,6 +19,7 @@ import {
 import { clearBillingStatusCache } from '@/features/billing/services/billing-status-cache'
 import {
   clearSession,
+  hasStoredSession,
   setSession,
   setTokens,
   updateStoredUser,
@@ -52,22 +53,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
       },
     })
 
-    refresh()
-      .then(({ accessToken }) => {
-        setTokens(accessToken)
-        return getCurrentUser()
-      })
-      .then((currentUser) => {
-        setUser(currentUser)
-        updateStoredUser(currentUser)
-      })
-      .catch(() => {
-        clearSession()
-        setUser(null)
-      })
-      .finally(() => {
-        setIsBootstrapping(false)
-      })
+    if (hasStoredSession()) {
+      refresh()
+        .then(({ accessToken }) => {
+          setTokens(accessToken)
+          return getCurrentUser()
+        })
+        .then((currentUser) => {
+          setUser(currentUser)
+          updateStoredUser(currentUser)
+        })
+        .catch(() => {
+          clearSession()
+          setUser(null)
+        })
+        .finally(() => {
+          setIsBootstrapping(false)
+        })
+    } else {
+      setIsBootstrapping(false)
+    }
   }, [])
 
   const login = useCallback(async (payload: LoginPayload) => {
