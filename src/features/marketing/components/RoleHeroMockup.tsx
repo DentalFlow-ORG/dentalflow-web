@@ -1,4 +1,4 @@
-import { Bot, CheckCircle2, Sparkles } from 'lucide-react'
+import { Bot, CheckCircle2, Search, Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -35,8 +35,12 @@ export function RoleHeroMockup({
     return <AgendaMockup />
   }
 
-  // Block 5 pending: generic module-preview stub for /para-secretarias
+  // Block 5: scheduling board mockup for /para-secretarias
+  if (type === 'schedule') {
+    return <ScheduleMockup />
+  }
 
+  // Generic safety fallback for any future mockup type not yet implemented
   const isNavy = accent === 'navy'
 
   return (
@@ -612,6 +616,176 @@ function AgendaMockup() {
             <span className="text-[10px] font-medium text-slate-600">{label}</span>
           </div>
         ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Scheduling board mockup (/para-secretarias) ────────────────────────────────
+// All data here is illustrative — shown to convey product capability, not real metrics.
+
+type SecretaryAppt = { time: string; patient: string; procedure: string; status: 'confirmed' | 'pending' | 'in-progress' }
+
+const SECRETARY_APPTS: SecretaryAppt[] = [
+  { time: '08:30', patient: 'Ana Martins', procedure: 'Limpeza', status: 'confirmed' },
+  { time: '10:00', patient: 'Carlos Lima', procedure: 'Avaliação', status: 'pending' },
+  { time: '11:30', patient: 'Mariana Souza', procedure: 'Retorno', status: 'in-progress' },
+]
+
+const DAILY_STATS = [
+  { value: '12', label: 'Confirmados' },
+  { value: '3', label: 'A confirmar' },
+  { value: '2', label: 'Encaixes' },
+]
+
+function ScheduleMockup() {
+  return (
+    <div
+      className="overflow-hidden rounded-2xl border border-sky-200/60 bg-white shadow-2xl shadow-sky-950/10 ring-1 ring-sky-500/[0.05]"
+      aria-hidden="true"
+    >
+      {/* ── Window header ─────────────────────────────────────── */}
+      <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/60 px-5 py-3.5">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+            DentalFlow
+          </p>
+          <p className="mt-0.5 text-sm font-semibold text-slate-800">Central de agendamentos</p>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full border border-sky-200 bg-white px-2.5 py-1 shadow-sm">
+          <span className="relative flex h-1.5 w-1.5 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-60" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-sky-500" />
+          </span>
+          <span className="text-[11px] font-medium text-slate-500">Ao vivo</span>
+        </div>
+      </div>
+
+      {/* ── Daily summary ─────────────────────────────────────── */}
+      <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-100 bg-slate-50/40">
+        {DAILY_STATS.map((stat) => (
+          <div key={stat.label} className="px-3 py-2.5 text-center">
+            <p className="text-base font-bold tabular-nums text-slate-800">{stat.value}</p>
+            <p className="mt-0.5 text-[9px] font-medium text-slate-400">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Appointment rows ──────────────────────────────────── */}
+      <div className="px-5 pt-3.5">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          Agenda de hoje
+        </p>
+        <div className="space-y-1.5">
+          {SECRETARY_APPTS.map((appt) => (
+            <div
+              key={appt.time}
+              className={cn(
+                'flex items-center gap-2 rounded-lg px-3 py-2',
+                appt.status === 'pending'
+                  ? 'bg-amber-50 ring-1 ring-amber-200/70'
+                  : 'bg-slate-50',
+              )}
+            >
+              <span
+                className={cn(
+                  'min-w-[38px] text-xs font-bold tabular-nums',
+                  appt.status === 'in-progress'
+                    ? 'text-blue-600'
+                    : appt.status === 'pending'
+                      ? 'text-amber-600'
+                      : 'text-slate-400',
+                )}
+              >
+                {appt.time}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-slate-700">{appt.patient}</p>
+                <p className="text-[10px] text-slate-400">{appt.procedure}</p>
+              </div>
+              <span
+                className={cn(
+                  'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                  appt.status === 'confirmed'
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : appt.status === 'pending'
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-blue-100 text-blue-700',
+                )}
+              >
+                {appt.status === 'confirmed'
+                  ? 'Confirmado'
+                  : appt.status === 'pending'
+                    ? 'A confirmar'
+                    : 'Atendimento'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Patient search ────────────────────────────────────── */}
+      <div className="px-5 pt-3">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2">
+            <Search className="h-3.5 w-3.5 shrink-0 text-slate-300" />
+            <span className="text-xs text-slate-400">Buscar paciente...</span>
+          </div>
+          <div className="flex items-center gap-2.5 px-3 py-2">
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-100 text-[9px] font-bold text-sky-600">
+              JS
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-semibold text-slate-700">João Silva</p>
+              <p className="text-[10px] text-slate-400">Última consulta · 15/04</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Quick actions ─────────────────────────────────────── */}
+      <div className="px-5 pt-3">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          Ações rápidas
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-semibold text-emerald-700">
+            Enviar lembrete
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] font-semibold text-slate-600">
+            Reagendar
+          </div>
+          <div className="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1.5 text-[10px] font-semibold text-sky-700">
+            Confirmar
+          </div>
+        </div>
+      </div>
+
+      {/* ── Insight strip ─────────────────────────────────────── */}
+      <div className="mx-4 mb-3.5 mt-3 rounded-lg border border-slate-200/80 bg-slate-50 px-3 py-2">
+        <p className="text-[11px] leading-[1.4] text-slate-500">
+          Agenda, pacientes e confirmações em uma rotina mais simples.
+        </p>
+      </div>
+
+      {/* ── Status footer ─────────────────────────────────────── */}
+      <div className="flex flex-wrap gap-1.5 border-t border-slate-100 bg-slate-50/50 px-5 py-3">
+        <div className="flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-2.5 py-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <span className="text-[10px] font-medium text-slate-600">Confirmado</span>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-2.5 py-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+          <span className="text-[10px] font-medium text-slate-600">A confirmar</span>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-2.5 py-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+          <span className="text-[10px] font-medium text-slate-600">Reagendado</span>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-2.5 py-1">
+          <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+          <span className="text-[10px] font-medium text-slate-600">Em atendimento</span>
+        </div>
       </div>
     </div>
   )
