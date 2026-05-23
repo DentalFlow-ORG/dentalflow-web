@@ -44,10 +44,12 @@ export function LandingPage() {
       <AnimatedImpactSection />
 
       <SectionDivider variant="gray-to-dark" />
-      <VideoSection />
-
       <PricingSection />
 
+      <SectionDivider variant="dark-to-light" />
+      <VideoSection />
+
+      <SectionDivider variant="light-to-blue" />
       <TrialCtaSection />
     </PublicLayout>
   )

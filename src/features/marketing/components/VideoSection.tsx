@@ -16,7 +16,7 @@ export function VideoSection() {
   return (
     <section
       ref={ref}
-      className="relative overflow-hidden bg-slate-950 py-18 lg:py-22"
+      className="relative overflow-hidden bg-white py-18 lg:py-22"
       aria-labelledby="landing-video-title"
     >
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -25,7 +25,7 @@ export function VideoSection() {
           className="absolute right-0 top-0 h-full w-1/2"
           style={{
             backgroundImage:
-              'radial-gradient(ellipse 75% 50% at 100% 20%, rgba(34,211,238,0.09) 0%, transparent 65%)',
+              'radial-gradient(ellipse 75% 50% at 100% 20%, rgba(30,58,138,0.08) 0%, transparent 65%)',
           }}
         />
         {/* Bottom-left ambient */}
@@ -33,7 +33,7 @@ export function VideoSection() {
           className="absolute bottom-0 left-0 h-full w-1/2"
           style={{
             backgroundImage:
-              'radial-gradient(ellipse 75% 50% at 0% 85%, rgba(52,211,153,0.07) 0%, transparent 65%)',
+              'radial-gradient(ellipse 75% 50% at 0% 85%, rgba(16,185,129,0.08) 0%, transparent 65%)',
           }}
         />
       </div>
@@ -45,21 +45,21 @@ export function VideoSection() {
             isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',
           )}
         >
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cyan-300">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
             Visão geral da plataforma
           </p>
           <h2
             id="landing-video-title"
-            className="mt-4 max-w-xl text-3xl font-semibold leading-tight text-white sm:text-4xl"
+            className="mt-4 max-w-xl text-3xl font-semibold leading-tight text-slate-950 sm:text-4xl"
           >
             Conheça o DentalFlow em poucos minutos
           </h2>
-          <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">
+          <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
             Veja como o DentalFlow conecta gestão, automação e clareza operacional para
             clínicas que querem crescer com mais controle e menos retrabalho.
           </p>
 
-          <div className="mt-8 grid gap-3 text-sm text-slate-300">
+          <div className="mt-8 grid gap-3 text-sm text-slate-600">
             {(
               [
                 ['Plataforma SaaS para a rotina odontológica', Sparkles],
@@ -69,9 +69,9 @@ export function VideoSection() {
             ).map(([label, Icon]) => (
               <div
                 key={label}
-                className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3"
+                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm shadow-slate-950/[0.03]"
               >
-                <Icon className="h-4 w-4 shrink-0 text-cyan-300" aria-hidden="true" />
+                <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                 <span>{label}</span>
               </div>
             ))}
@@ -80,12 +80,12 @@ export function VideoSection() {
 
         <div
           className={cn(
-            'rounded-2xl border border-white/10 bg-white/[0.07] p-2 shadow-2xl shadow-black/25 transition-all duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100',
+            'rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-slate-950/12 transition-all duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100',
             isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',
           )}
           style={{ transitionDelay: isVisible ? '120ms' : '0ms' }}
         >
-          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-900">
+          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-950 ring-1 ring-slate-950/5">
             {isPlaying ? (
               <iframe
                 src={VIDEO_EMBED_URL}
