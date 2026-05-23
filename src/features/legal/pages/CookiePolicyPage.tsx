@@ -1,7 +1,15 @@
+import { Lock, Settings, BarChart2, Megaphone } from 'lucide-react'
+
 import { companyInfo } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
-import { LegalPageHeader, LegalSection, LegalList, LegalTable } from '../components/LegalSection'
+import {
+  LegalPageHeader,
+  LegalSection,
+  LegalList,
+  LegalTable,
+  LegalContactBlock,
+} from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 const POLICY_VERSION = companyInfo.cookiePolicyVersion
@@ -27,8 +35,11 @@ export function CookiePolicyPage() {
 
       <LegalSection id="categorias" title="2. Categorias de Cookies que Utilizamos">
         <div className="space-y-6">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
+          <div className="rounded-lg border border-blue-100 bg-blue-50/40 p-5">
             <div className="flex items-center gap-3">
+              <div className="inline-flex rounded-lg bg-blue-100 p-2">
+                <Lock className="h-4 w-4 text-blue-600" aria-hidden="true" />
+              </div>
               <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
                 Sempre ativo
               </span>
@@ -50,6 +61,9 @@ export function CookiePolicyPage() {
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
             <div className="flex items-center gap-3">
+              <div className="inline-flex rounded-lg bg-slate-100 p-2">
+                <Settings className="h-4 w-4 text-slate-500" aria-hidden="true" />
+              </div>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                 Opcional
               </span>
@@ -68,6 +82,9 @@ export function CookiePolicyPage() {
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
             <div className="flex items-center gap-3">
+              <div className="inline-flex rounded-lg bg-slate-100 p-2">
+                <BarChart2 className="h-4 w-4 text-slate-500" aria-hidden="true" />
+              </div>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                 Opcional
               </span>
@@ -88,6 +105,9 @@ export function CookiePolicyPage() {
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-5">
             <div className="flex items-center gap-3">
+              <div className="inline-flex rounded-lg bg-slate-100 p-2">
+                <Megaphone className="h-4 w-4 text-slate-500" aria-hidden="true" />
+              </div>
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                 Opcional
               </span>
@@ -154,6 +174,8 @@ export function CookiePolicyPage() {
           <strong>v{POLICY_VERSION}</strong>.
         </p>
       </LegalSection>
+
+      <LegalContactBlock email={companyInfo.privacyEmail} />
     </LegalPageShell>
   )
 }

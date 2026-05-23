@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Mail } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -78,6 +78,68 @@ export function LegalList({ items, ordered = false }: LegalListProps) {
         </li>
       ))}
     </Tag>
+  )
+}
+
+// ── LegalTOC ─────────────────────────────────────────────────────────────────
+
+type TocEntry = { id: string; label: string }
+
+type LegalTOCProps = {
+  entries: TocEntry[]
+  className?: string
+}
+
+export function LegalTOC({ entries, className }: LegalTOCProps) {
+  return (
+    <nav
+      aria-label="Índice do documento"
+      className={cn(
+        'mb-12 rounded-2xl border border-slate-200 bg-white p-6',
+        className,
+      )}
+    >
+      <p className="mb-4 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+        Neste documento
+      </p>
+      <ol className="grid gap-x-8 gap-y-1 sm:grid-cols-2">
+        {entries.map(({ id, label }) => (
+          <li key={id}>
+            <a
+              href={`#${id}`}
+              className="block rounded-sm py-1 text-sm leading-5 text-slate-700 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            >
+              {label}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+// ── LegalContactBlock ─────────────────────────────────────────────────────────
+
+type LegalContactBlockProps = {
+  email: string
+  message?: string
+}
+
+export function LegalContactBlock({ email, message }: LegalContactBlockProps) {
+  return (
+    <div className="mt-12 rounded-2xl border border-slate-200 bg-slate-50 p-6">
+      <p className="text-sm font-semibold text-slate-900">Dúvidas sobre este documento?</p>
+      <p className="mt-1 text-sm leading-6 text-slate-500">
+        {message ?? 'Se tiver dúvidas sobre este documento, entre em contato pelos canais oficiais.'}
+      </p>
+      <a
+        href={`mailto:${email}`}
+        className={cn('mt-3 inline-flex items-center gap-2 text-sm', legalInlineLinkClass)}
+      >
+        <Mail className="h-4 w-4" aria-hidden="true" />
+        {email}
+      </a>
+    </div>
   )
 }
 

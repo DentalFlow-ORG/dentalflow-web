@@ -1,9 +1,16 @@
 import { Mail, Clock, Shield, FileText } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 
 import { companyInfo, companyStatus } from '@/config/company'
+import { cn } from '@/lib/utils'
 
 import { LegalPageShell } from '../components/LegalPageShell'
-import { LegalPageHeader, LegalSection, LegalList } from '../components/LegalSection'
+import {
+  LegalPageHeader,
+  LegalSection,
+  LegalList,
+  legalInlineLinkClass,
+} from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 const DPO_EMAIL = companyInfo.dpoEmail
@@ -32,9 +39,9 @@ export function DpoContactPage() {
             </p>
             <a
               href={`mailto:${DPO_EMAIL}`}
-              className="mt-2 inline-flex items-center gap-2 text-primary underline"
+              className={cn('mt-2 inline-flex items-center gap-2 text-sm', legalInlineLinkClass)}
             >
-              <Mail className="h-4 w-4" />
+              <Mail className="h-4 w-4" aria-hidden="true" />
               {DPO_EMAIL}
             </a>
           </div>
@@ -96,7 +103,7 @@ export function DpoContactPage() {
       <LegalSection id="como-contatar" title="3. Como Entrar em Contato">
         <p>
           Envie um e-mail para{' '}
-          <a href={`mailto:${DPO_EMAIL}`} className="text-primary underline">
+          <a href={`mailto:${DPO_EMAIL}`} className={legalInlineLinkClass}>
             {DPO_EMAIL}
           </a>{' '}
           com as seguintes informações:
@@ -112,9 +119,9 @@ export function DpoContactPage() {
         />
         <p>
           Para solicitações de exercício de direitos, você também pode usar nosso{' '}
-          <a href="/direitos-do-titular/solicitar" className="text-primary underline">
+          <Link to="/direitos-do-titular/solicitar" className={legalInlineLinkClass}>
             formulário online
-          </a>
+          </Link>
           .
         </p>
       </LegalSection>
@@ -138,7 +145,7 @@ export function DpoContactPage() {
             href="https://www.gov.br/anpd"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary underline"
+            className={legalInlineLinkClass}
           >
             www.gov.br/anpd
           </a>
