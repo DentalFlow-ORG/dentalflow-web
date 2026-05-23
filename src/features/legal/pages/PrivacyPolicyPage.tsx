@@ -1,6 +1,5 @@
+import { companyInfo, companyStatus } from '@/config/company'
 import { Link } from '@tanstack/react-router'
-
-import { companyInfo } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
@@ -15,7 +14,7 @@ import {
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 const DPO_EMAIL = companyInfo.dpoEmail
-const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
+const isPlaceholderCnpj = !companyStatus.hasRealDocumentNumber
 
 const TOC_ENTRIES = [
   { id: 'quem-somos', label: '1. Quem Somos' },

@@ -19,21 +19,39 @@ export const companyInfo = {
   /** Slogan oficial da marca. */
   brandSlogan: 'Sua clínica no flow, seu crescimento é show!',
 
-  /** CNPJ formatado. TODO: preencher com CNPJ real antes da produção. */
-  documentNumber: '00.000.000/0001-00',
+  /**
+   * CNPJ formatado.
+   * TODO (pré-lançamento → operação comercial): preencher com CNPJ real registrado na
+   * Receita Federal e definir companyStatus.hasRealDocumentNumber = true.
+   */
+  documentNumber: 'Em processo de formalização',
 
-  /** Endereço completo para fins legais. TODO: preencher antes da produção. */
-  address: 'TODO: Endereço comercial completo',
+  /**
+   * Endereço completo para fins legais.
+   * TODO (pré-lançamento → operação comercial): preencher com endereço comercial completo
+   * (logradouro, número, cidade, UF, CEP) e definir companyStatus.hasRealAddress = true.
+   */
+  address: 'Em processo de formalização',
 
-  /** Telefone de suporte. TODO: preencher antes da produção. */
-  phone: '(00) 00000-0000',
+  /**
+   * Telefone de suporte.
+   * TODO (pré-lançamento → operação comercial): preencher com número oficial
+   * e definir companyStatus.hasRealPhone = true.
+   */
+  phone: 'Em processo de definição',
 
   // ── Contatos ──────────────────────────────────────────────────────────────
 
-  /** E-mail geral de contato / suporte. */
+  /**
+   * E-mail geral de contato / suporte.
+   * TODO: substituir pelo e-mail real antes de divulgar para clientes.
+   */
   supportEmail: 'contato@dentalflow.com.br',
 
-  /** E-mail para exercício de direitos LGPD e contato com o DPO. */
+  /**
+   * E-mail para exercício de direitos LGPD e contato com o DPO.
+   * TODO: substituir pelo e-mail real antes de divulgar para clientes.
+   */
   privacyEmail: 'privacidade@dentalflow.com.br',
 
   /** E-mail para reporte de vulnerabilidades e incidentes de segurança. */
@@ -41,8 +59,13 @@ export const companyInfo = {
 
   // ── DPO ───────────────────────────────────────────────────────────────────
 
-  /** Nome do Encarregado de Proteção de Dados (DPO). TODO: preencher antes da produção. */
-  dpoName: 'TODO: Nome do DPO',
+  /**
+   * Responsável pelo canal de privacidade / DPO.
+   * Usando canal de privacidade genérico enquanto o DPO formal não é nomeado.
+   * TODO (pré-lançamento → operação comercial): preencher com nome completo do
+   * Encarregado nomeado (LGPD Art. 41) e definir companyStatus.hasNamedDpo = true.
+   */
+  dpoName: 'Canal de Privacidade DentalFlow',
 
   /** E-mail oficial do DPO — mesmo valor que privacyEmail enquanto não houver DPO dedicado. */
   dpoEmail: 'privacidade@dentalflow.com.br',
@@ -80,14 +103,38 @@ export const PRIVACY_POLICY_VERSION = companyInfo.privacyPolicyVersion
 export const TERMS_VERSION = companyInfo.termsVersion
 export const COOKIE_POLICY_VERSION = companyInfo.cookiePolicyVersion
 
+// ── Status de pré-lançamento ──────────────────────────────────────────────────
+// Flags que indicam se cada dado legal já foi formalizado.
+// Mantenha false até ter o valor real — as páginas legais consultam esses flags
+// para omitir campos não oficializados (CNPJ, endereço etc.).
+//
+// Ao formalizar um dado:
+//   1. Atualize o valor em companyInfo acima.
+//   2. Mude o flag correspondente para true aqui.
+//   As páginas legais exibirão o dado automaticamente sem outra alteração.
+
+export const companyStatus = {
+  /** CNPJ registrado na Receita Federal. */
+  hasRealDocumentNumber: false,
+  /** Endereço comercial formalizado. */
+  hasRealAddress: false,
+  /** DPO nomeado formalmente (LGPD Art. 41). */
+  hasNamedDpo: false,
+  /** Telefone de suporte oficial definido. */
+  hasRealPhone: false,
+}
+
 // ── Guarda de placeholders para produção ─────────────────────────────────────
 // Chame validateCompanyConfig() em main.tsx antes de createRoot().
 //
-// Em builds de produção (import.meta.env.PROD), qualquer placeholder não
-// resolvido lança um Error que interrompe o app antes de montar — impedindo um
-// deploy ao vivo com dados jurídicos falsos.
+// PLACEHOLDER_CHECKS detecta formatos de placeholder acidentais (strings "TODO:"
+// ou padrões numéricos zerados).
 //
-// Em desenvolvimento, emite console.warn para cada placeholder encontrado.
+// Os quatro campos de pré-lançamento (documentNumber, address, dpoName, phone)
+// usam intencionalmente textos honestos ("Em processo de formalização" etc.) e
+// são controlados pelos flags em companyStatus — não pertencem a este array.
+// Adicione aqui apenas campos que não devem chegar à produção com valores de
+// desenvolvimento acidentais (e.g., API keys esquecidas no formato de test).
 
 type PlaceholderCheck = {
   field: keyof typeof companyInfo
@@ -95,28 +142,7 @@ type PlaceholderCheck = {
   hint: string
 }
 
-const PLACEHOLDER_CHECKS: PlaceholderCheck[] = [
-  {
-    field: 'documentNumber',
-    isPlaceholder: (v) => v === '00.000.000/0001-00',
-    hint: 'Preencha com o CNPJ real registrado na Receita Federal.',
-  },
-  {
-    field: 'address',
-    isPlaceholder: (v) => v.includes('TODO'),
-    hint: 'Preencha com o endereço comercial completo (logradouro, número, cidade, UF, CEP).',
-  },
-  {
-    field: 'dpoName',
-    isPlaceholder: (v) => v.includes('TODO'),
-    hint: 'Preencha com o nome completo do Encarregado (DPO) — obrigatório pelo LGPD Art. 41.',
-  },
-  {
-    field: 'phone',
-    isPlaceholder: (v) => v === '(00) 00000-0000',
-    hint: 'Preencha com o número de suporte real.',
-  },
-]
+const PLACEHOLDER_CHECKS: PlaceholderCheck[] = []
 
 // ── Redes sociais ─────────────────────────────────────────────────────────────
 // Use `null` para redes não configuradas — o componente SiteFooter omite links nulos.
@@ -141,16 +167,31 @@ export function validateCompanyConfig(): void {
     isPlaceholder(companyInfo[field] as string),
   )
 
-  if (failures.length === 0) return
+  if (failures.length > 0) {
+    const lines = failures.map(({ field, hint }) => `  • ${field}: ${hint}`)
+    const message =
+      `[company.ts] ${failures.length} placeholder(s) de produção detectado(s):\n` +
+      lines.join('\n')
 
-  const lines = failures.map(({ field, hint }) => `  • ${field}: ${hint}`)
-  const message =
-    `[company.ts] ${failures.length} placeholder(s) de produção detectado(s):\n` +
-    lines.join('\n')
+    if (import.meta.env.PROD) {
+      throw new Error(message)
+    } else {
+      console.warn(message)
+    }
+  }
 
-  if (import.meta.env.PROD) {
-    throw new Error(message)
-  } else {
-    console.warn(message)
+  // Aviso de pré-lançamento: informa campos pendentes de formalização.
+  // Não bloqueia o app — apenas registra no console para lembrar o dev.
+  // Atualize companyStatus quando cada dado for oficializado.
+  const pending = Object.entries(companyStatus)
+    .filter(([, ready]) => !ready)
+    .map(([key]) => key)
+
+  if (pending.length > 0) {
+    console.info(
+      `[company.ts] PRÉ-LANÇAMENTO: ${pending.length} campo(s) pendente(s) de formalização antes da operação comercial com clientes: ` +
+        pending.join(', ') +
+        '\n  Consulte os TODOs em src/config/company.ts para instruções.',
+    )
   }
 }

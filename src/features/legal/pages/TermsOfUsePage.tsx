@@ -1,4 +1,4 @@
-import { companyInfo } from '@/config/company'
+import { companyInfo, companyStatus } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
@@ -10,7 +10,7 @@ import {
 } from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
-const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
+const isPlaceholderCnpj = !companyStatus.hasRealDocumentNumber
 
 const TOC_ENTRIES = [
   { id: 'objeto', label: '1. Objeto' },
