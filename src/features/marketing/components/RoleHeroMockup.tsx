@@ -1,4 +1,4 @@
-import { Bot } from 'lucide-react'
+import { Bot, CheckCircle2, Sparkles } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -25,7 +25,12 @@ export function RoleHeroMockup({
     return <DashboardMockup />
   }
 
-  // Blocks 3–5 pending: generic module-preview stub for remaining roles
+  // Block 3: onboarding checklist mockup for /para-clinicas-em-abertura
+  if (type === 'checklist') {
+    return <ChecklistMockup />
+  }
+
+  // Blocks 4–5 pending: generic module-preview stub for remaining roles
   const isNavy = accent === 'navy'
 
   return (
@@ -262,6 +267,175 @@ function DashboardMockup() {
               )}
             />
             <span className="text-[10px] font-medium text-slate-300">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Checklist mockup (/para-clinicas-em-abertura) ──────────────────────────────
+// All data here is illustrative — shown to convey product capability, not real metrics.
+
+type SetupStep = { label: string; done: boolean }
+type WeekStep = { week: string; label: string; done: boolean; current?: true }
+type ClinicChip = { label: string; ok: boolean }
+
+const SETUP_STEPS: SetupStep[] = [
+  { label: 'Configurar equipe', done: true },
+  { label: 'Criar serviços', done: true },
+  { label: 'Ativar agenda', done: true },
+  { label: 'Preparar financeiro', done: false },
+  { label: 'Publicar captação', done: false },
+]
+
+const WEEK_STEPS: WeekStep[] = [
+  { week: 'Sem 1', label: 'Estrutura', done: true },
+  { week: 'Sem 2', label: 'Agenda', done: true },
+  { week: 'Sem 3', label: 'Pacientes', done: false, current: true },
+  { week: 'Sem 4', label: 'Crescimento', done: false },
+]
+
+const CLINIC_CHIPS: ClinicChip[] = [
+  { label: 'Agenda', ok: true },
+  { label: 'Equipe', ok: true },
+  { label: 'Serviços', ok: true },
+  { label: 'Financeiro', ok: false },
+]
+
+function ChecklistMockup() {
+  return (
+    <div
+      className="overflow-hidden rounded-2xl border border-emerald-200/70 bg-white shadow-2xl shadow-emerald-950/10 ring-1 ring-emerald-500/[0.06]"
+      aria-hidden="true"
+    >
+      {/* ── Window header ─────────────────────────────────────── */}
+      <div className="flex items-center justify-between border-b border-emerald-100 bg-emerald-50/60 px-5 py-3.5">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-600/60">
+            DentalFlow
+          </p>
+          <p className="mt-0.5 text-sm font-semibold text-slate-800">Plano de abertura</p>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-white px-2.5 py-1 shadow-sm">
+          <span className="relative flex h-1.5 w-1.5 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          </span>
+          <span className="text-[11px] font-medium text-slate-500">Dia 1 → Mês 1</span>
+        </div>
+      </div>
+
+      {/* ── Setup checklist ───────────────────────────────────── */}
+      <div className="px-5 pt-4">
+        <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          Setup em andamento
+        </p>
+        <div className="space-y-1.5">
+          {SETUP_STEPS.map((step) => (
+            <div
+              key={step.label}
+              className={cn(
+                'flex items-center gap-2.5 rounded-lg px-3 py-2',
+                step.done ? 'bg-emerald-50' : 'bg-slate-50',
+              )}
+            >
+              {step.done ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+              ) : (
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                  <span className="h-3 w-3 rounded-full border-2 border-slate-300" />
+                </span>
+              )}
+              <span
+                className={cn(
+                  'text-xs font-medium',
+                  step.done ? 'text-emerald-700' : 'text-slate-500',
+                )}
+              >
+                {step.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Week progress ─────────────────────────────────────── */}
+      <div className="px-5 pb-3 pt-3.5">
+        <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          Progresso semanal
+        </p>
+        <div className="grid grid-cols-4 gap-1.5">
+          {WEEK_STEPS.map((step) => (
+            <div
+              key={step.week}
+              className={cn(
+                'flex flex-col items-center rounded-lg border py-2',
+                step.done
+                  ? 'border-emerald-200 bg-emerald-50'
+                  : step.current
+                    ? 'border-emerald-400/50 bg-emerald-100/60 ring-1 ring-emerald-400/30'
+                    : 'border-slate-100 bg-slate-50',
+              )}
+            >
+              <span
+                className={cn(
+                  'text-[10px] font-bold',
+                  step.done || step.current ? 'text-emerald-700' : 'text-slate-400',
+                )}
+              >
+                {step.week}
+              </span>
+              <span
+                className={cn(
+                  'mt-0.5 text-[9px] font-medium',
+                  step.done || step.current ? 'text-emerald-600' : 'text-slate-400',
+                )}
+              >
+                {step.label}
+              </span>
+              <span
+                className={cn(
+                  'mt-1.5 h-1.5 w-1.5 rounded-full',
+                  step.done
+                    ? 'bg-emerald-400'
+                    : step.current
+                      ? 'animate-pulse bg-emerald-400'
+                      : 'bg-slate-200',
+                )}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Insight card ──────────────────────────────────────── */}
+      <div className="mx-4 mb-3.5 flex items-start gap-2.5 rounded-lg border border-emerald-400/25 bg-emerald-50 px-3 py-2.5">
+        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-100">
+          <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold text-emerald-700">Dica de abertura</p>
+          <p className="mt-0.5 text-[11px] leading-[1.4] text-slate-500">
+            Comece com processos prontos desde o primeiro atendimento.
+          </p>
+        </div>
+      </div>
+
+      {/* ── Status footer ─────────────────────────────────────── */}
+      <div className="flex flex-wrap gap-1.5 border-t border-emerald-100 bg-emerald-50/40 px-5 py-3">
+        {CLINIC_CHIPS.map((chip) => (
+          <div
+            key={chip.label}
+            className="flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-2.5 py-1"
+          >
+            <span
+              className={cn(
+                'h-1.5 w-1.5 rounded-full',
+                chip.ok ? 'bg-emerald-400' : 'bg-amber-400',
+              )}
+            />
+            <span className="text-[10px] font-medium text-slate-600">{chip.label}</span>
           </div>
         ))}
       </div>
