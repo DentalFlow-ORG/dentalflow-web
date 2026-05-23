@@ -1,10 +1,15 @@
 import { companyInfo } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
-import { LegalPageHeader, LegalSection, LegalList, LegalTable } from '../components/LegalSection'
+import {
+  LegalPageHeader,
+  LegalSection,
+  LegalList,
+  LegalTable,
+  LegalContactBlock,
+} from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
-const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
 
 export function DataProcessingPage() {
   return (
@@ -155,21 +160,10 @@ export function DataProcessingPage() {
         </p>
       </LegalSection>
 
-      <div className="mt-12 rounded-xl border border-slate-200 bg-slate-50 p-6 text-sm text-slate-600">
-        <p className="font-semibold text-slate-900">Contato</p>
-        <p className="mt-1">
-          Para questões sobre tratamento de dados:{' '}
-          <a
-            href={`mailto:${companyInfo.privacyEmail}`}
-            className="text-primary underline"
-          >
-            {companyInfo.privacyEmail}
-          </a>
-        </p>
-        <p className="mt-3 text-xs text-slate-400">
-          {companyInfo.legalName}{!isPlaceholderCnpj && ` — CNPJ ${companyInfo.documentNumber}`}
-        </p>
-      </div>
+      <LegalContactBlock
+        email={companyInfo.privacyEmail}
+        message="Para questões sobre tratamento de dados, entre em contato com nossa equipe de privacidade."
+      />
     </LegalPageShell>
   )
 }

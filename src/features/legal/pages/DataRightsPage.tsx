@@ -4,7 +4,12 @@ import { ArrowRight, FileCheck, Eye, Pencil, Trash2, Download, Share2, XCircle }
 import { companyInfo } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
-import { LegalPageHeader, LegalSection, LegalList } from '../components/LegalSection'
+import {
+  LegalPageHeader,
+  LegalSection,
+  LegalList,
+  legalInlineLinkClass,
+} from '../components/LegalSection'
 
 const LAST_UPDATED = '15 de maio de 2026'
 
@@ -165,7 +170,7 @@ export function DataRightsPage() {
             href="https://www.gov.br/anpd"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary underline"
+            className={legalInlineLinkClass}
           >
             www.gov.br/anpd
           </a>
@@ -179,7 +184,7 @@ export function DataRightsPage() {
           contato com nosso encarregado:{' '}
           <a
             href={`mailto:${companyInfo.dpoEmail}`}
-            className="text-primary underline"
+            className={legalInlineLinkClass}
           >
             {companyInfo.dpoEmail}
           </a>
@@ -187,9 +192,9 @@ export function DataRightsPage() {
         </p>
         <p>
           Consulte também nossa{' '}
-          <a href="/encarregado" className="text-primary underline">
+          <Link to="/encarregado" className={legalInlineLinkClass}>
             página do Encarregado de Dados
-          </a>
+          </Link>
           .
         </p>
       </LegalSection>

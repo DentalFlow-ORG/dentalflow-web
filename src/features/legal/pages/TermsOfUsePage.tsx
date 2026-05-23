@@ -1,10 +1,33 @@
 import { companyInfo } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
-import { LegalPageHeader, LegalSection, LegalList } from '../components/LegalSection'
+import {
+  LegalPageHeader,
+  LegalSection,
+  LegalList,
+  LegalTOC,
+  LegalContactBlock,
+} from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
+
+const TOC_ENTRIES = [
+  { id: 'objeto', label: '1. Objeto' },
+  { id: 'modelo-saas', label: '2. Modelo de Assinatura SaaS' },
+  { id: 'responsabilidades-conta', label: '3. Responsabilidades da Conta' },
+  { id: 'responsabilidades-papel', label: '4. Responsabilidades por Papel' },
+  { id: 'dados-pacientes', label: '5. Dados de Pacientes' },
+  { id: 'usos-proibidos', label: '6. Usos Proibidos' },
+  { id: 'seguranca', label: '7. Obrigações de Segurança' },
+  { id: 'pagamento', label: '8. Pagamento, Trial e Cancelamento' },
+  { id: 'disponibilidade', label: '9. Disponibilidade e Manutenção' },
+  { id: 'responsabilidade', label: '10. Limitação de Responsabilidade' },
+  { id: 'propriedade-intelectual', label: '11. Propriedade Intelectual' },
+  { id: 'rescisao', label: '12. Rescisão e Suspensão' },
+  { id: 'legislacao', label: '13. Lei Aplicável e Foro' },
+  { id: 'atualizacoes', label: '14. Atualizações dos Termos' },
+]
 
 export function TermsOfUsePage() {
   return (
@@ -15,6 +38,8 @@ export function TermsOfUsePage() {
         description="Condições que regem o uso da plataforma DentalFlow por clínicas e profissionais de saúde."
         lastUpdated={LAST_UPDATED}
       />
+
+      <LegalTOC entries={TOC_ENTRIES} />
 
       <LegalSection id="objeto" title="1. Objeto">
         <p>
@@ -191,6 +216,8 @@ export function TermsOfUsePage() {
           conta antes da entrada em vigor das mudanças.
         </p>
       </LegalSection>
+
+      <LegalContactBlock email={companyInfo.supportEmail} />
     </LegalPageShell>
   )
 }

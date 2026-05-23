@@ -7,11 +7,18 @@ import {
   RefreshCw,
   FileSearch,
 } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 
 import { companyInfo } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
-import { LegalPageHeader, LegalSection, LegalList } from '../components/LegalSection'
+import {
+  LegalPageHeader,
+  LegalSection,
+  LegalList,
+  LegalContactBlock,
+  legalInlineLinkClass,
+} from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 
@@ -60,8 +67,8 @@ export function SecurityPage() {
 
       <div className="mb-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {measures.map(({ icon: Icon, title, description }) => (
-          <div key={title} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-3 inline-flex rounded-lg bg-primary/10 p-2.5">
+          <div key={title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-3 inline-flex rounded-xl bg-primary/10 p-2.5">
               <Icon className="h-5 w-5 text-primary" />
             </div>
             <h3 className="font-semibold text-slate-900">{title}</h3>
@@ -150,7 +157,7 @@ export function SecurityPage() {
           Se você identificou uma vulnerabilidade de segurança na plataforma, pedimos que
           nos comunique de forma responsável antes de qualquer divulgação pública. Entre
           em contato por e-mail:{' '}
-          <a href={`mailto:${companyInfo.securityEmail}`} className="text-primary underline">
+          <a href={`mailto:${companyInfo.securityEmail}`} className={legalInlineLinkClass}>
             {companyInfo.securityEmail}
           </a>
           . Agradecemos a colaboração da comunidade de segurança.
@@ -171,13 +178,18 @@ export function SecurityPage() {
       </LegalSection>
 
       <div className="mt-10">
-        <a
-          href="/politica-de-privacidade"
-          className="text-sm text-primary underline"
+        <Link
+          to="/politica-de-privacidade"
+          className={`text-sm ${legalInlineLinkClass}`}
         >
           Ver também: Política de Privacidade
-        </a>
+        </Link>
       </div>
+
+      <LegalContactBlock
+        email={companyInfo.securityEmail}
+        message="Para reportar vulnerabilidades ou questões de segurança, entre em contato com nossa equipe pelos canais oficiais."
+      />
     </LegalPageShell>
   )
 }

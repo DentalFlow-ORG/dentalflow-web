@@ -1,6 +1,6 @@
-import { companyInfo } from '@/config/company'
+import { Link } from '@tanstack/react-router'
 
-// Versões e contatos extraídos de config/company.ts — não duplique aqui
+import { companyInfo } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
@@ -8,11 +8,35 @@ import {
   LegalSection,
   LegalList,
   LegalTable,
+  LegalTOC,
+  LegalContactBlock,
+  legalInlineLinkClass,
 } from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 const DPO_EMAIL = companyInfo.dpoEmail
 const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
+
+const TOC_ENTRIES = [
+  { id: 'quem-somos', label: '1. Quem Somos' },
+  { id: 'escopo', label: '2. Âmbito desta Política' },
+  { id: 'dados-coletados', label: '3. Dados que Coletamos' },
+  { id: 'como-coletamos', label: '4. Como Coletamos os Dados' },
+  { id: 'finalidades', label: '5. Para que Usamos os Dados' },
+  { id: 'dados-sensiveis', label: '6. Dados de Saúde — Sensíveis' },
+  { id: 'controlador-operador', label: '7. Clínica como Controladora' },
+  { id: 'compartilhamento', label: '8. Compartilhamento de Dados' },
+  { id: 'stripe', label: '9. Pagamentos via Stripe' },
+  { id: 'google-calendar', label: '10. Integração com Google Calendar' },
+  { id: 'cookies', label: '11. Cookies e Tecnologias Similares' },
+  { id: 'seguranca', label: '12. Medidas de Segurança' },
+  { id: 'retencao', label: '13. Retenção de Dados' },
+  { id: 'transferencia', label: '14. Transferência Internacional' },
+  { id: 'direitos', label: '15. Seus Direitos como Titular' },
+  { id: 'encarregado', label: '16. Contato com o Encarregado (DPO)' },
+  { id: 'anpd', label: '17. Reclamação à ANPD' },
+  { id: 'atualizacoes', label: '18. Atualizações desta Política' },
+]
 
 export function PrivacyPolicyPage() {
   return (
@@ -23,6 +47,8 @@ export function PrivacyPolicyPage() {
         description="Saiba como coletamos, usamos e protegemos seus dados pessoais na plataforma DentalFlow."
         lastUpdated={LAST_UPDATED}
       />
+
+      <LegalTOC entries={TOC_ENTRIES} />
 
       <LegalSection id="quem-somos" title="1. Quem Somos">
         <p>
@@ -144,7 +170,7 @@ export function PrivacyPolicyPage() {
             href="https://stripe.com/br/privacy"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary underline"
+            className={legalInlineLinkClass}
           >
             Política de Privacidade da Stripe
           </a>{' '}
@@ -173,9 +199,9 @@ export function PrivacyPolicyPage() {
           com seu consentimento, análise de uso. Você pode gerenciar suas preferências de
           cookies a qualquer momento clicando em "Preferências de cookies" no rodapé.
           Consulte nossa{' '}
-          <a href="/politica-de-cookies" className="text-primary underline">
+          <Link to="/politica-de-cookies" className={legalInlineLinkClass}>
             Política de Cookies
-          </a>{' '}
+          </Link>{' '}
           para detalhes completos.
         </p>
       </LegalSection>
@@ -243,9 +269,9 @@ export function PrivacyPolicyPage() {
         />
         <p>
           Para exercer seus direitos, acesse nossa{' '}
-          <a href="/direitos-do-titular" className="text-primary underline">
+          <Link to="/direitos-do-titular" className={legalInlineLinkClass}>
             página de Direitos do Titular
-          </a>{' '}
+          </Link>{' '}
           ou entre em contato com nosso encarregado de dados.
         </p>
       </LegalSection>
@@ -253,13 +279,13 @@ export function PrivacyPolicyPage() {
       <LegalSection id="encarregado" title="16. Contato com o Encarregado (DPO)">
         <p>
           Nosso encarregado de proteção de dados pode ser contatado pelo e-mail{' '}
-          <a href={`mailto:${DPO_EMAIL}`} className="text-primary underline">
+          <a href={`mailto:${DPO_EMAIL}`} className={legalInlineLinkClass}>
             {DPO_EMAIL}
           </a>
           . Consulte nossa{' '}
-          <a href="/encarregado" className="text-primary underline">
+          <Link to="/encarregado" className={legalInlineLinkClass}>
             página do Encarregado
-          </a>{' '}
+          </Link>{' '}
           para mais informações sobre canais de contato.
         </p>
       </LegalSection>
@@ -273,7 +299,7 @@ export function PrivacyPolicyPage() {
             href="https://www.gov.br/anpd"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary underline"
+            className={legalInlineLinkClass}
           >
             www.gov.br/anpd
           </a>
@@ -288,6 +314,8 @@ export function PrivacyPolicyPage() {
           a notificação implica aceitação das alterações.
         </p>
       </LegalSection>
+
+      <LegalContactBlock email={DPO_EMAIL} />
     </LegalPageShell>
   )
 }
