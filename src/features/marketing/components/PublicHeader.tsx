@@ -46,18 +46,6 @@ type DropdownGroup = {
 
 const produtoDropdown: DropdownItem[] = [
   {
-    label: 'Para secretária / recepção',
-    description: 'Agenda, pacientes, confirmações e notificações',
-    href: '/para-secretarias',
-    icon: UsersRound,
-  },
-  {
-    label: 'Para dentistas',
-    description: 'Minha agenda, prontuários e histórico clínico',
-    href: '/para-dentistas',
-    icon: Stethoscope,
-  },
-  {
     label: 'Para administradores / gestores',
     description: 'Financeiro, relatórios, leads e IA de gestão',
     href: '/para-gestores',
@@ -68,6 +56,18 @@ const produtoDropdown: DropdownItem[] = [
     description: 'Comece organizado desde o primeiro atendimento',
     href: '/para-clinicas-em-abertura',
     icon: Sparkles,
+  },
+  {
+    label: 'Para dentistas',
+    description: 'Minha agenda, prontuários e histórico clínico',
+    href: '/para-dentistas',
+    icon: Stethoscope,
+  },
+  {
+    label: 'Para secretária / recepção',
+    description: 'Agenda, pacientes, confirmações e notificações',
+    href: '/para-secretarias',
+    icon: UsersRound,
   },
 ]
 
