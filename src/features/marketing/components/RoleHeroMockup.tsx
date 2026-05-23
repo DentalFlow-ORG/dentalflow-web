@@ -30,7 +30,13 @@ export function RoleHeroMockup({
     return <ChecklistMockup />
   }
 
-  // Blocks 4–5 pending: generic module-preview stub for remaining roles
+  // Block 4: agenda + prontuário mockup for /para-dentistas
+  if (type === 'agenda') {
+    return <AgendaMockup />
+  }
+
+  // Block 5 pending: generic module-preview stub for /para-secretarias
+
   const isNavy = accent === 'navy'
 
   return (
@@ -436,6 +442,174 @@ function ChecklistMockup() {
               )}
             />
             <span className="text-[10px] font-medium text-slate-600">{chip.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Agenda + prontuário mockup (/para-dentistas) ───────────────────────────────
+// All data here is illustrative — shown to convey product capability, not real metrics.
+
+type Appointment = { time: string; procedure: string; status: 'confirmed' | 'active' | 'next'; current?: true }
+
+const APPOINTMENTS: Appointment[] = [
+  { time: '08:30', procedure: 'Consulta inicial', status: 'confirmed' },
+  { time: '10:00', procedure: 'Restauração', status: 'active', current: true },
+  { time: '11:30', procedure: 'Retorno', status: 'next' },
+]
+
+const UPPER_TEETH = [false, false, true, false, false, false, false, false]
+const LOWER_TEETH = [false, false, false, true, false, false, false, false]
+
+const DENTIST_CHIPS = ['Prontuário', 'Odontograma', 'Agenda', 'Retornos']
+
+function AgendaMockup() {
+  return (
+    <div
+      className="overflow-hidden rounded-2xl border border-blue-200/60 bg-white shadow-2xl shadow-blue-950/10 ring-1 ring-blue-500/[0.05]"
+      aria-hidden="true"
+    >
+      {/* ── Window header ─────────────────────────────────────── */}
+      <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/60 px-5 py-3.5">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+            DentalFlow
+          </p>
+          <p className="mt-0.5 text-sm font-semibold text-slate-800">Agenda do profissional</p>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-2.5 py-1 shadow-sm">
+          <span className="relative flex h-1.5 w-1.5 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-blue-500" />
+          </span>
+          <span className="text-[11px] font-medium text-slate-500">Ao vivo</span>
+        </div>
+      </div>
+
+      {/* ── Appointment timeline ──────────────────────────────── */}
+      <div className="px-5 pt-4">
+        <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          Agenda de hoje
+        </p>
+        <div className="space-y-1.5">
+          {APPOINTMENTS.map((appt) => (
+            <div
+              key={appt.time}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2',
+                appt.current ? 'bg-blue-50 ring-1 ring-blue-200/80' : 'bg-slate-50',
+              )}
+            >
+              <span
+                className={cn(
+                  'min-w-[38px] text-xs font-bold tabular-nums',
+                  appt.current ? 'text-blue-600' : 'text-slate-400',
+                )}
+              >
+                {appt.time}
+              </span>
+              <span
+                className={cn(
+                  'flex-1 truncate text-xs font-medium',
+                  appt.current ? 'text-slate-800' : 'text-slate-600',
+                )}
+              >
+                {appt.procedure}
+              </span>
+              <span
+                className={cn(
+                  'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                  appt.status === 'active'
+                    ? 'bg-blue-100 text-blue-700'
+                    : appt.status === 'confirmed'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-slate-100 text-slate-500',
+                )}
+              >
+                {appt.status === 'active'
+                  ? 'Em atendimento'
+                  : appt.status === 'confirmed'
+                    ? 'Confirmado'
+                    : 'Próximo'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Patient + prontuário card ─────────────────────────── */}
+      <div className="px-5 pt-3">
+        <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[11px] font-bold text-blue-600">
+              AP
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-slate-800">Ana Paula Ferreira</p>
+              <p className="text-[10px] text-slate-500">Restauração · Dente 16</p>
+            </div>
+            <span className="shrink-0 text-[10px] font-semibold text-blue-500">Prontuário</span>
+          </div>
+          <div className="mt-2.5 rounded-lg border border-blue-100/80 bg-white px-3 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+              Evolução
+            </p>
+            <p className="mt-0.5 text-[11px] leading-[1.4] text-slate-500">
+              Dente 16. Cárie classe II. Anestesia aplicada, matriz instalada.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Simplified odontogram ─────────────────────────────── */}
+      <div className="px-5 pb-2 pt-3.5">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+          Odontograma
+        </p>
+        <div className="flex flex-col items-center gap-1">
+          <div className="flex gap-0.5">
+            {UPPER_TEETH.map((treated, i) => (
+              <div
+                key={`u${i}`}
+                className={cn(
+                  'h-4 w-4 rounded-sm border',
+                  treated ? 'border-blue-400 bg-blue-200' : 'border-slate-200 bg-slate-50',
+                )}
+              />
+            ))}
+          </div>
+          <div className="flex gap-0.5">
+            {LOWER_TEETH.map((treated, i) => (
+              <div
+                key={`l${i}`}
+                className={cn(
+                  'h-4 w-4 rounded-sm border',
+                  treated ? 'border-indigo-400 bg-indigo-100' : 'border-slate-200 bg-slate-50',
+                )}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Insight strip ─────────────────────────────────────── */}
+      <div className="mx-4 mb-3.5 mt-3 rounded-lg border border-slate-200/80 bg-slate-50 px-3 py-2">
+        <p className="text-[11px] leading-[1.4] text-slate-500">
+          Histórico, evolução e agenda conectados em um só lugar.
+        </p>
+      </div>
+
+      {/* ── Status footer ─────────────────────────────────────── */}
+      <div className="flex flex-wrap gap-1.5 border-t border-slate-100 bg-slate-50/50 px-5 py-3">
+        {DENTIST_CHIPS.map((label) => (
+          <div
+            key={label}
+            className="flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-2.5 py-1"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+            <span className="text-[10px] font-medium text-slate-600">{label}</span>
           </div>
         ))}
       </div>
