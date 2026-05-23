@@ -19,15 +19,18 @@ export function LegalPageShell({ children }: LegalPageShellProps) {
           <BrandLink />
           <Link
             to="/"
-            className="flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-primary"
+            className="group flex items-center gap-1.5 rounded-sm text-sm font-medium text-slate-500 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft
+              className="h-4 w-4 transition-transform group-hover:-translate-x-0.5"
+              aria-hidden="true"
+            />
             Voltar ao início
           </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-6 py-14 lg:px-8">{children}</main>
+      <main className="mx-auto max-w-4xl px-6 py-14 lg:px-8 lg:py-20">{children}</main>
 
       <SiteFooter />
     </div>

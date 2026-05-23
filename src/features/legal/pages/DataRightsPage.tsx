@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, FileCheck, Eye, Pencil, Trash2, Download, Share2, XCircle } from 'lucide-react'
 
+import { companyInfo } from '@/config/company'
+
 import { LegalPageShell } from '../components/LegalPageShell'
 import { LegalPageHeader, LegalSection, LegalList } from '../components/LegalSection'
 
@@ -176,10 +178,10 @@ export function DataRightsPage() {
           Para dúvidas sobre seus direitos ou o tratamento dos seus dados, entre em
           contato com nosso encarregado:{' '}
           <a
-            href="mailto:privacidade@dentalflow.com.br"
+            href={`mailto:${companyInfo.dpoEmail}`}
             className="text-primary underline"
           >
-            privacidade@dentalflow.com.br
+            {companyInfo.dpoEmail}
           </a>
           .
         </p>

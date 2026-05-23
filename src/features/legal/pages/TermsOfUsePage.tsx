@@ -4,6 +4,7 @@ import { LegalPageShell } from '../components/LegalPageShell'
 import { LegalPageHeader, LegalSection, LegalList } from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
+const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
 
 export function TermsOfUsePage() {
   return (
@@ -18,7 +19,7 @@ export function TermsOfUsePage() {
       <LegalSection id="objeto" title="1. Objeto">
         <p>
           Estes Termos de Uso regulam o acesso e a utilização da plataforma DentalFlow,
-          operada por {companyInfo.legalName} (CNPJ {companyInfo.documentNumber}), doravante
+          operada por {companyInfo.legalName}{!isPlaceholderCnpj && ` (CNPJ ${companyInfo.documentNumber})`}, doravante
           denominada "DentalFlow". Ao criar uma conta, o usuário declara ter lido,
           compreendido e concordado com estes termos.
         </p>

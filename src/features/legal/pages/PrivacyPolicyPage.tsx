@@ -12,6 +12,7 @@ import {
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 const DPO_EMAIL = companyInfo.dpoEmail
+const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
 
 export function PrivacyPolicyPage() {
   return (
@@ -25,7 +26,7 @@ export function PrivacyPolicyPage() {
 
       <LegalSection id="quem-somos" title="1. Quem Somos">
         <p>
-          {companyInfo.tradeName} ({companyInfo.legalName}, CNPJ {companyInfo.documentNumber}) é uma
+          {companyInfo.tradeName} ({companyInfo.legalName}{!isPlaceholderCnpj && `, CNPJ ${companyInfo.documentNumber}`}) é uma
           plataforma SaaS para gestão de clínicas odontológicas. Nosso papel em relação aos
           dados pessoais depende do contexto:
         </p>

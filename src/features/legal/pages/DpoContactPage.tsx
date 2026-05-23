@@ -7,6 +7,8 @@ import { LegalPageHeader, LegalSection, LegalList } from '../components/LegalSec
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
 const DPO_EMAIL = companyInfo.dpoEmail
+const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
+const isPlaceholderAddress = companyInfo.address.includes('TODO')
 
 export function DpoContactPage() {
   return (
@@ -146,13 +148,15 @@ export function DpoContactPage() {
 
       <LegalSection id="empresa" title="6. Dados da Empresa">
         <dl className="space-y-2 text-sm">
-          {[
-            ['Razão Social', companyInfo.legalName],
-            ['CNPJ', companyInfo.documentNumber],
-            ['Endereço', companyInfo.address],
-            ['E-mail geral', companyInfo.supportEmail],
-            ['E-mail de privacidade', DPO_EMAIL],
-          ].map(([label, value]) => (
+          {(
+            [
+              ['Razão Social', companyInfo.legalName],
+              ...(!isPlaceholderCnpj ? [['CNPJ', companyInfo.documentNumber]] : []),
+              ...(!isPlaceholderAddress ? [['Endereço', companyInfo.address]] : []),
+              ['E-mail geral', companyInfo.supportEmail],
+              ['E-mail de privacidade', DPO_EMAIL],
+            ] as [string, string][]
+          ).map(([label, value]) => (
             <div key={label} className="flex flex-wrap gap-2">
               <dt className="font-semibold text-slate-700">{label}:</dt>
               <dd className="text-slate-600">{value}</dd>

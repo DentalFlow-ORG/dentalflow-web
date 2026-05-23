@@ -179,7 +179,7 @@ export function SiteFooter() {
             <ColumnHeading>Suporte</ColumnHeading>
             <ul className="mt-4 space-y-2.5">
               <li>
-                <FooterNavLink to="/faq">FAQ</FooterNavLink>
+                <FooterNavLink to="/perguntas-frequentes">FAQ</FooterNavLink>
               </li>
               <li>
                 <FooterHrefLink

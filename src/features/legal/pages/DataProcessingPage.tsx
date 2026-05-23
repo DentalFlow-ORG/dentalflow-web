@@ -4,6 +4,7 @@ import { LegalPageShell } from '../components/LegalPageShell'
 import { LegalPageHeader, LegalSection, LegalList, LegalTable } from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
+const isPlaceholderCnpj = companyInfo.documentNumber === '00.000.000/0001-00'
 
 export function DataProcessingPage() {
   return (
@@ -166,7 +167,7 @@ export function DataProcessingPage() {
           </a>
         </p>
         <p className="mt-3 text-xs text-slate-400">
-          {companyInfo.legalName} — CNPJ {companyInfo.documentNumber}
+          {companyInfo.legalName}{!isPlaceholderCnpj && ` — CNPJ ${companyInfo.documentNumber}`}
         </p>
       </div>
     </LegalPageShell>
