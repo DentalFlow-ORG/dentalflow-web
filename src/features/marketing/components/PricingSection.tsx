@@ -1,12 +1,16 @@
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, CheckCircle2, Crown, Gem, Rocket } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { getPlanCardFeatures } from '@/features/marketing/config/features'
 import { cn } from '@/lib/utils'
 
 import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import { landingPlans } from '../data/landing-content'
+import { AnnualAvailabilityNote } from './AnnualAvailabilityNote'
+import { BillingPeriodToggle, type BillingPeriod } from './BillingPeriodToggle'
+import { PlanFeatureRow } from './PlanFeatureRow'
 
 const PLAN_ICONS = {
   starter: Rocket,
@@ -23,6 +27,7 @@ const TRUST_ITEMS = [
 
 export function PricingSection() {
   const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.1)
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
 
   return (
     <section
@@ -71,10 +76,32 @@ export function PricingSection() {
           </p>
         </div>
 
+        {/* ── Billing period toggle ─────────────────────────────────── */}
+        <div
+          className={cn(
+            'mt-10 flex flex-col items-center gap-2.5 transition-all duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100',
+            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',
+          )}
+          style={{ transitionDelay: isVisible ? '150ms' : '0ms' }}
+        >
+          <BillingPeriodToggle
+            value={billingPeriod}
+            onChange={setBillingPeriod}
+            variant="dark"
+          />
+          <AnnualAvailabilityNote visible={billingPeriod === 'annual'} variant="dark" />
+        </div>
+
         {/* ── Plan cards ────────────────────────────────────────────── */}
-        <div className="mt-14 grid gap-6 md:grid-cols-3 lg:items-center">
+        <div className="mt-10 grid gap-6 md:grid-cols-3 lg:items-center">
           {landingPlans.map((plan, index) => (
-            <PlanCard key={plan.key} plan={plan} index={index} isVisible={isVisible} />
+            <PlanCard
+              key={plan.key}
+              plan={plan}
+              index={index}
+              isVisible={isVisible}
+              billingPeriod={billingPeriod}
+            />
           ))}
         </div>
 
@@ -84,7 +111,7 @@ export function PricingSection() {
             'mt-12 flex justify-center transition-all duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100',
             isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',
           )}
-          style={{ transitionDelay: isVisible ? '450ms' : '0ms' }}
+          style={{ transitionDelay: isVisible ? '500ms' : '0ms' }}
         >
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 rounded-2xl border border-white/10 bg-white/[0.04] px-7 py-4 lg:rounded-full lg:px-8 lg:py-3.5">
             {TRUST_ITEMS.map((item, i) => (
@@ -105,7 +132,7 @@ export function PricingSection() {
         <p className="mt-8 text-center text-sm text-slate-500">
           Quer comparar todas as funcionalidades?{' '}
           <Link
-            to="/funcionalidades"
+            to="/planos"
             className="font-semibold text-slate-300 underline-offset-4 hover:text-white hover:underline"
           >
             Ver comparativo completo
@@ -122,10 +149,13 @@ type PlanCardProps = {
   plan: (typeof landingPlans)[number]
   index: number
   isVisible: boolean
+  billingPeriod: BillingPeriod
 }
 
-function PlanCard({ plan, index, isVisible }: PlanCardProps) {
+function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
   const PlanIcon = PLAN_ICONS[plan.key]
+  const { sectionLabel, features, upgradeHints } = getPlanCardFeatures(plan.key)
+  const isAnnual = billingPeriod === 'annual'
 
   return (
     <article
@@ -171,22 +201,46 @@ function PlanCard({ plan, index, isVisible }: PlanCardProps) {
 
       {/* Pricing */}
       <div className="mt-5">
-        <p className="text-sm">
-          <span className="text-slate-500">De </span>
-          <span className="text-slate-500 line-through">{plan.compareAtMonthly}</span>
-          <span className="ml-2 text-xs font-medium text-slate-600">· Preço de lançamento</span>
-        </p>
-        <div className="mt-1.5 flex items-baseline gap-1.5">
-          <span
-            className={cn(
-              'text-4xl font-bold',
-              plan.isRecommended ? 'text-emerald-400' : 'text-white',
-            )}
-          >
-            {plan.priceMonthly}
-          </span>
-          <span className="text-sm text-slate-500">/mês</span>
-        </div>
+        {isAnnual ? (
+          <>
+            <p className="text-xs font-medium text-emerald-400">
+              Plano anual · {plan.savingsLabel}
+            </p>
+            <div className="mt-1.5 flex items-baseline gap-1.5">
+              <span
+                className={cn(
+                  'text-4xl font-bold',
+                  plan.isRecommended ? 'text-emerald-400' : 'text-white',
+                )}
+              >
+                {plan.priceAnnualMonthly}
+              </span>
+              <span className="text-sm text-slate-500">/mês</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              {plan.priceAnnualTotal} cobrado anualmente
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm">
+              <span className="text-slate-500">De </span>
+              <span className="text-slate-500 line-through">{plan.compareAtMonthly}</span>
+              <span className="ml-2 text-xs font-medium text-slate-600">· Preço de lançamento</span>
+            </p>
+            <div className="mt-1.5 flex items-baseline gap-1.5">
+              <span
+                className={cn(
+                  'text-4xl font-bold',
+                  plan.isRecommended ? 'text-emerald-400' : 'text-white',
+                )}
+              >
+                {plan.priceMonthly}
+              </span>
+              <span className="text-sm text-slate-500">/mês</span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Features */}
@@ -195,25 +249,38 @@ function PlanCard({ plan, index, isVisible }: PlanCardProps) {
         aria-label={`Funcionalidades do plano ${plan.name}`}
         role="list"
       >
-        {plan.features.map((feature) => (
-          <li key={feature} className="flex items-start gap-2.5">
-            <CheckCircle2
-              className={cn(
-                'mt-0.5 h-4 w-4 shrink-0',
-                plan.isRecommended ? 'text-emerald-400' : 'text-emerald-500',
-              )}
-              aria-hidden="true"
-            />
-            <span
-              className={cn(
-                'text-sm',
-                plan.isRecommended ? 'text-slate-200' : 'text-slate-400',
-              )}
-            >
-              {feature}
+        {sectionLabel && (
+          <li className="pb-0.5 pt-0.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              {sectionLabel}
             </span>
           </li>
+        )}
+        {features.map((feature) => (
+          <PlanFeatureRow
+            key={feature.label}
+            label={feature.label}
+            type={feature.availability}
+            variant="dark"
+          />
         ))}
+        {upgradeHints.length > 0 && (
+          <>
+            <li className="pb-0.5 pt-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+                No Professional
+              </span>
+            </li>
+            {upgradeHints.map((hint) => (
+              <PlanFeatureRow
+                key={hint.label}
+                label={hint.label}
+                type="not_included"
+                variant="dark"
+              />
+            ))}
+          </>
+        )}
       </ul>
 
       {/* CTA */}

@@ -20,9 +20,11 @@ import { Button } from '@/components/ui/button'
 import {
   COMMERCIAL_PLAN_LABELS,
   PLAN_ORDER,
+  type CommercialPlanKey,
   type PlanFeatureAvailability,
   getFeatureAvailability,
   getFeaturesByCategory,
+  getPlanCardFeatures,
 } from '@/features/marketing/config/features'
 import { cn } from '@/lib/utils'
 
@@ -31,12 +33,11 @@ import { usePageMeta } from '../hooks/usePageMeta'
 import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import { landingPlans } from '../data/landing-content'
 import { faqItems } from '../data/public-content'
+import { AnnualAvailabilityNote } from '../components/AnnualAvailabilityNote'
+import { BillingPeriodToggle, type BillingPeriod } from '../components/BillingPeriodToggle'
+import { PlanFeatureRow } from '../components/PlanFeatureRow'
 
-// ── Local types ────────────────────────────────────────────────────────────────
-
-type PlanFeatureItem = { label: string; isHeader?: boolean }
-
-// ── Plan-card content (richer than landing-content.ts, not modifying that file) ──
+// ── Plan-card content ──────────────────────────────────────────────────────────
 
 const PLAN_ICONS = {
   starter: Rocket,
@@ -45,34 +46,9 @@ const PLAN_ICONS = {
 } as const
 
 const PLAN_SUBTITLES: Record<string, string> = {
-  starter: 'Ideal para quem está começando',
-  professional: 'Para clínicas que querem organizar e crescer',
-  premium: 'Para clínicas que buscam o máximo desempenho',
-}
-
-const PLAN_FEATURES: Record<string, PlanFeatureItem[]> = {
-  starter: [
-    { label: 'Agenda inteligente' },
-    { label: 'Prontuário eletrônico' },
-    { label: 'Financeiro básico' },
-    { label: 'Gestão de pacientes' },
-    { label: 'Suporte por e-mail' },
-  ],
-  professional: [
-    { label: 'Tudo do Starter, mais:', isHeader: true },
-    { label: 'Metas e indicadores' },
-    { label: 'Integrações avançadas' },
-    { label: 'Relatórios inteligentes' },
-    { label: 'Gestão de equipe' },
-    { label: 'Suporte prioritário' },
-  ],
-  premium: [
-    { label: 'Tudo do Professional, mais:', isHeader: true },
-    { label: 'IA para insights' },
-    { label: 'Automações avançadas' },
-    { label: 'Dashboards personalizados' },
-    { label: 'Suporte dedicado' },
-  ],
+  starter: 'Para clínicas começando a se organizar',
+  professional: 'Controle completo para clínicas ativas',
+  premium: 'Alta performance, limites ampliados',
 }
 
 // ── Trust / security data ──────────────────────────────────────────────────────
@@ -131,6 +107,7 @@ export function PlansPage() {
 
   const featureGroups = getFeaturesByCategory()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
 
   const { ref: heroRef, isVisible: heroVisible } = useRevealOnScroll<HTMLElement>(0.05)
   const { ref: pricingRef, isVisible: pricingVisible } = useRevealOnScroll<HTMLDivElement>(0.05)
@@ -236,6 +213,14 @@ export function PlansPage() {
             Planos e preços
           </h2>
           <div className="mx-auto max-w-6xl">
+            <div className="mb-8 flex flex-col items-center gap-2.5">
+              <BillingPeriodToggle
+                value={billingPeriod}
+                onChange={setBillingPeriod}
+                variant="light"
+              />
+              <AnnualAvailabilityNote visible={billingPeriod === 'annual'} />
+            </div>
             <div
               ref={pricingRef}
               className="grid gap-6 md:grid-cols-3 lg:items-start"
@@ -246,6 +231,7 @@ export function PlansPage() {
                   plan={plan}
                   index={index}
                   isVisible={pricingVisible}
+                  billingPeriod={billingPeriod}
                 />
               ))}
             </div>
@@ -567,11 +553,13 @@ type PlanCardProps = {
   plan: (typeof landingPlans)[number]
   index: number
   isVisible: boolean
+  billingPeriod: BillingPeriod
 }
 
-function PlanCard({ plan, index, isVisible }: PlanCardProps) {
+function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
   const PlanIcon = PLAN_ICONS[plan.key]
-  const features = PLAN_FEATURES[plan.key] ?? []
+  const { sectionLabel, features, upgradeHints } = getPlanCardFeatures(plan.key as CommercialPlanKey)
+  const isAnnual = billingPeriod === 'annual'
 
   return (
     <article
@@ -615,21 +603,45 @@ function PlanCard({ plan, index, isVisible }: PlanCardProps) {
 
       {/* Pricing */}
       <div className="mt-5 border-t border-slate-100 pt-5">
-        <p className="text-xs text-slate-400">
-          De <span className="line-through">{plan.compareAtMonthly}</span>
-          <span className="ml-1.5 font-medium text-emerald-600">· Preço de lançamento</span>
-        </p>
-        <div className="mt-1 flex items-baseline gap-1">
-          <span
-            className={cn(
-              'text-4xl font-extrabold',
-              plan.isRecommended ? 'text-emerald-600' : 'text-slate-900',
-            )}
-          >
-            {plan.priceMonthly}
-          </span>
-          <span className="text-sm text-slate-400">/mês</span>
-        </div>
+        {isAnnual ? (
+          <>
+            <p className="text-xs font-medium text-emerald-600">
+              Plano anual · {plan.savingsLabel}
+            </p>
+            <div className="mt-1 flex items-baseline gap-1">
+              <span
+                className={cn(
+                  'text-4xl font-extrabold',
+                  plan.isRecommended ? 'text-emerald-600' : 'text-slate-900',
+                )}
+              >
+                {plan.priceAnnualMonthly}
+              </span>
+              <span className="text-sm text-slate-400">/mês</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-400">
+              {plan.priceAnnualTotal} cobrado anualmente
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-xs text-slate-400">
+              De <span className="line-through">{plan.compareAtMonthly}</span>
+              <span className="ml-1.5 font-medium text-emerald-600">· Preço de lançamento</span>
+            </p>
+            <div className="mt-1 flex items-baseline gap-1">
+              <span
+                className={cn(
+                  'text-4xl font-extrabold',
+                  plan.isRecommended ? 'text-emerald-600' : 'text-slate-900',
+                )}
+              >
+                {plan.priceMonthly}
+              </span>
+              <span className="text-sm text-slate-400">/mês</span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* CTA */}
@@ -657,26 +669,41 @@ function PlanCard({ plan, index, isVisible }: PlanCardProps) {
 
       {/* Feature list */}
       <ul
-        className="mt-6 flex-1 space-y-2.5"
+        className="mt-6 flex-1 space-y-2"
         role="list"
         aria-label={`Recursos do plano ${plan.name}`}
       >
-        {features.map((feature) =>
-          feature.isHeader ? (
-            <li key={feature.label} className="pt-1">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                {feature.label}
+        {sectionLabel && (
+          <li className="pb-0.5 pt-0.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              {sectionLabel}
+            </span>
+          </li>
+        )}
+        {features.map((feature) => (
+          <PlanFeatureRow
+            key={feature.label}
+            label={feature.label}
+            type={feature.availability}
+            variant="light"
+          />
+        ))}
+        {upgradeHints.length > 0 && (
+          <>
+            <li className="pb-0.5 pt-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                No Professional
               </span>
             </li>
-          ) : (
-            <li key={feature.label} className="flex items-start gap-2.5">
-              <Check
-                className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
-                aria-hidden="true"
+            {upgradeHints.map((hint) => (
+              <PlanFeatureRow
+                key={hint.label}
+                label={hint.label}
+                type="not_included"
+                variant="light"
               />
-              <span className="text-sm text-slate-600">{feature.label}</span>
-            </li>
-          ),
+            ))}
+          </>
         )}
       </ul>
     </article>
