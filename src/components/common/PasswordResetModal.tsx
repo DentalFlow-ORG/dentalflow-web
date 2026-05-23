@@ -89,11 +89,11 @@ export function PasswordResetModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-labelledby={`${formId}-title`}
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          <div className="border-b border-slate-100 px-6 py-5">
+          <div className="border-b border-border px-6 py-5">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
                 <KeyRound className="h-4 w-4" />
@@ -101,11 +101,11 @@ export function PasswordResetModal({
               <div>
                 <Dialog.Title
                   id={`${formId}-title`}
-                  className="text-base font-semibold text-slate-950"
+                  className="text-base font-semibold text-foreground"
                 >
                   {title}
                 </Dialog.Title>
-                <Dialog.Description className="text-sm text-slate-500">
+                <Dialog.Description className="text-sm text-muted-foreground">
                   {subjectName}
                 </Dialog.Description>
               </div>
@@ -147,7 +147,7 @@ export function PasswordResetModal({
               </FormField>
             </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-slate-100 px-6 py-4 sm:flex-row sm:justify-end">
+            <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="outline"

@@ -9,22 +9,27 @@ import {
 import { setupAuthRefresh } from '@/services/http'
 
 import {
+  completeProfile as completeProfileRequest,
   getCurrentUser,
   login as loginRequest,
   logout as logoutRequest,
   refresh,
   register as registerRequest,
 } from '../services/auth.service'
+import { clearBillingStatusCache } from '@/features/billing/services/billing-status-cache'
 import {
   clearSession,
-  getAccessToken,
-  getRefreshToken,
-  getStoredUser,
+  hasStoredSession,
   setSession,
   setTokens,
   updateStoredUser,
 } from '../utils/session-storage'
-import type { AuthUser, LoginPayload, RegisterPayload } from '../types'
+import type {
+  AuthUser,
+  CompleteProfilePayload,
+  LoginPayload,
+  RegisterPayload,
+} from '../types'
 import { AuthContext, type AuthContextValue } from './auth-context'
 
 type AuthProviderProps = {
@@ -32,18 +37,14 @@ type AuthProviderProps = {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<AuthUser | null>(() => getStoredUser())
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [isBootstrapping, setIsBootstrapping] = useState(true)
 
   useEffect(() => {
     setupAuthRefresh({
-      refreshTokens: () => {
-        const refreshToken = getRefreshToken()
-        if (!refreshToken) return Promise.reject(new Error('No refresh token'))
-        return refresh(refreshToken)
-      },
-      onTokenRefreshed: (accessToken, refreshToken) => {
-        setTokens(accessToken, refreshToken)
+      refreshTokens: () => refresh(),
+      onTokenRefreshed: (accessToken) => {
+        setTokens(accessToken)
       },
       onRefreshFailed: () => {
         clearSession()
@@ -52,38 +53,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
       },
     })
 
-    const accessToken = getAccessToken()
-
-    if (!accessToken) {
+    if (hasStoredSession()) {
+      refresh()
+        .then(({ accessToken }) => {
+          setTokens(accessToken)
+          return getCurrentUser()
+        })
+        .then((currentUser) => {
+          setUser(currentUser)
+          updateStoredUser(currentUser)
+        })
+        .catch(() => {
+          clearSession()
+          setUser(null)
+        })
+        .finally(() => {
+          setIsBootstrapping(false)
+        })
+    } else {
       setIsBootstrapping(false)
-      return
     }
-
-    getCurrentUser()
-      .then((currentUser) => {
-        setUser(currentUser)
-        updateStoredUser(currentUser)
-      })
-      .catch(() => {
-        clearSession()
-        setUser(null)
-      })
-      .finally(() => {
-        setIsBootstrapping(false)
-      })
   }, [])
 
   const login = useCallback(async (payload: LoginPayload) => {
     const response = await loginRequest(payload)
-
-    setSession(response.accessToken, response.refreshToken, response.user)
+    setSession(response.accessToken, response.user)
     setUser(response.user)
   }, [])
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const response = await registerRequest(payload)
+    setSession(response.accessToken, response.user)
+    setUser(response.user)
+  }, [])
 
-    setSession(response.accessToken, response.refreshToken, response.user)
+  const completeProfile = useCallback(async (payload: CompleteProfilePayload) => {
+    const response = await completeProfileRequest(payload)
+    setSession(response.accessToken, response.user)
     setUser(response.user)
   }, [])
 
@@ -92,6 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await logoutRequest()
     } finally {
       clearSession()
+      clearBillingStatusCache()
       setUser(null)
     }
   }, [])
@@ -103,9 +110,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isBootstrapping,
       login,
       register,
+      completeProfile,
       logout,
     }),
-    [isBootstrapping, login, logout, register, user],
+    [completeProfile, isBootstrapping, login, logout, register, user],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

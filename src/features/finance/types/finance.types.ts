@@ -168,3 +168,30 @@ export type UpdateFinancialTransactionDto = {
   status?: FinancialTransactionStatus
   paidAt?: string | null
 }
+
+export type TransactionFormState = {
+  type: FinancialTransactionType
+  categoryId: string
+  amount: string
+  description: string
+  transactionDate: string
+  dueDate: string
+  status: FinancialTransactionStatus
+}
+
+export type FixedExpenseFormState = {
+  categoryId: string
+  description: string
+  amount: string
+  recurrence: FixedExpenseRecurrence
+  dueDay: string
+  startDate: string
+}
+
+export type FixedExpenseEditFormState = FixedExpenseFormState & { endDate: string }
+
+export type CategoryFormState = {
+  name: string
+  type: FinancialTransactionType
+  color: string
+}

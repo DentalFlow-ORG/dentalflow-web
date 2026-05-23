@@ -48,7 +48,7 @@ export function MemberTypeSelector({ value, onChange }: MemberTypeSelectorProps)
               'flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all',
               selected
                 ? 'border-primary bg-blue-50/60 shadow-sm shadow-primary/10'
-                : 'border-slate-200 bg-white hover:border-slate-300',
+                : 'border-border bg-card hover:border-primary/40',
             )}
           >
             <div
@@ -56,7 +56,7 @@ export function MemberTypeSelector({ value, onChange }: MemberTypeSelectorProps)
                 'mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
                 selected
                   ? 'bg-primary text-white'
-                  : 'bg-slate-100 text-slate-500',
+                  : 'bg-muted text-muted-foreground',
               )}
             >
               <Icon className="h-5 w-5" />
@@ -65,12 +65,12 @@ export function MemberTypeSelector({ value, onChange }: MemberTypeSelectorProps)
               <p
                 className={cn(
                   'font-semibold',
-                  selected ? 'text-primary' : 'text-slate-900',
+                  selected ? 'text-primary' : 'text-foreground',
                 )}
               >
                 {opt.title}
               </p>
-              <p className="mt-1 text-sm leading-5 text-slate-500">
+              <p className="mt-1 text-sm leading-5 text-muted-foreground">
                 {opt.description}
               </p>
             </div>

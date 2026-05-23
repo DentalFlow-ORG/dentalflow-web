@@ -11,7 +11,7 @@ export function PanelCard({ children, className }: PanelCardProps) {
   return (
     <section
       className={cn(
-        'rounded-lg border border-slate-200 bg-white p-6 shadow-sm',
+        'rounded-lg border border-border bg-card p-6 shadow-sm',
         className,
       )}
     >

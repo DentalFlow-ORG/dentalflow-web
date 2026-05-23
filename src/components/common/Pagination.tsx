@@ -43,7 +43,7 @@ export function Pagination({
       <div className="flex flex-wrap items-center gap-3">
         {onPageSizeChange && (
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-500">Por página</span>
+            <span className="text-xs text-muted-foreground">Por página</span>
             <Select
               value={String(pageSize)}
               onValueChange={(v) => {
@@ -66,7 +66,7 @@ export function Pagination({
         )}
 
         {filteredCount > 0 && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             {from}–{to} de {filteredCount} resultado{filteredCount !== 1 ? 's' : ''}
           </p>
         )}
@@ -84,7 +84,7 @@ export function Pagination({
             <ChevronLeft className="h-4 w-4" />
           </Button>
 
-          <span className="min-w-18 text-center text-xs font-medium text-slate-600">
+          <span className="min-w-18 text-center text-xs font-medium text-muted-foreground">
             {page} / {totalPages}
           </span>
 

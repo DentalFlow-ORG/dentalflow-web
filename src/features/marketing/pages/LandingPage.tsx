@@ -1,49 +1,56 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
-import { SiteFooter } from '@/components/layout/SiteFooter'
-
-import { ContactSection } from '../components/ContactSection'
-import { FeaturesSection } from '../components/FeaturesSection'
+import { AnimatedImpactSection } from '../components/AnimatedImpactSection'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { HeroSection } from '../components/HeroSection'
-import { LandingHeader } from '../components/LandingHeader'
-import { ProblemSection } from '../components/ProblemSection'
-import { ProcessSection } from '../components/ProcessSection'
-import { ResultsSection } from '../components/ResultsSection'
-import { SolutionsSection } from '../components/SolutionsSection'
+import { LandingIntegrationsSection } from '../components/LandingIntegrationsSection'
+import { MacbookIntroSection } from '../components/MacbookIntroSection'
+import { PricingSection } from '../components/PricingSection'
+import { ProductCarouselSection } from '../components/ProductCarouselSection'
+import { PublicLayout } from '../components/PublicLayout'
+import { SectionDivider } from '../components/SectionDivider'
 import { TrialCtaSection } from '../components/TrialCtaSection'
+import { VideoSection } from '../components/VideoSection'
 
 export function LandingPage() {
-  const [isScrolled, setIsScrolled] = useState(false)
+  usePageMeta(
+    'DentalFlow | Sistema para clínicas odontológicas',
+    'Centralize agenda, pacientes, financeiro, estoque, leads e IA em uma plataforma moderna para clínicas odontológicas. 7 dias grátis.',
+  )
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 16)
-    }
+    if (!window.location.hash) return
 
-    handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
+    const timeout = window.setTimeout(() => {
+      const target = document.getElementById(window.location.hash.slice(1))
+      target?.scrollIntoView({ block: 'start' })
+    }, 250)
 
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-    }
+    return () => window.clearTimeout(timeout)
   }, [])
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#ffffff_34%,#f1f5f9_100%)] text-slate-950">
-      <LandingHeader isScrolled={isScrolled} />
+    <PublicLayout darkHero bgClassName="min-h-screen bg-white text-slate-950">
+      <MacbookIntroSection />
 
-      <main>
-        <HeroSection />
-        <ProblemSection />
-        <SolutionsSection />
-        <TrialCtaSection />
-        <ProcessSection />
-        <FeaturesSection />
-        <ResultsSection />
-        <ContactSection />
-      </main>
+      <SectionDivider variant="dark-to-light" />
 
-      <SiteFooter />
-    </div>
+      <HeroSection />
+
+      <ProductCarouselSection />
+      <SectionDivider variant="light-to-dark" />
+      <LandingIntegrationsSection />
+      <SectionDivider variant="dark-to-gray" />
+      <AnimatedImpactSection />
+
+      <SectionDivider variant="gray-to-dark" />
+      <PricingSection />
+
+      <SectionDivider variant="dark-to-light" />
+      <VideoSection />
+
+      <SectionDivider variant="light-to-blue" />
+      <TrialCtaSection />
+    </PublicLayout>
   )
 }

@@ -2,16 +2,21 @@ import { apiRequest } from '@/services/http'
 
 import type {
   AuthResponse,
+  CompleteProfilePayload,
   LoginPayload,
+  MessageResponse,
   RefreshResponse,
   RegisterPayload,
 } from '../types'
-import { getAccessToken, getRefreshToken } from '../utils/session-storage'
+import { getAccessToken } from '../utils/session-storage'
+
+let pendingRefresh: Promise<RefreshResponse> | null = null
 
 export function login(payload: LoginPayload) {
   return apiRequest<AuthResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(payload),
+    _skipRefresh: true,
   })
 }
 
@@ -19,6 +24,7 @@ export function register(payload: RegisterPayload) {
   return apiRequest<AuthResponse>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(payload),
+    _skipRefresh: true,
   })
 }
 
@@ -29,18 +35,50 @@ export function getCurrentUser() {
   })
 }
 
+export function completeProfile(payload: CompleteProfilePayload) {
+  return apiRequest<AuthResponse>('/auth/complete-profile', {
+    method: 'POST',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(payload),
+  })
+}
+
+export function getGoogleOAuthStartUrl() {
+  return `${import.meta.env.VITE_API_URL}/auth/google`
+}
+
 export function logout() {
   return apiRequest<void>('/auth/logout', {
     method: 'POST',
     accessToken: getAccessToken(),
-    body: JSON.stringify({ refreshToken: getRefreshToken() }),
   })
 }
 
-export function refresh(refreshToken: string) {
-  return apiRequest<RefreshResponse>('/auth/refresh', {
+export function forgotPassword(email: string) {
+  return apiRequest<MessageResponse>('/auth/forgot-password', {
     method: 'POST',
-    body: JSON.stringify({ refreshToken }),
+    body: JSON.stringify({ email }),
     _skipRefresh: true,
   })
+}
+
+export function resetPassword(token: string, newPassword: string) {
+  return apiRequest<MessageResponse>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, newPassword }),
+    _skipRefresh: true,
+  })
+}
+
+export function refresh() {
+  if (!pendingRefresh) {
+    pendingRefresh = apiRequest<RefreshResponse>('/auth/refresh', {
+      method: 'POST',
+      _skipRefresh: true,
+    }).finally(() => {
+      pendingRefresh = null
+    })
+  }
+
+  return pendingRefresh
 }

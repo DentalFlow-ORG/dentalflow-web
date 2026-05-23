@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { Button } from '@/components/ui/button'
+
 import { InlineFeedback } from './InlineFeedback'
 import { LoadingCard } from './LoadingCard'
 
@@ -30,13 +32,14 @@ export function ListPageShell({
           {onRetry && (
             <>
               {' '}
-              <button
+              <Button
                 type="button"
-                className="underline underline-offset-2 hover:opacity-80"
+                variant="ghost"
+                className="h-auto p-0 text-sm font-normal underline underline-offset-2 hover:bg-transparent hover:opacity-80"
                 onClick={onRetry}
               >
                 Tentar novamente
-              </button>
+              </Button>
             </>
           )}
         </InlineFeedback>

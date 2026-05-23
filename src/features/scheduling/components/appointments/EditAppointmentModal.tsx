@@ -13,13 +13,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getProfile } from '@/features/profiles/services/profiles.service'
-import type { ProfileService } from '@/features/profiles/types'
+import { getProfile } from '../../services/profiles.service'
+import type { ProfileService } from '../../types/profile.types'
 import {
   formatDateInputValue,
   formatTimeInputValue,
 } from '@/lib/date-time-formatters'
-import { formatPhoneBR } from '@/lib/field-formatters'
+import {
+  WHATSAPP_PHONE_REQUIRED_MESSAGE,
+  formatPhoneBR,
+  isValidWhatsappPhoneBR,
+} from '@/lib/field-formatters'
 
 import {
   getAvailableSlots,
@@ -50,6 +54,7 @@ type FormState = {
   appointmentDate: string
   startTime: string
   notes: string
+  estimatedAmount: string
 }
 
 const NO_SERVICE_SENTINEL = '__NO_SERVICE__'
@@ -68,11 +73,15 @@ export function EditAppointmentModal({
   const [isLoadingServices, setIsLoadingServices] = useState(false)
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [estimateManuallyEdited, setEstimateManuallyEdited] = useState(
+    () => appointment?.estimatedAmountCents != null,
+  )
   const todayInputValue = formatDateInputValue(new Date())
   const nowTimeInputValue = getCurrentTimeInputValue()
 
   useEffect(() => {
     setForm(buildFormState(appointment))
+    setEstimateManuallyEdited(appointment?.estimatedAmountCents != null)
   }, [appointment])
 
   useEffect(() => {
@@ -101,6 +110,22 @@ export function EditAppointmentModal({
       })
       .finally(() => setIsLoadingServices(false))
   }, [appointment])
+
+  useEffect(() => {
+    if (estimateManuallyEdited) return
+    if (!form.serviceId) {
+      set('estimatedAmount', '')
+      return
+    }
+    const service = services.find((s) => s.id === form.serviceId)
+    if (service?.priceFrom != null) {
+      const cents = Math.round(service.priceFrom * 100)
+      set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
+    } else {
+      set('estimatedAmount', '')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.serviceId, services, estimateManuallyEdited])
 
   useEffect(() => {
     if (!appointment || !form.appointmentDate) {
@@ -141,6 +166,14 @@ export function EditAppointmentModal({
     if (!form.patientName.trim() || !form.appointmentDate || !form.startTime) {
       return
     }
+    if (!isPastAppointment && !isValidWhatsappPhoneBR(form.patientPhone)) {
+      showAlert({
+        title: 'Telefone obrigatório',
+        description: WHATSAPP_PHONE_REQUIRED_MESSAGE,
+        tone: 'error',
+      })
+      return
+    }
     if (formatDateInputValue(form.appointmentDate) < todayInputValue) {
       showAlert({
         title: 'Data inválida',
@@ -174,8 +207,9 @@ export function EditAppointmentModal({
             serviceId: form.serviceId || undefined,
             patientName: form.patientName.trim(),
             patientEmail: form.patientEmail.trim() || undefined,
-            patientPhone: form.patientPhone.trim() || undefined,
+            patientPhone: form.patientPhone.trim(),
             notes: form.notes.trim() || undefined,
+            estimatedAmountCents: reaisToCents(form.estimatedAmount),
           }
       const updated = await updateAppointment(currentAppointment.id, dto)
 
@@ -202,22 +236,22 @@ export function EditAppointmentModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-labelledby="edit-appointment-title"
-          className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={handleClose}
           onInteractOutside={handleClose}
         >
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+          <div className="flex items-center justify-between border-b border-border px-6 py-5">
             <div>
               <Dialog.Title
                 id="edit-appointment-title"
-                className="text-lg font-semibold text-slate-950"
+                className="text-lg font-semibold text-foreground"
               >
                 {modalTitle}
               </Dialog.Title>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {isPastAppointment
                   ? 'Esta consulta ja passou. Ajuste data e horario para remarcar.'
-                  : currentAppointment.profile.displayName}
+                  : currentAppointment.profile?.displayName ?? 'Profissional não informado'}
               </p>
             </div>
             <Button
@@ -257,11 +291,12 @@ export function EditAppointmentModal({
                   onChange={(event) => set('patientEmail', event.target.value)}
                 />
               </FormField>
-              <FormField label="Telefone" htmlFor="editPatientPhone" optional>
+              <FormField label="Telefone com WhatsApp" htmlFor="editPatientPhone">
                 <TextInput
                   id="editPatientPhone"
                   type="tel"
                   maxLength={20}
+                  required={!isPastAppointment}
                   disabled={isSubmitting || isPastAppointment}
                   value={form.patientPhone}
                   onChange={(event) => set('patientPhone', formatPhoneBR(event.target.value))}
@@ -281,6 +316,7 @@ export function EditAppointmentModal({
                 onValueChange={(value) => {
                   set('serviceId', value === NO_SERVICE_SENTINEL ? '' : value)
                   set('startTime', '')
+                  setEstimateManuallyEdited(false)
                 }}
               >
                 <SelectTrigger id="editServiceId">
@@ -300,11 +336,52 @@ export function EditAppointmentModal({
                     <SelectItem key={service.id} value={service.id}>
                       {service.name}
                       {service.durationMinutes ? ` (${service.durationMinutes} min)` : ''}
+                      {service.priceFrom != null
+                        ? ` — R$ ${service.priceFrom.toFixed(2).replace('.', ',')}`
+                        : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </FormField>
+
+            {/* Estimated amount */}
+            {!isPastAppointment && (
+              <FormField
+                label="Valor previsto (R$)"
+                htmlFor="editEstimatedAmount"
+                optional
+                hint="Preenchido pelo serviço selecionado. Ajuste para desconto ou negociação."
+              >
+                <TextInput
+                  id="editEstimatedAmount"
+                  inputMode="decimal"
+                  disabled={isSubmitting}
+                  placeholder="Ex: 250,00"
+                  value={form.estimatedAmount}
+                  onChange={(e) => {
+                    set('estimatedAmount', e.target.value)
+                    setEstimateManuallyEdited(true)
+                  }}
+                />
+                {estimateManuallyEdited && form.serviceId && (() => {
+                  const svc = services.find((s) => s.id === form.serviceId)
+                  return svc?.priceFrom != null ? (
+                    <button
+                      type="button"
+                      className="mt-1 text-xs text-primary hover:underline"
+                      onClick={() => {
+                        const cents = Math.round(svc.priceFrom! * 100)
+                        set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
+                        setEstimateManuallyEdited(false)
+                      }}
+                    >
+                      Restaurar valor do serviço (R$ {svc.priceFrom.toFixed(2).replace('.', ',')})
+                    </button>
+                  ) : null
+                })()}
+              </FormField>
+            )}
 
             {/* Date */}
             <FormField label="Data" htmlFor="editAppointmentDate">
@@ -325,7 +402,7 @@ export function EditAppointmentModal({
             {/* Time slots */}
             <FormField label="Horário">
               {!form.appointmentDate ? (
-                <p className="py-2 text-sm text-slate-400">
+                <p className="py-2 text-sm text-muted-foreground">
                   Selecione uma data para ver os horários disponíveis
                 </p>
               ) : (
@@ -352,7 +429,7 @@ export function EditAppointmentModal({
             </FormField>
           </form>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-5 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
@@ -385,7 +462,18 @@ function buildFormState(appointment: Appointment | null): FormState {
     appointmentDate: appointment ? formatDateInputValue(appointment.appointmentDate) : '',
     startTime: appointment ? formatTimeInputValue(appointment.startTime) : '',
     notes: appointment?.notes ?? '',
+    estimatedAmount:
+      appointment?.estimatedAmountCents != null
+        ? (appointment.estimatedAmountCents / 100).toFixed(2).replace('.', ',')
+        : '',
   }
+}
+
+function reaisToCents(value: string): number | undefined {
+  const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '')
+  const parsed = parseFloat(normalized)
+  if (isNaN(parsed) || parsed < 0) return undefined
+  return Math.round(parsed * 100)
 }
 
 function hasAppointmentTimePassed(appointment: Appointment) {

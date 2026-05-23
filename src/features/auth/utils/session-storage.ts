@@ -1,52 +1,49 @@
 import type { AuthUser } from '../types'
 
-const ACCESS_TOKEN_KEY = 'dentalflow.accessToken'
-const REFRESH_TOKEN_KEY = 'dentalflow.refreshToken'
+const LEGACY_ACCESS_TOKEN_KEY = 'dentalflow.accessToken'
 const USER_KEY = 'dentalflow.user'
+const ACTIVE_SESSION_KEY = 'dentalflow.activeSession'
 
-export function getAccessToken() {
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY)
+let accessToken: string | null = null
+let currentUser: AuthUser | null = null
+
+function removeLegacyPersistentSession() {
+  window.localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY)
+  window.localStorage.removeItem(USER_KEY)
 }
 
-export function getRefreshToken() {
-  return window.localStorage.getItem(REFRESH_TOKEN_KEY)
+export function hasStoredSession(): boolean {
+  return window.localStorage.getItem(ACTIVE_SESSION_KEY) === '1'
+}
+
+export function getAccessToken() {
+  return accessToken
 }
 
 export function getStoredUser() {
-  const user = window.localStorage.getItem(USER_KEY)
-
-  if (!user) {
-    return null
-  }
-
-  try {
-    return JSON.parse(user) as AuthUser
-  } catch {
-    clearSession()
-    return null
-  }
+  removeLegacyPersistentSession()
+  return currentUser
 }
 
-export function setSession(accessToken: string, refreshToken: string | null, user: AuthUser) {
-  setTokens(accessToken, refreshToken)
-  window.localStorage.setItem(USER_KEY, JSON.stringify(user))
+export function setSession(accessToken: string, user: AuthUser) {
+  window.localStorage.setItem(ACTIVE_SESSION_KEY, '1')
+  setTokens(accessToken)
+  updateStoredUser(user)
 }
 
-export function setTokens(accessToken: string, refreshToken: string | null) {
-  window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken)
-  if (refreshToken) {
-    window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
-  } else {
-    window.localStorage.removeItem(REFRESH_TOKEN_KEY)
-  }
+export function setTokens(newAccessToken: string) {
+  accessToken = newAccessToken
+  window.localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY)
 }
 
 export function updateStoredUser(user: AuthUser) {
-  window.localStorage.setItem(USER_KEY, JSON.stringify(user))
+  currentUser = user
+  window.localStorage.removeItem(USER_KEY)
 }
 
 export function clearSession() {
-  window.localStorage.removeItem(ACCESS_TOKEN_KEY)
-  window.localStorage.removeItem(REFRESH_TOKEN_KEY)
-  window.localStorage.removeItem(USER_KEY)
+  accessToken = null
+  currentUser = null
+  window.localStorage.removeItem(ACTIVE_SESSION_KEY)
+  removeLegacyPersistentSession()
 }

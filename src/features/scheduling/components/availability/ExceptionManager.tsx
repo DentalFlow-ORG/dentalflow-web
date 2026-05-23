@@ -22,12 +22,14 @@ type ExceptionManagerProps = {
   profileId: string
   exceptions: AvailabilityException[]
   onExceptionsChange: (exceptions: AvailabilityException[]) => void
+  title?: string
 }
 
 export function ExceptionManager({
   profileId,
   exceptions,
   onExceptionsChange,
+  title = 'Exceções de agenda',
 }: ExceptionManagerProps) {
   const { showAlert } = useGlobalAlerts()
   const [isAdding, setIsAdding] = useState(false)
@@ -99,8 +101,8 @@ export function ExceptionManager({
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h3 className="text-base font-semibold text-slate-900">Exceções de agenda</h3>
-          <p className="mt-0.5 text-sm text-slate-500">
+          <h3 className="text-base font-semibold text-foreground">{title}</h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Registre folgas ou horários especiais em datas específicas.
           </p>
         </div>
@@ -129,9 +131,9 @@ export function ExceptionManager({
       )}
 
       {sortedExceptions.length === 0 && !isAdding ? (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-white py-10 text-center">
-          <CalendarOff className="h-8 w-8 text-slate-300" />
-          <p className="text-sm text-slate-500">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-card py-10 text-center">
+          <CalendarOff className="h-8 w-8 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">
             Nenhuma exceção cadastrada. Adicione folgas e horários especiais.
           </p>
         </div>

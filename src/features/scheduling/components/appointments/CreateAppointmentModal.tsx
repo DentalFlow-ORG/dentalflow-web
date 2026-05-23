@@ -13,10 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getProfile, listProfiles } from '@/features/profiles/services/profiles.service'
-import type { ProfileListItem, ProfileService } from '@/features/profiles/types'
+import { getProfile, listProfiles } from '../../services/profiles.service'
+import type { ProfileListItem, ProfileService } from '../../types/profile.types'
 import { formatDateInputValue } from '@/lib/date-time-formatters'
-import { formatPhoneBR } from '@/lib/field-formatters'
+import {
+  WHATSAPP_PHONE_REQUIRED_MESSAGE,
+  formatPhoneBR,
+  isValidWhatsappPhoneBR,
+} from '@/lib/field-formatters'
 
 import {
   createAppointment,
@@ -49,6 +53,7 @@ type FormState = {
   appointmentDate: string
   startTime: string
   notes: string
+  estimatedAmount: string
 }
 
 const EMPTY_FORM: FormState = {
@@ -60,6 +65,7 @@ const EMPTY_FORM: FormState = {
   appointmentDate: '',
   startTime: '',
   notes: '',
+  estimatedAmount: '',
 }
 
 export function CreateAppointmentModal({
@@ -78,6 +84,7 @@ export function CreateAppointmentModal({
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false)
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [estimateManuallyEdited, setEstimateManuallyEdited] = useState(false)
   const todayInputValue = formatDateInputValue(new Date())
   const nowTimeInputValue = getCurrentTimeInputValue()
 
@@ -121,6 +128,21 @@ export function CreateAppointmentModal({
   }, [form.profileId])
 
   useEffect(() => {
+    if (estimateManuallyEdited) return
+    if (!form.serviceId) {
+      set('estimatedAmount', '')
+      return
+    }
+    const service = services.find((s) => s.id === form.serviceId)
+    if (service?.priceFrom != null) {
+      const cents = Math.round(service.priceFrom * 100)
+      set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
+    } else {
+      set('estimatedAmount', '')
+    }
+  }, [form.serviceId, services, estimateManuallyEdited])
+
+  useEffect(() => {
     set('startTime', '')
     if (!form.profileId || !form.appointmentDate) {
       setSlots([])
@@ -148,12 +170,21 @@ export function CreateAppointmentModal({
     setProfileAvailability([])
     setProfileExceptions([])
     setSlots([])
+    setEstimateManuallyEdited(false)
     onClose()
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.profileId || !form.patientName || !form.appointmentDate || !form.startTime) {
+      return
+    }
+    if (!isValidWhatsappPhoneBR(form.patientPhone)) {
+      showAlert({
+        title: 'Telefone obrigatório',
+        description: WHATSAPP_PHONE_REQUIRED_MESSAGE,
+        tone: 'error',
+      })
       return
     }
     if (formatDateInputValue(form.appointmentDate) < todayInputValue) {
@@ -182,10 +213,11 @@ export function CreateAppointmentModal({
         serviceId: form.serviceId || undefined,
         patientName: form.patientName.trim(),
         patientEmail: form.patientEmail.trim() || undefined,
-        patientPhone: form.patientPhone.trim() || undefined,
+        patientPhone: form.patientPhone.trim(),
         appointmentDate: form.appointmentDate,
         startTime: form.startTime,
         notes: form.notes.trim() || undefined,
+        estimatedAmountCents: reaisToCents(form.estimatedAmount),
       }
       const appointment = await createAppointment(dto)
       showAlert({ title: 'Agendamento criado', tone: 'success' })
@@ -208,15 +240,15 @@ export function CreateAppointmentModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-labelledby="create-modal-title"
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg max-h-[90vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 flex flex-col"
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg max-h-[90vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 flex flex-col"
           onEscapeKeyDown={handleClose}
           onInteractOutside={handleClose}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+          <div className="flex items-center justify-between border-b border-border px-6 py-5">
             <Dialog.Title
               id="create-modal-title"
-              className="text-lg font-semibold text-slate-950"
+              className="text-lg font-semibold text-foreground"
             >
               Novo agendamento
             </Dialog.Title>
@@ -247,6 +279,8 @@ export function CreateAppointmentModal({
                   set('profileId', value)
                   set('serviceId', '')
                   set('appointmentDate', '')
+                  set('estimatedAmount', '')
+                  setEstimateManuallyEdited(false)
                 }}
               >
                 <SelectTrigger id="profileId">
@@ -289,10 +323,49 @@ export function CreateAppointmentModal({
                     <SelectItem key={s.id} value={s.id}>
                       {s.name}
                       {s.durationMinutes ? ` (${s.durationMinutes} min)` : ''}
+                      {s.priceFrom != null
+                        ? ` — R$ ${s.priceFrom.toFixed(2).replace('.', ',')}`
+                        : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </FormField>
+
+            {/* Estimated value */}
+            <FormField
+              label="Valor previsto (R$)"
+              htmlFor="estimatedAmount"
+              optional
+              hint="Preenchido pelo serviço selecionado. Ajuste para desconto ou negociação."
+            >
+              <TextInput
+                id="estimatedAmount"
+                inputMode="decimal"
+                disabled={isSubmitting}
+                placeholder="Ex: 250,00"
+                value={form.estimatedAmount}
+                onChange={(e) => {
+                  set('estimatedAmount', e.target.value)
+                  setEstimateManuallyEdited(true)
+                }}
+              />
+              {estimateManuallyEdited && form.serviceId && (() => {
+                const svc = services.find((s) => s.id === form.serviceId)
+                return svc?.priceFrom != null ? (
+                  <button
+                    type="button"
+                    className="mt-1 text-xs text-primary hover:underline"
+                    onClick={() => {
+                      const cents = Math.round(svc.priceFrom! * 100)
+                      set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
+                      setEstimateManuallyEdited(false)
+                    }}
+                  >
+                    Restaurar valor do serviço (R$ {svc.priceFrom.toFixed(2).replace('.', ',')})
+                  </button>
+                ) : null
+              })()}
             </FormField>
 
             {/* Date */}
@@ -317,7 +390,7 @@ export function CreateAppointmentModal({
             {/* Time slots */}
             <FormField label="Horário">
               {!form.profileId || !form.appointmentDate ? (
-                <p className="py-2 text-sm text-slate-400">
+                <p className="py-2 text-sm text-muted-foreground">
                   {!form.profileId
                     ? 'Selecione um profissional para ver os horários'
                     : 'Selecione uma data para ver os horários'}
@@ -357,11 +430,12 @@ export function CreateAppointmentModal({
                   onChange={(e) => set('patientEmail', e.target.value)}
                 />
               </FormField>
-              <FormField label="Telefone" htmlFor="patientPhone" optional>
+              <FormField label="Telefone com WhatsApp" htmlFor="patientPhone">
                 <TextInput
                   id="patientPhone"
                   type="tel"
                   maxLength={20}
+                  required
                   disabled={isSubmitting}
                   placeholder="(11) 99999-9999"
                   value={form.patientPhone}
@@ -385,7 +459,7 @@ export function CreateAppointmentModal({
           </form>
 
           {/* Footer */}
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-5 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"
@@ -407,6 +481,13 @@ export function CreateAppointmentModal({
       </Dialog.Portal>
     </Dialog.Root>
   )
+}
+
+function reaisToCents(value: string): number | undefined {
+  const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '')
+  const parsed = parseFloat(normalized)
+  if (isNaN(parsed) || parsed < 0) return undefined
+  return Math.round(parsed * 100)
 }
 
 function getCurrentTimeInputValue() {

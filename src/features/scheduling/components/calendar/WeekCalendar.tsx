@@ -44,11 +44,11 @@ const SLOT_HEIGHT_PX = 80
 const PX_PER_MINUTE = SLOT_HEIGHT_PX / SLOT_MINUTES
 
 const STATUS_COLORS: Record<AppointmentStatus, string> = {
-  PENDING: 'border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200',
-  CONFIRMED: 'border-emerald-300 bg-emerald-100 text-emerald-950 hover:bg-emerald-200',
-  COMPLETED: 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200',
-  CANCELED: 'border-red-300 bg-red-100 text-red-900 opacity-70 hover:bg-red-200',
-  NO_SHOW: 'border-orange-300 bg-orange-100 text-orange-900 opacity-70 hover:bg-orange-200',
+  PENDING: 'border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200 dark:border-amber-700/60 dark:bg-amber-900/80 dark:text-amber-200 dark:hover:bg-amber-800/80 dark:hover:border-amber-600/80',
+  CONFIRMED: 'border-emerald-300 bg-emerald-100 text-emerald-950 hover:bg-emerald-200 dark:border-emerald-700/60 dark:bg-emerald-900/80 dark:text-emerald-200 dark:hover:bg-emerald-800/80 dark:hover:border-emerald-600/80',
+  COMPLETED: 'border-border bg-muted text-muted-foreground hover:bg-muted/80',
+  CANCELED: 'border-red-300 bg-red-100 text-red-900 hover:bg-red-200 dark:border-red-700/60 dark:bg-red-900/80 dark:text-red-300 dark:hover:bg-red-800/80 dark:hover:border-red-600/80',
+  NO_SHOW: 'border-orange-300 bg-orange-100 text-orange-900 hover:bg-orange-200 dark:border-orange-700/60 dark:bg-orange-900/80 dark:text-orange-300 dark:hover:bg-orange-800/80 dark:hover:border-orange-600/80',
 }
 
 type PositionedAppointment = Appointment & {
@@ -104,7 +104,7 @@ export function WeekCalendar({
       const dateStr = toDateInputValue(date)
       const dayAppointments = visibleAppointments
         .filter((appt) => isoDateToString(appt.appointmentDate) === dateStr)
-        .sort((a, b) => a.startTime.localeCompare(b.startTime))
+        .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
       return { date, appointments: computeDayLayout(dayAppointments) }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -140,16 +140,16 @@ export function WeekCalendar({
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-card px-3 py-3 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-primary">
-            <CalendarDays className="h-4 w-4" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <CalendarDays className="h-4 w-4" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Semana
             </p>
-            <p className="text-sm font-semibold text-slate-800">{weekLabel}</p>
+            <p className="text-sm font-semibold text-foreground">{weekLabel}</p>
           </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -163,22 +163,29 @@ export function WeekCalendar({
             Hoje
           </Button>
           <Button type="button" variant="outline" size="icon-sm" onClick={goToPrevWeek} aria-label="Semana anterior">
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
-          <Button type="button" variant="outline" size="icon-sm" onClick={goToNextWeek} aria-label="Proxima semana">
-            <ChevronRight className="h-4 w-4" />
+          <Button type="button" variant="outline" size="icon-sm" onClick={goToNextWeek} aria-label="Próxima semana">
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>
 
       {/* Grid */}
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-950/5">
-        <div className="overflow-x-auto">
-          <div className="min-w-[980px]">
+      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm shadow-black/5">
+        {/* Mobile scroll hint — only visible on small screens */}
+        <div className="flex items-center justify-end gap-1.5 border-b border-border px-3 py-1.5 lg:hidden">
+          <span className="text-[11px] text-muted-foreground">Arraste para ver sábado e domingo</span>
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+        </div>
+        <div className="relative overflow-x-auto">
+          {/* Right-side fade indicating more content */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white/70 dark:from-[#0f172a]/70 to-transparent lg:hidden" />
+          <div className="min-w-245">
             {/* Day headers */}
-            <div className="grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))] border-b border-slate-200 bg-slate-50">
-              <div className="sticky left-0 z-20 flex items-center gap-2 border-r border-slate-200 bg-slate-50 px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                <Clock3 className="h-3.5 w-3.5" />
+            <div className="grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))] border-b border-border bg-muted">
+              <div className="sticky left-0 z-20 flex items-center gap-2 border-r border-border bg-muted px-3 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
                 Hora
               </div>
               {weekDates.map((date) => {
@@ -190,9 +197,9 @@ export function WeekCalendar({
                   <div
                     key={toDateInputValue(date)}
                     className={cn(
-                      'border-r border-slate-200 px-3 py-3 last:border-r-0',
+                      'border-r border-border px-3 py-3 last:border-r-0',
                       today && dayStatus.isWorking && 'bg-primary/5',
-                      !dayStatus.isWorking && 'bg-slate-100/60',
+                      !dayStatus.isWorking && 'bg-muted/80',
                       dayStatus.kind === 'special' && 'bg-indigo-50/70',
                     )}
                   >
@@ -204,8 +211,8 @@ export function WeekCalendar({
                           : dayStatus.kind === 'special'
                             ? 'text-indigo-600'
                           : !dayStatus.isWorking
-                            ? 'text-slate-400'
-                            : 'text-slate-500',
+                            ? 'text-muted-foreground'
+                            : 'text-muted-foreground',
                       )}
                     >
                       {weekday}
@@ -218,15 +225,15 @@ export function WeekCalendar({
                           : dayStatus.kind === 'special'
                             ? 'text-indigo-950'
                           : !dayStatus.isWorking
-                            ? 'text-slate-400'
-                            : 'text-slate-950',
+                            ? 'text-muted-foreground'
+                            : 'text-foreground',
                       )}
                     >
                       {day}
                     </p>
                     {!dayStatus.isWorking && (
                       <p
-                        className="mt-0.5 truncate text-[10px] font-medium text-slate-400"
+                        className="mt-0.5 truncate text-[10px] font-medium text-muted-foreground"
                         title={dayStatus.reason ?? 'Folga'}
                       >
                         {dayStatus.reason ? `Folga: ${dayStatus.reason}` : 'Folga'}
@@ -250,11 +257,11 @@ export function WeekCalendar({
               {/* Background: time labels + grid lines */}
               <div className="absolute inset-0 grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))]">
                 {/* Time label column */}
-                <div className="sticky left-0 z-10 border-r border-slate-200 bg-white">
+                <div className="sticky left-0 z-10 border-r border-border bg-card">
                   {slots.map((slot) => (
                     <div
                       key={slot}
-                      className="flex items-start border-b border-slate-100 text-xs font-semibold text-slate-400 last:border-b-0"
+                      className="flex items-start border-b border-border/50 text-xs font-semibold text-muted-foreground last:border-b-0"
                       style={{ height: `${SLOT_HEIGHT_PX}px` }}
                     >
                       <span className="pl-3 pt-1.5">{minutesToTime(slot)}</span>
@@ -276,12 +283,12 @@ export function WeekCalendar({
                     <div
                       key={toDateInputValue(date)}
                       className={cn(
-                        'relative border-r border-slate-100 last:border-r-0',
+                        'relative border-r border-border/50 last:border-r-0',
                         today && dayStatus.isWorking
                           ? 'bg-primary/5'
                           : !dayStatus.isWorking
-                            ? 'bg-slate-50/80'
-                            : 'bg-white',
+                            ? 'bg-muted/50'
+                            : 'bg-card',
                       )}
                     >
                       {slots.map((slot) => {
@@ -291,10 +298,10 @@ export function WeekCalendar({
                           <div
                             key={slot}
                             className={cn(
-                              'border-b border-slate-100 last:border-b-0',
+                              'border-b border-border/50 last:border-b-0',
                               isRoutineSlot
                                 ? 'bg-transparent'
-                                : 'bg-[repeating-linear-gradient(135deg,#f8fafc_0px,#f8fafc_8px,#eef2f7_8px,#eef2f7_12px)] opacity-90',
+                                : 'bg-[repeating-linear-gradient(135deg,#f8fafc_0px,#f8fafc_8px,#eef2f7_8px,#eef2f7_12px)] dark:bg-[repeating-linear-gradient(135deg,#0f172a_0px,#0f172a_8px,#1e293b_8px,#1e293b_12px)] opacity-90',
                             )}
                             style={{ height: `${SLOT_HEIGHT_PX}px` }}
                             title={
@@ -323,9 +330,9 @@ export function WeekCalendar({
                     className="pointer-events-auto relative"
                   >
                     {dayAppts.map((appt) => {
-                      const startMin = wallTimeToMinutes(appt.startTime)
+                      const startMin = wallTimeToMinutes(appt.startTime ?? '')
                       const top = (startMin - firstSlotMinutes) * PX_PER_MINUTE
-                      const height = Math.max(appt.durationMinutes * PX_PER_MINUTE, SLOT_HEIGHT_PX / 2)
+                      const height = Math.max((appt.durationMinutes ?? 30) * PX_PER_MINUTE, SLOT_HEIGHT_PX / 2)
                       const leftPct = (appt.colIndex / appt.colCount) * 100
                       const widthPct = 100 / appt.colCount
 
@@ -363,7 +370,7 @@ function AppointmentCard({
   style: CSSProperties
   onClick: (appointment: Appointment) => void
 }) {
-  const isShort = appointment.durationMinutes < 30
+  const isShort = (appointment.durationMinutes ?? 30) < 30
 
   return (
     <button
@@ -385,7 +392,7 @@ function AppointmentCard({
       </div>
       {!isShort && (
         <p className="mt-0.5 truncate text-[11px] font-medium opacity-75">
-          {appointment.service?.name ?? appointment.profile.displayName}
+          {appointment.service?.name ?? appointment.profile?.displayName ?? 'Profissional'}
         </p>
       )}
     </button>
@@ -397,7 +404,8 @@ function computeDayLayout(appointments: Appointment[]): PositionedAppointment[] 
 
   return appointments.map((appt) => {
     const concurrent = appointments.filter((other) =>
-      appt.startTime < other.endTime && other.startTime < appt.endTime,
+      (appt.startTime ?? '') < (other.endTime ?? '') &&
+        (other.startTime ?? '') < (appt.endTime ?? ''),
     )
     const colCount = concurrent.length
     const colIndex = concurrent.indexOf(appt)
@@ -488,8 +496,8 @@ function buildTimeSlots(
   }
 
   for (const appt of visibleAppointments) {
-    const start = wallTimeToMinutes(appt.startTime)
-    const end = wallTimeToMinutes(appt.endTime)
+    const start = wallTimeToMinutes(appt.startTime ?? '')
+    const end = wallTimeToMinutes(appt.endTime ?? '')
     if (start < minMinutes) minMinutes = Math.floor(start / SLOT_MINUTES) * SLOT_MINUTES
     if (end > maxMinutes) maxMinutes = Math.ceil(end / SLOT_MINUTES) * SLOT_MINUTES
   }

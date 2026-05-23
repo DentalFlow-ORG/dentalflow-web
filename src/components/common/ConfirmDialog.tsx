@@ -40,10 +40,8 @@ export function ConfirmDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          aria-labelledby="confirm-dialog-title"
-          aria-describedby="confirm-dialog-description"
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15',
+            'fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15',
             'animate-in fade-in-0 zoom-in-[0.97] duration-150',
           )}
           onEscapeKeyDown={onCancel}
@@ -55,21 +53,18 @@ export function ConfirmDialog({
               className={cn(
                 'mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full',
                 isDestructive
-                  ? 'bg-red-100 ring-8 ring-red-50'
-                  : 'bg-amber-100 ring-8 ring-amber-50',
+                  ? 'bg-red-100 ring-8 ring-red-50 dark:bg-red-950/40 dark:ring-red-950/20'
+                  : 'bg-amber-100 ring-8 ring-amber-50 dark:bg-amber-950/40 dark:ring-amber-950/20',
               )}
             >
               {isDestructive ? (
-                <TriangleAlert className="h-8 w-8 text-red-600" />
+                <TriangleAlert className="h-8 w-8 text-red-600 dark:text-red-400" />
               ) : (
-                <AlertTriangle className="h-8 w-8 text-amber-600" />
+                <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
               )}
             </div>
 
-            <Dialog.Title
-              id="confirm-dialog-title"
-              className="text-xl font-bold text-slate-950"
-            >
+            <Dialog.Title className="text-xl font-bold text-foreground">
               {title}
             </Dialog.Title>
 
@@ -78,18 +73,15 @@ export function ConfirmDialog({
                 className={cn(
                   'mt-2 inline-flex items-center rounded-md px-3 py-1 text-sm font-semibold',
                   isDestructive
-                    ? 'bg-red-50 text-red-800'
-                    : 'bg-amber-50 text-amber-800',
+                    ? 'bg-red-50 text-red-800 dark:bg-red-950/50 dark:text-red-300'
+                    : 'bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
                 )}
               >
                 {subject}
               </p>
             )}
 
-            <Dialog.Description
-              id="confirm-dialog-description"
-              className="mt-3 text-sm leading-6 text-slate-500"
-            >
+            <Dialog.Description className="mt-3 text-sm leading-6 text-muted-foreground">
               {description}
             </Dialog.Description>
           </div>
@@ -98,7 +90,9 @@ export function ConfirmDialog({
           <div
             className={cn(
               'flex flex-col-reverse gap-3 border-t px-8 py-5 sm:flex-row sm:justify-end',
-              isDestructive ? 'border-red-100 bg-red-50/60' : 'border-amber-100 bg-amber-50/60',
+              isDestructive
+                ? 'border-red-100 bg-red-50/60 dark:border-red-900/30 dark:bg-red-950/30'
+                : 'border-amber-100 bg-amber-50/60 dark:border-amber-900/30 dark:bg-amber-950/30',
             )}
           >
             <Button

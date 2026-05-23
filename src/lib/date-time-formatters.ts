@@ -24,8 +24,15 @@ export function formatDateInputValue(value: DateInputValue) {
   return `${year}-${month}-${day}`
 }
 
-export function formatTimeInputValue(value: string | null | undefined) {
+export function formatTimeInputValue(value: DateInputValue) {
   if (!value) return ''
+
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return ''
+    const hours = String(value.getUTCHours()).padStart(2, '0')
+    const minutes = String(value.getUTCMinutes()).padStart(2, '0')
+    return `${hours}:${minutes}`
+  }
 
   const timeMatch = value.match(/^(\d{2}):(\d{2})/)
   if (timeMatch) return `${timeMatch[1]}:${timeMatch[2]}`
@@ -46,10 +53,29 @@ export function formatDateBR(value: string | null | undefined) {
   return `${match[3]}/${match[2]}/${match[1]}`
 }
 
-export function formatDateLongBR(value: string | null | undefined) {
+export function safeFormatDateBR(
+  value: DateInputValue,
+  fallback = 'Data não informada',
+) {
+  const inputValue = formatDateInputValue(value)
+  return inputValue ? formatDateBR(inputValue) : fallback
+}
+
+export function safeFormatTimeBR(
+  value: DateInputValue,
+  fallback = 'Hora não informada',
+) {
+  const inputValue = formatTimeInputValue(value)
+  return inputValue || fallback
+}
+
+export function formatDateLongBR(value: DateInputValue) {
   if (!value) return ''
 
-  return new Date(value).toLocaleDateString('pt-BR', {
+  const inputValue = formatDateInputValue(value)
+  if (!inputValue) return ''
+
+  return new Date(`${inputValue}T00:00:00.000Z`).toLocaleDateString('pt-BR', {
     timeZone: 'UTC',
     weekday: 'long',
     day: 'numeric',

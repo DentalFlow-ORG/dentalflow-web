@@ -1,10 +1,6 @@
 import { env } from '@/config/env'
 import { notifySessionExpired } from '@/features/auth/utils/auth-events'
-import {
-  clearSession,
-  getRefreshToken,
-  setTokens,
-} from '@/features/auth/utils/session-storage'
+import { clearSession } from '@/features/auth/utils/session-storage'
 
 import {
   getStatusFallbackMessage,
@@ -35,20 +31,19 @@ export class ApiError extends Error {
 }
 
 type RefreshConfig = {
-  refreshTokens: () => Promise<{ accessToken: string; refreshToken: string }>
-  onTokenRefreshed: (accessToken: string, refreshToken: string) => void
+  refreshTokens: () => Promise<{ accessToken: string }>
+  onTokenRefreshed: (accessToken: string) => void
   onRefreshFailed: () => void
 }
 
 let refreshConfig: RefreshConfig | null = null
-let pendingRefresh: Promise<{ accessToken: string; refreshToken: string }> | null = null
+let pendingRefresh: Promise<{ accessToken: string }> | null = null
 
 export function setupAuthRefresh(config: RefreshConfig) {
   refreshConfig = config
 }
 
 const REQUEST_TIMEOUT_MS = 15_000
-let refreshSessionPromise: Promise<string | null> | null = null
 
 export async function apiRequest<TResponse>(
   path: string,
@@ -68,29 +63,28 @@ export async function apiRequest<TResponse>(
   }
 
   try {
-    let response = await request(path, requestOptions, {
+    const response = await request(path, requestOptions, {
       accessToken,
       headers,
       signal: controller.signal,
     })
-
-    if (response.status === 401 && accessToken && !_skipRefresh) {
-      const nextAccessToken = await refreshAccessToken()
-
-      if (nextAccessToken) {
-        response = await request(path, requestOptions, {
-          accessToken: nextAccessToken,
-          headers,
-          signal: controller.signal,
-        })
-      }
-    }
 
     if (!response.ok) {
       const body = await parseResponseBody(response)
       const message =
         translateApiErrorMessage(getErrorMessage(body), response.status) ??
         getStatusFallbackMessage(response.status)
+
+      if (response.status === 402) {
+        if (!window.location.pathname.startsWith('/app/assinatura')) {
+          setTimeout(() => window.location.replace('/app/assinatura'), 0)
+        }
+        throw new ApiError(
+          'Escolha um plano para continuar usando o DentalFlow.',
+          402,
+          body,
+        )
+      }
 
       if (response.status === 401 && !_skipRefresh && refreshConfig) {
         try {
@@ -99,14 +93,16 @@ export async function apiRequest<TResponse>(
               pendingRefresh = null
             })
           }
-          const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await pendingRefresh
-          refreshConfig.onTokenRefreshed(newAccessToken, newRefreshToken)
+          const { accessToken: newAccessToken } = await pendingRefresh
+          refreshConfig.onTokenRefreshed(newAccessToken)
           return apiRequest<TResponse>(path, {
             ...options,
             accessToken: newAccessToken,
             _skipRefresh: true,
           })
         } catch {
+          clearSession()
+          notifySessionExpired()
           refreshConfig.onRefreshFailed()
           throw new ApiError(message, response.status, body)
         }
@@ -115,11 +111,7 @@ export async function apiRequest<TResponse>(
       throw new ApiError(message, response.status, body)
     }
 
-    if (response.status === 204) {
-      return undefined as TResponse
-    }
-
-    return response.json() as Promise<TResponse>
+    return parseSuccessResponse<TResponse>(response)
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') {
       throw new ApiError('A requisição demorou muito. Tente novamente.', 408, null)
@@ -143,10 +135,40 @@ async function parseResponseBody(response: Response) {
   const contentType = response.headers.get('content-type')
 
   if (contentType?.includes('application/json')) {
-    return response.json() as Promise<ApiErrorBody>
+    try {
+      return (await response.json()) as ApiErrorBody
+    } catch {
+      return null
+    }
   }
 
   return response.text()
+}
+
+async function parseSuccessResponse<TResponse>(response: Response): Promise<TResponse> {
+  if (response.status === 204) {
+    return undefined as TResponse
+  }
+
+  const text = await response.text()
+  if (!text.trim()) {
+    return undefined as TResponse
+  }
+
+  const contentType = response.headers.get('content-type')
+  if (!contentType?.includes('application/json')) {
+    return text as TResponse
+  }
+
+  try {
+    return JSON.parse(text) as TResponse
+  } catch {
+    throw new ApiError(
+      'A resposta do servidor veio em um formato inválido.',
+      response.status,
+      text,
+    )
+  }
 }
 
 function getErrorMessage(body: unknown) {
@@ -182,54 +204,4 @@ function request(
       ...options.headers,
     },
   })
-}
-
-async function refreshAccessToken() {
-  const refreshToken = getRefreshToken()
-
-  if (!refreshToken) {
-    clearExpiredSession()
-    return null
-  }
-
-  refreshSessionPromise ??= fetch(`${env.apiUrl}/auth/refresh`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
-  })
-    .then(async (response) => {
-      if (!response.ok) {
-        return null
-      }
-
-      const session = (await response.json()) as {
-        accessToken?: string
-        refreshToken?: string
-      }
-
-      if (!session.accessToken || !session.refreshToken) {
-        return null
-      }
-
-      setTokens(session.accessToken, session.refreshToken)
-      return session.accessToken
-    })
-    .catch(() => null)
-    .finally(() => {
-      refreshSessionPromise = null
-    })
-
-  const accessToken = await refreshSessionPromise
-
-  if (!accessToken) {
-    clearExpiredSession()
-  }
-
-  return accessToken
-}
-
-function clearExpiredSession() {
-  clearSession()
-  notifySessionExpired()
 }

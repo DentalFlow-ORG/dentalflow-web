@@ -99,18 +99,18 @@ export function ClinicFormModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-labelledby="clinic-form-title"
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          <div className="border-b border-slate-100 px-6 py-5">
+          <div className="border-b border-border px-6 py-5">
             <Dialog.Title
               id="clinic-form-title"
-              className="text-base font-semibold text-slate-950"
+              className="text-base font-semibold text-foreground"
             >
               {isEditMode ? 'Editar clínica' : 'Nova clínica'}
             </Dialog.Title>
-            <Dialog.Description className="mt-0.5 text-sm text-slate-500">
+            <Dialog.Description className="mt-0.5 text-sm text-muted-foreground">
               {isEditMode
                 ? `Alterando dados de ${initialData!.name}`
                 : 'Cadastre uma nova clínica para vincular usuários e operações.'}
@@ -150,7 +150,7 @@ export function ClinicFormModal({
               )}
             </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-slate-100 px-6 py-4 sm:flex-row sm:justify-end">
+            <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="outline"

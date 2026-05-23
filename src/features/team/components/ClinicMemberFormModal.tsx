@@ -19,6 +19,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { onlyDigits } from '@/lib/field-formatters'
+import { AvailabilityManager } from '@/features/scheduling/components/availability/AvailabilityManager'
+import { ExceptionManager } from '@/features/scheduling/components/availability/ExceptionManager'
+import { listAvailability, listAvailabilityExceptions } from '@/features/scheduling/services/scheduling.service'
+import type { Availability, AvailabilityException } from '@/features/scheduling/types/scheduling.types'
 
 import { createMember, updateClinicMember } from '../services/team.service'
 import type { MemberListItem, MemberRole } from '../types/team.types'
@@ -63,8 +67,13 @@ export function ClinicMemberFormModal({
 }: ClinicMemberFormModalProps) {
   const isEditMode = Boolean(initialData)
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [availability, setAvailability] = useState<Availability[]>([])
+  const [exceptions, setExceptions] = useState<AvailabilityException[]>([])
+  const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const profileId = initialData?.profile?.id
+  const canManageAvailability = isEditMode && form.role === 'DENTIST' && Boolean(profileId)
 
   useEffect(() => {
     if (!open) return
@@ -72,6 +81,30 @@ export function ClinicMemberFormModal({
     setError(null)
     setForm(initialData ? buildInitialForm(initialData) : EMPTY_FORM)
   }, [initialData, open])
+
+  useEffect(() => {
+    if (!open || !profileId) {
+      setAvailability([])
+      setExceptions([])
+      setIsAvailabilityLoading(false)
+      return
+    }
+
+    setIsAvailabilityLoading(true)
+    Promise.all([listAvailability(profileId), listAvailabilityExceptions(profileId)])
+      .then(([avail, excs]) => {
+        setAvailability(avail)
+        setExceptions(excs)
+      })
+      .catch((err) => {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : 'Nao foi possivel carregar os horarios do profissional.'
+        setError(msg)
+      })
+      .finally(() => setIsAvailabilityLoading(false))
+  }, [open, profileId])
 
   function set<K extends keyof FormState>(field: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -130,27 +163,27 @@ export function ClinicMemberFormModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-labelledby="clinic-member-form-title"
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-950/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          <div className="border-b border-slate-100 px-6 py-5">
+          <div className="border-b border-border px-6 py-5">
             <Dialog.Title
               id="clinic-member-form-title"
-              className="text-base font-semibold text-slate-950"
+              className="text-base font-semibold text-foreground"
             >
               {isEditMode ? 'Editar usuário' : 'Novo usuário'}
             </Dialog.Title>
-            <Dialog.Description className="mt-0.5 text-sm text-slate-500">
+            <Dialog.Description className="mt-0.5 text-sm text-muted-foreground">
               {isEditMode
                 ? `Alterando dados de ${initialData!.firstName} ${initialData!.lastName}`
                 : 'Adicione um profissional ou assistente à clínica.'}
             </Dialog.Description>
           </div>
 
-          <form id="clinic-member-form" onSubmit={handleSubmit}>
+          <div>
             <div className="max-h-[65vh] overflow-y-auto px-6 py-5">
-              <div className="space-y-4">
+              <form id="clinic-member-form" onSubmit={handleSubmit} className="space-y-4">
                 {error && <InlineFeedback>{error}</InlineFeedback>}
 
                 <UserNameFields
@@ -227,10 +260,44 @@ export function ClinicMemberFormModal({
                     </Select>
                   </FormField>
                 )}
-              </div>
+              </form>
+
+              {canManageAvailability && (
+                <div className="mt-6 space-y-6 border-t border-border pt-5">
+                  {isAvailabilityLoading ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Carregando horarios...
+                    </div>
+                  ) : (
+                    <>
+                      <AvailabilityManager
+                        profileId={profileId!}
+                        slots={availability}
+                        onSlotsChange={setAvailability}
+                      />
+                      <div className="border-t border-border pt-5">
+                        <ExceptionManager
+                          profileId={profileId!}
+                          exceptions={exceptions}
+                          onExceptionsChange={setExceptions}
+                          title="Exceções de agenda"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {isEditMode && form.role === 'DENTIST' && !profileId && (
+                <div className="mt-6 rounded-lg border border-dashed border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+                  Este profissional ainda nao possui perfil publico para cadastrar
+                  horarios de atendimento.
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-slate-100 px-6 py-4 sm:flex-row sm:justify-end">
+            <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
@@ -248,7 +315,7 @@ export function ClinicMemberFormModal({
                     : 'Criar usuário'}
               </Button>
             </div>
-          </form>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

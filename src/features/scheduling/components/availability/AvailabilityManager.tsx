@@ -90,8 +90,8 @@ export function AvailabilityManager({
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h3 className="text-base font-semibold text-slate-900">Horários de atendimento</h3>
-          <p className="mt-0.5 text-sm text-slate-500">
+          <h3 className="text-base font-semibold text-foreground">Horários de atendimento</h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">
             Configure os dias e horários em que você atende.
           </p>
         </div>
@@ -120,9 +120,9 @@ export function AvailabilityManager({
       )}
 
       {sortedSlots.length === 0 && !isAdding ? (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-white py-10 text-center">
-          <Clock className="h-8 w-8 text-slate-300" />
-          <p className="text-sm text-slate-500">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-card py-10 text-center">
+          <Clock className="h-8 w-8 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">
             Nenhum horário cadastrado. Adicione sua disponibilidade semanal.
           </p>
         </div>

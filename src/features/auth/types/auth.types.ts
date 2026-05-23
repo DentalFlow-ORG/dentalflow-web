@@ -11,6 +11,7 @@ export type RegisterPayload = {
   lastName: string
   email: string
   password: string
+  acceptedTerms: boolean
 }
 
 export type AuthUserRole = 'ADMIN' | 'OWNER' | 'DENTIST' | 'ASSISTANT' | 'PATIENT'
@@ -22,15 +23,25 @@ export type AuthUser = {
   email: string
   firstName: string
   lastName: string
+  isProfileComplete: boolean
 }
 
 export type AuthResponse = {
   accessToken: string
-  refreshToken: string
   user: AuthUser
 }
 
 export type RefreshResponse = {
   accessToken: string
-  refreshToken: string
+}
+
+export type CompleteProfilePayload = {
+  clinicName: string
+  firstName: string
+  lastName: string
+  acceptedTerms: boolean
+}
+
+export type MessageResponse = {
+  message: string
 }

@@ -5,7 +5,9 @@ import type {
   CreateMemberDto,
   CreateMemberResponse,
   MemberListItem,
+  ProfileDetail,
   Specialty,
+  TeamMembersResponse,
   UpdateMemberDto,
   UpdateMemberPasswordDto,
 } from '../types/team.types'
@@ -18,7 +20,7 @@ export function listSpecialties() {
 }
 
 export function listClinicMembers() {
-  return apiRequest<MemberListItem[]>('/users/clinic/members', {
+  return apiRequest<TeamMembersResponse>('/users/clinic/members', {
     method: 'GET',
     accessToken: getAccessToken(),
   })
@@ -54,6 +56,13 @@ export function updateClinicMemberPassword(
 export function deleteClinicMember(memberId: string) {
   return apiRequest<void>(`/users/clinic/members/${memberId}`, {
     method: 'DELETE',
+    accessToken: getAccessToken(),
+  })
+}
+
+export function getClinicProfile(profileId: string) {
+  return apiRequest<ProfileDetail>(`/profiles/${profileId}`, {
+    method: 'GET',
     accessToken: getAccessToken(),
   })
 }

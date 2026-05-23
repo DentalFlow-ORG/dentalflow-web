@@ -30,6 +30,16 @@ const STATUS_FALLBACKS: Record<number, string> = {
   504: 'A requisição demorou muito. Tente novamente.',
 }
 
+const VALIDATION_MESSAGE_TRANSLATIONS: Array<[RegExp, string]> = [
+  [/addressState must be longer than or equal to 2 characters/i, 'UF deve ter exatamente 2 caracteres.'],
+  [/addressState must be shorter than or equal to 2 characters/i, 'UF deve ter exatamente 2 caracteres.'],
+  [/page must not be less than 1/i, 'Página deve ser maior ou igual a 1.'],
+  [/page must be an integer number/i, 'Página deve ser um número inteiro.'],
+  [/limit must not be greater than 100/i, 'Limite deve ser menor ou igual a 100.'],
+  [/limit must not be less than 1/i, 'Limite deve ser maior ou igual a 1.'],
+  [/limit must be an integer number/i, 'Limite deve ser um número inteiro.'],
+]
+
 export function translateApiErrorMessage(message: string | null, status?: number) {
   if (!message) {
     return status ? STATUS_FALLBACKS[status] : null
@@ -40,6 +50,14 @@ export function translateApiErrorMessage(message: string | null, status?: number
 
   if (translated) {
     return translated
+  }
+
+  const translatedValidationMessages = VALIDATION_MESSAGE_TRANSLATIONS.filter(([pattern]) =>
+    pattern.test(normalizedMessage),
+  ).map(([, translation]) => translation)
+
+  if (translatedValidationMessages.length) {
+    return [...new Set(translatedValidationMessages)].join(' ')
   }
 
   if (normalizedMessage.toLowerCase().includes('unauthorized')) {

@@ -2,6 +2,10 @@ export function onlyDigits(value: string) {
   return value.replace(/\D/g, '')
 }
 
+export function normalizePhoneBR(value: string | null | undefined) {
+  return onlyDigits(value ?? '')
+}
+
 export function formatPhoneBR(value: string) {
   const digits = onlyDigits(value).slice(0, 11)
 
@@ -70,6 +74,17 @@ export function isValidPhoneBR(value: string): boolean {
   return digits.length >= 10 && digits.length <= 11
 }
 
+export function isValidWhatsappPhoneBR(value: string): boolean {
+  return isValidPhoneBR(value)
+}
+
+export const WHATSAPP_PHONE_REQUIRED_MESSAGE =
+  'Informe um telefone com WhatsApp válido.'
+
 export function isValidPersonName(value: string): boolean {
   return /^[\p{L}\s.'-]+$/u.test(value.trim())
+}
+
+export function normalizeEmail(value: string | null | undefined) {
+  return value?.trim().toLowerCase() ?? ''
 }

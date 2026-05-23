@@ -1,98 +1,221 @@
-import { companyInfo } from '@/config/company'
-import { onlyDigits } from '@/lib/field-formatters'
+import type { ReactNode } from 'react'
+import { Link } from '@tanstack/react-router'
+import { ChevronRight, Mail } from 'lucide-react'
+
+import { companyInfo, socialLinks } from '@/config/company'
+import { cn } from '@/lib/utils'
+import { useCookieConsent } from '@/features/privacy/components/CookieConsentContext'
+
+// ── Shared link base ──────────────────────────────────────────────────────────
+
+const footerLinkBase =
+  'group inline-flex items-center gap-1.5 rounded-sm py-1 text-sm text-slate-400 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40'
+
+function FooterChevron() {
+  return (
+    <ChevronRight
+      className="h-3 w-3 shrink-0 text-slate-600 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-emerald-500"
+      aria-hidden="true"
+    />
+  )
+}
+
+function FooterNavLink({ to, children }: { to: string; children: ReactNode }) {
+  return (
+    <Link to={to as never} className={footerLinkBase}>
+      <FooterChevron />
+      {children}
+    </Link>
+  )
+}
+
+function FooterHrefLink({
+  href,
+  children,
+  external,
+  icon,
+}: {
+  href: string
+  children: ReactNode
+  external?: boolean
+  icon?: ReactNode
+}) {
+  return (
+    <a
+      href={href}
+      className={cn(footerLinkBase)}
+      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+    >
+      {icon ?? <FooterChevron />}
+      {children}
+    </a>
+  )
+}
+
+function CookiePreferencesButton() {
+  const { openPreferences } = useCookieConsent()
+  return (
+    <button
+      type="button"
+      onClick={openPreferences}
+      className={cn('cursor-pointer text-left', footerLinkBase)}
+    >
+      <FooterChevron />
+      Política de cookies
+    </button>
+  )
+}
+
+// ── Social ────────────────────────────────────────────────────────────────────
+
+function YouTubeIcon() {
+  return (
+    <svg role="img" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+  )
+}
+
+// ── Nav data ──────────────────────────────────────────────────────────────────
+
+type NavItem = { label: string; href: string }
+
+const PRODUTO: NavItem[] = [
+  { label: 'Funcionalidades', href: '/funcionalidades' },
+  { label: 'Planos', href: '/planos' },
+  { label: 'Para gestores', href: '/para-gestores' },
+  { label: 'Para clínicas em abertura', href: '/para-clinicas-em-abertura' },
+  { label: 'Para dentistas', href: '/para-dentistas' },
+  { label: 'Para secretárias', href: '/para-secretarias' },
+]
+
+const RECURSOS: NavItem[] = [
+  { label: 'Agenda inteligente', href: '/funcionalidades/agenda' },
+  { label: 'Prontuário eletrônico', href: '/funcionalidades/prontuarios' },
+  { label: 'Gestão financeira', href: '/funcionalidades/financeiro' },
+  { label: 'Relatórios e indicadores', href: '/funcionalidades/relatorios' },
+  { label: 'IA de gestão', href: '/funcionalidades/ia' },
+  { label: 'Integrações', href: '/integracoes' },
+]
+
+const LEGAL: NavItem[] = [
+  { label: 'Termos de uso', href: '/termos-de-uso' },
+  { label: 'Política de privacidade', href: '/politica-de-privacidade' },
+  { label: 'Segurança', href: '/seguranca' },
+  { label: 'Tratamento de dados', href: '/tratamento-de-dados' },
+  { label: 'Encarregado / DPO', href: '/encarregado' },
+]
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function ColumnHeading({ children }: { children: ReactNode }) {
+  return (
+    <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500">{children}</h3>
+  )
+}
+
+function NavColumn({ heading, items }: { heading: string; items: NavItem[] }) {
+  return (
+    <div>
+      <ColumnHeading>{heading}</ColumnHeading>
+      <ul className="mt-4 space-y-2.5">
+        {items.map((item) => (
+          <li key={item.href}>
+            <FooterNavLink to={item.href}>{item.label}</FooterNavLink>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
 
 export function SiteFooter() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 text-sm text-slate-500 md:grid-cols-[1.1fr_0.9fr_0.8fr] lg:px-8">
-        <div>
-          <div className="flex items-center gap-3">
-            <img
-              src="/logo-without-bg.png"
-              alt={companyInfo.tradeName}
-              className="h-12 w-12 shrink-0 object-contain"
-            />
-            <span className="h-10 w-px shrink-0 bg-slate-200" aria-hidden="true" />
-            <div>
-              <p className="font-semibold text-slate-900">
-                {companyInfo.tradeName}
-              </p>
-              <p>Plataforma de crescimento para clínicas odontológicas.</p>
+    <footer className="border-t border-white/10 bg-slate-950">
+      <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
+
+        {/* Top grid */}
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
+
+          {/* Brand */}
+          <div className="sm:col-span-2 lg:col-span-1">
+            <div className="flex items-center gap-2.5">
+              <img
+                src="/logo-without-bg.png"
+                alt={companyInfo.tradeName}
+                className="h-9 w-9 shrink-0 object-contain"
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+              <span className="text-base font-semibold text-white">{companyInfo.tradeName}</span>
             </div>
+            <p className="mt-5 max-w-[22rem] text-sm leading-6 text-slate-400">
+              Plataforma de gestão odontológica para organizar agenda, pacientes, equipe e finanças em um só lugar.
+            </p>
+
+            {socialLinks.youtube && (
+              <div className="mt-6">
+                <a
+                  href={socialLinks.youtube}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="DentalFlow no YouTube"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-slate-400 transition-all hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                >
+                  <YouTubeIcon />
+                </a>
+              </div>
+            )}
           </div>
 
-          <p className="mt-6 max-w-md leading-6">
-            Estrutura digital para fortalecer posicionamento, aquisição de
-            pacientes, rotina comercial e indicadores de crescimento.
-          </p>
-        </div>
+          <NavColumn heading="Produto" items={PRODUTO} />
+          <NavColumn heading="Recursos" items={RECURSOS} />
 
-        <div>
-          <h3 className="font-semibold text-slate-950">Dados da empresa</h3>
-          <dl className="mt-4 space-y-3">
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Razão social
-              </dt>
-              <dd className="mt-1 text-slate-600">{companyInfo.legalName}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                CNPJ
-              </dt>
-              <dd className="mt-1 text-slate-600">{companyInfo.cnpj}</dd>
-            </div>
-            <div>
-              <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Endereço
-              </dt>
-              <dd className="mt-1 text-slate-600">{companyInfo.address}</dd>
-            </div>
-          </dl>
-        </div>
+          {/* Suporte */}
+          <div>
+            <ColumnHeading>Suporte</ColumnHeading>
+            <ul className="mt-4 space-y-2.5">
+              <li>
+                <FooterNavLink to="/perguntas-frequentes">FAQ</FooterNavLink>
+              </li>
+              <li>
+                <FooterHrefLink
+                  href={`mailto:${companyInfo.supportEmail}`}
+                  icon={
+                    <Mail className="h-3 w-3 shrink-0 text-slate-600 transition-colors group-hover:text-emerald-500" aria-hidden="true" />
+                  }
+                >
+                  {companyInfo.supportEmail}
+                </FooterHrefLink>
+              </li>
+            </ul>
+          </div>
 
-        <div>
-          <h3 className="font-semibold text-slate-950">Contato e legal</h3>
-          <div className="mt-4 space-y-3">
-            <a
-              href={`tel:${onlyDigits(companyInfo.phone)}`}
-              className="block transition-colors hover:text-primary"
-            >
-              {companyInfo.phone}
-            </a>
-            <a
-              href={`mailto:${companyInfo.email}`}
-              className="block transition-colors hover:text-primary"
-            >
-              {companyInfo.email}
-            </a>
-            <div className="flex flex-wrap gap-x-5 gap-y-2 pt-2">
-              <a href="/" className="transition-colors hover:text-primary">
-                Privacidade
-              </a>
-              <a href="/" className="transition-colors hover:text-primary">
-                Termos
-              </a>
-              <a href="/" className="transition-colors hover:text-primary">
-                Suporte
-              </a>
-            </div>
+          {/* Legal */}
+          <div>
+            <ColumnHeading>Legal</ColumnHeading>
+            <ul className="mt-4 space-y-2.5">
+              {LEGAL.map((item) => (
+                <li key={item.href}>
+                  <FooterNavLink to={item.href}>{item.label}</FooterNavLink>
+                </li>
+              ))}
+              <li>
+                <CookiePreferencesButton />
+              </li>
+            </ul>
           </div>
         </div>
-      </div>
 
-      <div className="border-t border-slate-200">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-5 text-xs leading-5 text-slate-500 md:flex-row md:items-center md:justify-between lg:px-8">
-          <p>
-            Copyright © {currentYear} {companyInfo.legalName}. Todos os direitos
-            reservados.
-          </p>
-          <p>
-            {companyInfo.tradeName} e marcas relacionadas pertencem aos seus
-            respectivos titulares.
-          </p>
+        {/* Copyright bar */}
+        <div className="mt-14 border-t border-white/10 pt-6">
+          <div className="flex flex-col gap-2 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+            <p>© {currentYear} {companyInfo.legalName}. Todos os direitos reservados.</p>
+            <p>{companyInfo.tradeName} e marcas relacionadas pertencem aos seus respectivos titulares.</p>
+          </div>
         </div>
       </div>
     </footer>

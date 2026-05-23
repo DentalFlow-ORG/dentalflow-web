@@ -1,0 +1,47 @@
+import { LogOut } from 'lucide-react'
+import { type ReactNode } from 'react'
+
+import { useNavigate } from '@tanstack/react-router'
+
+import { BrandLink } from '@/components/brand/BrandLink'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/features/auth/hooks/useAuth'
+import { getUserDisplayName } from '@/features/auth/utils/name'
+
+type Props = {
+  children: ReactNode
+}
+
+export function SubscriptionOnlyShell({ children }: Props) {
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    await logout()
+    await navigate({ to: '/' })
+  }
+
+  return (
+    <div className="min-h-svh bg-background">
+      <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur-xl">
+        <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <BrandLink />
+          <div className="flex items-center gap-3">
+            {user && (
+              <div className="hidden text-right sm:block">
+                <p className="text-sm font-semibold text-foreground">{getUserDisplayName(user)}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
+              </div>
+            )}
+            <Button variant="outline" size="sm" aria-label="Sair" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline" aria-hidden="true">Sair</span>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+    </div>
+  )
+}

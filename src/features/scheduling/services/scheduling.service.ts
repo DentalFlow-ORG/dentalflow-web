@@ -11,6 +11,7 @@ import type {
   CreateAvailabilityDto,
   CreateAvailabilityExceptionDto,
   UpdateAppointmentDto,
+  UpdateAppointmentPaymentDto,
   UpdateAppointmentStatusDto,
   UpdateAvailabilityDto,
   UpdateAvailabilityExceptionDto,
@@ -18,8 +19,9 @@ import type {
 
 // --- Appointments ---
 
-export function listAppointments() {
-  return apiRequest<Appointment[]>('/appointments', {
+export function listAppointments(date?: string) {
+  const query = date ? `?date=${encodeURIComponent(date)}` : ''
+  return apiRequest<Appointment[]>(`/appointments${query}`, {
     method: 'GET',
     accessToken: getAccessToken(),
   })
@@ -50,6 +52,14 @@ export function updateAppointment(id: string, dto: UpdateAppointmentDto) {
 
 export function updateAppointmentStatus(id: string, dto: UpdateAppointmentStatusDto) {
   return apiRequest<Appointment>(`/appointments/${id}/status`, {
+    method: 'PATCH',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
+  })
+}
+
+export function updateAppointmentPayment(id: string, dto: UpdateAppointmentPaymentDto) {
+  return apiRequest<Appointment>(`/appointments/${id}/payment`, {
     method: 'PATCH',
     accessToken: getAccessToken(),
     body: JSON.stringify(dto),
