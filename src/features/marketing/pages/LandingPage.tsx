@@ -46,10 +46,8 @@ export function LandingPage() {
       <SectionDivider variant="gray-to-dark" />
       <VideoSection />
 
-      <SectionDivider variant="dark-to-light" />
       <PricingSection />
 
-      <SectionDivider variant="light-to-blue" />
       <TrialCtaSection />
     </PublicLayout>
   )

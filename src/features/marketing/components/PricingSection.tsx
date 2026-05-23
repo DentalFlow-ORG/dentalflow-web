@@ -1,62 +1,112 @@
+import { Fragment } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ArrowRight, CheckCircle2, Headphones, ShieldCheck, XCircle, Zap } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Crown, Gem, Rocket } from 'lucide-react'
 
-import { SectionHeading } from '@/components/common/SectionHeading'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import { landingPlans } from '../data/landing-content'
 
+const PLAN_ICONS = {
+  starter: Rocket,
+  professional: Gem,
+  premium: Crown,
+} as const
+
+const TRUST_ITEMS = [
+  '7 dias grátis',
+  'Sem cartão de crédito',
+  'Cancele quando quiser',
+  'Suporte na implantação',
+] as const
+
 export function PricingSection() {
+  const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.1)
+
   return (
-    <section id="planos" className="bg-white py-20">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mb-12 text-center">
-          <SectionHeading
-            eyebrow="Planos"
-            title="Escolha o plano ideal para sua clínica."
-            description="Todos os planos incluem 7 dias de teste grátis. Sem cartão de crédito, sem compromisso."
-            align="center"
-          />
-        </div>
+    <section
+      ref={ref}
+      id="planos"
+      className="relative overflow-hidden bg-slate-950 py-24 lg:py-32"
+      aria-labelledby="pricing-heading"
+    >
+      {/* ── Edge glows ─────────────────────────────────────────────── */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="absolute -left-72 top-1/3 h-[600px] w-[600px] rounded-full bg-blue-600/[0.06] blur-3xl" />
+        <div className="absolute -right-72 bottom-1/3 h-[600px] w-[600px] rounded-full bg-blue-600/[0.06] blur-3xl" />
+      </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {landingPlans.map((plan) => (
-            <PlanCard key={plan.key} plan={plan} />
-          ))}
-        </div>
+      {/* ── Emerald glow (behind Professional card) ───────────────── */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-24 flex justify-center"
+        aria-hidden="true"
+      >
+        <div className="h-[520px] w-[520px] rounded-full bg-emerald-500/[0.07] blur-3xl" />
+      </div>
 
-        {/* Scarcity signal */}
-        <div className="mt-8 flex justify-center">
-          <p className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-            <Zap className="h-4 w-4 shrink-0 text-amber-500" aria-hidden="true" />
-            Preços de lançamento disponíveis enquanto durarem as vagas iniciais.
+      <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
+
+        {/* ── Section header ────────────────────────────────────────── */}
+        <div
+          className={cn(
+            'mx-auto max-w-2xl text-center transition-all duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100',
+            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',
+          )}
+        >
+          <span className="inline-flex items-center rounded-full border border-emerald-500/40 px-3.5 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-400">
+            Planos
+          </span>
+
+          <h2
+            id="pricing-heading"
+            className="mt-5 text-3xl font-semibold leading-tight text-white sm:text-4xl"
+          >
+            O plano certo para{' '}
+            <span className="text-emerald-400">transformar sua clínica</span>
+          </h2>
+
+          <p className="mt-4 text-base leading-7 text-slate-400">
+            Comece com 7 dias grátis. Sem cartão de crédito, cancele quando quiser.
           </p>
         </div>
 
-        {/* Trust footer */}
-        <div className="mt-5 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-6">
-          <span className="flex items-center gap-1.5 text-sm text-slate-500">
-            <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden="true" />
-            Sem contrato de fidelidade
-          </span>
-          <span className="hidden text-slate-300 sm:inline" aria-hidden="true">·</span>
-          <span className="flex items-center gap-1.5 text-sm text-slate-500">
-            <XCircle className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-            Cancele quando quiser
-          </span>
-          <span className="hidden text-slate-300 sm:inline" aria-hidden="true">·</span>
-          <span className="flex items-center gap-1.5 text-sm text-slate-500">
-            <Headphones className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-            Suporte incluso em todos os planos
-          </span>
+        {/* ── Plan cards ────────────────────────────────────────────── */}
+        <div className="mt-14 grid gap-6 md:grid-cols-3 lg:items-center">
+          {landingPlans.map((plan, index) => (
+            <PlanCard key={plan.key} plan={plan} index={index} isVisible={isVisible} />
+          ))}
         </div>
 
+        {/* ── Trust bar ─────────────────────────────────────────────── */}
+        <div
+          className={cn(
+            'mt-12 flex justify-center transition-all duration-700 motion-reduce:translate-y-0 motion-reduce:opacity-100',
+            isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',
+          )}
+          style={{ transitionDelay: isVisible ? '450ms' : '0ms' }}
+        >
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 rounded-2xl border border-white/10 bg-white/[0.04] px-7 py-4 lg:rounded-full lg:px-8 lg:py-3.5">
+            {TRUST_ITEMS.map((item, i) => (
+              <Fragment key={item}>
+                <span className="flex items-center gap-2 text-sm text-slate-400">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden="true" />
+                  {item}
+                </span>
+                {i < TRUST_ITEMS.length - 1 && (
+                  <span className="hidden h-3.5 w-px bg-white/10 lg:block" aria-hidden="true" />
+                )}
+              </Fragment>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Comparativo link ──────────────────────────────────────── */}
         <p className="mt-8 text-center text-sm text-slate-500">
           Quer comparar todas as funcionalidades?{' '}
           <Link
             to="/funcionalidades"
-            className="font-semibold text-primary underline-offset-4 hover:underline"
+            className="font-semibold text-slate-300 underline-offset-4 hover:text-white hover:underline"
           >
             Ver comparativo completo
           </Link>
@@ -66,82 +116,127 @@ export function PricingSection() {
   )
 }
 
+// ── Plan card ──────────────────────────────────────────────────────────────────
+
 type PlanCardProps = {
   plan: (typeof landingPlans)[number]
+  index: number
+  isVisible: boolean
 }
 
-function PlanCard({ plan }: PlanCardProps) {
+function PlanCard({ plan, index, isVisible }: PlanCardProps) {
+  const PlanIcon = PLAN_ICONS[plan.key]
+
   return (
     <article
       className={cn(
-        'relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-200',
+        'relative flex flex-col rounded-3xl border p-7',
+        'transition-all duration-500',
+        'motion-safe:hover:-translate-y-1',
+        'motion-reduce:translate-y-0 motion-reduce:opacity-100',
+        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0',
         plan.isRecommended
-          ? 'border-primary shadow-md motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-lg'
-          : 'border-slate-200 motion-safe:hover:shadow-md',
+          ? 'z-10 border-emerald-500/40 bg-slate-900 shadow-[0_0_60px_-10px_rgba(16,185,129,0.22)] lg:scale-105'
+          : 'border-white/[0.08] bg-white/[0.03]',
       )}
+      style={{ transitionDelay: isVisible ? `${index * 100}ms` : '0ms' }}
     >
+      {/* Floating RECOMENDADO badge */}
+      {plan.isRecommended && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+          <span className="whitespace-nowrap rounded-full bg-emerald-500 px-4 py-1 text-xs font-bold uppercase tracking-widest text-white shadow-lg shadow-emerald-500/30">
+            Recomendado
+          </span>
+        </div>
+      )}
+
+      {/* Plan icon */}
       <div
         className={cn(
-          'flex min-h-9 items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold',
-          plan.isRecommended ? 'bg-primary text-white' : 'bg-transparent',
+          'flex h-10 w-10 items-center justify-center rounded-xl',
+          plan.isRecommended ? 'bg-emerald-500/15' : 'bg-white/[0.07]',
         )}
       >
-        {plan.isRecommended && (
-          <>
-            <Zap className="h-3.5 w-3.5" aria-hidden="true" />
-            Mais contratado esta semana
-          </>
-        )}
-        {!plan.isRecommended && <div aria-hidden="true" />}
+        <PlanIcon
+          className={cn('h-5 w-5', plan.isRecommended ? 'text-emerald-400' : 'text-slate-300')}
+          aria-hidden="true"
+        />
       </div>
 
-      <div className="flex flex-1 flex-col p-6">
-        <div>
-          <h3 className="text-xl font-semibold text-slate-900">{plan.name}</h3>
-          <p className="mt-1 text-sm text-slate-500">{plan.tagline}</p>
-        </div>
+      {/* Plan name + tagline */}
+      <div className="mt-4">
+        <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
+        <p className="mt-1 text-sm text-slate-400">{plan.tagline}</p>
+      </div>
 
-        <div className="mt-5 rounded-lg border border-primary/20 bg-primary/5 p-4">
-          <p className="text-sm font-medium text-slate-500">
-            De{' '}
-            <span className="line-through text-slate-400">{plan.compareAtMonthly}</span>
-            <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-              oferta de lançamento · encerra em breve
+      {/* Pricing */}
+      <div className="mt-5">
+        <p className="text-sm">
+          <span className="text-slate-500">De </span>
+          <span className="text-slate-500 line-through">{plan.compareAtMonthly}</span>
+          <span className="ml-2 text-xs font-medium text-slate-600">· Preço de lançamento</span>
+        </p>
+        <div className="mt-1.5 flex items-baseline gap-1.5">
+          <span
+            className={cn(
+              'text-4xl font-bold',
+              plan.isRecommended ? 'text-emerald-400' : 'text-white',
+            )}
+          >
+            {plan.priceMonthly}
+          </span>
+          <span className="text-sm text-slate-500">/mês</span>
+        </div>
+      </div>
+
+      {/* Features */}
+      <ul
+        className="mt-6 flex-1 space-y-2.5"
+        aria-label={`Funcionalidades do plano ${plan.name}`}
+        role="list"
+      >
+        {plan.features.map((feature) => (
+          <li key={feature} className="flex items-start gap-2.5">
+            <CheckCircle2
+              className={cn(
+                'mt-0.5 h-4 w-4 shrink-0',
+                plan.isRecommended ? 'text-emerald-400' : 'text-emerald-500',
+              )}
+              aria-hidden="true"
+            />
+            <span
+              className={cn(
+                'text-sm',
+                plan.isRecommended ? 'text-slate-200' : 'text-slate-400',
+              )}
+            >
+              {feature}
             </span>
-          </p>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-4xl font-bold text-slate-900">{plan.priceMonthly}</span>
-            <span className="text-sm font-medium text-slate-500">/mês</span>
-          </div>
-          <p className="mt-1.5 text-xs font-medium text-emerald-700">
-            7 dias grátis para começar
-          </p>
-        </div>
+          </li>
+        ))}
+      </ul>
 
-        <ul className="mt-6 space-y-2.5" aria-label={`Funcionalidades do plano ${plan.name}`}>
-          {plan.features.map((feature) => (
-            <li key={feature} className="flex items-start gap-2.5">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden="true" />
-              <span className="text-sm text-slate-600">{feature}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-auto space-y-2 pt-8">
+      {/* CTA */}
+      <div className="mt-8">
+        {plan.isRecommended ? (
           <Button
-            className={cn('w-full', plan.isRecommended && 'h-12 text-base')}
-            variant={plan.isRecommended ? 'default' : 'outline'}
+            size="lg"
+            className="w-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-400 focus-visible:ring-emerald-500"
             asChild
           >
             <Link to="/acessar" search={{ mode: 'register' }}>
-              Iniciar teste grátis
+              Começar agora
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          <p className="text-center text-xs text-slate-400">
-            7 dias grátis · Sem cartão de crédito
-          </p>
-        </div>
+        ) : (
+          <Button size="lg" variant="inverse" className="w-full" asChild>
+            <Link to="/acessar" search={{ mode: 'register' }}>
+              Começar agora
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        )}
       </div>
     </article>
   )
