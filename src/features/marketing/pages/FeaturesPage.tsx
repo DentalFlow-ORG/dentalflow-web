@@ -221,9 +221,9 @@ export function FeaturesPage() {
             {FEATURED_MODULES.map((module) => {
               const Icon = module.icon
               return (
-                <a
+                <Link
                   key={module.id}
-                  href={module.href}
+                  to={module.href}
                   className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-500/5"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 transition-colors group-hover:bg-emerald-100">
@@ -235,7 +235,7 @@ export function FeaturesPage() {
                     Saiba mais
                     <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
-                </a>
+                </Link>
               )
             })}
           </div>
@@ -256,9 +256,9 @@ export function FeaturesPage() {
             {OTHER_MODULES.map((module) => {
               const Icon = module.icon
               return (
-                <a
+                <Link
                   key={module.id}
-                  href={module.href}
+                  to={module.href}
                   className="group flex flex-col rounded-xl border border-slate-200 bg-slate-50 p-5 transition-all duration-200 hover:border-slate-300 hover:bg-white hover:shadow-md"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-200 transition-colors group-hover:bg-slate-100">
@@ -270,7 +270,7 @@ export function FeaturesPage() {
                     Ver detalhes
                     <ChevronRight className="h-3 w-3" aria-hidden="true" />
                   </span>
-                </a>
+                </Link>
               )
             })}
           </div>

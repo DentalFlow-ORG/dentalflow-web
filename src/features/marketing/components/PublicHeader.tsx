@@ -212,9 +212,9 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                     {group.items.map((item) => {
                       const Icon = item.icon
                       return (
-                        <a
+                        <Link
                           key={item.href + item.label}
-                          href={item.href}
+                          to={item.href}
                           role="menuitem"
                           onClick={() => setOpenDropdown(null)}
                           className="flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-slate-50"
@@ -229,7 +229,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                               {item.description}
                             </p>
                           </div>
-                        </a>
+                        </Link>
                       )
                     })}
                   </div>
@@ -239,9 +239,9 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
           ))}
 
           {SIMPLE_NAV.map((item) => (
-            <a
+            <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               className={cn(
                 'df-animated-link rounded-md px-3 py-2 text-sm font-medium transition-colors',
                 isDarkHero
@@ -250,7 +250,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
               )}
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -331,15 +331,15 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                     {group.items.map((item) => {
                       const Icon = item.icon
                       return (
-                        <a
+                        <Link
                           key={item.href + item.label}
-                          href={item.href}
+                          to={item.href}
                           onClick={() => setIsMobileOpen(false)}
                           className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-primary"
                         >
                           <Icon className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
                           {item.label}
-                        </a>
+                        </Link>
                       )
                     })}
                   </div>
@@ -348,14 +348,14 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
             ))}
 
             {SIMPLE_NAV.map((item) => (
-              <a
+              <Link
                 key={item.href}
-                href={item.href}
+                to={item.href}
                 onClick={() => setIsMobileOpen(false)}
                 className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
