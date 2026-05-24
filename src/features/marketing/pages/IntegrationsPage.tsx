@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { ArrowRight, CheckCircle2, Settings, Zap } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -153,10 +154,10 @@ export function IntegrationsPage() {
             Comece com 7 dias gratuitos. Sem cartão de crédito.
           </p>
           <Button size="lg" variant="secondary" className="mt-6" asChild>
-            <a href="/acessar?mode=register">
+            <Link to="/acessar" search={{ mode: 'register' }}>
               Testar grátis
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </Link>
           </Button>
         </div>
       </section>
