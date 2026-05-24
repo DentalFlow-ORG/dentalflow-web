@@ -59,6 +59,11 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
 
   useEffect(() => {
     if (!needsBillingCheck || !isAuthenticated) return
+    const cached = getCachedBillingStatus()
+    if (cached !== null) {
+      setBillingResult({ resolvedPathname: pathname, status: cached })
+      return
+    }
     getCurrentBillingStatus()
       .then((status) => {
         setCachedBillingStatus(status)

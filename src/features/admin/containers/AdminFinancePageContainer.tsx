@@ -397,7 +397,7 @@ function FinanceChart({
         <EmptyState icon={BarChart3} title={emptyTitle} description={emptyDescription} />
       ) : (
         <div className="h-72 w-full overflow-hidden">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={288}>
             <BarChart data={visibleData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid stroke={gridColor} strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="label" tick={{ fill: tickColor, fontSize: 12 }} tickLine={false} axisLine={false} />

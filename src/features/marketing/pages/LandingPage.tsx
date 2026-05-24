@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 
 import { AnimatedImpactSection } from '../components/AnimatedImpactSection'
 import { usePageMeta } from '../hooks/usePageMeta'
+import { DataMigrationSection } from '../components/DataMigrationSection'
 import { HeroSection } from '../components/HeroSection'
 import { LandingIntegrationsSection } from '../components/LandingIntegrationsSection'
 import { MacbookIntroSection } from '../components/MacbookIntroSection'
@@ -40,10 +41,14 @@ export function LandingPage() {
       <ProductCarouselSection />
       <SectionDivider variant="light-to-dark" />
       <LandingIntegrationsSection />
+
       <SectionDivider variant="dark-to-gray" />
       <AnimatedImpactSection />
 
-      <SectionDivider variant="gray-to-dark" />
+      <SectionDivider variant="gray-to-light" />
+      <DataMigrationSection />
+
+      <SectionDivider variant="light-to-dark" />
       <PricingSection />
 
       <SectionDivider variant="dark-to-light" />

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FilterDef } from '@/components/common/ListToolbar'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
 import { listProfiles } from '../services/profiles.service'
 import type { ProfileListItem } from '../types/profile.types'
 import { useListFilter } from '@/hooks/useListFilter'
@@ -49,7 +50,13 @@ export type AppointmentsView = 'calendar' | 'table'
 export function useAppointmentsPage() {
   const { showAlert } = useGlobalAlerts()
   const { user } = useAuth()
-  const canManageGoogleCalendar = user?.role === 'OWNER'
+  const billingStatus = getCachedBillingStatus()
+  const isProfessionalOrPremium =
+    billingStatus?.planKey === 'professional' || billingStatus?.planKey === 'premium'
+  const canManageGoogleCalendar =
+    user?.role === 'OWNER' || (user?.role === 'DENTIST' && isProfessionalOrPremium)
+  const isDentistGoogleCalendarLocked =
+    user?.role === 'DENTIST' && !isProfessionalOrPremium
 
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([])
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
@@ -273,6 +280,11 @@ export function useAppointmentsPage() {
         description: err instanceof Error ? err.message : undefined,
         tone: 'error',
       })
+      // The backend may have finished disconnecting despite the timeout.
+      // Re-fetching the real status keeps the UI in sync with server state.
+      getGoogleCalendarStatus()
+        .then(setGoogleCalendar)
+        .catch(() => {})
     } finally {
       setIsCalendarActionLoading(false)
     }
@@ -300,6 +312,7 @@ export function useAppointmentsPage() {
     googleCalendar,
     isCalendarActionLoading,
     canManageGoogleCalendar,
+    isDentistGoogleCalendarLocked,
     searchQuery,
     setSearchQuery,
     activeFilters,

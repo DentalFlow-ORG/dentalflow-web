@@ -57,6 +57,7 @@ function CookiePreferencesButton() {
   return (
     <button
       type="button"
+      aria-haspopup="dialog"
       onClick={openPreferences}
       className={cn('cursor-pointer text-left', footerLinkBase)}
     >
@@ -101,6 +102,7 @@ const RECURSOS: NavItem[] = [
 const LEGAL: NavItem[] = [
   { label: 'Termos de uso', href: '/termos-de-uso' },
   { label: 'Política de privacidade', href: '/politica-de-privacidade' },
+  { label: 'Direitos do titular', href: '/direitos-do-titular' },
   { label: 'Segurança', href: '/seguranca' },
   { label: 'Tratamento de dados', href: '/tratamento-de-dados' },
   { label: 'Encarregado / DPO', href: '/encarregado' },
@@ -135,7 +137,7 @@ export function SiteFooter() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-white/10 bg-slate-950">
+    <footer aria-label="Rodapé do site" className="border-t border-white/10 bg-slate-950">
       <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
 
         {/* Top grid */}

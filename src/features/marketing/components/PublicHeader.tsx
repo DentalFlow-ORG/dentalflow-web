@@ -175,7 +175,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                   setOpenDropdown((prev) => (prev === group.key ? null : group.key))
                 }
                 className={cn(
-                  'flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                   isDarkHero
                     ? openDropdown === group.key
                       ? 'bg-white/15 text-white'
@@ -212,12 +212,12 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                     {group.items.map((item) => {
                       const Icon = item.icon
                       return (
-                        <a
+                        <Link
                           key={item.href + item.label}
-                          href={item.href}
+                          to={item.href}
                           role="menuitem"
                           onClick={() => setOpenDropdown(null)}
-                          className="flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-slate-50"
+                          className="flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                         >
                           <Icon
                             className="mt-0.5 h-4 w-4 shrink-0 text-primary"
@@ -229,7 +229,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                               {item.description}
                             </p>
                           </div>
-                        </a>
+                        </Link>
                       )
                     })}
                   </div>
@@ -239,18 +239,18 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
           ))}
 
           {SIMPLE_NAV.map((item) => (
-            <a
+            <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               className={cn(
-                'df-animated-link rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'df-animated-link rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                 isDarkHero
                   ? 'text-white/80 hover:text-white'
                   : 'text-slate-600 hover:text-primary',
               )}
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -290,8 +290,9 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
             type="button"
             aria-label={isMobileOpen ? 'Fechar menu' : 'Abrir menu'}
             aria-expanded={isMobileOpen}
+            aria-controls="public-mobile-menu"
             className={cn(
-              'flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-slate-100 lg:hidden',
+              'flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 lg:hidden',
               isDarkHero ? 'text-white hover:bg-white/10' : 'text-slate-600',
             )}
             onClick={() => setIsMobileOpen((prev) => !prev)}
@@ -304,6 +305,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
       {/* ── Mobile menu ── */}
       {isMobileOpen && (
         <div
+          id="public-mobile-menu"
           className="overflow-y-auto border-t border-slate-200 bg-white px-4 pb-6 pt-3 lg:hidden"
           style={{ maxHeight: 'calc(100svh - 4rem)' }}
         >
@@ -314,7 +316,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                   type="button"
                   aria-expanded={mobileExpanded.includes(group.key)}
                   onClick={() => toggleMobileSection(group.key)}
-                  className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                  className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
                   {group.label}
                   <ChevronDown
@@ -331,15 +333,15 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                     {group.items.map((item) => {
                       const Icon = item.icon
                       return (
-                        <a
+                        <Link
                           key={item.href + item.label}
-                          href={item.href}
+                          to={item.href}
                           onClick={() => setIsMobileOpen(false)}
-                          className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-primary"
+                          className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                         >
                           <Icon className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
                           {item.label}
-                        </a>
+                        </Link>
                       )
                     })}
                   </div>
@@ -348,14 +350,14 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
             ))}
 
             {SIMPLE_NAV.map((item) => (
-              <a
+              <Link
                 key={item.href}
-                href={item.href}
+                to={item.href}
                 onClick={() => setIsMobileOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary"
+                className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
