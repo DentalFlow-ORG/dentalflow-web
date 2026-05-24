@@ -38,6 +38,7 @@ export function AppointmentsPageContainer() {
     googleCalendar,
     isCalendarActionLoading,
     canManageGoogleCalendar,
+    isDentistGoogleCalendarLocked,
     searchQuery,
     setSearchQuery,
     activeFilters,
@@ -102,6 +103,16 @@ export function AppointmentsPageContainer() {
                 ) : (
                   <CalendarCheck className="h-4 w-4" aria-hidden="true" />
                 )}
+                Google Agenda
+              </Button>
+            ) : isDentistGoogleCalendarLocked ? (
+              <Button
+                type="button"
+                variant="outline"
+                disabled
+                title="Disponível nos planos Professional e Premium"
+              >
+                <CalendarCheck className="h-4 w-4" aria-hidden="true" />
                 Google Agenda
               </Button>
             ) : null}
