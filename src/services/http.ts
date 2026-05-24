@@ -119,7 +119,9 @@ export async function apiRequest<TResponse>(
 
     if (err instanceof TypeError) {
       throw new ApiError(
-        'Não foi possível conectar ao servidor. Verifique se a API está em execução.',
+        import.meta.env.PROD
+          ? 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.'
+          : 'Não foi possível conectar ao servidor. Verifique se a API está em execução.',
         0,
         null,
       )
