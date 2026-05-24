@@ -28,6 +28,7 @@ export function disconnectGoogleCalendar() {
   return apiRequest<GoogleCalendarStatus>('/calendar-integrations/google/disconnect', {
     method: 'POST',
     accessToken: getAccessToken(),
+    timeoutMs: 60_000,
   })
 }
 
@@ -35,5 +36,6 @@ export function syncGoogleCalendar() {
   return apiRequest<GoogleCalendarSyncResponse>('/calendar-integrations/google/sync', {
     method: 'POST',
     accessToken: getAccessToken(),
+    timeoutMs: 60_000,
   })
 }

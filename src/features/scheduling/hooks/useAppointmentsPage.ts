@@ -273,6 +273,11 @@ export function useAppointmentsPage() {
         description: err instanceof Error ? err.message : undefined,
         tone: 'error',
       })
+      // The backend may have finished disconnecting despite the timeout.
+      // Re-fetching the real status keeps the UI in sync with server state.
+      getGoogleCalendarStatus()
+        .then(setGoogleCalendar)
+        .catch(() => {})
     } finally {
       setIsCalendarActionLoading(false)
     }

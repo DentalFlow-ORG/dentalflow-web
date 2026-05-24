@@ -10,6 +10,7 @@ import {
 type ApiRequestOptions = RequestInit & {
   accessToken?: string | null
   _skipRefresh?: boolean
+  timeoutMs?: number
 }
 
 type ApiErrorBody = {
@@ -53,10 +54,10 @@ export async function apiRequest<TResponse>(
     throw new Error('VITE_API_URL não está configurada.')
   }
 
-  const { accessToken, headers, signal: externalSignal, _skipRefresh, ...requestOptions } = options
+  const { accessToken, headers, signal: externalSignal, _skipRefresh, timeoutMs, ...requestOptions } = options
 
   const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs ?? REQUEST_TIMEOUT_MS)
 
   if (externalSignal) {
     externalSignal.addEventListener('abort', () => controller.abort())
