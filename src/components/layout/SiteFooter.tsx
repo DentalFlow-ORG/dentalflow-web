@@ -102,6 +102,7 @@ const RECURSOS: NavItem[] = [
 const LEGAL: NavItem[] = [
   { label: 'Termos de uso', href: '/termos-de-uso' },
   { label: 'Política de privacidade', href: '/politica-de-privacidade' },
+  { label: 'Direitos do titular', href: '/direitos-do-titular' },
   { label: 'Segurança', href: '/seguranca' },
   { label: 'Tratamento de dados', href: '/tratamento-de-dados' },
   { label: 'Encarregado / DPO', href: '/encarregado' },

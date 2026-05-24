@@ -217,7 +217,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                           to={item.href}
                           role="menuitem"
                           onClick={() => setOpenDropdown(null)}
-                          className="flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-slate-50"
+                          className="flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                         >
                           <Icon
                             className="mt-0.5 h-4 w-4 shrink-0 text-primary"
@@ -243,7 +243,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
               key={item.href}
               to={item.href}
               className={cn(
-                'df-animated-link rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'df-animated-link rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                 isDarkHero
                   ? 'text-white/80 hover:text-white'
                   : 'text-slate-600 hover:text-primary',
@@ -290,6 +290,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
             type="button"
             aria-label={isMobileOpen ? 'Fechar menu' : 'Abrir menu'}
             aria-expanded={isMobileOpen}
+            aria-controls="public-mobile-menu"
             className={cn(
               'flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-slate-100 lg:hidden',
               isDarkHero ? 'text-white hover:bg-white/10' : 'text-slate-600',
@@ -304,6 +305,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
       {/* ── Mobile menu ── */}
       {isMobileOpen && (
         <div
+          id="public-mobile-menu"
           className="overflow-y-auto border-t border-slate-200 bg-white px-4 pb-6 pt-3 lg:hidden"
           style={{ maxHeight: 'calc(100svh - 4rem)' }}
         >
@@ -335,7 +337,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                           key={item.href + item.label}
                           to={item.href}
                           onClick={() => setIsMobileOpen(false)}
-                          className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-primary"
+                          className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                         >
                           <Icon className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
                           {item.label}
@@ -352,7 +354,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                 key={item.href}
                 to={item.href}
                 onClick={() => setIsMobileOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary"
+                className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 {item.label}
               </Link>

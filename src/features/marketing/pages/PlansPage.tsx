@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useId, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   ArrowRight,
@@ -720,12 +720,18 @@ type FaqItemProps = {
 }
 
 function FaqItem({ question, answer, isOpen, onToggle }: FaqItemProps) {
+  const uid = useId()
+  const buttonId = `plans-faq-btn-${uid}`
+  const panelId = `plans-faq-panel-${uid}`
+
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
       <button
+        id={buttonId}
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
+        aria-controls={panelId}
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40"
       >
         <span className="text-sm font-semibold text-slate-800">{question}</span>
@@ -738,7 +744,12 @@ function FaqItem({ question, answer, isOpen, onToggle }: FaqItemProps) {
         />
       </button>
       {isOpen && (
-        <div className="border-t border-slate-100 px-5 py-4">
+        <div
+          id={panelId}
+          role="region"
+          aria-labelledby={buttonId}
+          className="border-t border-slate-100 px-5 py-4"
+        >
           <p className="text-sm leading-7 text-slate-500">{answer}</p>
         </div>
       )}

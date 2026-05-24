@@ -32,7 +32,7 @@ export function PublicLayout({ children, bgClassName, darkHero = false }: Public
   return (
     <div className={bgClassName ? `${bgClassName} overflow-x-hidden` : 'min-h-screen overflow-x-hidden bg-white text-slate-950'}>
       <PublicHeader isScrolled={isScrolled} isDarkHero={isDarkHero} />
-      <main>{children}</main>
+      <main id="main-content">{children}</main>
       <SiteFooter />
       <LeadChatWidget />
     </div>
