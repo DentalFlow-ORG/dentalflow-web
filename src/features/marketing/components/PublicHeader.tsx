@@ -175,7 +175,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                   setOpenDropdown((prev) => (prev === group.key ? null : group.key))
                 }
                 className={cn(
-                  'flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                   isDarkHero
                     ? openDropdown === group.key
                       ? 'bg-white/15 text-white'
@@ -292,7 +292,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
             aria-expanded={isMobileOpen}
             aria-controls="public-mobile-menu"
             className={cn(
-              'flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-slate-100 lg:hidden',
+              'flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 lg:hidden',
               isDarkHero ? 'text-white hover:bg-white/10' : 'text-slate-600',
             )}
             onClick={() => setIsMobileOpen((prev) => !prev)}
@@ -316,7 +316,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                   type="button"
                   aria-expanded={mobileExpanded.includes(group.key)}
                   onClick={() => toggleMobileSection(group.key)}
-                  className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                  className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                 >
                   {group.label}
                   <ChevronDown

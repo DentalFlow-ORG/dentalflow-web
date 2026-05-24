@@ -157,7 +157,7 @@ export function FaqPage() {
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <a
               href={`mailto:${companyInfo.supportEmail}`}
-              className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-primary/25 hover:shadow-md"
+              className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-primary/25 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1"
             >
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
                 <Mail className="h-5 w-5 text-primary" aria-hidden="true" />

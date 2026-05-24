@@ -224,7 +224,7 @@ export function FeaturesPage() {
                 <Link
                   key={module.id}
                   to={module.href}
-                  className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-500/5"
+                  className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 transition-colors group-hover:bg-emerald-100">
                     <Icon className="h-5 w-5 text-emerald-600" aria-hidden="true" />
@@ -259,7 +259,7 @@ export function FeaturesPage() {
                 <Link
                   key={module.id}
                   to={module.href}
-                  className="group flex flex-col rounded-xl border border-slate-200 bg-slate-50 p-5 transition-all duration-200 hover:border-slate-300 hover:bg-white hover:shadow-md"
+                  className="group flex flex-col rounded-xl border border-slate-200 bg-slate-50 p-5 transition-all duration-200 hover:border-slate-300 hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-200 transition-colors group-hover:bg-slate-100">
                     <Icon className="h-4 w-4 text-slate-600" aria-hidden="true" />
@@ -334,7 +334,7 @@ export function FeaturesPage() {
                           {CATEGORY_DETAIL_ROUTES[group.category] && (
                             <Link
                               to={CATEGORY_DETAIL_ROUTES[group.category] as string}
-                              className="text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-700 hover:underline"
+                              className="rounded-sm text-xs font-medium text-emerald-600 transition-colors hover:text-emerald-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
                             >
                               Saiba mais →
                             </Link>
@@ -394,7 +394,7 @@ export function FeaturesPage() {
                     {CATEGORY_DETAIL_ROUTES[group.category] && (
                       <Link
                         to={CATEGORY_DETAIL_ROUTES[group.category] as string}
-                        className="text-xs font-medium text-emerald-600 hover:underline"
+                        className="rounded-sm text-xs font-medium text-emerald-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
                       >
                         Saiba mais →
                       </Link>

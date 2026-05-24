@@ -31,6 +31,12 @@ export function PublicLayout({ children, bgClassName, darkHero = false }: Public
 
   return (
     <div className={bgClassName ? `${bgClassName} overflow-x-hidden` : 'min-h-screen overflow-x-hidden bg-white text-slate-950'}>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-slate-900 focus:shadow-lg focus:ring-2 focus:ring-primary/50"
+      >
+        Ir ao conteúdo principal
+      </a>
       <PublicHeader isScrolled={isScrolled} isDarkHero={isDarkHero} />
       <main id="main-content">{children}</main>
       <SiteFooter />
