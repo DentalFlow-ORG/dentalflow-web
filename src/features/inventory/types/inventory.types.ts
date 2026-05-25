@@ -168,3 +168,33 @@ export type UpdateStockProductPayload = {
   notes?: string
   isActive?: boolean
 }
+
+// ── Purchase list ─────────────────────────────────────────────────────────────
+
+export type PurchasePriority = 'CRITICAL' | 'HIGH' | 'MEDIUM'
+
+export type PurchaseListItem = {
+  productId: string
+  productName: string
+  categoryName: string | null
+  supplier: string | null
+  currentQuantity: number
+  minQuantity: number
+  unit: string | null
+  deficitQuantity: number
+  suggestedPurchaseQuantity: number
+  estimatedCostCents: number | null
+  priority: PurchasePriority
+  reason: string
+}
+
+export type StockPurchaseList = {
+  summary: {
+    totalItems: number
+    criticalItems: number
+    highPriorityItems: number
+    mediumPriorityItems: number
+    totalEstimatedCostCents: number
+  }
+  items: PurchaseListItem[]
+}

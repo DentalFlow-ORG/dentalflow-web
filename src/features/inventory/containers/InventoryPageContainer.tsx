@@ -25,6 +25,7 @@ import { ReactivateProductDialog } from '../components/ReactivateProductDialog'
 import { InventoryAnalysisPanel } from '../components/InventoryAnalysisPanel'
 import { InventoryKpiGrid } from '../components/InventoryKpiGrid'
 import { InventoryProductTable } from '../components/InventoryProductTable'
+import { StockPurchaseListSection } from '../components/StockPurchaseListSection'
 import { ProductDetailsDrawer } from '../components/ProductDetailsDrawer'
 import { ProductFormModal } from '../components/ProductFormModal'
 import { StockMovementModal } from '../components/StockMovementModal'
@@ -290,6 +291,8 @@ export function InventoryPageContainer() {
       >
         <>
           {summary && <InventoryKpiGrid summary={summary} />}
+
+          <StockPurchaseListSection />
 
           {hasFilters && products.length === 0 && !isLoadingProducts ? (
             <FilteredEmptyState icon={Package} onClear={handleClearFilters} />
