@@ -60,7 +60,8 @@ export function PricingCard({
   const showLaunchPrice =
     billingInterval === 'MONTHLY' &&
     plan.campaign.enabled &&
-    plan.campaign.promotionalPriceMonthly != null
+    plan.campaign.promotionalPriceMonthly != null &&
+    plan.campaign.promotionReady
 
   const tagline = plan.description ?? PLAN_TAGLINES[plan.slug] ?? null
 
