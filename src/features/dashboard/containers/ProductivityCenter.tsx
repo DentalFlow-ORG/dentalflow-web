@@ -26,6 +26,7 @@ import {
   formatWallTime,
 } from '@/features/scheduling/utils/time'
 
+import { TodayAppointmentsChart } from '../components/TodayAppointmentsChart'
 import { useProductivitySummary } from '../hooks/useProductivitySummary'
 import type {
   CriticalProduct,
@@ -582,6 +583,9 @@ export function ProductivityCenter() {
               tone={stockAlerts > 0 ? 'danger' : 'neutral'}
             />
           </div>
+
+          {/* Today appointments status chart */}
+          <TodayAppointmentsChart today={data.today} />
 
           {/* Recommended actions */}
           {data.actions.length > 0 && (
