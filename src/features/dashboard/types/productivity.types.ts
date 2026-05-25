@@ -65,6 +65,8 @@ export type ProductivitySummary = {
     appointmentsPending: number
     appointmentsCompleted: number
     appointmentsCanceledOrNoShow: number
+    appointmentsCanceled: number
+    appointmentsNoShow: number
     pendingPaymentsCount: number
     pendingPaymentsAmountCents: number
   }

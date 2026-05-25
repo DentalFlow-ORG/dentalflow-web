@@ -27,7 +27,7 @@ const TRUST_ITEMS = [
 
 export function PricingSection() {
   const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.1)
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('annual')
 
   return (
     <section
@@ -203,7 +203,7 @@ function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
       <div className="mt-5">
         {isAnnual ? (
           <>
-            <p className="text-xs font-medium text-emerald-400">
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
               Plano anual · {plan.savingsLabel}
             </p>
             <div className="mt-1.5 flex items-baseline gap-1.5">
@@ -223,10 +223,8 @@ function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
           </>
         ) : (
           <>
-            <p className="text-sm">
-              <span className="text-slate-500">De </span>
-              <span className="text-slate-500 line-through">{plan.compareAtMonthly}</span>
-              <span className="ml-2 text-xs font-medium text-slate-600">· Preço de lançamento</span>
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+              Primeiro mês
             </p>
             <div className="mt-1.5 flex items-baseline gap-1.5">
               <span
@@ -239,6 +237,9 @@ function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
               </span>
               <span className="text-sm text-slate-500">/mês</span>
             </div>
+            <p className="mt-1 text-xs text-slate-400">
+              Depois {plan.normalMonthly}/mês
+            </p>
           </>
         )}
       </div>
