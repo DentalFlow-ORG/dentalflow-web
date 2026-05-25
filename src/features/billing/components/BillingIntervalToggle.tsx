@@ -9,6 +9,7 @@ type Props = {
   showMonthly: boolean
   showYearly: boolean
   discountPercent?: number | null
+  hasMonthlyPromo?: boolean
 }
 
 export function BillingIntervalToggle({
@@ -17,53 +18,76 @@ export function BillingIntervalToggle({
   showMonthly,
   showYearly,
   discountPercent,
+  hasMonthlyPromo = false,
 }: Props) {
   return (
-    <div
-      role="radiogroup"
-      aria-label="Período de cobrança"
-      className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-lg border border-border bg-muted p-1 shadow-sm"
-    >
-      {showMonthly && (
-        <Button
-          type="button"
-          role="radio"
-          aria-checked={value === 'MONTHLY'}
-          variant="ghost"
-          size="sm"
-          onClick={() => onChange('MONTHLY')}
-          className={cn(
-            'min-h-10 px-4 text-sm sm:px-5',
-            value === 'MONTHLY'
-              ? 'bg-card text-foreground shadow-sm hover:bg-card'
-              : 'text-muted-foreground hover:bg-card/70 hover:text-foreground',
-          )}
-        >
-          Mensal
-        </Button>
+    <div className="flex flex-col items-start gap-2 sm:items-center">
+      <div
+        role="radiogroup"
+        aria-label="Período de cobrança"
+        className="inline-flex max-w-full items-center gap-1 rounded-xl border border-border bg-muted p-1.5 shadow-sm"
+      >
+        {showMonthly && (
+          <Button
+            type="button"
+            role="radio"
+            aria-checked={value === 'MONTHLY'}
+            variant="ghost"
+            onClick={() => onChange('MONTHLY')}
+            className={cn(
+              'h-10 gap-1.5 px-5 text-sm font-medium',
+              value === 'MONTHLY'
+                ? 'bg-card text-foreground shadow-sm hover:bg-card'
+                : 'text-muted-foreground hover:bg-card/70 hover:text-foreground',
+            )}
+          >
+            <span>Mensal</span>
+            {hasMonthlyPromo && (
+              <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[0.6rem] font-bold text-orange-700 dark:bg-orange-900/40 dark:text-orange-400">
+                1º mês
+              </span>
+            )}
+          </Button>
+        )}
+        {showYearly && (
+          <Button
+            type="button"
+            role="radio"
+            aria-checked={value === 'YEARLY'}
+            variant="ghost"
+            onClick={() => onChange('YEARLY')}
+            className={cn(
+              'h-10 gap-1.5 px-5 text-sm font-medium',
+              value === 'YEARLY'
+                ? 'bg-card text-foreground shadow-sm hover:bg-card'
+                : 'text-muted-foreground hover:bg-card/70 hover:text-foreground',
+            )}
+          >
+            <span>Anual</span>
+            {discountPercent != null && discountPercent > 0 && (
+              <span
+                className={cn(
+                  'rounded-full px-2 py-0.5 text-[0.6rem] font-bold',
+                  value === 'YEARLY'
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+                )}
+              >
+                -{discountPercent}%
+              </span>
+            )}
+          </Button>
+        )}
+      </div>
+      {showYearly && value === 'YEARLY' && (
+        <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+          Melhor custo-benefício — 2 meses grátis
+        </p>
       )}
-      {showYearly && (
-        <Button
-          type="button"
-          role="radio"
-          aria-checked={value === 'YEARLY'}
-          variant="ghost"
-          size="sm"
-          onClick={() => onChange('YEARLY')}
-          className={cn(
-            'min-h-10 px-4 text-sm sm:px-5',
-            value === 'YEARLY'
-              ? 'bg-card text-foreground shadow-sm hover:bg-card'
-              : 'text-muted-foreground hover:bg-card/70 hover:text-foreground',
-          )}
-        >
-          <span>Anual</span>
-          {discountPercent != null && discountPercent > 0 && (
-            <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
-              -{discountPercent}%
-            </span>
-          )}
-        </Button>
+      {showMonthly && value === 'MONTHLY' && hasMonthlyPromo && (
+        <p className="text-xs font-medium text-orange-600 dark:text-orange-400">
+          Preço especial de lançamento no 1º mês
+        </p>
       )}
     </div>
   )

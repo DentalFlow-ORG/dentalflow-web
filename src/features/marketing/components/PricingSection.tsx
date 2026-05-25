@@ -223,7 +223,7 @@ function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
           </>
         ) : (
           <>
-            <p className="text-xs font-semibold uppercase tracking-wider text-orange-400">
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
               Primeiro mês
             </p>
             <div className="mt-1.5 flex items-baseline gap-1.5">
