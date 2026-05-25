@@ -25,13 +25,13 @@ function CategoryCard({ title, description, required, enabled, onChange }: Categ
       className={cn(
         'flex items-start justify-between gap-4 rounded-xl border p-4',
         required
-          ? 'border-slate-200 bg-slate-50/60'
-          : 'border-slate-200 bg-white',
+          ? 'border-slate-200 bg-slate-50/60 dark:border-border dark:bg-muted/20'
+          : 'border-slate-200 bg-white dark:border-border dark:bg-accent/30',
       )}
     >
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-semibold text-slate-800">{title}</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-foreground">{title}</p>
           {required && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
               <Lock className="h-2.5 w-2.5" aria-hidden="true" />
@@ -39,7 +39,7 @@ function CategoryCard({ title, description, required, enabled, onChange }: Categ
             </span>
           )}
         </div>
-        <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-muted-foreground">{description}</p>
       </div>
 
       {/* Toggle switch */}
@@ -57,7 +57,7 @@ function CategoryCard({ title, description, required, enabled, onChange }: Categ
         className={cn(
           'relative mt-0.5 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2',
           required && 'cursor-not-allowed opacity-50',
-          enabled ? 'bg-emerald-500' : 'bg-slate-200',
+          enabled ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-muted',
         )}
       >
         <span
@@ -110,10 +110,10 @@ export function CookiePreferencesModal() {
       />
 
       {/* Dialog panel */}
-      <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl shadow-slate-950/20">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl shadow-slate-950/20 dark:bg-popover dark:shadow-black/40 dark:border dark:border-border">
 
         {/* Header */}
-        <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-4">
+        <div className="flex items-center gap-3 border-b border-slate-100 dark:border-border px-6 py-4">
           <div
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50"
             aria-hidden="true"
@@ -122,7 +122,7 @@ export function CookiePreferencesModal() {
           </div>
           <h2
             id="cookie-prefs-title"
-            className="flex-1 text-base font-semibold text-slate-900"
+            className="flex-1 text-base font-semibold text-slate-900 dark:text-foreground"
           >
             Preferências de cookies
           </h2>
@@ -130,7 +130,7 @@ export function CookiePreferencesModal() {
             type="button"
             onClick={closePreferences}
             aria-label="Fechar preferências de cookies"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:text-muted-foreground dark:hover:bg-muted dark:hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/40"
           >
             <X className="h-4 w-4" />
           </button>
@@ -138,7 +138,7 @@ export function CookiePreferencesModal() {
 
         {/* Body */}
         <div className="overflow-y-auto px-6 py-5">
-          <p className="text-sm leading-6 text-slate-500">
+          <p className="text-sm leading-6 text-slate-500 dark:text-muted-foreground">
             Gerencie como o DentalFlow pode utilizar cookies além dos necessários para
             o funcionamento da plataforma.{' '}
             <a
@@ -179,7 +179,7 @@ export function CookiePreferencesModal() {
         </div>
 
         {/* Footer */}
-        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-6 py-4">
+        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 dark:border-border px-6 py-4">
           <Button
             variant="ghost"
             size="sm"

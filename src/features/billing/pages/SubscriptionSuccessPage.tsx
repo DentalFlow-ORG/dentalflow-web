@@ -250,11 +250,11 @@ export function SubscriptionSuccessPage() {
       >
         {/* Ambient glows — hidden on mobile to avoid any clipping/overflow issues */}
         <div
-          className="pointer-events-none absolute -bottom-12 -left-12 hidden h-80 w-80 rounded-full bg-emerald-300/20 blur-3xl dark:bg-emerald-500/10 sm:block"
+          className="pointer-events-none absolute -bottom-12 -left-12 hidden h-80 w-80 rounded-full bg-emerald-300/20 blur-3xl dark:bg-emerald-500/5 sm:block"
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute bottom-16 left-24 hidden h-48 w-48 rounded-full bg-cyan-200/20 blur-3xl dark:bg-cyan-500/8 sm:block"
+          className="pointer-events-none absolute bottom-16 left-24 hidden h-48 w-48 rounded-full bg-cyan-200/20 blur-3xl dark:bg-transparent sm:block"
           aria-hidden="true"
         />
 
