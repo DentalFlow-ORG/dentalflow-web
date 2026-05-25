@@ -180,7 +180,7 @@ export function WeekCalendar({
         </div>
         <div className="relative overflow-x-auto">
           {/* Right-side fade indicating more content */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white/70 dark:from-[#0f172a]/70 to-transparent lg:hidden" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-card/70 to-transparent lg:hidden" />
           <div className="min-w-245">
             {/* Day headers */}
             <div className="grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))] border-b border-border bg-muted">
@@ -301,7 +301,7 @@ export function WeekCalendar({
                               'border-b border-border/50 last:border-b-0',
                               isRoutineSlot
                                 ? 'bg-transparent'
-                                : 'bg-[repeating-linear-gradient(135deg,#f8fafc_0px,#f8fafc_8px,#eef2f7_8px,#eef2f7_12px)] dark:bg-[repeating-linear-gradient(135deg,#0f172a_0px,#0f172a_8px,#1e293b_8px,#1e293b_12px)] opacity-90',
+                                : 'bg-[repeating-linear-gradient(135deg,#f8fafc_0px,#f8fafc_8px,#eef2f7_8px,#eef2f7_12px)] dark:bg-[repeating-linear-gradient(135deg,#171717_0px,#171717_8px,#262626_8px,#262626_12px)] opacity-90',
                             )}
                             style={{ height: `${SLOT_HEIGHT_PX}px` }}
                             title={

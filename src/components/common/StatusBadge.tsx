@@ -12,7 +12,7 @@ type StatusBadgeProps = {
 
 const toneClassNames: Record<StatusBadgeTone, string> = {
   success: 'border-emerald-200 bg-emerald-100 text-emerald-800 dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-300',
-  muted: 'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-400',
+  muted: 'border-slate-200 bg-slate-100 text-slate-700 dark:border-border dark:bg-accent/60 dark:text-muted-foreground',
   warning: 'border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-300',
 }
 
