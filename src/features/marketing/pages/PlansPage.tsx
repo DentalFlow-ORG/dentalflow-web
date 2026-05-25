@@ -107,7 +107,7 @@ export function PlansPage() {
 
   const featureGroups = getFeaturesByCategory()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('annual')
 
   const { ref: heroRef, isVisible: heroVisible } = useRevealOnScroll<HTMLElement>(0.05)
   const { ref: pricingRef, isVisible: pricingVisible } = useRevealOnScroll<HTMLDivElement>(0.05)
@@ -625,9 +625,8 @@ function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
           </>
         ) : (
           <>
-            <p className="text-xs text-slate-400">
-              De <span className="line-through">{plan.compareAtMonthly}</span>
-              <span className="ml-1.5 font-medium text-emerald-600">· Preço de lançamento</span>
+            <p className="text-xs font-semibold uppercase tracking-wider text-orange-500">
+              Primeiro mês
             </p>
             <div className="mt-1 flex items-baseline gap-1">
               <span
@@ -640,6 +639,9 @@ function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
               </span>
               <span className="text-sm text-slate-400">/mês</span>
             </div>
+            <p className="mt-1 text-xs text-slate-400">
+              Depois {plan.normalMonthly}/mês
+            </p>
           </>
         )}
       </div>

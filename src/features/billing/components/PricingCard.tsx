@@ -211,25 +211,19 @@ function LaunchPriceBlock({ plan }: { plan: BillingPlan }) {
   return (
     <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800/40 dark:bg-orange-950/30">
       <p className="text-xs font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300">
-        Primeiro mês promocional
+        Primeiro mês
       </p>
-      {plan.campaign.compareAtPriceMonthly != null && (
-        <p className="mt-2 text-sm font-medium text-muted-foreground">
-          De{' '}
-          <span className="line-through">
-            {formatCurrencyBR(plan.campaign.compareAtPriceMonthly / 100)}
-          </span>
-        </p>
-      )}
       <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
         <span className="text-3xl font-bold text-foreground sm:text-4xl">
           {formatCurrencyBR((plan.campaign.promotionalPriceMonthly ?? 0) / 100)}
         </span>
         <span className="text-sm font-medium text-muted-foreground">/mês</span>
       </div>
-      <p className="mt-2 text-xs font-medium leading-5 text-orange-700 dark:text-orange-300">
-        Depois, valor regular do plano.
-      </p>
+      {plan.campaign.compareAtPriceMonthly != null && (
+        <p className="mt-2 text-xs font-medium leading-5 text-orange-700 dark:text-orange-300">
+          Depois {formatCurrencyBR(plan.campaign.compareAtPriceMonthly / 100)}/mês
+        </p>
+      )}
     </div>
   )
 }
