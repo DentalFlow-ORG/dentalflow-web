@@ -168,3 +168,112 @@ export type UpdateStockProductPayload = {
   notes?: string
   isActive?: boolean
 }
+
+// ── Stock Copilot ─────────────────────────────────────────────────────────────
+
+export type StockCopilotResult = {
+  summary: string
+  highlights: string[]
+  recommendedActions: string[]
+  generatedAt: string
+  cached: boolean
+  source: 'AI' | 'CACHE'
+  purchaseListSnapshot: {
+    totalItems: number
+    criticalItems: number
+    highPriorityItems: number
+    mediumPriorityItems: number
+    totalEstimatedCostCents: number
+  }
+}
+
+// ── Purchase list ─────────────────────────────────────────────────────────────
+
+export type PurchasePriority = 'CRITICAL' | 'HIGH' | 'MEDIUM'
+
+export type PurchaseListItem = {
+  productId: string
+  productName: string
+  categoryName: string | null
+  supplier: string | null
+  currentQuantity: number
+  minQuantity: number
+  unit: string | null
+  deficitQuantity: number
+  suggestedPurchaseQuantity: number
+  estimatedCostCents: number | null
+  priority: PurchasePriority
+  reason: string
+}
+
+export type StockPurchaseList = {
+  summary: {
+    totalItems: number
+    criticalItems: number
+    highPriorityItems: number
+    mediumPriorityItems: number
+    totalEstimatedCostCents: number
+  }
+  items: PurchaseListItem[]
+}
+
+// ── Abnormal Consumption ──────────────────────────────────────────────────────
+
+export type AnomalyType =
+  | 'CONSUMPTION_SPIKE'
+  | 'LOSS_SPIKE'
+  | 'FREQUENT_ADJUSTMENTS'
+  | 'NEW_UNUSUAL_CONSUMPTION'
+
+export type AnomalySeverity = 'HIGH' | 'MEDIUM' | 'LOW'
+
+export type AbnormalConsumptionItem = {
+  productId: string
+  productName: string
+  categoryName: string | null
+  currentQuantity: number
+  minQuantity: number
+  unit: string | null
+  anomalyType: AnomalyType
+  severity: AnomalySeverity
+  recentQuantity: number
+  baselineQuantity: number
+  changePercent: number | null
+  movementCount: number
+  reason: string
+  suggestedAction: string
+}
+
+export type GetAbnormalConsumptionResponse = {
+  summary: {
+    totalAnomalies: number
+    highSeverity: number
+    mediumSeverity: number
+    lowSeverity: number
+    recentDays: number
+    baselineDays: number
+    analyzedProducts: number
+    generatedAt: string
+  }
+  items: AbnormalConsumptionItem[]
+}
+
+// ── Abnormal Consumption Copilot ──────────────────────────────────────────────
+
+export type AbnormalConsumptionCopilotResult = {
+  summary: string
+  highlights: string[]
+  recommendedActions: string[]
+  generatedAt: string
+  cached: boolean
+  source: 'AI' | 'CACHE'
+  anomalySnapshot: {
+    totalAnomalies: number
+    highSeverity: number
+    mediumSeverity: number
+    lowSeverity: number
+    recentDays: number
+    baselineDays: number
+    analyzedProducts: number
+  }
+}

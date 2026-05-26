@@ -195,3 +195,18 @@ export type CategoryFormState = {
   type: FinancialTransactionType
   color: string
 }
+
+// ── Expense classification ────────────────────────────────────────────────────
+
+export type ClassificationSource = 'RULE' | 'AI' | 'CACHE' | 'NO_MATCH'
+
+export type ExpenseClassificationResult = {
+  transactionId: string
+  suggestedCategoryId: string | null
+  suggestedCategoryName: string | null
+  confidence: number
+  source: ClassificationSource
+  reason: string
+  requiresConfirmation: boolean
+  quotaUsed: boolean
+}
