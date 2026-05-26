@@ -10,11 +10,13 @@ import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useExpenseClassifier } from '../hooks/useExpenseClassifier'
 import { useFinancePage } from '../hooks/useFinancePage'
+import { useMonthlyFinanceDiagnosis } from '../hooks/useMonthlyFinanceDiagnosis'
 import { CategoriesPanel } from '../components/CategoriesPanel'
 import { CategoryCreateForm } from '../components/CategoryCreateForm'
 import { CategoryEditModal } from '../components/CategoryEditModal'
 import { FinanceFiltersBar } from '../components/FinanceFiltersBar'
 import { FinancialAnalysisPanel } from '../components/FinancialAnalysisPanel'
+import { MonthlyFinanceDiagnosisCard } from '../components/MonthlyFinanceDiagnosisCard'
 import { FixedExpenseForm } from '../components/FixedExpenseForm'
 import { FixedExpenseEditModal } from '../components/FixedExpenseEditModal'
 import { FixedExpensesList } from '../components/FixedExpensesList'
@@ -103,6 +105,7 @@ export function FinancePageContainer() {
   } = useFinancePage()
 
   const { getState: getClassifierState, handleClassify, handleApply: handleApplyCategory, handleDismiss: handleDismissClassify } = useExpenseClassifier(load)
+  const { state: diagnosisState, handleGenerate: handleGenerateDiagnosis } = useMonthlyFinanceDiagnosis()
 
   if (planBlocked) return <PlanUpgradeNotice title="Gestão financeira" />
 
@@ -134,6 +137,11 @@ export function FinancePageContainer() {
             <KpiGrid summary={summary} />
 
             <FinancialAnalysisPanel summary={summary} previousSummary={previousSummary} />
+
+            <MonthlyFinanceDiagnosisCard
+              state={diagnosisState}
+              onGenerate={handleGenerateDiagnosis}
+            />
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <PanelCard>

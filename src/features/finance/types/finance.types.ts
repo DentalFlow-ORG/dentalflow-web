@@ -210,3 +210,60 @@ export type ExpenseClassificationResult = {
   requiresConfirmation: boolean
   quotaUsed: boolean
 }
+
+// ── Monthly finance diagnosis ─────────────────────────────────────────────────
+
+export type DiagnosisFinancialHealth = 'HEALTHY' | 'WARNING' | 'CRITICAL'
+
+export type DiagnosisAlertType =
+  | 'LOW_MARGIN'
+  | 'HIGH_EXPENSE_CATEGORY'
+  | 'UNCATEGORIZED_EXPENSES'
+  | 'NEGATIVE_RESULT'
+  | 'LOW_DATA'
+
+export type DiagnosisAlert = {
+  type: DiagnosisAlertType
+  severity: 'HIGH' | 'MEDIUM' | 'LOW'
+  message: string
+}
+
+export type TopExpenseCategory = {
+  categoryName: string
+  amountCents: number
+  percentageOfExpenses: number
+}
+
+export type WeeklyCashflow = {
+  weekLabel: string
+  incomeCents: number
+  expenseCents: number
+  netCents: number
+}
+
+export type DiagnosisFinanceSnapshot = {
+  month: string
+  revenueCents: number
+  expenseCents: number
+  profitCents: number
+  profitMarginPercent: number | null
+  transactionCount: number
+  incomeTransactionCount: number
+  expenseTransactionCount: number
+  uncategorizedExpenseCount: number
+  topExpenseCategories: TopExpenseCategory[]
+  cashflowByWeek: WeeklyCashflow[]
+  alerts: DiagnosisAlert[]
+}
+
+export type MonthlyFinanceDiagnosis = {
+  summary: string
+  financialHealth: DiagnosisFinancialHealth
+  highlights: string[]
+  risks: string[]
+  recommendedActions: string[]
+  generatedAt: string
+  cached: boolean
+  source: 'AI' | 'CACHE'
+  financeSnapshot: DiagnosisFinanceSnapshot
+}
