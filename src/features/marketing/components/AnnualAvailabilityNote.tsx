@@ -8,6 +8,7 @@ type Props = {
 export function AnnualAvailabilityNote({ visible, variant = 'light' }: Props) {
   return (
     <div
+      aria-hidden={!visible || undefined}
       className={cn(
         'overflow-hidden transition-all duration-300 ease-in-out',
         visible ? 'max-h-8 opacity-100' : 'max-h-0 opacity-0',

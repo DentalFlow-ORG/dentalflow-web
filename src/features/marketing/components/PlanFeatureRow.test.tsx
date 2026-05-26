@@ -9,16 +9,23 @@ describe('PlanFeatureRow', () => {
     expect(screen.queryByText('Em breve')).not.toBeInTheDocument()
   })
 
-  it('renders the label and no "Em breve" badge when type="not_included"', () => {
-    render(<PlanFeatureRow label="Relatórios avançados" type="not_included" />)
-    expect(screen.getByText('Relatórios avançados')).toBeInTheDocument()
-    expect(screen.queryByText('Em breve')).not.toBeInTheDocument()
-  })
-
   it('renders the label and the "Em breve" badge when type="soon"', () => {
     render(<PlanFeatureRow label="Integração WhatsApp" type="soon" />)
     expect(screen.getByText('Integração WhatsApp')).toBeInTheDocument()
     expect(screen.getByText('Em breve')).toBeInTheDocument()
+  })
+
+  it('has an accessible "não incluído" indication when type="not_included"', () => {
+    render(<PlanFeatureRow label="Relatórios avançados" type="not_included" />)
+    expect(
+      screen.getByRole('listitem', { name: 'Relatórios avançados: não incluído' }),
+    ).toBeInTheDocument()
+  })
+
+  it('applies line-through to the label when type="not_included"', () => {
+    render(<PlanFeatureRow label="Relatórios avançados" type="not_included" />)
+    const label = screen.getByText('Relatórios avançados')
+    expect(label).toHaveClass('line-through')
   })
 
   it('renders as an <li> element for all availability types', () => {

@@ -56,7 +56,7 @@ export function PlanFeatureRow({ label, type, variant = 'light' }: Props) {
   }
 
   return (
-    <li className="flex items-start gap-2.5">
+    <li aria-label={`${label}: não incluído`} className="flex items-start gap-2.5">
       <X
         className={cn(
           'mt-0.5 h-4 w-4 shrink-0',
@@ -64,7 +64,7 @@ export function PlanFeatureRow({ label, type, variant = 'light' }: Props) {
         )}
         aria-hidden="true"
       />
-      <span className={cn('text-sm', isDark ? 'text-slate-500' : 'text-slate-400')}>
+      <span className={cn('text-sm line-through', isDark ? 'text-slate-500' : 'text-slate-400')}>
         {label}
       </span>
     </li>
