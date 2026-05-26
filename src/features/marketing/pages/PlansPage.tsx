@@ -2,15 +2,12 @@ import { Fragment, useId, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   ArrowRight,
-  Check,
   CheckCircle2,
   ChevronDown,
-  Clock3,
   MessageCircle,
   RefreshCw,
   Server,
   Shield,
-  X,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -18,7 +15,6 @@ import {
   COMMERCIAL_PLAN_LABELS,
   PLAN_ORDER,
   type CommercialPlanKey,
-  type PlanFeatureAvailability,
   getFeatureAvailability,
   getFeaturesByCategory,
   getPlanCardFeatures,
@@ -34,6 +30,7 @@ import { usePageMeta } from '../hooks/usePageMeta'
 import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import { landingPlans } from '../data/landing-content'
 import { faqItems } from '../data/public-content'
+import { AvailabilityIndicator } from '../components/AvailabilityIndicator'
 import { AnnualAvailabilityNote } from '../components/AnnualAvailabilityNote'
 import { BillingPeriodToggle, type BillingPeriod } from '../components/BillingPeriodToggle'
 import { PlanFeatureRow } from '../components/PlanFeatureRow'
@@ -320,6 +317,7 @@ export function PlansPage() {
                             >
                               <AvailabilityIndicator
                                 availability={getFeatureAvailability(feature, plan)}
+                                variant="icon"
                               />
                             </div>
                           ))}
@@ -374,6 +372,7 @@ export function PlansPage() {
                               </span>
                               <AvailabilityIndicator
                                 availability={getFeatureAvailability(feature, plan)}
+                                variant="icon"
                               />
                             </div>
                           ))}
@@ -741,17 +740,6 @@ function FaqItem({ question, answer, isOpen, onToggle }: FaqItemProps) {
   )
 }
 
-// ── AvailabilityIndicator ──────────────────────────────────────────────────────
-
-function AvailabilityIndicator({ availability }: { availability: PlanFeatureAvailability }) {
-  if (availability === 'included') {
-    return <Check className="h-4 w-4 text-emerald-500" aria-label="Incluído" />
-  }
-  if (availability === 'soon') {
-    return <Clock3 className="h-4 w-4 text-amber-400" aria-label="Em breve" />
-  }
-  return <X className="h-4 w-4 text-slate-300" aria-label="Não incluído" />
-}
 
 // ── DashboardMockup ────────────────────────────────────────────────────────────
 
