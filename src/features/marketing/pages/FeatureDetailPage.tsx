@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 import { PublicLayout } from '../components/PublicLayout'
 import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import type { FeatureDetailContent } from '../data/public-content'
-import { FeatureMockup } from './FeatureMockups'
+import { FeatureMockup } from '../components/FeatureMockups'
 
 // ── Related features (6 main dropdown modules) ────────────────────────────────
 
@@ -464,4 +464,3 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
     </PublicLayout>
   )
 }
-
