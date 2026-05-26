@@ -23,27 +23,7 @@ import {
 import type { GoogleCalendarStatus } from '../types/calendar-integration.types'
 import { getWeekStart } from '../utils/time'
 import { useAppointmentStatusChange } from './useAppointmentStatusChange'
-
-const STATUS_OPTIONS = [
-  { value: 'PENDING', label: 'Pendente' },
-  { value: 'CONFIRMED', label: 'Confirmado' },
-  { value: 'COMPLETED', label: 'Concluído' },
-  { value: 'CANCELED', label: 'Cancelado' },
-  { value: 'NO_SHOW', label: 'Não compareceu' },
-]
-
-const SEARCH_FN = (appointment: Appointment, query: string) =>
-  `${appointment.patientName} ${appointment.patientEmail ?? ''} ${
-    appointment.patientPhone ?? ''
-  }`
-    .toLowerCase()
-    .includes(query)
-
-const FILTER_FNS = {
-  status: (appointment: Appointment, value: string) => appointment.status === value,
-  profileId: (appointment: Appointment, value: string) =>
-    appointment.profileId === value,
-}
+import { FILTER_FNS, SEARCH_FN, STATUS_OPTIONS } from '../constants/appointment-filters'
 
 export type AppointmentsView = 'calendar' | 'table'
 
