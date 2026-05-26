@@ -2,12 +2,7 @@ import { Link } from '@tanstack/react-router'
 import {
   AlertCircle,
   ArrowRight,
-  Bot,
-  CalendarDays,
   CheckCircle2,
-  ClipboardList,
-  CreditCard,
-  TrendingUp,
   Users,
 } from 'lucide-react'
 
@@ -18,50 +13,7 @@ import { PublicLayout } from '../components/PublicLayout'
 import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import type { FeatureDetailContent } from '../data/public-content'
 import { FeatureMockup } from '../components/FeatureMockups'
-
-// ── Related features (6 main dropdown modules) ────────────────────────────────
-
-const MAIN_FEATURES = [
-  {
-    id: 'agenda',
-    label: 'Agenda inteligente',
-    href: '/funcionalidades/agenda',
-    icon: CalendarDays,
-  },
-  {
-    id: 'prontuarios',
-    label: 'Prontuário eletrônico',
-    href: '/funcionalidades/prontuarios',
-    icon: ClipboardList,
-  },
-  {
-    id: 'financeiro',
-    label: 'Gestão financeira',
-    href: '/funcionalidades/financeiro',
-    icon: CreditCard,
-  },
-  {
-    id: 'pacientes',
-    label: 'Pacientes e leads',
-    href: '/funcionalidades/pacientes',
-    icon: Users,
-  },
-  {
-    id: 'relatorios',
-    label: 'Relatórios e indicadores',
-    href: '/funcionalidades/relatorios',
-    icon: TrendingUp,
-  },
-  { id: 'ia', label: 'IA de gestão', href: '/funcionalidades/ia', icon: Bot },
-]
-
-// Maps role label strings to public role pages
-const ROLE_ROUTES: Record<string, string> = {
-  'Secretária / Recepção': '/para-secretarias',
-  'Dentista': '/para-dentistas',
-  'Gestor / Proprietário': '/para-gestores',
-  'Gestor/Proprietário': '/para-gestores',
-}
+import { MAIN_FEATURES, ROLE_ROUTES } from '../constants/feature-nav'
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
