@@ -6,9 +6,11 @@ import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { cn } from '@/lib/utils'
 
+import type { ClassifierState } from '../hooks/useExpenseClassifier'
 import type { FinancialTransaction } from '../types/finance.types'
 import { SOURCE_LABEL, STATUS_LABEL, TYPE_LABEL, statusTone } from '../utils/finance-constants'
 import { formatCurrency, formatDate } from '../utils/finance-format'
+import { ExpenseClassifyAction } from './ExpenseClassifyAction'
 
 export function TransactionsTable({
   transactions,
@@ -20,6 +22,10 @@ export function TransactionsTable({
   onPageSizeChange,
   onEdit,
   onDelete,
+  getClassifierState,
+  onClassify,
+  onApplyCategory,
+  onDismissClassify,
 }: {
   transactions: FinancialTransaction[]
   isLoading: boolean
@@ -30,6 +36,10 @@ export function TransactionsTable({
   onPageSizeChange: (size: number) => void
   onEdit: (transaction: FinancialTransaction) => void
   onDelete: (transaction: FinancialTransaction) => void
+  getClassifierState: (transactionId: string) => ClassifierState
+  onClassify: (transactionId: string) => void
+  onApplyCategory: (transactionId: string, categoryId: string) => void
+  onDismissClassify: (transactionId: string) => void
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
@@ -89,6 +99,15 @@ export function TransactionsTable({
                     {SOURCE_LABEL[transaction.source] ?? transaction.source}
                     {transaction.service?.name ? ` - ${transaction.service.name}` : ''}
                   </p>
+                  {transaction.type === 'EXPENSE' && (
+                    <ExpenseClassifyAction
+                      transactionId={transaction.id}
+                      state={getClassifierState(transaction.id)}
+                      onClassify={onClassify}
+                      onApply={onApplyCategory}
+                      onDismiss={onDismissClassify}
+                    />
+                  )}
                 </div>
                 <span
                   className={cn(
@@ -166,7 +185,18 @@ export function TransactionsTable({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {transaction.category?.name ?? 'Sem categoria'}
+                      <div>
+                        <span>{transaction.category?.name ?? 'Sem categoria'}</span>
+                        {transaction.type === 'EXPENSE' && (
+                          <ExpenseClassifyAction
+                            transactionId={transaction.id}
+                            state={getClassifierState(transaction.id)}
+                            onClassify={onClassify}
+                            onApply={onApplyCategory}
+                            onDismiss={onDismissClassify}
+                          />
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <p className="max-w-[200px] truncate font-medium text-foreground">

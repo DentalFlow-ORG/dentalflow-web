@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { useExpenseClassifier } from '../hooks/useExpenseClassifier'
 import { useFinancePage } from '../hooks/useFinancePage'
 import { CategoriesPanel } from '../components/CategoriesPanel'
 import { CategoryCreateForm } from '../components/CategoryCreateForm'
@@ -101,6 +102,8 @@ export function FinancePageContainer() {
     setTransactionsPageSize,
   } = useFinancePage()
 
+  const { getState: getClassifierState, handleClassify, handleApply: handleApplyCategory, handleDismiss: handleDismissClassify } = useExpenseClassifier(load)
+
   if (planBlocked) return <PlanUpgradeNotice title="Gestão financeira" />
 
   return (
@@ -186,6 +189,10 @@ export function FinancePageContainer() {
                 onPageSizeChange={setTransactionsPageSize}
                 onEdit={handleOpenEdit}
                 onDelete={setDeletingTransaction}
+                getClassifierState={getClassifierState}
+                onClassify={handleClassify}
+                onApplyCategory={handleApplyCategory}
+                onDismissClassify={handleDismissClassify}
               />
               <TransactionForm
                 form={transactionForm}
