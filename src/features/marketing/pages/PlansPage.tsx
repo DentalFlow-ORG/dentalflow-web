@@ -6,11 +6,8 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock3,
-  Crown,
-  Gem,
   MessageCircle,
   RefreshCw,
-  Rocket,
   Server,
   Shield,
   X,
@@ -26,6 +23,10 @@ import {
   getFeaturesByCategory,
   getPlanCardFeatures,
 } from '@/features/marketing/config/features'
+import {
+  MARKETING_PLAN_ICONS,
+  PRICING_TRUST_ITEMS,
+} from '@/features/marketing/config/marketing-pricing.constants'
 import { cn } from '@/lib/utils'
 
 import { PublicLayout } from '../components/PublicLayout'
@@ -39,26 +40,7 @@ import { PlanFeatureRow } from '../components/PlanFeatureRow'
 
 // ── Plan-card content ──────────────────────────────────────────────────────────
 
-const PLAN_ICONS = {
-  starter: Rocket,
-  professional: Gem,
-  premium: Crown,
-} as const
-
-const PLAN_SUBTITLES: Record<string, string> = {
-  starter: 'Para clínicas começando a se organizar',
-  professional: 'Controle completo para clínicas ativas',
-  premium: 'Alta performance, limites ampliados',
-}
-
 // ── Trust / security data ──────────────────────────────────────────────────────
-
-const TRUST_ITEMS = [
-  '7 dias grátis',
-  'Sem cartão de crédito',
-  'Cancele quando quiser',
-  'Suporte na implantação',
-] as const
 
 const SECURITY_ITEMS = [
   {
@@ -164,7 +146,7 @@ export function PlansPage() {
 
               {/* Mini trust strip */}
               <div className="mt-7 flex flex-wrap gap-5">
-                {TRUST_ITEMS.slice(0, 3).map((item) => (
+                {PRICING_TRUST_ITEMS.slice(0, 3).map((item) => (
                   <span key={item} className="flex items-center gap-1.5 text-sm text-slate-400">
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden="true" />
                     {item}
@@ -238,7 +220,7 @@ export function PlansPage() {
 
             {/* Trust bar */}
             <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 rounded-2xl border border-slate-100 bg-slate-50 px-7 py-4 lg:rounded-full">
-              {TRUST_ITEMS.map((item, i) => (
+              {PRICING_TRUST_ITEMS.map((item, i) => (
                 <Fragment key={item}>
                   <span className="flex items-center gap-2 text-sm text-slate-500">
                     <CheckCircle2
@@ -247,7 +229,7 @@ export function PlansPage() {
                     />
                     {item}
                   </span>
-                  {i < TRUST_ITEMS.length - 1 && (
+                  {i < PRICING_TRUST_ITEMS.length - 1 && (
                     <span
                       className="hidden h-3.5 w-px bg-slate-200 lg:block"
                       aria-hidden="true"
@@ -557,7 +539,7 @@ type PlanCardProps = {
 }
 
 function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
-  const PlanIcon = PLAN_ICONS[plan.key]
+  const PlanIcon = MARKETING_PLAN_ICONS[plan.key]
   const { sectionLabel, features, upgradeHints } = getPlanCardFeatures(plan.key as CommercialPlanKey)
   const isAnnual = billingPeriod === 'annual'
 
@@ -598,7 +580,7 @@ function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
       {/* Name + subtitle */}
       <div className="mt-4">
         <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
-        <p className="mt-1 text-sm text-slate-500">{PLAN_SUBTITLES[plan.key]}</p>
+        <p className="mt-1 text-sm text-slate-500">{plan.tagline}</p>
       </div>
 
       {/* Pricing */}

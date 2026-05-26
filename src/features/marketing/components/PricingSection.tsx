@@ -1,9 +1,13 @@
 import { Fragment, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ArrowRight, CheckCircle2, Crown, Gem, Rocket } from 'lucide-react'
+import { ArrowRight, CheckCircle2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { getPlanCardFeatures } from '@/features/marketing/config/features'
+import {
+  MARKETING_PLAN_ICONS,
+  PRICING_TRUST_ITEMS,
+} from '@/features/marketing/config/marketing-pricing.constants'
 import { cn } from '@/lib/utils'
 
 import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
@@ -11,19 +15,6 @@ import { landingPlans } from '../data/landing-content'
 import { AnnualAvailabilityNote } from './AnnualAvailabilityNote'
 import { BillingPeriodToggle, type BillingPeriod } from './BillingPeriodToggle'
 import { PlanFeatureRow } from './PlanFeatureRow'
-
-const PLAN_ICONS = {
-  starter: Rocket,
-  professional: Gem,
-  premium: Crown,
-} as const
-
-const TRUST_ITEMS = [
-  '7 dias grátis',
-  'Sem cartão de crédito',
-  'Cancele quando quiser',
-  'Suporte na implantação',
-] as const
 
 export function PricingSection() {
   const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.1)
@@ -114,13 +105,13 @@ export function PricingSection() {
           style={{ transitionDelay: isVisible ? '500ms' : '0ms' }}
         >
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 rounded-2xl border border-white/10 bg-white/[0.04] px-7 py-4 lg:rounded-full lg:px-8 lg:py-3.5">
-            {TRUST_ITEMS.map((item, i) => (
+            {PRICING_TRUST_ITEMS.map((item, i) => (
               <Fragment key={item}>
                 <span className="flex items-center gap-2 text-sm text-slate-400">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden="true" />
                   {item}
                 </span>
-                {i < TRUST_ITEMS.length - 1 && (
+                {i < PRICING_TRUST_ITEMS.length - 1 && (
                   <span className="hidden h-3.5 w-px bg-white/10 lg:block" aria-hidden="true" />
                 )}
               </Fragment>
@@ -153,7 +144,7 @@ type PlanCardProps = {
 }
 
 function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
-  const PlanIcon = PLAN_ICONS[plan.key]
+  const PlanIcon = MARKETING_PLAN_ICONS[plan.key]
   const { sectionLabel, features, upgradeHints } = getPlanCardFeatures(plan.key)
   const isAnnual = billingPeriod === 'annual'
 

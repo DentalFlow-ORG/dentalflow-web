@@ -10,63 +10,24 @@ import {
 } from '@/lib/field-formatters'
 import { cn } from '@/lib/utils'
 import { submitPublicLead } from '@/services/public-leads.service'
-
-type QuickOption = { id: string; label: string; contextGoal: string }
-type ProcessOption = { id: string; label: string; contextProcess: string }
-
-const GOAL_OPTIONS: QuickOption[] = [
-  { id: 'agenda', label: 'Quero organizar minha agenda', contextGoal: 'Organizar agenda' },
-  { id: 'finance', label: 'Quero melhorar o financeiro', contextGoal: 'Melhorar controle financeiro' },
-  { id: 'patients', label: 'Quero captar mais pacientes', contextGoal: 'Captação de pacientes' },
-  { id: 'plans', label: 'Quero entender os planos', contextGoal: 'Informações sobre planos' },
-  { id: 'specialist', label: 'Quero falar com um especialista', contextGoal: 'Demonstração com especialista' },
-  { id: 'opening', label: 'Estou abrindo uma clínica', contextGoal: 'Clínica em abertura' },
-]
-
-const PROCESS_OPTIONS: ProcessOption[] = [
-  { id: 'paper', label: 'Uso papel hoje', contextProcess: 'Usa papel' },
-  { id: 'sheet', label: 'Uso planilha', contextProcess: 'Usa planilha' },
-  { id: 'software', label: 'Já uso outro software', contextProcess: 'Usa outro software' },
-  { id: 'none', label: 'Ainda não tenho sistema', contextProcess: 'Sem sistema' },
-]
-
-const TIME_OPTIONS = ['Manhã (8h–12h)', 'Tarde (12h–17h)', 'Noite (17h–20h)', 'Qualquer horário']
+import {
+  GOAL_OPTIONS,
+  INITIAL_FORM,
+  MSG_FORM,
+  MSG_INIT,
+  MSG_PROCESS,
+  PROCESS_OPTIONS,
+  TIME_OPTIONS,
+  type ChatMessage,
+  type FormData,
+  type ProcessOption,
+  type QuickOption,
+} from '../data/lead-chat-content'
 
 type ChatStep = 'situation' | 'process' | 'form' | 'success'
 
-type ChatMessage = {
-  id: string
-  role: 'bot' | 'user'
-  content: string
-}
-
-type FormData = {
-  name: string
-  whatsapp: string
-  clinic: string
-  time: string
-}
-
 let _uid = 0
 const uid = () => `m${++_uid}`
-
-const MSG_INIT: ChatMessage = {
-  id: 'init',
-  role: 'bot',
-  content: 'Olá! 👋 O que você quer melhorar na sua clínica?',
-}
-const MSG_PROCESS: ChatMessage = {
-  id: 'proc',
-  role: 'bot',
-  content: 'Entendido! Como você gerencia sua clínica hoje?',
-}
-const MSG_FORM: ChatMessage = {
-  id: 'form',
-  role: 'bot',
-  content: 'Ótimo! Para conectar você com nosso time, precisamos de algumas informações:',
-}
-
-const INITIAL_FORM: FormData = { name: '', whatsapp: '', clinic: '', time: '' }
 
 export function LeadChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
