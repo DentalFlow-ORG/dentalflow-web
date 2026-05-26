@@ -19,6 +19,7 @@ import {
 
 import { useInventoryPage } from '../hooks/useInventoryPage'
 import type { StockProductStatus, StockSummary } from '../types/inventory.types'
+import { STATUS_OPTIONS } from '../constants/inventory-filters'
 import { CategoryManagerModal } from '../components/CategoryManagerModal'
 import { DeactivateProductDialog } from '../components/DeactivateProductDialog'
 import { ReactivateProductDialog } from '../components/ReactivateProductDialog'
@@ -30,15 +31,6 @@ import { StockAbnormalConsumptionSection } from '../components/StockAbnormalCons
 import { ProductDetailsDrawer } from '../components/ProductDetailsDrawer'
 import { ProductFormModal } from '../components/ProductFormModal'
 import { StockMovementModal } from '../components/StockMovementModal'
-
-const STATUS_OPTIONS: { value: StockProductStatus; label: string }[] = [
-  { value: 'ACTIVE', label: 'Em estoque' },
-  { value: 'LOW', label: 'Baixo estoque' },
-  { value: 'EMPTY', label: 'Sem estoque' },
-  { value: 'EXPIRING', label: 'Vencendo' },
-  { value: 'EXPIRED', label: 'Vencido' },
-  { value: 'INACTIVE', label: 'Inativo' },
-]
 
 type AttentionChip = {
   status: StockProductStatus
@@ -156,7 +148,7 @@ export function InventoryPageContainer() {
         title="Controle de Estoque"
         description="Gerencie produtos, categorias e acompanhe os níveis de estoque da clínica."
         action={
-          <div className="flex flex-col gap-2 sm:flex-row [&>*]:w-full sm:[&>*]:w-auto">
+          <div className="flex flex-col gap-2 sm:flex-row *:w-full sm:*:w-auto">
             {isOwner && (
               <Button variant="outline" onClick={handleOpenCategoryManager}>
                 <Tags aria-hidden="true" />
