@@ -169,6 +169,24 @@ export type UpdateStockProductPayload = {
   isActive?: boolean
 }
 
+// ── Stock Copilot ─────────────────────────────────────────────────────────────
+
+export type StockCopilotResult = {
+  summary: string
+  highlights: string[]
+  recommendedActions: string[]
+  generatedAt: string
+  cached: boolean
+  source: 'AI' | 'CACHE'
+  purchaseListSnapshot: {
+    totalItems: number
+    criticalItems: number
+    highPriorityItems: number
+    mediumPriorityItems: number
+    totalEstimatedCostCents: number
+  }
+}
+
 // ── Purchase list ─────────────────────────────────────────────────────────────
 
 export type PurchasePriority = 'CRITICAL' | 'HIGH' | 'MEDIUM'

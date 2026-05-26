@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { useStockPurchaseList } from '../hooks/useStockPurchaseList'
 import type { PurchasePriority, PurchaseListItem } from '../types/inventory.types'
 import { formatBRLCents } from '../utils/inventory-format'
+import { StockCopilotCard } from './StockCopilotCard'
 
 // ── Priority badge ────────────────────────────────────────────────────────────
 
@@ -211,6 +212,9 @@ export function StockPurchaseListSection() {
         </div>
       ) : (
         <div className="mt-5 space-y-5">
+          {/* Copilot AI summary — never blocks deterministic purchase list */}
+          <StockCopilotCard />
+
           {/* Summary mini-grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <SummaryChip
