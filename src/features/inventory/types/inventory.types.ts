@@ -216,3 +216,44 @@ export type StockPurchaseList = {
   }
   items: PurchaseListItem[]
 }
+
+// ── Abnormal Consumption ──────────────────────────────────────────────────────
+
+export type AnomalyType =
+  | 'CONSUMPTION_SPIKE'
+  | 'LOSS_SPIKE'
+  | 'FREQUENT_ADJUSTMENTS'
+  | 'NEW_UNUSUAL_CONSUMPTION'
+
+export type AnomalySeverity = 'HIGH' | 'MEDIUM' | 'LOW'
+
+export type AbnormalConsumptionItem = {
+  productId: string
+  productName: string
+  categoryName: string | null
+  currentQuantity: number
+  minQuantity: number
+  unit: string | null
+  anomalyType: AnomalyType
+  severity: AnomalySeverity
+  recentQuantity: number
+  baselineQuantity: number
+  changePercent: number | null
+  movementCount: number
+  reason: string
+  suggestedAction: string
+}
+
+export type GetAbnormalConsumptionResponse = {
+  summary: {
+    totalAnomalies: number
+    highSeverity: number
+    mediumSeverity: number
+    lowSeverity: number
+    recentDays: number
+    baselineDays: number
+    analyzedProducts: number
+    generatedAt: string
+  }
+  items: AbnormalConsumptionItem[]
+}
