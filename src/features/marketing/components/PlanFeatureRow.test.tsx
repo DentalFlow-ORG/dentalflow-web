@@ -15,17 +15,30 @@ describe('PlanFeatureRow', () => {
     expect(screen.getByText('Em breve')).toBeInTheDocument()
   })
 
-  it('has an accessible "não incluído" indication when type="not_included"', () => {
+  it('exposes accessible name "Incluído: ..." when type="included"', () => {
+    render(<PlanFeatureRow label="Agendamento online" type="included" />)
+    expect(
+      screen.getByRole('listitem', { name: 'Incluído: Agendamento online' }),
+    ).toBeInTheDocument()
+  })
+
+  it('exposes accessible name "Em breve: ..." when type="soon"', () => {
+    render(<PlanFeatureRow label="Integração WhatsApp" type="soon" />)
+    expect(
+      screen.getByRole('listitem', { name: 'Em breve: Integração WhatsApp' }),
+    ).toBeInTheDocument()
+  })
+
+  it('exposes accessible name "Não incluído: ..." when type="not_included"', () => {
     render(<PlanFeatureRow label="Relatórios avançados" type="not_included" />)
     expect(
-      screen.getByRole('listitem', { name: 'Relatórios avançados: não incluído' }),
+      screen.getByRole('listitem', { name: 'Não incluído: Relatórios avançados' }),
     ).toBeInTheDocument()
   })
 
   it('applies line-through to the label when type="not_included"', () => {
     render(<PlanFeatureRow label="Relatórios avançados" type="not_included" />)
-    const label = screen.getByText('Relatórios avançados')
-    expect(label).toHaveClass('line-through')
+    expect(screen.getByText('Relatórios avançados')).toHaveClass('line-through')
   })
 
   it('renders as an <li> element for all availability types', () => {

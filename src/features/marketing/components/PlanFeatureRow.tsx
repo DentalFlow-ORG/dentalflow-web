@@ -15,7 +15,7 @@ export function PlanFeatureRow({ label, type, variant = 'light' }: Props) {
 
   if (type === 'included') {
     return (
-      <li className="flex items-start gap-2.5">
+      <li aria-label={`Incluído: ${label}`} className="flex items-start gap-2.5">
         <Check
           className={cn(
             'mt-0.5 h-4 w-4 shrink-0',
@@ -32,7 +32,7 @@ export function PlanFeatureRow({ label, type, variant = 'light' }: Props) {
 
   if (type === 'soon') {
     return (
-      <li className="flex items-start gap-2.5">
+      <li aria-label={`Em breve: ${label}`} className="flex items-start gap-2.5">
         <Clock3
           className={cn(
             'mt-0.5 h-4 w-4 shrink-0',
@@ -56,7 +56,7 @@ export function PlanFeatureRow({ label, type, variant = 'light' }: Props) {
   }
 
   return (
-    <li aria-label={`${label}: não incluído`} className="flex items-start gap-2.5">
+    <li aria-label={`Não incluído: ${label}`} className="flex items-start gap-2.5">
       <X
         className={cn(
           'mt-0.5 h-4 w-4 shrink-0',
