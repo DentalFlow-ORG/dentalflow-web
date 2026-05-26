@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 
 import { useStockAbnormalConsumption } from '../hooks/useStockAbnormalConsumption'
 import type { AbnormalConsumptionItem, AnomalySeverity, AnomalyType } from '../types/inventory.types'
+import { StockAbnormalConsumptionCopilotCard } from './StockAbnormalConsumptionCopilotCard'
 
 // ── Labels ────────────────────────────────────────────────────────────────────
 
@@ -217,6 +218,9 @@ export function StockAbnormalConsumptionSection() {
         </div>
       ) : (
         <div className="mt-5 space-y-5">
+          {/* Copilot AI summary — never blocks the deterministic anomaly list */}
+          <StockAbnormalConsumptionCopilotCard />
+
           {/* Summary mini-grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <SummaryChip

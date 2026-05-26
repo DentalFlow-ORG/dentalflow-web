@@ -257,3 +257,23 @@ export type GetAbnormalConsumptionResponse = {
   }
   items: AbnormalConsumptionItem[]
 }
+
+// ── Abnormal Consumption Copilot ──────────────────────────────────────────────
+
+export type AbnormalConsumptionCopilotResult = {
+  summary: string
+  highlights: string[]
+  recommendedActions: string[]
+  generatedAt: string
+  cached: boolean
+  source: 'AI' | 'CACHE'
+  anomalySnapshot: {
+    totalAnomalies: number
+    highSeverity: number
+    mediumSeverity: number
+    lowSeverity: number
+    recentDays: number
+    baselineDays: number
+    analyzedProducts: number
+  }
+}
