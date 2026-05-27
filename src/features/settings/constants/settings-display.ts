@@ -28,3 +28,12 @@ export const STATUS_INFO: Record<
   paused: { label: 'Pausado', tone: 'muted' },
   missing: { label: 'Sem plano', tone: 'muted' },
 }
+
+export const LEGAL_LINKS: { label: string; href: string }[] = [
+  { label: 'Política de Privacidade', href: '/politica-de-privacidade' },
+  { label: 'Termos de Uso', href: '/termos-de-uso' },
+  { label: 'Política de Cookies', href: '/politica-de-cookies' },
+  { label: 'Tratamento de Dados (LGPD)', href: '/tratamento-de-dados' },
+  { label: 'Segurança', href: '/seguranca' },
+  { label: 'Direitos do Titular', href: '/direitos-do-titular' },
+]

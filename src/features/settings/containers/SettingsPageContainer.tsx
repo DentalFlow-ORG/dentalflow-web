@@ -42,7 +42,7 @@ import type { CurrentBillingStatus } from '@/features/billing/types/billing.type
 
 import { useClinicProfile } from '../hooks/useClinicProfile'
 import type { UpdateClinicProfilePayload } from '../types/settings.types'
-import { ROLE_INFO, STATUS_INFO } from '../constants/settings-display'
+import { LEGAL_LINKS, ROLE_INFO, STATUS_INFO } from '../constants/settings-display'
 
 function SettingsSectionCard({
   title,
@@ -463,15 +463,6 @@ function BillingSection() {
     </div>
   )
 }
-
-const LEGAL_LINKS = [
-  { label: 'Política de Privacidade', href: '/politica-de-privacidade' },
-  { label: 'Termos de Uso', href: '/termos-de-uso' },
-  { label: 'Política de Cookies', href: '/politica-de-cookies' },
-  { label: 'Tratamento de Dados (LGPD)', href: '/tratamento-de-dados' },
-  { label: 'Segurança', href: '/seguranca' },
-  { label: 'Direitos do Titular', href: '/direitos-do-titular' },
-]
 
 export function SettingsPageContainer() {
   return (

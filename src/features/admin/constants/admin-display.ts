@@ -17,3 +17,10 @@ export const ADMIN_ROLE_TONE: Record<UserRole, RoleBadgeTone> = {
   ASSISTANT: 'muted',
   PATIENT: 'muted',
 }
+
+export const USER_FORM_ROLE_OPTIONS: { value: UserRole; label: string }[] = [
+  { value: 'ADMIN', label: 'Admin (plataforma)' },
+  { value: 'OWNER', label: 'Proprietário' },
+  { value: 'DENTIST', label: 'Profissional' },
+  { value: 'ASSISTANT', label: 'Assistente' },
+]
