@@ -45,6 +45,7 @@ src/
       services/
       types/
       utils/
+  hooks/
   lib/
   services/
   test/
@@ -59,6 +60,7 @@ src/
 - `src/components/layout`: shared layout-level components such as footer and shell elements.
 - `src/config`: static configuration such as company data, environment config, and app constants.
 - `src/features/<feature>`: feature-owned pages, containers, components, hooks, providers, services, types, constants, utils, and data.
+- `src/hooks`: cross-feature reusable hooks that do not belong to any single feature, such as `useListFilter` and `useIsMobile`.
 - `src/services`: cross-feature infrastructure services such as HTTP clients.
 - `src/lib`: framework-agnostic utilities.
 - `src/test`: shared test setup and helpers for Vitest and React Testing Library.
@@ -72,10 +74,10 @@ src/
 - `providers`: feature context providers and state wiring.
 - `services`: backend or client integration for that feature. API calls and backend SDK usage belong here, not in visual components.
 - `types`: shared TypeScript contracts for the feature, split by concern when useful.
-- `constants`: reusable static values owned by the feature, such as status maps, route-independent labels, and option lists.
-- `utils`: pure helpers, storage adapters, mappers, and formatters owned by the feature.
+- `constants`: static data with no logic owned by the feature — status/tone/color maps, label records, filter option arrays, tab configs, and navigation card arrays. Do not place functions or computed values here.
+- `utils`: pure functions with logic owned by the feature — formatters, calculators, validators, state machine helpers, layout algorithms, and storage adapters. Do not place plain static records or option arrays here; those belong in `constants/`.
 - `data`: static marketing, legal, product, or mock/demo content owned by the feature.
-- `tests`: colocated component, hook, service, or utility tests when meaningful. Existing tests may also live beside the file under test.
+- Test files (`.test.ts`, `.test.tsx`) are colocated beside the source file they cover. There is no top-level `tests/` folder per feature.
 
 ## Routing Rules
 
@@ -119,6 +121,7 @@ If the backend moves to HTTP-only cookies, keep components unchanged and update 
 - Static content for complex pages belongs in feature-level `data/` files.
 - Extract repeated card, metric, badge, heading, brand, and form-field patterns before adding new page-specific markup.
 - Extract shared components, hooks, services, constants, or utils when a pattern repeats across files.
+- Do not define inline display maps, label records, tone maps, or filter option arrays inside component or container files. Place them in the feature's `constants/` directory.
 - Feature-only components stay inside their feature.
 - Shared components must be genuinely reusable before moving to `src/components`.
 
@@ -152,6 +155,10 @@ Accent: `#6366F1`
 - Never trust client-side validation alone.
 - Never store payment or sensitive credentials in local frontend state beyond what is needed for UI interaction.
 
+## Package Manager
+
+Use `pnpm` exclusively. Do not run `pnpm install`, `pnpm add`, or `pnpm remove` without explicit user approval.
+
 ## Implementation Checklist
 
 Before implementing:
@@ -162,7 +169,13 @@ Before implementing:
 4. Avoid duplication.
 5. Follow the current design system.
 6. Keep changes scoped to the requested feature.
-7. Validate with `pnpm run build` when implementation changes TypeScript or routing.
+7. Validate TypeScript and tests with the full three-step sequence:
+   ```
+   pnpm exec tsc --noEmit
+   pnpm test --run
+   pnpm run build
+   ```
+   `pnpm run build` (`tsc -b`) is the authoritative gate — it catches strict errors that `tsc --noEmit` misses.
 
 ## Role
 

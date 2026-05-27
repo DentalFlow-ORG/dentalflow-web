@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 
 import type { ClassifierState } from '../hooks/useExpenseClassifier'
 import type { FinancialTransaction } from '../types/finance.types'
-import { SOURCE_LABEL, STATUS_LABEL, TYPE_LABEL, statusTone } from '../utils/finance-constants'
+import { SOURCE_LABEL, STATUS_LABEL, TYPE_LABEL, statusTone } from '../constants/finance-display'
 import { formatCurrency, formatDate } from '../utils/finance-format'
 import { ExpenseClassifyAction } from './ExpenseClassifyAction'
 
@@ -143,7 +143,7 @@ export function TransactionsTable({
 
       <div className="hidden overflow-hidden rounded-lg border border-border md:block">
         <div className="app-scrollbar overflow-x-auto">
-          <table className="w-full min-w-[820px] text-sm" aria-label="Movimentações financeiras">
+          <table className="w-full min-w-205 text-sm" aria-label="Movimentações financeiras">
             <thead>
               <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <th scope="col" className="px-4 py-3">Data</th>
@@ -199,7 +199,7 @@ export function TransactionsTable({
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="max-w-[200px] truncate font-medium text-foreground">
+                      <p className="max-w-50 truncate font-medium text-foreground">
                         {transaction.description}
                       </p>
                       {transaction.service?.name && (

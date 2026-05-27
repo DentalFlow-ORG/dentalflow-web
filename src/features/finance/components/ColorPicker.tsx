@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-import { CATEGORY_COLOR_NAMES, CATEGORY_COLORS } from '../utils/finance-constants'
+import { CATEGORY_COLOR_NAMES, CATEGORY_COLORS } from '../constants/finance-display'
 
 export function ColorPicker({
   value,
