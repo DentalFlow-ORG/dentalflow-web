@@ -5,27 +5,10 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useListFilter } from '@/hooks/useListFilter'
 
 import { deleteAdminUser, listAdminUsers } from '../services/admin-users.service'
-import type { AdminUser, UserRole } from '../types/admin.types'
+import type { AdminUser } from '../types/admin.types'
+import { ADMIN_ROLE_LABEL, ADMIN_ROLE_TONE } from '../constants/admin-display'
 
 const DEFAULT_PAGE_SIZE = 10
-
-export const ADMIN_ROLE_LABEL: Record<UserRole, string> = {
-  ADMIN: 'Admin',
-  OWNER: 'Proprietário',
-  DENTIST: 'Profissional',
-  ASSISTANT: 'Assistente',
-  PATIENT: 'Paciente',
-}
-
-type RoleBadgeTone = 'success' | 'muted' | 'warning'
-
-export const ADMIN_ROLE_TONE: Record<UserRole, RoleBadgeTone> = {
-  ADMIN: 'warning',
-  OWNER: 'success',
-  DENTIST: 'muted',
-  ASSISTANT: 'muted',
-  PATIENT: 'muted',
-}
 
 export function formatUserDate(iso: string) {
   return new Intl.DateTimeFormat('pt-BR', {
