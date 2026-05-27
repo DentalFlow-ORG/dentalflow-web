@@ -56,6 +56,7 @@ src/
   lib/
   services/
   test/
+  tests/
 ```
 
 ## Architecture Rules
@@ -86,7 +87,8 @@ before creating new patterns.
 
 Tests use Vitest and React Testing Library.
 
-- Shared test utilities live in `src/test/`.
+- Shared test utilities live in `src/test/` (render-utils, setup, TestProviders).
+- Test suites live in `src/tests/`, mirroring the source tree. Use `@/` aliases for all imports inside test files.
 - Prefer behavior tests over brittle snapshots.
 - Mock hooks or services when testing UI that depends on auth, routing, or API
   state.

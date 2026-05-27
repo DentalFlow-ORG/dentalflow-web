@@ -49,6 +49,7 @@ src/
   lib/
   services/
   test/
+  tests/
 ```
 
 ### Folder Responsibilities
@@ -63,7 +64,8 @@ src/
 - `src/hooks`: cross-feature reusable hooks that do not belong to any single feature, such as `useListFilter` and `useIsMobile`.
 - `src/services`: cross-feature infrastructure services such as HTTP clients.
 - `src/lib`: framework-agnostic utilities.
-- `src/test`: shared test setup and helpers for Vitest and React Testing Library.
+- `src/test`: shared test setup and helpers for Vitest and React Testing Library (render-utils, setup, TestProviders). Do not move these.
+- `src/tests`: all test suites, mirroring the source tree. Use `@/` aliases for all imports — no relative imports across feature boundaries.
 
 ### Feature Directory Responsibilities
 
@@ -77,7 +79,7 @@ src/
 - `constants`: static data with no logic owned by the feature — status/tone/color maps, label records, filter option arrays, tab configs, and navigation card arrays. Do not place functions or computed values here.
 - `utils`: pure functions with logic owned by the feature — formatters, calculators, validators, state machine helpers, layout algorithms, and storage adapters. Do not place plain static records or option arrays here; those belong in `constants/`.
 - `data`: static marketing, legal, product, or mock/demo content owned by the feature.
-- Test files (`.test.ts`, `.test.tsx`) are colocated beside the source file they cover. There is no top-level `tests/` folder per feature.
+- Test files (`.test.ts`, `.test.tsx`) live in `src/tests/`, mirroring the source tree. Example: the test for `src/features/scheduling/utils/appointment-state-machine.ts` lives at `src/tests/features/scheduling/utils/appointment-state-machine.test.ts`. Use `@/` aliases for all imports inside test files.
 
 ## Routing Rules
 
@@ -128,7 +130,9 @@ If the backend moves to HTTP-only cookies, keep components unchanged and update 
 ## Testing Rules
 
 - Use Vitest and React Testing Library for behavior-focused tests.
-- Prefer `src/test/render-utils.tsx` for component tests.
+- Prefer `src/test/render-utils` for component tests (`renderWithProviders`, `screen`, `userEvent`, etc.).
+- All test files belong in `src/tests/`, mirroring the source tree. Do not colocate test files beside source files.
+- Use `@/` aliases for all imports inside test files — no relative cross-directory imports.
 - Mock feature hooks or services when testing UI behavior that depends on auth, routing, or backend state.
 - Add tests for new components, hooks, services, and utilities when they contain branching logic, state transitions, validation, or API integration behavior.
 - Avoid brittle visual snapshots, long Tailwind class assertions, and tests that only duplicate static markup.
