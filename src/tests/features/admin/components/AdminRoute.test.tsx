@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { renderWithProviders, screen } from '@/test/render-utils'
 import { AdminRoute } from '@/features/admin/components/AdminRoute'
 import type { AuthUser } from '@/features/auth/types'
+import { makeOwnerUser, makeAdminUser } from '@/test/factories/user.factory'
 
 // Mutable state read by mock factories — prefix "mock" enables Vitest hoisting
 let mockIsBootstrapping = false
@@ -38,17 +39,8 @@ vi.mock('@/components/common/LoadingCard', () => ({
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
-const adminUser: AuthUser = {
-  id: 'admin-1',
-  clinicId: null,
-  role: 'ADMIN',
-  email: 'admin@dentalflow.com',
-  firstName: 'Admin',
-  lastName: 'User',
-  isProfileComplete: true,
-}
-
-const ownerUser: AuthUser = { ...adminUser, id: 'owner-1', role: 'OWNER', clinicId: 'clinic-1' }
+const adminUser = makeAdminUser()
+const ownerUser = makeOwnerUser()
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 

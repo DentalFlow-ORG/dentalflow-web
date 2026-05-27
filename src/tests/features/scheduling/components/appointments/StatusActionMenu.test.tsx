@@ -1,55 +1,12 @@
 import { render, screen, userEvent } from '@/test/render-utils'
 
-import type { Appointment, AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
+import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
 import { StatusActionMenu } from '@/features/scheduling/components/appointments/StatusActionMenu'
+import { makeAppointment } from '@/test/factories/appointment.factory'
 
 // ── Fixture ───────────────────────────────────────────────────────────────────
-// appointmentDate '2026-05-26' + startTime '1970-01-01T10:00:00.000Z'
+// Factory defaults: appointmentDate '2026-05-26' + startTime '1970-01-01T10:00:00.000Z'
 // → buildAppointmentDateTime produces new Date('2026-05-26T10:00:00') local
-
-const APPT_DATE = '2026-05-26'
-const APPT_START = '1970-01-01T10:00:00.000Z'
-
-function makeAppointment(
-  status: AppointmentStatus,
-  appointmentDate = APPT_DATE,
-  startTime = APPT_START,
-): Appointment {
-  return {
-    id: 'appt-1',
-    clinicId: 'clinic-1',
-    profileId: 'prof-1',
-    patientUserId: null,
-    leadId: null,
-    serviceId: null,
-    patientName: 'Test Patient',
-    patientEmail: null,
-    patientPhone: null,
-    appointmentDate,
-    startTime,
-    endTime: null,
-    durationMinutes: null,
-    status,
-    notes: null,
-    patientNotes: null,
-    canceledBy: null,
-    canceledAt: null,
-    cancellationReason: null,
-    confirmedAt: null,
-    completedAt: null,
-    estimatedAmountCents: null,
-    paidAmountCents: null,
-    paymentStatus: 'PAYMENT_PENDING',
-    paymentMethod: null,
-    paymentDate: null,
-    paymentNotes: null,
-    createdAt: '2026-05-26T00:00:00.000Z',
-    updatedAt: '2026-05-26T00:00:00.000Z',
-    profile: null,
-    service: null,
-    patient: null,
-  }
-}
 
 // ── Terminal statuses ─────────────────────────────────────────────────────────
 
@@ -59,7 +16,7 @@ describe('StatusActionMenu — terminal statuses', () => {
     (status) => {
       render(
         <StatusActionMenu
-          appointment={makeAppointment(status)}
+          appointment={makeAppointment({ status })}
           isLoading={false}
           onStatusChange={vi.fn()}
           onCancelRequest={vi.fn()}
@@ -77,7 +34,7 @@ describe('StatusActionMenu — PENDING', () => {
   it('renders Confirmar and Cancelar buttons', () => {
     render(
       <StatusActionMenu
-        appointment={makeAppointment('PENDING')}
+        appointment={makeAppointment({ status: 'PENDING' })}
         isLoading={false}
         onStatusChange={vi.fn()}
         onCancelRequest={vi.fn()}
@@ -90,7 +47,7 @@ describe('StatusActionMenu — PENDING', () => {
   it('does not render Concluir or Não veio buttons', () => {
     render(
       <StatusActionMenu
-        appointment={makeAppointment('PENDING')}
+        appointment={makeAppointment({ status: 'PENDING' })}
         isLoading={false}
         onStatusChange={vi.fn()}
         onCancelRequest={vi.fn()}
@@ -105,7 +62,7 @@ describe('StatusActionMenu — PENDING', () => {
     const onStatusChange = vi.fn()
     render(
       <StatusActionMenu
-        appointment={makeAppointment('PENDING')}
+        appointment={makeAppointment({ status: 'PENDING' })}
         isLoading={false}
         onStatusChange={onStatusChange}
         onCancelRequest={vi.fn()}
@@ -118,7 +75,7 @@ describe('StatusActionMenu — PENDING', () => {
   it('calls onCancelRequest with the appointment when Cancelar is clicked', async () => {
     const user = userEvent.setup()
     const onCancelRequest = vi.fn()
-    const appointment = makeAppointment('PENDING')
+    const appointment = makeAppointment({ status: 'PENDING' })
     render(
       <StatusActionMenu
         appointment={appointment}
@@ -134,7 +91,7 @@ describe('StatusActionMenu — PENDING', () => {
   it('hides Confirmar when allowedTransitions excludes CONFIRMED', () => {
     render(
       <StatusActionMenu
-        appointment={makeAppointment('PENDING')}
+        appointment={makeAppointment({ status: 'PENDING' })}
         isLoading={false}
         allowedTransitions={['CANCELED']}
         onStatusChange={vi.fn()}
@@ -161,7 +118,7 @@ describe('StatusActionMenu — CONFIRMED (time-sensitive)', () => {
     vi.setSystemTime(new Date('2026-05-26T11:00:00')) // 11:00 > 10:00 slot
     render(
       <StatusActionMenu
-        appointment={makeAppointment('CONFIRMED')}
+        appointment={makeAppointment({ status: 'CONFIRMED' })}
         isLoading={false}
         onStatusChange={vi.fn()}
         onCancelRequest={vi.fn()}
@@ -176,7 +133,7 @@ describe('StatusActionMenu — CONFIRMED (time-sensitive)', () => {
     vi.setSystemTime(new Date('2026-05-26T09:00:00')) // 09:00 < 10:00 slot
     render(
       <StatusActionMenu
-        appointment={makeAppointment('CONFIRMED')}
+        appointment={makeAppointment({ status: 'CONFIRMED' })}
         isLoading={false}
         onStatusChange={vi.fn()}
         onCancelRequest={vi.fn()}

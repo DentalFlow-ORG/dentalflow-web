@@ -1,4 +1,4 @@
-import type { Appointment, Availability, AvailabilityException } from '@/features/scheduling/types/scheduling.types'
+import type { Appointment } from '@/features/scheduling/types/scheduling.types'
 import {
   DEFAULT_END_MINUTES,
   DEFAULT_START_MINUTES,
@@ -10,8 +10,11 @@ import {
   isSlotInsideWorkingRanges,
   minutesToTime,
 } from '@/features/scheduling/utils/week-calendar-layout'
+import { makeAvailability, makeAvailabilityException } from '@/test/factories/availability.factory'
 
-// ── Fixtures ──────────────────────────────────────────────────────────────────
+// ── Local fixture ─────────────────────────────────────────────────────────────
+// makeAppt uses HH:mm string times (layout-specific) — kept local rather than
+// using the shared makeAppointment factory whose startTime is a UTC wall-clock stamp.
 
 function makeAppt(overrides: Partial<Appointment> = {}): Appointment {
   return {
@@ -47,37 +50,6 @@ function makeAppt(overrides: Partial<Appointment> = {}): Appointment {
     profile: null,
     service: null,
     patient: null,
-    ...overrides,
-  }
-}
-
-function makeAvailability(overrides: Partial<Availability> = {}): Availability {
-  return {
-    id: 'av1',
-    profileId: 'p1',
-    clinicId: 'c1',
-    dayOfWeek: 3, // Wednesday
-    startTime: '08:00',
-    endTime: '17:00',
-    isActive: true,
-    createdAt: '2026-05-01T00:00:00.000Z',
-    updatedAt: '2026-05-01T00:00:00.000Z',
-    ...overrides,
-  }
-}
-
-function makeException(overrides: Partial<AvailabilityException> = {}): AvailabilityException {
-  return {
-    id: 'ex1',
-    profileId: 'p1',
-    clinicId: 'c1',
-    exceptionDate: '2026-05-27',
-    isDayOff: true,
-    startTime: null,
-    endTime: null,
-    reason: null,
-    createdAt: '2026-05-01T00:00:00.000Z',
-    updatedAt: '2026-05-01T00:00:00.000Z',
     ...overrides,
   }
 }
@@ -160,12 +132,12 @@ describe('computeDayLayout', () => {
 
 describe('getDayWorkingRanges', () => {
   it('returns [] for a day-off exception', () => {
-    const ex = makeException({ exceptionDate: '2026-05-27', isDayOff: true })
+    const ex = makeAvailabilityException({ exceptionDate: '2026-05-27', isDayOff: true })
     expect(getDayWorkingRanges(WED, undefined, [ex])).toEqual([])
   })
 
   it('returns special-hour range from a non-day-off exception', () => {
-    const ex = makeException({ exceptionDate: '2026-05-27', isDayOff: false, startTime: '10:00', endTime: '14:00' })
+    const ex = makeAvailabilityException({ exceptionDate: '2026-05-27', isDayOff: false, startTime: '10:00', endTime: '14:00' })
     // 10:00 = 600 min, 14:00 = 840 min
     expect(getDayWorkingRanges(WED, undefined, [ex])).toEqual([{ start: 600, end: 840 }])
   })
@@ -192,7 +164,7 @@ describe('getDayWorkingRanges', () => {
 
 describe('getDayStatus', () => {
   it('marks day as dayOff when exception isDayOff', () => {
-    const ex = makeException({ exceptionDate: '2026-05-27', isDayOff: true, reason: 'Feriado' })
+    const ex = makeAvailabilityException({ exceptionDate: '2026-05-27', isDayOff: true, reason: 'Feriado' })
     const result = getDayStatus(WED, undefined, [ex])
     expect(result.isWorking).toBe(false)
     expect(result.kind).toBe('dayOff')
@@ -200,7 +172,7 @@ describe('getDayStatus', () => {
   })
 
   it('marks day as special when exception has custom hours', () => {
-    const ex = makeException({ exceptionDate: '2026-05-27', isDayOff: false, startTime: '10:00', endTime: '14:00' })
+    const ex = makeAvailabilityException({ exceptionDate: '2026-05-27', isDayOff: false, startTime: '10:00', endTime: '14:00' })
     const result = getDayStatus(WED, undefined, [ex])
     expect(result.isWorking).toBe(true)
     expect(result.kind).toBe('special')

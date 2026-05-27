@@ -1,4 +1,4 @@
-import type { Appointment, AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
+import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
 
 import {
   APPOINTMENT_TRANSITIONS,
@@ -6,58 +6,14 @@ import {
   getAvailableTransitions,
   isTerminalStatus,
 } from '@/features/scheduling/utils/appointment-state-machine'
+import { makeAppointment } from '@/test/factories/appointment.factory'
 
 // ── Fixture ───────────────────────────────────────────────────────────────────
-// appointmentDate: plain YYYY-MM-DD → isoDateToString returns '2026-05-26'
-// startTime: UTC wall-clock stamp → formatWallTime extracts '10:00'
-// buildAppointmentDateTime result: new Date('2026-05-26T10:00:00') (local)
-
-const APPT_DATE = '2026-05-26'
-const APPT_START = '1970-01-01T10:00:00.000Z'
+// Factory defaults: appointmentDate '2026-05-26' + startTime '1970-01-01T10:00:00.000Z'
+// → buildAppointmentDateTime produces new Date('2026-05-26T10:00:00') local
 
 const BEFORE_SLOT = new Date('2026-05-26T09:00:00') // 09:00 local — slot hasn't started
 const AFTER_SLOT  = new Date('2026-05-26T11:00:00') // 11:00 local — slot has started
-
-function makeAppointment(
-  status: AppointmentStatus,
-  appointmentDate = APPT_DATE,
-  startTime = APPT_START,
-): Appointment {
-  return {
-    id: 'appt-1',
-    clinicId: 'clinic-1',
-    profileId: 'prof-1',
-    patientUserId: null,
-    leadId: null,
-    serviceId: null,
-    patientName: 'Test Patient',
-    patientEmail: null,
-    patientPhone: null,
-    appointmentDate,
-    startTime,
-    endTime: null,
-    durationMinutes: null,
-    status,
-    notes: null,
-    patientNotes: null,
-    canceledBy: null,
-    canceledAt: null,
-    cancellationReason: null,
-    confirmedAt: null,
-    completedAt: null,
-    estimatedAmountCents: null,
-    paidAmountCents: null,
-    paymentStatus: 'PAYMENT_PENDING',
-    paymentMethod: null,
-    paymentDate: null,
-    paymentNotes: null,
-    createdAt: '2026-05-26T00:00:00.000Z',
-    updatedAt: '2026-05-26T00:00:00.000Z',
-    profile: null,
-    service: null,
-    patient: null,
-  }
-}
 
 // ── APPOINTMENT_TRANSITIONS ───────────────────────────────────────────────────
 
@@ -105,19 +61,19 @@ describe('isTerminalStatus', () => {
 
 describe('canTransitionTo — state machine guard', () => {
   it('allows PENDING → CONFIRMED', () => {
-    expect(canTransitionTo(makeAppointment('PENDING'), 'CONFIRMED')).toBe(true)
+    expect(canTransitionTo(makeAppointment({ status: 'PENDING' }), 'CONFIRMED')).toBe(true)
   })
 
   it('allows PENDING → CANCELED', () => {
-    expect(canTransitionTo(makeAppointment('PENDING'), 'CANCELED')).toBe(true)
+    expect(canTransitionTo(makeAppointment({ status: 'PENDING' }), 'CANCELED')).toBe(true)
   })
 
   it('rejects PENDING → COMPLETED (not in transition map)', () => {
-    expect(canTransitionTo(makeAppointment('PENDING'), 'COMPLETED')).toBe(false)
+    expect(canTransitionTo(makeAppointment({ status: 'PENDING' }), 'COMPLETED')).toBe(false)
   })
 
   it('rejects PENDING → NO_SHOW (not in transition map)', () => {
-    expect(canTransitionTo(makeAppointment('PENDING'), 'NO_SHOW')).toBe(false)
+    expect(canTransitionTo(makeAppointment({ status: 'PENDING' }), 'NO_SHOW')).toBe(false)
   })
 
   it('rejects any transition from a terminal status', () => {
@@ -125,14 +81,14 @@ describe('canTransitionTo — state machine guard', () => {
     const targets: AppointmentStatus[] = ['PENDING', 'CONFIRMED', 'CANCELED', 'COMPLETED', 'NO_SHOW']
     for (const status of statuses) {
       for (const target of targets) {
-        expect(canTransitionTo(makeAppointment(status), target)).toBe(false)
+        expect(canTransitionTo(makeAppointment({ status }), target)).toBe(false)
       }
     }
   })
 
   it('allows CONFIRMED → CANCELED regardless of appointment time', () => {
-    expect(canTransitionTo(makeAppointment('CONFIRMED'), 'CANCELED', BEFORE_SLOT)).toBe(true)
-    expect(canTransitionTo(makeAppointment('CONFIRMED'), 'CANCELED', AFTER_SLOT)).toBe(true)
+    expect(canTransitionTo(makeAppointment({ status: 'CONFIRMED' }), 'CANCELED', BEFORE_SLOT)).toBe(true)
+    expect(canTransitionTo(makeAppointment({ status: 'CONFIRMED' }), 'CANCELED', AFTER_SLOT)).toBe(true)
   })
 })
 
@@ -140,24 +96,24 @@ describe('canTransitionTo — state machine guard', () => {
 
 describe('canTransitionTo — time guard for COMPLETED and NO_SHOW', () => {
   it('allows CONFIRMED → COMPLETED when the appointment slot has started', () => {
-    expect(canTransitionTo(makeAppointment('CONFIRMED'), 'COMPLETED', AFTER_SLOT)).toBe(true)
+    expect(canTransitionTo(makeAppointment({ status: 'CONFIRMED' }), 'COMPLETED', AFTER_SLOT)).toBe(true)
   })
 
   it('rejects CONFIRMED → COMPLETED when the appointment slot is in the future', () => {
-    expect(canTransitionTo(makeAppointment('CONFIRMED'), 'COMPLETED', BEFORE_SLOT)).toBe(false)
+    expect(canTransitionTo(makeAppointment({ status: 'CONFIRMED' }), 'COMPLETED', BEFORE_SLOT)).toBe(false)
   })
 
   it('allows CONFIRMED → NO_SHOW when the appointment slot has started', () => {
-    expect(canTransitionTo(makeAppointment('CONFIRMED'), 'NO_SHOW', AFTER_SLOT)).toBe(true)
+    expect(canTransitionTo(makeAppointment({ status: 'CONFIRMED' }), 'NO_SHOW', AFTER_SLOT)).toBe(true)
   })
 
   it('rejects CONFIRMED → NO_SHOW when the appointment slot is in the future', () => {
-    expect(canTransitionTo(makeAppointment('CONFIRMED'), 'NO_SHOW', BEFORE_SLOT)).toBe(false)
+    expect(canTransitionTo(makeAppointment({ status: 'CONFIRMED' }), 'NO_SHOW', BEFORE_SLOT)).toBe(false)
   })
 
   it('allows transition exactly at the slot start time', () => {
     const atSlot = new Date('2026-05-26T10:00:00')
-    expect(canTransitionTo(makeAppointment('CONFIRMED'), 'COMPLETED', atSlot)).toBe(true)
+    expect(canTransitionTo(makeAppointment({ status: 'CONFIRMED' }), 'COMPLETED', atSlot)).toBe(true)
   })
 })
 
@@ -165,30 +121,30 @@ describe('canTransitionTo — time guard for COMPLETED and NO_SHOW', () => {
 
 describe('getAvailableTransitions', () => {
   it('returns CONFIRMED and CANCELED for a PENDING appointment', () => {
-    const result = getAvailableTransitions(makeAppointment('PENDING'), { now: AFTER_SLOT })
+    const result = getAvailableTransitions(makeAppointment({ status: 'PENDING' }), { now: AFTER_SLOT })
     expect(result).toEqual(expect.arrayContaining(['CONFIRMED', 'CANCELED']))
     expect(result).toHaveLength(2)
   })
 
   it('returns COMPLETED, NO_SHOW, and CANCELED for a CONFIRMED past appointment', () => {
-    const result = getAvailableTransitions(makeAppointment('CONFIRMED'), { now: AFTER_SLOT })
+    const result = getAvailableTransitions(makeAppointment({ status: 'CONFIRMED' }), { now: AFTER_SLOT })
     expect(result).toEqual(expect.arrayContaining(['COMPLETED', 'NO_SHOW', 'CANCELED']))
     expect(result).toHaveLength(3)
   })
 
   it('returns only CANCELED for a CONFIRMED future appointment', () => {
-    const result = getAvailableTransitions(makeAppointment('CONFIRMED'), { now: BEFORE_SLOT })
+    const result = getAvailableTransitions(makeAppointment({ status: 'CONFIRMED' }), { now: BEFORE_SLOT })
     expect(result).toEqual(['CANCELED'])
   })
 
   it('returns an empty array for any terminal status', () => {
-    expect(getAvailableTransitions(makeAppointment('COMPLETED'), { now: AFTER_SLOT })).toEqual([])
-    expect(getAvailableTransitions(makeAppointment('NO_SHOW'),   { now: AFTER_SLOT })).toEqual([])
-    expect(getAvailableTransitions(makeAppointment('CANCELED'),  { now: AFTER_SLOT })).toEqual([])
+    expect(getAvailableTransitions(makeAppointment({ status: 'COMPLETED' }), { now: AFTER_SLOT })).toEqual([])
+    expect(getAvailableTransitions(makeAppointment({ status: 'NO_SHOW' }),   { now: AFTER_SLOT })).toEqual([])
+    expect(getAvailableTransitions(makeAppointment({ status: 'CANCELED' }),  { now: AFTER_SLOT })).toEqual([])
   })
 
   it('filters results by roleAllowedTargets', () => {
-    const result = getAvailableTransitions(makeAppointment('PENDING'), {
+    const result = getAvailableTransitions(makeAppointment({ status: 'PENDING' }), {
       now: AFTER_SLOT,
       roleAllowedTargets: ['CONFIRMED'],
     })
@@ -196,7 +152,7 @@ describe('getAvailableTransitions', () => {
   })
 
   it('returns empty when roleAllowedTargets excludes all valid transitions', () => {
-    const result = getAvailableTransitions(makeAppointment('PENDING'), {
+    const result = getAvailableTransitions(makeAppointment({ status: 'PENDING' }), {
       now: AFTER_SLOT,
       roleAllowedTargets: ['COMPLETED'],
     })

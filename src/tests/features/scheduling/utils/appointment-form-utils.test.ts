@@ -1,44 +1,10 @@
-import type { Availability, AvailabilityException } from '@/features/scheduling/types/scheduling.types'
-
 import {
   centsToReais,
   getInitials,
   isDateAvailable,
   reaisToCents,
 } from '@/features/scheduling/utils/appointment-form-utils'
-
-// ── Fixtures ──────────────────────────────────────────────────────────────────
-
-function makeAvailability(overrides: Partial<Availability> = {}): Availability {
-  return {
-    id: 'av1',
-    profileId: 'p1',
-    clinicId: 'c1',
-    dayOfWeek: 1,
-    startTime: '08:00',
-    endTime: '17:00',
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...overrides,
-  }
-}
-
-function makeException(overrides: Partial<AvailabilityException> = {}): AvailabilityException {
-  return {
-    id: 'ex1',
-    profileId: 'p1',
-    clinicId: 'c1',
-    exceptionDate: '2026-05-25',
-    isDayOff: true,
-    startTime: null,
-    endTime: null,
-    reason: null,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...overrides,
-  }
-}
+import { makeAvailability, makeAvailabilityException } from '@/test/factories/availability.factory'
 
 // ── reaisToCents ──────────────────────────────────────────────────────────────
 
@@ -78,12 +44,12 @@ describe('isDateAvailable', () => {
   })
 
   it('returns false when the date matches a day-off exception', () => {
-    const ex = makeException({ exceptionDate: '2026-05-25', isDayOff: true })
+    const ex = makeAvailabilityException({ exceptionDate: '2026-05-25', isDayOff: true })
     expect(isDateAvailable('2026-05-25', [], [ex])).toBe(false)
   })
 
   it('returns true when the date matches a non-day-off exception (special working day)', () => {
-    const ex = makeException({ exceptionDate: '2026-05-25', isDayOff: false })
+    const ex = makeAvailabilityException({ exceptionDate: '2026-05-25', isDayOff: false })
     expect(isDateAvailable('2026-05-25', [], [ex])).toBe(true)
   })
 
@@ -122,7 +88,7 @@ describe('isDateAvailable', () => {
   it('exception takes priority over availability', () => {
     // Day-off exception beats an active availability slot for the same day
     const av = makeAvailability({ dayOfWeek: 1, isActive: true })
-    const ex = makeException({ exceptionDate: '2026-05-25', isDayOff: true })
+    const ex = makeAvailabilityException({ exceptionDate: '2026-05-25', isDayOff: true })
     expect(isDateAvailable('2026-05-25', [av], [ex])).toBe(false)
   })
 })

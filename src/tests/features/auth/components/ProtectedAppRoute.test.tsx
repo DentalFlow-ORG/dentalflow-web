@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { renderWithProviders, screen, waitFor } from '@/test/render-utils'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
 import type { AuthUser } from '@/features/auth/types'
-import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
+import { makeOwnerUser, makeDentistUser, makeAdminUser } from '@/test/factories/user.factory'
+import { makeAccessGrantedBillingStatus, makeAccessDeniedBillingStatus } from '@/test/factories/billing.factory'
 
 // Mutable state read by mock factories — prefix "mock" enables Vitest hoisting
 let mockPathname = '/app'
@@ -64,37 +65,11 @@ vi.mock('@/components/common/LoadingCard', () => ({
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
-const ownerUser: AuthUser = {
-  id: 'user-1',
-  clinicId: 'clinic-1',
-  role: 'OWNER',
-  email: 'owner@clinic.com',
-  firstName: 'Pedro',
-  lastName: 'Souza',
-  isProfileComplete: true,
-}
-
-const dentistUser: AuthUser = { ...ownerUser, role: 'DENTIST' }
-const adminUser: AuthUser = { ...ownerUser, role: 'ADMIN' }
-
-const accessGranted: CurrentBillingStatus = {
-  hasSubscription: true,
-  status: 'active',
-  planKey: 'professional',
-  planName: 'Professional',
-  billingInterval: 'monthly',
-  stripeCustomerId: 'cus_123',
-  stripeSubscriptionId: 'sub_123',
-  trialEndsAt: null,
-  currentPeriodEnd: null,
-  cancelAtPeriodEnd: false,
-  accessAllowed: true,
-  requiresPlanSelection: false,
-  requiresPayment: false,
-  message: '',
-}
-
-const accessDenied: CurrentBillingStatus = { ...accessGranted, accessAllowed: false }
+const ownerUser = makeOwnerUser()
+const dentistUser = makeDentistUser()
+const adminUser = makeAdminUser()
+const accessGranted = makeAccessGrantedBillingStatus()
+const accessDenied = makeAccessDeniedBillingStatus()
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
@@ -133,7 +108,7 @@ describe('ProtectedAppRoute', () => {
   })
 
   it('redirects to /acessar/completar-perfil when profile is incomplete', () => {
-    mockUser = { ...ownerUser, isProfileComplete: false }
+    mockUser = makeOwnerUser({ isProfileComplete: false })
     renderWithProviders(
       <ProtectedAppRoute allowedRoles={['OWNER']}>
         <div>Protected Content</div>
@@ -146,7 +121,6 @@ describe('ProtectedAppRoute', () => {
   })
 
   it('redirects an OWNER to /app when the route requires DENTIST role', () => {
-    // ownerUser.role = 'OWNER', allowedRoles only allows 'DENTIST'
     // getDeniedRedirectPath('OWNER') → '/app'
     renderWithProviders(
       <ProtectedAppRoute allowedRoles={['DENTIST']}>
