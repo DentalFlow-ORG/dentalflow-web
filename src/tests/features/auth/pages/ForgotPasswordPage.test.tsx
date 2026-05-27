@@ -1,13 +1,10 @@
-import type { ReactNode } from 'react'
 import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: ReactNode; to: string }) => (
-    <a href={String(to)}>{children}</a>
-  ),
-  useNavigate: () => vi.fn(),
-}))
+vi.mock('@tanstack/react-router', async () => {
+  const m = await import('@/test/mocks/router')
+  return m.createRouterMock()
+})
 
 vi.mock('@/features/theme/useForceLightTheme', () => ({
   useForceLightTheme: () => undefined,

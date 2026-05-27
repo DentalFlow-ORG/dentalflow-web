@@ -1,14 +1,11 @@
-import type { ReactNode } from 'react'
-
 import { render, screen } from '@/test/render-utils'
 
 import { LegalPageShell } from '@/features/legal/components/LegalPageShell'
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: ReactNode; to: string }) => (
-    <a href={String(to)}>{children}</a>
-  ),
-}))
+vi.mock('@tanstack/react-router', async () => {
+  const m = await import('@/test/mocks/router')
+  return m.createRouterMock()
+})
 
 vi.mock('@/components/layout/SiteFooter', () => ({
   SiteFooter: () => <footer>Mock footer</footer>,

@@ -4,9 +4,9 @@ import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
 import type { AuthUser } from '@/features/auth/types'
 import { makeOwnerUser, makeDentistUser, makeAdminUser } from '@/test/factories/user.factory'
 import { makeAccessGrantedBillingStatus, makeAccessDeniedBillingStatus } from '@/test/factories/billing.factory'
+import { setMockPathname } from '@/test/mocks/router'
 
 // Mutable state read by mock factories — prefix "mock" enables Vitest hoisting
-let mockPathname = '/app'
 let mockIsBootstrapping = false
 let mockIsAuthenticated = true
 let mockUser: AuthUser | null = null
@@ -14,16 +14,10 @@ let mockUser: AuthUser | null = null
 const mockGetCachedBillingStatus = vi.fn()
 const mockGetCurrentBillingStatus = vi.fn()
 
-vi.mock('@tanstack/react-router', () => ({
-  Navigate: ({ to }: { to: string }) => (
-    <div data-testid="navigate" data-to={String(to)} />
-  ),
-  useRouterState: ({
-    select,
-  }: {
-    select: (s: { location: { pathname: string } }) => string
-  }) => select({ location: { pathname: mockPathname } }),
-}))
+vi.mock('@tanstack/react-router', async () => {
+  const m = await import('@/test/mocks/router')
+  return m.createRouterMock()
+})
 
 vi.mock('@/features/auth/hooks/useAuth', () => ({
   useAuth: () => ({
@@ -76,7 +70,7 @@ const accessDenied = makeAccessDeniedBillingStatus()
 describe('ProtectedAppRoute', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockPathname = '/app'
+    setMockPathname('/app')
     mockIsBootstrapping = false
     mockIsAuthenticated = true
     mockUser = ownerUser
@@ -178,7 +172,7 @@ describe('ProtectedAppRoute', () => {
   })
 
   it('redirects to /app/assinatura when billing access is denied on a non-billing route', async () => {
-    mockPathname = '/app/pacientes'
+    setMockPathname('/app/pacientes')
     mockGetCurrentBillingStatus.mockResolvedValue(accessDenied)
     renderWithProviders(
       <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
@@ -191,7 +185,7 @@ describe('ProtectedAppRoute', () => {
   })
 
   it('renders SubscriptionOnlyShell with children when billing is denied on the subscription route', async () => {
-    mockPathname = '/app/assinatura'
+    setMockPathname('/app/assinatura')
     mockGetCurrentBillingStatus.mockResolvedValue(accessDenied)
     renderWithProviders(
       <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST', 'ASSISTANT']}>

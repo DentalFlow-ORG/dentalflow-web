@@ -9,11 +9,10 @@ let mockIsBootstrapping = false
 let mockIsAuthenticated = true
 let mockUser: AuthUser | null = null
 
-vi.mock('@tanstack/react-router', () => ({
-  Navigate: ({ to }: { to: string }) => (
-    <div data-testid="navigate" data-to={String(to)} />
-  ),
-}))
+vi.mock('@tanstack/react-router', async () => {
+  const m = await import('@/test/mocks/router')
+  return m.createRouterMock()
+})
 
 vi.mock('@/features/auth/hooks/useAuth', () => ({
   useAuth: () => ({

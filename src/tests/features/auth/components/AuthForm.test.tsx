@@ -1,21 +1,18 @@
-import type { ReactNode } from 'react'
 import { fireEvent } from '@testing-library/react'
 import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
 import { AuthForm } from '@/features/auth/components/AuthForm'
+import { mockNavigate } from '@/test/mocks/router'
 
 let mockApiUrl = 'http://localhost:3000'
 
 const mockLogin = vi.fn()
 const mockRegister = vi.fn()
 const mockShowAlert = vi.fn()
-const mockNavigate = vi.fn()
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: ReactNode; to: string }) => (
-    <a href={String(to)}>{children}</a>
-  ),
-  useNavigate: () => mockNavigate,
-}))
+vi.mock('@tanstack/react-router', async () => {
+  const m = await import('@/test/mocks/router')
+  return m.createRouterMock()
+})
 
 vi.mock('@/features/auth/hooks/useAuth', () => ({
   useAuth: () => ({

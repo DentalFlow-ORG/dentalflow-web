@@ -4,11 +4,10 @@ import { render, screen, userEvent, within } from '@/test/render-utils'
 
 import { PlansPage } from '@/features/marketing/pages/PlansPage'
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: ReactNode; to: string }) => (
-    <a href={String(to)}>{children}</a>
-  ),
-}))
+vi.mock('@tanstack/react-router', async () => {
+  const m = await import('@/test/mocks/router')
+  return m.createRouterMock()
+})
 
 vi.mock('@/features/marketing/hooks/useRevealOnScroll', () => ({
   useRevealOnScroll: () => ({ ref: { current: null }, isVisible: true }),

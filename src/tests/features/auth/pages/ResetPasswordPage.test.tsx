@@ -1,14 +1,11 @@
-import type { ReactNode } from 'react'
 import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
+import { setMockSearch } from '@/test/mocks/router'
 
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({ children, to }: { children: ReactNode; to: string }) => (
-    <a href={String(to)}>{children}</a>
-  ),
-  useNavigate: () => vi.fn(),
-  useSearch: () => mockUseSearch(),
-}))
+vi.mock('@tanstack/react-router', async () => {
+  const m = await import('@/test/mocks/router')
+  return m.createRouterMock()
+})
 
 vi.mock('@/features/theme/useForceLightTheme', () => ({
   useForceLightTheme: () => undefined,
@@ -25,13 +22,11 @@ vi.mock('@/features/auth/services/auth.service', () => ({
   getGoogleOAuthStartUrl: () => 'http://localhost:3000/auth/google',
 }))
 
-const mockUseSearch = vi.fn()
-
 describe('ResetPasswordPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockResetPassword.mockResolvedValue({ message: 'ok' })
-    mockUseSearch.mockReturnValue({ token: 'valid-token-123' })
+    setMockSearch({ token: 'valid-token-123' })
   })
 
   it('renders heading and password input when token is present', () => {
@@ -41,7 +36,7 @@ describe('ResetPasswordPage', () => {
   })
 
   it('shows invalid link message when token is missing', () => {
-    mockUseSearch.mockReturnValue({ token: undefined })
+    setMockSearch({ token: undefined })
     renderWithProviders(<ResetPasswordPage />)
     expect(screen.getByText(/Link inválido ou expirado/i)).toBeInTheDocument()
     expect(screen.queryByLabelText('Nova senha')).not.toBeInTheDocument()
