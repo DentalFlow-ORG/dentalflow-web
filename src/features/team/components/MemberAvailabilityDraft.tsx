@@ -12,16 +12,7 @@ import {
 } from '@/components/ui/select'
 import { formatTimeInputValue } from '@/lib/date-time-formatters'
 import type { CreateAvailabilityDto } from '@/features/scheduling/types/scheduling.types'
-
-const DAY_OPTIONS = [
-  { value: 1, label: 'Segunda-feira' },
-  { value: 2, label: 'Terca-feira' },
-  { value: 3, label: 'Quarta-feira' },
-  { value: 4, label: 'Quinta-feira' },
-  { value: 5, label: 'Sexta-feira' },
-  { value: 6, label: 'Sabado' },
-  { value: 0, label: 'Domingo' },
-]
+import { DAY_OPTIONS } from '@/features/scheduling/constants/availability-display'
 
 type MemberAvailabilityDraftProps = {
   value: CreateAvailabilityDto[]

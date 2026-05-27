@@ -21,17 +21,8 @@ import type {
   UpdateAppointmentPaymentDto,
 } from '../../types/scheduling.types'
 import { centsToReais, reaisToCents } from '../../utils/appointment-form-utils'
+import { PAYMENT_METHOD_LABELS } from '../../constants/appointment-display'
 import { AppointmentPaymentBadge } from './AppointmentPaymentBadge'
-
-const PAYMENT_METHOD_LABELS: Record<AppointmentPaymentMethod, string> = {
-  CASH: 'Dinheiro',
-  CREDIT_CARD: 'Cartão de crédito',
-  DEBIT_CARD: 'Cartão de débito',
-  PIX: 'PIX',
-  BANK_TRANSFER: 'Transferência bancária',
-  HEALTH_INSURANCE: 'Plano de saúde',
-  OTHER: 'Outro',
-}
 
 type DrawerSectionProps = { title: string; children: React.ReactNode }
 
