@@ -56,7 +56,7 @@ type ServiceFormState = {
   isActive: boolean
 }
 
-function emptyForm(): ServiceFormState {
+export function emptyForm(): ServiceFormState {
   return {
     name: '',
     description: '',
@@ -114,7 +114,7 @@ function validateForm(form: ServiceFormState): string | null {
   return null
 }
 
-function toCreateDto(form: ServiceFormState): CreateServiceDto {
+export function toCreateDto(form: ServiceFormState): CreateServiceDto {
   return {
     name: form.name.trim(),
     ...(form.description.trim() ? { description: form.description.trim() } : {}),
@@ -130,7 +130,7 @@ function toCreateDto(form: ServiceFormState): CreateServiceDto {
   }
 }
 
-function toUpdateDto(form: ServiceFormState): UpdateServiceDto {
+export function toUpdateDto(form: ServiceFormState): UpdateServiceDto {
   return {
     name: form.name.trim(),
     description: form.description.trim() || null,
