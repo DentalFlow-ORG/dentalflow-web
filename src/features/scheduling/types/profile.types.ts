@@ -25,6 +25,7 @@ export type ProfileService = {
   isPriceDisplayed: boolean
   isActive: boolean
   displayOrder: number
+  estimatedDirectCostCents: number | null
   createdAt: string
   updatedAt: string
 }

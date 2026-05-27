@@ -1,5 +1,42 @@
 export type MemberRole = 'DENTIST' | 'ASSISTANT'
 
+export type ServiceItem = {
+  id: string
+  profileId: string
+  clinicId: string
+  name: string
+  description: string | null
+  priceFrom: number | null
+  priceTo: number | null
+  durationMinutes: number | null
+  isPriceDisplayed: boolean
+  isActive: boolean
+  displayOrder: number
+  estimatedDirectCostCents: number | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type CreateServiceDto = {
+  name: string
+  description?: string
+  priceFrom?: number
+  priceTo?: number
+  durationMinutes?: number
+  isActive?: boolean
+  estimatedDirectCostCents?: number
+}
+
+export type UpdateServiceDto = {
+  name?: string
+  description?: string
+  priceFrom?: number
+  priceTo?: number
+  durationMinutes?: number
+  isActive?: boolean
+  estimatedDirectCostCents?: number
+}
+
 export type Specialty = {
   id: string
   name: string
@@ -91,4 +128,5 @@ export type ProfileDetail = {
   phone: string | null
   isPublished: boolean
   profileSpecialties: ProfileSpecialtyItem[]
+  services: ServiceItem[]
 }
