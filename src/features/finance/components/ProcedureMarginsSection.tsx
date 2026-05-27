@@ -76,8 +76,28 @@ function ServiceRow({ item }: { item: ProcedureMarginItem }) {
         </span>
         <span>
           Custo direto:{' '}
-          <em className="not-italic text-muted-foreground/60">Não configurado</em>
+          {item.estimatedDirectCostCents != null ? (
+            <strong className="text-foreground">{centsToDisplay(item.estimatedDirectCostCents)}</strong>
+          ) : (
+            <em className="not-italic text-muted-foreground/60">Não configurado</em>
+          )}
         </span>
+        {item.estimatedProfitCents != null && (
+          <span>
+            Lucro estimado:{' '}
+            <strong className={item.estimatedProfitCents >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}>
+              {centsToDisplay(item.estimatedProfitCents)}
+            </strong>
+          </span>
+        )}
+        {item.marginPercent != null && (
+          <span>
+            Margem (est.):{' '}
+            <strong className={item.marginPercent >= 30 ? 'text-emerald-700 dark:text-emerald-300' : item.marginPercent >= 15 ? 'text-amber-700 dark:text-amber-300' : 'text-red-700 dark:text-red-300'}>
+              {item.marginPercent.toFixed(2).replace('.', ',')}%
+            </strong>
+          </span>
+        )}
       </div>
     </div>
   )
@@ -185,10 +205,18 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
       {data && (
         <div className="space-y-6">
           {/* Limitation banner */}
-          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-400">
-            <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>{data.limitation}</span>
-          </div>
+          {data.limitation && !data.costDataAvailable && (
+            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-400">
+              <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>{data.limitation}</span>
+            </div>
+          )}
+          {data.costDataAvailable && !data.limitation && (
+            <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3 text-sm text-blue-700 dark:border-blue-800/50 dark:bg-blue-950/20 dark:text-blue-400">
+              <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Custo direto configurado. Margens calculadas com base no custo de materiais por procedimento, sem incluir mão de obra.</span>
+            </div>
+          )}
 
           {/* Summary metrics */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -207,6 +235,27 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
               value={centsToDisplay(data.totals.grossRevenueCents)}
               tone="success"
             />
+            {data.costDataAvailable && data.totals.estimatedDirectCostCents != null && (
+              <MetricCard
+                label="Custo total est."
+                value={centsToDisplay(data.totals.estimatedDirectCostCents)}
+                tone="warning"
+              />
+            )}
+            {data.costDataAvailable && data.totals.estimatedProfitCents != null && (
+              <MetricCard
+                label="Lucro estimado"
+                value={centsToDisplay(data.totals.estimatedProfitCents)}
+                tone={data.totals.estimatedProfitCents >= 0 ? 'success' : 'danger'}
+              />
+            )}
+            {data.costDataAvailable && data.totals.marginPercent != null && (
+              <MetricCard
+                label="Margem (est.)"
+                value={`${data.totals.marginPercent.toFixed(2).replace('.', ',')}%`}
+                tone={data.totals.marginPercent >= 30 ? 'success' : data.totals.marginPercent >= 15 ? 'warning' : 'danger'}
+              />
+            )}
           </div>
 
           {/* Service list */}

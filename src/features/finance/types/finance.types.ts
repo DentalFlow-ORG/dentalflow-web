@@ -279,9 +279,9 @@ export type ProcedureMarginItem = {
   completedAppointments: number
   canceledOrNoShowCount: number
   grossRevenueCents: number
-  estimatedDirectCostCents: null
-  estimatedProfitCents: null
-  marginPercent: null
+  estimatedDirectCostCents: number | null
+  estimatedProfitCents: number | null
+  marginPercent: number | null
   avgRevenueCents: number
   status: ProcedureMarginStatus
 }
@@ -293,10 +293,10 @@ export type ProcedureMarginsResponse = {
     totalAppointments: number
     completedAppointments: number
     grossRevenueCents: number
-    estimatedDirectCostCents: null
-    estimatedProfitCents: null
-    marginPercent: null
+    estimatedDirectCostCents: number | null
+    estimatedProfitCents: number | null
+    marginPercent: number | null
   }
-  costDataAvailable: false
-  limitation: string
+  costDataAvailable: boolean
+  limitation: string | null
 }
