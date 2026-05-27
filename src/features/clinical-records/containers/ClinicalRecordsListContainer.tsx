@@ -17,17 +17,8 @@ import { useListFilter } from '@/hooks/useListFilter'
 
 import { ClinicalRecordStatusBadge } from '../components/ClinicalRecordStatusBadge'
 import { useClinicalRecords } from '../hooks/useClinicalRecords'
-import type { ClinicalRecord, ClinicalRecordStatus } from '../types/clinical-record.types'
-
-type StatusFilter = ClinicalRecordStatus | 'TODOS'
-
-const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: 'TODOS', label: 'Todos' },
-  { value: 'DRAFT', label: 'Rascunhos' },
-  { value: 'COMPLETED', label: 'Concluídos' },
-  { value: 'LOCKED', label: 'Bloqueados' },
-  { value: 'CANCELED', label: 'Cancelados' },
-]
+import type { ClinicalRecord } from '../types/clinical-record.types'
+import { type StatusFilter, STATUS_FILTERS } from '../constants/clinical-record-filters'
 
 export function ClinicalRecordsListContainer() {
   const { user } = useAuth()

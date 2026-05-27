@@ -17,15 +17,9 @@ import { WeekCalendar } from '../components/calendar/WeekCalendar'
 import { ViewToggle } from '../components/shared/ViewToggle'
 import {
   DENTIST_ALLOWED_TRANSITIONS,
-  type ScheduleTab,
   useSchedulePage,
 } from '../hooks/useSchedulePage'
-
-const TABS: Array<{ id: ScheduleTab; label: string }> = [
-  { id: 'agenda', label: 'Agenda' },
-  { id: 'disponibilidade', label: 'Disponibilidade' },
-  { id: 'excecoes', label: 'Exceções' },
-]
+import { TABS } from '../constants/schedule-tabs'
 
 export function SchedulePageContainer() {
   const {
