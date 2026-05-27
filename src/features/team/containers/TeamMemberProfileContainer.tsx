@@ -136,6 +136,7 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
               profileId={profileId}
               services={services}
               onServicesChange={setServices}
+              readOnly={user?.role !== 'OWNER'}
             />
           </PanelCard>
         </>

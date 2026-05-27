@@ -29,12 +29,12 @@ export type CreateServiceDto = {
 
 export type UpdateServiceDto = {
   name?: string
-  description?: string
-  priceFrom?: number
-  priceTo?: number
-  durationMinutes?: number
+  description?: string | null
+  priceFrom?: number | null
+  priceTo?: number | null
+  durationMinutes?: number | null
   isActive?: boolean
-  estimatedDirectCostCents?: number
+  estimatedDirectCostCents?: number | null
 }
 
 export type Specialty = {

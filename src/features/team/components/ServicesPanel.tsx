@@ -19,6 +19,7 @@ type ServicesPanelProps = {
   profileId: string
   services: ServiceItem[]
   onServicesChange: (services: ServiceItem[]) => void
+  readOnly?: boolean
 }
 
 // ── Money conversion helpers ──────────────────────────────────────────────────
@@ -132,22 +133,22 @@ function toCreateDto(form: ServiceFormState): CreateServiceDto {
 function toUpdateDto(form: ServiceFormState): UpdateServiceDto {
   return {
     name: form.name.trim(),
-    ...(form.description.trim() ? { description: form.description.trim() } : {}),
-    ...(form.priceFrom.trim() ? { priceFrom: inputToReais(form.priceFrom) } : {}),
-    ...(form.priceTo.trim() ? { priceTo: inputToReais(form.priceTo) } : {}),
-    ...(form.durationMinutes.trim()
-      ? { durationMinutes: parseInt(form.durationMinutes, 10) }
-      : {}),
+    description: form.description.trim() || null,
+    priceFrom: form.priceFrom.trim() ? inputToReais(form.priceFrom) : null,
+    priceTo: form.priceTo.trim() ? inputToReais(form.priceTo) : null,
+    durationMinutes: form.durationMinutes.trim()
+      ? parseInt(form.durationMinutes, 10)
+      : null,
     isActive: form.isActive,
-    ...(form.estimatedDirectCostCents.trim()
-      ? { estimatedDirectCostCents: inputToCents(form.estimatedDirectCostCents) }
-      : {}),
+    estimatedDirectCostCents: form.estimatedDirectCostCents.trim()
+      ? inputToCents(form.estimatedDirectCostCents)
+      : null,
   }
 }
 
 // ── Main panel ────────────────────────────────────────────────────────────────
 
-export function ServicesPanel({ profileId, services, onServicesChange }: ServicesPanelProps) {
+export function ServicesPanel({ profileId, services, onServicesChange, readOnly = false }: ServicesPanelProps) {
   const { showAlert } = useGlobalAlerts()
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -158,7 +159,7 @@ export function ServicesPanel({ profileId, services, onServicesChange }: Service
 
   function classifyError(err: unknown, fallback: string): string {
     if (err instanceof ApiError && err.status === 403) {
-      return 'Seu plano não permite gerenciar serviços. Faça upgrade para continuar.'
+      return 'Você não tem permissão para gerenciar serviços.'
     }
     if (err instanceof ApiError && err.status === 409) {
       return 'Este serviço possui agendamentos ou registros vinculados e não pode ser removido.'
@@ -167,8 +168,7 @@ export function ServicesPanel({ profileId, services, onServicesChange }: Service
   }
 
   function setErrorState(err: unknown, fallback: string) {
-    const isBilling = err instanceof ApiError && err.status === 403
-    setErrorIsWarning(isBilling)
+    setErrorIsWarning(false)
     setError(classifyError(err, fallback))
   }
 
@@ -244,7 +244,7 @@ export function ServicesPanel({ profileId, services, onServicesChange }: Service
             Gerencie os procedimentos oferecidos e configure o custo direto estimado para análise de margem.
           </p>
         </div>
-        {!isAdding && (
+        {!readOnly && !isAdding && (
           <Button
             type="button"
             size="sm"
@@ -267,8 +267,15 @@ export function ServicesPanel({ profileId, services, onServicesChange }: Service
         <InlineFeedback tone={errorIsWarning ? 'warning' : 'error'}>{error}</InlineFeedback>
       )}
 
+      {/* Read-only notice */}
+      {readOnly && services.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Visualização apenas — gerenciamento pelo gestor da clínica.
+        </p>
+      )}
+
       {/* Add form */}
-      {isAdding && (
+      {!readOnly && isAdding && (
         <ServiceForm
           isLoading={loadingId === 'new'}
           onSubmit={handleCreate}
@@ -293,7 +300,7 @@ export function ServicesPanel({ profileId, services, onServicesChange }: Service
       {sortedServices.length > 0 && (
         <div className="space-y-2">
           {sortedServices.map((svc) =>
-            editingId === svc.id ? (
+            !readOnly && editingId === svc.id ? (
               <ServiceForm
                 key={svc.id}
                 initial={svc}
@@ -308,6 +315,7 @@ export function ServicesPanel({ profileId, services, onServicesChange }: Service
               <ServiceRow
                 key={svc.id}
                 service={svc}
+                readOnly={readOnly}
                 isLoading={loadingId === svc.id}
                 onEditStart={() => {
                   setEditingId(svc.id)
@@ -342,12 +350,13 @@ export function ServicesPanel({ profileId, services, onServicesChange }: Service
 
 type ServiceRowProps = {
   service: ServiceItem
+  readOnly: boolean
   isLoading: boolean
   onEditStart: () => void
   onDeleteStart: () => void
 }
 
-function ServiceRow({ service, isLoading, onEditStart, onDeleteStart }: ServiceRowProps) {
+function ServiceRow({ service, readOnly, isLoading, onEditStart, onDeleteStart }: ServiceRowProps) {
   const priceDisplay = (() => {
     if (service.priceFrom != null && service.priceTo != null) {
       return `${formatCurrencyBRL(service.priceFrom)} – ${formatCurrencyBRL(service.priceTo)}`
@@ -380,36 +389,40 @@ function ServiceRow({ service, isLoading, onEditStart, onDeleteStart }: ServiceR
         <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
           {priceDisplay && <span>{priceDisplay}</span>}
           {service.durationMinutes != null && <span>{service.durationMinutes} min</span>}
-          <span>
-            Custo direto:{' '}
-            {service.estimatedDirectCostCents != null ? (
-              <span className="font-medium text-foreground">
-                {formatCurrencyBRL(service.estimatedDirectCostCents / 100)}
-              </span>
-            ) : (
-              <em className="not-italic text-muted-foreground/60">Não configurado</em>
-            )}
-          </span>
+          {!readOnly && (
+            <span>
+              Custo direto:{' '}
+              {service.estimatedDirectCostCents != null ? (
+                <span className="font-medium text-foreground">
+                  {formatCurrencyBRL(service.estimatedDirectCostCents / 100)}
+                </span>
+              ) : (
+                <em className="not-italic text-muted-foreground/60">Não configurado</em>
+              )}
+            </span>
+          )}
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center justify-end gap-1">
-        <ActionIconButton
-          onClick={onEditStart}
-          disabled={isLoading}
-          aria-label="Editar serviço"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </ActionIconButton>
-        <ActionIconButton
-          tone="danger"
-          onClick={onDeleteStart}
-          disabled={isLoading}
-          aria-label="Remover serviço"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </ActionIconButton>
-      </div>
+      {!readOnly && (
+        <div className="flex shrink-0 items-center justify-end gap-1">
+          <ActionIconButton
+            onClick={onEditStart}
+            disabled={isLoading}
+            aria-label="Editar serviço"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </ActionIconButton>
+          <ActionIconButton
+            tone="danger"
+            onClick={onDeleteStart}
+            disabled={isLoading}
+            aria-label="Remover serviço"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </ActionIconButton>
+        </div>
+      )}
     </div>
   )
 }

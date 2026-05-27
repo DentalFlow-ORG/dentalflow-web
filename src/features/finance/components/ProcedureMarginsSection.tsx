@@ -205,7 +205,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
       {data && (
         <div className="space-y-6">
           {/* Limitation banner */}
-          {data.limitation && !data.costDataAvailable && (
+          {data.items.length > 0 && data.limitation && !data.costDataAvailable && (
             <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-400">
               <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>{data.limitation}</span>
