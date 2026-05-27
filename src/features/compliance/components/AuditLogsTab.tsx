@@ -19,49 +19,8 @@ import type {
   AuditLogFilters,
   PaginatedResponse,
 } from '../types/compliance.types'
-
-// Actions most relevant for dashboard display — full list kept in enum
-const COMMON_ACTIONS = [
-  'USER_CREATED',
-  'USER_LOGIN_SUCCESS',
-  'USER_LOGIN_FAILURE',
-  'USER_LOGOUT',
-  'USER_REFRESH_TOKEN',
-  'USER_REFRESH_TOKEN_FAILED',
-  'TERMS_ACCEPTED',
-  'PRIVACY_REQUEST_CREATED',
-  'PRIVACY_REQUEST_STATUS_CHANGED',
-  'COOKIE_CONSENT_RECORDED',
-  'USER_UPDATED',
-  'USER_DEACTIVATED',
-  'USER_ROLE_CHANGED',
-  'CLINICAL_RECORD_ACCESSED',
-  'GOOGLE_CALENDAR_CONNECTED',
-  'GOOGLE_CALENDAR_DISCONNECTED',
-  'SUBSCRIPTION_CREATED',
-  'SUBSCRIPTION_CANCELED',
-] as const
-
-const INITIAL_FILTERS: AuditLogFilters = {
-  action: '',
-  actorUserId: '',
-  clinicId: '',
-  dateFrom: '',
-  dateTo: '',
-  page: 1,
-  limit: 20,
-}
-
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  }).format(new Date(iso))
-}
+import { COMMON_ACTIONS, INITIAL_FILTERS } from '../constants/audit-log-config'
+import { formatDatetimeWithSeconds as formatDate } from '../utils/format-date'
 
 function renderMetadata(metadata: Record<string, unknown> | null): string {
   if (!metadata) return '—'
@@ -119,7 +78,7 @@ export function AuditLogsTab() {
           onChange={(e) => setFilter('dateFrom', e.target.value)}
           title="De"
           aria-label="Data inicial"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 dark:[color-scheme:dark]"
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 dark:scheme-dark"
         />
         <input
           type="date"
@@ -127,7 +86,7 @@ export function AuditLogsTab() {
           onChange={(e) => setFilter('dateTo', e.target.value)}
           title="Até"
           aria-label="Data final"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 dark:[color-scheme:dark]"
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 dark:scheme-dark"
         />
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={() => setFilters(INITIAL_FILTERS)}>
