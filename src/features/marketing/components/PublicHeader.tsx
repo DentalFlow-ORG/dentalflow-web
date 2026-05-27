@@ -177,7 +177,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                 <div
                   className={cn(
                     'absolute left-0 top-full z-50 mt-1.5 rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-950/10',
-                    group.key === 'funcionalidades' ? 'w-[26rem]' : 'w-72',
+                    group.key === 'funcionalidades' ? 'w-104' : 'w-72',
                   )}
                   role="menu"
                 >

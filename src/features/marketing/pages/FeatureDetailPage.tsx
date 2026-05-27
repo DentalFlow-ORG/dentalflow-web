@@ -37,9 +37,9 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
       >
         {/* Background glows */}
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute -left-72 top-1/3 h-[500px] w-[500px] rounded-full bg-blue-600/[0.07] blur-3xl" />
-          <div className="absolute -right-72 bottom-0 h-[450px] w-[450px] rounded-full bg-blue-600/[0.05] blur-3xl" />
-          <div className="absolute left-1/3 top-1/4 h-[380px] w-[380px] rounded-full bg-emerald-500/[0.07] blur-3xl" />
+          <div className="absolute -left-72 top-1/3 h-125 w-125 rounded-full bg-blue-600/[0.07] blur-3xl" />
+          <div className="absolute -right-72 bottom-0 h-112.5 w-112.5 rounded-full bg-blue-600/5 blur-3xl" />
+          <div className="absolute left-1/3 top-1/4 h-95 w-95 rounded-full bg-emerald-500/[0.07] blur-3xl" />
         </div>
 
         <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
@@ -372,8 +372,8 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
           aria-labelledby="feature-cta-heading"
         >
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <div className="absolute left-1/4 top-0 h-[380px] w-[380px] -translate-y-1/2 rounded-full bg-emerald-500/[0.1] blur-3xl" />
-            <div className="absolute right-1/4 bottom-0 h-[380px] w-[380px] translate-y-1/2 rounded-full bg-blue-600/[0.08] blur-3xl" />
+            <div className="absolute left-1/4 top-0 h-95 w-95 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-3xl" />
+            <div className="absolute right-1/4 bottom-0 h-95 w-95 translate-y-1/2 rounded-full bg-blue-600/8 blur-3xl" />
           </div>
           <div
             className={cn(
