@@ -1,15 +1,10 @@
 import type { ReactNode } from 'react'
 import { renderWithProviders, screen, waitFor } from '@/test/render-utils'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
-import type { AuthUser } from '@/features/auth/types'
 import { makeOwnerUser, makeDentistUser, makeAdminUser } from '@/test/factories/user.factory'
 import { makeAccessGrantedBillingStatus, makeAccessDeniedBillingStatus } from '@/test/factories/billing.factory'
 import { setMockPathname } from '@/test/mocks/router'
-
-// Mutable state read by mock factories — prefix "mock" enables Vitest hoisting
-let mockIsBootstrapping = false
-let mockIsAuthenticated = true
-let mockUser: AuthUser | null = null
+import { setMockAuthState, resetAuthMocks } from '@/test/mocks/auth'
 
 const mockGetCachedBillingStatus = vi.fn()
 const mockGetCurrentBillingStatus = vi.fn()
@@ -19,17 +14,10 @@ vi.mock('@tanstack/react-router', async () => {
   return m.createRouterMock()
 })
 
-vi.mock('@/features/auth/hooks/useAuth', () => ({
-  useAuth: () => ({
-    user: mockUser,
-    isAuthenticated: mockIsAuthenticated,
-    isBootstrapping: mockIsBootstrapping,
-    login: vi.fn(),
-    register: vi.fn(),
-    completeProfile: vi.fn(),
-    logout: vi.fn(),
-  }),
-}))
+vi.mock('@/features/auth/hooks/useAuth', async () => {
+  const authMock = await import('@/test/mocks/auth')
+  return authMock.createUseAuthMock()
+})
 
 vi.mock('@/features/billing/services/billing.service', () => ({
   getCurrentBillingStatus: () => mockGetCurrentBillingStatus(),
@@ -71,16 +59,15 @@ describe('ProtectedAppRoute', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     setMockPathname('/app')
-    mockIsBootstrapping = false
-    mockIsAuthenticated = true
-    mockUser = ownerUser
+    resetAuthMocks()
+    setMockAuthState({ isBootstrapping: false, isAuthenticated: true, user: ownerUser })
     // Default: no cached status, billing check never resolves (keeps spinner visible)
     mockGetCachedBillingStatus.mockReturnValue(null)
     mockGetCurrentBillingStatus.mockReturnValue(new Promise(() => {}))
   })
 
   it('shows a loading spinner while auth is bootstrapping', () => {
-    mockIsBootstrapping = true
+    setMockAuthState({ isBootstrapping: true })
     renderWithProviders(
       <ProtectedAppRoute allowedRoles={['OWNER']}>
         <div>Protected Content</div>
@@ -91,8 +78,7 @@ describe('ProtectedAppRoute', () => {
   })
 
   it('redirects to /acessar when the user is not authenticated', () => {
-    mockIsAuthenticated = false
-    mockUser = null
+    setMockAuthState({ isAuthenticated: false, user: null })
     renderWithProviders(
       <ProtectedAppRoute allowedRoles={['OWNER']}>
         <div>Protected Content</div>
@@ -102,7 +88,7 @@ describe('ProtectedAppRoute', () => {
   })
 
   it('redirects to /acessar/completar-perfil when profile is incomplete', () => {
-    mockUser = makeOwnerUser({ isProfileComplete: false })
+    setMockAuthState({ user: makeOwnerUser({ isProfileComplete: false }) })
     renderWithProviders(
       <ProtectedAppRoute allowedRoles={['OWNER']}>
         <div>Protected Content</div>
@@ -126,7 +112,7 @@ describe('ProtectedAppRoute', () => {
 
   it('redirects a DENTIST to /app/inicio when the route requires OWNER role', () => {
     // getDeniedRedirectPath('DENTIST') → '/app/inicio'
-    mockUser = dentistUser
+    setMockAuthState({ user: dentistUser })
     renderWithProviders(
       <ProtectedAppRoute allowedRoles={['OWNER']}>
         <div>Protected Content</div>
@@ -136,7 +122,7 @@ describe('ProtectedAppRoute', () => {
   })
 
   it('renders AppShell for an ADMIN user and skips the billing check entirely', () => {
-    mockUser = adminUser
+    setMockAuthState({ user: adminUser })
     // No allowedRoles → role check is skipped; isAdmin bypasses billing
     renderWithProviders(
       <ProtectedAppRoute>
