@@ -1,35 +1,9 @@
 import { Link } from '@tanstack/react-router'
-import { Building2, DollarSign, Shield, Users } from 'lucide-react'
 
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 
-const NAV_CARDS = [
-  {
-    to: '/app/admin/clinics' as const,
-    icon: Building2,
-    label: 'Clínicas',
-    description: 'Visualize e gerencie as clínicas cadastradas na plataforma.',
-  },
-  {
-    to: '/app/admin/users' as const,
-    icon: Users,
-    label: 'Usuários',
-    description: 'Consulte e administre contas de usuários.',
-  },
-  {
-    to: '/app/admin/financeiro' as const,
-    icon: DollarSign,
-    label: 'Financeiro SaaS',
-    description: 'Receita recorrente, assinaturas ativas e planos.',
-  },
-  {
-    to: '/app/admin/compliance' as const,
-    icon: Shield,
-    label: 'Compliance',
-    description: 'Privacidade, LGPD, auditoria e solicitações de titulares.',
-  },
-]
+import { ADMIN_NAV_CARDS } from '../constants/admin-display'
 
 export function AdminDashboardPageContainer() {
   return (
@@ -41,7 +15,7 @@ export function AdminDashboardPageContainer() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {NAV_CARDS.map(({ to, icon: Icon, label, description }) => (
+        {ADMIN_NAV_CARDS.map(({ to, icon: Icon, label, description }) => (
           <Link
             key={to}
             to={to}

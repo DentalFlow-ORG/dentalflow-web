@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { FilterDef } from '@/components/common/ListToolbar'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useListFilter } from '@/hooks/useListFilter'
 
 import { deleteAdminUser, listAdminUsers } from '../services/admin-users.service'
 import type { AdminUser } from '../types/admin.types'
-import { ADMIN_ROLE_LABEL, ADMIN_ROLE_TONE } from '../constants/admin-display'
+import { ADMIN_ROLE_LABEL, ADMIN_ROLE_TONE, USER_FILTER_DEFS } from '../constants/admin-display'
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -26,22 +25,6 @@ const FILTER_FNS = {
   status: (user: AdminUser, v: string) =>
     v === 'active' ? user.isActive : !user.isActive,
 }
-
-const FILTER_DEFS: FilterDef[] = [
-  {
-    key: 'role',
-    label: 'Papel',
-    options: Object.entries(ADMIN_ROLE_LABEL).map(([value, label]) => ({ value, label })),
-  },
-  {
-    key: 'status',
-    label: 'Status',
-    options: [
-      { value: 'active', label: 'Ativo' },
-      { value: 'inactive', label: 'Inativo' },
-    ],
-  },
-]
 
 type DeleteTarget = { id: string; name: string }
 type PasswordTarget = { id: string; name: string }
@@ -159,7 +142,7 @@ export function useAdminUsersPage() {
     filteredCount,
     pageSize,
     setPageSize,
-    filterDefs: FILTER_DEFS,
+    filterDefs: USER_FILTER_DEFS,
     roleLabel: ADMIN_ROLE_LABEL,
     roleTone: ADMIN_ROLE_TONE,
     formatDate: formatUserDate,
