@@ -32,6 +32,7 @@ import {
   getAvailableTransitions,
   isTerminalStatus,
 } from '../../utils/appointment-state-machine'
+import { getInitials } from '../../utils/appointment-form-utils'
 import { AppointmentStatusBadge } from './AppointmentStatusBadge'
 import { AppointmentPaymentSection } from './AppointmentPaymentSection'
 
@@ -47,15 +48,6 @@ type AppointmentDrawerProps = {
   onPaymentUpdated?: (updated: Appointment) => void
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-}
 
 export function AppointmentDrawer({
   appointment,
