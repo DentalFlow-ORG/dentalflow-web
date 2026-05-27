@@ -1,5 +1,5 @@
 import { ClipboardList } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { EmptyState } from '@/components/common/EmptyState'
 import { ListPageShell } from '@/components/common/ListPageShell'
@@ -34,22 +34,34 @@ function renderMetadata(metadata: Record<string, unknown> | null): string {
   return str.length > 120 ? `${str.slice(0, 120)}…` : str
 }
 
+type ResolvedState = {
+  resolvedKey: string
+  data: PaginatedResponse<AuditLogEntry> | null
+  error: string | null
+}
+
 export function AuditLogsTab() {
   const [filters, setFilters] = useState<AuditLogFilters>(INITIAL_FILTERS)
-  const [result, setResult] = useState<PaginatedResponse<AuditLogEntry> | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [retryKey, setRetryKey] = useState(0)
+  const [resolved, setResolved] = useState<ResolvedState>({ resolvedKey: '', data: null, error: null })
 
-  const load = useCallback(() => {
-    setIsLoading(true)
-    setError(null)
+  const requestKey = JSON.stringify({ ...filters, retryKey })
+  const isLoading = resolved.resolvedKey !== requestKey
+  const result = resolved.data
+  const error = resolved.error
+
+  useEffect(() => {
+    let cancelled = false
+    const key = JSON.stringify({ ...filters, retryKey })
     listAuditLogs(filters)
-      .then(setResult)
-      .catch((err: Error) => setError(err.message ?? 'Não foi possível carregar os logs.'))
-      .finally(() => setIsLoading(false))
-  }, [filters])
-
-  useEffect(() => { load() }, [load])
+      .then((data) => {
+        if (!cancelled) setResolved({ resolvedKey: key, data, error: null })
+      })
+      .catch((err: Error) => {
+        if (!cancelled) setResolved({ resolvedKey: key, data: null, error: err.message ?? 'Não foi possível carregar os logs.' })
+      })
+    return () => { cancelled = true }
+  }, [filters, retryKey])
 
   function setFilter<K extends keyof AuditLogFilters>(key: K, value: AuditLogFilters[K]) {
     setFilters((prev) => ({ ...prev, [key]: value, page: key !== 'page' ? 1 : (value as number) }))
@@ -104,7 +116,7 @@ export function AuditLogsTab() {
         isLoading={isLoading}
         loadingMessage="Carregando logs de auditoria..."
         error={error}
-        onRetry={load}
+        onRetry={() => setRetryKey((key) => key + 1)}
         isEmpty={!isLoading && !error && (result?.data.length ?? 0) === 0}
         emptyState={
           <EmptyState
