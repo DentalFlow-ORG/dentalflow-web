@@ -21,6 +21,7 @@ import type { ProcedureMarginsState } from '../hooks/useProcedureMargins'
 import type { ProcedureMarginsQuery } from '../services/finance-analytics.service'
 import type { ProcedureMarginItem, ProcedureMarginStatus } from '../types/finance.types'
 import { formatCompactCurrency, formatCurrency } from '../utils/finance-format'
+import { Ranking } from './Ranking'
 
 type SortKey = 'revenue' | 'volume' | 'margin' | 'name'
 
@@ -48,6 +49,62 @@ function InsightCard({ label, name, detail }: { label: string; name: string; det
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-1 truncate text-sm font-semibold text-foreground">{name}</p>
       <p className="mt-0.5 text-xs text-muted-foreground">{detail}</p>
+    </div>
+  )
+}
+
+function MarginsRanking({ items }: { items: ProcedureMarginItem[] }) {
+  const sorted = [...items]
+    .sort((a, b) => (b.marginPercent ?? -Infinity) - (a.marginPercent ?? -Infinity))
+    .slice(0, 5)
+
+  const withMargin = items.filter((i) => i.marginPercent != null)
+  const maxAbsMargin = withMargin.length > 0
+    ? Math.max(...withMargin.map((i) => Math.abs(i.marginPercent!)))
+    : 0
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-foreground">Margem estimada (%)</h3>
+      <div className="mt-3 space-y-3">
+        {sorted.map((item) => {
+          const mp = item.marginPercent
+          const barWidth =
+            mp != null && maxAbsMargin > 0
+              ? Math.max(2, Math.round((Math.abs(mp) / maxAbsMargin) * 100))
+              : 2
+          const isPositive = mp != null && mp >= 0
+          const isNegative = mp != null && mp < 0
+          return (
+            <div key={item.serviceId} className="space-y-1">
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="truncate font-medium text-foreground">{item.serviceName}</span>
+                <span
+                  className={cn(
+                    'shrink-0 text-xs font-medium',
+                    isPositive
+                      ? 'text-emerald-700 dark:text-emerald-300'
+                      : isNegative
+                      ? 'text-red-700 dark:text-red-300'
+                      : 'text-muted-foreground',
+                  )}
+                >
+                  {mp != null ? `${mp.toFixed(2).replace('.', ',')}%` : '—'}
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={cn(
+                    'h-full rounded-full',
+                    isPositive ? 'bg-emerald-500' : isNegative ? 'bg-red-500' : 'bg-muted-foreground/30',
+                  )}
+                  style={{ width: `${barWidth}%` }}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -350,6 +407,28 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
             </div>
           )}
 
+          {/* Rankings panel */}
+          {data.items.length > 1 && (
+            <div
+              className={cn(
+                'grid gap-6',
+                data.costDataAvailable ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1',
+              )}
+            >
+              <Ranking
+                title="Receita por procedimento"
+                items={[...data.items]
+                  .sort((a, b) => b.grossRevenueCents - a.grossRevenueCents)
+                  .map((i) => ({
+                    label: i.serviceName,
+                    amount: i.grossRevenueCents / 100,
+                    color: '#10B981',
+                  }))}
+              />
+              {data.costDataAvailable && <MarginsRanking items={data.items} />}
+            </div>
+          )}
+
           {/* Service list */}
           {data.items.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
@@ -381,7 +460,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
                   </select>
                 </div>
               )}
-              <div className="divide-y divide-border">
+              <div className="divide-y divide-border" data-testid="service-list">
                 {sortedItems.map((item) => (
                   <ServiceRow key={item.serviceId} item={item} maxRevenue={maxRevenue} />
                 ))}

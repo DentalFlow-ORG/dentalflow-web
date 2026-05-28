@@ -1,3 +1,4 @@
+import { within } from '@testing-library/react'
 import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
 import type { ProcedureMarginsState } from '../hooks/useProcedureMargins'
 import type { ProcedureMarginItem, ProcedureMarginsResponse } from '../types/finance.types'
@@ -287,8 +288,9 @@ describe('ProcedureMarginsSection — sort control', () => {
 
   it('default sort (revenue) shows the highest-revenue item first', () => {
     renderSection({ data: makeData({ items: twoItems }) })
-    // Service name spans are in ServiceRow; InsightCard names use <p> — selector filters correctly
-    const nameSpans = screen.getAllByText(/^(Limpeza|Consulta)$/, { selector: 'span' })
+    // Scoped to service-list to exclude ranking panel spans which also use <span> for names
+    const list = screen.getByTestId('service-list')
+    const nameSpans = within(list).getAllByText(/^(Limpeza|Consulta)$/, { selector: 'span' })
     expect(nameSpans[0]).toHaveTextContent('Consulta')
   })
 
@@ -300,7 +302,9 @@ describe('ProcedureMarginsSection — sort control', () => {
     ]
     renderSection({ data: makeData({ items }) })
     await user.selectOptions(screen.getByRole('combobox', { name: /Ordenar/i }), 'name')
-    const nameSpans = screen.getAllByText(/^(Profilaxia|Consulta)$/, { selector: 'span' })
+    // Scoped to service-list — ranking panel renders Profilaxia first (higher revenue)
+    const list = screen.getByTestId('service-list')
+    const nameSpans = within(list).getAllByText(/^(Profilaxia|Consulta)$/, { selector: 'span' })
     expect(nameSpans[0]).toHaveTextContent('Consulta')
   })
 
@@ -312,7 +316,9 @@ describe('ProcedureMarginsSection — sort control', () => {
     ]
     renderSection({ data: makeData({ items, costDataAvailable: true, limitation: null }) })
     await user.selectOptions(screen.getByRole('combobox', { name: /Ordenar/i }), 'margin')
-    const nameSpans = screen.getAllByText(/^(Limpeza|Consulta)$/, { selector: 'span' })
+    // Scoped to service-list — both Ranking and MarginsRanking also render name spans
+    const list = screen.getByTestId('service-list')
+    const nameSpans = within(list).getAllByText(/^(Limpeza|Consulta)$/, { selector: 'span' })
     expect(nameSpans[0]).toHaveTextContent('Consulta')
   })
 })
@@ -329,5 +335,52 @@ describe('ProcedureMarginsSection — mini revenue bar', () => {
     ]
     renderSection({ data: makeData({ items }) })
     expect(screen.getAllByTestId('revenue-bar')).toHaveLength(2)
+  })
+})
+
+// ── Rankings panel ────────────────────────────────────────────────────────────
+
+describe('ProcedureMarginsSection — rankings panel', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  const twoItems: ProcedureMarginItem[] = [
+    { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza' },
+    { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', grossRevenueCents: 90000 },
+  ]
+
+  it('revenue ranking renders when items.length > 1', () => {
+    renderSection({ data: makeData({ items: twoItems }) })
+    expect(screen.getByText('Receita por procedimento')).toBeInTheDocument()
+  })
+
+  it('revenue ranking is absent when items.length === 1', () => {
+    renderSection({ data: makeData({ items: [baseItem] }) })
+    expect(screen.queryByText('Receita por procedimento')).not.toBeInTheDocument()
+  })
+
+  it('revenue ranking is absent when items is empty', () => {
+    renderSection({ data: makeData({ items: [] }) })
+    expect(screen.queryByText('Receita por procedimento')).not.toBeInTheDocument()
+  })
+
+  it('margin ranking renders when costDataAvailable=true and items.length > 1', () => {
+    renderSection({ data: makeData({ items: twoItems, costDataAvailable: true, limitation: null }) })
+    expect(screen.getByText('Margem estimada (%)')).toBeInTheDocument()
+  })
+
+  it('margin ranking is absent when costDataAvailable=false', () => {
+    renderSection({ data: makeData({ items: twoItems, costDataAvailable: false }) })
+    expect(screen.queryByText('Margem estimada (%)')).not.toBeInTheDocument()
+  })
+
+  it('null margin item renders "—" placeholder in the margin ranking', () => {
+    const items: ProcedureMarginItem[] = [
+      { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza', marginPercent: null, estimatedDirectCostCents: null, estimatedProfitCents: null },
+      { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', marginPercent: 80, estimatedDirectCostCents: 10000, estimatedProfitCents: 50000 },
+    ]
+    renderSection({ data: makeData({ items, costDataAvailable: true, limitation: null }) })
+    expect(screen.getByText('Margem estimada (%)')).toBeInTheDocument()
+    // baseItem has completedAppointments: 4, so no "—" from avg revenue — only the null-margin item
+    expect(screen.getByText('—')).toBeInTheDocument()
   })
 })
