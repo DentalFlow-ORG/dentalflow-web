@@ -1,4 +1,4 @@
-import { renderWithProviders, screen } from '@/test/render-utils'
+import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
 import type { ProcedureMarginsState } from '../hooks/useProcedureMargins'
 import type { ProcedureMarginItem, ProcedureMarginsResponse } from '../types/finance.types'
 import { ProcedureMarginsSection } from './ProcedureMarginsSection'
@@ -140,7 +140,8 @@ describe('ProcedureMarginsSection — summary MetricCards', () => {
     })
     expect(screen.getByText(/Custo total est\./i, { selector: 'p' })).toBeInTheDocument()
     expect(screen.getByText('Lucro estimado', { selector: 'p' })).toBeInTheDocument()
-    expect(screen.getByText(/Margem \(est\.\)/i, { selector: 'p' })).toBeInTheDocument()
+    // Exact match avoids collision with InsightCard "Maior margem (est.)" label
+    expect(screen.getByText('Margem (est.)', { selector: 'p' })).toBeInTheDocument()
   })
 })
 
@@ -207,5 +208,126 @@ describe('ProcedureMarginsSection — state-based display', () => {
     expect(
       screen.getByText(/planos Professional e Premium/i),
     ).toBeInTheDocument()
+  })
+})
+
+// ── Insight cards ─────────────────────────────────────────────────────────────
+
+describe('ProcedureMarginsSection — insight cards', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('cards hidden when items is empty', () => {
+    renderSection({ data: makeData({ items: [] }) })
+    expect(screen.queryByText('Maior receita')).not.toBeInTheDocument()
+    expect(screen.queryByText('Mais realizado')).not.toBeInTheDocument()
+    expect(screen.queryByText('Maior margem (est.)')).not.toBeInTheDocument()
+  })
+
+  it('"Maior receita" card shows the service with the highest grossRevenueCents', () => {
+    const items: ProcedureMarginItem[] = [
+      { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza', grossRevenueCents: 30000 },
+      { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', grossRevenueCents: 90000 },
+    ]
+    renderSection({ data: makeData({ items }) })
+    expect(screen.getByText('Maior receita').closest('div')).toHaveTextContent('Consulta')
+  })
+
+  it('"Mais realizado" card shows the service with the most totalAppointments', () => {
+    const items: ProcedureMarginItem[] = [
+      { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza', totalAppointments: 3 },
+      { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', totalAppointments: 10 },
+    ]
+    renderSection({ data: makeData({ items }) })
+    expect(screen.getByText('Mais realizado').closest('div')).toHaveTextContent('Consulta')
+  })
+
+  it('"Maior margem (est.)" absent when costDataAvailable is false', () => {
+    renderSection({ data: makeData({ items: [baseItem], costDataAvailable: false }) })
+    expect(screen.queryByText('Maior margem (est.)')).not.toBeInTheDocument()
+  })
+
+  it('"Maior margem (est.)" shows the service with the highest marginPercent', () => {
+    const items: ProcedureMarginItem[] = [
+      { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza', estimatedDirectCostCents: 6000, estimatedProfitCents: 54000, marginPercent: 90 },
+      { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', estimatedDirectCostCents: 20000, estimatedProfitCents: 40000, marginPercent: 67 },
+    ]
+    renderSection({ data: makeData({ items, costDataAvailable: true, limitation: null }) })
+    expect(screen.getByText('Maior margem (est.)').closest('div')).toHaveTextContent('Limpeza')
+  })
+})
+
+// ── Sort control ──────────────────────────────────────────────────────────────
+
+describe('ProcedureMarginsSection — sort control', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  const twoItems: ProcedureMarginItem[] = [
+    { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza', grossRevenueCents: 30000, totalAppointments: 3 },
+    { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', grossRevenueCents: 90000, totalAppointments: 10 },
+  ]
+
+  it('sort select renders all four options when items.length > 1', () => {
+    renderSection({ data: makeData({ items: twoItems }) })
+    expect(screen.getByRole('combobox', { name: /Ordenar/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Receita/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Realizações/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Margem/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Nome/i })).toBeInTheDocument()
+  })
+
+  it('sort select hidden when items.length === 1', () => {
+    renderSection({ data: makeData({ items: [baseItem] }) })
+    expect(screen.queryByRole('combobox', { name: /Ordenar/i })).not.toBeInTheDocument()
+  })
+
+  it('margin option is disabled when costDataAvailable is false', () => {
+    renderSection({ data: makeData({ items: twoItems, costDataAvailable: false }) })
+    expect(screen.getByRole('option', { name: /Margem/i })).toBeDisabled()
+  })
+
+  it('default sort (revenue) shows the highest-revenue item first', () => {
+    renderSection({ data: makeData({ items: twoItems }) })
+    // Service name spans are in ServiceRow; InsightCard names use <p> — selector filters correctly
+    const nameSpans = screen.getAllByText(/^(Limpeza|Consulta)$/, { selector: 'span' })
+    expect(nameSpans[0]).toHaveTextContent('Consulta')
+  })
+
+  it('sorting by name shows items in alphabetical order', async () => {
+    const user = userEvent.setup()
+    const items: ProcedureMarginItem[] = [
+      { ...baseItem, serviceId: 'svc-1', serviceName: 'Profilaxia', grossRevenueCents: 50000 },
+      { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', grossRevenueCents: 40000 },
+    ]
+    renderSection({ data: makeData({ items }) })
+    await user.selectOptions(screen.getByRole('combobox', { name: /Ordenar/i }), 'name')
+    const nameSpans = screen.getAllByText(/^(Profilaxia|Consulta)$/, { selector: 'span' })
+    expect(nameSpans[0]).toHaveTextContent('Consulta')
+  })
+
+  it('null margins sort to the bottom when sorting by margin', async () => {
+    const user = userEvent.setup()
+    const items: ProcedureMarginItem[] = [
+      { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza', estimatedDirectCostCents: null, estimatedProfitCents: null, marginPercent: null },
+      { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', estimatedDirectCostCents: 10000, estimatedProfitCents: 50000, marginPercent: 83 },
+    ]
+    renderSection({ data: makeData({ items, costDataAvailable: true, limitation: null }) })
+    await user.selectOptions(screen.getByRole('combobox', { name: /Ordenar/i }), 'margin')
+    const nameSpans = screen.getAllByText(/^(Limpeza|Consulta)$/, { selector: 'span' })
+    expect(nameSpans[0]).toHaveTextContent('Consulta')
+  })
+})
+
+// ── Mini revenue bar ──────────────────────────────────────────────────────────
+
+describe('ProcedureMarginsSection — mini revenue bar', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('renders one revenue bar per service row', () => {
+    const items: ProcedureMarginItem[] = [
+      { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza' },
+      { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta' },
+    ]
+    renderSection({ data: makeData({ items }) })
+    expect(screen.getAllByTestId('revenue-bar')).toHaveLength(2)
   })
 })

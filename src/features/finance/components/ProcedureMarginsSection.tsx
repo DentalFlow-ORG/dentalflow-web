@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   AlertTriangle,
   BarChart2,
@@ -20,7 +20,9 @@ import { cn } from '@/lib/utils'
 import type { ProcedureMarginsState } from '../hooks/useProcedureMargins'
 import type { ProcedureMarginsQuery } from '../services/finance-analytics.service'
 import type { ProcedureMarginItem, ProcedureMarginStatus } from '../types/finance.types'
-import { formatCurrency } from '../utils/finance-format'
+import { formatCompactCurrency, formatCurrency } from '../utils/finance-format'
+
+type SortKey = 'revenue' | 'volume' | 'margin' | 'name'
 
 function currentMonth(): string {
   const now = new Date()
@@ -40,8 +42,21 @@ const STATUS_CONFIG: Record<
   INSUFFICIENT_DATA: { label: 'Dados insuficientes', tone: 'muted', icon: HelpCircle },
 }
 
-function ServiceRow({ item }: { item: ProcedureMarginItem }) {
+function InsightCard({ label, name, detail }: { label: string; name: string; detail: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card/60 px-4 py-3">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 truncate text-sm font-semibold text-foreground">{name}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{detail}</p>
+    </div>
+  )
+}
+
+function ServiceRow({ item, maxRevenue }: { item: ProcedureMarginItem; maxRevenue: number }) {
   const { label, tone, icon: Icon } = STATUS_CONFIG[item.status]
+  const barWidth = maxRevenue > 0
+    ? Math.max(2, Math.round((item.grossRevenueCents / maxRevenue) * 100))
+    : 2
   return (
     <div className="py-4 first:pt-0 last:pb-0">
       <div className="flex items-start justify-between gap-3">
@@ -99,6 +114,14 @@ function ServiceRow({ item }: { item: ProcedureMarginItem }) {
           </span>
         )}
       </div>
+      {/* Revenue share bar — proportional width relative to top procedure */}
+      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+        <div
+          className="h-full rounded-full bg-primary/40"
+          style={{ width: `${barWidth}%` }}
+          data-testid="revenue-bar"
+        />
+      </div>
     </div>
   )
 }
@@ -111,9 +134,55 @@ type Props = {
 export function ProcedureMarginsSection({ state, onLoad }: Props) {
   const { data, isLoading, isPlanBlocked, error } = state
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
+  const [sortKey, setSortKey] = useState<SortKey>('revenue')
 
   const handleLoad = () => onLoad({ month: selectedMonth })
   const handleRefresh = () => onLoad({ month: selectedMonth })
+
+  const maxRevenue = useMemo(
+    () => (data?.items.length ? Math.max(...data.items.map((i) => i.grossRevenueCents)) : 1),
+    [data],
+  )
+
+  const sortedItems = useMemo(() => {
+    if (!data) return []
+    const copy = [...data.items]
+    switch (sortKey) {
+      case 'revenue':
+        return copy.sort((a, b) => b.grossRevenueCents - a.grossRevenueCents)
+      case 'volume':
+        return copy.sort((a, b) => b.totalAppointments - a.totalAppointments)
+      case 'margin':
+        return copy.sort((a, b) => (b.marginPercent ?? -Infinity) - (a.marginPercent ?? -Infinity))
+      case 'name':
+        return copy.sort((a, b) => a.serviceName.localeCompare(b.serviceName, 'pt-BR'))
+      default:
+        return copy
+    }
+  }, [data, sortKey])
+
+  const topByRevenue = useMemo(
+    () =>
+      data?.items.length
+        ? data.items.reduce((best, cur) => (cur.grossRevenueCents > best.grossRevenueCents ? cur : best))
+        : null,
+    [data],
+  )
+
+  const topByVolume = useMemo(
+    () =>
+      data?.items.length
+        ? data.items.reduce((best, cur) => (cur.totalAppointments > best.totalAppointments ? cur : best))
+        : null,
+    [data],
+  )
+
+  const topByMargin = useMemo(() => {
+    if (!data?.costDataAvailable) return null
+    const withMargin = data.items.filter((i) => i.marginPercent != null)
+    if (!withMargin.length) return null
+    return withMargin.reduce((best, cur) => (cur.marginPercent! > best.marginPercent! ? cur : best))
+  }, [data])
 
   return (
     <PanelCard>
@@ -258,16 +327,65 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
             )}
           </div>
 
+          {/* Executive insight cards */}
+          {data.items.length > 0 && topByRevenue && topByVolume && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <InsightCard
+                label="Maior receita"
+                name={topByRevenue.serviceName}
+                detail={formatCompactCurrency(topByRevenue.grossRevenueCents / 100)}
+              />
+              <InsightCard
+                label="Mais realizado"
+                name={topByVolume.serviceName}
+                detail={`${topByVolume.totalAppointments} realizações`}
+              />
+              {topByMargin && (
+                <InsightCard
+                  label="Maior margem (est.)"
+                  name={topByMargin.serviceName}
+                  detail={`${topByMargin.marginPercent!.toFixed(2).replace('.', ',')}%`}
+                />
+              )}
+            </div>
+          )}
+
           {/* Service list */}
           {data.items.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
               Nenhum procedimento identificado no período selecionado.
             </p>
           ) : (
-            <div className="divide-y divide-border">
-              {data.items.map((item) => (
-                <ServiceRow key={item.serviceId} item={item} />
-              ))}
+            <div className="space-y-3">
+              {data.items.length > 1 && (
+                <div className="flex items-center justify-end gap-2">
+                  <label
+                    htmlFor="procedure-sort"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Ordenar por
+                  </label>
+                  <select
+                    id="procedure-sort"
+                    value={sortKey}
+                    onChange={(e) => setSortKey(e.target.value as SortKey)}
+                    className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    aria-label="Ordenar procedimentos"
+                  >
+                    <option value="revenue">Receita (maior primeiro)</option>
+                    <option value="volume">Realizações (maior primeiro)</option>
+                    <option value="margin" disabled={!data.costDataAvailable}>
+                      Margem (maior primeiro)
+                    </option>
+                    <option value="name">Nome (A → Z)</option>
+                  </select>
+                </div>
+              )}
+              <div className="divide-y divide-border">
+                {sortedItems.map((item) => (
+                  <ServiceRow key={item.serviceId} item={item} maxRevenue={maxRevenue} />
+                ))}
+              </div>
             </div>
           )}
 
