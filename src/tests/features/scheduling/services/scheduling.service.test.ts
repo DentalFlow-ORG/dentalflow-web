@@ -7,11 +7,23 @@ import {
   updateAppointmentPayment,
   cancelAppointment,
   getAvailableSlots,
+  listAvailability,
+  createAvailability,
+  updateAvailability,
+  deleteAvailability,
+  listAvailabilityExceptions,
+  createAvailabilityException,
+  updateAvailabilityException,
+  deleteAvailabilityException,
 } from '@/features/scheduling/services/scheduling.service'
 import type {
   CreateAppointmentDto,
   UpdateAppointmentDto,
   UpdateAppointmentPaymentDto,
+  CreateAvailabilityDto,
+  UpdateAvailabilityDto,
+  CreateAvailabilityExceptionDto,
+  UpdateAvailabilityExceptionDto,
 } from '@/features/scheduling/types/scheduling.types'
 
 const mockApiRequest = vi.fn()
@@ -155,6 +167,114 @@ describe('getAvailableSlots', () => {
     const [path] = mockApiRequest.mock.calls[0]
     expect(path).toContain('serviceId=svc-2')
     expect(path).toContain('durationMinutes=30')
+  })
+})
+
+// ─── listAvailability ─────────────────────────────────────────────────────────
+
+describe('listAvailability', () => {
+  it('calls GET /profiles/{profileId}/availability', async () => {
+    mockApiRequest.mockResolvedValue([])
+    await listAvailability('prof-1')
+    const [path, options] = mockApiRequest.mock.calls[0]
+    expect(path).toBe('/profiles/prof-1/availability')
+    expect(options.method).toBe('GET')
+  })
+})
+
+// ─── createAvailability ───────────────────────────────────────────────────────
+
+describe('createAvailability', () => {
+  const dto: CreateAvailabilityDto = { dayOfWeek: 1, startTime: '08:00', endTime: '17:00' }
+
+  it('calls POST /profiles/{profileId}/availability with the serialized dto as body', async () => {
+    await createAvailability('prof-1', dto)
+    const [path, options] = mockApiRequest.mock.calls[0]
+    expect(path).toBe('/profiles/prof-1/availability')
+    expect(options.method).toBe('POST')
+    expect(JSON.parse(options.body)).toEqual(dto)
+  })
+
+  it('passes the access token from getAccessToken()', async () => {
+    mockGetAccessToken.mockReturnValue('tok-avail')
+    await createAvailability('prof-1', dto)
+    const [, options] = mockApiRequest.mock.calls[0]
+    expect(options.accessToken).toBe('tok-avail')
+  })
+})
+
+// ─── updateAvailability ───────────────────────────────────────────────────────
+
+describe('updateAvailability', () => {
+  it('calls PATCH /profiles/{profileId}/availability/{availId} with the serialized dto as body', async () => {
+    const dto: UpdateAvailabilityDto = { isActive: false }
+    await updateAvailability('prof-1', 'av-1', dto)
+    const [path, options] = mockApiRequest.mock.calls[0]
+    expect(path).toBe('/profiles/prof-1/availability/av-1')
+    expect(options.method).toBe('PATCH')
+    expect(JSON.parse(options.body)).toEqual(dto)
+  })
+})
+
+// ─── deleteAvailability ───────────────────────────────────────────────────────
+
+describe('deleteAvailability', () => {
+  it('calls DELETE /profiles/{profileId}/availability/{availId} with no body', async () => {
+    await deleteAvailability('prof-1', 'av-1')
+    const [path, options] = mockApiRequest.mock.calls[0]
+    expect(path).toBe('/profiles/prof-1/availability/av-1')
+    expect(options.method).toBe('DELETE')
+    expect(options.body).toBeUndefined()
+  })
+})
+
+// ─── listAvailabilityExceptions ───────────────────────────────────────────────
+
+describe('listAvailabilityExceptions', () => {
+  it('calls GET /profiles/{profileId}/availability-exceptions', async () => {
+    mockApiRequest.mockResolvedValue([])
+    await listAvailabilityExceptions('prof-1')
+    const [path, options] = mockApiRequest.mock.calls[0]
+    expect(path).toBe('/profiles/prof-1/availability-exceptions')
+    expect(options.method).toBe('GET')
+  })
+})
+
+// ─── createAvailabilityException ──────────────────────────────────────────────
+
+describe('createAvailabilityException', () => {
+  it('calls POST /profiles/{profileId}/availability-exceptions with the serialized dto as body', async () => {
+    const dto: CreateAvailabilityExceptionDto = { exceptionDate: '2026-07-04', isDayOff: true }
+    await createAvailabilityException('prof-1', dto)
+    const [path, options] = mockApiRequest.mock.calls[0]
+    expect(path).toBe('/profiles/prof-1/availability-exceptions')
+    expect(options.method).toBe('POST')
+    expect(JSON.parse(options.body)).toEqual(dto)
+  })
+})
+
+// ─── updateAvailabilityException ──────────────────────────────────────────────
+
+describe('updateAvailabilityException', () => {
+  it('calls PATCH /profiles/{profileId}/availability-exceptions/{excId} with the serialized dto as body', async () => {
+    const dto: UpdateAvailabilityExceptionDto = { isDayOff: false, startTime: '09:00', endTime: '12:00' }
+    await updateAvailabilityException('prof-1', 'ex-1', dto)
+    const [path, options] = mockApiRequest.mock.calls[0]
+    expect(path).toBe('/profiles/prof-1/availability-exceptions/ex-1')
+    expect(options.method).toBe('PATCH')
+    expect(JSON.parse(options.body)).toEqual(dto)
+  })
+})
+
+// ─── deleteAvailabilityException ──────────────────────────────────────────────
+
+describe('deleteAvailabilityException', () => {
+  it('calls DELETE /profiles/{profileId}/availability-exceptions/{excId} with no body', async () => {
+    await deleteAvailabilityException('prof-1', 'ex-1')
+    const [path, options] = mockApiRequest.mock.calls[0]
+    expect(path).toBe('/profiles/prof-1/availability-exceptions/ex-1')
+    expect(options.method).toBe('DELETE')
+    expect(options.body).toBeUndefined()
   })
 })
 
