@@ -238,4 +238,43 @@ describe('buildTimeSlots', () => {
   it('returns at least one slot when given empty inputs', () => {
     expect(buildTimeSlots([], [])).not.toHaveLength(0)
   })
+
+  it('expands start when a special in-week exception begins before the default window', () => {
+    // 06:00 = 360 min < DEFAULT_START_MINUTES (480) → minMinutes = floor(360/30)*30 = 360
+    const ex = makeAvailabilityException({
+      exceptionDate: '2026-05-27',
+      isDayOff: false,
+      startTime: '06:00',
+      endTime: '09:00',
+    })
+    const slots = buildTimeSlots([], [WED], undefined, [ex])
+    expect(slots[0]).toBe(360)
+    expect(slots[0]).toBeLessThan(DEFAULT_START_MINUTES)
+  })
+
+  it('expands end when a special in-week exception finishes after the default window', () => {
+    // 22:00 = 1320 min > DEFAULT_END_MINUTES (1080) → maxMinutes = ceil(1320/30)*30 = 1320
+    const ex = makeAvailabilityException({
+      exceptionDate: '2026-05-27',
+      isDayOff: false,
+      startTime: '19:00',
+      endTime: '22:00',
+    })
+    const slots = buildTimeSlots([], [WED], undefined, [ex])
+    expect(slots[slots.length - 1]).toBe(1320)
+    expect(slots[slots.length - 1]).toBeGreaterThan(DEFAULT_END_MINUTES)
+  })
+
+  it('ignores a special exception whose date is not in weekDates', () => {
+    // exceptionDate '2026-05-28' (Thursday) is not in [WED ('2026-05-27')] → no expansion
+    const ex = makeAvailabilityException({
+      exceptionDate: '2026-05-28',
+      isDayOff: false,
+      startTime: '06:00',
+      endTime: '22:00',
+    })
+    const slots = buildTimeSlots([], [WED], undefined, [ex])
+    expect(slots[0]).toBe(DEFAULT_START_MINUTES)
+    expect(slots[slots.length - 1]).toBe(DEFAULT_END_MINUTES)
+  })
 })
