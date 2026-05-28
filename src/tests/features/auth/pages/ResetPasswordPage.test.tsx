@@ -1,9 +1,9 @@
-import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
+import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
-import { setMockSearch } from '@/test/mocks/router'
+import { setMockSearch } from '@/test-utils/mocks/router'
 
 vi.mock('@tanstack/react-router', async () => {
-  const m = await import('@/test/mocks/router')
+  const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
 

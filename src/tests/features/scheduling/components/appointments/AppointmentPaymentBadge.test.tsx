@@ -1,4 +1,4 @@
-import { render, screen } from '@/test/render-utils'
+import { render, screen } from '@/test-utils/render-utils'
 
 import type { AppointmentPaymentStatus } from '@/features/scheduling/types/scheduling.types'
 import { AppointmentPaymentBadge, PAYMENT_STATUS_CONFIG } from '@/features/scheduling/components/appointments/AppointmentPaymentBadge'

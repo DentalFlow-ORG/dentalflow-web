@@ -10,7 +10,7 @@ import {
   isSlotInsideWorkingRanges,
   minutesToTime,
 } from '@/features/scheduling/utils/week-calendar-layout'
-import { makeAvailability, makeAvailabilityException } from '@/test/factories/availability.factory'
+import { makeAvailability, makeAvailabilityException } from '@/test-utils/factories/availability.factory'
 
 // ── Local fixture ─────────────────────────────────────────────────────────────
 // makeAppt uses HH:mm string times (layout-specific) — kept local rather than

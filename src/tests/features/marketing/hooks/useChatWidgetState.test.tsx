@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from '@/test/render-utils'
+import { act, renderHook, waitFor } from '@/test-utils/render-utils'
 
 import { useChatWidgetState } from '@/features/marketing/hooks/useChatWidgetState'
 

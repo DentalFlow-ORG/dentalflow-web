@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { render, screen, userEvent } from '@/test/render-utils'
+import { render, screen, userEvent } from '@/test-utils/render-utils'
 
 import { FaqPage } from '@/features/marketing/pages/FaqPage'
 

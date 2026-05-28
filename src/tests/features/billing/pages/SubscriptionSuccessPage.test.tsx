@@ -1,7 +1,7 @@
-import { render, screen, waitFor, act, fireEvent } from '@/test/render-utils'
+import { render, screen, waitFor, act, fireEvent } from '@/test-utils/render-utils'
 import { SubscriptionSuccessPage } from '@/features/billing/pages/SubscriptionSuccessPage'
-import { makeBillingStatus } from '@/test/factories/billing.factory'
-import { setMockSearch, resetRouterMocks } from '@/test/mocks/router'
+import { makeBillingStatus } from '@/test-utils/factories/billing.factory'
+import { setMockSearch, resetRouterMocks } from '@/test-utils/mocks/router'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -12,7 +12,7 @@ const mockClearBillingStatusCache = vi.fn()
 const mockSetCachedBillingStatus = vi.fn()
 
 vi.mock('@tanstack/react-router', async () => {
-  const m = await import('@/test/mocks/router')
+  const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
 

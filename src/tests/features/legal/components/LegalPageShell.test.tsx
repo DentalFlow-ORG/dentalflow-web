@@ -1,9 +1,9 @@
-import { render, screen } from '@/test/render-utils'
+import { render, screen } from '@/test-utils/render-utils'
 
 import { LegalPageShell } from '@/features/legal/components/LegalPageShell'
 
 vi.mock('@tanstack/react-router', async () => {
-  const m = await import('@/test/mocks/router')
+  const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
 

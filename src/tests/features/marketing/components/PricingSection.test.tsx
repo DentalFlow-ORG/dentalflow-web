@@ -1,9 +1,9 @@
-import { render, screen, userEvent } from '@/test/render-utils'
+import { render, screen, userEvent } from '@/test-utils/render-utils'
 
 import { PricingSection } from '@/features/marketing/components/PricingSection'
 
 vi.mock('@tanstack/react-router', async () => {
-  const m = await import('@/test/mocks/router')
+  const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
 

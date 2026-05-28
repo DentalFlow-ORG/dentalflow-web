@@ -1,25 +1,25 @@
 import { fireEvent } from '@testing-library/react'
-import { renderWithProviders, screen, waitFor, userEvent } from '@/test/render-utils'
+import { renderWithProviders, screen, waitFor, userEvent } from '@/test-utils/render-utils'
 import { CompleteProfilePage } from '@/features/auth/pages/CompleteProfilePage'
-import { makeOwnerUser } from '@/test/factories/user.factory'
+import { makeOwnerUser } from '@/test-utils/factories/user.factory'
 import {
   mockCompleteProfile,
   setMockAuthState,
   resetAuthMocks,
-} from '@/test/mocks/auth'
-import { mockNavigate, resetRouterMocks } from '@/test/mocks/router'
+} from '@/test-utils/mocks/auth'
+import { mockNavigate, resetRouterMocks } from '@/test-utils/mocks/router'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
 const mockShowAlert = vi.fn()
 
 vi.mock('@tanstack/react-router', async () => {
-  const m = await import('@/test/mocks/router')
+  const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
 
 vi.mock('@/features/auth/hooks/useAuth', async () => {
-  const authMock = await import('@/test/mocks/auth')
+  const authMock = await import('@/test-utils/mocks/auth')
   return authMock.createUseAuthMock()
 })
 

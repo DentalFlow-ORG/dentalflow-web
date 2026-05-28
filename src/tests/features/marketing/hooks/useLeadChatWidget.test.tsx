@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from '@/test/render-utils'
+import { act, renderHook, waitFor } from '@/test-utils/render-utils'
 import { WHATSAPP_PHONE_REQUIRED_MESSAGE } from '@/lib/field-formatters'
 
 import {

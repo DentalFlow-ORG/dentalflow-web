@@ -1,4 +1,4 @@
-import { act, renderHook } from '@/test/render-utils'
+import { act, renderHook } from '@/test-utils/render-utils'
 
 import { useDropdownNav } from '@/features/marketing/hooks/useDropdownNav'
 

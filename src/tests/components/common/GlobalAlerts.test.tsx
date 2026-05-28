@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { renderHook, render, screen, act, fireEvent } from '@/test/render-utils'
+import { renderHook, render, screen, act, fireEvent } from '@/test-utils/render-utils'
 import { GlobalAlertsProvider } from '@/components/common/GlobalAlerts'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 

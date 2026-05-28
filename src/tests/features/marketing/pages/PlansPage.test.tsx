@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
 
-import { render, screen, userEvent, within } from '@/test/render-utils'
+import { render, screen, userEvent, within } from '@/test-utils/render-utils'
 
 import { PlansPage } from '@/features/marketing/pages/PlansPage'
 
 vi.mock('@tanstack/react-router', async () => {
-  const m = await import('@/test/mocks/router')
+  const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
 

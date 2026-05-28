@@ -1,4 +1,4 @@
-import { act, render, screen, userEvent, fireEvent } from '@/test/render-utils'
+import { act, render, screen, userEvent, fireEvent } from '@/test-utils/render-utils'
 
 import { LeadChatWidget } from '@/features/marketing/components/LeadChatWidget'
 

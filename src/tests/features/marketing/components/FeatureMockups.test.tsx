@@ -1,4 +1,4 @@
-import { render, screen } from '@/test/render-utils'
+import { render, screen } from '@/test-utils/render-utils'
 
 import { FeatureMockup } from '@/features/marketing/components/FeatureMockups'
 

@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react'
-import { renderWithProviders, screen } from '@/test/render-utils'
+import { renderWithProviders, screen } from '@/test-utils/render-utils'
 import { AdminRoute } from '@/features/admin/components/AdminRoute'
-import { makeOwnerUser, makeAdminUser } from '@/test/factories/user.factory'
-import { setMockAuthState, resetAuthMocks } from '@/test/mocks/auth'
+import { makeOwnerUser, makeAdminUser } from '@/test-utils/factories/user.factory'
+import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
 
 vi.mock('@tanstack/react-router', async () => {
-  const m = await import('@/test/mocks/router')
+  const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
 
 vi.mock('@/features/auth/hooks/useAuth', async () => {
-  const authMock = await import('@/test/mocks/auth')
+  const authMock = await import('@/test-utils/mocks/auth')
   return authMock.createUseAuthMock()
 })
 

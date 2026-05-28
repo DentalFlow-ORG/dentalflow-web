@@ -1,4 +1,4 @@
-import { renderHook } from '@/test/render-utils'
+import { renderHook } from '@/test-utils/render-utils'
 
 import { usePageMeta } from '@/features/marketing/hooks/usePageMeta'
 

@@ -6,7 +6,7 @@ import {
   getAvailableTransitions,
   isTerminalStatus,
 } from '@/features/scheduling/utils/appointment-state-machine'
-import { makeAppointment } from '@/test/factories/appointment.factory'
+import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 
 // ── Fixture ───────────────────────────────────────────────────────────────────
 // Factory defaults: appointmentDate '2026-05-26' + startTime '1970-01-01T10:00:00.000Z'

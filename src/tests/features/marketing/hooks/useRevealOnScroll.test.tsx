@@ -1,4 +1,4 @@
-import { render, renderHook, screen, act } from '@/test/render-utils'
+import { render, renderHook, screen, act } from '@/test-utils/render-utils'
 
 import { useRevealOnScroll } from '@/features/marketing/hooks/useRevealOnScroll'
 

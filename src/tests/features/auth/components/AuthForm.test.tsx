@@ -1,7 +1,7 @@
 import { fireEvent } from '@testing-library/react'
-import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
+import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 import { AuthForm } from '@/features/auth/components/AuthForm'
-import { mockNavigate } from '@/test/mocks/router'
+import { mockNavigate } from '@/test-utils/mocks/router'
 
 let mockApiUrl = 'http://localhost:3000'
 
@@ -10,7 +10,7 @@ const mockRegister = vi.fn()
 const mockShowAlert = vi.fn()
 
 vi.mock('@tanstack/react-router', async () => {
-  const m = await import('@/test/mocks/router')
+  const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
 

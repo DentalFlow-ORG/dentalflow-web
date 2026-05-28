@@ -1,21 +1,21 @@
 import type { ReactNode } from 'react'
-import { renderWithProviders, screen, waitFor } from '@/test/render-utils'
+import { renderWithProviders, screen, waitFor } from '@/test-utils/render-utils'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
-import { makeOwnerUser, makeDentistUser, makeAdminUser } from '@/test/factories/user.factory'
-import { makeAccessGrantedBillingStatus, makeAccessDeniedBillingStatus } from '@/test/factories/billing.factory'
-import { setMockPathname } from '@/test/mocks/router'
-import { setMockAuthState, resetAuthMocks } from '@/test/mocks/auth'
+import { makeOwnerUser, makeDentistUser, makeAdminUser } from '@/test-utils/factories/user.factory'
+import { makeAccessGrantedBillingStatus, makeAccessDeniedBillingStatus } from '@/test-utils/factories/billing.factory'
+import { setMockPathname } from '@/test-utils/mocks/router'
+import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
 
 const mockGetCachedBillingStatus = vi.fn()
 const mockGetCurrentBillingStatus = vi.fn()
 
 vi.mock('@tanstack/react-router', async () => {
-  const m = await import('@/test/mocks/router')
+  const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
 
 vi.mock('@/features/auth/hooks/useAuth', async () => {
-  const authMock = await import('@/test/mocks/auth')
+  const authMock = await import('@/test-utils/mocks/auth')
   return authMock.createUseAuthMock()
 })
 

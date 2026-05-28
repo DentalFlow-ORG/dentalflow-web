@@ -4,7 +4,7 @@ import {
   isDateAvailable,
   reaisToCents,
 } from '@/features/scheduling/utils/appointment-form-utils'
-import { makeAvailability, makeAvailabilityException } from '@/test/factories/availability.factory'
+import { makeAvailability, makeAvailabilityException } from '@/test-utils/factories/availability.factory'
 
 // ── reaisToCents ──────────────────────────────────────────────────────────────
 

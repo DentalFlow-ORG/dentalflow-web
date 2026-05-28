@@ -1,4 +1,4 @@
-import { render, screen, userEvent } from '@/test/render-utils'
+import { render, screen, userEvent } from '@/test-utils/render-utils'
 
 import { BillingPeriodToggle } from '@/features/marketing/components/BillingPeriodToggle'
 

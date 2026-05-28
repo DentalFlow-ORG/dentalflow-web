@@ -9,7 +9,7 @@ import {
   startTrial,
   syncCheckoutSession,
 } from '@/features/billing/services/billing.service'
-import { makeBillingStatus } from '@/test/factories/billing.factory'
+import { makeBillingStatus } from '@/test-utils/factories/billing.factory'
 
 const mockApiRequest = vi.fn()
 const mockGetAccessToken = vi.fn(() => 'tok-123')

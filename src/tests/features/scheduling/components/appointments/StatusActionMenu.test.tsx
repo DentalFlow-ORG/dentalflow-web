@@ -1,8 +1,8 @@
-import { render, screen, userEvent } from '@/test/render-utils'
+import { render, screen, userEvent } from '@/test-utils/render-utils'
 
 import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
 import { StatusActionMenu } from '@/features/scheduling/components/appointments/StatusActionMenu'
-import { makeAppointment } from '@/test/factories/appointment.factory'
+import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 
 // ── Fixture ───────────────────────────────────────────────────────────────────
 // Factory defaults: appointmentDate '2026-05-26' + startTime '1970-01-01T10:00:00.000Z'
