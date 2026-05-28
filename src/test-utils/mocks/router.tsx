@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { AnchorHTMLAttributes, ReactNode } from 'react'
 
 export const mockNavigate = vi.fn()
 
@@ -23,13 +23,14 @@ export const resetRouterMocks = (): void => {
 
 export function createRouterMock() {
   return {
-    Link: ({ children, to }: { children: ReactNode; to: string }) => (
-      <a href={String(to)}>{children}</a>
+    Link: ({ children, to, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { children: ReactNode; to: string }) => (
+      <a href={String(to)} {...props}>{children}</a>
     ),
     Navigate: ({ to }: { to: string }) => (
       <div data-testid="navigate" data-to={String(to)} />
     ),
     useNavigate: () => mockNavigate,
+    useLocation: () => ({ pathname: _state.pathname }),
     useRouterState: ({
       select,
     }: {
