@@ -12,6 +12,11 @@ const _authState: AuthMockState = {
   isBootstrapping: false,
 }
 
+export const mockLogin = vi.fn()
+export const mockRegister = vi.fn()
+export const mockCompleteProfile = vi.fn()
+export const mockLogout = vi.fn()
+
 export const setMockAuthState = (patch: Partial<AuthMockState>): void => {
   Object.assign(_authState, patch)
 }
@@ -20,6 +25,10 @@ export const resetAuthMocks = (): void => {
   _authState.user = null
   _authState.isAuthenticated = false
   _authState.isBootstrapping = false
+  mockLogin.mockReset()
+  mockRegister.mockReset()
+  mockCompleteProfile.mockReset()
+  mockLogout.mockReset()
 }
 
 export function createUseAuthMock() {
@@ -28,10 +37,10 @@ export function createUseAuthMock() {
       user: _authState.user,
       isAuthenticated: _authState.isAuthenticated,
       isBootstrapping: _authState.isBootstrapping,
-      login: vi.fn(),
-      register: vi.fn(),
-      completeProfile: vi.fn(),
-      logout: vi.fn(),
+      login: mockLogin,
+      register: mockRegister,
+      completeProfile: mockCompleteProfile,
+      logout: mockLogout,
     }),
   }
 }
