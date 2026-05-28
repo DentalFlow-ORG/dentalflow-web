@@ -1,9 +1,12 @@
 import {
   centsToReais,
+  getCurrentTimeInputValue,
   getInitials,
+  hasAppointmentTimePassed,
   isDateAvailable,
   reaisToCents,
 } from '@/features/scheduling/utils/appointment-form-utils'
+import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 import { makeAvailability, makeAvailabilityException } from '@/test-utils/factories/availability.factory'
 
 // ── reaisToCents ──────────────────────────────────────────────────────────────
@@ -90,6 +93,60 @@ describe('isDateAvailable', () => {
     const av = makeAvailability({ dayOfWeek: 1, isActive: true })
     const ex = makeAvailabilityException({ exceptionDate: '2026-05-25', isDayOff: true })
     expect(isDateAvailable('2026-05-25', [av], [ex])).toBe(false)
+  })
+})
+
+// ── getCurrentTimeInputValue ──────────────────────────────────────────────────
+
+describe('getCurrentTimeInputValue', () => {
+  beforeEach(() => { vi.useFakeTimers() })
+  afterEach(() => { vi.useRealTimers() })
+
+  it('returns the current time as an HH:mm string', () => {
+    // Local constructor: June 15, 2026 at 14:05
+    vi.setSystemTime(new Date(2026, 5, 15, 14, 5, 0))
+    expect(getCurrentTimeInputValue()).toBe('14:05')
+  })
+
+  it('zero-pads single-digit hours and minutes', () => {
+    // Local constructor: June 15, 2026 at 04:03
+    vi.setSystemTime(new Date(2026, 5, 15, 4, 3, 0))
+    expect(getCurrentTimeInputValue()).toBe('04:03')
+  })
+})
+
+// ── hasAppointmentTimePassed ──────────────────────────────────────────────────
+//
+// makeAppointment() defaults: appointmentDate '2026-05-26', startTime '1970-01-01T10:00:00.000Z'
+// formatTimeInputValue uses getUTCHours → startTime always resolves to '10:00'
+// formatDateInputValue(new Date()) uses local getDate/getMonth/getFullYear
+
+describe('hasAppointmentTimePassed', () => {
+  beforeEach(() => { vi.useFakeTimers() })
+  afterEach(() => { vi.useRealTimers() })
+
+  it('returns true when the appointment date is before today', () => {
+    // Today is May 27 (local) — after the appointment on May 26
+    vi.setSystemTime(new Date(2026, 4, 27, 12, 0, 0))
+    expect(hasAppointmentTimePassed(makeAppointment())).toBe(true)
+  })
+
+  it('returns false when the appointment date is after today', () => {
+    // Today is May 25 (local) — before the appointment on May 26
+    vi.setSystemTime(new Date(2026, 4, 25, 12, 0, 0))
+    expect(hasAppointmentTimePassed(makeAppointment())).toBe(false)
+  })
+
+  it('returns true when the appointment is today and the start time has already passed', () => {
+    // Today is May 26 at 11:00 (local) — after the 10:00 UTC start time
+    vi.setSystemTime(new Date(2026, 4, 26, 11, 0, 0))
+    expect(hasAppointmentTimePassed(makeAppointment())).toBe(true)
+  })
+
+  it('returns false when the appointment is today and the start time has not yet passed', () => {
+    // Today is May 26 at 09:00 (local) — before the 10:00 UTC start time
+    vi.setSystemTime(new Date(2026, 4, 26, 9, 0, 0))
+    expect(hasAppointmentTimePassed(makeAppointment())).toBe(false)
   })
 })
 
