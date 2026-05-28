@@ -323,29 +323,14 @@ describe('ProcedureMarginsSection — sort control', () => {
   })
 })
 
-// ── Mini revenue bar ──────────────────────────────────────────────────────────
-
-describe('ProcedureMarginsSection — mini revenue bar', () => {
-  beforeEach(() => vi.clearAllMocks())
-
-  it('renders one revenue bar per service row', () => {
-    const items: ProcedureMarginItem[] = [
-      { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza' },
-      { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta' },
-    ]
-    renderSection({ data: makeData({ items }) })
-    expect(screen.getAllByTestId('revenue-bar')).toHaveLength(2)
-  })
-})
-
 // ── Rankings panel ────────────────────────────────────────────────────────────
 
 describe('ProcedureMarginsSection — rankings panel', () => {
   beforeEach(() => vi.clearAllMocks())
 
   const twoItems: ProcedureMarginItem[] = [
-    { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza' },
-    { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', grossRevenueCents: 90000 },
+    { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza', marginPercent: 75 },
+    { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', grossRevenueCents: 90000, marginPercent: 60 },
   ]
 
   it('revenue ranking renders when items.length > 1', () => {
@@ -370,6 +355,15 @@ describe('ProcedureMarginsSection — rankings panel', () => {
 
   it('margin ranking is absent when costDataAvailable=false', () => {
     renderSection({ data: makeData({ items: twoItems, costDataAvailable: false }) })
+    expect(screen.queryByText('Margem estimada (%)')).not.toBeInTheDocument()
+  })
+
+  it('margin ranking is absent when costDataAvailable=true but all marginPercent values are null', () => {
+    const allNullItems: ProcedureMarginItem[] = [
+      { ...baseItem, serviceId: 'svc-1', serviceName: 'Limpeza', marginPercent: null },
+      { ...baseItem, serviceId: 'svc-2', serviceName: 'Consulta', marginPercent: null },
+    ]
+    renderSection({ data: makeData({ items: allNullItems, costDataAvailable: true, limitation: null }) })
     expect(screen.queryByText('Margem estimada (%)')).not.toBeInTheDocument()
   })
 

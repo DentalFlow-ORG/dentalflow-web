@@ -59,9 +59,9 @@ function MarginsRanking({ items }: { items: ProcedureMarginItem[] }) {
     .slice(0, 5)
 
   const withMargin = items.filter((i) => i.marginPercent != null)
-  const maxAbsMargin = withMargin.length > 0
-    ? Math.max(...withMargin.map((i) => Math.abs(i.marginPercent!)))
-    : 0
+  if (withMargin.length === 0) return null
+
+  const maxAbsMargin = Math.max(...withMargin.map((i) => Math.abs(i.marginPercent!)))
 
   return (
     <div>
@@ -109,11 +109,8 @@ function MarginsRanking({ items }: { items: ProcedureMarginItem[] }) {
   )
 }
 
-function ServiceRow({ item, maxRevenue }: { item: ProcedureMarginItem; maxRevenue: number }) {
+function ServiceRow({ item }: { item: ProcedureMarginItem }) {
   const { label, tone, icon: Icon } = STATUS_CONFIG[item.status]
-  const barWidth = maxRevenue > 0
-    ? Math.max(2, Math.round((item.grossRevenueCents / maxRevenue) * 100))
-    : 2
   return (
     <div className="py-4 first:pt-0 last:pb-0">
       <div className="flex items-start justify-between gap-3">
@@ -171,14 +168,6 @@ function ServiceRow({ item, maxRevenue }: { item: ProcedureMarginItem; maxRevenu
           </span>
         )}
       </div>
-      {/* Revenue share bar — proportional width relative to top procedure */}
-      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-        <div
-          className="h-full rounded-full bg-primary/40"
-          style={{ width: `${barWidth}%` }}
-          data-testid="revenue-bar"
-        />
-      </div>
     </div>
   )
 }
@@ -195,11 +184,6 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
 
   const handleLoad = () => onLoad({ month: selectedMonth })
   const handleRefresh = () => onLoad({ month: selectedMonth })
-
-  const maxRevenue = useMemo(
-    () => (data?.items.length ? Math.max(...data.items.map((i) => i.grossRevenueCents)) : 1),
-    [data],
-  )
 
   const sortedItems = useMemo(() => {
     if (!data) return []
@@ -462,7 +446,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
               )}
               <div className="divide-y divide-border" data-testid="service-list">
                 {sortedItems.map((item) => (
-                  <ServiceRow key={item.serviceId} item={item} maxRevenue={maxRevenue} />
+                  <ServiceRow key={item.serviceId} item={item} />
                 ))}
               </div>
             </div>
