@@ -20,7 +20,6 @@ import { useClinicalTemplates } from '../hooks/useClinicalTemplates'
 import { getOdontogram, upsertOdontogram } from '../services/clinical-records.service'
 import type { ClinicalTemplate, OdontogramData, UpdateClinicalRecordDto } from '../types/clinical-record.types'
 import {
-  getClinicalRecordReadOnlyMessage,
   isClinicalRecordEditable,
   isClinicalRecordReadOnly,
 } from '../utils/clinical-record-status-rules'
@@ -126,8 +125,20 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
   const canEditClinicalContent = isClinicalRecordEditable(record.status)
   const isReadOnly = isClinicalRecordReadOnly(record.status)
-  const readOnlyMessage = getClinicalRecordReadOnlyMessage(record.status)
   const identifier = record.patientEmail ?? record.patientName
+
+  // Per-status contextual read-only notice — tone and text differ per state.
+  // LOCKED: permanent, no restore path exists.
+  // CANCELED: prompts the user to restore (restore returns to DRAFT).
+  // COMPLETED: informs and describes the path back (cancel → restore).
+  const readOnlyNotice: { tone: 'info' | 'warning'; text: string } | null =
+    record.status === 'LOCKED'
+      ? { tone: 'info', text: 'Prontuário bloqueado permanentemente — este registro não pode mais ser editado.' }
+      : record.status === 'CANCELED'
+      ? { tone: 'warning', text: 'Prontuário cancelado. Use "Restaurar prontuário" para reativar a edição.' }
+      : record.status === 'COMPLETED'
+      ? { tone: 'info', text: 'Prontuário concluído e em modo somente leitura. Para reabrir, cancele e restaure o registro.' }
+      : null
 
   const field = (key: keyof UpdateClinicalRecordDto) =>
     (draft[key] as string | undefined) ?? (record[key as keyof typeof record] as string | null) ?? ''
@@ -205,9 +216,9 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
       <ClinicalRecordHeader record={record} />
 
       {/* ── Read-only notice ──────────────────────────────────────────── */}
-      {readOnlyMessage && (
-        <InlineFeedback tone="info">
-          {readOnlyMessage} Para editar informações clínicas, o prontuário precisa estar em rascunho.
+      {readOnlyNotice && (
+        <InlineFeedback tone={readOnlyNotice.tone}>
+          {readOnlyNotice.text}
         </InlineFeedback>
       )}
 
@@ -366,8 +377,9 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
             </div>
           </div>
 
-          {/* Private notes — draft-only, not printed */}
-          {!isReadOnly && (
+          {/* Private notes — not printed.
+              Editable in DRAFT; shown as read-only when data exists in any other status. */}
+          {!isReadOnly ? (
             <div className="rounded-xl border border-amber-100 bg-amber-50 p-5 dark:border-amber-800/30 dark:bg-amber-950/20">
               <ClinicalSectionField
                 label="Notas privadas (não imprimíveis)"
@@ -377,7 +389,17 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
                 rows={3}
               />
             </div>
-          )}
+          ) : record.privateNotes ? (
+            <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-5 dark:border-amber-800/30 dark:bg-amber-950/10">
+              <ClinicalSectionField
+                label="Notas privadas (não imprimíveis)"
+                value={record.privateNotes}
+                onChange={() => {}}
+                readOnly
+                rows={3}
+              />
+            </div>
+          ) : null}
         </div>
 
         {/* ── Sidebar — 1 col on xl, stacks below main on mobile ──────── */}
