@@ -20,6 +20,10 @@ export function useClinicalRecord(id: string) {
   const [error, setError] = useState<string | null>(null)
   const { showAlert } = useGlobalAlerts()
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Inline ref kept in sync every render — gives saveQuiet a stable record
+  // reference without needing it in useCallback deps.
+  const recordRef = useRef<ClinicalRecord | null>(null)
+  recordRef.current = record
 
   useEffect(() => {
     let isCurrent = true
@@ -60,6 +64,22 @@ export function useClinicalRecord(id: string) {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => save(dto), 800)
   }
+
+  // Silent save for autosave — shares the same updateClinicalRecord call and
+  // setRecord behavior as save(), but does not show success/error toasts.
+  // The caller (useClinicalRecordAutosave) is responsible for UX feedback.
+  // Throws on error so the autosave hook can set error status.
+  const saveQuiet = useCallback(async (dto: UpdateClinicalRecordDto): Promise<void> => {
+    const current = recordRef.current
+    if (!current) return
+    setIsSaving(true)
+    try {
+      const updated = await updateClinicalRecord(current.id, dto)
+      setRecord(updated)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [])
 
   const complete = async () => {
     if (!record) return
@@ -137,7 +157,7 @@ export function useClinicalRecord(id: string) {
     }
   }
 
-  return { record, isLoading, isSaving, error, save, saveDraft, complete, saveAndComplete, lock, cancel, restore }
+  return { record, isLoading, isSaving, error, save, saveDraft, saveQuiet, complete, saveAndComplete, lock, cancel, restore }
 }
 
 type AppointmentRecordState = {

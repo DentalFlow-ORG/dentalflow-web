@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, ClipboardList } from 'lucide-react'
+import { AlertCircle, ArrowLeft, CheckCircle2, ClipboardList, Loader2 } from 'lucide-react'
 
 import { AppPage } from '@/components/layout/AppPage'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -16,6 +16,10 @@ import { ClinicalTemplateSelectorPanel } from '../components/ClinicalTemplateSel
 import { ImageAttachmentPanel } from '../components/ImageAttachmentPanel'
 import { OdontogramSection } from '../components/OdontogramSection'
 import { useClinicalRecord } from '../hooks/useClinicalRecord'
+import {
+  useClinicalRecordAutosave,
+  type AutosaveStatus,
+} from '../hooks/useClinicalRecordAutosave'
 import { useClinicalTemplates } from '../hooks/useClinicalTemplates'
 import { getOdontogram, upsertOdontogram } from '../services/clinical-records.service'
 import type { ClinicalTemplate, OdontogramData, UpdateClinicalRecordDto } from '../types/clinical-record.types'
@@ -57,7 +61,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const navigate = useNavigate()
-  const { record, isLoading, isSaving, error, save, saveAndComplete, lock, cancel, restore } =
+  const { record, isLoading, isSaving, error, save, saveQuiet, saveAndComplete, lock, cancel, restore } =
     useClinicalRecord(recordId)
   const { templates } = useClinicalTemplates()
 
@@ -65,6 +69,16 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const [draft, setDraft] = useState<UpdateClinicalRecordDto>({})
   const [odontogramData, setOdontogramData] = useState<OdontogramData>({ teeth: {} })
   const [odontogramLoaded, setOdontogramLoaded] = useState(false)
+
+  // Autosave wiring — only fires for DRAFT records with pending changes.
+  // canAutosave is derived from record?.status so the hook is called unconditionally.
+  const { autosaveStatus, cancelPendingAutosave } = useClinicalRecordAutosave({
+    draft,
+    setDraft,
+    record,
+    canAutosave: record?.status === 'DRAFT',
+    saveQuiet,
+  })
 
   useEffect(() => {
     if (!record || odontogramLoaded) return
@@ -174,6 +188,9 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const handleSaveDraft = async () => {
     if (!canEditClinicalContent) return
 
+    // Cancel any pending autosave before the manual save fires — prevents
+    // a redundant API call immediately after the manual save completes.
+    cancelPendingAutosave()
     await save(draft)
     if (Object.keys(odontogramData.teeth).length > 0) {
       upsertOdontogram(identifier, record.patientName, odontogramData).catch(() => {})
@@ -222,17 +239,20 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         </InlineFeedback>
       )}
 
-      {/* ── Action bar ────────────────────────────────────────────────── */}
-      <ClinicalRecordActions
-        record={record}
-        isSaving={isSaving}
-        onSaveDraft={handleSaveDraft}
-        onComplete={handleComplete}
-        onLock={handleLock}
-        onCancel={handleCancel}
-        onRestore={handleRestore}
-        onPrint={handlePrint}
-      />
+      {/* ── Action bar + autosave status ──────────────────────────────── */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <ClinicalRecordActions
+          record={record}
+          isSaving={isSaving}
+          onSaveDraft={handleSaveDraft}
+          onComplete={handleComplete}
+          onLock={handleLock}
+          onCancel={handleCancel}
+          onRestore={handleRestore}
+          onPrint={handlePrint}
+        />
+        {canEditClinicalContent && <AutosaveIndicator status={autosaveStatus} />}
+      </div>
 
       {/* ── Main content grid ─────────────────────────────────────────── */}
       {/*
@@ -416,5 +436,43 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         </div>
       </div>
     </AppPage>
+  )
+}
+
+// ── AutosaveIndicator ─────────────────────────────────────────────────────────
+
+function AutosaveIndicator({ status }: { status: AutosaveStatus }) {
+  if (status === 'idle') return null
+
+  return (
+    <div
+      className="flex items-center gap-1.5 text-xs"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {status === 'pending' && (
+        <span className="text-muted-foreground">Aguardando para salvar...</span>
+      )}
+      {status === 'saving' && (
+        <>
+          <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" aria-hidden="true" />
+          <span className="text-muted-foreground">Salvando...</span>
+        </>
+      )}
+      {status === 'saved' && (
+        <>
+          <CheckCircle2 className="h-3 w-3 text-emerald-500" aria-hidden="true" />
+          <span className="text-emerald-600 dark:text-emerald-400">Salvo automaticamente</span>
+        </>
+      )}
+      {status === 'error' && (
+        <>
+          <AlertCircle className="h-3 w-3 text-amber-500" aria-hidden="true" />
+          <span className="text-amber-600 dark:text-amber-400">
+            Falha ao salvar — use &ldquo;Salvar agora&rdquo;
+          </span>
+        </>
+      )}
+    </div>
   )
 }

@@ -73,7 +73,7 @@ export function ClinicalRecordActions({
             disabled={isSaving}
             className="w-full sm:w-auto"
           >
-            {isSaving ? 'Salvando...' : 'Salvar rascunho'}
+            {isSaving ? 'Salvando...' : 'Salvar agora'}
           </Button>
         )}
 
