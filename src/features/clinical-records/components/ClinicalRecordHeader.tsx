@@ -63,6 +63,24 @@ export function ClinicalRecordHeader({ record }: Props) {
             )}
           </>
         )}
+
+        {/* Audit trail */}
+        <p className="w-full text-xs text-muted-foreground/70">
+          Criado por{' '}
+          <span className="font-medium text-muted-foreground">
+            {record.createdByUser.firstName} {record.createdByUser.lastName}
+          </span>
+          {' em '}{formatDateBR(record.createdAt.slice(0, 10))}
+          {record.updatedByUser && (
+            <>
+              {' · '}Atualizado por{' '}
+              <span className="font-medium text-muted-foreground">
+                {record.updatedByUser.firstName} {record.updatedByUser.lastName}
+              </span>
+              {' em '}{formatDateBR(record.updatedAt.slice(0, 10))}
+            </>
+          )}
+        </p>
       </div>
     </div>
   )
