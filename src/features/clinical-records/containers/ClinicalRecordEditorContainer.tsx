@@ -20,6 +20,7 @@ import {
   useClinicalRecordAutosave,
   type AutosaveStatus,
 } from '../hooks/useClinicalRecordAutosave'
+import { useUnsavedChangesGuard } from '../hooks/useUnsavedChangesGuard'
 import { useClinicalTemplates } from '../hooks/useClinicalTemplates'
 import { getOdontogram, upsertOdontogram } from '../services/clinical-records.service'
 import type { ClinicalTemplate, OdontogramData, UpdateClinicalRecordDto } from '../types/clinical-record.types'
@@ -78,6 +79,12 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     record,
     canAutosave: record?.status === 'DRAFT',
     saveQuiet,
+  })
+
+  // Navigation guard — warns before leaving when there are unsaved draft changes.
+  // Inactive when draft is empty, record is null/loading, or status is not DRAFT.
+  useUnsavedChangesGuard({
+    isDirty: record?.status === 'DRAFT' && Object.keys(draft).length > 0,
   })
 
   useEffect(() => {
