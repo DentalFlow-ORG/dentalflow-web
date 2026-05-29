@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 import { ClinicalAiAssistantCard } from '../components/ClinicalAiAssistantCard'
 import { ClinicalRecordActions } from '../components/ClinicalRecordActions'
@@ -35,27 +36,22 @@ type Props = {
   recordId: string
 }
 
-type Tab =
-  | 'anamnese'
-  | 'evolucao'
-  | 'diagnostico'
-  | 'procedimentos'
-  | 'plano'
-  | 'prescricao'
-  | 'recomendacoes'
-  | 'odontograma'
-  | 'imagens'
+// Six logical groups replace the previous nine flat tabs:
+//   evolucao   — Evolução clínica (primary consultation narrative)
+//   anamnese   — Anamnese (patient history)
+//   diagnostico — Diagnóstico
+//   plano      — Plano clínico (procedures + treatment plan + prescription + recommendations)
+//   odontograma — Odontogram
+//   imagens    — Images and attachments
+type Tab = 'evolucao' | 'anamnese' | 'diagnostico' | 'plano' | 'odontograma' | 'imagens'
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'anamnese', label: 'Anamnese' },
   { id: 'evolucao', label: 'Evolução clínica' },
+  { id: 'anamnese', label: 'Anamnese' },
   { id: 'diagnostico', label: 'Diagnóstico' },
-  { id: 'procedimentos', label: 'Procedimentos' },
-  { id: 'plano', label: 'Plano de tratamento' },
-  { id: 'prescricao', label: 'Prescrição' },
-  { id: 'recomendacoes', label: 'Recomendações' },
+  { id: 'plano', label: 'Plano clínico' },
   { id: 'odontograma', label: 'Odontograma' },
-  { id: 'imagens', label: 'Imagens e anexos' },
+  { id: 'imagens', label: 'Imagens' },
 ]
 
 // ── Container ──────────────────────────────────────────────────────────────────
@@ -167,6 +163,27 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const setField = (key: keyof UpdateClinicalRecordDto) => (value: string) =>
     setDraft((prev) => ({ ...prev, [key]: value }))
 
+  // Content-dot indicator helpers — pure checks over existing state, no API calls.
+  const hasContent = (key: keyof UpdateClinicalRecordDto): boolean =>
+    field(key).trim().length > 0
+
+  const tabHasContent = (tabId: Tab): boolean => {
+    switch (tabId) {
+      case 'evolucao':    return hasContent('clinicalEvolution')
+      case 'anamnese':    return hasContent('anamnesis')
+      case 'diagnostico': return hasContent('diagnosis')
+      case 'plano':       return (
+        hasContent('proceduresPerformed') ||
+        hasContent('treatmentPlan') ||
+        hasContent('prescription') ||
+        hasContent('recommendations')
+      )
+      case 'odontograma': return Object.keys(odontogramData.teeth).length > 0
+      case 'imagens':     return false // requires an API call — not tracked locally
+      default:            return false
+    }
+  }
+
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
   const handleApplyTemplate = (template: ClinicalTemplate) => {
@@ -183,12 +200,13 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     if (!targetField) return
     const current = field(targetField)
     setField(targetField)(current ? `${current}\n\n${template.content}` : template.content)
+    // Treatment-related categories all navigate to the unified 'plano' tab.
     setActiveTab(
-      template.category === 'ANAMNESIS' ? 'anamnese' :
-      template.category === 'EVOLUTION' ? 'evolucao' :
-      template.category === 'PRESCRIPTION' ? 'prescricao' :
-      template.category === 'RECOMMENDATION' ? 'recomendacoes' :
-      template.category === 'PROCEDURE' ? 'procedimentos' : activeTab,
+      template.category === 'ANAMNESIS'   ? 'anamnese' :
+      template.category === 'EVOLUTION'   ? 'evolucao' :
+      template.category === 'PRESCRIPTION'  ? 'plano' :
+      template.category === 'RECOMMENDATION' ? 'plano' :
+      template.category === 'PROCEDURE'   ? 'plano' : activeTab,
     )
   }
 
@@ -266,7 +284,6 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
        * Single JSX tree for all screen sizes.
        * Mobile / tablet (< xl): single column — sidebar stacks below main content.
        * Desktop (xl+): 4-column grid — main spans 3 cols, sidebar 1 col.
-       * Replaces the previous isMobile fork that duplicated all section markup.
        */}
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-4">
 
@@ -279,13 +296,14 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
               label="Queixa principal"
               value={field('chiefComplaint')}
               onChange={setField('chiefComplaint')}
-              placeholder="Descreva a queixa principal do paciente..."
+              placeholder="Principal motivo da consulta, em palavras do paciente..."
               readOnly={isReadOnly}
               rows={2}
             />
           </div>
 
-          {/* Tabbed clinical sections */}
+          {/* ── Tabbed clinical sections ─────────────────────────────── */}
+          {/* 6 tabs (reduced from 9): Evolução · Anamnese · Diagnóstico · Plano clínico · Odontograma · Imagens */}
           <div className="rounded-xl border border-border bg-card">
             {/* Tab bar — scrollable on narrow viewports */}
             <div className="overflow-x-auto border-b border-border">
@@ -299,13 +317,23 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
                     aria-selected={activeTab === tab.id}
                     aria-controls={`tabpanel-${tab.id}`}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors ${
+                    className={cn(
+                      'inline-flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors',
                       activeTab === tab.id
                         ? 'border-b-2 border-primary text-primary'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
                   >
                     {tab.label}
+                    {tabHasContent(tab.id) && (
+                      <span
+                        className={cn(
+                          'inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full',
+                          activeTab === tab.id ? 'bg-primary' : 'bg-muted-foreground/40',
+                        )}
+                        aria-hidden="true"
+                      />
+                    )}
                   </button>
                 ))}
               </nav>
@@ -318,76 +346,86 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
               aria-labelledby={`tab-${activeTab}`}
               className="p-5"
             >
-              {activeTab === 'anamnese' && (
-                <ClinicalSectionField
-                  label="Anamnese"
-                  value={field('anamnesis')}
-                  onChange={setField('anamnesis')}
-                  placeholder="Histórico médico, alergias, medicamentos em uso, antecedentes familiares..."
-                  readOnly={isReadOnly}
-                  rows={8}
-                />
-              )}
+              {/* ── Evolução clínica ───── */}
               {activeTab === 'evolucao' && (
                 <ClinicalSectionField
                   label="Evolução clínica"
                   value={field('clinicalEvolution')}
                   onChange={setField('clinicalEvolution')}
-                  placeholder="Descreva a evolução clínica do atendimento..."
+                  placeholder="Achados clínicos, evolução do caso, exame intraoral, condição periodontal, achados radiográficos relevantes, resposta do paciente..."
                   readOnly={isReadOnly}
                   rows={8}
                 />
               )}
+
+              {/* ── Anamnese ──────────── */}
+              {activeTab === 'anamnese' && (
+                <ClinicalSectionField
+                  label="Anamnese"
+                  value={field('anamnesis')}
+                  onChange={setField('anamnesis')}
+                  placeholder="Histórico médico geral, alergias medicamentosas e alimentares, medicamentos em uso (nome e dosagem), condições sistêmicas (diabetes, hipertensão, coagulopatia), hábitos (tabagismo, bruxismo), histórico odontológico relevante..."
+                  readOnly={isReadOnly}
+                  rows={8}
+                />
+              )}
+
+              {/* ── Diagnóstico ───────── */}
               {activeTab === 'diagnostico' && (
                 <ClinicalSectionField
                   label="Diagnóstico / Hipótese diagnóstica"
                   value={field('diagnosis')}
                   onChange={setField('diagnosis')}
-                  placeholder="CID, hipótese diagnóstica ou diagnóstico diferencial..."
+                  placeholder="Diagnóstico clínico ou hipótese diagnóstica, CID correspondente se aplicável, dentes e regiões envolvidos, achados clínicos e radiográficos que embasam o diagnóstico..."
                   readOnly={isReadOnly}
                   rows={6}
                 />
               )}
-              {activeTab === 'procedimentos' && (
-                <ClinicalSectionField
-                  label="Procedimentos realizados"
-                  value={field('proceduresPerformed')}
-                  onChange={setField('proceduresPerformed')}
-                  placeholder="Descreva os procedimentos realizados durante o atendimento..."
-                  readOnly={isReadOnly}
-                  rows={6}
-                />
-              )}
+
+              {/* ── Plano clínico — 4 fields stacked ── */}
               {activeTab === 'plano' && (
-                <ClinicalSectionField
-                  label="Plano de tratamento"
-                  value={field('treatmentPlan')}
-                  onChange={setField('treatmentPlan')}
-                  placeholder="Descreva o plano de tratamento proposto..."
-                  readOnly={isReadOnly}
-                  rows={6}
-                />
+                <div className="space-y-6">
+                  <ClinicalSectionField
+                    label="Procedimentos realizados"
+                    hint="Nesta consulta"
+                    value={field('proceduresPerformed')}
+                    onChange={setField('proceduresPerformed')}
+                    placeholder="Técnica anestésica utilizada, materiais e instrumentos, dentes tratados (numeração), etapas executadas e observações do procedimento..."
+                    readOnly={isReadOnly}
+                    rows={5}
+                  />
+                  <div className="border-t border-border" />
+                  <ClinicalSectionField
+                    label="Plano de tratamento"
+                    hint="Próximas etapas"
+                    value={field('treatmentPlan')}
+                    onChange={setField('treatmentPlan')}
+                    placeholder="Sequência de tratamento proposta: prioridades, fases, estimativa de sessões, necessidade de encaminhamento especializado..."
+                    readOnly={isReadOnly}
+                    rows={5}
+                  />
+                  <div className="border-t border-border" />
+                  <ClinicalSectionField
+                    label="Prescrição / Medicamentos"
+                    value={field('prescription')}
+                    onChange={setField('prescription')}
+                    placeholder="Ex: Amoxicilina 500mg — 1 cápsula 8/8h por 7 dias com alimento. Dipirona 500mg — 1 comprimido se necessário (máx. 4x/dia, intervalo mínimo 6h)..."
+                    readOnly={isReadOnly}
+                    rows={4}
+                  />
+                  <div className="border-t border-border" />
+                  <ClinicalSectionField
+                    label="Recomendações ao paciente"
+                    value={field('recommendations')}
+                    onChange={setField('recommendations')}
+                    placeholder="Cuidados pós-consulta, higiene oral, restrições alimentares, sinais de alerta para retorno imediato, data do próximo atendimento programado..."
+                    readOnly={isReadOnly}
+                    rows={4}
+                  />
+                </div>
               )}
-              {activeTab === 'prescricao' && (
-                <ClinicalSectionField
-                  label="Prescrição / Medicamentos"
-                  value={field('prescription')}
-                  onChange={setField('prescription')}
-                  placeholder="Medicamentos prescritos, posologia, orientações de uso..."
-                  readOnly={isReadOnly}
-                  rows={6}
-                />
-              )}
-              {activeTab === 'recomendacoes' && (
-                <ClinicalSectionField
-                  label="Recomendações ao paciente"
-                  value={field('recommendations')}
-                  onChange={setField('recommendations')}
-                  placeholder="Orientações de cuidados pós-atendimento, restrições, retorno..."
-                  readOnly={isReadOnly}
-                  rows={6}
-                />
-              )}
+
+              {/* ── Odontograma ───────── */}
               {activeTab === 'odontograma' && (
                 <OdontogramSection
                   data={odontogramData}
@@ -395,6 +433,8 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
                   readOnly={isReadOnly}
                 />
               )}
+
+              {/* ── Imagens e anexos ─── */}
               {activeTab === 'imagens' && (
                 <ImageAttachmentPanel
                   recordId={recordId}
@@ -412,7 +452,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
                 label="Notas privadas (não imprimíveis)"
                 value={field('privateNotes')}
                 onChange={setField('privateNotes')}
-                placeholder="Anotações internas, observações do profissional..."
+                placeholder="Observações internas, contexto do caso, anotações do profissional — não aparecem no documento impresso..."
                 rows={3}
               />
             </div>
