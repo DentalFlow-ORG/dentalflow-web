@@ -9,13 +9,14 @@ import { AvailabilityManager } from '@/features/scheduling/components/availabili
 import { ExceptionManager } from '@/features/scheduling/components/availability/ExceptionManager'
 
 import { useTeamMemberProfile } from '../hooks/useTeamMemberProfile'
+import { ServicesPanel } from '../components/ServicesPanel'
 
 type Props = {
   profileId: string
 }
 
 export function TeamMemberProfileContainer({ profileId }: Props) {
-  const { profile, status, displayName, email, phone, isActive, availability, setAvailability, exceptions, setExceptions, user, load } =
+  const { profile, status, displayName, email, phone, isActive, availability, setAvailability, exceptions, setExceptions, services, setServices, user, load } =
     useTeamMemberProfile(profileId)
 
   const isDentist = user?.role === 'DENTIST'
@@ -126,6 +127,16 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
               exceptions={exceptions}
               onExceptionsChange={setExceptions}
               title="Exceções e bloqueios"
+            />
+          </PanelCard>
+
+          {/* Services panel */}
+          <PanelCard>
+            <ServicesPanel
+              profileId={profileId}
+              services={services}
+              onServicesChange={setServices}
+              readOnly={user?.role !== 'OWNER'}
             />
           </PanelCard>
         </>

@@ -267,3 +267,36 @@ export type MonthlyFinanceDiagnosis = {
   source: 'AI' | 'CACHE'
   financeSnapshot: DiagnosisFinanceSnapshot
 }
+
+// ── Procedure margins ─────────────────────────────────────────────────────────
+
+export type ProcedureMarginStatus = 'HEALTHY' | 'ATTENTION' | 'INSUFFICIENT_DATA'
+
+export type ProcedureMarginItem = {
+  serviceId: string
+  serviceName: string
+  totalAppointments: number
+  completedAppointments: number
+  canceledOrNoShowCount: number
+  grossRevenueCents: number
+  estimatedDirectCostCents: number | null
+  estimatedProfitCents: number | null
+  marginPercent: number | null
+  avgRevenueCents: number
+  status: ProcedureMarginStatus
+}
+
+export type ProcedureMarginsResponse = {
+  period: { from: string; to: string }
+  items: ProcedureMarginItem[]
+  totals: {
+    totalAppointments: number
+    completedAppointments: number
+    grossRevenueCents: number
+    estimatedDirectCostCents: number | null
+    estimatedProfitCents: number | null
+    marginPercent: number | null
+  }
+  costDataAvailable: boolean
+  limitation: string | null
+}

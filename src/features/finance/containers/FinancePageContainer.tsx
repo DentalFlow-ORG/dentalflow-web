@@ -11,12 +11,14 @@ import { Button } from '@/components/ui/button'
 import { useExpenseClassifier } from '../hooks/useExpenseClassifier'
 import { useFinancePage } from '../hooks/useFinancePage'
 import { useMonthlyFinanceDiagnosis } from '../hooks/useMonthlyFinanceDiagnosis'
+import { useProcedureMargins } from '../hooks/useProcedureMargins'
 import { CategoriesPanel } from '../components/CategoriesPanel'
 import { CategoryCreateForm } from '../components/CategoryCreateForm'
 import { CategoryEditModal } from '../components/CategoryEditModal'
 import { FinanceFiltersBar } from '../components/FinanceFiltersBar'
 import { FinancialAnalysisPanel } from '../components/FinancialAnalysisPanel'
 import { MonthlyFinanceDiagnosisCard } from '../components/MonthlyFinanceDiagnosisCard'
+import { ProcedureMarginsSection } from '../components/ProcedureMarginsSection'
 import { FixedExpenseForm } from '../components/FixedExpenseForm'
 import { FixedExpenseEditModal } from '../components/FixedExpenseEditModal'
 import { FixedExpensesList } from '../components/FixedExpensesList'
@@ -106,6 +108,7 @@ export function FinancePageContainer() {
 
   const { getState: getClassifierState, handleClassify, handleApply: handleApplyCategory, handleDismiss: handleDismissClassify } = useExpenseClassifier(load)
   const { state: diagnosisState, handleGenerate: handleGenerateDiagnosis } = useMonthlyFinanceDiagnosis()
+  const { state: marginsState, load: loadMargins } = useProcedureMargins()
 
   if (planBlocked) return <PlanUpgradeNotice title="Gestão financeira" />
 
@@ -142,6 +145,8 @@ export function FinancePageContainer() {
               state={diagnosisState}
               onGenerate={handleGenerateDiagnosis}
             />
+
+            <ProcedureMarginsSection state={marginsState} onLoad={loadMargins} />
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <PanelCard>
