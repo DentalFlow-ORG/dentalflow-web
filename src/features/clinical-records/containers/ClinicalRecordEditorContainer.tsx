@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { AlertCircle, ArrowLeft, CheckCircle2, ClipboardList, Loader2 } from 'lucide-react'
 
@@ -6,6 +6,7 @@ import { AppPage } from '@/components/layout/AppPage'
 import { EmptyState } from '@/components/common/EmptyState'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -58,9 +59,14 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const navigate = useNavigate()
+  const { showAlert } = useGlobalAlerts()
   const { record, isLoading, isSaving, error, save, saveQuiet, saveAndComplete, lock, cancel, restore } =
     useClinicalRecord(recordId)
   const { templates } = useClinicalTemplates()
+  // Anti-spam guard — prevents flooding the user with repeated odontogram save
+  // warnings when conditions change rapidly (e.g. multi-select). Resets after
+  // 10 seconds so persistent connectivity issues are still eventually surfaced.
+  const odontogramAlertShownRef = useRef(false)
 
   const [activeTab, setActiveTab] = useState<Tab>('evolucao')
   const [draft, setDraft] = useState<UpdateClinicalRecordDto>({})
@@ -218,7 +224,13 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     cancelPendingAutosave()
     await save(draft)
     if (Object.keys(odontogramData.teeth).length > 0) {
-      upsertOdontogram(identifier, record.patientName, odontogramData).catch(() => {})
+      upsertOdontogram(identifier, record.patientName, odontogramData).catch(() => {
+        showAlert({
+          title: 'Odontograma não salvo',
+          description: 'Não foi possível salvar o odontograma durante o salvamento do rascunho.',
+          tone: 'warning',
+        })
+      })
     }
   }
 
@@ -226,7 +238,19 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     if (!canEditClinicalContent) return
 
     setOdontogramData(data)
-    upsertOdontogram(identifier, record.patientName, data).catch(() => {})
+    upsertOdontogram(identifier, record.patientName, data).catch(() => {
+      // Anti-spam: show the warning at most once per 10 seconds to avoid
+      // flooding the user when teeth conditions change in rapid succession.
+      if (!odontogramAlertShownRef.current) {
+        odontogramAlertShownRef.current = true
+        showAlert({
+          title: 'Odontograma não salvo',
+          description: 'Não foi possível salvar o odontograma. Verifique sua conexão.',
+          tone: 'warning',
+        })
+        setTimeout(() => { odontogramAlertShownRef.current = false }, 10_000)
+      }
+    })
   }
 
   const handleComplete = () => saveAndComplete(draft)

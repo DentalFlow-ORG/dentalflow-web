@@ -1,14 +1,14 @@
 import { useIsMobile } from '@/hooks/useIsMobile'
 
 import type { OdontogramTooth as OdontogramToothData } from '../../types/clinical-record.types'
-import { LOWER_TEETH, UPPER_TEETH } from '../../utils/odontogram-status-utils'
+import {
+  LOWER_DECIDUOUS,
+  LOWER_TEETH,
+  UPPER_DECIDUOUS,
+  UPPER_TEETH,
+  type DentitionMode,
+} from '../../utils/odontogram-status-utils'
 import { OdontogramTooth } from './OdontogramTooth'
-
-// FDI quadrant slices — derived from existing arrays, no new numbering
-const Q1 = UPPER_TEETH.slice(0, 8) // superior direita: 18–11
-const Q2 = UPPER_TEETH.slice(8)    // superior esquerda: 21–28
-const Q4 = LOWER_TEETH.slice(0, 8) // inferior direita: 48–41
-const Q3 = LOWER_TEETH.slice(8)    // inferior esquerda: 31–38
 
 type Props = {
   getTooth: (toothNumber: number) => OdontogramToothData
@@ -16,6 +16,8 @@ type Props = {
   multiSelected?: Set<number> | null
   readOnly?: boolean
   printMode?: boolean
+  /** Defaults to 'permanent' — print container and existing callers are unaffected. */
+  dentitionMode?: DentitionMode
   onSelect?: (toothNumber: number) => void
 }
 
@@ -33,11 +35,16 @@ export function OdontogramChart({
   multiSelected = null,
   readOnly = false,
   printMode = false,
+  dentitionMode = 'permanent',
   onSelect,
 }: Props) {
   const isMobile = useIsMobile()
 
+  const upperTeeth = dentitionMode === 'deciduous' ? UPPER_DECIDUOUS : UPPER_TEETH
+  const lowerTeeth = dentitionMode === 'deciduous' ? LOWER_DECIDUOUS : LOWER_TEETH
+
   if (printMode) {
+    // Print always uses permanent dentition regardless of active mode
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-3">
         <PrintArch
@@ -60,15 +67,15 @@ export function OdontogramChart({
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       {isMobile ? (
-        <QuadrantLayout {...iProps} />
+        <QuadrantLayout {...iProps} upperTeeth={upperTeeth} lowerTeeth={lowerTeeth} />
       ) : (
         <div className="overflow-x-auto pb-2">
           <div className="mx-auto w-fit">
-            <FullArch teeth={UPPER_TEETH} lower={false} {...iProps} />
-            <FullNumberRow teeth={UPPER_TEETH} />
+            <FullArch teeth={upperTeeth} lower={false} {...iProps} />
+            <FullNumberRow teeth={upperTeeth} />
             <div className="my-3 border-t border-dashed border-border" />
-            <FullNumberRow teeth={LOWER_TEETH} />
-            <FullArch teeth={LOWER_TEETH} lower={true} {...iProps} />
+            <FullNumberRow teeth={lowerTeeth} />
+            <FullArch teeth={lowerTeeth} lower={true} {...iProps} />
           </div>
         </div>
       )}
@@ -76,7 +83,9 @@ export function OdontogramChart({
   )
 }
 
-// ── Desktop full arch (48px fixed teeth) ────────────────────────────────────
+// ── Desktop full arch ────────────────────────────────────────────────────────
+// Uses inline style for gridTemplateColumns so the column count scales with
+// the tooth array length (16 for permanent, 10 for deciduous).
 
 type FullArchProps = InteractiveProps & { teeth: number[]; lower?: boolean }
 
@@ -90,7 +99,10 @@ function FullArch({
   onSelect,
 }: FullArchProps) {
   return (
-    <div className="grid grid-cols-[repeat(16,48px)] items-center gap-1.5">
+    <div
+      className="grid items-center gap-1.5"
+      style={{ gridTemplateColumns: `repeat(${teeth.length}, 48px)` }}
+    >
       {teeth.map((toothNumber) => (
         <OdontogramTooth
           key={toothNumber}
@@ -109,7 +121,10 @@ function FullArch({
 
 function FullNumberRow({ teeth }: { teeth: number[] }) {
   return (
-    <div className="grid grid-cols-[repeat(16,48px)] gap-1.5">
+    <div
+      className="grid gap-1.5"
+      style={{ gridTemplateColumns: `repeat(${teeth.length}, 48px)` }}
+    >
       {teeth.map((n) => (
         <div
           key={n}
@@ -122,7 +137,13 @@ function FullNumberRow({ teeth }: { teeth: number[] }) {
   )
 }
 
-// ── Mobile quadrant layout (compact fluid teeth, 8 per row) ─────────────────
+// ── Mobile quadrant layout ────────────────────────────────────────────────────
+// Column count is derived from teeth.length (8 per quadrant for permanent, 5 for deciduous).
+
+type QuadrantLayoutProps = InteractiveProps & {
+  upperTeeth: number[]
+  lowerTeeth: number[]
+}
 
 type QuadrantSectionProps = InteractiveProps & {
   title: string
@@ -140,7 +161,10 @@ function QuadrantArch({
   onSelect,
 }: Omit<QuadrantSectionProps, 'title'>) {
   return (
-    <div className="grid grid-cols-8 gap-[3px]">
+    <div
+      className="grid gap-[3px]"
+      style={{ gridTemplateColumns: `repeat(${teeth.length}, 1fr)` }}
+    >
       {teeth.map((toothNumber) => (
         <OdontogramTooth
           key={toothNumber}
@@ -160,7 +184,10 @@ function QuadrantArch({
 
 function QuadrantNumberRow({ teeth }: { teeth: number[] }) {
   return (
-    <div className="grid grid-cols-8 gap-[3px]">
+    <div
+      className="grid gap-[3px]"
+      style={{ gridTemplateColumns: `repeat(${teeth.length}, 1fr)` }}
+    >
       {teeth.map((n) => (
         <div
           key={n}
@@ -188,13 +215,11 @@ function QuadrantSection({
     <div>
       <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">{title}</p>
       {!lower ? (
-        // Upper: teeth first (crowns face down), numbers below (gum line)
         <>
           <QuadrantArch {...archProps} />
           <QuadrantNumberRow teeth={teeth} />
         </>
       ) : (
-        // Lower: numbers first (gum line), teeth below (crowns face up)
         <>
           <QuadrantNumberRow teeth={teeth} />
           <QuadrantArch {...archProps} />
@@ -204,30 +229,42 @@ function QuadrantSection({
   )
 }
 
-function QuadrantLayout(p: InteractiveProps) {
+function QuadrantLayout({
+  upperTeeth,
+  lowerTeeth,
+  ...iProps
+}: QuadrantLayoutProps) {
+  // Split each arch at the midpoint to get the right and left quadrants
+  const halfUpper = upperTeeth.length / 2
+  const halfLower = lowerTeeth.length / 2
+  const q1 = upperTeeth.slice(0, halfUpper) // upper right
+  const q2 = upperTeeth.slice(halfUpper)    // upper left
+  const q4 = lowerTeeth.slice(0, halfLower) // lower right
+  const q3 = lowerTeeth.slice(halfLower)    // lower left
+
   return (
     <div className="space-y-4">
       <div className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Arcada superior
         </p>
-        <QuadrantSection {...p} title="Quadrante 1 — Superior direita" teeth={Q1} lower={false} />
-        <QuadrantSection {...p} title="Quadrante 2 — Superior esquerda" teeth={Q2} lower={false} />
+        <QuadrantSection {...iProps} title="Quadrante 1 — Superior direita" teeth={q1} lower={false} />
+        <QuadrantSection {...iProps} title="Quadrante 2 — Superior esquerda" teeth={q2} lower={false} />
       </div>
       <div className="border-t border-dashed border-border" />
       <div className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Arcada inferior
         </p>
-        <QuadrantSection {...p} title="Quadrante 4 — Inferior direita" teeth={Q4} lower={true} />
-        <QuadrantSection {...p} title="Quadrante 3 — Inferior esquerda" teeth={Q3} lower={true} />
+        <QuadrantSection {...iProps} title="Quadrante 4 — Inferior direita" teeth={q4} lower={true} />
+        <QuadrantSection {...iProps} title="Quadrante 3 — Inferior esquerda" teeth={q3} lower={true} />
       </div>
     </div>
   )
 }
 
-// ── Print arch (32px compact teeth, no interaction, no overflow) ─────────────
-// Total width: 16 × 32px + 15 × 3px = 512 + 45 = 557px — safely fits A4
+// ── Print arch — permanent dentition only, 32px compact teeth ────────────────
+// Total: 16 × 32px + 15 × 3px gap = 557px — safely fits A4 width.
 
 type PrintArchProps = {
   getTooth: (toothNumber: number) => OdontogramToothData
