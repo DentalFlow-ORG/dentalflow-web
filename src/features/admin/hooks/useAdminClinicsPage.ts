@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { FilterDef } from '@/components/common/ListToolbar'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useListFilter } from '@/hooks/useListFilter'
 
 import { deleteAdminClinic, listAdminClinicsPage } from '../services/admin-clinics.service'
 import type { AdminClinic } from '../types/admin.types'
+import { CLINIC_FILTER_DEFS } from '../constants/admin-display'
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -20,17 +20,6 @@ const FILTER_FNS = {
     return value === 'active' ? isActive : !isActive
   },
 }
-
-const FILTER_DEFS: FilterDef[] = [
-  {
-    key: 'status',
-    label: 'Status',
-    options: [
-      { value: 'active', label: 'Ativa' },
-      { value: 'inactive', label: 'Inativa' },
-    ],
-  },
-]
 
 export function formatClinicDate(iso?: string) {
   if (!iso) return '—'
@@ -144,7 +133,7 @@ export function useAdminClinicsPage() {
     filteredCount,
     pageSize,
     setPageSize,
-    filterDefs: FILTER_DEFS,
+    filterDefs: CLINIC_FILTER_DEFS,
     formatDate: formatClinicDate,
     createOpen,
     setCreateOpen,

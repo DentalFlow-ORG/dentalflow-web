@@ -429,16 +429,14 @@ function ServiceRow({ service, readOnly, isLoading, onEditStart, onDeleteStart }
 
 // ── ServiceForm ───────────────────────────────────────────────────────────────
 
-type ServiceFormProps = {
-  initial?: ServiceItem
-  isLoading: boolean
-  onSubmit: (dto: CreateServiceDto | UpdateServiceDto) => void
-  onCancel: () => void
-}
+type ServiceFormProps =
+  | { initial?: undefined; isLoading: boolean; onSubmit: (dto: CreateServiceDto) => void; onCancel: () => void }
+  | { initial: ServiceItem; isLoading: boolean; onSubmit: (dto: UpdateServiceDto) => void; onCancel: () => void }
 
-function ServiceForm({ initial, isLoading, onSubmit, onCancel }: ServiceFormProps) {
+function ServiceForm(props: ServiceFormProps) {
+  const { isLoading, onCancel } = props
   const [form, setForm] = useState<ServiceFormState>(
-    initial ? serviceToForm(initial) : emptyForm(),
+    props.initial ? serviceToForm(props.initial) : emptyForm(),
   )
   const [validationError, setValidationError] = useState<string | null>(null)
 
@@ -454,10 +452,14 @@ function ServiceForm({ initial, isLoading, onSubmit, onCancel }: ServiceFormProp
       return
     }
     setValidationError(null)
-    onSubmit(initial ? toUpdateDto(form) : toCreateDto(form))
+    if (props.initial) {
+      props.onSubmit(toUpdateDto(form))
+    } else {
+      props.onSubmit(toCreateDto(form))
+    }
   }
 
-  const isEditing = !!initial
+  const isEditing = !!props.initial
 
   return (
     <form

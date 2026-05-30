@@ -35,39 +35,16 @@ import {
   type WhatsAppFilter,
   usePatientsAttention,
 } from '../hooks/usePatientsAttention'
-import type { AttentionPriority, AttentionReason, PatientAttentionItem } from '../types/attention.types'
-
-// ─── Display maps ────────────────────────────────────────────────────────────
-
-const REASON_LABEL: Record<AttentionReason, string> = {
-  INACTIVE: 'Inativo',
-  NO_UPCOMING_APPOINTMENT: 'Sem próxima consulta',
-  PENDING_PAYMENT: 'Pagamento pendente',
-  RECENTLY_CANCELED: 'Cancelamento recente',
-  RECENT_NO_SHOW: 'Falta recente',
-}
-
-type BadgeTone = 'success' | 'warning' | 'muted'
-
-const REASON_TONE: Record<AttentionReason, BadgeTone> = {
-  INACTIVE: 'muted',
-  NO_UPCOMING_APPOINTMENT: 'warning',
-  PENDING_PAYMENT: 'muted',
-  RECENTLY_CANCELED: 'warning',
-  RECENT_NO_SHOW: 'warning',
-}
-
-const PRIORITY_LABEL: Record<AttentionPriority, string> = {
-  HIGH: 'Alta',
-  MEDIUM: 'Média',
-  LOW: 'Baixa',
-}
-
-const PRIORITY_TONE: Record<AttentionPriority, BadgeTone> = {
-  HIGH: 'muted',
-  MEDIUM: 'warning',
-  LOW: 'muted',
-}
+import type { AttentionPriority, PatientAttentionItem } from '../types/attention.types'
+import {
+  PRIORITY_LABEL,
+  PRIORITY_OPTIONS,
+  PRIORITY_TONE,
+  REASON_LABEL,
+  REASON_OPTIONS,
+  REASON_TONE,
+  WHATSAPP_OPTIONS,
+} from '../constants/attention-display'
 
 function formatDate(iso: string | null) {
   if (!iso) return '—'
@@ -251,7 +228,7 @@ function AttentionDetailPanel({
                     <p className="text-muted-foreground">Telefone não cadastrado</p>
                   )}
                   {item.patientEmail && (
-                    <p className="break-words text-foreground">{item.patientEmail}</p>
+                    <p className="wrap-break-word text-foreground">{item.patientEmail}</p>
                   )}
                 </div>
               </div>
@@ -303,29 +280,6 @@ function AttentionDetailPanel({
     </Dialog.Root>
   )
 }
-
-// ─── Filter bar ───────────────────────────────────────────────────────────────
-
-const REASON_OPTIONS: { value: AttentionReasonFilter; label: string }[] = [
-  { value: 'ALL', label: 'Todos os motivos' },
-  { value: 'PENDING_PAYMENT', label: 'Pagamento pendente' },
-  { value: 'INACTIVE', label: 'Inativo' },
-  { value: 'NO_UPCOMING_APPOINTMENT', label: 'Sem próxima consulta' },
-  { value: 'RECENTLY_CANCELED', label: 'Cancelamento recente' },
-  { value: 'RECENT_NO_SHOW', label: 'Falta recente' },
-]
-
-const PRIORITY_OPTIONS: { value: AttentionPriorityFilter; label: string }[] = [
-  { value: 'ALL', label: 'Todas as prioridades' },
-  { value: 'HIGH', label: 'Alta' },
-  { value: 'MEDIUM', label: 'Média' },
-  { value: 'LOW', label: 'Baixa' },
-]
-
-const WHATSAPP_OPTIONS: { value: WhatsAppFilter; label: string }[] = [
-  { value: 'ALL', label: 'Todos os pacientes' },
-  { value: 'HAS_CONSENT', label: 'Com WhatsApp autorizado' },
-]
 
 // ─── Main container ───────────────────────────────────────────────────────────
 

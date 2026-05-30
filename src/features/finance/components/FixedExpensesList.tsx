@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import type { FixedExpense } from '../types/finance.types'
-import { RECURRENCE_LABEL } from '../utils/finance-constants'
+import { RECURRENCE_LABEL } from '../constants/finance-display'
 import { formatCurrency } from '../utils/finance-format'
 
 export function FixedExpensesList({

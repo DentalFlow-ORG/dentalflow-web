@@ -3,10 +3,8 @@ import {
   ArrowRight,
   Bot,
   CalendarDays,
-  Check,
   ChevronRight,
   ClipboardList,
-  Clock3,
   CreditCard,
   FileText,
   MessageCircle,
@@ -14,13 +12,13 @@ import {
   Target,
   TrendingUp,
   Users,
-  X,
   Zap,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+import { AvailabilityIndicator } from '../components/AvailabilityIndicator'
 import { PublicLayout } from '../components/PublicLayout'
 import { usePageMeta } from '../hooks/usePageMeta'
 import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
@@ -28,7 +26,6 @@ import {
   COMMERCIAL_PLAN_LABELS,
   type CommercialFeatureCategory,
   PLAN_ORDER,
-  type PlanFeatureAvailability,
   getFeatureAvailability,
   getFeaturesByCategory,
 } from '../config/features'
@@ -149,10 +146,10 @@ export function FeaturesPage() {
       >
         {/* Ambient glows */}
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute -left-72 top-1/4 h-[500px] w-[500px] rounded-full bg-blue-600/[0.07] blur-3xl" />
-          <div className="absolute -right-72 bottom-1/4 h-[500px] w-[500px] rounded-full bg-emerald-500/[0.06] blur-3xl" />
+          <div className="absolute -left-72 top-1/4 h-125 w-125 rounded-full bg-blue-600/[0.07] blur-3xl" />
+          <div className="absolute -right-72 bottom-1/4 h-125 w-125 rounded-full bg-emerald-500/6 blur-3xl" />
           <div className="absolute inset-x-0 top-1/3 flex justify-center">
-            <div className="h-[400px] w-[800px] rounded-full bg-blue-500/[0.04] blur-3xl" />
+            <div className="h-100 w-200nded-full bg-blue-500/4 blur-3xl" />
           </div>
         </div>
 
@@ -297,7 +294,7 @@ export function FeaturesPage() {
             {/* Desktop table */}
             <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:block">
               <div className="overflow-x-auto">
-                <div className="min-w-[60rem]">
+                <div className="min-w-240">
                   {/* Header */}
                   <div className="grid grid-cols-[minmax(24rem,1fr)_12rem_12rem_12rem] border-b border-slate-200 bg-slate-50">
                     <div className="px-6 py-4 text-sm font-semibold text-slate-700">
@@ -418,7 +415,7 @@ export function FeaturesPage() {
                             <div
                               key={plan}
                               className={cn(
-                                'flex min-h-[4.5rem] flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-3 text-center',
+                                'flex min-h-18 flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-3 text-center',
                                 plan === 'professional'
                                   ? 'border-emerald-200 bg-emerald-50'
                                   : 'border-slate-200 bg-slate-50',
@@ -514,31 +511,3 @@ export function FeaturesPage() {
   )
 }
 
-// ── Availability indicator ─────────────────────────────────────────────────────
-
-function AvailabilityIndicator({ availability }: { availability: PlanFeatureAvailability }) {
-  if (availability === 'included') {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
-        <Check className="h-3 w-3" aria-hidden="true" />
-        Incluído
-      </span>
-    )
-  }
-
-  if (availability === 'soon') {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-200">
-        <Clock3 className="h-3 w-3" aria-hidden="true" />
-        Em breve
-      </span>
-    )
-  }
-
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-400 ring-1 ring-slate-200">
-      <X className="h-3 w-3" aria-hidden="true" />
-      Não incl.
-    </span>
-  )
-}

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
+import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 import { ApiError } from '@/services/http'
 import { ServicesPanel, emptyForm, toCreateDto, toUpdateDto } from './ServicesPanel'
 import type { ServiceItem } from '../types/team.types'

@@ -90,12 +90,6 @@ export const FiscalInvoicesPage = lazy(() =>
   })),
 )
 
-export const CreateMemberPage = lazy(() =>
-  import('@/features/team/pages/CreateMemberPage').then((m) => ({
-    default: m.CreateMemberPage,
-  })),
-)
-
 export const AdminDashboardPage = lazy(() =>
   import('@/features/admin/pages/AdminDashboardPage').then((m) => ({
     default: m.AdminDashboardPage,

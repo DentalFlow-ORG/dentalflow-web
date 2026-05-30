@@ -22,61 +22,14 @@ import type {
   PrivacyRequestStatus,
   PrivacyRequestType,
 } from '../types/compliance.types'
-
-const STATUS_LABEL: Record<PrivacyRequestStatus, string> = {
-  OPEN: 'Aberta',
-  IN_REVIEW: 'Em análise',
-  WAITING_VERIFICATION: 'Aguardando verificação',
-  COMPLETED: 'Concluída',
-  REJECTED: 'Rejeitada',
-  CANCELED: 'Cancelada',
-}
-
-const STATUS_TONE: Record<PrivacyRequestStatus, 'success' | 'muted' | 'warning'> = {
-  OPEN: 'warning',
-  IN_REVIEW: 'warning',
-  WAITING_VERIFICATION: 'warning',
-  COMPLETED: 'success',
-  REJECTED: 'muted',
-  CANCELED: 'muted',
-}
-
-const REQUEST_TYPE_LABEL: Record<PrivacyRequestType, string> = {
-  CONFIRM_PROCESSING: 'Confirmação de tratamento',
-  ACCESS_DATA: 'Acesso aos dados',
-  CORRECT_DATA: 'Correção de dados',
-  DELETE_OR_ANONYMIZE: 'Exclusão / anonimização',
-  PORTABILITY: 'Portabilidade',
-  SHARING_INFORMATION: 'Informações de compartilhamento',
-  REVOKE_CONSENT: 'Revogar consentimento',
-  OTHER: 'Outra',
-}
-
-const REQUESTER_TYPE_LABEL: Record<string, string> = {
-  PATIENT: 'Paciente',
-  CLINIC_OWNER: 'Proprietário',
-  CLINIC_STAFF: 'Equipe',
-  OTHER: 'Outro',
-}
-
-const INITIAL_FILTERS: PrivacyRequestFilters = {
-  status: '',
-  requestType: '',
-  requesterType: '',
-  search: '',
-  page: 1,
-  limit: 20,
-}
-
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(iso))
-}
+import {
+  REQUEST_TYPE_LABEL,
+  REQUESTER_TYPE_LABEL,
+  STATUS_LABEL,
+  STATUS_TONE,
+} from '../constants/privacy-request-display'
+import { INITIAL_FILTERS } from '../constants/privacy-request-filters'
+import { formatDatetime as formatDate } from '../utils/format-date'
 
 export function PrivacyRequestsTab() {
   const [filters, setFilters] = useState<PrivacyRequestFilters>(INITIAL_FILTERS)

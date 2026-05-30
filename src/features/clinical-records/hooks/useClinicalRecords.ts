@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useReducer } from 'react'
 
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
-
 import { listClinicalRecords } from '../services/clinical-records.service'
 import type { ClinicalRecord } from '../types/clinical-record.types'
 
@@ -26,7 +24,6 @@ function reducer(state: State, action: Action): State {
 
 export function useClinicalRecords(filters: Filters = {}) {
   const [state, dispatch] = useReducer(reducer, { records: [], isLoading: true, error: null })
-  const { showAlert } = useGlobalAlerts()
 
   // Destructure primitives so useCallback deps are stable across renders
   const { status, dentistProfileId } = filters
@@ -50,5 +47,5 @@ export function useClinicalRecords(filters: Filters = {}) {
 
   useEffect(load, [load])
 
-  return { records: state.records, isLoading: state.isLoading, error: state.error, refresh: load, showAlert }
+  return { records: state.records, isLoading: state.isLoading, error: state.error, refresh: load }
 }

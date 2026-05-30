@@ -1,5 +1,5 @@
 import { ArrowRight, ChevronDown, HelpCircle, Mail, MessageCircle } from 'lucide-react'
-import { useEffect, useId, useState } from 'react'
+import { useId, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 
 import { PublicLayout } from '../components/PublicLayout'
 import { usePageMeta } from '../hooks/usePageMeta'
+import { useChatWidgetState } from '../hooks/useChatWidgetState'
 import { faqItems } from '../data/public-content'
 
 // ── Group definitions (index-based — avoids coupling to question text) ─────────
@@ -73,25 +74,6 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
       </div>
     </div>
   )
-}
-
-// ── Chat widget state ─────────────────────────────────────────────────────────
-
-function useChatWidgetState() {
-  const [chatOpen, setChatOpen] = useState(false)
-  useEffect(() => {
-    const handler = (e: Event) => {
-      setChatOpen((e as CustomEvent<{ isOpen: boolean }>).detail.isOpen)
-    }
-    window.addEventListener('dentalflow:chat:state', handler)
-    return () => window.removeEventListener('dentalflow:chat:state', handler)
-  }, [])
-  const toggleChat = () => {
-    window.dispatchEvent(
-      new CustomEvent(chatOpen ? 'dentalflow:chat:close' : 'dentalflow:chat:open'),
-    )
-  }
-  return { chatOpen, toggleChat }
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────

@@ -4,12 +4,9 @@ import {
   ArrowRight,
   BadgeCheck,
   CheckCircle2,
-  Crown,
-  Gem,
   Loader2,
   Rocket,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { formatDateBR } from '@/lib/date-time-formatters'
@@ -22,24 +19,7 @@ import { BillingStatusBadge } from './BillingStatusBadge'
 import { PlanFeatureList } from './PlanFeatureList'
 import type { BillingInterval, BillingPlan, CurrentBillingStatus } from '../types/billing.types'
 import type { PlanCtaAction, PlanCtaState } from '../utils/billing-cta-utils'
-
-const PLAN_TAGLINES: Record<string, string> = {
-  starter: 'Para organizar sua operação sem complexidade.',
-  professional: 'Para clínicas que querem crescer com mais controle e previsibilidade.',
-  premium: 'Para clínicas que querem uma experiência mais completa, automatizada e premium.',
-}
-
-const PLAN_ICONS: Record<string, LucideIcon> = {
-  starter: Rocket,
-  professional: Gem,
-  premium: Crown,
-}
-
-const TRIAL_LABELS: Record<string, string> = {
-  starter: 'Começar com Starter',
-  professional: 'Escolher Professional',
-  premium: 'Ativar Premium',
-}
+import { PLAN_ICONS, PLAN_TAGLINES, TRIAL_LABELS } from '../constants/pricing-display'
 
 type Props = {
   plan: BillingPlan

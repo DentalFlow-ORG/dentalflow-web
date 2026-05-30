@@ -9,7 +9,6 @@ import type { ProfileListItem } from '../types/profile.types'
 import { useListFilter } from '@/hooks/useListFilter'
 
 import {
-  cancelAppointment,
   listAppointments,
   listAvailability,
 } from '../services/scheduling.service'
@@ -22,28 +21,9 @@ import {
 } from '../services/calendar-integrations.service'
 import type { GoogleCalendarStatus } from '../types/calendar-integration.types'
 import { getWeekStart } from '../utils/time'
+import { useAppointmentCancel } from './useAppointmentCancel'
 import { useAppointmentStatusChange } from './useAppointmentStatusChange'
-
-const STATUS_OPTIONS = [
-  { value: 'PENDING', label: 'Pendente' },
-  { value: 'CONFIRMED', label: 'Confirmado' },
-  { value: 'COMPLETED', label: 'Concluído' },
-  { value: 'CANCELED', label: 'Cancelado' },
-  { value: 'NO_SHOW', label: 'Não compareceu' },
-]
-
-const SEARCH_FN = (appointment: Appointment, query: string) =>
-  `${appointment.patientName} ${appointment.patientEmail ?? ''} ${
-    appointment.patientPhone ?? ''
-  }`
-    .toLowerCase()
-    .includes(query)
-
-const FILTER_FNS = {
-  status: (appointment: Appointment, value: string) => appointment.status === value,
-  profileId: (appointment: Appointment, value: string) =>
-    appointment.profileId === value,
-}
+import { FILTER_FNS, SEARCH_FN, STATUS_OPTIONS } from '../constants/appointment-filters'
 
 export type AppointmentsView = 'calendar' | 'table'
 
@@ -190,34 +170,14 @@ export function useAppointmentsPage() {
     setIsActionLoading,
   })
 
-  function handleCancelRequest(appointment: Appointment) {
-    setCancelTarget(appointment)
-  }
-
-  async function handleCancelConfirm(reason: string) {
-    if (!cancelTarget) return
-
-    setIsActionLoading(true)
-    try {
-      const updated = await cancelAppointment(cancelTarget.id, reason || undefined)
-      setAllAppointments((prev) =>
-        prev.map((appointment) =>
-          appointment.id === cancelTarget.id ? updated : appointment,
-        ),
-      )
-      if (drawerAppointment?.id === cancelTarget.id) setDrawerAppointment(updated)
-      setCancelTarget(null)
-      showAlert({ title: 'Agendamento cancelado', tone: 'success' })
-    } catch (err) {
-      showAlert({
-        title: 'Erro ao cancelar agendamento',
-        description: err instanceof Error ? err.message : undefined,
-        tone: 'error',
-      })
-    } finally {
-      setIsActionLoading(false)
-    }
-  }
+  const { handleCancelRequest, handleCancelConfirm } = useAppointmentCancel({
+    setAppointments: setAllAppointments,
+    drawerAppointment,
+    setDrawerAppointment,
+    setIsActionLoading,
+    cancelTarget,
+    setCancelTarget,
+  })
 
   function handleEdit(appointment: Appointment) {
     setDrawerAppointment(null)

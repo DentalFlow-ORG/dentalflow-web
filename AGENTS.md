@@ -34,22 +34,22 @@ src/
     ui/
   config/
   features/
-    auth/
+    <feature-name>/
       components/
+      containers/
+      constants/
+      data/
       hooks/
       pages/
       providers/
       services/
       types/
       utils/
-    dashboard/
-      pages/
-    marketing/
-      components/
-      data/
-      pages/
+  hooks/
   lib/
   services/
+  test/
+  tests/
 ```
 
 ### Folder Responsibilities
@@ -60,26 +60,33 @@ src/
 - `src/components/common`: generic visual building blocks such as cards, badges, and section headings.
 - `src/components/layout`: shared layout-level components such as footer and shell elements.
 - `src/config`: static configuration such as company data, environment config, and app constants.
-- `src/features/<feature>`: feature-owned pages, components, hooks, providers, services, types, utils, and data.
+- `src/features/<feature>`: feature-owned pages, containers, components, hooks, providers, services, types, constants, utils, and data.
+- `src/hooks`: cross-feature reusable hooks that do not belong to any single feature, such as `useListFilter` and `useIsMobile`.
 - `src/services`: cross-feature infrastructure services such as HTTP clients.
 - `src/lib`: framework-agnostic utilities.
+- `src/test`: shared test setup and helpers for Vitest and React Testing Library (render-utils, setup, TestProviders). Do not move these.
+- `src/tests`: all test suites, mirroring the source tree. Use `@/` aliases for all imports — no relative imports across feature boundaries.
 
 ### Feature Directory Responsibilities
 
-- `components`: presentational or interaction components owned by the feature.
-- `pages`: route-level page composition only.
-- `hooks`: feature-specific React hooks and accessors, such as `useAuth`.
+- `pages`: thin route-level renderers only. A page should usually render a container and avoid orchestration logic.
+- `containers`: page orchestration and composition. Containers connect hooks, page state, handlers, loading/error/empty states, and feature components.
+- `components`: reusable UI pieces owned by the feature. Components should be presentational or focused interactions.
+- `hooks`: feature-specific stateful or reusable logic, such as `useAuth`. Do not hide reusable or complex hooks inside components.
 - `providers`: feature context providers and state wiring.
-- `services`: backend integration for that feature.
-- `types`: feature-specific TypeScript contracts, split by concern when useful.
-- `utils`: pure helpers, storage adapters, mappers, and formatters owned by the feature.
-- `data`: static page content or mock/demo content owned by the feature.
+- `services`: backend or client integration for that feature. API calls and backend SDK usage belong here, not in visual components.
+- `types`: shared TypeScript contracts for the feature, split by concern when useful.
+- `constants`: static data with no logic owned by the feature — status/tone/color maps, label records, filter option arrays, tab configs, and navigation card arrays. Do not place functions or computed values here.
+- `utils`: pure functions with logic owned by the feature — formatters, calculators, validators, state machine helpers, layout algorithms, and storage adapters. Do not place plain static records or option arrays here; those belong in `constants/`.
+- `data`: static marketing, legal, product, or mock/demo content owned by the feature.
+- Test files (`.test.ts`, `.test.tsx`) live in `src/tests/`, mirroring the source tree. Example: the test for `src/features/scheduling/utils/appointment-state-machine.ts` lives at `src/tests/features/scheduling/utils/appointment-state-machine.test.ts`. Use `@/` aliases for all imports inside test files.
 
 ## Routing Rules
 
 - Use TanStack Router for all application routes.
 - Keep route definitions in `src/app/router.tsx` unless the route tree becomes large enough to split.
 - Pages must be imported from feature folders.
+- Every lazy export in `src/app/route-components.tsx` must be connected to a real route in `src/app/router.tsx`; otherwise remove it with the unused page/container/hook files.
 - Do not implement page switching with local state when a route is appropriate.
 - Use query params for simple UI modes that should be shareable, such as `/acessar?mode=login`.
 
@@ -89,6 +96,7 @@ src/
 - Never call `fetch` or backend SDKs directly inside React components.
 - Cross-feature HTTP behavior belongs in `src/services/http.ts`.
 - Feature-specific API calls belong in `src/features/<feature>/services`.
+- Visual components should not call services directly. If a component grows orchestration or service calls, move that logic into a container or feature hook and keep the component focused on UI.
 - Use typed payloads and typed responses.
 - Prepare services so React Query can be added later without rewriting API access.
 - The frontend must not contain business logic, payment logic, or sensitive rules.
@@ -111,10 +119,23 @@ If the backend moves to HTTP-only cookies, keep components unchanged and update 
 - Avoid duplicating UI patterns across pages.
 - Keep components small and strongly typed.
 - Pages should compose feature sections and avoid containing large JSX blocks.
+- Do not create large pages with state, API calls, and handlers inline; extract a container and feature hooks.
 - Static content for complex pages belongs in feature-level `data/` files.
 - Extract repeated card, metric, badge, heading, brand, and form-field patterns before adding new page-specific markup.
+- Extract shared components, hooks, services, constants, or utils when a pattern repeats across files.
+- Do not define inline display maps, label records, tone maps, or filter option arrays inside component or container files. Place them in the feature's `constants/` directory.
 - Feature-only components stay inside their feature.
 - Shared components must be genuinely reusable before moving to `src/components`.
+
+## Testing Rules
+
+- Use Vitest and React Testing Library for behavior-focused tests.
+- Prefer `src/test/render-utils` for component tests (`renderWithProviders`, `screen`, `userEvent`, etc.).
+- All test files belong in `src/tests/`, mirroring the source tree. Do not colocate test files beside source files.
+- Use `@/` aliases for all imports inside test files — no relative cross-directory imports.
+- Mock feature hooks or services when testing UI behavior that depends on auth, routing, or backend state.
+- Add tests for new components, hooks, services, and utilities when they contain branching logic, state transitions, validation, or API integration behavior.
+- Avoid brittle visual snapshots, long Tailwind class assertions, and tests that only duplicate static markup.
 
 ## UI / UX Guidelines
 
@@ -138,16 +159,27 @@ Accent: `#6366F1`
 - Never trust client-side validation alone.
 - Never store payment or sensitive credentials in local frontend state beyond what is needed for UI interaction.
 
+## Package Manager
+
+Use `pnpm` exclusively. Do not run `pnpm install`, `pnpm add`, or `pnpm remove` without explicit user approval.
+
 ## Implementation Checklist
 
 Before implementing:
 
 1. Analyze existing components and feature folders.
-2. Check for reusable UI patterns.
-3. Avoid duplication.
-4. Follow the current design system.
-5. Keep changes scoped to the requested feature.
-6. Validate with `pnpm run build` when implementation changes TypeScript or routing.
+2. Check for reusable UI patterns, hooks, services, constants, and utilities.
+3. Propose a short implementation plan before coding when the change affects architecture, routing, shared components, or docs.
+4. Avoid duplication.
+5. Follow the current design system.
+6. Keep changes scoped to the requested feature.
+7. Validate TypeScript and tests with the full three-step sequence:
+   ```
+   pnpm exec tsc --noEmit
+   pnpm test --run
+   pnpm run build
+   ```
+   `pnpm run build` (`tsc -b`) is the authoritative gate — it catches strict errors that `tsc --noEmit` misses.
 
 ## Role
 

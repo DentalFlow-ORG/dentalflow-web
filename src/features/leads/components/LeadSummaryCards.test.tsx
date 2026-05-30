@@ -1,4 +1,4 @@
-import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
+import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 import type { LeadSummary } from '../types/leads.types'
 import { LeadSummaryCards } from './LeadSummaryCards'
 

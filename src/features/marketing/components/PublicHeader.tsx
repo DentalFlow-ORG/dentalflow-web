@@ -15,11 +15,10 @@ import {
   UsersRound,
   X,
 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-
 import { BrandLink } from '@/components/brand/BrandLink'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useDropdownNav } from '../hooks/useDropdownNav'
 
 type PublicHeaderProps = {
   isScrolled?: boolean
@@ -116,36 +115,17 @@ const SIMPLE_NAV = [
 ]
 
 export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicHeaderProps) {
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
-  const [mobileExpanded, setMobileExpanded] = useState<string[]>([])
-  const headerRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
-        setOpenDropdown(null)
-      }
-    }
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setOpenDropdown(null)
-        setIsMobileOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    document.addEventListener('keydown', handleEsc)
-    return () => {
-      document.removeEventListener('mousedown', handleClick)
-      document.removeEventListener('keydown', handleEsc)
-    }
-  }, [])
-
-  const toggleMobileSection = (key: string) => {
-    setMobileExpanded((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
-    )
-  }
+  const {
+    openDropdown,
+    isMobileOpen,
+    mobileExpanded,
+    headerRef,
+    toggleDropdown,
+    closeDropdown,
+    toggleMobile,
+    closeMobile,
+    toggleMobileSection,
+  } = useDropdownNav()
 
   return (
     <header
@@ -171,9 +151,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                 type="button"
                 aria-expanded={openDropdown === group.key}
                 aria-haspopup="true"
-                onClick={() =>
-                  setOpenDropdown((prev) => (prev === group.key ? null : group.key))
-                }
+                onClick={() => toggleDropdown(group.key)}
                 className={cn(
                   'flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                   isDarkHero
@@ -199,7 +177,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                 <div
                   className={cn(
                     'absolute left-0 top-full z-50 mt-1.5 rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-950/10',
-                    group.key === 'funcionalidades' ? 'w-[26rem]' : 'w-72',
+                    group.key === 'funcionalidades' ? 'w-104' : 'w-72',
                   )}
                   role="menu"
                 >
@@ -216,7 +194,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                           key={item.href + item.label}
                           to={item.href}
                           role="menuitem"
-                          onClick={() => setOpenDropdown(null)}
+                          onClick={closeDropdown}
                           className="flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                         >
                           <Icon
@@ -295,7 +273,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
               'flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 lg:hidden',
               isDarkHero ? 'text-white hover:bg-white/10' : 'text-slate-600',
             )}
-            onClick={() => setIsMobileOpen((prev) => !prev)}
+            onClick={toggleMobile}
           >
             {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -336,7 +314,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                         <Link
                           key={item.href + item.label}
                           to={item.href}
-                          onClick={() => setIsMobileOpen(false)}
+                          onClick={closeMobile}
                           className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                         >
                           <Icon className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
@@ -353,7 +331,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
               <Link
                 key={item.href}
                 to={item.href}
-                onClick={() => setIsMobileOpen(false)}
+                onClick={closeMobile}
                 className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 {item.label}
@@ -366,7 +344,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
               <Link
                 to="/acessar"
                 search={{ mode: 'login' }}
-                onClick={() => setIsMobileOpen(false)}
+                onClick={closeMobile}
               >
                 Entrar
               </Link>
@@ -375,7 +353,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
               <Link
                 to="/acessar"
                 search={{ mode: 'register' }}
-                onClick={() => setIsMobileOpen(false)}
+                onClick={closeMobile}
               >
                 Começar teste grátis
                 <ChevronRight className="h-4 w-4" />

@@ -20,6 +20,12 @@ import {
   formatTimeInputValue,
 } from '@/lib/date-time-formatters'
 import {
+  getCurrentTimeInputValue,
+  hasAppointmentTimePassed,
+  isDateAvailable,
+  reaisToCents,
+} from '../../utils/appointment-form-utils'
+import {
   WHATSAPP_PHONE_REQUIRED_MESSAGE,
   formatPhoneBR,
   isValidWhatsappPhoneBR,
@@ -469,38 +475,3 @@ function buildFormState(appointment: Appointment | null): FormState {
   }
 }
 
-function reaisToCents(value: string): number | undefined {
-  const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '')
-  const parsed = parseFloat(normalized)
-  if (isNaN(parsed) || parsed < 0) return undefined
-  return Math.round(parsed * 100)
-}
-
-function hasAppointmentTimePassed(appointment: Appointment) {
-  const appointmentDate = formatDateInputValue(appointment.appointmentDate)
-  const today = formatDateInputValue(new Date())
-  if (appointmentDate < today) return true
-  if (appointmentDate > today) return false
-  return formatTimeInputValue(appointment.startTime) < getCurrentTimeInputValue()
-}
-
-function getCurrentTimeInputValue() {
-  const now = new Date()
-  const hours = String(now.getHours()).padStart(2, '0')
-  const minutes = String(now.getMinutes()).padStart(2, '0')
-  return `${hours}:${minutes}`
-}
-
-function isDateAvailable(
-  dateValue: string,
-  availability: Availability[],
-  exceptions: AvailabilityException[],
-): boolean {
-  if (!dateValue) return true
-  const exception = exceptions.find((e) => formatDateInputValue(e.exceptionDate) === dateValue)
-  if (exception?.isDayOff) return false
-  if (exception) return true
-  const dow = new Date(`${dateValue}T00:00:00Z`).getUTCDay()
-  if (availability.length === 0) return dow >= 1 && dow <= 5
-  return availability.some((a) => a.dayOfWeek === dow && a.isActive)
-}

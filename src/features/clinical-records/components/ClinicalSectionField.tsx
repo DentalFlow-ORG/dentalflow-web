@@ -2,6 +2,8 @@ import { cn } from '@/lib/utils'
 
 type Props = {
   label: string
+  /** Optional subtitle shown below the label — provides brief guidance for the field. */
+  hint?: string
   value: string
   onChange: (value: string) => void
   placeholder?: string
@@ -12,6 +14,7 @@ type Props = {
 
 export function ClinicalSectionField({
   label,
+  hint,
   value,
   onChange,
   placeholder,
@@ -21,9 +24,14 @@ export function ClinicalSectionField({
 }: Props) {
   return (
     <div className={cn('space-y-1.5', className)}>
-      <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </label>
+      <div className="space-y-0.5">
+        <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {label}
+        </label>
+        {hint && (
+          <p className="text-[11px] leading-tight text-muted-foreground/60">{hint}</p>
+        )}
+      </div>
       <textarea
         rows={rows}
         value={value}

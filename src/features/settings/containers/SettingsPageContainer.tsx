@@ -38,39 +38,11 @@ import {
 } from '@/features/scheduling/services/calendar-integrations.service'
 import type { GoogleCalendarStatus } from '@/features/scheduling/types/calendar-integration.types'
 import { getCurrentBillingStatus } from '@/features/billing/services/billing.service'
-import type { CurrentBillingStatus, NormalizedBillingStatus } from '@/features/billing/types/billing.types'
+import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
 
 import { useClinicProfile } from '../hooks/useClinicProfile'
 import type { UpdateClinicProfilePayload } from '../types/settings.types'
-
-const ROLE_INFO = [
-  {
-    label: 'Proprietário',
-    description: 'Acesso completo: configurações, financeiro, equipe e faturamento.',
-  },
-  {
-    label: 'Dentista',
-    description: 'Agenda própria, prontuários e análise clínica de pacientes.',
-  },
-  {
-    label: 'Assistente',
-    description: 'Agendamentos, pacientes, estoque e notas fiscais.',
-  },
-]
-
-const STATUS_INFO: Record<
-  NormalizedBillingStatus,
-  { label: string; tone: 'success' | 'muted' | 'warning' }
-> = {
-  active: { label: 'Ativo', tone: 'success' },
-  trialing: { label: 'Teste grátis', tone: 'warning' },
-  past_due: { label: 'Pagamento atrasado', tone: 'warning' },
-  canceled: { label: 'Cancelado', tone: 'muted' },
-  incomplete: { label: 'Incompleto', tone: 'muted' },
-  unpaid: { label: 'Não pago', tone: 'warning' },
-  paused: { label: 'Pausado', tone: 'muted' },
-  missing: { label: 'Sem plano', tone: 'muted' },
-}
+import { LEGAL_LINKS, ROLE_INFO, STATUS_INFO } from '../constants/settings-display'
 
 function SettingsSectionCard({
   title,
@@ -491,15 +463,6 @@ function BillingSection() {
     </div>
   )
 }
-
-const LEGAL_LINKS = [
-  { label: 'Política de Privacidade', href: '/politica-de-privacidade' },
-  { label: 'Termos de Uso', href: '/termos-de-uso' },
-  { label: 'Política de Cookies', href: '/politica-de-cookies' },
-  { label: 'Tratamento de Dados (LGPD)', href: '/tratamento-de-dados' },
-  { label: 'Segurança', href: '/seguranca' },
-  { label: 'Direitos do Titular', href: '/direitos-do-titular' },
-]
 
 export function SettingsPageContainer() {
   return (

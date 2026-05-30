@@ -1,5 +1,5 @@
 import { within } from '@testing-library/react'
-import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
+import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 import type { ProcedureMarginsState } from '../hooks/useProcedureMargins'
 import type { ProcedureMarginItem, ProcedureMarginsResponse } from '../types/finance.types'
 import { ProcedureMarginsSection } from './ProcedureMarginsSection'

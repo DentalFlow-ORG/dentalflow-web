@@ -13,16 +13,7 @@ import {
 import { formatTimeInputValue } from '@/lib/date-time-formatters'
 
 import type { CreateAvailabilityDto } from '../../types/scheduling.types'
-
-const DAY_OPTIONS = [
-  { value: 1, label: 'Segunda-feira' },
-  { value: 2, label: 'Terça-feira' },
-  { value: 3, label: 'Quarta-feira' },
-  { value: 4, label: 'Quinta-feira' },
-  { value: 5, label: 'Sexta-feira' },
-  { value: 6, label: 'Sábado' },
-  { value: 0, label: 'Domingo' },
-]
+import { DAY_OPTIONS } from '../../constants/availability-display'
 
 type AvailabilitySlotFormProps = {
   initial?: { dayOfWeek: number; startTime: string; endTime: string }

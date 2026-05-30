@@ -20,29 +20,9 @@ import type {
   AppointmentPaymentStatus,
   UpdateAppointmentPaymentDto,
 } from '../../types/scheduling.types'
+import { centsToReais, reaisToCents } from '../../utils/appointment-form-utils'
+import { PAYMENT_METHOD_LABELS } from '../../constants/appointment-display'
 import { AppointmentPaymentBadge } from './AppointmentPaymentBadge'
-
-const PAYMENT_METHOD_LABELS: Record<AppointmentPaymentMethod, string> = {
-  CASH: 'Dinheiro',
-  CREDIT_CARD: 'Cartão de crédito',
-  DEBIT_CARD: 'Cartão de débito',
-  PIX: 'PIX',
-  BANK_TRANSFER: 'Transferência bancária',
-  HEALTH_INSURANCE: 'Plano de saúde',
-  OTHER: 'Outro',
-}
-
-function centsToReais(cents: number | null | undefined): string {
-  if (cents == null) return ''
-  return (cents / 100).toFixed(2).replace('.', ',')
-}
-
-function reaisToCents(value: string): number | undefined {
-  const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '')
-  const parsed = parseFloat(normalized)
-  if (isNaN(parsed) || parsed < 0) return undefined
-  return Math.round(parsed * 100)
-}
 
 type DrawerSectionProps = { title: string; children: React.ReactNode }
 

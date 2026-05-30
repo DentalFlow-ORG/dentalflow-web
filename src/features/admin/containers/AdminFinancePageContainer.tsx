@@ -49,72 +49,10 @@ import type {
   StripeEventFilters,
   SubscriptionFilters,
 } from '../types/admin-finance.types'
+import { FINANCE_STATUS_LABEL, FINANCE_STATUS_TONE, FINANCE_STATUS_OPTIONS } from '../constants/finance-display'
+import { formatCurrencyFromCents, formatDate, formatInterval, getSubscriptionAmount } from '../utils/admin-finance-format'
 
 const ALL_VALUE = 'all'
-
-const STATUS_LABEL: Record<AdminSubscriptionStatus, string> = {
-  TRIALING: 'Trial',
-  ACTIVE: 'Ativa',
-  PAST_DUE: 'Em atraso',
-  CANCELED: 'Cancelada',
-  UNPAID: 'Inadimplente',
-  PAUSED: 'Pausada',
-  INCOMPLETE: 'Incompleta',
-}
-
-const STATUS_TONE: Record<AdminSubscriptionStatus, 'success' | 'warning' | 'muted'> = {
-  ACTIVE: 'success',
-  TRIALING: 'warning',
-  PAST_DUE: 'warning',
-  UNPAID: 'warning',
-  CANCELED: 'muted',
-  PAUSED: 'muted',
-  INCOMPLETE: 'muted',
-}
-
-const STATUS_OPTIONS = Object.keys(STATUS_LABEL) as AdminSubscriptionStatus[]
-
-function formatCurrencyFromCents(value: number, currency = 'BRL') {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency,
-  }).format(value / 100)
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return '-'
-
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(new Date(value))
-}
-
-function formatInterval(value?: 'MONTHLY' | 'YEARLY' | null) {
-  if (value === 'YEARLY') return 'Anual'
-  if (value === 'MONTHLY') return 'Mensal'
-  return '-'
-}
-
-function getSubscriptionAmount(subscription: AdminFinanceSubscription) {
-  const item = subscription.items[0]
-  const value = item?.unitAmount ?? Number(item?.unitAmountDecimal ?? 0)
-
-  if (item && Number.isFinite(value)) {
-    return {
-      value: value * item.quantity,
-      currency: item.currency,
-      interval: item.billingInterval,
-    }
-  }
-
-  return {
-    value: subscription.plan.priceMonthly,
-    currency: 'BRL',
-    interval: 'MONTHLY' as const,
-  }
-}
 
 export function AdminFinancePageContainer() {
   const {
@@ -218,7 +156,7 @@ export function AdminFinancePageContainer() {
                 emptyTitle="Nenhuma assinatura encontrada"
                 emptyDescription="A distribuição será exibida quando houver assinaturas."
                 data={summary.statusDistribution.map((item) => ({
-                  label: STATUS_LABEL[item.status],
+                  label: FINANCE_STATUS_LABEL[item.status],
                   value: item.count,
                 }))}
                 valueFormatter={(value) => String(value)}
@@ -545,8 +483,8 @@ function RecentSubscriptionsSection({
                     </td>
                     <td className="px-4 py-3 text-foreground">{subscription.plan.name}</td>
                     <td className="px-4 py-3">
-                      <StatusBadge tone={STATUS_TONE[subscription.status]}>
-                        {STATUS_LABEL[subscription.status]}
+                      <StatusBadge tone={FINANCE_STATUS_TONE[subscription.status]}>
+                        {FINANCE_STATUS_LABEL[subscription.status]}
                       </StatusBadge>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
@@ -619,9 +557,9 @@ function SubscriptionsSection({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL_VALUE}>Todos</SelectItem>
-              {STATUS_OPTIONS.map((status) => (
+              {FINANCE_STATUS_OPTIONS.map((status) => (
                 <SelectItem key={status} value={status}>
-                  {STATUS_LABEL[status]}
+                  {FINANCE_STATUS_LABEL[status]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -692,8 +630,8 @@ function SubscriptionsSection({
                       </td>
                       <td className="px-4 py-3 text-foreground">{subscription.plan.name}</td>
                       <td className="px-4 py-3">
-                        <StatusBadge tone={STATUS_TONE[subscription.status]}>
-                          {STATUS_LABEL[subscription.status]}
+                        <StatusBadge tone={FINANCE_STATUS_TONE[subscription.status]}>
+                          {FINANCE_STATUS_LABEL[subscription.status]}
                         </StatusBadge>
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-foreground">

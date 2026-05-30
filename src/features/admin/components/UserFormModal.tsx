@@ -22,6 +22,7 @@ import { isValidPersonName, isValidPhoneBR, onlyDigits } from '@/lib/field-forma
 
 import { createAdminUser, listAdminClinics, updateAdminUser } from '../services/admin-users.service'
 import type { AdminClinic, AdminUser, UserRole } from '../types/admin.types'
+import { USER_FORM_ROLE_OPTIONS } from '../constants/admin-display'
 
 type Props = {
   open: boolean
@@ -53,13 +54,6 @@ const EMPTY_FORM: FormState = {
 }
 
 const CLINIC_REQUIRED_ROLES: UserRole[] = ['OWNER', 'DENTIST', 'ASSISTANT']
-
-const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
-  { value: 'ADMIN', label: 'Admin (plataforma)' },
-  { value: 'OWNER', label: 'Proprietário' },
-  { value: 'DENTIST', label: 'Profissional' },
-  { value: 'ASSISTANT', label: 'Assistente' },
-]
 
 function buildInitialForm(user: AdminUser): FormState {
   return {
@@ -246,7 +240,7 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
                         <SelectValue placeholder="Selecione o papel" />
                       </SelectTrigger>
                       <SelectContent>
-                        {ROLE_OPTIONS.map((opt) => (
+                        {USER_FORM_ROLE_OPTIONS.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>
                             {opt.label}
                           </SelectItem>
