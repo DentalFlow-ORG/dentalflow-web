@@ -1,4 +1,4 @@
-import { Search, X } from 'lucide-react'
+import { CalendarClock, Search, X } from 'lucide-react'
 import { TextInput } from '@/components/common/FormField'
 import { Button } from '@/components/ui/button'
 import {
@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 import type { LeadFilters, LeadSource, LeadStatus } from '../types/leads.types'
 import { SOURCE_LABELS } from './LeadSourceBadge'
 import { STATUS_CONFIG } from './LeadStatusBadge'
@@ -71,6 +72,21 @@ export function LeadsFilters({ filters, onChange, onClear, hasActiveFilters }: L
           ))}
         </SelectContent>
       </Select>
+
+      <button
+        type="button"
+        aria-pressed={filters.hasFollowUp}
+        onClick={() => onChange({ hasFollowUp: !filters.hasFollowUp, page: 1 })}
+        className={cn(
+          'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+          filters.hasFollowUp
+            ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/90'
+            : 'border-input bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground',
+        )}
+      >
+        <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
+        Com retorno
+      </button>
 
       {hasActiveFilters && (
         <Button variant="ghost" size="sm" onClick={onClear} className="shrink-0">

@@ -28,6 +28,7 @@ const DEFAULT_FILTERS: LeadFilters = {
   status: '',
   source: '',
   assignedToUserId: '',
+  hasFollowUp: false,
   page: 1,
   limit: 30,
 }
@@ -59,6 +60,7 @@ export function useLeadsPage() {
         status: f.status,
         source: f.source,
         assignedToUserId: f.assignedToUserId || undefined,
+        hasFollowUp: f.hasFollowUp || undefined,
         page: f.page,
         limit: f.limit,
       })
@@ -85,7 +87,7 @@ export function useLeadsPage() {
 
   useEffect(() => {
     loadLeads(filters, debouncedSearch || undefined)
-  }, [filters.status, filters.source, filters.assignedToUserId, filters.page, debouncedSearch, loadLeads])
+  }, [filters.status, filters.source, filters.assignedToUserId, filters.hasFollowUp, filters.page, debouncedSearch, loadLeads])
 
   useEffect(() => {
     loadSummary()
@@ -111,7 +113,7 @@ export function useLeadsPage() {
   }
 
   const hasActiveFilters =
-    !!filters.search || !!filters.status || !!filters.source || !!filters.assignedToUserId
+    !!filters.search || !!filters.status || !!filters.source || !!filters.assignedToUserId || filters.hasFollowUp
 
   // Drawer actions
   function openCreate() {

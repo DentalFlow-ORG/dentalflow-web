@@ -102,6 +102,7 @@ export interface LeadFilters {
   status: LeadStatus | ''
   source: LeadSource | ''
   assignedToUserId: string
+  hasFollowUp: boolean
   page: number
   limit: number
 }
