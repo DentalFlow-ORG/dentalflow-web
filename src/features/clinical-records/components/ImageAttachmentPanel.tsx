@@ -87,12 +87,22 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
         const ratio = Math.min(MAX_OUTPUT_DIMENSION / img.width, MAX_OUTPUT_DIMENSION / img.height, 1)
         canvas.width = Math.round(img.width * ratio)
         canvas.height = Math.round(img.height * ratio)
-        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Não foi possível processar a imagem.'))
+          return
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
         const tRatio = Math.min(MAX_THUMBNAIL_DIMENSION / img.width, MAX_THUMBNAIL_DIMENSION / img.height, 1)
         thumb.width = Math.round(img.width * tRatio)
         thumb.height = Math.round(img.height * tRatio)
-        thumb.getContext('2d')!.drawImage(img, 0, 0, thumb.width, thumb.height)
+        const tCtx = thumb.getContext('2d')
+        if (!tCtx) {
+          reject(new Error('Não foi possível processar a miniatura da imagem.'))
+          return
+        }
+        tCtx.drawImage(img, 0, 0, thumb.width, thumb.height)
 
         const dataBase64 = canvas.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1]
         const thumbnailBase64 = thumb.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1]

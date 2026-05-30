@@ -68,6 +68,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   // warnings when conditions change rapidly (e.g. multi-select). Resets after
   // 10 seconds so persistent connectivity issues are still eventually surfaced.
   const odontogramAlertShownRef = useRef(false)
+  const odontogramAlertResetRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [activeTab, setActiveTab] = useState<Tab>('evolucao')
   const [draft, setDraft] = useState<UpdateClinicalRecordDto>({})
@@ -106,6 +107,13 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
     return () => { isCurrent = false }
   }, [record, odontogramLoaded])
+
+  // Clear the odontogram alert reset timer on unmount to avoid stale state writes.
+  useEffect(() => {
+    return () => {
+      if (odontogramAlertResetRef.current) clearTimeout(odontogramAlertResetRef.current)
+    }
+  }, [])
 
   // ── Early returns ────────────────────────────────────────────────────────────
 
@@ -249,7 +257,8 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
           description: 'Não foi possível salvar o odontograma. Verifique sua conexão.',
           tone: 'warning',
         })
-        setTimeout(() => { odontogramAlertShownRef.current = false }, 10_000)
+        if (odontogramAlertResetRef.current) clearTimeout(odontogramAlertResetRef.current)
+        odontogramAlertResetRef.current = setTimeout(() => { odontogramAlertShownRef.current = false }, 10_000)
       }
     })
   }

@@ -5,6 +5,7 @@ type Props<T extends string = string> = {
   value: T
   onChange: (value: T) => void
   className?: string
+  ariaLabel?: string
 }
 
 export function FilterChipGroup<T extends string = string>({
@@ -12,9 +13,10 @@ export function FilterChipGroup<T extends string = string>({
   value,
   onChange,
   className,
+  ariaLabel,
 }: Props<T>) {
   return (
-    <div role="group" className={cn('flex flex-wrap gap-1.5', className)}>
+    <div role="group" aria-label={ariaLabel} className={cn('flex flex-wrap gap-1.5', className)}>
       {options.map((opt) => (
         <button
           key={opt.value}

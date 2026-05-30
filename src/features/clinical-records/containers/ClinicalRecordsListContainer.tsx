@@ -58,6 +58,7 @@ function KpiChip({ label, count, active, onClick }: KpiChipProps) {
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={cn(
         'flex flex-col gap-1 rounded-xl border p-4 text-left transition-all duration-150',
@@ -283,6 +284,7 @@ export function ClinicalRecordsListContainer() {
                   options={STATUS_FILTERS}
                   value={statusFilter}
                   onChange={(v) => setStatusFilter(v)}
+                  ariaLabel="Filtrar prontuários por status"
                 />
               </div>
 
