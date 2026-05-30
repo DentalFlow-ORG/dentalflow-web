@@ -5,6 +5,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { formatDateBR } from '@/lib/date-time-formatters'
+import { cn } from '@/lib/utils'
 
 import {
   addAttachmentMetadata,
@@ -38,11 +39,19 @@ function formatFileSize(bytes: number | null): string | null {
 type Props = {
   recordId: string
   readOnly?: boolean
+  /**
+   * When false, the inner panel title is omitted.
+   * Use this when the component is already inside a ClinicalSection
+   * whose header communicates the section title, avoiding duplication.
+   * The description text is always rendered regardless of this prop.
+   * Defaults to true for backward compatibility.
+   */
+  showTitle?: boolean
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
+export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = true }: Props) {
   const { showAlert } = useGlobalAlerts()
   // inputRef — regular file picker
   // cameraInputRef — file picker with capture="environment" (opens native camera on mobile)
@@ -209,8 +218,10 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
       <div className="space-y-4">
         {/* Section header */}
         <div>
-          <p className="text-sm font-medium text-foreground">Imagens e anexos clínicos</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          {showTitle && (
+            <p className="text-sm font-medium text-foreground">Imagens e anexos clínicos</p>
+          )}
+          <p className={cn('text-xs text-muted-foreground', showTitle && 'mt-0.5')}>
             {readOnly
               ? 'As imagens clínicas estão disponíveis apenas para consulta neste status do prontuário.'
               : 'Radiografias, fotos intraorais e extraorais do atendimento. As imagens são otimizadas antes de salvar.'}
@@ -420,7 +431,7 @@ function AttachmentCard({
   ].filter(Boolean).join(' · ')
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-card">
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
       {/* Image area — clickable when preview is available */}
       <div className="group relative">
         {src ? (
@@ -465,7 +476,7 @@ function AttachmentCard({
 
         {/* Caption */}
         <div>
-          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/50">
+          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70">
             Legenda
           </p>
           <input

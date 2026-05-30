@@ -1,4 +1,4 @@
-import { Calendar, Clock, Stethoscope, User } from 'lucide-react'
+import { Calendar, Clock, Stethoscope, Tag } from 'lucide-react'
 
 import { formatDateBR } from '@/lib/date-time-formatters'
 import { formatPhoneBR } from '@/lib/field-formatters'
@@ -33,7 +33,7 @@ export function ClinicalRecordHeader({ record }: Props) {
         <div className="flex items-start gap-4">
           {/* Avatar — shows patient initials until persistent photo support is available */}
           <div
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary"
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary"
             aria-hidden="true"
             title={record.patientName}
           >
@@ -41,7 +41,7 @@ export function ClinicalRecordHeader({ record }: Props) {
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
               Prontuário digital
             </p>
             <h1 className="mt-1 text-xl font-semibold text-foreground">
@@ -78,7 +78,7 @@ export function ClinicalRecordHeader({ record }: Props) {
             </div>
             {appt.service && (
               <div className="flex items-center gap-1.5">
-                <User className="h-4 w-4 text-muted-foreground" />
+                <Tag className="h-4 w-4 text-muted-foreground" />
                 <span>{appt.service.name}</span>
               </div>
             )}
@@ -86,7 +86,7 @@ export function ClinicalRecordHeader({ record }: Props) {
         )}
 
         {/* Audit trail */}
-        <p className="w-full text-xs text-muted-foreground/70">
+        <p className="w-full text-xs text-muted-foreground/85">
           Criado por{' '}
           <span className="font-medium text-muted-foreground">
             {record.createdByUser.firstName} {record.createdByUser.lastName}

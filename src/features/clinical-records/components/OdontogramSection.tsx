@@ -19,9 +19,17 @@ type Props = {
   data: OdontogramData
   onChange: (data: OdontogramData) => void
   readOnly?: boolean
+  /**
+   * When false, the inner "Odontograma" heading is omitted.
+   * Use this when the component is already inside a ClinicalSection
+   * whose header communicates the section title, avoiding duplication.
+   * The description text is always rendered regardless of this prop.
+   * Defaults to true for backward compatibility (e.g. print layout).
+   */
+  showTitle?: boolean
 }
 
-export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
+export function OdontogramSection({ data, onChange, readOnly = false, showTitle = true }: Props) {
   const [selected, setSelected] = useState<number | null>(null)
   const [multiMode, setMultiMode] = useState(false)
   const [multiSelected, setMultiSelected] = useState<Set<number>>(new Set())
@@ -127,8 +135,10 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
           <div>
-            <p className="text-sm font-semibold text-foreground">Odontograma</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            {showTitle && (
+              <p className="text-sm font-semibold text-foreground">Odontograma</p>
+            )}
+            <p className={cn('text-xs text-muted-foreground', showTitle && 'mt-0.5')}>
               {readOnly
                 ? 'Este prontuário está finalizado e o odontograma está disponível apenas para consulta.'
                 : 'Clique em um dente para registrar condição e observações clínicas.'}

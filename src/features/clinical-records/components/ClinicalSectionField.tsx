@@ -10,6 +10,13 @@ type Props = {
   readOnly?: boolean
   rows?: number
   className?: string
+  /**
+   * When true, the label and hint are rendered as `sr-only` — visually hidden
+   * but still accessible to screen readers. Use this inside a ClinicalSection
+   * whose header title already communicates the field's purpose, avoiding
+   * on-screen repetition while preserving label semantics.
+   */
+  hideLabel?: boolean
 }
 
 export function ClinicalSectionField({
@@ -21,15 +28,16 @@ export function ClinicalSectionField({
   readOnly = false,
   rows = 4,
   className,
+  hideLabel = false,
 }: Props) {
   return (
     <div className={cn('space-y-1.5', className)}>
-      <div className="space-y-0.5">
+      <div className={cn('space-y-0.5', hideLabel && 'sr-only')}>
         <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {label}
         </label>
         {hint && (
-          <p className="text-[11px] leading-tight text-muted-foreground/60">{hint}</p>
+          <p className="text-[11px] leading-tight text-muted-foreground/70">{hint}</p>
         )}
       </div>
       <textarea
