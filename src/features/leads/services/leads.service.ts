@@ -16,6 +16,7 @@ interface ListLeadsParams {
   status?: LeadStatus | ''
   source?: LeadSource | ''
   assignedToUserId?: string
+  hasFollowUp?: boolean
   page?: number
   limit?: number
 }
@@ -26,6 +27,7 @@ function buildQuery(params: ListLeadsParams): string {
   if (params.status) parts.push(`status=${params.status}`)
   if (params.source) parts.push(`source=${params.source}`)
   if (params.assignedToUserId) parts.push(`assignedToUserId=${params.assignedToUserId}`)
+  if (params.hasFollowUp === true) parts.push(`hasFollowUp=true`)
   if (params.page) parts.push(`page=${params.page}`)
   if (params.limit) parts.push(`limit=${params.limit}`)
   return parts.length ? `?${parts.join('&')}` : ''

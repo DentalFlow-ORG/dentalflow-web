@@ -18,19 +18,7 @@ import type {
   BillingCampaign,
   BillingPlan,
   CurrentBillingStatus,
-  NormalizedBillingStatus,
 } from '../types/billing.types'
-
-export const BILLING_STATUS_LABELS: Record<NormalizedBillingStatus, string> = {
-  missing: 'Sem assinatura',
-  trialing: 'Em teste',
-  active: 'Ativa',
-  past_due: 'Pagamento pendente',
-  canceled: 'Cancelada',
-  unpaid: 'Não paga',
-  paused: 'Pausada',
-  incomplete: 'Incompleta',
-}
 
 export function getPlanFeatures(plan: BillingPlan): string[] {
   const features: string[] = getPlanFeatureSummaries(plan.slug)

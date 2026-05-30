@@ -1,5 +1,5 @@
 import { Dialog } from 'radix-ui'
-import { X } from 'lucide-react'
+import { MessageCircle, Pencil, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
@@ -11,11 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import type { MemberListItem } from '@/features/team/types/team.types'
 import type { Lead, LeadActivity, LeadSource, LeadStatus } from '../types/leads.types'
 import { SOURCE_LABELS } from './LeadSourceBadge'
 import { STATUS_CONFIG } from './LeadStatusBadge'
 import { LeadActivitiesTimeline } from './LeadActivitiesTimeline'
-import { formatPhoneBR, normalizeEmail } from '@/lib/field-formatters'
+import { formatPhoneBR, isValidWhatsappPhoneBR, normalizeEmail, normalizePhoneBR } from '@/lib/field-formatters'
 import { validateFollowUpDate } from '@/lib/date-range-rules'
 
 export type DrawerMode = 'view' | 'edit' | 'create'
@@ -26,6 +27,8 @@ interface LeadDrawerProps {
   activities: LeadActivity[]
   isLoadingActivities: boolean
   isSaving: boolean
+  members: MemberListItem[]
+  isLoadingMembers: boolean
   onClose: () => void
   onSave: (payload: {
     name: string
@@ -33,8 +36,10 @@ interface LeadDrawerProps {
     email?: string
     source?: LeadSource
     message?: string
-    nextFollowUpAt?: string
+    nextFollowUpAt?: string | null
+    assignedToUserId?: string | null
   }) => Promise<void>
+  onEdit?: (lead: Lead) => void
   onStatusChange: (status: LeadStatus) => Promise<void>
   onConvert: () => Promise<void>
   onAddNote: (note: string) => Promise<void>
@@ -55,8 +60,11 @@ export function LeadDrawer({
   activities,
   isLoadingActivities,
   isSaving,
+  members,
+  isLoadingMembers,
   onClose,
   onSave,
+  onEdit,
   onStatusChange,
   onConvert,
   onAddNote,
@@ -70,6 +78,7 @@ export function LeadDrawer({
   const [source, setSource] = useState<LeadSource>('MANUAL')
   const [message, setMessage] = useState('')
   const [nextFollowUpAt, setNextFollowUpAt] = useState('')
+  const [assignedToUserId, setAssignedToUserId] = useState('')
   const [localStatus, setLocalStatus] = useState<LeadStatus>('NEW')
   const [isChangingStatus, setIsChangingStatus] = useState(false)
   const [isConverting, setIsConverting] = useState(false)
@@ -82,6 +91,7 @@ export function LeadDrawer({
       setSource(lead.source)
       setMessage(lead.message ?? '')
       setNextFollowUpAt(toDateInputValue(lead.nextFollowUpAt))
+      setAssignedToUserId(lead.assignedToUserId ?? '')
       setLocalStatus(lead.status)
     } else {
       setName('')
@@ -90,6 +100,7 @@ export function LeadDrawer({
       setSource('MANUAL')
       setMessage('')
       setNextFollowUpAt('')
+      setAssignedToUserId('')
       setLocalStatus('NEW')
     }
   }, [lead, mode])
@@ -101,7 +112,8 @@ export function LeadDrawer({
       email: normalizeEmail(email) || undefined,
       source,
       message: message || undefined,
-      nextFollowUpAt: nextFollowUpAt || undefined,
+      nextFollowUpAt: mode === 'create' ? (nextFollowUpAt || undefined) : (nextFollowUpAt || null),
+      assignedToUserId: mode === 'create' ? (assignedToUserId || undefined) : (assignedToUserId || null),
     })
   }
 
@@ -125,6 +137,7 @@ export function LeadDrawer({
   }
 
   const isEditing = mode === 'edit' || mode === 'create'
+  const activeMembers = members.filter((m) => m.isActive)
   const followUpError = isEditing && nextFollowUpAt
     ? validateFollowUpDate(nextFollowUpAt, mode === 'create')
     : null
@@ -150,9 +163,21 @@ export function LeadDrawer({
             >
               {title}
             </Dialog.Title>
-            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Fechar">
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {mode === 'view' && lead && onEdit && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEdit(lead)}
+                  aria-label="Editar lead"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" onClick={onClose} aria-label="Fechar">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Body */}
@@ -207,8 +232,29 @@ export function LeadDrawer({
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(formatPhoneBR(e.target.value))}
                       placeholder="(11) 99999-9999"
                     />
+                  ) : lead?.phone ? (
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`tel:${normalizePhoneBR(lead.phone)}`}
+                        aria-label={`Ligar para ${lead.phone}`}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        {lead.phone}
+                      </a>
+                      {isValidWhatsappPhoneBR(lead.phone) && (
+                        <a
+                          href={`https://wa.me/55${normalizePhoneBR(lead.phone)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Abrir WhatsApp para ${lead.phone}`}
+                          className="inline-flex items-center justify-center rounded p-0.5 text-green-600 transition-colors hover:bg-green-50 dark:hover:bg-green-900/30"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                        </a>
+                      )}
+                    </div>
                   ) : (
-                    <p className="text-sm text-foreground">{lead?.phone ?? '—'}</p>
+                    <p className="text-sm text-foreground">—</p>
                   )}
                 </FormField>
                 <FormField label="E-mail" htmlFor="lead-email">
@@ -220,8 +266,16 @@ export function LeadDrawer({
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(normalizeEmail(e.target.value))}
                       placeholder="email@exemplo.com"
                     />
+                  ) : lead?.email ? (
+                    <a
+                      href={`mailto:${lead.email}`}
+                      aria-label={`Enviar e-mail para ${lead.email}`}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {lead.email}
+                    </a>
                   ) : (
-                    <p className="text-sm text-foreground">{lead?.email ?? '—'}</p>
+                    <p className="text-sm text-foreground">—</p>
                   )}
                 </FormField>
               </div>
@@ -251,14 +305,32 @@ export function LeadDrawer({
                   )}
                 </FormField>
 
-                <FormField label="Próximo follow-up" htmlFor="lead-followup">
+                <FormField
+                  label="Data de retorno"
+                  htmlFor="lead-followup"
+                  hint={isEditing ? 'Ativa o filtro «Com retorno» e exibe alertas de atraso na lista' : undefined}
+                >
                   {isEditing ? (
                     <>
-                      <DatePickerInput
-                        id="lead-followup"
-                        value={nextFollowUpAt}
-                        onValueChange={setNextFollowUpAt}
-                      />
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex-1 min-w-0">
+                          <DatePickerInput
+                            id="lead-followup"
+                            value={nextFollowUpAt}
+                            onValueChange={setNextFollowUpAt}
+                          />
+                        </div>
+                        {nextFollowUpAt && (
+                          <button
+                            type="button"
+                            aria-label="Limpar retorno"
+                            onClick={() => setNextFollowUpAt('')}
+                            className="inline-flex h-11 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
                       {followUpError && (
                         <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">
                           {followUpError}
@@ -274,6 +346,34 @@ export function LeadDrawer({
                   )}
                 </FormField>
               </div>
+
+              <FormField label="Responsável" htmlFor="lead-assigned">
+                {isEditing ? (
+                  <Select
+                    value={assignedToUserId || 'none'}
+                    onValueChange={(v) => setAssignedToUserId(v === 'none' ? '' : v)}
+                    disabled={isLoadingMembers}
+                  >
+                    <SelectTrigger id="lead-assigned">
+                      <SelectValue placeholder="Sem responsável" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem responsável</SelectItem>
+                      {activeMembers.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.firstName} {m.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-foreground">
+                    {lead?.assignedTo
+                      ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}`
+                      : '—'}
+                  </p>
+                )}
+              </FormField>
 
               <FormField label="Notas" htmlFor="lead-message">
                 {isEditing ? (

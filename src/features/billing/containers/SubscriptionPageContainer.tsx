@@ -1,4 +1,4 @@
-import { Check, Lock, Package, ShieldCheck } from 'lucide-react'
+import { Package } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -15,12 +15,6 @@ import { PlanValueSection } from '../components/PlanValueSection'
 import { PricingCard } from '../components/PricingCard'
 import { SubscriptionHero } from '../components/SubscriptionHero'
 import {
-  commercialFeatures,
-  type CommercialPlanKey,
-  type PlanCardFeature,
-} from '@/features/marketing/config/features'
-
-import {
   intervalAvailableForPlan,
   normalizeBillingInterval,
   useSubscriptionPage,
@@ -29,36 +23,11 @@ import {
   getPlanCtaState,
   type PlanCtaState,
 } from '../utils/billing-cta-utils'
-
-const COMPARISON_FEATURE_IDS = [
-  'clinic-agenda',
-  'clinical-records',
-  'patients-register',
-  'crm-leads',
-  'clinic-finance',
-  'inventory-control',
-  'management-reports',
-  'google-calendar',
-  'role-permissions',
-  'ai-assistant',
-  'whatsapp-notifications',
-  'priority-support',
-] as const
-
-function getComparisonFeatures(planKey: CommercialPlanKey): PlanCardFeature[] {
-  return COMPARISON_FEATURE_IDS.map((id) => {
-    const feature = commercialFeatures.find((f) => f.id === id)
-    if (!feature) return null
-    return { label: feature.title, availability: feature.availability[planKey] }
-  }).filter((f): f is PlanCardFeature => f !== null)
-}
-
-const REASSURANCE_ITEMS = [
-  { icon: Check, text: 'Teste grátis por 7 dias, sem cartão de crédito' },
-  { icon: Check, text: 'Cancele quando quiser, sem fidelidade' },
-  { icon: ShieldCheck, text: 'Pagamentos processados com segurança via Stripe' },
-  { icon: Lock, text: 'Migração assistida pela nossa equipe no início' },
-]
+import type { CommercialPlanKey } from '@/features/marketing/config/features'
+import {
+  getComparisonFeatures,
+  REASSURANCE_ITEMS,
+} from '../constants/subscription-display'
 
 export function SubscriptionPageContainer() {
   const { user } = useAuth()

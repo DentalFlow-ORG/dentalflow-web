@@ -8,9 +8,11 @@ import { OdontogramLegend } from './odontogram/OdontogramLegend'
 import { OdontogramToothDetailsPanel } from './odontogram/OdontogramToothDetailsPanel'
 import type { OdontogramData, OdontogramTooth } from '../types/clinical-record.types'
 import {
+  ALL_DECIDUOUS,
   ALL_TEETH,
   ODONTOGRAM_CONDITION_BUTTON_CLASSES,
   ODONTOGRAM_CONDITION_OPTIONS,
+  type DentitionMode,
 } from '../utils/odontogram-status-utils'
 
 type Props = {
@@ -23,13 +25,19 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
   const [selected, setSelected] = useState<number | null>(null)
   const [multiMode, setMultiMode] = useState(false)
   const [multiSelected, setMultiSelected] = useState<Set<number>>(new Set())
+  // Session-only — the active dentition mode is not persisted to the backend.
+  // Deciduous tooth conditions ARE persisted (stored under keys 51–85 in the
+  // shared OdontogramData.teeth map). Only the view selection is session-only.
+  const [dentitionMode, setDentitionMode] = useState<DentitionMode>('permanent')
+
+  // The full set of selectable teeth depends on the active dentition mode
+  const currentAllTeeth = dentitionMode === 'deciduous' ? ALL_DECIDUOUS : ALL_TEETH
 
   const getTooth = (number: number): OdontogramTooth =>
     data.teeth?.[String(number)] ?? {}
 
   const setToothCondition = (number: number, condition: string) => {
     if (readOnly) return
-
     const current = getTooth(number)
     const newCondition = current.condition === condition ? undefined : condition
     onChange({
@@ -43,7 +51,6 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
 
   const setToothNotes = (number: number, notes: string) => {
     if (readOnly) return
-
     onChange({
       ...data,
       teeth: {
@@ -55,12 +62,10 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
 
   const applyConditionToMulti = (condition: string) => {
     if (readOnly) return
-
     const allHaveIt = [...multiSelected].every(
       (toothNumber) => getTooth(toothNumber).condition === condition,
     )
     const newTeeth = { ...data.teeth }
-
     for (const toothNumber of multiSelected) {
       const current = getTooth(toothNumber)
       newTeeth[String(toothNumber)] = {
@@ -68,8 +73,16 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
         condition: allHaveIt ? undefined : condition,
       }
     }
-
     onChange({ ...data, teeth: newTeeth })
+  }
+
+  const handleSetDentitionMode = (mode: DentitionMode) => {
+    // Clear selection state when switching dentition mode to prevent
+    // stale tooth numbers from one dentition being active in the other
+    setDentitionMode(mode)
+    setSelected(null)
+    setMultiMode(false)
+    setMultiSelected(new Set())
   }
 
   const enterMultiMode = () => {
@@ -81,7 +94,7 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
   const selectAll = () => {
     setSelected(null)
     setMultiMode(true)
-    setMultiSelected(new Set(ALL_TEETH))
+    setMultiSelected(new Set(currentAllTeeth))
   }
 
   const exitMultiMode = () => {
@@ -103,7 +116,6 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
       toggleMultiTooth(toothNumber)
       return
     }
-
     setSelected((prev) => (prev === toothNumber ? null : toothNumber))
   }
 
@@ -111,23 +123,30 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-foreground">Odontograma</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {readOnly
-              ? 'Este prontuário está finalizado e o odontograma está disponível apenas para consulta.'
-              : 'Clique em um dente para registrar condição e observações.'}
-          </p>
+      {/* ── Header: title + dentition toggle + toolbar ── */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-2">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Odontograma</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {readOnly
+                ? 'Este prontuário está finalizado e o odontograma está disponível apenas para consulta.'
+                : 'Clique em um dente para registrar condição e observações clínicas.'}
+            </p>
+          </div>
+
+          {/* Dentition toggle — session-only view selection */}
+          <DentitionToggle mode={dentitionMode} onChange={handleSetDentitionMode} />
         </div>
 
         {!readOnly && (
           <OdontogramToolbar
             multiMode={multiMode}
             selectedCount={multiSelected.size}
+            totalTeethCount={currentAllTeeth.length}
             onSelectAll={selectAll}
             onEnterMultiMode={enterMultiMode}
-            onSelectEveryTooth={() => setMultiSelected(new Set(ALL_TEETH))}
+            onSelectEveryTooth={() => setMultiSelected(new Set(currentAllTeeth))}
             onClearSelection={() => setMultiSelected(new Set())}
             onCancelMultiMode={exitMultiMode}
           />
@@ -139,18 +158,19 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
         selected={multiMode ? null : selected}
         multiSelected={multiMode ? multiSelected : null}
         readOnly={readOnly}
+        dentitionMode={dentitionMode}
         onSelect={readOnly ? undefined : handleToothClick}
       />
 
       <OdontogramLegend />
 
       {!readOnly && multiMode && multiSelected.size > 0 && (
-      <MultiConditionPanel
-        selectedCount={multiSelected.size}
-        selectedTeeth={multiSelected}
-        getTooth={getTooth}
-        onApplyCondition={applyConditionToMulti}
-      />
+        <MultiConditionPanel
+          selectedCount={multiSelected.size}
+          selectedTeeth={multiSelected}
+          getTooth={getTooth}
+          onApplyCondition={applyConditionToMulti}
+        />
       )}
 
       {!multiMode && (
@@ -176,7 +196,7 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
           value={data.notes ?? ''}
           onChange={(event) => onChange({ ...data, notes: event.target.value })}
           readOnly={readOnly}
-          placeholder={readOnly ? undefined : 'Observações gerais do odontograma...'}
+          placeholder={readOnly ? undefined : 'Observações gerais sobre o odontograma...'}
           className={cn(
             'mt-1.5 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15',
             readOnly && 'cursor-default bg-muted text-muted-foreground',
@@ -187,9 +207,51 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
   )
 }
 
+// ── DentitionToggle ────────────────────────────────────────────────────────────
+
+function DentitionToggle({
+  mode,
+  onChange,
+}: {
+  mode: DentitionMode
+  onChange: (mode: DentitionMode) => void
+}) {
+  return (
+    <div className="flex w-fit rounded-lg border border-border bg-muted p-0.5">
+      <button
+        type="button"
+        onClick={() => onChange('permanent')}
+        className={cn(
+          'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+          mode === 'permanent'
+            ? 'bg-card text-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
+        Permanente
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('deciduous')}
+        className={cn(
+          'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+          mode === 'deciduous'
+            ? 'bg-card text-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
+        Decídua
+      </button>
+    </div>
+  )
+}
+
+// ── OdontogramToolbar ─────────────────────────────────────────────────────────
+
 type OdontogramToolbarProps = {
   multiMode: boolean
   selectedCount: number
+  totalTeethCount: number
   onSelectAll: () => void
   onEnterMultiMode: () => void
   onSelectEveryTooth: () => void
@@ -200,6 +262,7 @@ type OdontogramToolbarProps = {
 function OdontogramToolbar({
   multiMode,
   selectedCount,
+  totalTeethCount,
   onSelectAll,
   onEnterMultiMode,
   onSelectEveryTooth,
@@ -209,10 +272,22 @@ function OdontogramToolbar({
   if (!multiMode) {
     return (
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={onSelectAll}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full sm:w-auto"
+          onClick={onSelectAll}
+        >
           Selecionar todos
         </Button>
-        <Button type="button" variant="outline" size="sm" onClick={onEnterMultiMode}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full sm:w-auto"
+          onClick={onEnterMultiMode}
+        >
           Selecionar vários
         </Button>
       </div>
@@ -226,22 +301,42 @@ function OdontogramToolbar({
           ? 'Clique nos dentes para selecionar'
           : `${selectedCount} dente${selectedCount > 1 ? 's' : ''} selecionado${selectedCount > 1 ? 's' : ''}`}
       </span>
-      {selectedCount < ALL_TEETH.length && (
-        <Button type="button" variant="outline" size="sm" onClick={onSelectEveryTooth}>
+      {selectedCount < totalTeethCount && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full sm:w-auto"
+          onClick={onSelectEveryTooth}
+        >
           Todos
         </Button>
       )}
       {selectedCount > 0 && (
-        <Button type="button" variant="outline" size="sm" onClick={onClearSelection}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full sm:w-auto"
+          onClick={onClearSelection}
+        >
           Limpar
         </Button>
       )}
-      <Button type="button" variant="outline" size="sm" onClick={onCancelMultiMode}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="w-full sm:w-auto"
+        onClick={onCancelMultiMode}
+      >
         Cancelar seleção
       </Button>
     </div>
   )
 }
+
+// ── MultiConditionPanel ───────────────────────────────────────────────────────
 
 type MultiConditionPanelProps = {
   selectedCount: number
@@ -274,11 +369,11 @@ function MultiConditionPanel({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => onApplyCondition(option.value)}
               className={cn(
-                'border-border bg-card text-muted-foreground hover:bg-muted',
+                'w-full border-border bg-card text-muted-foreground hover:bg-muted sm:w-auto',
                 allHaveIt && ODONTOGRAM_CONDITION_BUTTON_CLASSES[option.value],
               )}
+              onClick={() => onApplyCondition(option.value)}
             >
               {option.label}
             </Button>

@@ -195,3 +195,108 @@ export type CategoryFormState = {
   type: FinancialTransactionType
   color: string
 }
+
+// ── Expense classification ────────────────────────────────────────────────────
+
+export type ClassificationSource = 'RULE' | 'AI' | 'CACHE' | 'NO_MATCH'
+
+export type ExpenseClassificationResult = {
+  transactionId: string
+  suggestedCategoryId: string | null
+  suggestedCategoryName: string | null
+  confidence: number
+  source: ClassificationSource
+  reason: string
+  requiresConfirmation: boolean
+  quotaUsed: boolean
+}
+
+// ── Monthly finance diagnosis ─────────────────────────────────────────────────
+
+export type DiagnosisFinancialHealth = 'HEALTHY' | 'WARNING' | 'CRITICAL'
+
+export type DiagnosisAlertType =
+  | 'LOW_MARGIN'
+  | 'HIGH_EXPENSE_CATEGORY'
+  | 'UNCATEGORIZED_EXPENSES'
+  | 'NEGATIVE_RESULT'
+  | 'LOW_DATA'
+
+export type DiagnosisAlert = {
+  type: DiagnosisAlertType
+  severity: 'HIGH' | 'MEDIUM' | 'LOW'
+  message: string
+}
+
+export type TopExpenseCategory = {
+  categoryName: string
+  amountCents: number
+  percentageOfExpenses: number
+}
+
+export type WeeklyCashflow = {
+  weekLabel: string
+  incomeCents: number
+  expenseCents: number
+  netCents: number
+}
+
+export type DiagnosisFinanceSnapshot = {
+  month: string
+  revenueCents: number
+  expenseCents: number
+  profitCents: number
+  profitMarginPercent: number | null
+  transactionCount: number
+  incomeTransactionCount: number
+  expenseTransactionCount: number
+  uncategorizedExpenseCount: number
+  topExpenseCategories: TopExpenseCategory[]
+  cashflowByWeek: WeeklyCashflow[]
+  alerts: DiagnosisAlert[]
+}
+
+export type MonthlyFinanceDiagnosis = {
+  summary: string
+  financialHealth: DiagnosisFinancialHealth
+  highlights: string[]
+  risks: string[]
+  recommendedActions: string[]
+  generatedAt: string
+  cached: boolean
+  source: 'AI' | 'CACHE'
+  financeSnapshot: DiagnosisFinanceSnapshot
+}
+
+// ── Procedure margins ─────────────────────────────────────────────────────────
+
+export type ProcedureMarginStatus = 'HEALTHY' | 'ATTENTION' | 'INSUFFICIENT_DATA'
+
+export type ProcedureMarginItem = {
+  serviceId: string
+  serviceName: string
+  totalAppointments: number
+  completedAppointments: number
+  canceledOrNoShowCount: number
+  grossRevenueCents: number
+  estimatedDirectCostCents: number | null
+  estimatedProfitCents: number | null
+  marginPercent: number | null
+  avgRevenueCents: number
+  status: ProcedureMarginStatus
+}
+
+export type ProcedureMarginsResponse = {
+  period: { from: string; to: string }
+  items: ProcedureMarginItem[]
+  totals: {
+    totalAppointments: number
+    completedAppointments: number
+    grossRevenueCents: number
+    estimatedDirectCostCents: number | null
+    estimatedProfitCents: number | null
+    marginPercent: number | null
+  }
+  costDataAvailable: boolean
+  limitation: string | null
+}

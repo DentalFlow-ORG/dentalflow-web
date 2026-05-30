@@ -6,9 +6,11 @@ import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useLeadsPage } from '../hooks/useLeadsPage'
 import { LeadDrawer } from '../components/LeadDrawer'
+import { LeadFunnelPanel } from '../components/LeadFunnelPanel'
 import { LeadsFilters } from '../components/LeadsFilters'
 import { LeadSummaryCards } from '../components/LeadSummaryCards'
 import { LeadsTable } from '../components/LeadsTable'
+import type { LeadStatus } from '../types/leads.types'
 
 export function LeadsPageContainer() {
   const {
@@ -19,6 +21,8 @@ export function LeadsPageContainer() {
     isLoadingSummary,
     filters,
     hasActiveFilters,
+    members,
+    isLoadingMembers,
     drawerMode,
     selectedLead,
     activities,
@@ -54,13 +58,24 @@ export function LeadsPageContainer() {
       />
 
       <div className="mt-6 space-y-5">
-        <LeadSummaryCards summary={summary} isLoading={isLoadingSummary} />
+        <LeadSummaryCards
+          summary={summary}
+          isLoading={isLoadingSummary}
+          activeStatus={filters.status || undefined}
+          onCardClick={(status?: LeadStatus) =>
+            handleFiltersChange({ status: status ?? '', page: 1 })
+          }
+        />
+
+        <LeadFunnelPanel summary={summary} />
 
         <LeadsFilters
           filters={filters}
           onChange={handleFiltersChange}
           onClear={clearFilters}
           hasActiveFilters={hasActiveFilters}
+          members={members}
+          isLoadingMembers={isLoadingMembers}
         />
 
         {isEmpty ? (
@@ -99,8 +114,11 @@ export function LeadsPageContainer() {
           activities={activities}
           isLoadingActivities={isLoadingActivities}
           isSaving={isSaving}
+          members={members}
+          isLoadingMembers={isLoadingMembers}
           onClose={closeDrawer}
           onSave={handleSave}
+          onEdit={openEdit}
           onStatusChange={handleStatusChange}
           onConvert={handleConvert}
           onAddNote={handleAddNote}

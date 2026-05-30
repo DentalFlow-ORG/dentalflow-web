@@ -8,12 +8,17 @@ import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { useExpenseClassifier } from '../hooks/useExpenseClassifier'
 import { useFinancePage } from '../hooks/useFinancePage'
+import { useMonthlyFinanceDiagnosis } from '../hooks/useMonthlyFinanceDiagnosis'
+import { useProcedureMargins } from '../hooks/useProcedureMargins'
 import { CategoriesPanel } from '../components/CategoriesPanel'
 import { CategoryCreateForm } from '../components/CategoryCreateForm'
 import { CategoryEditModal } from '../components/CategoryEditModal'
 import { FinanceFiltersBar } from '../components/FinanceFiltersBar'
 import { FinancialAnalysisPanel } from '../components/FinancialAnalysisPanel'
+import { MonthlyFinanceDiagnosisCard } from '../components/MonthlyFinanceDiagnosisCard'
+import { ProcedureMarginsSection } from '../components/ProcedureMarginsSection'
 import { FixedExpenseForm } from '../components/FixedExpenseForm'
 import { FixedExpenseEditModal } from '../components/FixedExpenseEditModal'
 import { FixedExpensesList } from '../components/FixedExpensesList'
@@ -101,6 +106,10 @@ export function FinancePageContainer() {
     setTransactionsPageSize,
   } = useFinancePage()
 
+  const { getState: getClassifierState, handleClassify, handleApply: handleApplyCategory, handleDismiss: handleDismissClassify } = useExpenseClassifier(load)
+  const { state: diagnosisState, handleGenerate: handleGenerateDiagnosis } = useMonthlyFinanceDiagnosis()
+  const { state: marginsState, load: loadMargins } = useProcedureMargins()
+
   if (planBlocked) return <PlanUpgradeNotice title="Gestão financeira" />
 
   return (
@@ -131,6 +140,13 @@ export function FinancePageContainer() {
             <KpiGrid summary={summary} />
 
             <FinancialAnalysisPanel summary={summary} previousSummary={previousSummary} />
+
+            <MonthlyFinanceDiagnosisCard
+              state={diagnosisState}
+              onGenerate={handleGenerateDiagnosis}
+            />
+
+            <ProcedureMarginsSection state={marginsState} onLoad={loadMargins} />
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <PanelCard>
@@ -186,6 +202,10 @@ export function FinancePageContainer() {
                 onPageSizeChange={setTransactionsPageSize}
                 onEdit={handleOpenEdit}
                 onDelete={setDeletingTransaction}
+                getClassifierState={getClassifierState}
+                onClassify={handleClassify}
+                onApplyCategory={handleApplyCategory}
+                onDismissClassify={handleDismissClassify}
               />
               <TransactionForm
                 form={transactionForm}

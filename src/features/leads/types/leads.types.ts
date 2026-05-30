@@ -92,9 +92,9 @@ export interface UpdateLeadPayload {
   email?: string
   source?: LeadSource
   serviceId?: string
-  assignedToUserId?: string
+  assignedToUserId?: string | null
   message?: string
-  nextFollowUpAt?: string
+  nextFollowUpAt?: string | null
 }
 
 export interface LeadFilters {
@@ -102,6 +102,7 @@ export interface LeadFilters {
   status: LeadStatus | ''
   source: LeadSource | ''
   assignedToUserId: string
+  hasFollowUp: boolean
   page: number
   limit: number
 }

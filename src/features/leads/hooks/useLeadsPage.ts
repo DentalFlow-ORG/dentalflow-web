@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
+import { listClinicMembers } from '@/features/team/services/team.service'
+import type { MemberListItem } from '@/features/team/types/team.types'
 import {
   addLeadActivity,
   archiveLead,
@@ -28,6 +30,7 @@ const DEFAULT_FILTERS: LeadFilters = {
   status: '',
   source: '',
   assignedToUserId: '',
+  hasFollowUp: false,
   page: 1,
   limit: 30,
 }
@@ -41,6 +44,9 @@ export function useLeadsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingSummary, setIsLoadingSummary] = useState(true)
   const [filters, setFilters] = useState<LeadFilters>(DEFAULT_FILTERS)
+
+  const [members, setMembers] = useState<MemberListItem[]>([])
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false)
 
   const [drawerMode, setDrawerMode] = useState<DrawerMode>(null)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
@@ -59,6 +65,7 @@ export function useLeadsPage() {
         status: f.status,
         source: f.source,
         assignedToUserId: f.assignedToUserId || undefined,
+        hasFollowUp: f.hasFollowUp || undefined,
         page: f.page,
         limit: f.limit,
       })
@@ -83,13 +90,25 @@ export function useLeadsPage() {
       .finally(() => setIsLoadingSummary(false))
   }, [])
 
+  const loadMembers = useCallback(() => {
+    setIsLoadingMembers(true)
+    listClinicMembers()
+      .then(({ members: fetched }) => setMembers(fetched))
+      .catch(() => {})
+      .finally(() => setIsLoadingMembers(false))
+  }, [])
+
   useEffect(() => {
     loadLeads(filters, debouncedSearch || undefined)
-  }, [filters.status, filters.source, filters.assignedToUserId, filters.page, debouncedSearch, loadLeads])
+  }, [filters.status, filters.source, filters.assignedToUserId, filters.hasFollowUp, filters.page, debouncedSearch, loadLeads])
 
   useEffect(() => {
     loadSummary()
   }, [loadSummary])
+
+  useEffect(() => {
+    loadMembers()
+  }, [loadMembers])
 
   function handleFiltersChange(partial: Partial<LeadFilters>) {
     const updated = { ...filters, ...partial }
@@ -111,7 +130,7 @@ export function useLeadsPage() {
   }
 
   const hasActiveFilters =
-    !!filters.search || !!filters.status || !!filters.source || !!filters.assignedToUserId
+    !!filters.search || !!filters.status || !!filters.source || !!filters.assignedToUserId || filters.hasFollowUp
 
   // Drawer actions
   function openCreate() {
@@ -155,7 +174,8 @@ export function useLeadsPage() {
     email?: string
     source?: LeadSource
     message?: string
-    nextFollowUpAt?: string
+    nextFollowUpAt?: string | null
+    assignedToUserId?: string | null
     status?: LeadStatus
   }) {
     setIsSaving(true)
@@ -260,6 +280,8 @@ export function useLeadsPage() {
     isLoadingSummary,
     filters,
     hasActiveFilters,
+    members,
+    isLoadingMembers,
     drawerMode,
     selectedLead,
     activities,

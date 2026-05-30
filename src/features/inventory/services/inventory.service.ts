@@ -12,6 +12,7 @@ import type {
   StockCategory,
   StockMovement,
   StockProduct,
+  StockPurchaseList,
   StockSummary,
   UpdateStockCategoryPayload,
   UpdateStockProductPayload,
@@ -34,6 +35,15 @@ function buildQuery(params: Record<string, string | number | undefined>) {
 
 export function getStockSummary() {
   return apiRequest<StockSummary>('/stock/summary', {
+    method: 'GET',
+    accessToken: getAccessToken(),
+  })
+}
+
+// ── Purchase list ─────────────────────────────────────────────────────────────
+
+export function getStockPurchaseList() {
+  return apiRequest<StockPurchaseList>('/stock/purchase-list', {
     method: 'GET',
     accessToken: getAccessToken(),
   })

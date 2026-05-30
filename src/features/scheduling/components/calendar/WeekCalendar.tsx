@@ -8,8 +8,6 @@ import { cn } from '@/lib/utils'
 
 import {
   addDays,
-  BUSINESS_END_TIME,
-  BUSINESS_START_TIME,
   formatWallTime,
   formatWeekDayHeader,
   formatWeekRangeLabel,
@@ -22,10 +20,20 @@ import {
 } from '../../utils/time'
 import type {
   Appointment,
-  AppointmentStatus,
   Availability,
   AvailabilityException,
 } from '../../types/scheduling.types'
+import { STATUS_COLORS } from '../../constants/appointment-display'
+import {
+  PX_PER_MINUTE,
+  SLOT_HEIGHT_PX,
+  buildTimeSlots,
+  computeDayLayout,
+  getDayStatus,
+  getDayWorkingRanges,
+  isSlotInsideWorkingRanges,
+  minutesToTime,
+} from '../../utils/week-calendar-layout'
 
 type WeekCalendarProps = {
   appointments: Appointment[]
@@ -35,30 +43,6 @@ type WeekCalendarProps = {
   toolbarAction?: ReactNode
   onWeekChange: (weekStart: Date) => void
   onAppointmentClick: (appointment: Appointment) => void
-}
-
-const DEFAULT_START_MINUTES = wallTimeToMinutes(BUSINESS_START_TIME)
-const DEFAULT_END_MINUTES = wallTimeToMinutes(BUSINESS_END_TIME)
-const SLOT_MINUTES = 30
-const SLOT_HEIGHT_PX = 80
-const PX_PER_MINUTE = SLOT_HEIGHT_PX / SLOT_MINUTES
-
-const STATUS_COLORS: Record<AppointmentStatus, string> = {
-  PENDING: 'border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200 dark:border-amber-700/60 dark:bg-amber-900/80 dark:text-amber-200 dark:hover:bg-amber-800/80 dark:hover:border-amber-600/80',
-  CONFIRMED: 'border-emerald-300 bg-emerald-100 text-emerald-950 hover:bg-emerald-200 dark:border-emerald-700/60 dark:bg-emerald-900/80 dark:text-emerald-200 dark:hover:bg-emerald-800/80 dark:hover:border-emerald-600/80',
-  COMPLETED: 'border-border bg-muted text-muted-foreground hover:bg-muted/80',
-  CANCELED: 'border-red-300 bg-red-100 text-red-900 hover:bg-red-200 dark:border-red-700/60 dark:bg-red-900/80 dark:text-red-300 dark:hover:bg-red-800/80 dark:hover:border-red-600/80',
-  NO_SHOW: 'border-orange-300 bg-orange-100 text-orange-900 hover:bg-orange-200 dark:border-orange-700/60 dark:bg-orange-900/80 dark:text-orange-300 dark:hover:bg-orange-800/80 dark:hover:border-orange-600/80',
-}
-
-type PositionedAppointment = Appointment & {
-  colIndex: number
-  colCount: number
-}
-
-type WorkingRange = {
-  start: number
-  end: number
 }
 
 export function WeekCalendar({
@@ -180,7 +164,7 @@ export function WeekCalendar({
         </div>
         <div className="relative overflow-x-auto">
           {/* Right-side fade indicating more content */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white/70 dark:from-[#0f172a]/70 to-transparent lg:hidden" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-linear-to-l from-card/70 to-transparent lg:hidden" />
           <div className="min-w-245">
             {/* Day headers */}
             <div className="grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))] border-b border-border bg-muted">
@@ -301,7 +285,7 @@ export function WeekCalendar({
                               'border-b border-border/50 last:border-b-0',
                               isRoutineSlot
                                 ? 'bg-transparent'
-                                : 'bg-[repeating-linear-gradient(135deg,#f8fafc_0px,#f8fafc_8px,#eef2f7_8px,#eef2f7_12px)] dark:bg-[repeating-linear-gradient(135deg,#0f172a_0px,#0f172a_8px,#1e293b_8px,#1e293b_12px)] opacity-90',
+                                : 'bg-[repeating-linear-gradient(135deg,#f8fafc_0px,#f8fafc_8px,#eef2f7_8px,#eef2f7_12px)] dark:bg-[repeating-linear-gradient(135deg,#171717_0px,#171717_8px,#262626_8px,#262626_12px)] opacity-90',
                             )}
                             style={{ height: `${SLOT_HEIGHT_PX}px` }}
                             title={
@@ -399,163 +383,3 @@ function AppointmentCard({
   )
 }
 
-function computeDayLayout(appointments: Appointment[]): PositionedAppointment[] {
-  if (appointments.length === 0) return []
-
-  return appointments.map((appt) => {
-    const concurrent = appointments.filter((other) =>
-      (appt.startTime ?? '') < (other.endTime ?? '') &&
-        (other.startTime ?? '') < (appt.endTime ?? ''),
-    )
-    const colCount = concurrent.length
-    const colIndex = concurrent.indexOf(appt)
-    return { ...appt, colIndex, colCount }
-  })
-}
-
-function getDayStatus(
-  date: Date,
-  profileAvailability?: Availability[],
-  profileExceptions?: AvailabilityException[],
-): {
-  isWorking: boolean
-  kind: 'working' | 'dayOff' | 'special'
-  reason: string | null
-  timeRange: string | null
-} {
-  const dateValue = toDateInputValue(date)
-  const exception = profileExceptions?.find(
-    (item) => isoDateToString(item.exceptionDate) === dateValue,
-  )
-
-  if (exception) {
-    const specialStartTime = exception.isDayOff ? null : exception.startTime
-    const specialEndTime = exception.isDayOff ? null : exception.endTime
-    const hasSpecialHours = Boolean(specialStartTime && specialEndTime)
-
-    return {
-      isWorking: !exception.isDayOff,
-      kind: hasSpecialHours ? 'special' : exception.isDayOff ? 'dayOff' : 'working',
-      reason: exception.reason,
-      timeRange: specialStartTime && specialEndTime
-        ? `${formatWallTime(specialStartTime)} - ${formatWallTime(specialEndTime)}`
-        : null,
-    }
-  }
-
-  if (!profileAvailability || profileAvailability.length === 0) {
-    return { isWorking: true, kind: 'working', reason: null, timeRange: null }
-  }
-
-  const dow = date.getDay()
-  const isWorking = profileAvailability.some((a) => a.dayOfWeek === dow && a.isActive)
-
-  return {
-    isWorking,
-    kind: isWorking ? 'working' : 'dayOff',
-    reason: null,
-    timeRange: null,
-  }
-}
-
-function buildTimeSlots(
-  visibleAppointments: Appointment[],
-  weekDates: Date[],
-  profileAvailability?: Availability[],
-  profileExceptions?: AvailabilityException[],
-): number[] {
-  const activeSlots = profileAvailability?.filter((a) => a.isActive) ?? []
-  const weekDateValues = new Set(weekDates.map(toDateInputValue))
-  const specialExceptions =
-    profileExceptions?.filter(
-      (e) =>
-        !e.isDayOff &&
-        e.startTime &&
-        e.endTime &&
-        weekDateValues.has(isoDateToString(e.exceptionDate)),
-    ) ?? []
-
-  let minMinutes: number
-  let maxMinutes: number
-
-  if (activeSlots.length > 0) {
-    minMinutes = Math.min(...activeSlots.map((s) => wallTimeToMinutes(s.startTime)))
-    maxMinutes = Math.max(...activeSlots.map((s) => wallTimeToMinutes(s.endTime)))
-  } else {
-    minMinutes = DEFAULT_START_MINUTES
-    maxMinutes = DEFAULT_END_MINUTES
-  }
-
-  for (const exception of specialExceptions) {
-    if (!exception.startTime || !exception.endTime) continue
-
-    const start = wallTimeToMinutes(exception.startTime)
-    const end = wallTimeToMinutes(exception.endTime)
-    if (start < minMinutes) minMinutes = Math.floor(start / SLOT_MINUTES) * SLOT_MINUTES
-    if (end > maxMinutes) maxMinutes = Math.ceil(end / SLOT_MINUTES) * SLOT_MINUTES
-  }
-
-  for (const appt of visibleAppointments) {
-    const start = wallTimeToMinutes(appt.startTime ?? '')
-    const end = wallTimeToMinutes(appt.endTime ?? '')
-    if (start < minMinutes) minMinutes = Math.floor(start / SLOT_MINUTES) * SLOT_MINUTES
-    if (end > maxMinutes) maxMinutes = Math.ceil(end / SLOT_MINUTES) * SLOT_MINUTES
-  }
-
-  const start = Math.floor(minMinutes / SLOT_MINUTES) * SLOT_MINUTES
-  const end = Math.ceil(maxMinutes / SLOT_MINUTES) * SLOT_MINUTES
-
-  return Array.from(
-    { length: Math.max(1, (end - start) / SLOT_MINUTES + 1) },
-    (_, i) => start + i * SLOT_MINUTES,
-  )
-}
-
-function getDayWorkingRanges(
-  date: Date,
-  profileAvailability?: Availability[],
-  profileExceptions?: AvailabilityException[],
-): WorkingRange[] {
-  const dateValue = toDateInputValue(date)
-  const exception = profileExceptions?.find(
-    (item) => isoDateToString(item.exceptionDate) === dateValue,
-  )
-
-  if (exception?.isDayOff) return []
-
-  if (exception?.startTime && exception.endTime) {
-    return [
-      {
-        start: wallTimeToMinutes(exception.startTime),
-        end: wallTimeToMinutes(exception.endTime),
-      },
-    ]
-  }
-
-  const activeDaySlots =
-    profileAvailability?.filter((slot) => slot.isActive && slot.dayOfWeek === date.getDay()) ??
-    []
-
-  if (activeDaySlots.length > 0) {
-    return activeDaySlots.map((slot) => ({
-      start: wallTimeToMinutes(slot.startTime),
-      end: wallTimeToMinutes(slot.endTime),
-    }))
-  }
-
-  if (profileAvailability && profileAvailability.length > 0) {
-    return []
-  }
-
-  return [{ start: DEFAULT_START_MINUTES, end: DEFAULT_END_MINUTES }]
-}
-
-function isSlotInsideWorkingRanges(slot: number, workingRanges: WorkingRange[]) {
-  return workingRanges.some((range) => slot >= range.start && slot <= range.end)
-}
-
-function minutesToTime(minutes: number) {
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
-}

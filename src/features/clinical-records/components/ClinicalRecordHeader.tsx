@@ -14,25 +14,46 @@ function formatTime(value: string) {
   return value.slice(11, 16)
 }
 
+// Patient avatar helpers — purely visual, derived from patientName.
+// No persistent patient photo support yet; this is a placeholder until the
+// backend adds a dedicated patient profile photo API.
+function getAvatarInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
 export function ClinicalRecordHeader({ record }: Props) {
   const appt = record.appointment
 
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-            Prontuário digital
-          </p>
-          <h1 className="mt-1 text-xl font-semibold text-foreground">
-            {record.patientName}
-          </h1>
-          {record.patientEmail && (
-            <p className="mt-0.5 text-sm text-muted-foreground">{record.patientEmail}</p>
-          )}
-          {record.patientPhone && (
-            <p className="text-sm text-muted-foreground">{formatPhoneBR(record.patientPhone)}</p>
-          )}
+        <div className="flex items-start gap-4">
+          {/* Avatar — shows patient initials until persistent photo support is available */}
+          <div
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary"
+            aria-hidden="true"
+            title={record.patientName}
+          >
+            {getAvatarInitials(record.patientName)}
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+              Prontuário digital
+            </p>
+            <h1 className="mt-1 text-xl font-semibold text-foreground">
+              {record.patientName}
+            </h1>
+            {record.patientEmail && (
+              <p className="mt-0.5 text-sm text-muted-foreground">{record.patientEmail}</p>
+            )}
+            {record.patientPhone && (
+              <p className="text-sm text-muted-foreground">{formatPhoneBR(record.patientPhone)}</p>
+            )}
+          </div>
         </div>
         <ClinicalRecordStatusBadge status={record.status} className="mt-1" />
       </div>
@@ -63,6 +84,24 @@ export function ClinicalRecordHeader({ record }: Props) {
             )}
           </>
         )}
+
+        {/* Audit trail */}
+        <p className="w-full text-xs text-muted-foreground/70">
+          Criado por{' '}
+          <span className="font-medium text-muted-foreground">
+            {record.createdByUser.firstName} {record.createdByUser.lastName}
+          </span>
+          {' em '}{formatDateBR(record.createdAt.slice(0, 10))}
+          {record.updatedByUser && (
+            <>
+              {' · '}Atualizado por{' '}
+              <span className="font-medium text-muted-foreground">
+                {record.updatedByUser.firstName} {record.updatedByUser.lastName}
+              </span>
+              {' em '}{formatDateBR(record.updatedAt.slice(0, 10))}
+            </>
+          )}
+        </p>
       </div>
     </div>
   )

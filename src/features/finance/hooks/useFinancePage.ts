@@ -30,7 +30,7 @@ import type {
   FixedExpenseFormState,
   TransactionFormState,
 } from '../types/finance.types'
-import { CATEGORY_COLORS } from '../utils/finance-constants'
+import { CATEGORY_COLORS } from '../constants/finance-display'
 
 const emptyCategoryForm: CategoryFormState = {
   name: '',

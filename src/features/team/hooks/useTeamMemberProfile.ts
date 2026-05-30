@@ -12,7 +12,7 @@ import type {
 } from '@/features/scheduling/types/scheduling.types'
 
 import { getClinicProfile, listClinicMembers } from '../services/team.service'
-import type { MemberListItem, ProfileDetail } from '../types/team.types'
+import type { MemberListItem, ProfileDetail, ServiceItem } from '../types/team.types'
 
 export type ProfileLoadStatus = 'loading' | 'ready' | 'forbidden' | 'not-found' | 'error'
 
@@ -22,6 +22,7 @@ export function useTeamMemberProfile(profileId: string) {
   const [member, setMember] = useState<MemberListItem | null>(null)
   const [availability, setAvailability] = useState<Availability[]>([])
   const [exceptions, setExceptions] = useState<AvailabilityException[]>([])
+  const [services, setServices] = useState<ServiceItem[]>([])
   const [status, setStatus] = useState<ProfileLoadStatus>('loading')
 
   const load = useCallback(async () => {
@@ -30,6 +31,7 @@ export function useTeamMemberProfile(profileId: string) {
     setMember(null)
     setAvailability([])
     setExceptions([])
+    setServices([])
 
     try {
       const [profileData, slots, excs] = await Promise.all([
@@ -40,6 +42,7 @@ export function useTeamMemberProfile(profileId: string) {
       setProfile(profileData)
       setAvailability(slots)
       setExceptions(excs)
+      setServices(profileData.services ?? [])
 
       if (user?.role === 'OWNER') {
         try {
@@ -79,5 +82,5 @@ export function useTeamMemberProfile(profileId: string) {
 
   const isActive = member ? member.isActive : user?.role === 'DENTIST' ? true : null
 
-  return { profile, member, user, status, displayName, email, phone, isActive, availability, setAvailability, exceptions, setExceptions, load }
+  return { profile, member, user, status, displayName, email, phone, isActive, availability, setAvailability, exceptions, setExceptions, services, setServices, load }
 }

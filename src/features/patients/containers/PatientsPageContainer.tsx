@@ -23,27 +23,10 @@ import { formatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
 import { usePatientHistory } from '../hooks/usePatientHistory'
 import { usePatientsPage } from '../hooks/usePatientsPage'
 import type { PatientAppointment, PatientSummary } from '../types/patients.types'
+import { type BadgeTone, STATUS_LABEL, STATUS_TONE } from '../constants/appointment-display'
 
 const formatDate = formatDateBR
 const formatTime = (t: string | null | undefined) => safeFormatTimeBR(t)
-
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: 'Pendente',
-  CONFIRMED: 'Confirmado',
-  COMPLETED: 'Concluído',
-  CANCELED: 'Cancelado',
-  NO_SHOW: 'Não compareceu',
-}
-
-type BadgeTone = 'success' | 'warning' | 'muted'
-
-const STATUS_TONE: Record<string, BadgeTone> = {
-  COMPLETED: 'success',
-  PENDING: 'warning',
-  CONFIRMED: 'warning',
-  CANCELED: 'muted',
-  NO_SHOW: 'muted',
-}
 
 function KpiGrid({ patients }: { patients: PatientSummary[] }) {
   const totalPatients = patients.length
@@ -139,7 +122,7 @@ function PatientMobileCard({
           {hasContact ? (
             <div className="mt-1 space-y-0.5">
               {patient.patientPhone && <p>{patient.patientPhone}</p>}
-              {patient.patientEmail && <p className="break-words">{patient.patientEmail}</p>}
+              {patient.patientEmail && <p className="wrap-break-word">{patient.patientEmail}</p>}
             </div>
           ) : (
             <p className="mt-1 text-muted-foreground">Sem contato cadastrado</p>

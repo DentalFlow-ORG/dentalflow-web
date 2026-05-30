@@ -1,4 +1,4 @@
-import { Search, X } from 'lucide-react'
+import { CalendarClock, Search, X } from 'lucide-react'
 import { TextInput } from '@/components/common/FormField'
 import { Button } from '@/components/ui/button'
 import {
@@ -8,6 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import type { MemberListItem } from '@/features/team/types/team.types'
 import type { LeadFilters, LeadSource, LeadStatus } from '../types/leads.types'
 import { SOURCE_LABELS } from './LeadSourceBadge'
 import { STATUS_CONFIG } from './LeadStatusBadge'
@@ -20,9 +22,12 @@ interface LeadsFiltersProps {
   onChange: (filters: Partial<LeadFilters>) => void
   onClear: () => void
   hasActiveFilters: boolean
+  members: MemberListItem[]
+  isLoadingMembers: boolean
 }
 
-export function LeadsFilters({ filters, onChange, onClear, hasActiveFilters }: LeadsFiltersProps) {
+export function LeadsFilters({ filters, onChange, onClear, hasActiveFilters, members, isLoadingMembers }: LeadsFiltersProps) {
+  const activeMembers = members.filter((m) => m.isActive)
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
       <div className="relative flex-1 min-w-50">
@@ -71,6 +76,39 @@ export function LeadsFilters({ filters, onChange, onClear, hasActiveFilters }: L
           ))}
         </SelectContent>
       </Select>
+
+      <Select
+        value={filters.assignedToUserId || 'all'}
+        onValueChange={(v) => onChange({ assignedToUserId: v === 'all' ? '' : v, page: 1 })}
+        disabled={isLoadingMembers}
+      >
+        <SelectTrigger className="w-full sm:w-40" aria-label="Responsável">
+          <SelectValue placeholder="Responsável" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos</SelectItem>
+          {activeMembers.map((m) => (
+            <SelectItem key={m.id} value={m.id}>
+              {m.firstName} {m.lastName}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <button
+        type="button"
+        aria-pressed={filters.hasFollowUp}
+        onClick={() => onChange({ hasFollowUp: !filters.hasFollowUp, page: 1 })}
+        className={cn(
+          'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+          filters.hasFollowUp
+            ? 'border-primary bg-primary text-primary-foreground hover:bg-primary/90'
+            : 'border-input bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground',
+        )}
+      >
+        <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
+        Com retorno
+      </button>
 
       {hasActiveFilters && (
         <Button variant="ghost" size="sm" onClick={onClear} className="shrink-0">

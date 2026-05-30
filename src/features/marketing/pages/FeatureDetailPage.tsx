@@ -2,12 +2,7 @@ import { Link } from '@tanstack/react-router'
 import {
   AlertCircle,
   ArrowRight,
-  Bot,
-  CalendarDays,
   CheckCircle2,
-  ClipboardList,
-  CreditCard,
-  TrendingUp,
   Users,
 } from 'lucide-react'
 
@@ -17,51 +12,8 @@ import { cn } from '@/lib/utils'
 import { PublicLayout } from '../components/PublicLayout'
 import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import type { FeatureDetailContent } from '../data/public-content'
-import { FeatureMockup } from './FeatureMockups'
-
-// ── Related features (6 main dropdown modules) ────────────────────────────────
-
-const MAIN_FEATURES = [
-  {
-    id: 'agenda',
-    label: 'Agenda inteligente',
-    href: '/funcionalidades/agenda',
-    icon: CalendarDays,
-  },
-  {
-    id: 'prontuarios',
-    label: 'Prontuário eletrônico',
-    href: '/funcionalidades/prontuarios',
-    icon: ClipboardList,
-  },
-  {
-    id: 'financeiro',
-    label: 'Gestão financeira',
-    href: '/funcionalidades/financeiro',
-    icon: CreditCard,
-  },
-  {
-    id: 'pacientes',
-    label: 'Pacientes e leads',
-    href: '/funcionalidades/pacientes',
-    icon: Users,
-  },
-  {
-    id: 'relatorios',
-    label: 'Relatórios e indicadores',
-    href: '/funcionalidades/relatorios',
-    icon: TrendingUp,
-  },
-  { id: 'ia', label: 'IA de gestão', href: '/funcionalidades/ia', icon: Bot },
-]
-
-// Maps role label strings to public role pages
-const ROLE_ROUTES: Record<string, string> = {
-  'Secretária / Recepção': '/para-secretarias',
-  'Dentista': '/para-dentistas',
-  'Gestor / Proprietário': '/para-gestores',
-  'Gestor/Proprietário': '/para-gestores',
-}
+import { FeatureMockup } from '../components/FeatureMockups'
+import { MAIN_FEATURES, ROLE_ROUTES } from '../constants/feature-nav'
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -85,9 +37,9 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
       >
         {/* Background glows */}
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div className="absolute -left-72 top-1/3 h-[500px] w-[500px] rounded-full bg-blue-600/[0.07] blur-3xl" />
-          <div className="absolute -right-72 bottom-0 h-[450px] w-[450px] rounded-full bg-blue-600/[0.05] blur-3xl" />
-          <div className="absolute left-1/3 top-1/4 h-[380px] w-[380px] rounded-full bg-emerald-500/[0.07] blur-3xl" />
+          <div className="absolute -left-72 top-1/3 h-125 w-125 rounded-full bg-blue-600/[0.07] blur-3xl" />
+          <div className="absolute -right-72 bottom-0 h-112.5 w-112.5 rounded-full bg-blue-600/5 blur-3xl" />
+          <div className="absolute left-1/3 top-1/4 h-95 w-95 rounded-full bg-emerald-500/[0.07] blur-3xl" />
         </div>
 
         <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
@@ -420,8 +372,8 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
           aria-labelledby="feature-cta-heading"
         >
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <div className="absolute left-1/4 top-0 h-[380px] w-[380px] -translate-y-1/2 rounded-full bg-emerald-500/[0.1] blur-3xl" />
-            <div className="absolute right-1/4 bottom-0 h-[380px] w-[380px] translate-y-1/2 rounded-full bg-blue-600/[0.08] blur-3xl" />
+            <div className="absolute left-1/4 top-0 h-95 w-95 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-3xl" />
+            <div className="absolute right-1/4 bottom-0 h-95 w-95 translate-y-1/2 rounded-full bg-blue-600/8 blur-3xl" />
           </div>
           <div
             className={cn(
@@ -464,4 +416,3 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
     </PublicLayout>
   )
 }
-

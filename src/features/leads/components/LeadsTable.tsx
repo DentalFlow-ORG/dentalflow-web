@@ -2,10 +2,19 @@ import { Archive, Loader2, Pencil } from 'lucide-react'
 import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
+import { todayIso } from '@/lib/date-range-rules'
 import { cn } from '@/lib/utils'
-import type { Lead } from '../types/leads.types'
+import type { Lead, LeadStatus } from '../types/leads.types'
 import { LeadSourceBadge } from './LeadSourceBadge'
 import { LeadStatusBadge } from './LeadStatusBadge'
+
+const ACTIVE_STATUSES: LeadStatus[] = ['NEW', 'CONTACTED', 'SCHEDULED']
+
+function isOverdue(nextFollowUpAt: string | null, status: LeadStatus): boolean {
+  if (!nextFollowUpAt) return false
+  if (!ACTIVE_STATUSES.includes(status)) return false
+  return nextFollowUpAt.split('T')[0] < todayIso()
+}
 
 function formatFollowUp(date: string | null) {
   if (!date) return null
@@ -75,9 +84,15 @@ function MobileCard({ lead, onView, onEdit, onArchive }: MobileCardProps) {
       </div>
 
       {lead.nextFollowUpAt && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          Follow-up: {formatFollowUp(lead.nextFollowUpAt)}
-        </p>
+        isOverdue(lead.nextFollowUpAt, lead.status) ? (
+          <p className="mt-2 text-xs font-semibold text-red-600 dark:text-red-400">
+            Retorno atrasado · {formatFollowUp(lead.nextFollowUpAt)}
+          </p>
+        ) : (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Follow-up: {formatFollowUp(lead.nextFollowUpAt)}
+          </p>
+        )
       )}
     </div>
   )
@@ -172,8 +187,25 @@ export function LeadsTable({
                     <td className="px-4 py-3 text-sm text-muted-foreground">
                       {getUserName(lead.assignedTo)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {formatFollowUp(lead.nextFollowUpAt) ?? '—'}
+                    <td className="px-4 py-3">
+                      {lead.nextFollowUpAt ? (
+                        isOverdue(lead.nextFollowUpAt, lead.status) ? (
+                          <div>
+                            <p className="text-xs font-semibold text-red-600 dark:text-red-400">
+                              {formatFollowUp(lead.nextFollowUpAt)}
+                            </p>
+                            <p className="text-xs text-red-500 dark:text-red-400">
+                              Retorno atrasado
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">
+                            {formatFollowUp(lead.nextFollowUpAt)}
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div
