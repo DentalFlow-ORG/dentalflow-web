@@ -33,7 +33,7 @@ interface LeadDrawerProps {
     email?: string
     source?: LeadSource
     message?: string
-    nextFollowUpAt?: string
+    nextFollowUpAt?: string | null
   }) => Promise<void>
   onStatusChange: (status: LeadStatus) => Promise<void>
   onConvert: () => Promise<void>
@@ -101,7 +101,7 @@ export function LeadDrawer({
       email: normalizeEmail(email) || undefined,
       source,
       message: message || undefined,
-      nextFollowUpAt: nextFollowUpAt || undefined,
+      nextFollowUpAt: mode === 'create' ? (nextFollowUpAt || undefined) : (nextFollowUpAt || null),
     })
   }
 
@@ -251,14 +251,32 @@ export function LeadDrawer({
                   )}
                 </FormField>
 
-                <FormField label="Próximo follow-up" htmlFor="lead-followup">
+                <FormField
+                  label="Data de retorno"
+                  htmlFor="lead-followup"
+                  hint={isEditing ? 'Ativa o filtro «Com retorno» e exibe alertas de atraso na lista' : undefined}
+                >
                   {isEditing ? (
                     <>
-                      <DatePickerInput
-                        id="lead-followup"
-                        value={nextFollowUpAt}
-                        onValueChange={setNextFollowUpAt}
-                      />
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex-1 min-w-0">
+                          <DatePickerInput
+                            id="lead-followup"
+                            value={nextFollowUpAt}
+                            onValueChange={setNextFollowUpAt}
+                          />
+                        </div>
+                        {nextFollowUpAt && (
+                          <button
+                            type="button"
+                            aria-label="Limpar retorno"
+                            onClick={() => setNextFollowUpAt('')}
+                            className="inline-flex h-11 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
                       {followUpError && (
                         <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">
                           {followUpError}

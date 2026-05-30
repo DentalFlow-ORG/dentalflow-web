@@ -157,7 +157,7 @@ export function useLeadsPage() {
     email?: string
     source?: LeadSource
     message?: string
-    nextFollowUpAt?: string
+    nextFollowUpAt?: string | null
     status?: LeadStatus
   }) {
     setIsSaving(true)

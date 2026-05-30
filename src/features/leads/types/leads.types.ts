@@ -94,7 +94,7 @@ export interface UpdateLeadPayload {
   serviceId?: string
   assignedToUserId?: string
   message?: string
-  nextFollowUpAt?: string
+  nextFollowUpAt?: string | null
 }
 
 export interface LeadFilters {
