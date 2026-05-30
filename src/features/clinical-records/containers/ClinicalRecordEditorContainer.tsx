@@ -17,6 +17,7 @@ import { ClinicalSectionField } from '../components/ClinicalSectionField'
 import { ClinicalTemplateSelectorPanel } from '../components/ClinicalTemplateSelectorPanel'
 import { ImageAttachmentPanel } from '../components/ImageAttachmentPanel'
 import { OdontogramSection } from '../components/OdontogramSection'
+import { PatientHistoryPanel } from '../components/PatientHistoryPanel'
 import { useClinicalRecord } from '../hooks/useClinicalRecord'
 import {
   useClinicalRecordAutosave,
@@ -506,6 +507,14 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
           )}
         </div>
       </div>
+
+      {/* ── Patient history ───────────────────────────────────────────── */}
+      {/* Placed below the main grid so current record editing stays      */}
+      {/* unchanged. Always shown regardless of record status.            */}
+      <PatientHistoryPanel
+        currentRecordId={record.id}
+        identifier={identifier}
+      />
     </AppPage>
   )
 }
