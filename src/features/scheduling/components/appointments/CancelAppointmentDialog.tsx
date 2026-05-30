@@ -37,8 +37,6 @@ export function CancelAppointmentDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          aria-labelledby="cancel-dialog-title"
-          aria-describedby="cancel-dialog-desc"
           className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={handleCancel}
           onInteractOutside={handleCancel}
@@ -48,13 +46,11 @@ export function CancelAppointmentDialog({
               <AlertTriangle className="h-7 w-7 text-red-600" />
             </div>
             <Dialog.Title
-              id="cancel-dialog-title"
               className="text-center text-xl font-bold text-foreground"
             >
               Cancelar agendamento
             </Dialog.Title>
             <Dialog.Description
-              id="cancel-dialog-desc"
               className="mt-2 text-center text-sm leading-6 text-muted-foreground"
             >
               O agendamento de{' '}
