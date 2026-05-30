@@ -3,9 +3,11 @@ import { ClipboardList, ExternalLink } from 'lucide-react'
 
 import { EmptyState } from '@/components/common/EmptyState'
 import { formatDateLongBR } from '@/lib/date-time-formatters'
+import { cn } from '@/lib/utils'
 
 import { ClinicalRecordStatusBadge } from './ClinicalRecordStatusBadge'
 import type { ClinicalRecord } from '../types/clinical-record.types'
+import { getSnapshotSummary } from '../utils/odontogram-status-utils'
 
 type Props = {
   records: ClinicalRecord[]
@@ -34,6 +36,44 @@ export function ClinicalTimeline({ records }: Props) {
 type ItemProps = {
   record: ClinicalRecord
 }
+
+// ── OdontogramSnapshotRow ──────────────────────────────────────────────────────
+
+type SnapshotRowProps = { snapshot: unknown }
+
+/**
+ * Renders a compact row of condition-count chips derived from the saved
+ * odontogram snapshot. Returns null when there is no snapshot, when the
+ * snapshot is malformed, or when all recorded teeth are healthy.
+ *
+ * Accepts `unknown` to match `ClinicalRecord.odontogramSnapshot` typing;
+ * normalization and safety checks happen inside `getSnapshotSummary`.
+ */
+function OdontogramSnapshotRow({ snapshot }: SnapshotRowProps) {
+  const summary = getSnapshotSummary(snapshot)
+  if (summary.length === 0) return null
+
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5" aria-label="Resumo do odontograma">
+      <span className="text-[10px] font-medium text-muted-foreground/60" aria-hidden="true">
+        Odontograma:
+      </span>
+      {summary.map(({ condition, label, count, legendClass }) => (
+        <span
+          key={condition}
+          className={cn(
+            'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium',
+            legendClass,
+          )}
+        >
+          {count}× {label}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+// ── ClinicalTimelineItem ───────────────────────────────────────────────────────
 
 function ClinicalTimelineItem({ record }: ItemProps) {
   return (
@@ -70,6 +110,10 @@ function ClinicalTimelineItem({ record }: ItemProps) {
             {record.clinicalEvolution}
           </p>
         )}
+
+        {/* Odontogram snapshot — only shown when the record was completed with
+            a snapshot captured. Uses only the stored data; makes no API calls. */}
+        <OdontogramSnapshotRow snapshot={record.odontogramSnapshot} />
 
         <div className="mt-3">
           <Link
