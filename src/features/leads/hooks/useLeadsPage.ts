@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
+import { listClinicMembers } from '@/features/team/services/team.service'
+import type { MemberListItem } from '@/features/team/types/team.types'
 import {
   addLeadActivity,
   archiveLead,
@@ -42,6 +44,9 @@ export function useLeadsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingSummary, setIsLoadingSummary] = useState(true)
   const [filters, setFilters] = useState<LeadFilters>(DEFAULT_FILTERS)
+
+  const [members, setMembers] = useState<MemberListItem[]>([])
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false)
 
   const [drawerMode, setDrawerMode] = useState<DrawerMode>(null)
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
@@ -85,6 +90,14 @@ export function useLeadsPage() {
       .finally(() => setIsLoadingSummary(false))
   }, [])
 
+  const loadMembers = useCallback(() => {
+    setIsLoadingMembers(true)
+    listClinicMembers()
+      .then(({ members: fetched }) => setMembers(fetched))
+      .catch(() => {})
+      .finally(() => setIsLoadingMembers(false))
+  }, [])
+
   useEffect(() => {
     loadLeads(filters, debouncedSearch || undefined)
   }, [filters.status, filters.source, filters.assignedToUserId, filters.hasFollowUp, filters.page, debouncedSearch, loadLeads])
@@ -92,6 +105,10 @@ export function useLeadsPage() {
   useEffect(() => {
     loadSummary()
   }, [loadSummary])
+
+  useEffect(() => {
+    loadMembers()
+  }, [loadMembers])
 
   function handleFiltersChange(partial: Partial<LeadFilters>) {
     const updated = { ...filters, ...partial }
@@ -158,6 +175,7 @@ export function useLeadsPage() {
     source?: LeadSource
     message?: string
     nextFollowUpAt?: string | null
+    assignedToUserId?: string | null
     status?: LeadStatus
   }) {
     setIsSaving(true)
@@ -262,6 +280,8 @@ export function useLeadsPage() {
     isLoadingSummary,
     filters,
     hasActiveFilters,
+    members,
+    isLoadingMembers,
     drawerMode,
     selectedLead,
     activities,

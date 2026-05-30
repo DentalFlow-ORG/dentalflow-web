@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import type { MemberListItem } from '@/features/team/types/team.types'
 import type { LeadFilters, LeadSource, LeadStatus } from '../types/leads.types'
 import { SOURCE_LABELS } from './LeadSourceBadge'
 import { STATUS_CONFIG } from './LeadStatusBadge'
@@ -21,9 +22,12 @@ interface LeadsFiltersProps {
   onChange: (filters: Partial<LeadFilters>) => void
   onClear: () => void
   hasActiveFilters: boolean
+  members: MemberListItem[]
+  isLoadingMembers: boolean
 }
 
-export function LeadsFilters({ filters, onChange, onClear, hasActiveFilters }: LeadsFiltersProps) {
+export function LeadsFilters({ filters, onChange, onClear, hasActiveFilters, members, isLoadingMembers }: LeadsFiltersProps) {
+  const activeMembers = members.filter((m) => m.isActive)
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
       <div className="relative flex-1 min-w-50">
@@ -68,6 +72,24 @@ export function LeadsFilters({ filters, onChange, onClear, hasActiveFilters }: L
           {ALL_SOURCES.map((s) => (
             <SelectItem key={s} value={s}>
               {SOURCE_LABELS[s]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={filters.assignedToUserId || 'all'}
+        onValueChange={(v) => onChange({ assignedToUserId: v === 'all' ? '' : v, page: 1 })}
+        disabled={isLoadingMembers}
+      >
+        <SelectTrigger className="w-full sm:w-40" aria-label="Responsável">
+          <SelectValue placeholder="Responsável" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos</SelectItem>
+          {activeMembers.map((m) => (
+            <SelectItem key={m.id} value={m.id}>
+              {m.firstName} {m.lastName}
             </SelectItem>
           ))}
         </SelectContent>

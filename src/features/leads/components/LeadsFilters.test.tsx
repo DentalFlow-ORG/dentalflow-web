@@ -1,6 +1,19 @@
 import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
+import type { MemberListItem } from '@/features/team/types/team.types'
 import type { LeadFilters } from '../types/leads.types'
 import { LeadsFilters } from './LeadsFilters'
+
+const memberAna: MemberListItem = {
+  id: 'u1',
+  firstName: 'Ana',
+  lastName: 'Silva',
+  email: 'ana@example.com',
+  role: 'ASSISTANT',
+  phone: null,
+  isActive: true,
+  createdAt: '2024-01-01T00:00:00.000Z',
+  profile: null,
+}
 
 const baseFilters: LeadFilters = {
   search: '',
@@ -23,6 +36,8 @@ function renderFilters(
       onChange={onChange}
       onClear={onClear}
       hasActiveFilters={false}
+      members={[]}
+      isLoadingMembers={false}
       {...props}
     />,
   )
@@ -96,5 +111,43 @@ describe('LeadsFilters — clear button', () => {
     await user.click(screen.getByRole('button', { name: /Limpar filtros/i }))
 
     expect(onClear).toHaveBeenCalledOnce()
+  })
+})
+
+// ── Responsável filter ────────────────────────────────────────────────────────
+
+describe('LeadsFilters — "Responsável" filter', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('renders member names in the responsible filter', async () => {
+    const user = userEvent.setup()
+    renderFilters({ members: [memberAna] })
+
+    await user.click(screen.getByRole('combobox', { name: /Responsável/i }))
+
+    expect(screen.getByRole('option', { name: /Ana Silva/i })).toBeInTheDocument()
+  })
+
+  it('selecting a member calls onChange with assignedToUserId and page=1', async () => {
+    const user = userEvent.setup()
+    const { onChange } = renderFilters({ members: [memberAna] })
+
+    await user.click(screen.getByRole('combobox', { name: /Responsável/i }))
+    await user.click(screen.getByRole('option', { name: /Ana Silva/i }))
+
+    expect(onChange).toHaveBeenCalledWith({ assignedToUserId: 'u1', page: 1 })
+  })
+
+  it('selecting "Todos" calls onChange with assignedToUserId="" and page=1', async () => {
+    const user = userEvent.setup()
+    const { onChange } = renderFilters({
+      filters: { ...baseFilters, assignedToUserId: 'u1' },
+      members: [memberAna],
+    })
+
+    await user.click(screen.getByRole('combobox', { name: /Responsável/i }))
+    await user.click(screen.getByRole('option', { name: /^Todos$/i }))
+
+    expect(onChange).toHaveBeenCalledWith({ assignedToUserId: '', page: 1 })
   })
 })

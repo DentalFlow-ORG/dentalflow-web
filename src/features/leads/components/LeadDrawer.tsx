@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import type { MemberListItem } from '@/features/team/types/team.types'
 import type { Lead, LeadActivity, LeadSource, LeadStatus } from '../types/leads.types'
 import { SOURCE_LABELS } from './LeadSourceBadge'
 import { STATUS_CONFIG } from './LeadStatusBadge'
@@ -26,6 +27,8 @@ interface LeadDrawerProps {
   activities: LeadActivity[]
   isLoadingActivities: boolean
   isSaving: boolean
+  members: MemberListItem[]
+  isLoadingMembers: boolean
   onClose: () => void
   onSave: (payload: {
     name: string
@@ -34,6 +37,7 @@ interface LeadDrawerProps {
     source?: LeadSource
     message?: string
     nextFollowUpAt?: string | null
+    assignedToUserId?: string | null
   }) => Promise<void>
   onStatusChange: (status: LeadStatus) => Promise<void>
   onConvert: () => Promise<void>
@@ -55,6 +59,8 @@ export function LeadDrawer({
   activities,
   isLoadingActivities,
   isSaving,
+  members,
+  isLoadingMembers,
   onClose,
   onSave,
   onStatusChange,
@@ -70,6 +76,7 @@ export function LeadDrawer({
   const [source, setSource] = useState<LeadSource>('MANUAL')
   const [message, setMessage] = useState('')
   const [nextFollowUpAt, setNextFollowUpAt] = useState('')
+  const [assignedToUserId, setAssignedToUserId] = useState('')
   const [localStatus, setLocalStatus] = useState<LeadStatus>('NEW')
   const [isChangingStatus, setIsChangingStatus] = useState(false)
   const [isConverting, setIsConverting] = useState(false)
@@ -82,6 +89,7 @@ export function LeadDrawer({
       setSource(lead.source)
       setMessage(lead.message ?? '')
       setNextFollowUpAt(toDateInputValue(lead.nextFollowUpAt))
+      setAssignedToUserId(lead.assignedToUserId ?? '')
       setLocalStatus(lead.status)
     } else {
       setName('')
@@ -90,6 +98,7 @@ export function LeadDrawer({
       setSource('MANUAL')
       setMessage('')
       setNextFollowUpAt('')
+      setAssignedToUserId('')
       setLocalStatus('NEW')
     }
   }, [lead, mode])
@@ -102,6 +111,7 @@ export function LeadDrawer({
       source,
       message: message || undefined,
       nextFollowUpAt: mode === 'create' ? (nextFollowUpAt || undefined) : (nextFollowUpAt || null),
+      assignedToUserId: mode === 'create' ? (assignedToUserId || undefined) : (assignedToUserId || null),
     })
   }
 
@@ -125,6 +135,7 @@ export function LeadDrawer({
   }
 
   const isEditing = mode === 'edit' || mode === 'create'
+  const activeMembers = members.filter((m) => m.isActive)
   const followUpError = isEditing && nextFollowUpAt
     ? validateFollowUpDate(nextFollowUpAt, mode === 'create')
     : null
@@ -292,6 +303,34 @@ export function LeadDrawer({
                   )}
                 </FormField>
               </div>
+
+              <FormField label="Responsável" htmlFor="lead-assigned">
+                {isEditing ? (
+                  <Select
+                    value={assignedToUserId || 'none'}
+                    onValueChange={(v) => setAssignedToUserId(v === 'none' ? '' : v)}
+                    disabled={isLoadingMembers}
+                  >
+                    <SelectTrigger id="lead-assigned">
+                      <SelectValue placeholder="Sem responsável" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem responsável</SelectItem>
+                      {activeMembers.map((m) => (
+                        <SelectItem key={m.id} value={m.id}>
+                          {m.firstName} {m.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-foreground">
+                    {lead?.assignedTo
+                      ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}`
+                      : '—'}
+                  </p>
+                )}
+              </FormField>
 
               <FormField label="Notas" htmlFor="lead-message">
                 {isEditing ? (

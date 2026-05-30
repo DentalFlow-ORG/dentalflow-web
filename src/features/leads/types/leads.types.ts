@@ -92,7 +92,7 @@ export interface UpdateLeadPayload {
   email?: string
   source?: LeadSource
   serviceId?: string
-  assignedToUserId?: string
+  assignedToUserId?: string | null
   message?: string
   nextFollowUpAt?: string | null
 }

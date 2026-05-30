@@ -21,6 +21,8 @@ export function LeadsPageContainer() {
     isLoadingSummary,
     filters,
     hasActiveFilters,
+    members,
+    isLoadingMembers,
     drawerMode,
     selectedLead,
     activities,
@@ -72,6 +74,8 @@ export function LeadsPageContainer() {
           onChange={handleFiltersChange}
           onClear={clearFilters}
           hasActiveFilters={hasActiveFilters}
+          members={members}
+          isLoadingMembers={isLoadingMembers}
         />
 
         {isEmpty ? (
@@ -110,6 +114,8 @@ export function LeadsPageContainer() {
           activities={activities}
           isLoadingActivities={isLoadingActivities}
           isSaving={isSaving}
+          members={members}
+          isLoadingMembers={isLoadingMembers}
           onClose={closeDrawer}
           onSave={handleSave}
           onStatusChange={handleStatusChange}
