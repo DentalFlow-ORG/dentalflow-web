@@ -118,6 +118,7 @@ export function LeadsPageContainer() {
           isLoadingMembers={isLoadingMembers}
           onClose={closeDrawer}
           onSave={handleSave}
+          onEdit={openEdit}
           onStatusChange={handleStatusChange}
           onConvert={handleConvert}
           onAddNote={handleAddNote}

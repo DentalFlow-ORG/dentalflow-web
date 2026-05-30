@@ -1,5 +1,5 @@
 import { Dialog } from 'radix-ui'
-import { X } from 'lucide-react'
+import { MessageCircle, Pencil, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
@@ -16,7 +16,7 @@ import type { Lead, LeadActivity, LeadSource, LeadStatus } from '../types/leads.
 import { SOURCE_LABELS } from './LeadSourceBadge'
 import { STATUS_CONFIG } from './LeadStatusBadge'
 import { LeadActivitiesTimeline } from './LeadActivitiesTimeline'
-import { formatPhoneBR, normalizeEmail } from '@/lib/field-formatters'
+import { formatPhoneBR, isValidWhatsappPhoneBR, normalizeEmail, normalizePhoneBR } from '@/lib/field-formatters'
 import { validateFollowUpDate } from '@/lib/date-range-rules'
 
 export type DrawerMode = 'view' | 'edit' | 'create'
@@ -39,6 +39,7 @@ interface LeadDrawerProps {
     nextFollowUpAt?: string | null
     assignedToUserId?: string | null
   }) => Promise<void>
+  onEdit?: (lead: Lead) => void
   onStatusChange: (status: LeadStatus) => Promise<void>
   onConvert: () => Promise<void>
   onAddNote: (note: string) => Promise<void>
@@ -63,6 +64,7 @@ export function LeadDrawer({
   isLoadingMembers,
   onClose,
   onSave,
+  onEdit,
   onStatusChange,
   onConvert,
   onAddNote,
@@ -161,9 +163,21 @@ export function LeadDrawer({
             >
               {title}
             </Dialog.Title>
-            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Fechar">
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {mode === 'view' && lead && onEdit && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEdit(lead)}
+                  aria-label="Editar lead"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" onClick={onClose} aria-label="Fechar">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Body */}
@@ -218,8 +232,29 @@ export function LeadDrawer({
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(formatPhoneBR(e.target.value))}
                       placeholder="(11) 99999-9999"
                     />
+                  ) : lead?.phone ? (
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`tel:${normalizePhoneBR(lead.phone)}`}
+                        aria-label={`Ligar para ${lead.phone}`}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        {lead.phone}
+                      </a>
+                      {isValidWhatsappPhoneBR(lead.phone) && (
+                        <a
+                          href={`https://wa.me/55${normalizePhoneBR(lead.phone)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Abrir WhatsApp para ${lead.phone}`}
+                          className="inline-flex items-center justify-center rounded p-0.5 text-green-600 transition-colors hover:bg-green-50 dark:hover:bg-green-900/30"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                        </a>
+                      )}
+                    </div>
                   ) : (
-                    <p className="text-sm text-foreground">{lead?.phone ?? '—'}</p>
+                    <p className="text-sm text-foreground">—</p>
                   )}
                 </FormField>
                 <FormField label="E-mail" htmlFor="lead-email">
@@ -231,8 +266,16 @@ export function LeadDrawer({
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(normalizeEmail(e.target.value))}
                       placeholder="email@exemplo.com"
                     />
+                  ) : lead?.email ? (
+                    <a
+                      href={`mailto:${lead.email}`}
+                      aria-label={`Enviar e-mail para ${lead.email}`}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {lead.email}
+                    </a>
                   ) : (
-                    <p className="text-sm text-foreground">{lead?.email ?? '—'}</p>
+                    <p className="text-sm text-foreground">—</p>
                   )}
                 </FormField>
               </div>

@@ -74,6 +74,20 @@ function renderEdit(lead: Lead, overrides: Partial<Parameters<typeof LeadDrawer>
   return { onSave }
 }
 
+function renderView(lead: Lead, overrides: Partial<Parameters<typeof LeadDrawer>[0]> = {}) {
+  const onSave = vi.fn().mockResolvedValue(undefined)
+  renderWithProviders(
+    <LeadDrawer
+      mode="view"
+      lead={lead}
+      {...sharedHandlers}
+      onSave={onSave}
+      {...overrides}
+    />,
+  )
+  return { onSave }
+}
+
 // ── Label & input rendering ───────────────────────────────────────────────────
 
 describe('LeadDrawer — "Data de retorno" field', () => {
@@ -199,5 +213,72 @@ describe('LeadDrawer — "Responsável" field', () => {
 
     expect(onSave).toHaveBeenCalledOnce()
     expect(onSave.mock.calls[0][0].assignedToUserId).toBe('u1')
+  })
+})
+
+// ── View mode — contact links ─────────────────────────────────────────────────
+
+describe('LeadDrawer view mode — contact links', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('renders tel: link when phone is present', () => {
+    renderView(baseLead) // baseLead.phone = '11999990000'
+    const link = screen.getByRole('link', { name: /Ligar para/i })
+    expect(link).toHaveAttribute('href', 'tel:11999990000')
+  })
+
+  it('does not render tel: link when phone is null', () => {
+    renderView({ ...baseLead, phone: null })
+    expect(screen.queryByRole('link', { name: /Ligar para/i })).not.toBeInTheDocument()
+  })
+
+  it('renders mailto: link when email is present', () => {
+    renderView(baseLead) // baseLead.email = 'ana@example.com'
+    const link = screen.getByRole('link', { name: /Enviar e-mail para/i })
+    expect(link).toHaveAttribute('href', 'mailto:ana@example.com')
+  })
+
+  it('does not render mailto: link when email is null', () => {
+    renderView({ ...baseLead, email: null })
+    expect(screen.queryByRole('link', { name: /Enviar e-mail para/i })).not.toBeInTheDocument()
+  })
+
+  it('renders WhatsApp link with correct href when phone is valid', () => {
+    renderView(baseLead)
+    const link = screen.getByRole('link', { name: /Abrir WhatsApp/i })
+    expect(link).toHaveAttribute('href', 'https://wa.me/5511999990000')
+    expect(link).toHaveAttribute('target', '_blank')
+  })
+
+  it('does not render WhatsApp link when phone is null', () => {
+    renderView({ ...baseLead, phone: null })
+    expect(screen.queryByRole('link', { name: /Abrir WhatsApp/i })).not.toBeInTheDocument()
+  })
+})
+
+// ── View mode — edit shortcut ─────────────────────────────────────────────────
+
+describe('LeadDrawer view mode — edit shortcut', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('renders edit button in view mode when onEdit is provided', () => {
+    renderView(baseLead, { onEdit: vi.fn() })
+    expect(screen.getByRole('button', { name: /Editar lead/i })).toBeInTheDocument()
+  })
+
+  it('clicking edit button calls onEdit with the lead', async () => {
+    const user = userEvent.setup()
+    const onEdit = vi.fn()
+    renderView(baseLead, { onEdit })
+
+    await user.click(screen.getByRole('button', { name: /Editar lead/i }))
+
+    expect(onEdit).toHaveBeenCalledOnce()
+    expect(onEdit).toHaveBeenCalledWith(baseLead)
+  })
+
+  it('does not render edit button when onEdit is not provided', () => {
+    renderView(baseLead)
+    expect(screen.queryByRole('button', { name: /Editar lead/i })).not.toBeInTheDocument()
   })
 })
