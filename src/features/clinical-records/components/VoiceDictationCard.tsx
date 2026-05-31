@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   AlertCircle,
-  ArrowRight,
   CheckCircle2,
   Loader2,
   Lock,
@@ -19,6 +18,9 @@ import { getCachedBillingStatus } from '@/features/billing/services/billing-stat
 import { dictateClinicalRecord } from '../services/clinical-dictation.service'
 import type { ClinicalDictationFieldKey } from '../types/clinical-dictation.types'
 import { getClinicalDictationErrorMessage } from '../utils/clinical-dictation-error'
+import { formatDictationFieldText } from '../utils/format-dictation-field-text'
+import { parseDictationOdontogram } from '../utils/parse-dictation-odontogram'
+import type { OdontogramSuggestion } from '../utils/parse-dictation-odontogram'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -123,10 +125,16 @@ type Props = {
   readOnly: boolean
   /**
    * Called after the dentist reviews and accepts the selected suggestions.
-   * Receives only the fields the dentist chose to apply.
+   * Receives only the fields the dentist chose to apply, already formatted.
    * The container is responsible for merging these into the draft.
    */
   onApplyFields: (fields: Partial<Record<ClinicalDictationFieldKey, string>>) => void
+  /**
+   * Optional. Called when the dentist applies odontogram marking suggestions.
+   * Receives only the suggestions whose checkboxes were selected.
+   * The container is responsible for merging into the existing odontogram data.
+   */
+  onApplyOdontogram?: (suggestions: OdontogramSuggestion[]) => void
 }
 
 // ── Locked (non-premium) state ────────────────────────────────────────────────
@@ -168,7 +176,7 @@ function LockedState() {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props) {
+export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyOdontogram }: Props) {
   const { showAlert } = useGlobalAlerts()
 
   // Plan gate — lock for starter/professional; unlock for premium or null (admin/cache miss).
@@ -196,6 +204,16 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
     durationSeconds: number
     blockedLocally: boolean
   } | null>(null)
+  // Editable copy of suggestedFields — initialized on success, updated by the dentist.
+  const [editableFields, setEditableFields] = useState<Partial<Record<ClinicalDictationFieldKey, string>>>({})
+  // Odontogram marking suggestions parsed from the transcript on success.
+  const [odontogramSuggestions, setOdontogramSuggestions] = useState<OdontogramSuggestion[]>([])
+  // Editable note per odontogram suggestion, keyed by tooth number.
+  const [editableOdontogramNotes, setEditableOdontogramNotes] = useState<Record<string, string>>({})
+  // Which odontogram suggestions the dentist has selected (all by default).
+  const [selectedOdontogramTeeth, setSelectedOdontogramTeeth] = useState<Set<string>>(new Set())
+  // Inline warning shown when apply is attempted but no valid content remains.
+  const [applyWarning, setApplyWarning] = useState<string | null>(null)
 
   const mediaRecorderRef      = useRef<MediaRecorder | null>(null)
   const chunksRef             = useRef<Blob[]>([])
@@ -285,6 +303,11 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
     setTranscriptExpanded(false)
     setSuggestedFields({})
     setSelectedFieldKeys(new Set())
+    setEditableFields({})
+    setOdontogramSuggestions([])
+    setEditableOdontogramNotes({})
+    setSelectedOdontogramTeeth(new Set())
+    setApplyWarning(null)
     setErrorMessage(null)
     setState('idle')
   }, [stopTimer, releaseStream])
@@ -398,9 +421,17 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
         clearProcessingTimeout()
         setTranscript(result.transcript)
         setSuggestedFields(result.fields)
+        setEditableFields({ ...result.fields })
         // Select all returned fields by default so the dentist can review and
         // unselect any they don't want to apply.
         setSelectedFieldKeys(new Set(Object.keys(result.fields) as ClinicalDictationFieldKey[]))
+        // Parse odontogram suggestions from the transcript for optional tooth marking.
+        const oSuggestions = parseDictationOdontogram(result.transcript)
+        setOdontogramSuggestions(oSuggestions)
+        setEditableOdontogramNotes(
+          Object.fromEntries(oSuggestions.map((s) => [s.toothNumber, s.note]))
+        )
+        setSelectedOdontogramTeeth(new Set(oSuggestions.map((s) => s.toothNumber)))
         setState('success')
       } catch (err: unknown) {
         clearStepTimer()
@@ -577,21 +608,48 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
   // ── Apply / discard ─────────────────────────────────────────────────────────
 
   const handleApply = useCallback(() => {
-    // Build the subset of fields the dentist chose to keep
-    const toApply = Object.fromEntries(
-      Object.entries(suggestedFields).filter(([key]) =>
-        selectedFieldKeys.has(key as ClinicalDictationFieldKey),
-      ),
-    ) as Partial<Record<ClinicalDictationFieldKey, string>>
+    // Build field payload: use the dentist's edited values, format, skip empty.
+    const toApply: Partial<Record<ClinicalDictationFieldKey, string>> = {}
+    for (const [key, rawValue] of Object.entries(editableFields)) {
+      if (!selectedFieldKeys.has(key as ClinicalDictationFieldKey)) continue
+      const formatted = formatDictationFieldText(rawValue ?? '')
+      if (!formatted) continue
+      toApply[key as ClinicalDictationFieldKey] = formatted
+    }
 
-    onApplyFields(toApply)
+    // Build odontogram payload: selected suggestions with the dentist's notes.
+    const oToApply = odontogramSuggestions
+      .filter((s) => selectedOdontogramTeeth.has(s.toothNumber))
+      .map((s) => ({ ...s, note: editableOdontogramNotes[s.toothNumber] ?? s.note }))
+
+    const hasValidFields = Object.keys(toApply).length > 0
+    const hasValidOdontogram = oToApply.length > 0
+
+    if (!hasValidFields && !hasValidOdontogram) {
+      setApplyWarning('Nenhum campo selecionado possui conteúdo para aplicar.')
+      return
+    }
+
+    if (hasValidFields) onApplyFields(toApply)
+    if (hasValidOdontogram && onApplyOdontogram) onApplyOdontogram(oToApply)
+
     showAlert({
       title: 'Sugestões aplicadas',
       description: 'Os campos foram preenchidos com o conteúdo do ditado.',
       tone: 'success',
     })
     reset()
-  }, [suggestedFields, selectedFieldKeys, onApplyFields, showAlert, reset])
+  }, [
+    editableFields,
+    selectedFieldKeys,
+    odontogramSuggestions,
+    selectedOdontogramTeeth,
+    editableOdontogramNotes,
+    onApplyFields,
+    onApplyOdontogram,
+    showAlert,
+    reset,
+  ])
 
   const handleDiscard = useCallback(() => {
     reset()
@@ -606,11 +664,21 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
     })
   }, [])
 
+  const toggleOdontogramSelection = useCallback((toothNumber: string) => {
+    setSelectedOdontogramTeeth((prev) => {
+      const next = new Set(prev)
+      if (next.has(toothNumber)) next.delete(toothNumber)
+      else next.add(toothNumber)
+      return next
+    })
+  }, [])
+
   // ── Derived values ──────────────────────────────────────────────────────────
 
   const fieldEntries = Object.entries(suggestedFields) as [ClinicalDictationFieldKey, string][]
   const hasFields = fieldEntries.length > 0
-  const canApply = selectedFieldKeys.size > 0
+  const hasAnySuggestions = hasFields || odontogramSuggestions.length > 0
+  const canApply = selectedFieldKeys.size > 0 || selectedOdontogramTeeth.size > 0
   const transcriptIsLong = (transcript?.length ?? 0) > TRANSCRIPT_COLLAPSE_THRESHOLD
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -722,6 +790,14 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       {/* ── Success ── */}
       {!readOnly && state === 'success' && (
         <div className="space-y-4">
+          {/* Review header */}
+          <div>
+            <p className="text-sm font-semibold text-foreground">Revise antes de aplicar</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              Edite o texto sugerido, selecione os campos corretos e aplique ao prontuário.
+            </p>
+          </div>
+
           {/* Transcript panel — collapsible for long text */}
           {transcript && (
             <div>
@@ -756,89 +832,145 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
             </div>
           )}
 
-          {/* Intelligent routing panel + preview + actions */}
-          {hasFields ? (
-            <div>
-              {/* Routing header */}
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Roteamento inteligente
-                </p>
-                <span className="text-[11px] tabular-nums text-muted-foreground">
-                  {selectedFieldKeys.size}/{fieldEntries.length} selecionado{selectedFieldKeys.size !== 1 ? 's' : ''}
-                </span>
-              </div>
-
-              {/* Field rows */}
-              <ul className="space-y-1.5" aria-label="Selecione os campos a aplicar ao prontuário">
-                {fieldEntries.map(([key, value]) => {
-                  const isSelected = selectedFieldKeys.has(key)
-                  return (
-                    <li key={key}>
-                      <label
-                        className={cn(
-                          'flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 transition-colors',
-                          isSelected
-                            ? 'border-primary/25 bg-primary/5 dark:border-primary/20 dark:bg-primary/10'
-                            : 'border-border bg-muted/20 hover:bg-muted/40',
-                        )}
-                      >
-                        <input
-                          type="checkbox"
-                          className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
-                          checked={isSelected}
-                          onChange={() => toggleFieldSelection(key)}
-                          aria-label={`Selecionar campo ${DICTATION_FIELD_LABELS[key]}`}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <p className="flex-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                              {DICTATION_FIELD_LABELS[key]}
-                            </p>
-                            <div className="flex shrink-0 items-center gap-1">
-                              <ArrowRight className="h-3 w-3 text-muted-foreground/40" aria-hidden="true" />
-                              <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
-                                Revisar
+          {/* Field suggestions + odontogram section, or empty-field notice */}
+          {hasAnySuggestions ? (
+            <div className="space-y-4">
+              {/* Clinical text field suggestions */}
+              {hasFields && (
+                <div>
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Campos sugeridos
+                    </p>
+                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                      {selectedFieldKeys.size}/{fieldEntries.length} selecionado{selectedFieldKeys.size !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <ul className="space-y-2" aria-label="Selecione os campos a aplicar ao prontuário">
+                    {fieldEntries.map(([key]) => {
+                      const isSelected = selectedFieldKeys.has(key)
+                      return (
+                        <li key={key}>
+                          <div
+                            className={cn(
+                              'rounded-lg border transition-colors',
+                              isSelected
+                                ? 'border-primary/25 bg-primary/5 dark:border-primary/20 dark:bg-primary/10'
+                                : 'border-border bg-muted/20',
+                            )}
+                          >
+                            <label className="flex cursor-pointer items-center gap-2.5 px-3 pt-2.5 pb-1.5">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 shrink-0 cursor-pointer accent-primary"
+                                checked={isSelected}
+                                onChange={() => {
+                                  toggleFieldSelection(key)
+                                  setApplyWarning(null)
+                                }}
+                                aria-label={`Selecionar campo ${DICTATION_FIELD_LABELS[key]}`}
+                              />
+                              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                {DICTATION_FIELD_LABELS[key]}
                               </span>
+                            </label>
+                            <div className="px-3 pb-3">
+                              <textarea
+                                value={editableFields[key] ?? ''}
+                                onChange={(e) => {
+                                  setEditableFields((prev) => ({ ...prev, [key]: e.target.value }))
+                                  setApplyWarning(null)
+                                }}
+                                disabled={!isSelected}
+                                rows={3}
+                                className={cn(
+                                  'w-full resize-y rounded-md border border-border bg-card px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15',
+                                  !isSelected && 'cursor-not-allowed opacity-50',
+                                )}
+                                aria-label={`Conteúdo sugerido para ${DICTATION_FIELD_LABELS[key]}`}
+                              />
                             </div>
                           </div>
-                          <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-foreground">
-                            {value}
-                          </p>
-                        </div>
-                      </label>
-                    </li>
-                  )
-                })}
-              </ul>
-
-              {/* Preview of what will be applied */}
-              <div className="mt-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5">
-                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Prévia do que será aplicado
-                </p>
-                {canApply ? (
-                  <ul className="space-y-0.5">
-                    {fieldEntries
-                      .filter(([key]) => selectedFieldKeys.has(key))
-                      .map(([key, value]) => (
-                        <li key={key} className="flex min-w-0 gap-1.5 text-xs">
-                          <span className="shrink-0 font-medium text-muted-foreground">
-                            {DICTATION_FIELD_LABELS[key]}:
-                          </span>
-                          <span className="truncate text-foreground">{value}</span>
                         </li>
-                      ))}
+                      )
+                    })}
                   </ul>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Selecione ao menos um campo acima para aplicar.
+                </div>
+              )}
+
+              {/* Odontogram marking suggestions */}
+              {odontogramSuggestions.length > 0 && (
+                <div>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Sugestões para odontograma
                   </p>
-                )}
-              </div>
+                  <ul className="space-y-2" aria-label="Sugestões de marcação no odontograma">
+                    {odontogramSuggestions.map((suggestion) => {
+                      const isSelected = selectedOdontogramTeeth.has(suggestion.toothNumber)
+                      return (
+                        <li key={suggestion.toothNumber}>
+                          <div
+                            className={cn(
+                              'rounded-lg border transition-colors',
+                              isSelected
+                                ? 'border-primary/25 bg-primary/5 dark:border-primary/20 dark:bg-primary/10'
+                                : 'border-border bg-muted/20',
+                            )}
+                          >
+                            <label className="flex cursor-pointer items-center gap-2.5 px-3 pt-2.5 pb-1.5">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 shrink-0 cursor-pointer accent-primary"
+                                checked={isSelected}
+                                onChange={() => toggleOdontogramSelection(suggestion.toothNumber)}
+                                aria-label={`Selecionar dente ${suggestion.toothNumber} — ${suggestion.conditionLabel}`}
+                              />
+                              <span className="text-xs font-medium text-foreground">
+                                Dente {suggestion.toothNumber}
+                              </span>
+                              <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
+                                {suggestion.conditionLabel}
+                              </span>
+                            </label>
+                            <div className="px-3 pb-3">
+                              <textarea
+                                value={editableOdontogramNotes[suggestion.toothNumber] ?? ''}
+                                onChange={(e) =>
+                                  setEditableOdontogramNotes((prev) => ({
+                                    ...prev,
+                                    [suggestion.toothNumber]: e.target.value,
+                                  }))
+                                }
+                                disabled={!isSelected}
+                                rows={2}
+                                placeholder="Observação clínica..."
+                                className={cn(
+                                  'w-full resize-none rounded-md border border-border bg-card px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15',
+                                  !isSelected && 'cursor-not-allowed opacity-50',
+                                )}
+                                aria-label={`Observação para dente ${suggestion.toothNumber}`}
+                              />
+                            </div>
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              {/* Apply warning — shown when clicked apply but no valid content */}
+              {applyWarning && (
+                <p
+                  role="status"
+                  className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-300"
+                >
+                  {applyWarning}
+                </p>
+              )}
 
               {/* Actions */}
-              <div className="mt-3 flex flex-col gap-2">
+              <div className="flex flex-col gap-2">
                 <Button
                   type="button"
                   className="min-h-11 w-full"
@@ -846,7 +978,16 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
                   disabled={!canApply}
                 >
                   <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  Aplicar ao prontuário
+                  Aplicar campos selecionados
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={reset}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                  Gravar novamente
                 </Button>
                 <Button
                   type="button"

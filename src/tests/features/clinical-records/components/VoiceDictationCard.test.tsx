@@ -273,12 +273,16 @@ describe('successful recording flow', () => {
     )
   })
 
-  it('renders the transcript and classified field suggestions', async () => {
+  it('renders the transcript, review header, editable field textareas, and action buttons', async () => {
     await reachSuccessState()
     expect(screen.getByText('Paciente relata dor no dente 36.')).toBeInTheDocument()
+    expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument()
     expect(screen.getByText('Queixa principal')).toBeInTheDocument()
     expect(screen.getByText('Evolução clínica')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeInTheDocument()
+    // Fields are rendered as editable textareas
+    expect(screen.getAllByRole('textbox').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Gravar novamente/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Descartar/i })).toBeInTheDocument()
   })
 
@@ -294,7 +298,7 @@ describe('successful recording flow', () => {
     await waitFor(() =>
       expect(screen.getByText(/nenhum campo clínico foi identificado/i)).toBeInTheDocument(),
     )
-    expect(screen.queryByRole('button', { name: /Aplicar ao prontuário/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Aplicar campos selecionados/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Descartar/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Gravar novamente/i })).toBeInTheDocument()
   })
@@ -308,7 +312,7 @@ describe('apply action', () => {
     await reachSuccessState(onApplyFields)
 
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: /Aplicar ao prontuário/i }))
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
 
     expect(onApplyFields).toHaveBeenCalledWith({
       chiefComplaint: 'Dor no dente 36',
@@ -532,7 +536,7 @@ describe('field selection', () => {
     const checkboxes = screen.getAllByRole('checkbox')
     await user.click(checkboxes[0])
 
-    await user.click(screen.getByRole('button', { name: /Aplicar ao prontuário/i }))
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
 
     // Only the field whose checkbox remained checked should be passed
     const calledWith = onApplyFields.mock.calls[0][0] as Record<string, string>
@@ -551,7 +555,7 @@ describe('field selection', () => {
       await user.click(cb)
     }
 
-    expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeDisabled()
   })
 })
 
@@ -609,7 +613,7 @@ describe('stop flow reliability', () => {
 
     // The "Gravando" state must be replaced by the result
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeInTheDocument(),
+      () => expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument(),
       { timeout: 3000 },
     )
     expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
@@ -634,7 +638,7 @@ describe('stop flow reliability', () => {
 
     // The component must leave recording and show the dictation result
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeInTheDocument(),
+      () => expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument(),
       { timeout: 3000 },
     )
     expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
@@ -652,7 +656,7 @@ describe('stop flow reliability', () => {
     // First stop — valid, triggers the full processing path
     latestRecorder!.stop()
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeInTheDocument(),
+      () => expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument(),
       { timeout: 3000 },
     )
 
@@ -814,23 +818,22 @@ describe('success result UI', () => {
     expect(screen.getByText('Paciente relata dor no dente 36.')).toBeInTheDocument()
   })
 
-  it('shows "Roteamento inteligente" heading with Revisar badges for each field', async () => {
+  it('shows "Revise antes de aplicar" heading and helper text', async () => {
     await reachSuccessState()
-    expect(screen.getByText(/Roteamento inteligente/i)).toBeInTheDocument()
-    // The mock returns 2 fields → 2 Revisar badges
-    expect(screen.getAllByText('Revisar')).toHaveLength(2)
+    expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument()
+    expect(screen.getByText(/Edite o texto sugerido/i)).toBeInTheDocument()
   })
 
-  it('shows "Prévia do que será aplicado" section with selected fields', async () => {
+  it('renders suggested fields as editable textareas with initial values from the API', async () => {
     await reachSuccessState()
-    expect(screen.getByText(/Prévia do que será aplicado/i)).toBeInTheDocument()
-    // Both fields are selected by default — both appear in the preview list
-    // (as label:value pairs, the labels also appear in the routing panel,
-    //  so we target the unique-per-section preview text via getAll)
-    expect(screen.getAllByText('Queixa principal:').length).toBeGreaterThanOrEqual(1)
+    // Each field should render a textarea with the classified value as initial content
+    const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
+    const values = textareas.map((t) => t.value)
+    expect(values).toContain('Dor no dente 36')
+    expect(values).toContain('Sensibilidade ao frio.')
   })
 
-  it('shows helper text in preview and disables apply when all fields are unchecked', async () => {
+  it('disables the apply button and shows no warning when all fields are unchecked', async () => {
     await reachSuccessState()
     const user = userEvent.setup()
 
@@ -839,24 +842,20 @@ describe('success result UI', () => {
       await user.click(cb)
     }
 
-    expect(
-      screen.getByText(/Selecione ao menos um campo acima para aplicar/i),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeDisabled()
+    // No warning shown — button disabled state is the signal
+    expect(screen.queryByText(/Nenhum campo selecionado/i)).not.toBeInTheDocument()
   })
 
-  it('preview section updates live as fields are deselected', async () => {
+  it('counter updates live as fields are deselected', async () => {
     await reachSuccessState()
     const user = userEvent.setup()
-
-    // Both fields visible in preview initially
-    expect(screen.getAllByText('Queixa principal:').length).toBeGreaterThanOrEqual(1)
 
     // Uncheck first field (chiefComplaint)
     const checkboxes = screen.getAllByRole('checkbox')
     await user.click(checkboxes[0])
 
-    // One entry remains selected — counter confirms it
+    // One field remains selected — counter reflects it
     expect(screen.getByText('1/2 selecionado')).toBeInTheDocument()
   })
 })
@@ -1063,7 +1062,153 @@ describe('MediaRecorder codec and bitrate selection', () => {
   })
 })
 
-// ── 17. Processing step labels ────────────────────────────────────────────────
+// ── 17. Editable field review behavior ───────────────────────────────────────
+
+describe('editable field review', () => {
+  it('editing a suggested field changes the payload passed to onApplyFields', async () => {
+    const onApplyFields = vi.fn()
+    await reachSuccessState(onApplyFields)
+    const user = userEvent.setup()
+
+    // Find the textarea for chiefComplaint (first rendered)
+    const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
+    const chiefTextarea = textareas[0]
+
+    // Clear and type a custom value
+    await user.clear(chiefTextarea)
+    await user.type(chiefTextarea, 'Nova queixa editada pelo dentista')
+
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+
+    expect(onApplyFields).toHaveBeenCalledWith(
+      expect.objectContaining({ chiefComplaint: 'Nova queixa editada pelo dentista' }),
+    )
+  })
+
+  it('checked but empty fields are ignored when applying', async () => {
+    const onApplyFields = vi.fn()
+    await reachSuccessState(onApplyFields)
+    const user = userEvent.setup()
+
+    // Clear the first textarea (chiefComplaint), leave second as-is
+    const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
+    await user.clear(textareas[0])
+
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+
+    // Only the non-empty field should be in the payload
+    const calledWith = onApplyFields.mock.calls[0][0] as Record<string, string>
+    expect(Object.keys(calledWith)).not.toContain('chiefComplaint')
+    expect(Object.keys(calledWith)).toContain('clinicalEvolution')
+  })
+
+  it('applying when all checked fields have empty content shows a warning and does not call onApplyFields', async () => {
+    const onApplyFields = vi.fn()
+    await reachSuccessState(onApplyFields)
+    const user = userEvent.setup()
+
+    // Clear all textareas
+    const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
+    for (const ta of textareas) {
+      await user.clear(ta)
+    }
+
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+
+    // Warning should appear
+    expect(screen.getByText(/Nenhum campo selecionado possui conteúdo/i)).toBeInTheDocument()
+    // onApplyFields must NOT have been called
+    expect(onApplyFields).not.toHaveBeenCalled()
+    // Component stays in success state (not reset to idle)
+    expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument()
+  })
+
+  it('"Gravar novamente" in success state resets to idle', async () => {
+    await reachSuccessState()
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('button', { name: /Gravar novamente/i }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument(),
+    )
+    expect(screen.queryByText(/Revise antes de aplicar/i)).not.toBeInTheDocument()
+  })
+
+  it('discarding clears editable field state and returns to idle', async () => {
+    await reachSuccessState()
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('button', { name: /Descartar/i }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument(),
+    )
+    // No residual state visible
+    expect(screen.queryByText(/Revise antes de aplicar/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Transcrição/i)).not.toBeInTheDocument()
+  })
+
+  it('apply sends capitalized values (first letter uppercased via formatDictationFieldText)', async () => {
+    // Use lowercase mock values to verify formatting is applied
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Paciente relata dor.',
+      fields: { chiefComplaint: 'dor no dente 36', clinicalEvolution: 'sensibilidade ao frio.' },
+    })
+    const onApplyFields = vi.fn()
+    const user = userEvent.setup()
+    renderCard({ onApplyFields })
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+    await waitFor(() => expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(), { timeout: 3000 })
+
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+
+    const calledWith = onApplyFields.mock.calls[0][0] as Record<string, string>
+    expect(calledWith.chiefComplaint).toBe('Dor no dente 36')
+    expect(calledWith.clinicalEvolution).toBe('Sensibilidade ao frio.')
+  })
+})
+
+// ── 18. Odontogram suggestions panel ─────────────────────────────────────────
+// When the transcript contains a recognizable tooth + condition pair, the card
+// renders the "Sugestões para odontograma" section in the success state.
+// The default mock transcript "Paciente relata dor no dente 36." does NOT contain
+// a condition keyword, so we override it with one that does.
+
+describe('odontogram suggestions panel', () => {
+  it('renders the "Sugestões para odontograma" panel when transcript contains a mapped tooth condition', async () => {
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Dente 36 com cárie.',
+      fields: { chiefComplaint: 'Dor no dente 36' },
+    })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(
+      () => expect(screen.getByText(/Sugestões para odontograma/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+
+    // At least one visible element should mention tooth 36 in the panel
+    expect(screen.getAllByText(/Dente 36/i).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('does NOT render the odontogram panel when transcript has no mapped tooth condition', async () => {
+    // Default mock — "Paciente relata dor no dente 36." — no condition keyword
+    await reachSuccessState()
+
+    expect(screen.queryByText(/Sugestões para odontograma/i)).not.toBeInTheDocument()
+  })
+})
+
+// ── 19. Processing step labels (renumbered from 17) ──────────────────────────
 
 describe('processing step labels', () => {
   // ── "Transcrevendo consulta…" appears while the API is pending ─────────────
@@ -1113,7 +1258,7 @@ describe('processing step labels', () => {
   })
 })
 
-// ── 18. Dev debug panel ───────────────────────────────────────────────────────
+// ── 20. Dev debug panel ───────────────────────────────────────────────────────
 
 describe('dev debug panel', () => {
   // In Vitest, import.meta.env.DEV === true, so the debug panel is always

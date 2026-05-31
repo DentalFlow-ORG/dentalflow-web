@@ -41,6 +41,7 @@ import { useClinicalTemplates } from '../hooks/useClinicalTemplates'
 import { getOdontogram, upsertOdontogram } from '../services/clinical-records.service'
 import type { ClinicalTemplate, OdontogramData, UpdateClinicalRecordDto } from '../types/clinical-record.types'
 import type { ClinicalDictationFieldKey } from '../types/clinical-dictation.types'
+import type { OdontogramSuggestion } from '../utils/parse-dictation-odontogram'
 import {
   isClinicalRecordEditable,
   isClinicalRecordReadOnly,
@@ -327,6 +328,42 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     if (targetSection) openSection(targetSection)
   }
 
+  // Applies odontogram marking suggestions from dictation.
+  // Skips teeth that already have a non-healthy condition and shows a warning.
+  // Uses the existing handleOdontogramChange path so autosave/error behavior is consistent.
+  const handleApplyDictationOdontogram = (suggestions: OdontogramSuggestion[]) => {
+    if (!canEditClinicalContent || suggestions.length === 0) return
+
+    const skipped: string[] = []
+    const newTeeth = { ...odontogramData.teeth }
+
+    for (const suggestion of suggestions) {
+      const existing = odontogramData.teeth[suggestion.toothNumber]
+      if (existing?.condition && existing.condition !== 'healthy') {
+        skipped.push(suggestion.toothNumber)
+        continue
+      }
+      newTeeth[suggestion.toothNumber] = {
+        ...existing,
+        condition: suggestion.condition,
+        notes: suggestion.note || undefined,
+      }
+    }
+
+    if (skipped.length > 0) {
+      showAlert({
+        title: 'Dentes não aplicados',
+        description: `Não aplicado: dente${skipped.length > 1 ? 's' : ''} ${skipped.join(', ')} já ${skipped.length > 1 ? 'possuem' : 'possui'} condição registrada.`,
+        tone: 'warning',
+      })
+    }
+
+    if (skipped.length < suggestions.length) {
+      handleOdontogramChange({ ...odontogramData, teeth: newTeeth })
+      openSection('odontograma')
+    }
+  }
+
   const handleComplete = () => saveAndComplete(draft)
   const handleLock     = () => lock()
   const handleCancel   = () => cancel()
@@ -607,6 +644,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
                   recordId={recordId}
                   readOnly={isReadOnly}
                   onApplyFields={handleApplyDictationFields}
+                  onApplyOdontogram={handleApplyDictationOdontogram}
                 />
               </>
             )}
