@@ -312,6 +312,12 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
         processingTimeoutRef.current = null
         if (!isMountedRef.current || processingAbortedRef.current) return
         processingAbortedRef.current = true
+        // Also clear the step-advancement timer so it cannot fire after the
+        // timeout has already surfaced the error and left the processing state.
+        if (processingStepTimerRef.current) {
+          clearTimeout(processingStepTimerRef.current)
+          processingStepTimerRef.current = null
+        }
         const msg = 'O processamento demorou muito. Verifique sua conexão e tente novamente.'
         setErrorMessage(msg)
         setState('error')
