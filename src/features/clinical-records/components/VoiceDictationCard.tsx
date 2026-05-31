@@ -158,6 +158,10 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
   const timerRef         = useRef<ReturnType<typeof setInterval> | null>(null)
   const streamRef        = useRef<MediaStream | null>(null)
   const startTimeRef     = useRef<number>(0)
+  // Mirrors the elapsed seconds state without a stale closure — used by the
+  // auto-stop logic so it can read the current count from a setInterval
+  // callback without depending on the state updater form.
+  const elapsedRef       = useRef(0)
   // Tracks whether the component is still mounted. Set to false before any
   // cleanup so that onstop-triggered processAudio() calls are ignored after
   // unmount, preventing state updates and stray API calls.
@@ -194,6 +198,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
     releaseStream()
     mediaRecorderRef.current = null
     chunksRef.current = []
+    elapsedRef.current = 0
     setElapsedSeconds(0)
     setTranscript(null)
     setTranscriptExpanded(false)
@@ -246,6 +251,24 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
 
   // ── Recording controls ──────────────────────────────────────────────────────
 
+  // Declared before startRecording so startRecording can reference it in the
+  // auto-stop interval without a stale-closure or TDZ (temporal dead zone) issue.
+  const stopRecording = useCallback(() => {
+    // Stop the timer first — prevents additional auto-stop ticks firing after
+    // we have already initiated the stop sequence.
+    stopTimer()
+    const recorder = mediaRecorderRef.current
+    if (recorder && recorder.state !== 'inactive') {
+      try {
+        recorder.stop()
+      } catch {
+        // Some browsers throw InvalidStateError if stop() is called while the
+        // recorder is already in the process of stopping. The onstop callback
+        // will still fire, so it is safe to swallow this error.
+      }
+    }
+  }, [stopTimer])
+
   const startRecording = useCallback(async () => {
     if (readOnly || state !== 'idle') return
 
@@ -283,27 +306,45 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       }
 
       recorder.onstop = () => {
+        if (!isMountedRef.current) return
         const durationSeconds = (Date.now() - startTimeRef.current) / 1000
-        const blob = new Blob(chunksRef.current, { type: effectiveMime })
+        const capturedChunks = chunksRef.current
         chunksRef.current = [] // free memory immediately
+
+        if (capturedChunks.length === 0) {
+          // No audio chunks were captured (e.g., recording stopped before any
+          // data arrived). Show a friendly error rather than sending an empty blob.
+          const msg = 'Nenhum áudio foi capturado. Verifique o microfone e tente novamente.'
+          setErrorMessage(msg)
+          setState('error')
+          showAlert({ title: 'Gravação sem áudio', description: msg, tone: 'error' })
+          return
+        }
+
+        const blob = new Blob(capturedChunks, { type: effectiveMime })
         void processAudio(blob, effectiveMime, durationSeconds)
       }
 
       recorder.start(250)
       setState('recording')
+      elapsedRef.current = 0
       setElapsedSeconds(0)
 
       timerRef.current = setInterval(() => {
-        setElapsedSeconds((prev) => {
-          const next = prev + 1
-          if (next >= MAX_RECORDING_SECONDS) {
-            // Auto-stop — call through the recorder directly to avoid stale closure
-            if (mediaRecorderRef.current?.state === 'recording') {
-              mediaRecorderRef.current.stop()
-            }
-          }
-          return next
-        })
+        // Increment the ref synchronously so the auto-stop check below reads the
+        // correct value without relying on React state (which can be stale inside
+        // a closure).  The state update is kept as a separate plain call — never
+        // inside the setElapsedSeconds updater — so we avoid performing side
+        // effects inside a React state updater (which Strict Mode invokes twice).
+        elapsedRef.current += 1
+        setElapsedSeconds(elapsedRef.current)
+
+        if (elapsedRef.current >= MAX_RECORDING_SECONDS) {
+          // Auto-stop via the same path used by the manual stop button so both
+          // paths are always in sync.  stopRecording() clears the timer first,
+          // preventing this branch from running again on the next tick.
+          stopRecording()
+        }
       }, 1000)
     } catch (err: unknown) {
       // Release any acquired stream — getUserMedia may have succeeded before the
@@ -321,14 +362,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       setState('error')
       showAlert({ title: 'Erro de microfone', description: msg, tone: 'error' })
     }
-  }, [readOnly, state, processAudio, releaseStream, showAlert])
-
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current?.state === 'recording') {
-      mediaRecorderRef.current.stop()
-    }
-    stopTimer()
-  }, [stopTimer])
+  }, [readOnly, state, processAudio, releaseStream, showAlert, stopRecording])
 
   // ── Apply / discard ─────────────────────────────────────────────────────────
 

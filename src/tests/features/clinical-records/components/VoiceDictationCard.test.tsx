@@ -23,20 +23,38 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 
 // ── Fake MediaRecorder ────────────────────────────────────────────────────────
 
+// Tracks the most recently created instance so tests can inspect or drive it.
+let latestRecorder: FakeMediaRecorder | null = null
+
 class FakeMediaRecorder {
   state: 'inactive' | 'recording' = 'inactive'
   ondataavailable: ((e: { data: Blob; size: number }) => void) | null = null
   onstop: (() => void) | null = null
+  mimeType = 'audio/webm'
 
   static isTypeSupported = vi.fn(() => true)
+
+  constructor() {
+    latestRecorder = this
+  }
 
   start = vi.fn(() => { this.state = 'recording' })
 
   stop = vi.fn(() => {
-    if (this.state !== 'recording') return
+    if (this.state === 'inactive') return
     this.state = 'inactive'
     const blob = new Blob(['fake-audio'], { type: 'audio/webm' })
     this.ondataavailable?.({ data: blob, size: blob.size })
+    this.onstop?.()
+  })
+}
+
+// Variant that emits NO audio chunks — used to test the empty-audio safety path.
+class FakeMediaRecorderNoAudio extends FakeMediaRecorder {
+  stop = vi.fn(() => {
+    if (this.state === 'inactive') return
+    this.state = 'inactive'
+    // Do NOT call ondataavailable → chunksRef stays empty
     this.onstop?.()
   })
 }
@@ -75,6 +93,7 @@ afterAll(() => {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  latestRecorder = null
 
   mockGetBillingStatus.mockReturnValue({ planKey: 'premium', accessAllowed: true })
   mockDictateClinicalRecord.mockResolvedValue({
@@ -519,5 +538,105 @@ describe('accessibility', () => {
     )
     // Empty-field notice is gone
     expect(screen.queryByText(/nenhum campo clínico foi identificado/i)).not.toBeInTheDocument()
+  })
+})
+
+// ── 13. Stop flow reliability ─────────────────────────────────────────────────
+
+describe('stop flow reliability', () => {
+  // ── Manual stop leaves recording and reaches processing/success ─────────────
+
+  it('clicking Parar gravação transitions through processing to success', async () => {
+    // reachSuccessState already exercises this path end-to-end. This test makes
+    // the intent explicit: after stop, the recording UI is gone and results appear.
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    // The "Gravando" state must be replaced by the result
+    await waitFor(
+      () => expect(screen.getByRole('button', { name: /Aplicar aos campos/i })).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+    expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
+  })
+
+  // ── Auto-stop at 90 s uses the same path as the manual button ───────────────
+  // We drive this by calling recorder.stop() directly — the same call the
+  // 90-second interval makes — to avoid needing 90-second fake timers.
+
+  it('auto-stop (recorder.stop()) triggers the same processing path as the button', async () => {
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+    // At 90 s the interval calls stopRecording() which calls recorder.stop().
+    // Trigger it directly via the recorder instance — identical behaviour.
+    expect(latestRecorder).not.toBeNull()
+    expect(latestRecorder!.state).toBe('recording')
+    latestRecorder!.stop()
+
+    // The component must leave recording and show the dictation result
+    await waitFor(
+      () => expect(screen.getByRole('button', { name: /Aplicar aos campos/i })).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+    expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
+  })
+
+  // ── Double stop does not crash or trigger duplicate API calls ───────────────
+
+  it('calling recorder.stop() twice does not trigger a second API call', async () => {
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+    // First stop — valid, triggers the full processing path
+    latestRecorder!.stop()
+    await waitFor(
+      () => expect(screen.getByRole('button', { name: /Aplicar aos campos/i })).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+
+    // Second stop — recorder is already 'inactive', must be a no-op
+    expect(latestRecorder!.state).toBe('inactive')
+    const stopCallsBefore = (latestRecorder!.stop as ReturnType<typeof vi.fn>).mock.calls.length
+    latestRecorder!.stop()
+
+    // No additional API calls after the second stop
+    expect(mockDictateClinicalRecord).toHaveBeenCalledTimes(1)
+    expect((latestRecorder!.stop as ReturnType<typeof vi.fn>).mock.calls.length).toBe(stopCallsBefore + 1)
+  })
+
+  // ── Empty audio produces a friendly error and leaves recording ─────────────
+
+  it('shows a friendly error when onstop fires with no audio chunks', async () => {
+    vi.stubGlobal('MediaRecorder', FakeMediaRecorderNoAudio)
+    try {
+      const user = userEvent.setup()
+      renderCard()
+
+      await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+      await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+      // Stop with no audio chunks — onstop fires but chunksRef is empty
+      latestRecorder!.stop()
+
+      await waitFor(() =>
+        expect(screen.getByText(/Nenhum áudio foi capturado/i)).toBeInTheDocument(),
+      )
+      expect(mockDictateClinicalRecord).not.toHaveBeenCalled()
+      expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
+    } finally {
+      vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
+    }
   })
 })
