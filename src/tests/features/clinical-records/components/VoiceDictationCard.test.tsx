@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VoiceDictationCard } from '@/features/clinical-records/components/VoiceDictationCard'
 import type { ClinicalDictationFieldKey } from '@/features/clinical-records/types/clinical-dictation.types'
@@ -56,6 +56,39 @@ class FakeMediaRecorderNoAudio extends FakeMediaRecorder {
     this.state = 'inactive'
     // Do NOT call ondataavailable → chunksRef stays empty
     this.onstop?.()
+  })
+}
+
+// Variant where stop() fires onstop asynchronously — mimics real browser behaviour
+// where onstop is dispatched after the current call stack unwinds.
+class FakeMediaRecorderAsyncStop extends FakeMediaRecorder {
+  stop = vi.fn(() => {
+    if (this.state === 'inactive') return
+    this.state = 'inactive'
+    const blob = new Blob(['fake-audio'], { type: 'audio/webm' })
+    this.ondataavailable?.({ data: blob, size: blob.size })
+    // Defer onstop so it fires after the current synchronous execution
+    Promise.resolve().then(() => this.onstop?.())
+  })
+}
+
+// Variant where stop() NEVER fires onstop — simulates a browser hang/bug.
+class FakeMediaRecorderNoOnstop extends FakeMediaRecorder {
+  stop = vi.fn(() => {
+    if (this.state === 'inactive') return
+    this.state = 'inactive'
+    const blob = new Blob(['fake-audio'], { type: 'audio/webm' })
+    this.ondataavailable?.({ data: blob, size: blob.size })
+    // onstop intentionally never fires
+  })
+}
+
+// Variant where stop() throws — simulates an InvalidStateError mid-transition.
+class FakeMediaRecorderStopThrows extends FakeMediaRecorder {
+  stop = vi.fn(() => {
+    if (this.state === 'inactive') return
+    this.state = 'inactive'
+    throw new DOMException('The MediaRecorder is not in a valid state.', 'InvalidStateError')
   })
 }
 
@@ -636,6 +669,119 @@ describe('stop flow reliability', () => {
       expect(mockDictateClinicalRecord).not.toHaveBeenCalled()
       expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
     } finally {
+      vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
+    }
+  })
+
+  // ── Clicking stop immediately leaves recording — no waiting for onstop ──────
+  // Uses an async-stop recorder so onstop does NOT fire synchronously within
+  // the click handler. The UI must still leave 'recording' immediately because
+  // stopRecording() calls setState('processing') before recorder.stop().
+
+  it('clicking stop immediately leaves recording state before onstop fires', async () => {
+    vi.stubGlobal('MediaRecorder', FakeMediaRecorderAsyncStop)
+    mockDictateClinicalRecord.mockImplementation(() => new Promise(() => {}))
+    try {
+      const user = userEvent.setup()
+      renderCard()
+
+      await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+      await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+      await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+      // Must NOT be in recording state — no waitFor, this must be synchronous
+      expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
+      expect(screen.getByText(/Processando ditado/i)).toBeInTheDocument()
+    } finally {
+      vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
+    }
+  })
+
+  // ── recorder.stop() throws — UI must not stay stuck in recording ────────────
+
+  it('shows processing state (not stuck recording) when recorder.stop() throws', async () => {
+    vi.stubGlobal('MediaRecorder', FakeMediaRecorderStopThrows)
+    try {
+      const user = userEvent.setup()
+      renderCard()
+
+      await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+      await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+      await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+      // stopRecording() sets 'processing' before the try/catch, so the UI must
+      // have left 'recording' even though stop() threw.
+      expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
+      expect(screen.getByText(/Processando ditado/i)).toBeInTheDocument()
+      expect(mockDictateClinicalRecord).not.toHaveBeenCalled()
+    } finally {
+      vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
+    }
+  })
+
+  // ── Stream tracks are released after onstop fires on a normal stop ──────────
+
+  it('releases stream tracks when onstop fires after a normal stop', async () => {
+    const mockTrackStop = vi.fn()
+    mockGetUserMedia.mockResolvedValue({
+      getTracks: () => [{ stop: mockTrackStop }],
+    } as unknown as MediaStream)
+
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    // FakeMediaRecorder.stop() calls onstop synchronously; onstop calls releaseStream()
+    await waitFor(() => expect(mockTrackStop).toHaveBeenCalled())
+  })
+
+  // ── Fallback timer recovers when onstop never fires ─────────────────────────
+  // Strategy: use real timers for setup (getUserMedia, waitFor), then switch to
+  // fake timers immediately before clicking stop so the fallback setTimeout is
+  // registered with the fake timer and can be advanced deterministically.
+
+  it('fallback timer shows friendly error and releases stream when onstop never fires', async () => {
+    vi.stubGlobal('MediaRecorder', FakeMediaRecorderNoOnstop)
+    const mockTrackStop = vi.fn()
+    mockGetUserMedia.mockResolvedValue({
+      getTracks: () => [{ stop: mockTrackStop }],
+    } as unknown as MediaStream)
+
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+    // Switch to fake timers so the fallback setTimeout lands in the fake queue.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      // fireEvent is synchronous — no internal timer dependency.
+      act(() => {
+        fireEvent.click(screen.getByRole('button', { name: /Parar gravação/i }))
+      })
+
+      // Processing state must be immediate (set by stopRecording before stop())
+      expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
+      expect(screen.getByText(/Processando ditado/i)).toBeInTheDocument()
+
+      // Advance past the 5-second fallback window
+      act(() => { vi.advanceTimersByTime(5100) })
+
+      // Error state should appear; API must not have been called
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toHaveTextContent(/Não foi possível finalizar/i)
+      expect(mockDictateClinicalRecord).not.toHaveBeenCalled()
+      // Stream must be released by the fallback
+      expect(mockTrackStop).toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
       vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
     }
   })

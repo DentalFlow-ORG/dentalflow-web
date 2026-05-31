@@ -153,25 +153,30 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
   const [selectedFieldKeys, setSelectedFieldKeys] = useState<Set<ClinicalDictationFieldKey>>(new Set())
   const [errorMessage, setErrorMessage]     = useState<string | null>(null)
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const chunksRef        = useRef<Blob[]>([])
-  const timerRef         = useRef<ReturnType<typeof setInterval> | null>(null)
-  const streamRef        = useRef<MediaStream | null>(null)
-  const startTimeRef     = useRef<number>(0)
+  const mediaRecorderRef      = useRef<MediaRecorder | null>(null)
+  const chunksRef             = useRef<Blob[]>([])
+  const timerRef              = useRef<ReturnType<typeof setInterval> | null>(null)
+  const streamRef             = useRef<MediaStream | null>(null)
+  const startTimeRef          = useRef<number>(0)
   // Mirrors the elapsed seconds state without a stale closure — used by the
   // auto-stop logic so it can read the current count from a setInterval
   // callback without depending on the state updater form.
-  const elapsedRef       = useRef(0)
+  const elapsedRef            = useRef(0)
   // Tracks whether the component is still mounted. Set to false before any
   // cleanup so that onstop-triggered processAudio() calls are ignored after
   // unmount, preventing state updates and stray API calls.
-  const isMountedRef     = useRef(true)
+  const isMountedRef          = useRef(true)
+  // Fired 5 s after stopRecording() if onstop never arrives (browser bug/hang).
+  const stopFallbackTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Prevents onstop and the fallback timer from both processing the same stop.
+  const hasProcessedStopRef   = useRef(false)
 
   // ── Cleanup on unmount ──────────────────────────────────────────────────────
   useEffect(() => {
     return () => {
       isMountedRef.current = false
       if (timerRef.current) clearInterval(timerRef.current)
+      if (stopFallbackTimerRef.current) clearTimeout(stopFallbackTimerRef.current)
       if (mediaRecorderRef.current?.state === 'recording') {
         mediaRecorderRef.current.stop()
       }
@@ -195,6 +200,11 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
 
   const reset = useCallback(() => {
     stopTimer()
+    if (stopFallbackTimerRef.current) {
+      clearTimeout(stopFallbackTimerRef.current)
+      stopFallbackTimerRef.current = null
+    }
+    hasProcessedStopRef.current = false
     releaseStream()
     mediaRecorderRef.current = null
     chunksRef.current = []
@@ -254,20 +264,43 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
   // Declared before startRecording so startRecording can reference it in the
   // auto-stop interval without a stale-closure or TDZ (temporal dead zone) issue.
   const stopRecording = useCallback(() => {
-    // Stop the timer first — prevents additional auto-stop ticks firing after
-    // we have already initiated the stop sequence.
-    stopTimer()
     const recorder = mediaRecorderRef.current
-    if (recorder && recorder.state !== 'inactive') {
-      try {
-        recorder.stop()
-      } catch {
-        // Some browsers throw InvalidStateError if stop() is called while the
-        // recorder is already in the process of stopping. The onstop callback
-        // will still fire, so it is safe to swallow this error.
-      }
+    // Already stopped or nothing to stop — return safely without touching state.
+    if (!recorder || recorder.state === 'inactive') return
+
+    // ── Immediately leave 'recording' state ─────────────────────────────────
+    // Real browsers fire onstop asynchronously (after the call stack unwinds).
+    // Waiting for it before updating the UI causes the visible "stuck recording"
+    // bug. Transition to 'processing' here so the UI is never stuck.
+    stopTimer()
+    setState('processing')
+
+    // ── Fallback: recover if onstop never arrives ────────────────────────────
+    // Some browsers hang or never fire onstop after stop() (e.g. when the tab
+    // is backgrounded or a hardware error occurs). After 5 s we surface a
+    // friendly error instead of leaving the user on the processing spinner.
+    if (stopFallbackTimerRef.current) clearTimeout(stopFallbackTimerRef.current)
+    stopFallbackTimerRef.current = setTimeout(() => {
+      stopFallbackTimerRef.current = null
+      if (!isMountedRef.current || hasProcessedStopRef.current) return
+      hasProcessedStopRef.current = true
+      releaseStream()
+      mediaRecorderRef.current = null
+      const msg = 'Não foi possível finalizar a gravação. Tente novamente.'
+      setErrorMessage(msg)
+      setState('error')
+      showAlert({ title: 'Erro na gravação', description: msg, tone: 'error' })
+    }, 5000)
+
+    try {
+      recorder.requestData?.() // flush any audio still buffered in the encoder
+      recorder.stop()
+    } catch {
+      // stop() may throw InvalidStateError if the recorder is mid-transition.
+      // The fallback timer above handles the stuck-processing case if onstop
+      // never fires as a result.
     }
-  }, [stopTimer])
+  }, [stopTimer, releaseStream, showAlert])
 
   const startRecording = useCallback(async () => {
     if (readOnly || state !== 'idle') return
@@ -306,14 +339,26 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       }
 
       recorder.onstop = () => {
+        // Cancel the fallback safety timer — onstop arrived as expected.
+        if (stopFallbackTimerRef.current) {
+          clearTimeout(stopFallbackTimerRef.current)
+          stopFallbackTimerRef.current = null
+        }
+
         if (!isMountedRef.current) return
+        // Guard: prevents duplicate processing if onstop somehow fires twice
+        // or the fallback timer already handled an error path.
+        if (hasProcessedStopRef.current) return
+        hasProcessedStopRef.current = true
+
         const durationSeconds = (Date.now() - startTimeRef.current) / 1000
-        const capturedChunks = chunksRef.current
-        chunksRef.current = [] // free memory immediately
+        const capturedChunks = chunksRef.current.slice()
+        chunksRef.current = []
+        mediaRecorderRef.current = null
+        releaseStream()
 
         if (capturedChunks.length === 0) {
-          // No audio chunks were captured (e.g., recording stopped before any
-          // data arrived). Show a friendly error rather than sending an empty blob.
+          // No audio chunks arrived (e.g. stop() called before first timeslice).
           const msg = 'Nenhum áudio foi capturado. Verifique o microfone e tente novamente.'
           setErrorMessage(msg)
           setState('error')
@@ -325,6 +370,8 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
         void processAudio(blob, effectiveMime, durationSeconds)
       }
 
+      // Reset the processing guard for this new recording session.
+      hasProcessedStopRef.current = false
       recorder.start(250)
       setState('recording')
       elapsedRef.current = 0
@@ -431,12 +478,12 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/5 ring-1 ring-primary/10">
             <Mic className="h-6 w-6 text-primary/60" aria-hidden="true" />
           </div>
-          <p className="max-w-[200px] text-xs leading-relaxed text-muted-foreground">
+          <p className="max-w-50 text-xs leading-relaxed text-muted-foreground">
             Grave a consulta e a IA organiza o conteúdo nos campos corretos do prontuário.
           </p>
           <Button
             type="button"
-            className="min-h-[44px] w-full"
+            className="min-h-11 w-full"
             onClick={() => void startRecording()}
           >
             <Mic className="h-4 w-4" aria-hidden="true" />
@@ -478,7 +525,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
           <Button
             type="button"
             variant="outline"
-            className="min-h-[44px] w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-800/50 dark:text-red-400 dark:hover:bg-red-950/20"
+            className="min-h-11 w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-800/50 dark:text-red-400 dark:hover:bg-red-950/20"
             onClick={stopRecording}
           >
             <Square className="h-4 w-4" aria-hidden="true" />
