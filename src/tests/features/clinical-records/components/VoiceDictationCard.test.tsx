@@ -104,6 +104,20 @@ class FakeFileReader {
   }
 }
 
+// Variant that returns a base64 payload exceeding the frontend MAX_AUDIO_BASE64_LENGTH
+// (6_500_000 chars).  The prefix is stripped inside blobToBase64, so we need the
+// part AFTER the comma to be 6_500_001 chars.
+class FakeFileReaderLarge {
+  get result() {
+    return `data:audio/webm;base64,${'A'.repeat(6_500_001)}`
+  }
+  onloadend: (() => void) | null = null
+  onerror: (() => void) | null = null
+  readAsDataURL() {
+    queueMicrotask(() => this.onloadend?.())
+  }
+}
+
 // ── getUserMedia mock ─────────────────────────────────────────────────────────
 
 const mockGetUserMedia = vi.fn()
@@ -937,5 +951,46 @@ describe('processing phase robustness', () => {
     )
     // Error alert and message must be gone
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  // ── Oversized audio blocked before API call ───────────────────────────────
+  // Uses FakeFileReaderLarge which returns a base64 string of 6 500 001 chars
+  // (one over the frontend MAX_AUDIO_BASE64_LENGTH = 6 500 000).
+  // dictateClinicalRecord must NOT be called and the component must show the
+  // specific oversized-audio error message.
+
+  it('shows oversized-audio error and never calls the API when base64 exceeds the limit', async () => {
+    vi.stubGlobal('FileReader', FakeFileReaderLarge)
+    try {
+      const user = userEvent.setup()
+      renderCard()
+
+      await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+      await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+      await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(/O áudio ficou muito grande para processamento/i),
+        ).toBeInTheDocument(),
+      )
+
+      // API must NOT have been called
+      expect(mockDictateClinicalRecord).not.toHaveBeenCalled()
+
+      // Component must be in error state, not processing
+      expect(screen.queryByText(/Processando ditado/i)).not.toBeInTheDocument()
+
+      // Alert must have fired
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({ tone: 'error' }),
+      )
+
+      // User can retry
+      expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
+    } finally {
+      vi.stubGlobal('FileReader', FakeFileReader)
+    }
   })
 })

@@ -24,6 +24,13 @@ import { getClinicalDictationErrorMessage } from '../utils/clinical-dictation-er
 
 const MAX_RECORDING_SECONDS = 90
 const TRANSCRIPT_COLLAPSE_THRESHOLD = 150
+// Must match (and stay below) the backend DTO's MAX_AUDIO_BASE64_LENGTH so the
+// frontend blocks oversized audio before sending and shows a useful message
+// rather than getting a 413 from the server.
+const MAX_AUDIO_BASE64_LENGTH = 6_500_000
+// Conservative bitrate hint for MediaRecorder. Browsers may ignore it, but it
+// keeps most recordings well under the size limit (90 s × 48 kbps ≈ 540 KB raw).
+const AUDIO_BITS_PER_SECOND = 48_000
 
 const DICTATION_FIELD_LABELS: Record<ClinicalDictationFieldKey, string> = {
   chiefComplaint:      'Queixa principal',
@@ -279,6 +286,20 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
           return
         }
 
+        // Front-end size guard — prevents a PayloadTooLargeError from the server
+        // and surfaces a specific, actionable message before any network call.
+        if (audioBase64.length > MAX_AUDIO_BASE64_LENGTH) {
+          clearProcessingTimeout()
+          if (!isMountedRef.current || processingAbortedRef.current) return
+          processingAbortedRef.current = true
+          const msg =
+            'O áudio ficou muito grande para processamento. Grave um áudio mais curto e tente novamente.'
+          setErrorMessage(msg)
+          setState('error')
+          showAlert({ title: 'Áudio muito grande', description: msg, tone: 'error' })
+          return
+        }
+
         const result = await dictateClinicalRecord(recordId, {
           audioBase64,
           mimeType,
@@ -378,7 +399,12 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       streamRef.current = stream
 
       const preferredMime = getSupportedMimeType()
-      const recorder = new MediaRecorder(stream, preferredMime ? { mimeType: preferredMime } : undefined)
+      // AUDIO_BITS_PER_SECOND is a conservative hint — browsers may ignore it.
+      // Keeping bitrate low reduces base64 payload size and avoids 413 errors.
+      const recorder = new MediaRecorder(stream, {
+        ...(preferredMime ? { mimeType: preferredMime } : {}),
+        audioBitsPerSecond: AUDIO_BITS_PER_SECOND,
+      })
       // Read the actual format the browser committed to — may differ from preferredMime
       // when preferredMime is '' and the browser chose its own default.
       const effectiveMime = recorder.mimeType || preferredMime || 'audio/webm'
