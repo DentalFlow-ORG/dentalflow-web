@@ -45,7 +45,7 @@ import {
   isClinicalRecordEditable,
   isClinicalRecordReadOnly,
 } from '../utils/clinical-record-status-rules'
-import { mergeDictationField } from '../utils/clinical-dictation-field-merge'
+import { applyDictationFields } from '../utils/apply-clinical-dictation-fields'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -307,26 +307,24 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   }
 
   // Merges dictation suggestions into the draft fields.
-  // For each suggested key, appends to existing content (if any) or replaces if empty.
-  // Then opens the most clinically relevant section so the dentist can review.
+  // Pure logic is delegated to applyDictationFields so it can be tested independently.
+  // Calling setField() enters the normal draft/autosave pipeline — no bypass occurs.
   const handleApplyDictationFields = (fields: Partial<Record<ClinicalDictationFieldKey, string>>) => {
     if (!canEditClinicalContent) return
-    for (const [key, value] of Object.entries(fields)) {
-      if (typeof value === 'string' && value.trim()) {
-        const typedKey = key as keyof UpdateClinicalRecordDto
-        setField(typedKey)(mergeDictationField(field(typedKey), value))
-      }
+
+    // Snapshot current field values (draft overrides applied on top of record)
+    const currentValues: Record<string, string> = {}
+    for (const key of Object.keys(fields)) {
+      currentValues[key] = field(key as keyof UpdateClinicalRecordDto)
     }
-    // Open the first relevant section so the user immediately sees the applied content
-    if ('clinicalEvolution' in fields)           openSection('evolucao')
-    else if ('anamnesis' in fields)              openSection('anamnese')
-    else if ('diagnosis' in fields)              openSection('diagnostico')
-    else if (
-      'proceduresPerformed' in fields ||
-      'treatmentPlan' in fields ||
-      'prescription' in fields ||
-      'recommendations' in fields
-    )                                            openSection('plano')
+
+    const { draftPatch, targetSection } = applyDictationFields(fields, currentValues)
+
+    for (const [key, value] of Object.entries(draftPatch)) {
+      setField(key as keyof UpdateClinicalRecordDto)(value as string)
+    }
+
+    if (targetSection) openSection(targetSection)
   }
 
   const handleComplete = () => saveAndComplete(draft)
