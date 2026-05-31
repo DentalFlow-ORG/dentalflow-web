@@ -21,7 +21,7 @@ import { LoadingCard } from '@/components/common/LoadingCard'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 
-import { ClinicalAiAssistantCard } from '../components/ClinicalAiAssistantCard'
+import { VoiceDictationCard } from '../components/VoiceDictationCard'
 import { ClinicalRecordActions } from '../components/ClinicalRecordActions'
 import { ClinicalRecordHeader } from '../components/ClinicalRecordHeader'
 import { ClinicalSection } from '../components/ClinicalSection'
@@ -40,6 +40,7 @@ import { useUnsavedChangesGuard } from '../hooks/useUnsavedChangesGuard'
 import { useClinicalTemplates } from '../hooks/useClinicalTemplates'
 import { getOdontogram, upsertOdontogram } from '../services/clinical-records.service'
 import type { ClinicalTemplate, OdontogramData, UpdateClinicalRecordDto } from '../types/clinical-record.types'
+import type { ClinicalDictationFieldKey } from '../types/clinical-dictation.types'
 import {
   isClinicalRecordEditable,
   isClinicalRecordReadOnly,
@@ -302,6 +303,30 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         odontogramAlertResetRef.current = setTimeout(() => { odontogramAlertShownRef.current = false }, 10_000)
       }
     })
+  }
+
+  // Merges dictation suggestions into the draft fields.
+  // For each suggested key, appends to existing content (if any) or replaces if empty.
+  // Then opens the most clinically relevant section so the dentist can review.
+  const handleApplyDictationFields = (fields: Partial<Record<ClinicalDictationFieldKey, string>>) => {
+    if (!canEditClinicalContent) return
+    for (const [key, value] of Object.entries(fields)) {
+      if (typeof value === 'string' && value.trim()) {
+        const typedKey = key as keyof UpdateClinicalRecordDto
+        const current = field(typedKey)
+        setField(typedKey)(current.trim() ? `${current}\n\n${value}` : value)
+      }
+    }
+    // Open the first relevant section so the user immediately sees the applied content
+    if ('clinicalEvolution' in fields)           openSection('evolucao')
+    else if ('anamnesis' in fields)              openSection('anamnese')
+    else if ('diagnosis' in fields)              openSection('diagnostico')
+    else if (
+      'proceduresPerformed' in fields ||
+      'treatmentPlan' in fields ||
+      'prescription' in fields ||
+      'recommendations' in fields
+    )                                            openSection('plano')
   }
 
   const handleComplete = () => saveAndComplete(draft)
@@ -580,7 +605,11 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
                   templates={templates}
                   onApply={handleApplyTemplate}
                 />
-                <ClinicalAiAssistantCard />
+                <VoiceDictationCard
+                  recordId={recordId}
+                  readOnly={isReadOnly}
+                  onApplyFields={handleApplyDictationFields}
+                />
               </>
             )}
           </div>
