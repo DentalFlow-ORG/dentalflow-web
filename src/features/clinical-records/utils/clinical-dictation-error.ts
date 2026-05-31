@@ -10,6 +10,14 @@ import { ApiError } from '@/services/http'
  */
 export function getClinicalDictationErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
+    // ── Backend unreachable (ERR_CONNECTION_REFUSED / network error) ──────────
+    // status 0 = fetch threw TypeError; the browser got no HTTP response at all.
+    // In development, surface a hint so the developer knows which process to start.
+    // In production the generic fallback is more appropriate for end users.
+    if (err.status === 0 && import.meta.env.DEV) {
+      return 'Backend inacessível. Verifique se o dentalflow-api está em execução em localhost:3000.'
+    }
+
     // ── Plan gate / payment required ─────────────────────────────────────────
     // 402: apiRequest already redirects, but still throws ApiError
     // 403: @RequirePlanFeature blocks non-premium users

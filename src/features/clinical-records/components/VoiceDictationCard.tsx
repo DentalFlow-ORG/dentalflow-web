@@ -34,6 +34,18 @@ const MAX_AUDIO_BASE64_LENGTH = 4_000_000
 // file sizes small even when the browser ignores the hint.
 const AUDIO_BITS_PER_SECOND = 32_000
 
+// Simulated processing-phase steps shown to the dentist.
+// Steps advance through the real frontend lifecycle; steps 2→3 use a timer
+// to approximate the transcription→classification handoff (no WebSocket needed).
+const PROCESSING_STEPS = [
+  'Preparando áudio…',
+  'Enviando para análise…',
+  'Transcrevendo consulta…',
+  'Organizando nos campos clínicos…',
+] as const
+
+type ProcessingStep = 0 | 1 | 2 | 3
+
 const DICTATION_FIELD_LABELS: Record<ClinicalDictationFieldKey, string> = {
   chiefComplaint:      'Queixa principal',
   anamnesis:           'Anamnese',
@@ -172,6 +184,18 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
   // Which fields the dentist has selected for application (all selected by default).
   const [selectedFieldKeys, setSelectedFieldKeys] = useState<Set<ClinicalDictationFieldKey>>(new Set())
   const [errorMessage, setErrorMessage]     = useState<string | null>(null)
+  // Which simulated processing step is currently shown (advances through lifecycle).
+  const [processingStep, setProcessingStep] = useState<ProcessingStep>(0)
+  // Dev-only: captured after base64 conversion so the debug panel can show
+  // MIME type, payload size, recording duration, and whether it was blocked.
+  // import.meta.env.DEV is false in production builds — Vite dead-code-eliminates
+  // every branch that reads this state in the rendered output.
+  const [debugInfo, setDebugInfo] = useState<{
+    mimeType: string
+    base64Chars: number
+    durationSeconds: number
+    blockedLocally: boolean
+  } | null>(null)
 
   const mediaRecorderRef      = useRef<MediaRecorder | null>(null)
   const chunksRef             = useRef<Blob[]>([])
@@ -195,6 +219,9 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
   // Set to true when the processing phase is aborted (by timeout or reset) so
   // a still-running processAudio does not overwrite state afterwards.
   const processingAbortedRef  = useRef(false)
+  // Advances processingStep to 3 after ~6 s of API wait (simulates the
+  // transcription→classification handoff without any server-side events).
+  const processingStepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Cleanup on unmount ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -208,6 +235,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       if (timerRef.current) clearInterval(timerRef.current)
       if (stopFallbackTimerRef.current) clearTimeout(stopFallbackTimerRef.current)
       if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current)
+      if (processingStepTimerRef.current) clearTimeout(processingStepTimerRef.current)
       if (mediaRecorderRef.current?.state === 'recording') {
         mediaRecorderRef.current.stop()
       }
@@ -239,9 +267,15 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       clearTimeout(processingTimeoutRef.current)
       processingTimeoutRef.current = null
     }
+    if (processingStepTimerRef.current) {
+      clearTimeout(processingStepTimerRef.current)
+      processingStepTimerRef.current = null
+    }
     hasProcessedStopRef.current = false
     // Abort any still-running processAudio so it doesn't overwrite the idle state.
     processingAbortedRef.current = true
+    setProcessingStep(0)
+    setDebugInfo(null)
     releaseStream()
     mediaRecorderRef.current = null
     chunksRef.current = []
@@ -262,8 +296,9 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       // state on an unmounted component.
       if (!isMountedRef.current) return
 
-      // Reset the abort flag for this new processing session.
+      // Reset the abort flag and step counter for this new processing session.
       processingAbortedRef.current = false
+      setProcessingStep(0) // "Preparando áudio…"
 
       setState('processing')
       stopTimer()
@@ -290,12 +325,32 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
         }
       }
 
+      const clearStepTimer = () => {
+        if (processingStepTimerRef.current) {
+          clearTimeout(processingStepTimerRef.current)
+          processingStepTimerRef.current = null
+        }
+      }
+
       try {
         const audioBase64 = await blobToBase64(blob)
         // Check after the async conversion — unmount or abort may have happened.
         if (!isMountedRef.current || processingAbortedRef.current) {
           clearProcessingTimeout()
           return
+        }
+
+        setProcessingStep(1) // "Enviando para análise…"
+
+        // Dev-only: capture payload metadata so the debug panel can show it.
+        // import.meta.env.DEV is false in production — Vite tree-shakes this block.
+        if (import.meta.env.DEV) {
+          setDebugInfo({
+            mimeType,
+            base64Chars: audioBase64.length,
+            durationSeconds,
+            blockedLocally: audioBase64.length > MAX_AUDIO_BASE64_LENGTH,
+          })
         }
 
         // Front-end size guard — prevents a PayloadTooLargeError from the server
@@ -312,11 +367,22 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
           return
         }
 
+        setProcessingStep(2) // "Transcrevendo consulta…"
+
+        // Advance to step 3 ("Organizando…") after ~6 s to simulate the
+        // transcription→classification handoff. No WebSocket required.
+        processingStepTimerRef.current = setTimeout(() => {
+          processingStepTimerRef.current = null
+          if (!isMountedRef.current || processingAbortedRef.current) return
+          setProcessingStep(3)
+        }, 6_000)
+
         const result = await dictateClinicalRecord(recordId, {
           audioBase64,
           mimeType,
           durationSeconds: Math.max(1, Math.round(durationSeconds)),
         })
+        clearStepTimer()
         // Check after the API call — unmount, reset, or timeout may have fired.
         if (!isMountedRef.current || processingAbortedRef.current) {
           clearProcessingTimeout()
@@ -331,6 +397,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
         setSelectedFieldKeys(new Set(Object.keys(result.fields) as ClinicalDictationFieldKey[]))
         setState('success')
       } catch (err: unknown) {
+        clearStepTimer()
         clearProcessingTimeout()
         // If the timeout or a reset already handled the error path, ignore this.
         if (!isMountedRef.current || processingAbortedRef.current) return
@@ -628,11 +695,20 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       {!readOnly && state === 'processing' && (
         <div className="flex flex-col items-center gap-3 py-4 text-center" role="status">
           <Loader2 className="h-7 w-7 animate-spin text-primary" aria-hidden="true" />
-          <div>
-            <p className="text-sm font-medium text-foreground">Processando ditado…</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Transcrevendo e organizando nos campos clínicos
-            </p>
+          <p className="text-sm font-medium text-foreground">
+            {PROCESSING_STEPS[processingStep]}
+          </p>
+          {/* Progress dots — one per step, filled up to the current step */}
+          <div className="flex items-center gap-1.5" aria-hidden="true">
+            {PROCESSING_STEPS.map((_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  'h-1.5 w-1.5 rounded-full transition-colors duration-500',
+                  i <= processingStep ? 'bg-primary' : 'bg-muted-foreground/20',
+                )}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -830,6 +906,32 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
           >
             Tentar novamente
           </Button>
+        </div>
+      )}
+
+      {/* ── Dev debug panel ─────────────────────────────────────────────────────
+          Visible only in development builds (import.meta.env.DEV === false in
+          production — Vite tree-shakes this entire subtree at build time).    */}
+      {import.meta.env.DEV && debugInfo !== null && (
+        <div
+          className="mt-4 rounded-lg border border-dashed border-muted-foreground/25 bg-muted/30 px-3 py-2.5 text-[10px] text-muted-foreground"
+          data-testid="dev-debug-panel"
+        >
+          <p className="mb-1.5 font-semibold uppercase tracking-wide">
+            Debug — apenas em desenvolvimento
+          </p>
+          <p>MIME: {debugInfo.mimeType || '(browser default)'}</p>
+          <p>
+            Payload base64:{' '}
+            ~{Math.round(debugInfo.base64Chars / 1_024)} KB
+            {' '}({debugInfo.base64Chars.toLocaleString()} chars)
+          </p>
+          <p>Duração gravada: {debugInfo.durationSeconds.toFixed(1)} s</p>
+          {debugInfo.blockedLocally && (
+            <p className="mt-1 font-semibold text-red-500 dark:text-red-400">
+              ⚠ Bloqueado localmente — payload excedeu o limite antes de enviar
+            </p>
+          )}
         </div>
       )}
     </div>

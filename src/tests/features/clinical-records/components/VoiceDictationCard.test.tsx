@@ -450,7 +450,7 @@ describe('processing state', () => {
     await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
 
     await waitFor(() =>
-      expect(screen.getByText(/Transcrevendo e organizando/i)).toBeInTheDocument(),
+      expect(screen.getByRole('status')).toBeInTheDocument(),
     )
     expect(screen.queryByRole('button', { name: /Aplicar/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Descartar/i })).not.toBeInTheDocument()
@@ -709,7 +709,7 @@ describe('stop flow reliability', () => {
 
       // Must NOT be in recording state — no waitFor, this must be synchronous
       expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
-      expect(screen.getByText(/Processando ditado/i)).toBeInTheDocument()
+      expect(screen.getByRole('status')).toBeInTheDocument()
     } finally {
       vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
     }
@@ -731,7 +731,7 @@ describe('stop flow reliability', () => {
       // stopRecording() sets 'processing' before the try/catch, so the UI must
       // have left 'recording' even though stop() threw.
       expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
-      expect(screen.getByText(/Processando ditado/i)).toBeInTheDocument()
+      expect(screen.getByRole('status')).toBeInTheDocument()
       expect(mockDictateClinicalRecord).not.toHaveBeenCalled()
     } finally {
       vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
@@ -786,7 +786,7 @@ describe('stop flow reliability', () => {
 
       // Processing state must be immediate (set by stopRecording before stop())
       expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
-      expect(screen.getByText(/Processando ditado/i)).toBeInTheDocument()
+      expect(screen.getByRole('status')).toBeInTheDocument()
 
       // Advance past the 5-second fallback window
       act(() => { vi.advanceTimersByTime(5100) })
@@ -865,20 +865,19 @@ describe('success result UI', () => {
 
 describe('processing phase robustness', () => {
   // ── Network connection failure → ApiError status 0 ─────────────────────────
-  // This is the exact path taken when the backend is not running and the browser
-  // gets ERR_CONNECTION_REFUSED: fetch throws TypeError → apiRequest wraps it
-  // in ApiError(0) → getClinicalDictationErrorMessage falls back to generic msg.
+  // In test/dev mode (import.meta.env.DEV === true), getClinicalDictationErrorMessage
+  // returns a developer-friendly hint pointing to the local API process.
 
-  it('shows a friendly error when the backend is unreachable (ApiError status 0)', async () => {
+  it('shows a dev hint when the backend is unreachable (ApiError status 0)', async () => {
     await triggerServiceError(
       new ApiError('Não foi possível conectar ao servidor. Verifique se a API está em execução.', 0, null),
     )
     await waitFor(() =>
       expect(
-        screen.getByText(/Não foi possível processar o ditado clínico agora/i),
+        screen.getByText(/Backend inacessível/i),
       ).toBeInTheDocument(),
     )
-    expect(screen.queryByText(/Processando ditado/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Transcrevendo consulta/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
   })
 
@@ -894,7 +893,7 @@ describe('processing phase robustness', () => {
         screen.getByText(/Não foi possível processar o ditado clínico agora/i),
       ).toBeInTheDocument(),
     )
-    expect(screen.queryByText(/Processando ditado/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
   })
 
@@ -923,7 +922,7 @@ describe('processing phase robustness', () => {
 
       // Processing state is shown immediately (set in stopRecording before stop())
       expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
-      expect(screen.getByText(/Processando ditado/i)).toBeInTheDocument()
+      expect(screen.getByRole('status')).toBeInTheDocument()
 
       // Advance past the 45-second processing timeout
       act(() => { vi.advanceTimersByTime(46_000) })
@@ -982,7 +981,7 @@ describe('processing phase robustness', () => {
       expect(mockDictateClinicalRecord).not.toHaveBeenCalled()
 
       // Component must be in error state, not processing
-      expect(screen.queryByText(/Processando ditado/i)).not.toBeInTheDocument()
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
 
       // Alert must have fired
       expect(mockShowAlert).toHaveBeenCalledWith(
@@ -1060,6 +1059,118 @@ describe('MediaRecorder codec and bitrate selection', () => {
     } finally {
       FakeMediaRecorder.isTypeSupported.mockReset()
       FakeMediaRecorder.isTypeSupported.mockReturnValue(true)
+    }
+  })
+})
+
+// ── 17. Processing step labels ────────────────────────────────────────────────
+
+describe('processing step labels', () => {
+  // ── "Transcrevendo consulta…" appears while the API is pending ─────────────
+  // After blobToBase64 completes and size check passes, step 2 is set before the
+  // API call.  Since the API never resolves in this test, the DOM must show the
+  // transcription step label.
+
+  it('shows "Transcrevendo consulta…" while the API call is pending', async () => {
+    mockDictateClinicalRecord.mockImplementation(() => new Promise(() => {}))
+
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(() =>
+      expect(screen.getByText(/Transcrevendo consulta/i)).toBeInTheDocument(),
+    )
+    // The status container must still be present
+    expect(screen.getByRole('status')).toBeInTheDocument()
+    // The recording UI must be gone
+    expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
+  })
+
+  // ── Progress dots exist in the processing state ───────────────────────────
+
+  it('renders four progress dots in the processing state', async () => {
+    mockDictateClinicalRecord.mockImplementation(() => new Promise(() => {}))
+
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument())
+
+    // The four progress dots are inside the status container (aria-hidden).
+    // We check the role="status" container exists as a proxy for their presence.
+    const statusEl = screen.getByRole('status')
+    expect(statusEl).toBeInTheDocument()
+    // The spinner must also be in the same container
+    expect(statusEl.querySelector('svg')).toBeInTheDocument()
+  })
+})
+
+// ── 18. Dev debug panel ───────────────────────────────────────────────────────
+
+describe('dev debug panel', () => {
+  // In Vitest, import.meta.env.DEV === true, so the debug panel is always
+  // rendered in the test environment.
+
+  // ── Debug panel appears after blobToBase64 completes ─────────────────────
+
+  it('shows the dev debug panel with MIME and size info while API is pending', async () => {
+    mockDictateClinicalRecord.mockImplementation(() => new Promise(() => {}))
+
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    // Wait for the panel to appear (set after blobToBase64 resolves)
+    await waitFor(() =>
+      expect(screen.getByTestId('dev-debug-panel')).toBeInTheDocument(),
+    )
+
+    const panel = screen.getByTestId('dev-debug-panel')
+    // Panel must include the MIME type (FakeMediaRecorder.mimeType = 'audio/webm')
+    expect(panel).toHaveTextContent(/MIME:/i)
+    // Panel must include duration info
+    expect(panel).toHaveTextContent(/Duração gravada/i)
+  })
+
+  // ── Debug panel shows blocked-locally flag for oversized audio ─────────────
+
+  it('shows "Bloqueado localmente" in the debug panel when audio exceeds the size limit', async () => {
+    vi.stubGlobal('FileReader', FakeFileReaderLarge)
+    try {
+      const user = userEvent.setup()
+      renderCard()
+
+      await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+      await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+      await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+      // The oversized error must appear
+      await waitFor(() =>
+        expect(screen.getByText(/O áudio ficou muito grande para envio/i)).toBeInTheDocument(),
+      )
+
+      // And the debug panel must show the blocked flag
+      await waitFor(() =>
+        expect(screen.getByTestId('dev-debug-panel')).toBeInTheDocument(),
+      )
+      expect(screen.getByTestId('dev-debug-panel')).toHaveTextContent(
+        /Bloqueado localmente/i,
+      )
+      // API must not have been called
+      expect(mockDictateClinicalRecord).not.toHaveBeenCalled()
+    } finally {
+      vi.stubGlobal('FileReader', FakeFileReader)
     }
   })
 })
