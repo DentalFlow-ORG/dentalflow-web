@@ -485,3 +485,39 @@ describe('field selection', () => {
     expect(screen.getByRole('button', { name: /Aplicar aos campos/i })).toBeDisabled()
   })
 })
+
+// ── 12. Accessibility ─────────────────────────────────────────────────────────
+
+describe('accessibility', () => {
+  it('error state container has role="alert" so screen readers announce errors immediately', async () => {
+    await triggerServiceError(new ApiError('Service unavailable', 503, null))
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toBeInTheDocument(),
+    )
+    // The alert contains the user-facing error message
+    expect(screen.getByRole('alert')).toHaveTextContent(/temporariamente indisponível/i)
+  })
+
+  it('"Gravar novamente" in the empty-field state resets the component to idle', async () => {
+    mockDictateClinicalRecord.mockResolvedValue({ transcript: 'Transcrição sem campos.', fields: {} })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Gravar novamente/i })).toBeInTheDocument(),
+    )
+
+    await user.click(screen.getByRole('button', { name: /Gravar novamente/i }))
+
+    // Returns to idle: the main "Gravar consulta" button is shown again
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument(),
+    )
+    // Empty-field notice is gone
+    expect(screen.queryByText(/nenhum campo clínico foi identificado/i)).not.toBeInTheDocument()
+  })
+})

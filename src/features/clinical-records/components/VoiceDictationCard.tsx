@@ -479,6 +479,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
                 {transcriptIsLong && (
                   <button
                     type="button"
+                    aria-expanded={transcriptExpanded}
                     onClick={() => setTranscriptExpanded((e) => !e)}
                     className="text-[11px] text-primary underline-offset-2 hover:underline"
                   >
@@ -598,7 +599,9 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       {/* ── Error ── */}
       {!readOnly && state === 'error' && (
         <div className="space-y-3">
-          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 dark:border-red-800/50 dark:bg-red-950/20">
+          {/* role="alert" causes screen readers to announce the message immediately
+              when the component transitions into the error state. */}
+          <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 dark:border-red-800/50 dark:bg-red-950/20">
             <AlertCircle
               className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400"
               aria-hidden="true"
