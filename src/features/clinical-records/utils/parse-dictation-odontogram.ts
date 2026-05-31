@@ -20,9 +20,10 @@ const CONDITION_KEYWORDS: Array<{ patterns: RegExp[]; condition: string }> = [
   // Restored tooth
   { patterns: [/restaurad[ao]/i, /restaura[cç][aã]o/i],          condition: 'restored'   },
   // Indicated extraction (before absent to capture the specific intent)
-  { patterns: [/extra[cç][aã]o/i, /extrair/i, /indica[cç][aã]o de extra[cç][aã]o/i], condition: 'extraction' },
-  // Absent / already extracted
-  { patterns: [/ausente/i, /perdid[ao]/i, /extra[ií]d[ao]/i],    condition: 'absent'     },
+  // "exodontia" is a common clinical synonym for tooth extraction in Portuguese.
+  { patterns: [/extra[cç][aã]o/i, /extrair/i, /exodontia/i, /indica[cç][aã]o de extra[cç][aã]o/i], condition: 'extraction' },
+  // Absent / already extracted — "ausência/ausencia" (noun) covers "Ausência do dente N" patterns.
+  { patterns: [/ausente/i, /aus[eê]ncia/i, /perdid[ao]/i, /extra[ií]d[ao]/i], condition: 'absent'   },
   // Crown restoration
   { patterns: [/\bcoroa\b/i],                                     condition: 'crown'      },
   // Endodontic treatment
@@ -37,8 +38,8 @@ const CONDITION_KEYWORDS: Array<{ patterns: RegExp[]; condition: string }> = [
   { patterns: [/selante/i],                                       condition: 'sealant'    },
   // Watch / monitor
   { patterns: [/monitorar/i, /acompanhar/i, /observar/i],         condition: 'watch'      },
-  // Healthy / no alteration
-  { patterns: [/saud[aá]vel/i, /sem alterac[aã]o/i, /sem alteração/i], condition: 'healthy' },
+  // Healthy / no alteration — "hígido/higido" is the formal clinical synonym for healthy.
+  { patterns: [/saud[aá]vel/i, /h[ií]gido/i, /sem alterac[aã]o/i, /sem alteração/i], condition: 'healthy' },
 ]
 
 // ── Types ─────────────────────────────────────────────────────────────────────

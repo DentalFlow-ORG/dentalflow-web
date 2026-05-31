@@ -623,7 +623,9 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
       .map((s) => ({ ...s, note: editableOdontogramNotes[s.toothNumber] ?? s.note }))
 
     const hasValidFields = Object.keys(toApply).length > 0
-    const hasValidOdontogram = oToApply.length > 0
+    // Odontogram suggestions are only "actionable" when the container provided the handler.
+    // Without the handler, suggestions exist visually but cannot be persisted.
+    const hasValidOdontogram = oToApply.length > 0 && !!onApplyOdontogram
 
     if (!hasValidFields && !hasValidOdontogram) {
       setApplyWarning('Nenhum campo selecionado possui conteúdo para aplicar.')
@@ -631,7 +633,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
     }
 
     if (hasValidFields) onApplyFields(toApply)
-    if (hasValidOdontogram && onApplyOdontogram) onApplyOdontogram(oToApply)
+    if (hasValidOdontogram) onApplyOdontogram!(oToApply)
 
     showAlert({
       title: 'Sugestões aplicadas',

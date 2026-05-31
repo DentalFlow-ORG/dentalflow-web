@@ -55,6 +55,28 @@ describe('extractOdontogramDictationSuggestions', () => {
       expect(s).toBeDefined()
       expect(s!.condition).toBe('absent')
     })
+
+    it('detects "ausência do dente 46" (noun form — QA checklist phrase)', () => {
+      const result = extractOdontogramDictationSuggestions('Ausência do dente 46.')
+      const s = byTooth(result, '46')
+      expect(s).toBeDefined()
+      expect(s!.condition).toBe('absent')
+      expect(s!.label).toBe('Dente 46 — Ausente')
+    })
+
+    it('detects "exodontia" as extraction (clinical synonym)', () => {
+      const result = extractOdontogramDictationSuggestions('Exodontia do dente 38.')
+      const s = byTooth(result, '38')
+      expect(s).toBeDefined()
+      expect(s!.condition).toBe('extraction')
+    })
+
+    it('detects "hígido" as healthy (formal clinical term)', () => {
+      const result = extractOdontogramDictationSuggestions('Dente 11 hígido.')
+      const s = byTooth(result, '11')
+      expect(s).toBeDefined()
+      expect(s!.condition).toBe('healthy')
+    })
   })
 
   // ── Multiple teeth ────────────────────────────────────────────────────────────

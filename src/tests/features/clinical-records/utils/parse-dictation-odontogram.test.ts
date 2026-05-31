@@ -46,9 +46,40 @@ describe('parseDictationOdontogram', () => {
     expect(result[0]?.condition).toBe('extraction')
   })
 
-  it('detects absent tooth', () => {
+  it('detects absent tooth via "ausente"', () => {
     const result = parseDictationOdontogram('Dente 46 ausente.')
     expect(result[0]?.condition).toBe('absent')
+  })
+
+  it('detects absent tooth via "ausência" (accented noun form)', () => {
+    const result = parseDictationOdontogram('Ausência do dente 46.')
+    expect(result).toHaveLength(1)
+    expect(result[0].toothNumber).toBe('46')
+    expect(result[0].condition).toBe('absent')
+  })
+
+  it('detects absent tooth via "ausencia" (unaccented noun form)', () => {
+    const result = parseDictationOdontogram('Ausencia do dente 46.')
+    expect(result[0]?.condition).toBe('absent')
+  })
+
+  it('detects extraction via "exodontia" (clinical synonym)', () => {
+    const result = parseDictationOdontogram('Exodontia do dente 38.')
+    expect(result).toHaveLength(1)
+    expect(result[0].toothNumber).toBe('38')
+    expect(result[0].condition).toBe('extraction')
+  })
+
+  it('detects healthy tooth via "hígido" (formal clinical term)', () => {
+    const result = parseDictationOdontogram('Dente 11 hígido.')
+    expect(result).toHaveLength(1)
+    expect(result[0].toothNumber).toBe('11')
+    expect(result[0].condition).toBe('healthy')
+  })
+
+  it('detects healthy tooth via "higido" (unaccented form)', () => {
+    const result = parseDictationOdontogram('Dente 11 higido.')
+    expect(result[0]?.condition).toBe('healthy')
   })
 
   it('detects endodontic treatment', () => {
