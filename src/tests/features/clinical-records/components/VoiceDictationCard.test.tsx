@@ -572,6 +572,58 @@ describe('accessibility', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/temporariamente indisponível/i)
   })
 
+  it('apply warning uses role="alert" for assertive announcement when inserted', async () => {
+    const onApplyFields = vi.fn()
+    await reachSuccessState(onApplyFields)
+    const user = userEvent.setup()
+
+    // Clear all textareas to produce the no-content warning
+    const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
+    for (const ta of textareas) await user.clear(ta)
+
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+
+    // The warning element must carry role="alert" (not role="status") so it is
+    // announced assertively by screen readers when dynamically inserted.
+    const warning = screen.getByRole('alert')
+    expect(warning).toHaveTextContent(/Nenhum campo selecionado possui conteúdo/i)
+  })
+
+  it('processing state container has role="status" and aria-atomic="true"', async () => {
+    mockDictateClinicalRecord.mockImplementation(() => new Promise(() => {}))
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument())
+
+    const statusEl = screen.getByRole('status')
+    expect(statusEl).toHaveAttribute('aria-atomic', 'true')
+  })
+
+  it('empty-field state container has role="status" for polite screen reader announcement', async () => {
+    mockDictateClinicalRecord.mockResolvedValue({ transcript: 'Sem campos.', fields: {} })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(() =>
+      expect(screen.getByText(/nenhum campo clínico foi identificado/i)).toBeInTheDocument(),
+    )
+
+    // The empty-field outer div must have role="status" so screen readers announce
+    // the state change when processing finishes with no classified fields.
+    const statusEl = screen.getByRole('status')
+    expect(statusEl).toBeInTheDocument()
+    expect(statusEl).toHaveAttribute('aria-atomic', 'true')
+  })
+
   it('"Gravar novamente" in the empty-field state resets the component to idle', async () => {
     mockDictateClinicalRecord.mockResolvedValue({ transcript: 'Transcrição sem campos.', fields: {} })
     const user = userEvent.setup()
@@ -1149,6 +1201,38 @@ describe('editable field review', () => {
     expect(screen.queryByText(/Transcrição/i)).not.toBeInTheDocument()
   })
 
+  it('toggling an odontogram suggestion checkbox clears the apply warning', async () => {
+    // Set up a transcript that produces an odontogram suggestion
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Dente 36 com cárie.',
+      fields: { chiefComplaint: 'Dor no dente 36' },
+    })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+    await waitFor(() =>
+      expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+
+    // Clear all text fields to trigger the warning
+    const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
+    for (const ta of textareas) await user.clear(ta)
+
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+    expect(screen.getByRole('alert')).toHaveTextContent(/Nenhum campo selecionado/i)
+
+    // Toggling an odontogram suggestion checkbox must clear the warning
+    const odontogramCheckbox = screen.getByRole('checkbox', {
+      name: /Selecionar dente 36/i,
+    })
+    await user.click(odontogramCheckbox) // uncheck
+    expect(screen.queryByText(/Nenhum campo selecionado/i)).not.toBeInTheDocument()
+  })
+
   it('apply sends capitalized values (first letter uppercased via formatDictationFieldText)', async () => {
     // Use lowercase mock values to verify formatting is applied
     mockDictateClinicalRecord.mockResolvedValueOnce({
@@ -1205,6 +1289,28 @@ describe('odontogram suggestions panel', () => {
     await reachSuccessState()
 
     expect(screen.queryByText(/Sugestões para odontograma/i)).not.toBeInTheDocument()
+  })
+
+  it('shows the helper text explaining odontogram marking intent', async () => {
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Dente 36 com cárie.',
+      fields: { chiefComplaint: 'Dor no dente 36' },
+    })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(
+      () => expect(screen.getByText(/Sugestões para odontograma/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+
+    expect(
+      screen.getByText(/Verifique os dentes identificados no ditado/i),
+    ).toBeInTheDocument()
   })
 })
 

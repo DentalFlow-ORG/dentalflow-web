@@ -769,7 +769,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
 
       {/* ── Processing ── */}
       {!readOnly && state === 'processing' && (
-        <div className="flex flex-col items-center gap-3 py-4 text-center" role="status">
+        <div className="flex flex-col items-center gap-3 py-4 text-center" role="status" aria-atomic="true">
           <Loader2 className="h-7 w-7 animate-spin text-primary" aria-hidden="true" />
           <p className="text-sm font-medium text-foreground">
             {PROCESSING_STEPS[processingStep]}
@@ -903,9 +903,14 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
               {/* Odontogram marking suggestions */}
               {odontogramSuggestions.length > 0 && (
                 <div>
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Sugestões para odontograma
-                  </p>
+                  <div className="mb-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Sugestões para odontograma
+                    </p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                      Verifique os dentes identificados no ditado antes de marcar no odontograma.
+                    </p>
+                  </div>
                   <ul className="space-y-2" aria-label="Sugestões de marcação no odontograma">
                     {odontogramSuggestions.map((suggestion) => {
                       const isSelected = selectedOdontogramTeeth.has(suggestion.toothNumber)
@@ -924,7 +929,10 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
                                 type="checkbox"
                                 className="h-4 w-4 shrink-0 cursor-pointer accent-primary"
                                 checked={isSelected}
-                                onChange={() => toggleOdontogramSelection(suggestion.toothNumber)}
+                                onChange={() => {
+                                  toggleOdontogramSelection(suggestion.toothNumber)
+                                  setApplyWarning(null)
+                                }}
                                 aria-label={`Selecionar dente ${suggestion.toothNumber} — ${suggestion.conditionLabel}`}
                               />
                               <span className="text-xs font-medium text-foreground">
@@ -947,7 +955,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
                                 rows={2}
                                 placeholder="Observação clínica..."
                                 className={cn(
-                                  'w-full resize-none rounded-md border border-border bg-card px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15',
+                                  'w-full resize-y rounded-md border border-border bg-card px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15',
                                   !isSelected && 'cursor-not-allowed opacity-50',
                                 )}
                                 aria-label={`Observação para dente ${suggestion.toothNumber}`}
@@ -961,10 +969,12 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
                 </div>
               )}
 
-              {/* Apply warning — shown when clicked apply but no valid content */}
+              {/* Apply warning — shown when clicked apply but no valid content.
+                  role="alert" fires assertively when the element is inserted so the
+                  dentist knows immediately that the action had no effect. */}
               {applyWarning && (
                 <p
-                  role="status"
+                  role="alert"
                   className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-300"
                 >
                   {applyWarning}
@@ -1003,7 +1013,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
             </div>
           ) : (
             /* Empty-field state — transcription captured but nothing classified */
-            <div className="space-y-3">
+            <div className="space-y-3" role="status" aria-atomic="true">
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 dark:border-amber-800/50 dark:bg-amber-950/20">
                 <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-300">
                   A transcrição foi capturada, mas nenhum campo clínico foi identificado com
