@@ -101,7 +101,7 @@ function renderCard(
   }> = {},
 ) {
   const onApplyFields = props.onApplyFields ?? vi.fn()
-  render(
+  const { unmount } = render(
     <VoiceDictationCard
       recordId={RECORD_ID}
       readOnly={false}
@@ -109,7 +109,7 @@ function renderCard(
       {...props}
     />,
   )
-  return { onApplyFields }
+  return { onApplyFields, unmount }
 }
 
 // Helper — walks through the full recording flow to reach the success state.
@@ -222,10 +222,11 @@ describe('successful recording flow', () => {
     await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
 
     await waitFor(() =>
-      expect(screen.getByText(/Nenhum campo foi classificado/i)).toBeInTheDocument(),
+      expect(screen.getByText(/nenhum campo clínico foi identificado/i)).toBeInTheDocument(),
     )
     expect(screen.queryByRole('button', { name: /Aplicar aos campos/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Descartar/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Gravar novamente/i })).toBeInTheDocument()
   })
 })
 
@@ -317,5 +318,103 @@ describe('processing state', () => {
     )
     expect(screen.queryByRole('button', { name: /Aplicar/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Descartar/i })).not.toBeInTheDocument()
+  })
+})
+
+// ── 10. Unmount / lifecycle safety ────────────────────────────────────────────
+
+describe('unmount safety', () => {
+  it('stops microphone tracks when the component unmounts during recording', async () => {
+    const mockStop = vi.fn()
+    mockGetUserMedia.mockResolvedValue({
+      getTracks: () => [{ stop: mockStop }],
+    } as unknown as MediaStream)
+
+    const user = userEvent.setup()
+    const { unmount } = renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+    unmount()
+
+    expect(mockStop).toHaveBeenCalled()
+  })
+
+  it('does not fire the dictation API when the component unmounts during recording', async () => {
+    const user = userEvent.setup()
+    const { unmount } = renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+    // Unmount while actively recording — this triggers the cleanup which calls
+    // recorder.stop(). Without the isMountedRef guard, processAudio() would
+    // continue and eventually fire dictateClinicalRecord().
+    unmount()
+
+    // Flush the microtask queue (FakeFileReader uses queueMicrotask internally)
+    // and any settled promises before asserting.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0))
+
+    expect(mockDictateClinicalRecord).not.toHaveBeenCalled()
+  })
+})
+
+// ── 11. Field selection ───────────────────────────────────────────────────────
+
+describe('field selection', () => {
+  it('all suggested fields are checked by default after successful transcription', async () => {
+    await reachSuccessState()
+    const checkboxes = screen.getAllByRole('checkbox')
+    // Mock returns chiefComplaint + clinicalEvolution — two checkboxes expected
+    expect(checkboxes).toHaveLength(2)
+    for (const cb of checkboxes) {
+      expect(cb).toBeChecked()
+    }
+  })
+
+  it('user can unselect a suggested field', async () => {
+    await reachSuccessState()
+    const user = userEvent.setup()
+
+    const checkboxes = screen.getAllByRole('checkbox')
+    // Uncheck the first field
+    await user.click(checkboxes[0])
+
+    expect(checkboxes[0]).not.toBeChecked()
+    // The other field remains checked
+    expect(checkboxes[1]).toBeChecked()
+  })
+
+  it('applying sends only the selected fields to onApplyFields', async () => {
+    const onApplyFields = vi.fn()
+    await reachSuccessState(onApplyFields)
+    const user = userEvent.setup()
+
+    // Uncheck the chiefComplaint checkbox (first in the list)
+    const checkboxes = screen.getAllByRole('checkbox')
+    await user.click(checkboxes[0])
+
+    await user.click(screen.getByRole('button', { name: /Aplicar aos campos/i }))
+
+    // Only the field whose checkbox remained checked should be passed
+    const calledWith = onApplyFields.mock.calls[0][0] as Record<string, string>
+    expect(Object.keys(calledWith)).toHaveLength(1)
+    // The remaining field is whichever was not unchecked
+    expect(Object.values(calledWith)[0]).toBeTruthy()
+  })
+
+  it('disables the apply button when all fields are unchecked', async () => {
+    await reachSuccessState()
+    const user = userEvent.setup()
+
+    // Uncheck every checkbox
+    const checkboxes = screen.getAllByRole('checkbox')
+    for (const cb of checkboxes) {
+      await user.click(cb)
+    }
+
+    expect(screen.getByRole('button', { name: /Aplicar aos campos/i })).toBeDisabled()
   })
 })
