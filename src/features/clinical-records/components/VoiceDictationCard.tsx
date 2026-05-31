@@ -17,6 +17,7 @@ import { getCachedBillingStatus } from '@/features/billing/services/billing-stat
 
 import { dictateClinicalRecord } from '../services/clinical-dictation.service'
 import type { ClinicalDictationFieldKey } from '../types/clinical-dictation.types'
+import { getClinicalDictationErrorMessage } from '../utils/clinical-dictation-error'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -234,10 +235,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
         setState('success')
       } catch (err: unknown) {
         if (!isMountedRef.current) return  // no point alerting an unmounted component
-        const message =
-          err instanceof Error && err.message
-            ? err.message
-            : 'Não foi possível processar o ditado. Tente novamente.'
+        const message = getClinicalDictationErrorMessage(err)
         setErrorMessage(message)
         setState('error')
         showAlert({ title: 'Erro no ditado clínico', description: message, tone: 'error' })

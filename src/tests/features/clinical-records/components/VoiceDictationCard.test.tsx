@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VoiceDictationCard } from '@/features/clinical-records/components/VoiceDictationCard'
 import type { ClinicalDictationFieldKey } from '@/features/clinical-records/types/clinical-dictation.types'
+import { ApiError } from '@/services/http'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -269,22 +270,88 @@ describe('discard action', () => {
 
 // ── 8. Error handling ─────────────────────────────────────────────────────────
 
-describe('error handling', () => {
-  it('shows an error state and alert when the service rejects', async () => {
-    mockDictateClinicalRecord.mockRejectedValue(new Error('Serviço indisponível'))
-    const user = userEvent.setup()
-    renderCard()
+// ── Helper: run the full recording flow until the service rejects ─────────────
 
-    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
-    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
-    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+async function triggerServiceError(error: unknown) {
+  mockDictateClinicalRecord.mockRejectedValue(error)
+  const user = userEvent.setup()
+  renderCard()
+  await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+  await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+  await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+}
+
+describe('error handling', () => {
+  // ── Generic error (non-ApiError) uses the safe fallback message ─────────────
+
+  it('shows the safe fallback message when the service rejects with a plain Error', async () => {
+    await triggerServiceError(new Error('Serviço indisponível'))
 
     await waitFor(() =>
-      expect(screen.getByText('Serviço indisponível')).toBeInTheDocument(),
+      expect(
+        screen.getByText(/Não foi possível processar o ditado clínico agora/i),
+      ).toBeInTheDocument(),
     )
     expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error' }))
     expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
   })
+
+  // ── Backend-specific HTTP status messages ───────────────────────────────────
+
+  it('shows the premium-only message for HTTP 402 (payment required)', async () => {
+    await triggerServiceError(new ApiError('Escolha um plano', 402, null))
+    await waitFor(() =>
+      expect(screen.getByText(/Ditado clínico disponível apenas no plano Premium/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('shows the premium-only message for HTTP 403 (plan feature gate)', async () => {
+    await triggerServiceError(new ApiError('Este recurso não está disponível', 403, null))
+    await waitFor(() =>
+      expect(screen.getByText(/Ditado clínico disponível apenas no plano Premium/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('shows the monthly-limit message for HTTP 429 when the message indicates quota exhaustion', async () => {
+    await triggerServiceError(
+      new ApiError('Limite mensal de análises de IA atingido. Tente novamente no próximo mês.', 429, null),
+    )
+    await waitFor(() =>
+      expect(screen.getByText(/Limite mensal de ditados clínicos atingido/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('shows the throttle message for HTTP 429 when the message does not indicate quota', async () => {
+    await triggerServiceError(
+      new ApiError('ThrottlerException: Too Many Requests', 429, null),
+    )
+    await waitFor(() =>
+      expect(screen.getByText(/Muitas tentativas em pouco tempo/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('shows the temporarily-unavailable message for HTTP 503 (AI kill-switch)', async () => {
+    await triggerServiceError(new ApiError('O assistente está desabilitado', 503, null))
+    await waitFor(() =>
+      expect(screen.getByText(/temporariamente indisponível/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('shows the invalid-audio message for HTTP 400 (validation failure)', async () => {
+    await triggerServiceError(new ApiError('Validation failed', 400, null))
+    await waitFor(() =>
+      expect(screen.getByText(/O áudio é muito longo ou inválido/i)).toBeInTheDocument(),
+    )
+  })
+
+  it('shows the invalid-audio message for HTTP 413 (payload too large)', async () => {
+    await triggerServiceError(new ApiError('Payload Too Large', 413, null))
+    await waitFor(() =>
+      expect(screen.getByText(/O áudio é muito longo ou inválido/i)).toBeInTheDocument(),
+    )
+  })
+
+  // ── MediaRecorder / microphone errors use their own specific messages ────────
 
   it('shows a microphone-permission error when getUserMedia is denied', async () => {
     const permErr = Object.assign(new Error('Permission denied'), { name: 'NotAllowedError' })
