@@ -26,6 +26,9 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 // Tracks the most recently created instance so tests can inspect or drive it.
 let latestRecorder: FakeMediaRecorder | null = null
 
+// Receives the instance as a plain parameter so `this` is never aliased to a variable.
+function trackRecorder(recorder: FakeMediaRecorder) { latestRecorder = recorder }
+
 class FakeMediaRecorder {
   state: 'inactive' | 'recording' = 'inactive'
   ondataavailable: ((e: { data: Blob; size: number }) => void) | null = null
@@ -34,9 +37,7 @@ class FakeMediaRecorder {
 
   static isTypeSupported = vi.fn(() => true)
 
-  constructor() {
-    latestRecorder = this
-  }
+  constructor() { trackRecorder(this) }
 
   start = vi.fn(() => { this.state = 'recording' })
 
@@ -98,7 +99,7 @@ class FakeFileReader {
   result = 'data:audio/webm;base64,ZmFrZQ=='
   onloadend: (() => void) | null = null
   onerror: (() => void) | null = null
-  readAsDataURL(_blob: Blob) {
+  readAsDataURL() {
     queueMicrotask(() => this.onloadend?.())
   }
 }
@@ -261,7 +262,7 @@ describe('successful recording flow', () => {
     expect(screen.getByText('Paciente relata dor no dente 36.')).toBeInTheDocument()
     expect(screen.getByText('Queixa principal')).toBeInTheDocument()
     expect(screen.getByText('Evolução clínica')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Aplicar aos campos/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Descartar/i })).toBeInTheDocument()
   })
 
@@ -277,7 +278,7 @@ describe('successful recording flow', () => {
     await waitFor(() =>
       expect(screen.getByText(/nenhum campo clínico foi identificado/i)).toBeInTheDocument(),
     )
-    expect(screen.queryByRole('button', { name: /Aplicar aos campos/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Aplicar ao prontuário/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Descartar/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Gravar novamente/i })).toBeInTheDocument()
   })
@@ -291,7 +292,7 @@ describe('apply action', () => {
     await reachSuccessState(onApplyFields)
 
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: /Aplicar aos campos/i }))
+    await user.click(screen.getByRole('button', { name: /Aplicar ao prontuário/i }))
 
     expect(onApplyFields).toHaveBeenCalledWith({
       chiefComplaint: 'Dor no dente 36',
@@ -515,7 +516,7 @@ describe('field selection', () => {
     const checkboxes = screen.getAllByRole('checkbox')
     await user.click(checkboxes[0])
 
-    await user.click(screen.getByRole('button', { name: /Aplicar aos campos/i }))
+    await user.click(screen.getByRole('button', { name: /Aplicar ao prontuário/i }))
 
     // Only the field whose checkbox remained checked should be passed
     const calledWith = onApplyFields.mock.calls[0][0] as Record<string, string>
@@ -534,7 +535,7 @@ describe('field selection', () => {
       await user.click(cb)
     }
 
-    expect(screen.getByRole('button', { name: /Aplicar aos campos/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeDisabled()
   })
 })
 
@@ -592,7 +593,7 @@ describe('stop flow reliability', () => {
 
     // The "Gravando" state must be replaced by the result
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /Aplicar aos campos/i })).toBeInTheDocument(),
+      () => expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeInTheDocument(),
       { timeout: 3000 },
     )
     expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
@@ -617,7 +618,7 @@ describe('stop flow reliability', () => {
 
     // The component must leave recording and show the dictation result
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /Aplicar aos campos/i })).toBeInTheDocument(),
+      () => expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeInTheDocument(),
       { timeout: 3000 },
     )
     expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
@@ -635,7 +636,7 @@ describe('stop flow reliability', () => {
     // First stop — valid, triggers the full processing path
     latestRecorder!.stop()
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /Aplicar aos campos/i })).toBeInTheDocument(),
+      () => expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeInTheDocument(),
       { timeout: 3000 },
     )
 
@@ -784,5 +785,157 @@ describe('stop flow reliability', () => {
       vi.useRealTimers()
       vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
     }
+  })
+})
+
+// ── 14. Success result UI ─────────────────────────────────────────────────────
+
+describe('success result UI', () => {
+  it('shows transcript with PT-BR language badge', async () => {
+    await reachSuccessState()
+    expect(screen.getByText(/Transcrição/i)).toBeInTheDocument()
+    expect(screen.getByText('PT-BR')).toBeInTheDocument()
+    expect(screen.getByText('Paciente relata dor no dente 36.')).toBeInTheDocument()
+  })
+
+  it('shows "Roteamento inteligente" heading with Revisar badges for each field', async () => {
+    await reachSuccessState()
+    expect(screen.getByText(/Roteamento inteligente/i)).toBeInTheDocument()
+    // The mock returns 2 fields → 2 Revisar badges
+    expect(screen.getAllByText('Revisar')).toHaveLength(2)
+  })
+
+  it('shows "Prévia do que será aplicado" section with selected fields', async () => {
+    await reachSuccessState()
+    expect(screen.getByText(/Prévia do que será aplicado/i)).toBeInTheDocument()
+    // Both fields are selected by default — both appear in the preview list
+    // (as label:value pairs, the labels also appear in the routing panel,
+    //  so we target the unique-per-section preview text via getAll)
+    expect(screen.getAllByText('Queixa principal:').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows helper text in preview and disables apply when all fields are unchecked', async () => {
+    await reachSuccessState()
+    const user = userEvent.setup()
+
+    const checkboxes = screen.getAllByRole('checkbox')
+    for (const cb of checkboxes) {
+      await user.click(cb)
+    }
+
+    expect(
+      screen.getByText(/Selecione ao menos um campo acima para aplicar/i),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Aplicar ao prontuário/i })).toBeDisabled()
+  })
+
+  it('preview section updates live as fields are deselected', async () => {
+    await reachSuccessState()
+    const user = userEvent.setup()
+
+    // Both fields visible in preview initially
+    expect(screen.getAllByText('Queixa principal:').length).toBeGreaterThanOrEqual(1)
+
+    // Uncheck first field (chiefComplaint)
+    const checkboxes = screen.getAllByRole('checkbox')
+    await user.click(checkboxes[0])
+
+    // One entry remains selected — counter confirms it
+    expect(screen.getByText('1/2 selecionado')).toBeInTheDocument()
+  })
+})
+
+// ── 15. Processing phase robustness ──────────────────────────────────────────
+
+describe('processing phase robustness', () => {
+  // ── Network connection failure → ApiError status 0 ─────────────────────────
+  // This is the exact path taken when the backend is not running and the browser
+  // gets ERR_CONNECTION_REFUSED: fetch throws TypeError → apiRequest wraps it
+  // in ApiError(0) → getClinicalDictationErrorMessage falls back to generic msg.
+
+  it('shows a friendly error when the backend is unreachable (ApiError status 0)', async () => {
+    await triggerServiceError(
+      new ApiError('Não foi possível conectar ao servidor. Verifique se a API está em execução.', 0, null),
+    )
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Não foi possível processar o ditado clínico agora/i),
+      ).toBeInTheDocument(),
+    )
+    expect(screen.queryByText(/Processando ditado/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
+  })
+
+  // ── Auth refresh failure → ApiError status 401 ─────────────────────────────
+  // When the access token is expired, apiRequest makes a refresh attempt.
+  // If that refresh also fails (backend down / invalid refresh token), it
+  // throws ApiError(401). The component must leave processing and show an error.
+
+  it('shows a friendly error when auth refresh fails (ApiError status 401)', async () => {
+    await triggerServiceError(new ApiError('Unauthorized', 401, null))
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Não foi possível processar o ditado clínico agora/i),
+      ).toBeInTheDocument(),
+    )
+    expect(screen.queryByText(/Processando ditado/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
+  })
+
+  // ── Processing timeout ─────────────────────────────────────────────────────
+  // Strategy: use real timers for setup (getUserMedia, waitFor), then activate
+  // fake timers before clicking stop so the 45-second processing setTimeout is
+  // registered in the fake queue and can be advanced deterministically.
+
+  it('shows a timeout error when the API never responds within 45 s', async () => {
+    mockDictateClinicalRecord.mockImplementation(() => new Promise(() => {})) // never resolves
+
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+    // Activate fake timers before the stop click so every setTimeout registered
+    // inside stopRecording() and processAudio() lands in the fake queue.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      // fireEvent is synchronous — no internal timer dependency.
+      act(() => {
+        fireEvent.click(screen.getByRole('button', { name: /Parar gravação/i }))
+      })
+
+      // Processing state is shown immediately (set in stopRecording before stop())
+      expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
+      expect(screen.getByText(/Processando ditado/i)).toBeInTheDocument()
+
+      // Advance past the 45-second processing timeout
+      act(() => { vi.advanceTimersByTime(46_000) })
+
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toHaveTextContent(/O processamento demorou muito/i)
+      expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  // ── Recovery: "Tentar novamente" after an API error resets to idle ──────────
+
+  it('"Tentar novamente" after a processing error returns the component to idle', async () => {
+    await triggerServiceError(new Error('network error'))
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument(),
+    )
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /Tentar novamente/i }))
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument(),
+    )
+    // Error alert and message must be gone
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })

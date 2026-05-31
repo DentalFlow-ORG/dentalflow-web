@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   AlertCircle,
+  ArrowRight,
   CheckCircle2,
   Loader2,
   Lock,
@@ -24,7 +25,7 @@ import { getClinicalDictationErrorMessage } from '../utils/clinical-dictation-er
 const MAX_RECORDING_SECONDS = 90
 const TRANSCRIPT_COLLAPSE_THRESHOLD = 150
 
-export const DICTATION_FIELD_LABELS: Record<ClinicalDictationFieldKey, string> = {
+const DICTATION_FIELD_LABELS: Record<ClinicalDictationFieldKey, string> = {
   chiefComplaint:      'Queixa principal',
   anamnesis:           'Anamnese',
   clinicalEvolution:   'Evolução clínica',
@@ -60,7 +61,7 @@ function formatTime(seconds: number): string {
  * Converts a Blob to a raw base64 string (no data-URL prefix).
  * The caller is responsible for discarding the blob after this call.
  */
-export function blobToBase64(blob: Blob): Promise<string> {
+function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onloadend = () => {
@@ -170,13 +171,24 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
   const stopFallbackTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Prevents onstop and the fallback timer from both processing the same stop.
   const hasProcessedStopRef   = useRef(false)
+  // Fired 45 s after processAudio starts if the API call never settles.
+  const processingTimeoutRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Set to true when the processing phase is aborted (by timeout or reset) so
+  // a still-running processAudio does not overwrite state afterwards.
+  const processingAbortedRef  = useRef(false)
 
   // ── Cleanup on unmount ──────────────────────────────────────────────────────
   useEffect(() => {
+    // React 18 Strict Mode runs the cleanup of every effect once before the real
+    // mount (simulating unmount/remount). Without this reset, isMountedRef would
+    // remain false after the Strict Mode cycle, silently blocking every async
+    // guard in processAudio and the fallback timers.
+    isMountedRef.current = true
     return () => {
       isMountedRef.current = false
       if (timerRef.current) clearInterval(timerRef.current)
       if (stopFallbackTimerRef.current) clearTimeout(stopFallbackTimerRef.current)
+      if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current)
       if (mediaRecorderRef.current?.state === 'recording') {
         mediaRecorderRef.current.stop()
       }
@@ -204,7 +216,13 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       clearTimeout(stopFallbackTimerRef.current)
       stopFallbackTimerRef.current = null
     }
+    if (processingTimeoutRef.current) {
+      clearTimeout(processingTimeoutRef.current)
+      processingTimeoutRef.current = null
+    }
     hasProcessedStopRef.current = false
+    // Abort any still-running processAudio so it doesn't overwrite the idle state.
+    processingAbortedRef.current = true
     releaseStream()
     mediaRecorderRef.current = null
     chunksRef.current = []
@@ -225,23 +243,54 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       // state on an unmounted component.
       if (!isMountedRef.current) return
 
+      // Reset the abort flag for this new processing session.
+      processingAbortedRef.current = false
+
       setState('processing')
       stopTimer()
       releaseStream()
 
+      // Safety net: if the API call does not settle within 45 s (worst-case is
+      // two 15 s request timeouts plus an auth-refresh round-trip), surface a
+      // friendly error rather than leaving the user on the spinner indefinitely.
+      if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current)
+      processingTimeoutRef.current = setTimeout(() => {
+        processingTimeoutRef.current = null
+        if (!isMountedRef.current || processingAbortedRef.current) return
+        processingAbortedRef.current = true
+        const msg = 'O processamento demorou muito. Verifique sua conexão e tente novamente.'
+        setErrorMessage(msg)
+        setState('error')
+        showAlert({ title: 'Tempo limite excedido', description: msg, tone: 'error' })
+      }, 45_000)
+
+      const clearProcessingTimeout = () => {
+        if (processingTimeoutRef.current) {
+          clearTimeout(processingTimeoutRef.current)
+          processingTimeoutRef.current = null
+        }
+      }
+
       try {
         const audioBase64 = await blobToBase64(blob)
-        // Check again after the async base64 conversion — unmount may have happened
-        // during FileReader processing.
-        if (!isMountedRef.current) return
+        // Check after the async conversion — unmount or abort may have happened.
+        if (!isMountedRef.current || processingAbortedRef.current) {
+          clearProcessingTimeout()
+          return
+        }
 
         const result = await dictateClinicalRecord(recordId, {
           audioBase64,
           mimeType,
           durationSeconds: Math.max(1, Math.round(durationSeconds)),
         })
-        if (!isMountedRef.current) return  // unmounted during the API call
+        // Check after the API call — unmount, reset, or timeout may have fired.
+        if (!isMountedRef.current || processingAbortedRef.current) {
+          clearProcessingTimeout()
+          return
+        }
 
+        clearProcessingTimeout()
         setTranscript(result.transcript)
         setSuggestedFields(result.fields)
         // Select all returned fields by default so the dentist can review and
@@ -249,7 +298,10 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
         setSelectedFieldKeys(new Set(Object.keys(result.fields) as ClinicalDictationFieldKey[]))
         setState('success')
       } catch (err: unknown) {
-        if (!isMountedRef.current) return  // no point alerting an unmounted component
+        clearProcessingTimeout()
+        // If the timeout or a reset already handled the error path, ignore this.
+        if (!isMountedRef.current || processingAbortedRef.current) return
+        processingAbortedRef.current = true
         const message = getClinicalDictationErrorMessage(err)
         setErrorMessage(message)
         setState('error')
@@ -550,23 +602,28 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
       {/* ── Success ── */}
       {!readOnly && state === 'success' && (
         <div className="space-y-4">
-          {/* Transcript — collapsible for long text */}
+          {/* Transcript panel — collapsible for long text */}
           {transcript && (
             <div>
               <div className="mb-1.5 flex items-center justify-between gap-2">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Transcrição
                 </p>
-                {transcriptIsLong && (
-                  <button
-                    type="button"
-                    aria-expanded={transcriptExpanded}
-                    onClick={() => setTranscriptExpanded((e) => !e)}
-                    className="text-[11px] text-primary underline-offset-2 hover:underline"
-                  >
-                    {transcriptExpanded ? 'Ver menos' : 'Ver mais'}
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {transcriptIsLong && (
+                    <button
+                      type="button"
+                      aria-expanded={transcriptExpanded}
+                      onClick={() => setTranscriptExpanded((e) => !e)}
+                      className="text-[11px] text-primary underline-offset-2 hover:underline"
+                    >
+                      {transcriptExpanded ? 'Ver menos' : 'Ver mais'}
+                    </button>
+                  )}
+                  <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    PT-BR
+                  </span>
+                </div>
               </div>
               <p
                 className={cn(
@@ -579,18 +636,20 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
             </div>
           )}
 
-          {/* Field suggestions with per-field selection */}
+          {/* Intelligent routing panel + preview + actions */}
           {hasFields ? (
             <div>
+              {/* Routing header */}
               <div className="mb-2 flex items-center justify-between gap-2">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  Campos detectados
+                  Roteamento inteligente
                 </p>
                 <span className="text-[11px] tabular-nums text-muted-foreground">
                   {selectedFieldKeys.size}/{fieldEntries.length} selecionado{selectedFieldKeys.size !== 1 ? 's' : ''}
                 </span>
               </div>
 
+              {/* Field rows */}
               <ul className="space-y-1.5" aria-label="Selecione os campos a aplicar ao prontuário">
                 {fieldEntries.map(([key, value]) => {
                   const isSelected = selectedFieldKeys.has(key)
@@ -612,9 +671,17 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
                           aria-label={`Selecionar campo ${DICTATION_FIELD_LABELS[key]}`}
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                            {DICTATION_FIELD_LABELS[key]}
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="flex-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                              {DICTATION_FIELD_LABELS[key]}
+                            </p>
+                            <div className="flex shrink-0 items-center gap-1">
+                              <ArrowRight className="h-3 w-3 text-muted-foreground/40" aria-hidden="true" />
+                              <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[9px] font-semibold text-amber-600 dark:bg-amber-950/30 dark:text-amber-400">
+                                Revisar
+                              </span>
+                            </div>
+                          </div>
                           <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-foreground">
                             {value}
                           </p>
@@ -625,15 +692,41 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
                 })}
               </ul>
 
+              {/* Preview of what will be applied */}
+              <div className="mt-3 rounded-lg border border-border bg-muted/20 px-3 py-2.5">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  Prévia do que será aplicado
+                </p>
+                {canApply ? (
+                  <ul className="space-y-0.5">
+                    {fieldEntries
+                      .filter(([key]) => selectedFieldKeys.has(key))
+                      .map(([key, value]) => (
+                        <li key={key} className="flex min-w-0 gap-1.5 text-xs">
+                          <span className="shrink-0 font-medium text-muted-foreground">
+                            {DICTATION_FIELD_LABELS[key]}:
+                          </span>
+                          <span className="truncate text-foreground">{value}</span>
+                        </li>
+                      ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Selecione ao menos um campo acima para aplicar.
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
               <div className="mt-3 flex flex-col gap-2">
                 <Button
                   type="button"
-                  className="w-full"
+                  className="min-h-11 w-full"
                   onClick={handleApply}
                   disabled={!canApply}
                 >
                   <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  Aplicar aos campos
+                  Aplicar ao prontuário
                 </Button>
                 <Button
                   type="button"
