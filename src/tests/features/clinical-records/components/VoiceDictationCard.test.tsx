@@ -35,7 +35,9 @@ class FakeMediaRecorder {
   onstop: (() => void) | null = null
   mimeType = 'audio/webm'
 
-  static isTypeSupported = vi.fn(() => true)
+  // Typed as (type: string) => boolean so mockImplementation with a typed
+  // string argument compiles without casting.
+  static isTypeSupported = vi.fn((_type: string) => true)
 
   constructor() { trackRecorder(this) }
 
@@ -105,11 +107,11 @@ class FakeFileReader {
 }
 
 // Variant that returns a base64 payload exceeding the frontend MAX_AUDIO_BASE64_LENGTH
-// (6_500_000 chars).  The prefix is stripped inside blobToBase64, so we need the
-// part AFTER the comma to be 6_500_001 chars.
+// (4_000_000 chars).  The prefix is stripped inside blobToBase64, so we need the
+// part AFTER the comma to be 4_000_001 chars.
 class FakeFileReaderLarge {
   get result() {
-    return `data:audio/webm;base64,${'A'.repeat(6_500_001)}`
+    return `data:audio/webm;base64,${'A'.repeat(4_000_001)}`
   }
   onloadend: (() => void) | null = null
   onerror: (() => void) | null = null
@@ -954,8 +956,8 @@ describe('processing phase robustness', () => {
   })
 
   // ── Oversized audio blocked before API call ───────────────────────────────
-  // Uses FakeFileReaderLarge which returns a base64 string of 6 500 001 chars
-  // (one over the frontend MAX_AUDIO_BASE64_LENGTH = 6 500 000).
+  // Uses FakeFileReaderLarge which returns a base64 string of 4 000 001 chars
+  // (one over the frontend MAX_AUDIO_BASE64_LENGTH = 4 000 000).
   // dictateClinicalRecord must NOT be called and the component must show the
   // specific oversized-audio error message.
 
@@ -972,7 +974,7 @@ describe('processing phase robustness', () => {
 
       await waitFor(() =>
         expect(
-          screen.getByText(/O áudio ficou muito grande para processamento/i),
+          screen.getByText(/O áudio ficou muito grande para envio/i),
         ).toBeInTheDocument(),
       )
 
@@ -991,6 +993,73 @@ describe('processing phase robustness', () => {
       expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
     } finally {
       vi.stubGlobal('FileReader', FakeFileReader)
+    }
+  })
+})
+
+// ── 16. MediaRecorder codec and bitrate selection ─────────────────────────────
+
+describe('MediaRecorder codec and bitrate selection', () => {
+  // ── audio/webm;codecs=opus is the first MIME candidate tried ─────────────
+  // getSupportedMimeType probes candidates in order.  When isTypeSupported
+  // returns true for everything (the default fake), the first candidate —
+  // audio/webm;codecs=opus — must be the one selected and passed to
+  // MediaRecorder so recordings use Opus compression.
+
+  it('probes audio/webm;codecs=opus before plain audio/webm', async () => {
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+    const calls = (FakeMediaRecorder.isTypeSupported as ReturnType<typeof vi.fn>).mock.calls
+    const checkedMimes = calls.map((c: unknown[]) => c[0] as string)
+
+    // audio/webm;codecs=opus must be the very first MIME probed.
+    // When it is supported (isTypeSupported returns true), getSupportedMimeType
+    // returns immediately — plain 'audio/webm' is never checked, which is
+    // the correct behaviour: Opus wins and further probes are skipped.
+    expect(checkedMimes[0]).toBe('audio/webm;codecs=opus')
+  })
+
+  // ── When audio/webm;codecs=opus is NOT supported, falls back to audio/webm ─
+
+  it('falls back to audio/webm when audio/webm;codecs=opus is not supported', async () => {
+    // Return true only for plain audio/webm
+    FakeMediaRecorder.isTypeSupported.mockImplementation((mime: string) =>
+      mime === 'audio/webm',
+    )
+    try {
+      const user = userEvent.setup()
+      renderCard()
+
+      await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+      await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+      // Recording must still start — no error shown
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    } finally {
+      FakeMediaRecorder.isTypeSupported.mockReset()
+      FakeMediaRecorder.isTypeSupported.mockReturnValue(true)
+    }
+  })
+
+  // ── When no preferred MIME is supported, recording still starts ───────────
+
+  it('starts recording even when no candidate MIME is supported (browser default)', async () => {
+    FakeMediaRecorder.isTypeSupported.mockReturnValue(false)
+    try {
+      const user = userEvent.setup()
+      renderCard()
+
+      await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+      await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    } finally {
+      FakeMediaRecorder.isTypeSupported.mockReset()
+      FakeMediaRecorder.isTypeSupported.mockReturnValue(true)
     }
   })
 })

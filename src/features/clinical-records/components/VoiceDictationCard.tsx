@@ -22,15 +22,17 @@ import { getClinicalDictationErrorMessage } from '../utils/clinical-dictation-er
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const MAX_RECORDING_SECONDS = 90
+// At 32 kbps / 60 s the base64 payload is ~320 KB — even at worst-case bitrate
+// (~256 kbps) a 60-second recording produces ~2.56 M chars, well below the
+// backend DTO limit of 4 M chars and the 6 MB body-parser limit.
+const MAX_RECORDING_SECONDS = 60
 const TRANSCRIPT_COLLAPSE_THRESHOLD = 150
-// Must match (and stay below) the backend DTO's MAX_AUDIO_BASE64_LENGTH so the
-// frontend blocks oversized audio before sending and shows a useful message
-// rather than getting a 413 from the server.
-const MAX_AUDIO_BASE64_LENGTH = 6_500_000
-// Conservative bitrate hint for MediaRecorder. Browsers may ignore it, but it
-// keeps most recordings well under the size limit (90 s × 48 kbps ≈ 540 KB raw).
-const AUDIO_BITS_PER_SECOND = 48_000
+// Must match the backend DTO's MAX_AUDIO_BASE64_LENGTH so the frontend blocks
+// oversized audio before sending rather than letting the server return 413.
+const MAX_AUDIO_BASE64_LENGTH = 4_000_000
+// 32 kbps is sufficient for speech-quality transcription with Whisper and keeps
+// file sizes small even when the browser ignores the hint.
+const AUDIO_BITS_PER_SECOND = 32_000
 
 const DICTATION_FIELD_LABELS: Record<ClinicalDictationFieldKey, string> = {
   chiefComplaint:      'Queixa principal',
@@ -47,14 +49,24 @@ const DICTATION_FIELD_LABELS: Record<ClinicalDictationFieldKey, string> = {
 // ── Audio helpers ─────────────────────────────────────────────────────────────
 
 function getSupportedMimeType(): string {
-  const candidates = ['audio/webm', 'audio/mp4', 'audio/mpeg', 'audio/ogg']
+  // Prefer explicit Opus variants: Opus is highly efficient for speech and
+  // produces much smaller files than browser-default codecs.  Explicit codec
+  // strings also ensure the mimeType reported by recorder.mimeType matches
+  // what the backend DTO allows.
+  const candidates = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/ogg;codecs=opus',
+    'audio/ogg',
+    'audio/mp4',
+  ]
   if (typeof MediaRecorder !== 'undefined') {
     for (const type of candidates) {
       if (MediaRecorder.isTypeSupported(type)) return type
     }
   }
-  // Return '' so the caller passes undefined options to MediaRecorder, letting
-  // the browser choose its native default format instead of guessing 'audio/webm'.
+  // Return '' so the caller passes no mimeType option to MediaRecorder, letting
+  // the browser choose its native default format.
   return ''
 }
 
@@ -293,7 +305,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
           if (!isMountedRef.current || processingAbortedRef.current) return
           processingAbortedRef.current = true
           const msg =
-            'O áudio ficou muito grande para processamento. Grave um áudio mais curto e tente novamente.'
+            'O áudio ficou muito grande para envio. Grave um trecho mais curto e tente novamente.'
           setErrorMessage(msg)
           setState('error')
           showAlert({ title: 'Áudio muito grande', description: msg, tone: 'error' })
@@ -593,7 +605,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields }: Props)
             >
               {formatTime(elapsedSeconds)}
             </span>
-            {elapsedSeconds >= 80 && (
+            {elapsedSeconds >= MAX_RECORDING_SECONDS - 10 && (
               <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
                 Encerrando em {MAX_RECORDING_SECONDS - elapsedSeconds}s
               </p>
