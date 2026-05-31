@@ -45,6 +45,7 @@ import {
   isClinicalRecordEditable,
   isClinicalRecordReadOnly,
 } from '../utils/clinical-record-status-rules'
+import { mergeDictationField } from '../utils/clinical-dictation-field-merge'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -313,8 +314,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     for (const [key, value] of Object.entries(fields)) {
       if (typeof value === 'string' && value.trim()) {
         const typedKey = key as keyof UpdateClinicalRecordDto
-        const current = field(typedKey)
-        setField(typedKey)(current.trim() ? `${current}\n\n${value}` : value)
+        setField(typedKey)(mergeDictationField(field(typedKey), value))
       }
     }
     // Open the first relevant section so the user immediately sees the applied content
