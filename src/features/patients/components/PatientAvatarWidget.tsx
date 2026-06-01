@@ -2,47 +2,17 @@ import { useRef } from 'react'
 import { Camera, Loader2, Trash2 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-
-const MAX_AVATAR_DIMENSION = 512
-const JPEG_QUALITY = 0.82
-const MAX_AVATAR_INPUT_BYTES = 5 * 1024 * 1024
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+import {
+  ALLOWED_AVATAR_TYPES,
+  MAX_AVATAR_INPUT_BYTES,
+  compressAvatar,
+} from '@/lib/compress-avatar'
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) return '?'
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
-function compressAvatar(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      URL.revokeObjectURL(url)
-      const size = Math.min(MAX_AVATAR_DIMENSION, img.width, img.height)
-      const sx = (img.width - size) / 2
-      const sy = (img.height - size) / 2
-      const canvas = document.createElement('canvas')
-      canvas.width = size
-      canvas.height = size
-      const ctx = canvas.getContext('2d')
-      if (!ctx) { reject(new Error('Canvas unavailable')); return }
-      ctx.drawImage(img, sx, sy, size, size, 0, 0, size, size)
-      // Downscale if larger than MAX_AVATAR_DIMENSION
-      const final = document.createElement('canvas')
-      const dim = Math.min(size, MAX_AVATAR_DIMENSION)
-      final.width = dim
-      final.height = dim
-      const fCtx = final.getContext('2d')
-      if (!fCtx) { reject(new Error('Canvas unavailable')); return }
-      fCtx.drawImage(canvas, 0, 0, dim, dim)
-      resolve(final.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1])
-    }
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
-    img.src = url
-  })
 }
 
 type Props = {
@@ -71,7 +41,7 @@ export function PatientAvatarWidget({
     const file = e.target.files?.[0]
     e.currentTarget.value = ''
     if (!file || !onUpload) return
-    if (!ALLOWED_TYPES.includes(file.type)) return
+    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) return
     if (file.size > MAX_AVATAR_INPUT_BYTES) return
     try {
       const base64 = await compressAvatar(file)
