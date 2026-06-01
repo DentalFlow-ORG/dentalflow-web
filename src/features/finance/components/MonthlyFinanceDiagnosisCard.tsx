@@ -18,6 +18,7 @@ import { MonthPickerInput } from '@/components/common/MonthPickerInput'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
+import { brazilCurrentIsoMonth } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 import type { DiagnosisState } from '../hooks/useMonthlyFinanceDiagnosis'
@@ -37,20 +38,18 @@ function formatMonthLabel(month: string): string {
 }
 
 function formatGeneratedAt(iso: string): string {
-  return new Date(iso).toLocaleString('pt-BR', {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  }).format(new Date(iso))
 }
 
 function currentMonth(): string {
-  const now = new Date()
-  const y = now.getFullYear()
-  const m = String(now.getMonth() + 1).padStart(2, '0')
-  return `${y}-${m}`
+  return brazilCurrentIsoMonth()
 }
 
 // ── Health badge ──────────────────────────────────────────────────────────────

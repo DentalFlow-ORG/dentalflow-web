@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
 import { MonthPickerInput, maskMonthInput } from '@/components/common/MonthPickerInput'
+import { brazilCurrentIsoMonth } from '@/lib/brazil-timezone'
 
 // ── maskMonthInput unit tests ─────────────────────────────────────────────────
 
@@ -124,16 +125,15 @@ describe('MonthPickerInput — popover', () => {
     expect(screen.getByText('2027')).toBeInTheDocument()
   })
 
-  it('"Este mês" button calls onValueChange with the current month', async () => {
+  it('"Este mês" button calls onValueChange with the Brazil current month', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
     render(<MonthPickerInput onValueChange={onChange} />)
     await user.click(screen.getByRole('button', { name: /abrir seletor de mês/i }))
     await waitFor(() => screen.getByRole('button', { name: /este mês/i }))
     await user.click(screen.getByRole('button', { name: /este mês/i }))
-    const now = new Date()
-    const expected = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-    expect(onChange).toHaveBeenCalledWith(expected)
+    // Uses Brazil timezone, not browser/UTC timezone
+    expect(onChange).toHaveBeenCalledWith(brazilCurrentIsoMonth())
   })
 })
 

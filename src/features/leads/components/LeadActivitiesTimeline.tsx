@@ -33,12 +33,13 @@ function activityLabel(activity: LeadActivity): string {
 }
 
 function formatDateTime(dateStr: string) {
-  return new Date(dateStr).toLocaleString('pt-BR', {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  }).format(new Date(dateStr))
 }
 
 interface LeadActivitiesTimelineProps {

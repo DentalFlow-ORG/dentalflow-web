@@ -16,6 +16,7 @@ import { MonthPickerInput } from '@/components/common/MonthPickerInput'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
+import { brazilCurrentIsoMonth } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 import type { ProcedureMarginsState } from '../hooks/useProcedureMargins'
@@ -27,8 +28,7 @@ import { Ranking } from './Ranking'
 type SortKey = 'revenue' | 'volume' | 'margin' | 'name'
 
 function currentMonth(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  return brazilCurrentIsoMonth()
 }
 
 function centsToDisplay(cents: number): string {

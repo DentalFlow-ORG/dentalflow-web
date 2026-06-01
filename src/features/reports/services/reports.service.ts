@@ -1,6 +1,7 @@
 import { env } from '@/config/env'
 import { getAccessToken } from '@/features/auth/utils/session-storage'
 import { ApiError } from '@/services/http'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import type {
   AppointmentsReportFilters,
   FinanceReportFilters,
@@ -55,7 +56,7 @@ async function downloadCsv(path: string, filename: string): Promise<void> {
 }
 
 function todayISO(): string {
-  return new Date().toISOString().slice(0, 10)
+  return brazilTodayIso()
 }
 
 export function exportFinanceReport(filters: FinanceReportFilters): Promise<void> {

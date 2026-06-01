@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { getProfile, listProfiles } from '../../services/profiles.service'
 import type { ProfileListItem, ProfileService } from '../../types/profile.types'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { formatDateInputValue } from '@/lib/date-time-formatters'
 import {
   getCurrentTimeInputValue,
@@ -93,7 +94,7 @@ export function CreateAppointmentModal({
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [estimateManuallyEdited, setEstimateManuallyEdited] = useState(false)
-  const todayInputValue = formatDateInputValue(new Date())
+  const todayInputValue = brazilTodayIso()
   const nowTimeInputValue = getCurrentTimeInputValue()
 
   useEffect(() => {

@@ -75,7 +75,9 @@ export function MonthPickerInput({
   // Year shown in the popover grid
   const [visibleYear, setVisibleYear] = useState<number>(() => {
     if (/^\d{4}-\d{2}$/.test(value)) return parseInt(value.split('-')[0], 10)
-    return new Date().getFullYear()
+    // Fall back to the Brazil year so the popover opens to the correct year
+    // when the browser/server is in a different timezone.
+    return parseInt(brazilCurrentIsoMonth().split('-')[0], 10)
   })
 
   // Draft display value — tracks manual typing independently of the controlled value

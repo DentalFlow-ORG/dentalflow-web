@@ -9,9 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { formatDateBR, formatDateInputValue } from '@/lib/date-time-formatters'
 
 import { updateAppointmentPayment } from '../../services/scheduling.service'
 import type {
@@ -90,9 +92,9 @@ function PaymentReadOnly({ appointment }: { appointment: Appointment }) {
           {PAYMENT_METHOD_LABELS[appointment.paymentMethod]}
         </DrawerRow>
       )}
-      {appointment.paymentDate && !isNaN(new Date(appointment.paymentDate).getTime()) && (
+      {appointment.paymentDate && (
         <DrawerRow label="Data do pagamento">
-          {new Date(appointment.paymentDate).toLocaleDateString('pt-BR')}
+          {formatDateBR(formatDateInputValue(appointment.paymentDate))}
         </DrawerRow>
       )}
       {appointment.paymentNotes && (
@@ -119,16 +121,9 @@ function PaymentEditForm({
   const [method, setMethod] = useState<AppointmentPaymentMethod | ''>(
     appointment.paymentMethod ?? '',
   )
-  const [paymentDate, setPaymentDate] = useState(() => {
-    if (!appointment.paymentDate) return ''
-    try {
-      const d = new Date(appointment.paymentDate)
-      if (isNaN(d.getTime())) return ''
-      return d.toISOString().slice(0, 10)
-    } catch {
-      return ''
-    }
-  })
+  const [paymentDate, setPaymentDate] = useState(
+    () => formatDateInputValue(appointment.paymentDate),
+  )
   const [notes, setNotes] = useState(appointment.paymentNotes ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -245,11 +240,10 @@ function PaymentEditForm({
 
           {/* Payment date */}
           <FormField label="Data do pagamento" optional>
-            <TextInput
-              type="date"
-              className="scheme-light dark:scheme-dark"
+            <DatePickerInput
               value={paymentDate}
-              onChange={(e) => setPaymentDate(e.target.value)}
+              onValueChange={setPaymentDate}
+              placeholder="DD/MM/AAAA"
             />
           </FormField>
 

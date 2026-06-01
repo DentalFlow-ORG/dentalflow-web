@@ -17,6 +17,7 @@ import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 import { AppointmentInvoicePickerModal } from '../components/AppointmentInvoicePickerModal'
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
@@ -43,7 +44,7 @@ const emptyInvoiceForm: InvoicePayload = {
   serviceDescription: '',
   serviceCode: '',
   amountCents: 0,
-  competenceDate: new Date().toISOString().slice(0, 10),
+  competenceDate: brazilTodayIso(),
   notes: '',
 }
 

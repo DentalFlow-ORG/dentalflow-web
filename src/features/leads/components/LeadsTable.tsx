@@ -9,7 +9,11 @@ import { LeadStatusBadge } from './LeadStatusBadge'
 
 function formatFollowUp(date: string | null) {
   if (!date) return null
-  return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit',
+    month: 'short',
+  }).format(new Date(date))
 }
 
 function getUserName(user: { firstName: string; lastName: string } | null) {

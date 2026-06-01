@@ -6,6 +6,7 @@ import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { Button } from '@/components/ui/button'
 import { formatDateBR } from '@/lib/date-time-formatters'
+import { BRAZIL_TZ } from '@/lib/brazil-timezone'
 import { formatPhoneBR } from '@/lib/field-formatters'
 
 import { OdontogramChart } from '../components/odontogram/OdontogramChart'
@@ -207,11 +208,12 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
         </section>
 
         <footer className="border-t border-slate-200 pt-4 text-center text-xs text-slate-400 dark:border-border dark:text-muted-foreground/70">
-          Documento gerado pelo DentalFlow em {new Date().toLocaleDateString('pt-BR', {
+          Documento gerado pelo DentalFlow em {new Intl.DateTimeFormat('pt-BR', {
+            timeZone: BRAZIL_TZ,
             day: '2-digit',
             month: 'long',
             year: 'numeric',
-          })}. Este documento é de uso interno e caráter informativo.
+          }).format(new Date())}. Este documento é de uso interno e caráter informativo.
         </footer>
       </div>
     </div>

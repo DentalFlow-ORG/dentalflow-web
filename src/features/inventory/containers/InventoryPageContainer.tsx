@@ -237,10 +237,6 @@ export function InventoryPageContainer() {
         <>
           {summary && <InventoryKpiGrid summary={summary} />}
 
-          <StockPurchaseListSection />
-
-          <StockAbnormalConsumptionSection />
-
           {hasFilters && products.length === 0 && !isLoadingProducts ? (
             <FilteredEmptyState icon={Package} onClear={handleClearFilters} />
           ) : (
@@ -261,6 +257,10 @@ export function InventoryPageContainer() {
               onQuickMove={handleQuickMove}
             />
           )}
+
+          <StockPurchaseListSection />
+
+          <StockAbnormalConsumptionSection />
 
           {summary && <InventoryAnalysisPanel summary={summary} />}
         </>

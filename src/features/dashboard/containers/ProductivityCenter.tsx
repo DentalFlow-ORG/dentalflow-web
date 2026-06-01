@@ -18,6 +18,7 @@ import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { BRAZIL_TZ } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 import { AppointmentStatusBadge } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
 import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
@@ -43,12 +44,13 @@ const brl = (v: number) =>
 const brlCents = (v: number) => brl(v / 100)
 
 function todayLabel(): string {
-  return new Date().toLocaleDateString('pt-BR', {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: BRAZIL_TZ,
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  })
+  }).format(new Date())
 }
 
 // ── Small helper components ────────────────────────────────────────────────────
