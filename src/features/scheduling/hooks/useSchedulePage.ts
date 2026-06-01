@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { listProfiles } from '../services/profiles.service'
 import type { ProfileListItem } from '../types/profile.types'
 
@@ -16,7 +17,7 @@ import type {
   Availability,
   AvailabilityException,
 } from '../types/scheduling.types'
-import { getWeekStart } from '../utils/time'
+import { getBrazilWeekStart } from '../utils/time'
 import { useAppointmentStatusChange } from './useAppointmentStatusChange'
 
 export type ScheduleTab = 'agenda' | 'disponibilidade' | 'excecoes'
@@ -39,7 +40,7 @@ export function useSchedulePage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<ScheduleTab>('agenda')
   const [view, setView] = useState<ScheduleView>('calendar')
-  const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
+  const [weekStart, setWeekStart] = useState(() => getBrazilWeekStart(brazilTodayIso()))
   const [drawerAppointment, setDrawerAppointment] = useState<Appointment | null>(null)
   const [isActionLoading, setIsActionLoading] = useState(false)
 

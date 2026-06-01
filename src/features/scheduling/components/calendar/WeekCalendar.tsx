@@ -3,7 +3,7 @@ import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { Button } from '@/components/ui/button'
-import { parseIsoDateInput } from '@/lib/date-time-input'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 import {
@@ -11,8 +11,8 @@ import {
   formatWallTime,
   formatWeekDayHeader,
   formatWeekRangeLabel,
+  getBrazilWeekStart,
   getWeekDates,
-  getWeekStart,
   isToday,
   isoDateToString,
   toDateInputValue,
@@ -107,16 +107,15 @@ export function WeekCalendar({
   }
 
   function goToToday() {
-    const today = new Date()
-    setCalendarInputDate(toDateInputValue(today))
-    onWeekChange(getWeekStart(today))
+    const todayStr = brazilTodayIso()
+    setCalendarInputDate(todayStr)
+    onWeekChange(getBrazilWeekStart(todayStr))
   }
 
   function goToDate(value: string) {
-    const date = parseIsoDateInput(value)
-    if (!date) return
+    if (!value) return
     setCalendarInputDate(value)
-    onWeekChange(getWeekStart(date))
+    onWeekChange(getBrazilWeekStart(value))
   }
 
   const weekLabel = formatWeekRangeLabel(weekDates[0], weekDates[6])

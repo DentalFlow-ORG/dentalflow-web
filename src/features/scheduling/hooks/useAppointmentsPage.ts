@@ -20,7 +20,8 @@ import {
   syncGoogleCalendar,
 } from '../services/calendar-integrations.service'
 import type { GoogleCalendarStatus } from '../types/calendar-integration.types'
-import { getWeekStart } from '../utils/time'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { getBrazilWeekStart } from '../utils/time'
 import { useAppointmentCancel } from './useAppointmentCancel'
 import { useAppointmentStatusChange } from './useAppointmentStatusChange'
 import { FILTER_FNS, SEARCH_FN, STATUS_OPTIONS } from '../constants/appointment-filters'
@@ -48,7 +49,7 @@ export function useAppointmentsPage() {
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null)
   const [isActionLoading, setIsActionLoading] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
-  const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
+  const [weekStart, setWeekStart] = useState(() => getBrazilWeekStart(brazilTodayIso()))
   const [calendarAvailability, setCalendarAvailability] = useState<Availability[]>([])
   const [googleCalendar, setGoogleCalendar] = useState<GoogleCalendarStatus | null>(null)
   const [isCalendarActionLoading, setIsCalendarActionLoading] = useState(false)
