@@ -149,6 +149,7 @@ beforeEach(() => {
   mockDictateClinicalRecord.mockResolvedValue({
     transcript: 'Paciente relata dor no dente 36.',
     fields: { chiefComplaint: 'Dor no dente 36', clinicalEvolution: 'Sensibilidade ao frio.' },
+    odontogramSuggestions: [],
   })
   mockGetUserMedia.mockResolvedValue({
     getTracks: () => [{ stop: vi.fn() }],
@@ -1311,6 +1312,130 @@ describe('odontogram suggestions panel', () => {
     expect(
       screen.getByText(/Verifique os dentes identificados no ditado/i),
     ).toBeInTheDocument()
+  })
+
+  // ── Backend suggestions take precedence over frontend regex parsing ──────────
+
+  it('uses backend-supplied odontogramSuggestions when the response includes them', async () => {
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Paciente veio para consulta de rotina.',
+      fields: { chiefComplaint: 'Rotina' },
+      // Backend returns a suggestion even though the transcript has no condition keywords
+      odontogramSuggestions: [
+        { toothNumber: '46', condition: 'caries', notes: 'Cárie mesial.', confidence: 'high', sourceText: 'cárie no 46' },
+      ],
+    })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(
+      () => expect(screen.getByText(/Sugestões para odontograma/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+
+    // The backend suggestion (tooth 46) should appear, not anything from the vague transcript
+    expect(screen.getAllByText(/Dente 46/i).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('falls back to frontend regex parsing when backend returns empty odontogramSuggestions', async () => {
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Dente 36 com cárie.',
+      fields: { chiefComplaint: 'Dor no dente 36' },
+      odontogramSuggestions: [], // backend found nothing → frontend regex takes over
+    })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    // Frontend regex extraction from transcript detects tooth 36 + caries
+    await waitFor(
+      () => expect(screen.getByText(/Sugestões para odontograma/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+    expect(screen.getAllByText(/Dente 36/i).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('all backend suggestions are checked by default', async () => {
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Consulta.',
+      fields: {},
+      odontogramSuggestions: [
+        { toothNumber: '36', condition: 'caries' },
+        { toothNumber: '11', condition: 'crown' },
+      ],
+    })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(
+      () => expect(screen.getByText(/Sugestões para odontograma/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+
+    // All odontogram checkboxes should be checked by default
+    const odontogramCheckboxes = screen.getAllByRole('checkbox').filter((cb) =>
+      cb.getAttribute('aria-label')?.startsWith('Selecionar dente'),
+    )
+    expect(odontogramCheckboxes.length).toBe(2)
+    for (const cb of odontogramCheckboxes) {
+      expect(cb).toBeChecked()
+    }
+  })
+
+  it('dentist can deselect one backend suggestion before applying', async () => {
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Consulta.',
+      fields: { chiefComplaint: 'Rotina' },
+      odontogramSuggestions: [
+        { toothNumber: '36', condition: 'caries' },
+        { toothNumber: '11', condition: 'crown' },
+      ],
+    })
+    const onApplyOdontogram = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <VoiceDictationCard
+        recordId="rec-abc"
+        readOnly={false}
+        onApplyFields={vi.fn()}
+        onApplyOdontogram={onApplyOdontogram}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(
+      () => expect(screen.getByText(/Sugestões para odontograma/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+
+    // Deselect tooth 36
+    const tooth36Checkbox = screen.getByRole('checkbox', { name: /Selecionar dente 36/i })
+    await user.click(tooth36Checkbox)
+    expect(tooth36Checkbox).not.toBeChecked()
+
+    // Apply — only tooth 11 should be sent
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+
+    expect(onApplyOdontogram).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ toothNumber: '11' })]),
+    )
+    expect(onApplyOdontogram).not.toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ toothNumber: '36' })]),
+    )
   })
 })
 

@@ -34,6 +34,7 @@ const VALID_RESPONSE: DictateClinicalRecordResponse = {
     chiefComplaint: 'Dor no dente 36',
     clinicalEvolution: 'Sensibilidade ao frio',
   },
+  odontogramSuggestions: [],
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────

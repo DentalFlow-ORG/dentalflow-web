@@ -16,9 +16,10 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
 
 import { dictateClinicalRecord } from '../services/clinical-dictation.service'
-import type { ClinicalDictationFieldKey } from '../types/clinical-dictation.types'
+import type { ClinicalDictationFieldKey, DictationOdontogramSuggestion } from '../types/clinical-dictation.types'
 import { getClinicalDictationErrorMessage } from '../utils/clinical-dictation-error'
 import { formatDictationFieldText } from '../utils/format-dictation-field-text'
+import { ODONTOGRAM_CONDITION_LABELS } from '../utils/odontogram-status-utils'
 import { parseDictationOdontogram } from '../utils/parse-dictation-odontogram'
 import type { OdontogramSuggestion } from '../utils/parse-dictation-odontogram'
 
@@ -112,6 +113,24 @@ function blobToBase64(blob: Blob): Promise<string> {
     }
     reader.onerror = () => reject(new Error('Leitura do áudio falhou'))
     reader.readAsDataURL(blob)
+  })
+}
+
+// ── Backend suggestion mapper ─────────────────────────────────────────────────
+// Converts the backend DictationOdontogramSuggestion shape to the frontend
+// OdontogramSuggestion shape used by the card state and the container handler.
+
+function mapBackendOdontogramSuggestions(
+  suggestions: DictationOdontogramSuggestion[],
+): OdontogramSuggestion[] {
+  return suggestions.map((s) => {
+    const conditionLabel = ODONTOGRAM_CONDITION_LABELS[s.condition] ?? s.condition
+    return {
+      toothNumber: s.toothNumber,
+      condition: s.condition,
+      conditionLabel,
+      note: s.notes || `${conditionLabel} — identificado no ditado clínico.`,
+    }
   })
 }
 
@@ -425,8 +444,13 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
         // Select all returned fields by default so the dentist can review and
         // unselect any they don't want to apply.
         setSelectedFieldKeys(new Set(Object.keys(result.fields) as ClinicalDictationFieldKey[]))
-        // Parse odontogram suggestions from the transcript for optional tooth marking.
-        const oSuggestions = parseDictationOdontogram(result.transcript)
+        // Prefer backend-supplied odontogram suggestions (GPT-extracted, already validated).
+        // Fall back to frontend regex parsing when the backend returns none — this keeps
+        // older backend versions and test mocks without the field working correctly.
+        const oSuggestions =
+          result.odontogramSuggestions && result.odontogramSuggestions.length > 0
+            ? mapBackendOdontogramSuggestions(result.odontogramSuggestions)
+            : parseDictationOdontogram(result.transcript)
         setOdontogramSuggestions(oSuggestions)
         setEditableOdontogramNotes(
           Object.fromEntries(oSuggestions.map((s) => [s.toothNumber, s.note]))
