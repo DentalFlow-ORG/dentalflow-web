@@ -3,8 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '@/services/http'
 
 import {
-  checkAbnormalConsumptionCopilotCache,
   generateAbnormalConsumptionCopilotSummary,
+  getLatestAbnormalConsumptionSummary,
 } from '../services/stock-abnormal-consumption.service'
 import type { AbnormalConsumptionCopilotResult } from '../types/inventory.types'
 
@@ -29,15 +29,16 @@ export function useAbnormalConsumptionCopilot(): UseAbnormalConsumptionCopilotRe
   const [quotaMessage, setQuotaMessage] = useState<string | null>(null)
   const cancelledRef = useRef(false)
 
-  // On mount: cheap cache check — never triggers AI
+  // On mount: fetch the latest persisted analysis — never triggers AI, never
+  // short-circuits based on the current anomaly-list state.
   useEffect(() => {
     cancelledRef.current = false
     setIsLoadingInitial(true)
 
-    checkAbnormalConsumptionCopilotCache()
-      .then((cached) => {
+    getLatestAbnormalConsumptionSummary()
+      .then((latest) => {
         if (cancelledRef.current) return
-        setResult(cached ?? null)
+        setResult(latest ?? null)
       })
       .catch((err: unknown) => {
         if (cancelledRef.current) return

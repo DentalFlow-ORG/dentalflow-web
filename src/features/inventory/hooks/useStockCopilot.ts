@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { ApiError } from '@/services/http'
 
-import { checkCopilotCache, generateCopilotSummary } from '../services/stock-copilot.service'
+import { generateCopilotSummary, getLatestCopilotSummary } from '../services/stock-copilot.service'
 import type { StockCopilotResult } from '../types/inventory.types'
 
 export type UseStockCopilotResult = {
@@ -26,15 +26,16 @@ export function useStockCopilot(): UseStockCopilotResult {
   const [quotaMessage, setQuotaMessage] = useState<string | null>(null)
   const cancelledRef = useRef(false)
 
-  // On mount: cheap cache check — never triggers AI
+  // On mount: fetch the latest persisted analysis — never triggers AI, never
+  // short-circuits based on the current purchase-list state.
   useEffect(() => {
     cancelledRef.current = false
     setIsLoadingInitial(true)
 
-    checkCopilotCache()
-      .then((cached) => {
+    getLatestCopilotSummary()
+      .then((latest) => {
         if (cancelledRef.current) return
-        setResult(cached ?? null)
+        setResult(latest ?? null)
       })
       .catch((err: unknown) => {
         if (cancelledRef.current) return

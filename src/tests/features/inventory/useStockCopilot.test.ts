@@ -8,16 +8,16 @@ import { ApiError } from '@/services/http'
 // ── Service mocks ─────────────────────────────────────────────────────────────
 
 vi.mock('@/features/inventory/services/stock-copilot.service', () => ({
-  checkCopilotCache: vi.fn(),
+  getLatestCopilotSummary: vi.fn(),
   generateCopilotSummary: vi.fn(),
 }))
 
 import {
-  checkCopilotCache,
+  getLatestCopilotSummary,
   generateCopilotSummary,
 } from '@/features/inventory/services/stock-copilot.service'
 
-const mockCheckCopilotCache = vi.mocked(checkCopilotCache)
+const mockGetLatestCopilotSummary = vi.mocked(getLatestCopilotSummary)
 const mockGenerateCopilotSummary = vi.mocked(generateCopilotSummary)
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -27,16 +27,10 @@ function buildCopilotResult(overrides: Partial<StockCopilotResult> = {}): StockC
     summary: 'Seu estoque precisa de atenção.',
     highlights: ['2 itens críticos.'],
     recommendedActions: ['Comprar luvas urgentemente.'],
-    generatedAt: '2026-05-15T14:30:00.000Z', // a previous day
+    generatedAt: '2026-05-15T14:30:00.000Z',
     cached: true,
     source: 'CACHE',
-    purchaseListSnapshot: {
-      totalItems: 2,
-      criticalItems: 1,
-      highPriorityItems: 1,
-      mediumPriorityItems: 0,
-      totalEstimatedCostCents: 5000,
-    },
+    // purchaseListSnapshot is intentionally omitted — /latest does not include it
     ...overrides,
   }
 }
@@ -48,27 +42,29 @@ describe('useStockCopilot', () => {
     vi.clearAllMocks()
   })
 
-  // ── Mount: cached result from any date is displayed ──────────────────────
+  // ── Mount: latest persisted analysis is displayed regardless of purchase list ─
 
-  it('shows a cached result from a previous day on mount', async () => {
-    const previousDayResult = buildCopilotResult({
-      generatedAt: '2026-05-15T14:30:00.000Z', // generated several days ago
+  it('shows a persisted result from any previous date on mount', async () => {
+    // Key scenario: analysis generated several days ago — must still be visible
+    // even if the purchase list is currently empty.
+    const persistedResult = buildCopilotResult({
+      generatedAt: '2026-05-15T14:30:00.000Z',
       source: 'CACHE',
     })
-    mockCheckCopilotCache.mockResolvedValue(previousDayResult)
+    mockGetLatestCopilotSummary.mockResolvedValue(persistedResult)
 
     const { result } = renderHook(() => useStockCopilot())
 
     await waitFor(() => expect(result.current.isLoadingInitial).toBe(false))
 
-    expect(result.current.result).toEqual(previousDayResult)
+    expect(result.current.result).toEqual(persistedResult)
     expect(result.current.isPlanBlocked).toBe(false)
     expect(result.current.isQuotaExceeded).toBe(false)
   })
 
   it('shows result from today on mount', async () => {
     const todayResult = buildCopilotResult({ generatedAt: new Date().toISOString(), source: 'AI' })
-    mockCheckCopilotCache.mockResolvedValue(todayResult)
+    mockGetLatestCopilotSummary.mockResolvedValue(todayResult)
 
     const { result } = renderHook(() => useStockCopilot())
 
@@ -77,10 +73,10 @@ describe('useStockCopilot', () => {
     expect(result.current.result).toEqual(todayResult)
   })
 
-  // ── Mount: no cache → empty state ────────────────────────────────────────
+  // ── Mount: empty state when no analysis exists ────────────────────────────
 
-  it('sets result to null when no cached analysis exists', async () => {
-    mockCheckCopilotCache.mockResolvedValue(undefined)
+  it('sets result to null and shows empty state when no analysis has been generated', async () => {
+    mockGetLatestCopilotSummary.mockResolvedValue(undefined)
 
     const { result } = renderHook(() => useStockCopilot())
 
@@ -91,8 +87,8 @@ describe('useStockCopilot', () => {
 
   // ── Mount: plan blocked ───────────────────────────────────────────────────
 
-  it('sets isPlanBlocked when checkCopilotCache throws 403', async () => {
-    mockCheckCopilotCache.mockRejectedValue(new ApiError('Plano não permite.', 403, null))
+  it('sets isPlanBlocked when getLatestCopilotSummary throws 403', async () => {
+    mockGetLatestCopilotSummary.mockRejectedValue(new ApiError('Plano não permite.', 403, null))
 
     const { result } = renderHook(() => useStockCopilot())
 
@@ -102,10 +98,10 @@ describe('useStockCopilot', () => {
     expect(result.current.result).toBeNull()
   })
 
-  // ── Generate: updates result ──────────────────────────────────────────────
+  // ── Generate: updates result, keeps previous on failure ──────────────────
 
   it('updates result after handleGenerate is called', async () => {
-    mockCheckCopilotCache.mockResolvedValue(undefined)
+    mockGetLatestCopilotSummary.mockResolvedValue(undefined)
 
     const newResult = buildCopilotResult({ source: 'AI', cached: false, generatedAt: new Date().toISOString() })
     mockGenerateCopilotSummary.mockResolvedValue(newResult)
@@ -123,8 +119,28 @@ describe('useStockCopilot', () => {
     expect(result.current.isGenerating).toBe(false)
   })
 
+  it('keeps previous result visible when generation fails', async () => {
+    const existingResult = buildCopilotResult({ generatedAt: '2026-05-01T10:00:00.000Z' })
+    mockGetLatestCopilotSummary.mockResolvedValue(existingResult)
+    mockGenerateCopilotSummary.mockRejectedValue(new ApiError('Erro interno.', 500, null))
+
+    const { result } = renderHook(() => useStockCopilot())
+    await waitFor(() => expect(result.current.isLoadingInitial).toBe(false))
+
+    // Previous result is shown
+    expect(result.current.result).toEqual(existingResult)
+
+    await act(async () => {
+      await result.current.handleGenerate()
+    })
+
+    // Previous result is still visible — not cleared on failure
+    expect(result.current.result).toEqual(existingResult)
+    expect(result.current.error).toBeTruthy()
+  })
+
   it('sets isQuotaExceeded when generateCopilotSummary throws 429', async () => {
-    mockCheckCopilotCache.mockResolvedValue(undefined)
+    mockGetLatestCopilotSummary.mockResolvedValue(undefined)
     mockGenerateCopilotSummary.mockRejectedValue(
       new ApiError('Limite atingido.', 429, null),
     )

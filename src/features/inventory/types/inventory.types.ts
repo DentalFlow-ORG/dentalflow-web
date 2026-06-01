@@ -178,7 +178,8 @@ export type StockCopilotResult = {
   generatedAt: string
   cached: boolean
   source: 'AI' | 'CACHE'
-  purchaseListSnapshot: {
+  /** Present when generated via POST (includes live snapshot); absent from GET /latest. */
+  purchaseListSnapshot?: {
     totalItems: number
     criticalItems: number
     highPriorityItems: number
@@ -267,7 +268,8 @@ export type AbnormalConsumptionCopilotResult = {
   generatedAt: string
   cached: boolean
   source: 'AI' | 'CACHE'
-  anomalySnapshot: {
+  /** Present when generated via POST (includes live snapshot); absent from GET /latest. */
+  anomalySnapshot?: {
     totalAnomalies: number
     highSeverity: number
     mediumSeverity: number

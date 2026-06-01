@@ -18,7 +18,7 @@ function formatTimestamp(iso: string) {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date(iso))
+    }).format(new Date(iso)).replace(', ', ' às ')
   } catch {
     return iso
   }
@@ -80,7 +80,7 @@ function CopilotResult({
       {/* Footer */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground/70">
-          <span>Gerado em {formatTimestamp(result.generatedAt)}</span>
+          <span>Última análise gerada em {formatTimestamp(result.generatedAt)}</span>
           <span
             className={cn(
               'rounded-full border px-2 py-0.5 text-[10px] font-medium',
@@ -94,7 +94,7 @@ function CopilotResult({
         </div>
         <Button variant="ghost" size="sm" disabled={isGenerating} onClick={onRefresh}>
           <RefreshCw className={cn('h-3.5 w-3.5', isGenerating && 'animate-spin')} />
-          Atualizar resumo
+          Gerar nova análise
         </Button>
       </div>
     </div>
@@ -184,10 +184,11 @@ export function StockCopilotCard() {
 
           {/* Idle — no result yet */}
           {!result && !isGenerating && (
-            <div className="mt-4">
+            <div className="mt-4 flex flex-col gap-2">
+              <p className="text-sm text-muted-foreground">Nenhuma análise gerada ainda.</p>
               <Button size="sm" disabled={isQuotaExceeded} onClick={handleGenerate}>
                 <Sparkles className="h-3.5 w-3.5" />
-                Gerar resumo
+                Gerar nova análise
               </Button>
             </div>
           )}
