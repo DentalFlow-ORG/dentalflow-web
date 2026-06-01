@@ -1,6 +1,7 @@
 import { ClipboardList } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { EmptyState } from '@/components/common/EmptyState'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { Pagination } from '@/components/common/Pagination'
@@ -84,21 +85,18 @@ export function AuditLogsTab() {
             ))}
           </SelectContent>
         </Select>
-        <input
-          type="date"
+        <DatePickerInput
+          placeholder="Data inicial"
           value={filters.dateFrom}
-          onChange={(e) => setFilter('dateFrom', e.target.value)}
-          title="De"
-          aria-label="Data inicial"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 dark:scheme-dark"
+          onValueChange={(v) => setFilter('dateFrom', v)}
+          className="w-44"
         />
-        <input
-          type="date"
+        <DatePickerInput
+          placeholder="Data final"
           value={filters.dateTo}
-          onChange={(e) => setFilter('dateTo', e.target.value)}
-          title="Até"
-          aria-label="Data final"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 dark:scheme-dark"
+          onValueChange={(v) => setFilter('dateTo', v)}
+          minValue={filters.dateFrom}
+          className="w-44"
         />
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={() => setFilters(INITIAL_FILTERS)}>

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 
 import { MetricCard } from '@/components/common/MetricCard'
+import { MonthPickerInput } from '@/components/common/MonthPickerInput'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
@@ -242,12 +243,10 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <input
-            type="month"
+          <MonthPickerInput
             value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            aria-label="Selecionar mês para análise de margens"
+            onValueChange={setSelectedMonth}
+            className="w-40"
           />
           {!data && (
             <Button size="sm" onClick={handleLoad} disabled={isLoading || isPlanBlocked}>
