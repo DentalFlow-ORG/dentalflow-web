@@ -10,10 +10,12 @@ import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 
 // ── Fixture ───────────────────────────────────────────────────────────────────
 // Factory defaults: appointmentDate '2026-05-26' + startTime '1970-01-01T10:00:00.000Z'
-// → buildAppointmentDateTime produces new Date('2026-05-26T10:00:00') local
+// → buildAppointmentDateTime produces new Date('2026-05-26T10:00:00-03:00') = 13:00 UTC
+//
+// BEFORE/AFTER use explicit UTC timestamps so tests are timezone-independent.
 
-const BEFORE_SLOT = new Date('2026-05-26T09:00:00') // 09:00 local — slot hasn't started
-const AFTER_SLOT  = new Date('2026-05-26T11:00:00') // 11:00 local — slot has started
+const BEFORE_SLOT = new Date('2026-05-26T12:00:00Z') // 09:00 Brazil — slot hasn't started
+const AFTER_SLOT  = new Date('2026-05-26T14:00:00Z') // 11:00 Brazil — slot has started
 
 // ── APPOINTMENT_TRANSITIONS ───────────────────────────────────────────────────
 
@@ -112,7 +114,7 @@ describe('canTransitionTo — time guard for COMPLETED and NO_SHOW', () => {
   })
 
   it('allows transition exactly at the slot start time', () => {
-    const atSlot = new Date('2026-05-26T10:00:00')
+    const atSlot = new Date('2026-05-26T13:00:00Z') // 10:00 Brazil = 13:00 UTC
     expect(canTransitionTo(makeAppointment({ status: 'CONFIRMED' }), 'COMPLETED', atSlot)).toBe(true)
   })
 })

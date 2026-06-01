@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { brazilCurrentIsoMonth } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -44,8 +45,7 @@ function formatMonthLongLabel(isoMonth: string): string {
 }
 
 function currentIsoMonth(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  return brazilCurrentIsoMonth()
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────

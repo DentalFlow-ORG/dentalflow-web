@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { brazilCurrentMonthRange, brazilTodayIso } from '@/lib/brazil-timezone'
 import { ApiError } from '@/services/http'
 
 import {
@@ -39,21 +40,13 @@ const emptyCategoryForm: CategoryFormState = {
 }
 
 function getMonthRange() {
-  const now = new Date()
-  const from = new Date(now.getFullYear(), now.getMonth(), 1)
-  const to = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-
-  return {
-    from: formatDateInput(from),
-    to: formatDateInput(to),
-  }
+  return brazilCurrentMonthRange()
 }
 
-function formatDateInput(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
+function isoFromDayOffset(isoDate: string, offsetDays: number): string {
+  const [y, m, d] = isoDate.split('-').map(Number)
+  const date = new Date(y, m - 1, d + offsetDays)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 function getPreviousPeriod(from: string, to: string): { from: string; to: string } {
@@ -62,11 +55,9 @@ function getPreviousPeriod(from: string, to: string): { from: string; to: string
   const fromDate = new Date(fy, fm - 1, fd)
   const toDate = new Date(ty, tm - 1, td)
   const durationDays = Math.round((toDate.getTime() - fromDate.getTime()) / 86400000) + 1
-  const prevToMs = fromDate.getTime() - 86400000
-  const prevFromMs = prevToMs - (durationDays - 1) * 86400000
   return {
-    from: formatDateInput(new Date(prevFromMs)),
-    to: formatDateInput(new Date(prevToMs)),
+    from: isoFromDayOffset(from, -durationDays),
+    to: isoFromDayOffset(from, -1),
   }
 }
 
@@ -83,7 +74,7 @@ const emptyTransactionForm: TransactionFormState = {
   categoryId: '',
   amount: '',
   description: '',
-  transactionDate: formatDateInput(new Date()),
+  transactionDate: brazilTodayIso(),
   dueDate: '',
   status: 'PAID',
 }
@@ -93,8 +84,8 @@ const emptyFixedExpenseForm: FixedExpenseFormState = {
   description: '',
   amount: '',
   recurrence: 'MONTHLY',
-  dueDay: String(new Date().getDate()),
-  startDate: formatDateInput(new Date()),
+  dueDay: brazilTodayIso().split('-')[2].replace(/^0/, ''),
+  startDate: brazilTodayIso(),
 }
 
 export function useFinancePage() {

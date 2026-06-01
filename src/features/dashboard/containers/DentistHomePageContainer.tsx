@@ -9,15 +9,11 @@ import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { AppointmentDrawer } from '@/features/scheduling/components/appointments/AppointmentDrawer'
 import { listAppointments } from '@/features/scheduling/services/scheduling.service'
 import type { Appointment } from '@/features/scheduling/types/scheduling.types'
 import { formatWallTime } from '@/features/scheduling/utils/time'
-
-function todayIso(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
 
 function formatTodayLabel(isoDate: string): string {
   const [year, month, day] = isoDate.split('-').map(Number)
@@ -32,7 +28,7 @@ function formatTodayLabel(isoDate: string): string {
 
 export function DentistHomePageContainer() {
   const { user } = useAuth()
-  const today = todayIso()
+  const today = brazilTodayIso()
 
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [isLoading, setIsLoading] = useState(true)

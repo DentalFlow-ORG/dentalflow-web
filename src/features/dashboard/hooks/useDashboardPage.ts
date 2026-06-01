@@ -1,22 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { getFinanceSummary } from '@/features/finance/services/finance.service'
 import type { FinanceSummary } from '@/features/finance/types/finance.types'
 import { listAppointments } from '@/features/scheduling/services/scheduling.service'
 import type { Appointment } from '@/features/scheduling/types/scheduling.types'
 
-function todayIso(): string {
-  const d = new Date()
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
 export function useDashboardPage() {
   const { user } = useAuth()
-  const today = todayIso()
+  const today = brazilTodayIso()
 
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [financeSummary, setFinanceSummary] = useState<FinanceSummary | null>(null)
