@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import {
   AlertCircle,
+  ArrowLeft,
   Bell,
   ChevronRight,
   CreditCard,
@@ -9,6 +10,7 @@ import {
   RefreshCw,
   X,
 } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { Dialog } from 'radix-ui'
 
 import { EmptyState } from '@/components/common/EmptyState'
@@ -312,10 +314,18 @@ export function PatientsAttentionContainer() {
         title="Pacientes que precisam de atenção"
         description="Identifique automaticamente pacientes inativos, com pagamentos pendentes ou que precisam de acompanhamento."
         action={
-          <Button variant="outline" onClick={refresh}>
-            <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            Atualizar
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="ghost" asChild>
+              <Link to="/app/pacientes">
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                Voltar para pacientes
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={refresh}>
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              Atualizar
+            </Button>
+          </div>
         }
       />
 
