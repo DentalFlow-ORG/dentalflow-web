@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Camera, Image, Trash2, Upload, X, ZoomIn } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
@@ -24,6 +24,19 @@ const MAX_THUMBNAIL_DIMENSION = 200
 const JPEG_QUALITY = 0.82
 const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB original
 const CAPTION_DEBOUNCE_MS = 800
+
+// ── Mobile detection ──────────────────────────────────────────────────────────
+
+// Returns true when the device is likely a phone or tablet with native camera
+// capture support. We check both the user-agent (coarse) and a touch pointer
+// media query (finer). Desktop browsers degrade capture="environment" to a
+// plain file picker, which is misleading — we hide the camera button there.
+function isMobileDevice(): boolean {
+  if (typeof navigator === 'undefined' || typeof window === 'undefined') return false
+  const ua = navigator.userAgent
+  if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return true
+  return window.matchMedia('(pointer: coarse) and (hover: none)').matches
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -57,6 +70,10 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
   // cameraInputRef — file picker with capture="environment" (opens native camera on mobile)
   const inputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
+
+  // Evaluated once on mount; stable for the component's lifetime because
+  // the device type does not change while the page is open.
+  const isMobile = useMemo(() => isMobileDevice(), [])
 
   const [attachments, setAttachments] = useState<ClinicalRecordAttachment[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -202,16 +219,20 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
             onChange={handleFileSelect}
             disabled={isUploading}
           />
-          {/* capture="environment" opens the rear camera on mobile; degrades to file picker on desktop */}
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            capture="environment"
-            className="sr-only"
-            onChange={handleFileSelect}
-            disabled={isUploading}
-          />
+          {/* capture="environment" opens the rear camera on mobile; only rendered on
+              mobile devices where capture is natively supported. On desktop this input
+              would silently degrade to a plain file picker, which is misleading. */}
+          {isMobile && (
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              capture="environment"
+              className="sr-only"
+              onChange={handleFileSelect}
+              disabled={isUploading}
+            />
+          )}
         </>
       )}
 
@@ -241,16 +262,18 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
               <Upload className="h-4 w-4" />
               {isUploading ? 'Enviando...' : 'Enviar imagem'}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => cameraInputRef.current?.click()}
-              disabled={isUploading}
-            >
-              <Camera className="h-4 w-4" />
-              Tirar foto
-            </Button>
+            {isMobile && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                <Camera className="h-4 w-4" />
+                Tirar foto
+              </Button>
+            )}
             <span className="text-xs text-muted-foreground/60">JPEG, PNG ou WebP · máx. 5 MB</span>
           </div>
         )}
@@ -281,16 +304,18 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
                   <Upload className="h-4 w-4" />
                   {isUploading ? 'Enviando...' : 'Enviar imagem'}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => cameraInputRef.current?.click()}
-                  disabled={isUploading}
-                >
-                  <Camera className="h-4 w-4" />
-                  Tirar foto
-                </Button>
+                {isMobile && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => cameraInputRef.current?.click()}
+                    disabled={isUploading}
+                  >
+                    <Camera className="h-4 w-4" />
+                    Tirar foto
+                  </Button>
+                )}
               </div>
             )}
           </div>
