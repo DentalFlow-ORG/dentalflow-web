@@ -3,6 +3,10 @@ import { AlertCircle, CalendarDays, ChevronRight, RefreshCw, Users2, X } from 'l
 import { Link } from '@tanstack/react-router'
 import { Dialog } from 'radix-ui'
 
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { PatientAvatarWidget } from '../components/PatientAvatarWidget'
+import { usePatientAvatar } from '../hooks/usePatientAvatar'
+
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { EmptyState } from '@/components/common/EmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
@@ -101,15 +105,22 @@ function PatientMobileCard({
   return (
     <article className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="truncate text-sm font-semibold text-foreground">
-            {patient.patientName}
-          </h3>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            {patient.lastVisit
-              ? `Última visita em ${formatDate(patient.lastVisit)}`
-              : 'Sem visita registrada'}
-          </p>
+        <div className="flex min-w-0 items-center gap-3">
+          <PatientAvatarWidget
+            name={patient.patientName}
+            avatarUrl={patient.avatarUrl}
+            size="md"
+          />
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-semibold text-foreground">
+              {patient.patientName}
+            </h3>
+            <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+              {patient.lastVisit
+                ? `Última visita em ${formatDate(patient.lastVisit)}`
+                : 'Sem visita registrada'}
+            </p>
+          </div>
         </div>
         <StatusBadge tone={patient.totalAppointments > 0 ? 'success' : 'muted'}>
           {patient.totalAppointments} consulta{patient.totalAppointments !== 1 ? 's' : ''}
@@ -165,11 +176,28 @@ function PatientDetailPanel({
 }) {
   const [activeTab, setActiveTab] = useState<PanelTab>('consultas')
   const { user } = useAuth()
+  const { showAlert } = useGlobalAlerts()
   const canViewClinicalTimeline = user?.role === 'OWNER' || user?.role === 'DENTIST'
   const { appointments, isLoading } = usePatientHistory(patient)
   const { records: clinicalRecords, isLoading: isLoadingTimeline } = usePatientClinicalTimeline(
     canViewClinicalTimeline ? patient?.identifier ?? null : null,
   )
+
+  const identifier = patient?.patientEmail ?? patient?.patientName ?? null
+  const { avatarUrl, isSaving, update } = usePatientAvatar(identifier)
+
+  const handleAvatarChange = async (base64: string | null) => {
+    try {
+      await update(base64)
+      showAlert({
+        title: base64 ? 'Foto atualizada.' : 'Foto removida.',
+        description: base64 ? 'A foto do paciente foi salva.' : 'A foto do paciente foi removida.',
+        tone: 'success',
+      })
+    } catch {
+      showAlert({ title: 'Erro', description: 'Não foi possível salvar a foto.', tone: 'error' })
+    }
+  }
 
   return (
     <Dialog.Root open={!!patient} onOpenChange={(isOpen: boolean) => !isOpen && onClose()}>
@@ -180,13 +208,22 @@ function PatientDetailPanel({
           aria-describedby={undefined}
         >
           <div className="flex items-start justify-between border-b border-border px-6 py-4">
-            <div>
-              <Dialog.Title className="text-base font-semibold text-foreground">
-                {patient?.patientName}
-              </Dialog.Title>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {patient?.patientEmail ?? patient?.patientPhone ?? 'Sem contato'}
-              </p>
+            <div className="flex items-center gap-4">
+              <PatientAvatarWidget
+                name={patient?.patientName ?? ''}
+                avatarUrl={avatarUrl}
+                isSaving={isSaving}
+                onUpload={handleAvatarChange}
+                size="lg"
+              />
+              <div>
+                <Dialog.Title className="text-base font-semibold text-foreground">
+                  {patient?.patientName}
+                </Dialog.Title>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {patient?.patientEmail ?? patient?.patientPhone ?? 'Sem contato'}
+                </p>
+              </div>
             </div>
             <Dialog.Close asChild>
               <Button
@@ -467,14 +504,23 @@ export function PatientsPageContainer() {
                           }}
                         >
                           <td className="px-4 py-3">
-                            <p className="font-medium text-foreground">
-                              {patient.patientName}
-                            </p>
-                            {patient.patientEmail && (
-                              <p className="text-xs text-muted-foreground">
-                                {patient.patientEmail}
-                              </p>
-                            )}
+                            <div className="flex items-center gap-3">
+                              <PatientAvatarWidget
+                                name={patient.patientName}
+                                avatarUrl={patient.avatarUrl}
+                                size="md"
+                              />
+                              <div>
+                                <p className="font-medium text-foreground">
+                                  {patient.patientName}
+                                </p>
+                                {patient.patientEmail && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {patient.patientEmail}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
                           </td>
                           <td className="hidden px-4 py-3 text-foreground sm:table-cell">
                             {patient.patientPhone ?? (

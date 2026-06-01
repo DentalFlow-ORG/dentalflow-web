@@ -17,3 +17,19 @@ export function getPatientHistory(identifier: string) {
     { method: 'GET', accessToken: getAccessToken() },
   )
 }
+
+export function getPatientAvatar(identifier: string) {
+  return apiRequest<{ avatarUrl: string | null }>(
+    `/patients/avatar?identifier=${encodeURIComponent(identifier)}`,
+    { method: 'GET', accessToken: getAccessToken() },
+  )
+}
+
+export function upsertPatientAvatar(identifier: string, avatarBase64: string | null) {
+  return apiRequest<void>('/patients/avatar', {
+    method: 'PUT',
+    accessToken: getAccessToken(),
+    body: JSON.stringify({ identifier, avatarBase64 }),
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
