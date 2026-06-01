@@ -25,10 +25,10 @@ import type { OdontogramSuggestion } from '../utils/parse-dictation-odontogram'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-// At 32 kbps / 60 s the base64 payload is ~320 KB — even at worst-case bitrate
-// (~256 kbps) a 60-second recording produces ~2.56 M chars, well below the
-// backend DTO limit of 4 M chars and the 6 MB body-parser limit.
-const MAX_RECORDING_SECONDS = 60
+// At 32 kbps / 180 s the base64 payload is ~960 KB. The 4 M char DTO limit
+// provides headroom for browsers that ignore the bitrate hint (up to ~133 kbps
+// for 180 s stays under 4 M chars). The 6 MB body-parser is the hard ceiling.
+const MAX_RECORDING_SECONDS = 180
 const TRANSCRIPT_COLLAPSE_THRESHOLD = 150
 // Must match the backend DTO's MAX_AUDIO_BASE64_LENGTH so the frontend blocks
 // oversized audio before sending rather than letting the server return 413.
