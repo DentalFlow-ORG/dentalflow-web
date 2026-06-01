@@ -227,15 +227,15 @@ function DentitionToggle({
   onChange: (mode: DentitionMode) => void
 }) {
   return (
-    <div className="flex w-fit rounded-lg border border-border bg-muted p-0.5">
+    <div className="flex w-fit rounded-lg border border-border bg-muted p-0.5 dark:border-slate-700 dark:bg-slate-800/80">
       <button
         type="button"
         onClick={() => onChange('permanent')}
         className={cn(
           'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
           mode === 'permanent'
-            ? 'bg-card text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground',
+            ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
+            : 'text-muted-foreground hover:text-foreground dark:text-slate-400 dark:hover:text-slate-100',
         )}
       >
         Permanente
@@ -246,8 +246,8 @@ function DentitionToggle({
         className={cn(
           'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
           mode === 'deciduous'
-            ? 'bg-card text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground',
+            ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
+            : 'text-muted-foreground hover:text-foreground dark:text-slate-400 dark:hover:text-slate-100',
         )}
       >
         Decídua

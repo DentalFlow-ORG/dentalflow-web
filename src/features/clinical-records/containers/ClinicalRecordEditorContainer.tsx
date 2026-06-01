@@ -449,7 +449,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
                 onChange={setField('chiefComplaint')}
                 placeholder="Principal motivo da consulta, em palavras do paciente..."
                 readOnly={isReadOnly}
-                rows={2}
+                rows={3}
               />
             </div>
 

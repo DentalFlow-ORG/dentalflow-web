@@ -78,7 +78,7 @@ function OdontogramSnapshotRow({ snapshot }: SnapshotRowProps) {
 function ClinicalTimelineItem({ record }: ItemProps) {
   return (
     <li className="relative">
-      <span className="absolute -left-[1.375rem] top-1.5 flex h-3 w-3 items-center justify-center">
+      <span className="absolute -left-5 top-1.5 flex h-3 w-3 -translate-x-1/2 items-center justify-center">
         <span className="h-3 w-3 rounded-full border-2 border-primary bg-card" />
       </span>
 

@@ -25,7 +25,7 @@ export function BillingIntervalToggle({
       <div
         role="radiogroup"
         aria-label="Período de cobrança"
-        className="inline-flex max-w-full items-center gap-1 rounded-xl border border-border bg-muted p-1.5 shadow-sm"
+        className="inline-flex max-w-full items-center gap-1 rounded-xl border border-border bg-muted p-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-800/80"
       >
         {showMonthly && (
           <Button
@@ -37,8 +37,8 @@ export function BillingIntervalToggle({
             className={cn(
               'h-10 gap-1.5 px-5 text-sm font-medium',
               value === 'MONTHLY'
-                ? 'bg-card text-foreground shadow-sm hover:bg-card'
-                : 'text-muted-foreground hover:bg-card/70 hover:text-foreground',
+                ? 'bg-card text-foreground shadow-sm hover:bg-card dark:bg-slate-700 dark:text-white dark:hover:bg-slate-700'
+                : 'text-muted-foreground hover:bg-card/70 hover:text-foreground dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-slate-100',
             )}
           >
             <span>Mensal</span>
@@ -59,8 +59,8 @@ export function BillingIntervalToggle({
             className={cn(
               'h-10 gap-1.5 px-5 text-sm font-medium',
               value === 'YEARLY'
-                ? 'bg-card text-foreground shadow-sm hover:bg-card'
-                : 'text-muted-foreground hover:bg-card/70 hover:text-foreground',
+                ? 'bg-card text-foreground shadow-sm hover:bg-card dark:bg-slate-700 dark:text-white dark:hover:bg-slate-700'
+                : 'text-muted-foreground hover:bg-card/70 hover:text-foreground dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-slate-100',
             )}
           >
             <span>Anual</span>
