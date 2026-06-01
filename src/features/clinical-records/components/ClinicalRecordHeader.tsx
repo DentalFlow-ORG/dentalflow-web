@@ -52,6 +52,7 @@ export function ClinicalRecordHeader({ record, readOnly = false }: Props) {
             avatarUrl={avatarUrl}
             isSaving={isSaving}
             onUpload={readOnly ? undefined : handleAvatarChange}
+            onError={(msg) => showAlert({ title: 'Foto inválida', description: msg, tone: 'error' })}
             size="lg"
           />
 

@@ -214,6 +214,7 @@ function PatientDetailPanel({
                 avatarUrl={avatarUrl}
                 isSaving={isSaving}
                 onUpload={handleAvatarChange}
+                onError={(msg) => showAlert({ title: 'Foto inválida', description: msg, tone: 'error' })}
                 size="lg"
               />
               <div>

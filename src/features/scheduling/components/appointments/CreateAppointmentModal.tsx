@@ -1,6 +1,6 @@
-import { Loader2, Trash2, Upload, X } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -33,11 +33,6 @@ import {
   listAvailability,
   listAvailabilityExceptions,
 } from '../../services/scheduling.service'
-import {
-  ALLOWED_AVATAR_TYPES,
-  MAX_AVATAR_INPUT_BYTES,
-  compressAvatar,
-} from '@/lib/compress-avatar'
 import { upsertPatientAvatar } from '@/features/patients/services/patients.service'
 import { PatientAvatarWidget } from '@/features/patients/components/PatientAvatarWidget'
 import type {
@@ -89,7 +84,6 @@ export function CreateAppointmentModal({
   const { showAlert } = useGlobalAlerts()
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [pendingAvatarBase64, setPendingAvatarBase64] = useState<string | null>(null)
-  const avatarInputRef = useRef<HTMLInputElement>(null)
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
   const [services, setServices] = useState<ProfileService[]>([])
   const [profileAvailability, setProfileAvailability] = useState<Availability[]>([])
@@ -187,26 +181,6 @@ export function CreateAppointmentModal({
     setEstimateManuallyEdited(false)
     setPendingAvatarBase64(null)
     onClose()
-  }
-
-  async function handleAvatarFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    e.currentTarget.value = ''
-    if (!file) return
-    if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
-      showAlert({ title: 'Formato inválido', description: 'Envie apenas JPEG, PNG ou WebP.', tone: 'error' })
-      return
-    }
-    if (file.size > MAX_AVATAR_INPUT_BYTES) {
-      showAlert({ title: 'Arquivo muito grande', description: 'O tamanho máximo permitido é 5 MB.', tone: 'error' })
-      return
-    }
-    try {
-      const base64 = await compressAvatar(file)
-      setPendingAvatarBase64(base64)
-    } catch {
-      showAlert({ title: 'Erro ao processar foto', description: 'Não foi possível ler a imagem selecionada.', tone: 'error' })
-    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -458,64 +432,31 @@ export function CreateAppointmentModal({
               )}
             </FormField>
 
-            {/* Patient photo — optional; the actual PUT /patients/avatar is fired
-                after appointment creation so the patient identifier is confirmed. */}
-            <div className="rounded-xl border border-dashed border-border bg-muted/40 px-4 py-3.5">
-              <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {/* Patient photo — optional; the PUT /patients/avatar fires after
+                appointment creation so the patient identifier is confirmed.  */}
+            <div className="rounded-xl border border-dashed border-border bg-muted/40 px-4 py-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Foto do paciente{' '}
                 <span className="font-normal normal-case tracking-normal text-muted-foreground/70">
                   (opcional)
                 </span>
               </p>
-              <div className="flex items-center gap-3">
-                {/* Display-only widget — upload is driven by the buttons below */}
+              <div className="flex items-center gap-4">
                 <PatientAvatarWidget
                   name={form.patientName}
                   avatarUrl={pendingAvatarBase64}
-                  size="md"
+                  size="lg"
+                  onUpload={isSubmitting ? undefined : setPendingAvatarBase64}
+                  onError={(msg) =>
+                    showAlert({ title: 'Foto inválida', description: msg, tone: 'error' })
+                  }
                 />
-                <div className="min-w-0 flex-1 space-y-2">
-                  <p className="text-xs text-muted-foreground">
-                    {pendingAvatarBase64
-                      ? 'Foto selecionada — será vinculada ao paciente após criar o agendamento.'
-                      : 'JPEG, PNG ou WebP · máx. 5 MB — vinculada após criar o agendamento.'}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => avatarInputRef.current?.click()}
-                      disabled={isSubmitting}
-                      aria-label={pendingAvatarBase64 ? 'Trocar foto do paciente' : 'Adicionar foto do paciente'}
-                      className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-muted/60 disabled:opacity-50"
-                    >
-                      <Upload className="h-3.5 w-3.5" aria-hidden="true" />
-                      {pendingAvatarBase64 ? 'Trocar foto' : 'Enviar foto'}
-                    </button>
-                    {pendingAvatarBase64 && (
-                      <button
-                        type="button"
-                        onClick={() => setPendingAvatarBase64(null)}
-                        disabled={isSubmitting}
-                        aria-label="Remover foto do paciente"
-                        className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                        Remover foto
-                      </button>
-                    )}
-                  </div>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  {pendingAvatarBase64
+                    ? 'Foto selecionada — será vinculada ao paciente após criar o agendamento.'
+                    : 'Clique na foto para selecionar. JPEG, PNG ou WebP · máx. 5 MB.'}
+                </p>
               </div>
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="sr-only"
-                aria-hidden="true"
-                tabIndex={-1}
-                onChange={handleAvatarFileChange}
-                disabled={isSubmitting}
-              />
             </div>
 
             {/* Patient info */}

@@ -205,11 +205,12 @@ describe('file selection', () => {
     expect(screen.getByRole('button', { name: /Remover foto/i })).toBeInTheDocument()
   })
 
-  it('changes "Enviar foto" label to "Trocar foto" after selection', async () => {
+  it('changes upload button label from "Adicionar" to "Alterar" after selection', async () => {
     renderModal()
     await selectAvatarFile()
-    expect(screen.getByRole('button', { name: /Trocar foto/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Adicionar foto/i })).not.toBeInTheDocument()
+    // Widget switches aria-label from "Adicionar foto" to "Alterar foto" once photo is set
+    expect(screen.getByRole('button', { name: /Alterar foto do paciente/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Adicionar foto do paciente/i })).not.toBeInTheDocument()
   })
 
   it('shows the confirmation hint text after selection', async () => {
@@ -224,7 +225,8 @@ describe('file selection', () => {
     const file = new File(['data'], 'video.mp4', { type: 'video/mp4' })
     fireEvent.change(fileInput, { target: { files: [file] } })
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Formato inválido' }))
+      // onError passes message to showAlert with title 'Foto inválida'
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Foto inválida' }))
     })
     expect(screen.queryByRole('button', { name: /Remover foto/i })).not.toBeInTheDocument()
   })
@@ -236,7 +238,8 @@ describe('file selection', () => {
     const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' })
     fireEvent.change(fileInput, { target: { files: [file] } })
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Erro ao processar foto' }))
+      // onError passes message to showAlert with title 'Foto inválida'
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Foto inválida' }))
     })
     expect(screen.queryByRole('button', { name: /Remover foto/i })).not.toBeInTheDocument()
   })
