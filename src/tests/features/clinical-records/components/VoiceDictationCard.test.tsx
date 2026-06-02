@@ -698,9 +698,9 @@ describe('stop flow reliability', () => {
     expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
   })
 
-  // ── Auto-stop at 90 s uses the same path as the manual button ───────────────
+  // ── Auto-stop at 180 s uses the same path as the manual button ──────────────
   // We drive this by calling recorder.stop() directly — the same call the
-  // 90-second interval makes — to avoid needing 90-second fake timers.
+  // 180-second interval makes — to avoid needing 180-second fake timers.
 
   it('auto-stop (recorder.stop()) triggers the same processing path as the button', async () => {
     const user = userEvent.setup()
@@ -709,7 +709,7 @@ describe('stop flow reliability', () => {
     await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
     await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
 
-    // At 90 s the interval calls stopRecording() which calls recorder.stop().
+    // At 180 s the interval calls stopRecording() which calls recorder.stop().
     // Trigger it directly via the recorder instance — identical behaviour.
     expect(latestRecorder).not.toBeNull()
     expect(latestRecorder!.state).toBe('recording')
