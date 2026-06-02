@@ -166,4 +166,15 @@ describe('InventoryPageContainer — section order', () => {
       filtersSearchBox.compareDocumentPosition(purchaseListHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
   })
+
+  it('renders copilot cards even when deterministic sections have no data', () => {
+    // Both purchase list and abnormal consumption have no data (data: null).
+    // Copilot cards must still appear so that a previous saved analysis remains visible.
+    render(<InventoryPageContainer />)
+
+    // Each copilot card shows the empty prompt when there is no saved result.
+    // The hooks are mocked with result: null above — we get the idle "no analysis" text.
+    const copilotEmptyTexts = screen.getAllByText('Nenhuma análise gerada ainda.')
+    expect(copilotEmptyTexts.length).toBeGreaterThanOrEqual(2)
+  })
 })

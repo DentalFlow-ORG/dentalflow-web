@@ -208,6 +208,11 @@ export function StockAbnormalConsumptionSection() {
     <PanelCard>
       <SectionHeader />
 
+      {/* Copilot — always visible so the latest analysis persists even when there are no current anomalies */}
+      <div className="mt-4">
+        <StockAbnormalConsumptionCopilotCard />
+      </div>
+
       {isPlanBlocked ? (
         <PlanBlockedState />
       ) : error ? (
@@ -218,8 +223,6 @@ export function StockAbnormalConsumptionSection() {
         </div>
       ) : (
         <div className="mt-5 space-y-5">
-          {/* Copilot AI summary — never blocks the deterministic anomaly list */}
-          <StockAbnormalConsumptionCopilotCard />
 
           {/* Summary mini-grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

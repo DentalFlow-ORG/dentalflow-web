@@ -202,6 +202,11 @@ export function StockPurchaseListSection() {
     <PanelCard>
       <SectionHeader />
 
+      {/* Copilot — always visible so the latest analysis persists even when the purchase list is empty */}
+      <div className="mt-4">
+        <StockCopilotCard />
+      </div>
+
       {isPlanBlocked ? (
         <PlanBlockedState />
       ) : error ? (
@@ -212,9 +217,6 @@ export function StockPurchaseListSection() {
         </div>
       ) : (
         <div className="mt-5 space-y-5">
-          {/* Copilot AI summary — never blocks deterministic purchase list */}
-          <StockCopilotCard />
-
           {/* Summary mini-grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <SummaryChip
