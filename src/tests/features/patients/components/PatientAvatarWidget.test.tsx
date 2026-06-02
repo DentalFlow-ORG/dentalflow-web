@@ -186,6 +186,15 @@ describe('PatientAvatarWidget — source picker', () => {
     fireEvent.click(backdrop)
     expect(screen.queryByRole('menu', { name: /Selecionar origem da foto/i })).not.toBeInTheDocument()
   })
+
+  it('closes the source picker when Escape is pressed', async () => {
+    const user = userEvent.setup()
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
+    expect(screen.getByRole('menu', { name: /Selecionar origem da foto/i })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('menu', { name: /Selecionar origem da foto/i })).not.toBeInTheDocument()
+  })
 })
 
 // ── File validation ───────────────────────────────────────────────────────────

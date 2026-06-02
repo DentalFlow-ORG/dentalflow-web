@@ -42,10 +42,13 @@ export function AvatarCropModal({
   const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
 
-  // Create and revoke the object URL for the selected file
+  // Create and revoke the object URL for the selected file.
+  // naturalSize is reset first so the preview uses correct cover-fit from the
+  // first frame, even before the new image fires its onLoad event.
   useEffect(() => {
     if (!imageFile) return
     const url = URL.createObjectURL(imageFile)
+    setNaturalSize({ w: 1, h: 1 })
     setImageSrc(url)
     setZoom(1)
     setOffset({ x: 0, y: 0 })
@@ -131,13 +134,16 @@ export function AvatarCropModal({
   const title = patientName ? `Ajustar foto de ${patientName}` : 'Ajustar foto do paciente'
 
   return (
-    <Dialog.Root open={open}>
+    <Dialog.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) onCancel() }}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-describedby="crop-modal-desc"
           className="fixed left-1/2 top-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-card shadow-2xl animate-in fade-in-0 zoom-in-[0.97] duration-150"
-          onEscapeKeyDown={onCancel}
+          onEscapeKeyDown={(e) => {
+            e.preventDefault()
+            onCancel()
+          }}
           onInteractOutside={onCancel}
         >
           {/* Header */}
@@ -199,7 +205,7 @@ export function AvatarCropModal({
                 onClick={zoomOut}
                 disabled={zoom <= 1}
                 className={cn(
-                  'flex h-9 w-9 items-center justify-center rounded-full border border-border',
+                  'flex h-11 w-11 items-center justify-center rounded-full border border-border',
                   'text-foreground transition-colors hover:bg-muted',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70',
                   'disabled:cursor-not-allowed disabled:opacity-40',
@@ -222,7 +228,7 @@ export function AvatarCropModal({
                 onClick={zoomIn}
                 disabled={zoom >= 3}
                 className={cn(
-                  'flex h-9 w-9 items-center justify-center rounded-full border border-border',
+                  'flex h-11 w-11 items-center justify-center rounded-full border border-border',
                   'text-foreground transition-colors hover:bg-muted',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70',
                   'disabled:cursor-not-allowed disabled:opacity-40',

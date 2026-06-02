@@ -1,5 +1,5 @@
 import { Camera, ImageIcon, Loader2, Plus, Upload, X } from 'lucide-react'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 import { cn } from '@/lib/utils'
 import { ALLOWED_AVATAR_TYPES, MAX_AVATAR_INPUT_BYTES } from '@/lib/compress-avatar'
@@ -92,6 +92,16 @@ export function PatientAvatarWidget({
   const handleCropError = (message: string) => {
     onError?.(message)
   }
+
+  // Close the source picker when the user presses Escape
+  useEffect(() => {
+    if (!showSourcePicker) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowSourcePicker(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showSourcePicker])
 
   return (
     <div className={cn('relative shrink-0', className)}>
@@ -192,7 +202,7 @@ export function PatientAvatarWidget({
             <button
               type="button"
               role="menuitem"
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
               onClick={() => {
                 setShowSourcePicker(false)
                 fileInputRef.current?.click()
@@ -205,7 +215,7 @@ export function PatientAvatarWidget({
             <button
               type="button"
               role="menuitem"
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
               onClick={() => {
                 setShowSourcePicker(false)
                 cameraInputRef.current?.click()
