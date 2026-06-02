@@ -1759,4 +1759,69 @@ describe('conflict-aware review', () => {
     // Mode UI is gone — no residual mode buttons visible
     expect(screen.queryByRole('button', { name: /Substituir tudo/i })).not.toBeInTheDocument()
   })
+
+  // ── "Editar antes de aplicar" mode ────────────────────────────────────────────
+
+  it('shows "Editar antes de aplicar" button in the mode selector for conflicted fields', async () => {
+    await reachSuccessWithConflict({ clinicalEvolution: 'Texto existente' })
+    expect(screen.getByRole('button', { name: /Editar antes de aplicar/i })).toBeInTheDocument()
+  })
+
+  it('clicking "Editar antes de aplicar" pre-fills textarea with merged content', async () => {
+    // Default mock: clinicalEvolution AI text = 'Sensibilidade ao frio.'
+    // existing content = 'Texto existente'
+    // Expected combined = 'Texto existente\n\nSensibilidade ao frio.'
+    const { user } = await reachSuccessWithConflict({ clinicalEvolution: 'Texto existente' })
+
+    await user.click(screen.getByRole('button', { name: /Editar antes de aplicar/i }))
+
+    const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
+    const evolutionTextarea = textareas.find(
+      (t) => t.getAttribute('aria-label')?.includes('Evolução clínica'),
+    )
+    expect(evolutionTextarea).toBeDefined()
+    expect(evolutionTextarea!.value).toBe('Texto existente\n\nSensibilidade ao frio.')
+  })
+
+  it('"Editar antes de aplicar" mode is active (aria-pressed=true) after clicking it', async () => {
+    const { user } = await reachSuccessWithConflict({ clinicalEvolution: 'Texto existente' })
+    const editBtn = screen.getByRole('button', { name: /Editar antes de aplicar/i })
+    await user.click(editBtn)
+    expect(editBtn).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /Adicionar ao final/i })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /Substituir tudo/i })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('apply with edit mode passes "edit" in the modes object', async () => {
+    const onApplyFields = vi.fn()
+    const { user } = await reachSuccessWithConflict(
+      { clinicalEvolution: 'Texto existente' },
+      onApplyFields,
+    )
+    await user.click(screen.getByRole('button', { name: /Editar antes de aplicar/i }))
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+    const [, modes] = onApplyFields.mock.calls[0] as [unknown, Record<string, string>]
+    expect(modes.clinicalEvolution).toBe('edit')
+  })
+
+  it('edit mode textarea content can be further modified before applying', async () => {
+    const onApplyFields = vi.fn()
+    const { user } = await reachSuccessWithConflict(
+      { clinicalEvolution: 'Texto existente' },
+      onApplyFields,
+    )
+    await user.click(screen.getByRole('button', { name: /Editar antes de aplicar/i }))
+
+    const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
+    const evolutionTextarea = textareas.find(
+      (t) => t.getAttribute('aria-label')?.includes('Evolução clínica'),
+    )!
+    await user.clear(evolutionTextarea)
+    await user.type(evolutionTextarea, 'Texto personalizado pelo dentista')
+
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+
+    const [fields] = onApplyFields.mock.calls[0] as [Record<string, string>, unknown]
+    expect(fields.clinicalEvolution).toBe('Texto personalizado pelo dentista')
+  })
 })

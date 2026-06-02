@@ -23,6 +23,7 @@ import { ODONTOGRAM_CONDITION_LABELS } from '../utils/odontogram-status-utils'
 import { parseDictationOdontogram } from '../utils/parse-dictation-odontogram'
 import type { OdontogramSuggestion } from '../utils/parse-dictation-odontogram'
 import type { FieldApplyMode } from '../utils/apply-clinical-dictation-fields'
+import { mergeDictationField } from '../utils/clinical-dictation-field-merge'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -60,6 +61,13 @@ const DICTATION_FIELD_LABELS: Record<ClinicalDictationFieldKey, string> = {
   prescription:        'Prescrição',
   recommendations:     'Recomendações',
   privateNotes:        'Notas privadas',
+}
+
+// Human-readable labels for each apply mode, shown on the per-field mode buttons.
+const APPLY_MODE_LABELS: Record<FieldApplyMode, string> = {
+  append:  'Adicionar ao final',
+  replace: 'Substituir tudo',
+  edit:    'Editar antes de aplicar',
 }
 
 // ── Audio helpers ─────────────────────────────────────────────────────────────
@@ -722,6 +730,24 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
     })
   }, [])
 
+  // Switches the apply mode for a single field and, when 'edit' is selected,
+  // pre-fills the textarea with the merged content (existing + original AI text)
+  // so the dentist has a complete starting point to customise.
+  const handleModeSelect = useCallback(
+    (key: ClinicalDictationFieldKey, mode: FieldApplyMode) => {
+      setFieldModes((prev) => ({ ...prev, [key]: mode }))
+      if (mode === 'edit') {
+        const existing = (currentFieldValues?.[key] ?? '').trim()
+        const original = suggestedFields[key] ?? ''
+        setEditableFields((prev) => ({
+          ...prev,
+          [key]: mergeDictationField(existing, original),
+        }))
+      }
+    },
+    [currentFieldValues, suggestedFields],
+  )
+
   // ── Derived values ──────────────────────────────────────────────────────────
 
   const fieldEntries = Object.entries(suggestedFields) as [ClinicalDictationFieldKey, string][]
@@ -968,26 +994,24 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
                             {/* Mode selector — only for fields that already have content */}
                             {hasExisting && (
                               <div
-                                className="flex gap-1 px-3 pb-1.5"
+                                className="flex flex-wrap gap-1 px-3 pb-1.5"
                                 role="group"
                                 aria-label={`Modo de aplicação para ${DICTATION_FIELD_LABELS[key]}`}
                               >
-                                {(['append', 'replace'] as FieldApplyMode[]).map((mode) => (
+                                {(['append', 'replace', 'edit'] as FieldApplyMode[]).map((mode) => (
                                   <button
                                     key={mode}
                                     type="button"
-                                    onClick={() => {
-                                      setFieldModes((prev) => ({ ...prev, [key]: mode }))
-                                    }}
+                                    onClick={() => handleModeSelect(key, mode)}
                                     aria-pressed={currentMode === mode}
                                     className={cn(
-                                      'rounded-full px-2.5 py-0.5 text-[10px] font-medium transition-colors border',
+                                      'rounded-full px-2.5 py-1 text-[10px] font-medium transition-colors border',
                                       currentMode === mode
                                         ? 'border-primary/30 bg-primary/10 text-primary dark:border-primary/40 dark:bg-primary/20'
                                         : 'border-border bg-muted/50 text-muted-foreground hover:bg-muted',
                                     )}
                                   >
-                                    {mode === 'append' ? 'Adicionar ao final' : 'Substituir tudo'}
+                                    {APPLY_MODE_LABELS[mode]}
                                   </button>
                                 ))}
                               </div>

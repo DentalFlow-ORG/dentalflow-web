@@ -224,6 +224,66 @@ describe('applyDictationFields', () => {
     expect(draftPatch.chiefComplaint).toBe('Dor no dente 36')
   })
 
+  it('edit mode applies the value directly (same mechanics as replace)', () => {
+    const { draftPatch } = applyDictationFields(
+      { clinicalEvolution: 'Conteúdo anterior\n\nTexto editado' },
+      cv({ clinicalEvolution: 'Conteúdo anterior' }),
+      { clinicalEvolution: 'edit' },
+    )
+    expect(draftPatch.clinicalEvolution).toBe('Conteúdo anterior\n\nTexto editado')
+  })
+
+  it('edit mode does not re-merge — the textarea value is the final value', () => {
+    const { draftPatch } = applyDictationFields(
+      { anamnesis: 'Texto customizado pelo dentista' },
+      cv({ anamnesis: 'Conteúdo original' }),
+      { anamnesis: 'edit' },
+    )
+    // Must not produce "Conteúdo original\n\nTexto customizado pelo dentista"
+    expect(draftPatch.anamnesis).toBe('Texto customizado pelo dentista')
+  })
+
+  it('edit mode with empty textarea value is still excluded from the patch', () => {
+    const { draftPatch } = applyDictationFields(
+      { clinicalEvolution: '' },
+      cv({ clinicalEvolution: 'Conteúdo anterior' }),
+      { clinicalEvolution: 'edit' },
+    )
+    expect(draftPatch).not.toHaveProperty('clinicalEvolution')
+  })
+
+  it('edit mode trims the textarea value', () => {
+    const { draftPatch } = applyDictationFields(
+      { diagnosis: '  Texto editado  ' },
+      cv({ diagnosis: 'Diagnóstico existente' }),
+      { diagnosis: 'edit' },
+    )
+    expect(draftPatch.diagnosis).toBe('Texto editado')
+  })
+
+  it('mixed modes including edit — each field uses its own mode independently', () => {
+    const { draftPatch } = applyDictationFields(
+      {
+        clinicalEvolution: 'Conteúdo anterior\n\nIA gerado',
+        anamnesis:         'Texto novo',
+        diagnosis:         'Diagnóstico novo',
+      },
+      cv({
+        clinicalEvolution: 'Conteúdo anterior',
+        anamnesis:         'Anamnese anterior',
+        diagnosis:         'Diagnóstico anterior',
+      }),
+      {
+        clinicalEvolution: 'edit',
+        anamnesis:         'append',
+        diagnosis:         'replace',
+      },
+    )
+    expect(draftPatch.clinicalEvolution).toBe('Conteúdo anterior\n\nIA gerado')
+    expect(draftPatch.anamnesis).toBe('Anamnese anterior\n\nTexto novo')
+    expect(draftPatch.diagnosis).toBe('Diagnóstico novo')
+  })
+
   // ── 8. Autosave / dirty-guard contract ──────────────────────────────────────
   // When draftPatch is non-empty, the container calls setField() for each entry,
   // which updates the React draft state. This makes isDirty=true, activating

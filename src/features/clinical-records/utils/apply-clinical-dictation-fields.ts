@@ -8,8 +8,10 @@ import { mergeDictationField } from './clinical-dictation-field-merge'
  * Per-field apply mode chosen by the dentist in the review UI.
  * - append:  generated text is appended after existing content (safe default)
  * - replace: generated text replaces the existing content entirely
+ * - edit:    dentist edited the generated text (possibly combined with existing);
+ *            the textarea value is applied directly, same mechanics as replace
  */
-export type FieldApplyMode = 'append' | 'replace'
+export type FieldApplyMode = 'append' | 'replace' | 'edit'
 
 /**
  * The subset of editor section IDs that dictation fields can target.
@@ -71,7 +73,10 @@ export function applyDictationFields(
     const current = currentValues[key] ?? ''
     const mode: FieldApplyMode = modes?.[key as ClinicalDictationFieldKey] ?? 'append'
 
-    if (mode === 'replace') {
+    if (mode === 'replace' || mode === 'edit') {
+      // replace: AI text overwrites existing entirely
+      // edit:    dentist already combined/modified the text in the textarea;
+      //          apply the textarea value directly without re-merging
       draftPatch[key as keyof UpdateClinicalRecordDto] = value.trim()
     } else {
       draftPatch[key as keyof UpdateClinicalRecordDto] = mergeDictationField(current, value)
