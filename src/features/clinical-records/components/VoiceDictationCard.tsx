@@ -842,7 +842,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
                       {transcriptExpanded ? 'Ver menos' : 'Ver mais'}
                     </button>
                   )}
-                  <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground dark:bg-slate-800/60 dark:text-slate-300">
                     PT-BR
                   </span>
                 </div>
@@ -1019,7 +1019,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="min-h-11 w-full"
                   onClick={reset}
                 >
                   <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1028,7 +1028,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="min-h-11 w-full"
                   onClick={handleDiscard}
                 >
                   Descartar
@@ -1047,7 +1047,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
               <div className="flex flex-col gap-2">
                 <Button
                   type="button"
-                  className="w-full"
+                  className="min-h-11 w-full"
                   onClick={reset}
                 >
                   <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1056,7 +1056,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="min-h-11 w-full"
                   onClick={handleDiscard}
                 >
                   Descartar
@@ -1084,7 +1084,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="min-h-11 w-full"
             onClick={reset}
           >
             Tentar novamente

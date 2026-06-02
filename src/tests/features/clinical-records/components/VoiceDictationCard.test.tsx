@@ -672,6 +672,51 @@ describe('accessibility', () => {
     // Empty-field notice is gone
     expect(screen.queryByText(/nenhum campo clínico foi identificado/i)).not.toBeInTheDocument()
   })
+
+  it('all action buttons in the success state have the min-h-11 touch-target class', async () => {
+    // Ensures secondary action buttons meet the same 44 px minimum touch target
+    // as the primary apply button, preventing regression on mobile devices.
+    await reachSuccessState()
+
+    const applyBtn = screen.getByRole('button', { name: /Aplicar campos selecionados/i })
+    const rerecordBtn = screen.getByRole('button', { name: /Gravar novamente/i })
+    const discardBtn = screen.getByRole('button', { name: /Descartar/i })
+
+    expect(applyBtn.className).toContain('min-h-11')
+    expect(rerecordBtn.className).toContain('min-h-11')
+    expect(discardBtn.className).toContain('min-h-11')
+  })
+
+  it('the "Tentar novamente" button in error state has the min-h-11 touch-target class', async () => {
+    await triggerServiceError(new ApiError('Service unavailable', 503, null))
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument(),
+    )
+
+    const retryBtn = screen.getByRole('button', { name: /Tentar novamente/i })
+    expect(retryBtn.className).toContain('min-h-11')
+  })
+
+  it('all action buttons in the empty-field state have the min-h-11 touch-target class', async () => {
+    mockDictateClinicalRecord.mockResolvedValue({ transcript: 'Sem campos.', fields: {} })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(() =>
+      expect(screen.getByText(/nenhum campo clínico foi identificado/i)).toBeInTheDocument(),
+    )
+
+    const rerecordBtn = screen.getByRole('button', { name: /Gravar novamente/i })
+    const discardBtn = screen.getByRole('button', { name: /Descartar/i })
+
+    expect(rerecordBtn.className).toContain('min-h-11')
+    expect(discardBtn.className).toContain('min-h-11')
+  })
 })
 
 // ── 13. Stop flow reliability ─────────────────────────────────────────────────
