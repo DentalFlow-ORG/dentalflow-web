@@ -25,7 +25,15 @@ export function ClinicalTimeline({ records }: Props) {
   }
 
   return (
-    <ol className="relative space-y-4 border-l border-border pl-5">
+    <ol className="relative space-y-4">
+      {/* Vertical connecting line — explicit element so the dot can be centred
+          on it precisely. The line sits at left-3 (12 px); the dot inside each
+          li uses the same left-3 value with -translate-x-1/2, placing its
+          centre exactly on the line regardless of border-width rounding. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-3 w-px bg-border"
+      />
       {records.map((record) => (
         <ClinicalTimelineItem key={record.id} record={record} />
       ))}
@@ -77,10 +85,9 @@ function OdontogramSnapshotRow({ snapshot }: SnapshotRowProps) {
 
 function ClinicalTimelineItem({ record }: ItemProps) {
   return (
-    <li className="relative">
-      <span className="absolute -left-5 top-1.5 flex h-3 w-3 -translate-x-1/2 items-center justify-center">
-        <span className="h-3 w-3 rounded-full border-2 border-primary bg-card" />
-      </span>
+    <li className="relative pl-7">
+      {/* Dot — left-3 centres it at x=12 px, matching the line in ClinicalTimeline */}
+      <span className="absolute left-3 top-3.5 h-3 w-3 -translate-x-1/2 rounded-full border-2 border-primary bg-card" />
 
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-2">
