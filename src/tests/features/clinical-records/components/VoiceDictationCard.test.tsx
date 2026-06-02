@@ -1804,6 +1804,47 @@ describe('conflict-aware review', () => {
     expect(modes.clinicalEvolution).toBe('edit')
   })
 
+  it('switching from "Editar antes de aplicar" back to "Adicionar ao final" restores the original AI text in the textarea', async () => {
+    // Default mock: clinicalEvolution AI text = 'Sensibilidade ao frio.'
+    // existing content = 'Texto existente'
+    const { user } = await reachSuccessWithConflict({ clinicalEvolution: 'Texto existente' })
+
+    // Enter edit mode — textarea shows merged content
+    await user.click(screen.getByRole('button', { name: /Editar antes de aplicar/i }))
+
+    const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
+    const evolutionTextarea = textareas.find(
+      (t) => t.getAttribute('aria-label')?.includes('Evolução clínica'),
+    )!
+    expect(evolutionTextarea.value).toBe('Texto existente\n\nSensibilidade ao frio.')
+
+    // Switch back to append mode
+    await user.click(screen.getByRole('button', { name: /Adicionar ao final/i }))
+
+    // Textarea must be restored to the original AI suggestion so the container
+    // can merge correctly without double-applying the existing content.
+    expect(evolutionTextarea.value).toBe('Sensibilidade ao frio.')
+  })
+
+  it('after switching from edit back to append, applying passes the original AI text (not already-merged content)', async () => {
+    // Regression: before the fix, editableFields kept the merged content after
+    // mode switch, causing the container to produce "existing\n\nexisting\n\nAI".
+    const onApplyFields = vi.fn()
+    const { user } = await reachSuccessWithConflict(
+      { clinicalEvolution: 'Texto existente' },
+      onApplyFields,
+    )
+
+    await user.click(screen.getByRole('button', { name: /Editar antes de aplicar/i }))
+    await user.click(screen.getByRole('button', { name: /Adicionar ao final/i }))
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+
+    const [fields] = onApplyFields.mock.calls[0] as [Record<string, string>, unknown]
+    // Must be the original AI text; the container handles merging with existing content.
+    // A double-merge would produce 'Texto existente\n\nSensibilidade ao frio.'
+    expect(fields.clinicalEvolution).toBe('Sensibilidade ao frio.')
+  })
+
   it('edit mode textarea content can be further modified before applying', async () => {
     const onApplyFields = vi.fn()
     const { user } = await reachSuccessWithConflict(

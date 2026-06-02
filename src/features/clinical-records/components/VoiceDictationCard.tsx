@@ -730,9 +730,11 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
     })
   }, [])
 
-  // Switches the apply mode for a single field and, when 'edit' is selected,
-  // pre-fills the textarea with the merged content (existing + original AI text)
-  // so the dentist has a complete starting point to customise.
+  // Switches the apply mode for a single field and updates the textarea content
+  // to match what the dentist would be working with under that mode:
+  // - 'edit':    pre-fills with merged content (existing + original AI) as a starting point
+  // - 'append' / 'replace': restores the original AI text so the container can
+  //   merge/replace correctly without operating on already-merged content
   const handleModeSelect = useCallback(
     (key: ClinicalDictationFieldKey, mode: FieldApplyMode) => {
       setFieldModes((prev) => ({ ...prev, [key]: mode }))
@@ -742,6 +744,14 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
         setEditableFields((prev) => ({
           ...prev,
           [key]: mergeDictationField(existing, original),
+        }))
+      } else {
+        // Restore the original AI-generated text. Without this, switching back
+        // from 'edit' (where editableFields holds merged content) would cause the
+        // container to merge again in append mode, duplicating existing content.
+        setEditableFields((prev) => ({
+          ...prev,
+          [key]: suggestedFields[key] ?? '',
         }))
       }
     },
