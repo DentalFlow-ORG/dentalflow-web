@@ -22,6 +22,7 @@ import { formatDictationFieldText } from '../utils/format-dictation-field-text'
 import { ODONTOGRAM_CONDITION_LABELS } from '../utils/odontogram-status-utils'
 import { parseDictationOdontogram } from '../utils/parse-dictation-odontogram'
 import type { OdontogramSuggestion } from '../utils/parse-dictation-odontogram'
+import type { FieldApplyMode } from '../utils/apply-clinical-dictation-fields'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -143,11 +144,21 @@ type Props = {
   /** True when the record is not DRAFT — recording is blocked and a notice is shown. */
   readOnly: boolean
   /**
-   * Called after the dentist reviews and accepts the selected suggestions.
-   * Receives only the fields the dentist chose to apply, already formatted.
-   * The container is responsible for merging these into the draft.
+   * Current draft values for all dictation-targetable fields. Used to detect
+   * conflicts (fields that already have content) and show the appropriate
+   * conflict badge and mode selector in the review UI.
    */
-  onApplyFields: (fields: Partial<Record<ClinicalDictationFieldKey, string>>) => void
+  currentFieldValues?: Partial<Record<ClinicalDictationFieldKey, string>>
+  /**
+   * Called after the dentist reviews and accepts the selected suggestions.
+   * Receives the fields the dentist chose to apply (already formatted) and
+   * the per-field apply modes (append / replace) chosen in the review UI.
+   * The container is responsible for computing the final field values.
+   */
+  onApplyFields: (
+    fields: Partial<Record<ClinicalDictationFieldKey, string>>,
+    modes: Partial<Record<ClinicalDictationFieldKey, FieldApplyMode>>,
+  ) => void
   /**
    * Optional. Called when the dentist applies odontogram marking suggestions.
    * Receives only the suggestions whose checkboxes were selected.
@@ -195,7 +206,7 @@ function LockedState() {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyOdontogram }: Props) {
+export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onApplyFields, onApplyOdontogram }: Props) {
   const { showAlert } = useGlobalAlerts()
 
   // Plan gate — lock for starter/professional; unlock for premium or null (admin/cache miss).
@@ -233,6 +244,9 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
   const [selectedOdontogramTeeth, setSelectedOdontogramTeeth] = useState<Set<string>>(new Set())
   // Inline warning shown when apply is attempted but no valid content remains.
   const [applyWarning, setApplyWarning] = useState<string | null>(null)
+  // Per-field apply mode: 'append' (default, safe) or 'replace'.
+  // Initialized for each suggested field when the success state is reached.
+  const [fieldModes, setFieldModes] = useState<Partial<Record<ClinicalDictationFieldKey, FieldApplyMode>>>({})
 
   const mediaRecorderRef      = useRef<MediaRecorder | null>(null)
   const chunksRef             = useRef<Blob[]>([])
@@ -326,6 +340,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
     setOdontogramSuggestions([])
     setEditableOdontogramNotes({})
     setSelectedOdontogramTeeth(new Set())
+    setFieldModes({})
     setApplyWarning(null)
     setErrorMessage(null)
     setState('idle')
@@ -444,6 +459,13 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
         // Select all returned fields by default so the dentist can review and
         // unselect any they don't want to apply.
         setSelectedFieldKeys(new Set(Object.keys(result.fields) as ClinicalDictationFieldKey[]))
+        // Default all modes to 'append' — the safe choice that never silently
+        // destroys existing content. The dentist can switch to 'replace' per field.
+        const initialModes: Partial<Record<ClinicalDictationFieldKey, FieldApplyMode>> = {}
+        for (const key of Object.keys(result.fields) as ClinicalDictationFieldKey[]) {
+          initialModes[key] = 'append'
+        }
+        setFieldModes(initialModes)
         // Prefer backend-supplied odontogram suggestions (GPT-extracted, already validated).
         // Fall back to frontend regex parsing when the backend returns none — this keeps
         // older backend versions and test mocks without the field working correctly.
@@ -656,7 +678,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
       return
     }
 
-    if (hasValidFields) onApplyFields(toApply)
+    if (hasValidFields) onApplyFields(toApply, fieldModes)
     if (hasValidOdontogram) onApplyOdontogram!(oToApply)
 
     showAlert({
@@ -668,6 +690,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
   }, [
     editableFields,
     selectedFieldKeys,
+    fieldModes,
     odontogramSuggestions,
     selectedOdontogramTeeth,
     editableOdontogramNotes,
@@ -706,6 +729,16 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
   const hasAnySuggestions = hasFields || odontogramSuggestions.length > 0
   const canApply = selectedFieldKeys.size > 0 || (!!onApplyOdontogram && selectedOdontogramTeeth.size > 0)
   const transcriptIsLong = (transcript?.length ?? 0) > TRANSCRIPT_COLLAPSE_THRESHOLD
+
+  // Conflict detection: fields that have a dictation suggestion AND already have
+  // content in the current draft. Used to show the conflict banner and per-field
+  // "Já possui conteúdo" badge.
+  const conflictingKeys = new Set(
+    fieldEntries
+      .filter(([key]) => (currentFieldValues?.[key] ?? '').trim() !== '')
+      .map(([key]) => key),
+  )
+  const hasConflicts = conflictingKeys.size > 0
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -872,9 +905,30 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
                       {selectedFieldKeys.size}/{fieldEntries.length} selecionado{selectedFieldKeys.size !== 1 ? 's' : ''}
                     </span>
                   </div>
+
+                  {/* Conflict warning — shown when at least one suggested field already
+                      has content in the current draft. The dentist can choose per-field
+                      whether to append or replace via the mode selector below. */}
+                  {hasConflicts && (
+                    <div
+                      role="note"
+                      className="mb-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 dark:border-amber-800/50 dark:bg-amber-950/20"
+                    >
+                      <AlertCircle
+                        className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400"
+                        aria-hidden="true"
+                      />
+                      <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
+                        Alguns campos já possuem informações preenchidas. Revise antes de aplicar para evitar sobrescrever dados importantes.
+                      </p>
+                    </div>
+                  )}
+
                   <ul className="space-y-2" aria-label="Selecione os campos a aplicar ao prontuário">
                     {fieldEntries.map(([key]) => {
                       const isSelected = selectedFieldKeys.has(key)
+                      const hasExisting = conflictingKeys.has(key)
+                      const currentMode: FieldApplyMode = fieldModes[key] ?? 'append'
                       return (
                         <li key={key}>
                           <div
@@ -885,6 +939,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
                                 : 'border-border bg-muted/20',
                             )}
                           >
+                            {/* Label row */}
                             <label className="flex cursor-pointer items-center gap-2.5 px-3 pt-2.5 pb-1.5">
                               <input
                                 type="checkbox"
@@ -899,7 +954,46 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
                               <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                                 {DICTATION_FIELD_LABELS[key]}
                               </span>
+                              {/* "Já possui conteúdo" badge — visible when field already has text */}
+                              {hasExisting && (
+                                <span
+                                  className="ml-auto rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
+                                  aria-label="Este campo já possui conteúdo"
+                                >
+                                  Já possui conteúdo
+                                </span>
+                              )}
                             </label>
+
+                            {/* Mode selector — only for fields that already have content */}
+                            {hasExisting && (
+                              <div
+                                className="flex gap-1 px-3 pb-1.5"
+                                role="group"
+                                aria-label={`Modo de aplicação para ${DICTATION_FIELD_LABELS[key]}`}
+                              >
+                                {(['append', 'replace'] as FieldApplyMode[]).map((mode) => (
+                                  <button
+                                    key={mode}
+                                    type="button"
+                                    onClick={() => {
+                                      setFieldModes((prev) => ({ ...prev, [key]: mode }))
+                                    }}
+                                    aria-pressed={currentMode === mode}
+                                    className={cn(
+                                      'rounded-full px-2.5 py-0.5 text-[10px] font-medium transition-colors border',
+                                      currentMode === mode
+                                        ? 'border-primary/30 bg-primary/10 text-primary dark:border-primary/40 dark:bg-primary/20'
+                                        : 'border-border bg-muted/50 text-muted-foreground hover:bg-muted',
+                                    )}
+                                  >
+                                    {mode === 'append' ? 'Adicionar ao final' : 'Substituir tudo'}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Editable textarea — always visible for review/editing */}
                             <div className="px-3 pb-3">
                               <textarea
                                 value={editableFields[key] ?? ''}

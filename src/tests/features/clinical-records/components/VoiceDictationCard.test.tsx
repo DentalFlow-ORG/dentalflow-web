@@ -315,10 +315,10 @@ describe('apply action', () => {
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
 
-    expect(onApplyFields).toHaveBeenCalledWith({
-      chiefComplaint: 'Dor no dente 36',
-      clinicalEvolution: 'Sensibilidade ao frio.',
-    })
+    expect(onApplyFields).toHaveBeenCalledWith(
+      { chiefComplaint: 'Dor no dente 36', clinicalEvolution: 'Sensibilidade ao frio.' },
+      expect.any(Object), // per-field modes (append/replace)
+    )
     expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'success' }))
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument(),
@@ -1206,6 +1206,7 @@ describe('editable field review', () => {
 
     expect(onApplyFields).toHaveBeenCalledWith(
       expect.objectContaining({ chiefComplaint: 'Nova queixa editada pelo dentista' }),
+      expect.any(Object),
     )
   })
 
@@ -1619,5 +1620,143 @@ describe('dev debug panel', () => {
     } finally {
       vi.stubGlobal('FileReader', FakeFileReader)
     }
+  })
+})
+
+// ── 21. Conflict-aware review (currentFieldValues) ────────────────────────────
+// When currentFieldValues shows that a suggested field already has content,
+// the review UI must display a conflict badge, a conflict banner, and a mode
+// selector that defaults to "Adicionar ao final".
+
+describe('conflict-aware review', () => {
+  // Helper that renders the card with pre-filled field values and drives it to
+  // the success state so the conflict UI is visible.
+  async function reachSuccessWithConflict(
+    currentFieldValues: Partial<Record<string, string>>,
+    onApplyFields = vi.fn(),
+  ) {
+    const user = userEvent.setup()
+    render(
+      <VoiceDictationCard
+        recordId={RECORD_ID}
+        readOnly={false}
+        onApplyFields={onApplyFields}
+        currentFieldValues={currentFieldValues}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+    await waitFor(
+      () => expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+    return { user, onApplyFields }
+  }
+
+  it('shows "Já possui conteúdo" badge when a suggested field already has content', async () => {
+    // The mock returns chiefComplaint and clinicalEvolution; give clinicalEvolution existing content
+    await reachSuccessWithConflict({ clinicalEvolution: 'Conteúdo anterior' })
+    expect(screen.getByText(/Já possui conteúdo/i)).toBeInTheDocument()
+  })
+
+  it('does not show "Já possui conteúdo" badge when the field is empty', async () => {
+    await reachSuccessWithConflict({ clinicalEvolution: '' })
+    expect(screen.queryByText(/Já possui conteúdo/i)).not.toBeInTheDocument()
+  })
+
+  it('shows the conflict warning banner when at least one field has existing content', async () => {
+    await reachSuccessWithConflict({ clinicalEvolution: 'Texto existente' })
+    expect(
+      screen.getByText(/Alguns campos já possuem informações preenchidas/i),
+    ).toBeInTheDocument()
+  })
+
+  it('does not show the conflict banner when no suggested field has existing content', async () => {
+    await reachSuccessWithConflict({})
+    expect(
+      screen.queryByText(/Alguns campos já possuem informações preenchidas/i),
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows mode selector buttons for a field with existing content', async () => {
+    await reachSuccessWithConflict({ clinicalEvolution: 'Texto existente' })
+    // Both mode buttons must be present in the mode selector group
+    expect(screen.getByRole('button', { name: /Adicionar ao final/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Substituir tudo/i })).toBeInTheDocument()
+  })
+
+  it('does not show mode selector buttons for a field without existing content', async () => {
+    // chiefComplaint has no existing content; clinicalEvolution does
+    await reachSuccessWithConflict({ clinicalEvolution: 'Texto existente' })
+    // There should be exactly one set of mode buttons (only for clinicalEvolution)
+    const appendBtns = screen.getAllByRole('button', { name: /Adicionar ao final/i })
+    expect(appendBtns).toHaveLength(1)
+  })
+
+  it('default mode for a conflicted field is "Adicionar ao final" (aria-pressed=true)', async () => {
+    await reachSuccessWithConflict({ clinicalEvolution: 'Texto existente' })
+    const appendBtn = screen.getByRole('button', { name: /Adicionar ao final/i })
+    expect(appendBtn).toHaveAttribute('aria-pressed', 'true')
+    const replaceBtn = screen.getByRole('button', { name: /Substituir tudo/i })
+    expect(replaceBtn).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('clicking "Substituir tudo" switches the mode and updates aria-pressed', async () => {
+    const { user } = await reachSuccessWithConflict({ clinicalEvolution: 'Texto existente' })
+    const replaceBtn = screen.getByRole('button', { name: /Substituir tudo/i })
+    await user.click(replaceBtn)
+    expect(replaceBtn).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /Adicionar ao final/i })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('apply with default append mode passes modes object with append for the conflicted field', async () => {
+    const onApplyFields = vi.fn()
+    const { user } = await reachSuccessWithConflict(
+      { clinicalEvolution: 'Texto existente' },
+      onApplyFields,
+    )
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+    const [, modes] = onApplyFields.mock.calls[0] as [unknown, Record<string, string>]
+    expect(modes.clinicalEvolution).toBe('append')
+  })
+
+  it('apply with "Substituir tudo" passes replace mode for that field', async () => {
+    const onApplyFields = vi.fn()
+    const { user } = await reachSuccessWithConflict(
+      { clinicalEvolution: 'Texto existente' },
+      onApplyFields,
+    )
+    await user.click(screen.getByRole('button', { name: /Substituir tudo/i }))
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+    const [, modes] = onApplyFields.mock.calls[0] as [unknown, Record<string, string>]
+    expect(modes.clinicalEvolution).toBe('replace')
+  })
+
+  it('apply when all checked fields are empty still shows the no-content warning', async () => {
+    const onApplyFields = vi.fn()
+    const { user } = await reachSuccessWithConflict(
+      { clinicalEvolution: 'Texto existente' },
+      onApplyFields,
+    )
+    // Clear all textareas
+    const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
+    for (const ta of textareas) await user.clear(ta)
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+    expect(screen.getByText(/Nenhum campo selecionado possui conteúdo/i)).toBeInTheDocument()
+    expect(onApplyFields).not.toHaveBeenCalled()
+  })
+
+  it('resetting to idle clears fieldModes so next recording starts with fresh modes', async () => {
+    const { user } = await reachSuccessWithConflict({ clinicalEvolution: 'Texto existente' })
+    // Switch to replace
+    await user.click(screen.getByRole('button', { name: /Substituir tudo/i }))
+    // Discard resets all state including modes
+    await user.click(screen.getByRole('button', { name: /Descartar/i }))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument(),
+    )
+    // Mode UI is gone — no residual mode buttons visible
+    expect(screen.queryByRole('button', { name: /Substituir tudo/i })).not.toBeInTheDocument()
   })
 })

@@ -5,6 +5,13 @@ import { mergeDictationField } from './clinical-dictation-field-merge'
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 /**
+ * Per-field apply mode chosen by the dentist in the review UI.
+ * - append:  generated text is appended after existing content (safe default)
+ * - replace: generated text replaces the existing content entirely
+ */
+export type FieldApplyMode = 'append' | 'replace'
+
+/**
  * The subset of editor section IDs that dictation fields can target.
  * Maps to the SectionId union used by ClinicalRecordEditorContainer.
  */
@@ -14,7 +21,7 @@ export type ApplyDictationResult = {
   /**
    * The field updates to merge into the clinical record draft.
    * Only keys with non-empty dictation values are present.
-   * Each value is the result of mergeDictationField(currentValue, dictatedValue).
+   * Each value reflects the chosen FieldApplyMode (append or replace).
    */
   draftPatch: Partial<UpdateClinicalRecordDto>
   /**
@@ -50,17 +57,25 @@ const SECTION_PRIORITY: ReadonlyArray<{
  *
  * @param dictationFields  Fields returned by the dictation service.
  * @param currentValues    Current field values keyed by field name (empty string if absent).
+ * @param modes            Per-field apply mode. Defaults to 'append' for any unspecified field.
  */
 export function applyDictationFields(
   dictationFields: Partial<Record<ClinicalDictationFieldKey, string>>,
   currentValues: Record<string, string>,
+  modes?: Partial<Record<ClinicalDictationFieldKey, FieldApplyMode>>,
 ): ApplyDictationResult {
   const draftPatch: Partial<UpdateClinicalRecordDto> = {}
 
   for (const [key, value] of Object.entries(dictationFields)) {
     if (typeof value !== 'string' || !value.trim()) continue
     const current = currentValues[key] ?? ''
-    draftPatch[key as keyof UpdateClinicalRecordDto] = mergeDictationField(current, value)
+    const mode: FieldApplyMode = modes?.[key as ClinicalDictationFieldKey] ?? 'append'
+
+    if (mode === 'replace') {
+      draftPatch[key as keyof UpdateClinicalRecordDto] = value.trim()
+    } else {
+      draftPatch[key as keyof UpdateClinicalRecordDto] = mergeDictationField(current, value)
+    }
   }
 
   // Determine which section to open (first matching priority wins)

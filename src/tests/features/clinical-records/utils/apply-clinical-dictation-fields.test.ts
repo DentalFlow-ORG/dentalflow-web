@@ -158,7 +158,73 @@ describe('applyDictationFields', () => {
     expect(targetSection).toBeNull()
   })
 
-  // ── 7. Autosave / dirty-guard contract ──────────────────────────────────────
+  // ── 7. Per-field apply modes ─────────────────────────────────────────────────
+
+  it('replace mode sets the value directly without merging with existing content', () => {
+    const { draftPatch } = applyDictationFields(
+      { clinicalEvolution: 'Texto novo' },
+      cv({ clinicalEvolution: 'Conteúdo anterior' }),
+      { clinicalEvolution: 'replace' },
+    )
+    expect(draftPatch.clinicalEvolution).toBe('Texto novo')
+  })
+
+  it('append mode (explicit) still merges with existing content', () => {
+    const { draftPatch } = applyDictationFields(
+      { clinicalEvolution: 'Texto novo' },
+      cv({ clinicalEvolution: 'Conteúdo anterior' }),
+      { clinicalEvolution: 'append' },
+    )
+    expect(draftPatch.clinicalEvolution).toBe('Conteúdo anterior\n\nTexto novo')
+  })
+
+  it('missing mode defaults to append (same as before)', () => {
+    const { draftPatch } = applyDictationFields(
+      { clinicalEvolution: 'Texto novo' },
+      cv({ clinicalEvolution: 'Conteúdo anterior' }),
+      // no modes provided
+    )
+    expect(draftPatch.clinicalEvolution).toBe('Conteúdo anterior\n\nTexto novo')
+  })
+
+  it('mixed modes — different fields use independent modes', () => {
+    const { draftPatch } = applyDictationFields(
+      { clinicalEvolution: 'Evolução nova', anamnesis: 'Anamnese nova' },
+      cv({ clinicalEvolution: 'Evolução antiga', anamnesis: 'Anamnese antiga' }),
+      { clinicalEvolution: 'replace', anamnesis: 'append' },
+    )
+    expect(draftPatch.clinicalEvolution).toBe('Evolução nova')
+    expect(draftPatch.anamnesis).toBe('Anamnese antiga\n\nAnamnese nova')
+  })
+
+  it('replace mode with empty dictation value is still excluded from the patch', () => {
+    const { draftPatch } = applyDictationFields(
+      { clinicalEvolution: '' },
+      cv({ clinicalEvolution: 'Conteúdo anterior' }),
+      { clinicalEvolution: 'replace' },
+    )
+    expect(draftPatch).not.toHaveProperty('clinicalEvolution')
+  })
+
+  it('replace mode trims the dictation value', () => {
+    const { draftPatch } = applyDictationFields(
+      { diagnosis: '  Cárie profunda  ' },
+      cv({ diagnosis: 'Achado anterior' }),
+      { diagnosis: 'replace' },
+    )
+    expect(draftPatch.diagnosis).toBe('Cárie profunda')
+  })
+
+  it('replace mode on an empty field produces the trimmed value (no merging needed)', () => {
+    const { draftPatch } = applyDictationFields(
+      { chiefComplaint: 'Dor no dente 36' },
+      cv({ chiefComplaint: '' }),
+      { chiefComplaint: 'replace' },
+    )
+    expect(draftPatch.chiefComplaint).toBe('Dor no dente 36')
+  })
+
+  // ── 8. Autosave / dirty-guard contract ──────────────────────────────────────
   // When draftPatch is non-empty, the container calls setField() for each entry,
   // which updates the React draft state. This makes isDirty=true, activating
   // useUnsavedChangesGuard and triggering autosave — no bypass occurs.

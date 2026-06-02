@@ -46,7 +46,7 @@ import {
   isClinicalRecordEditable,
   isClinicalRecordReadOnly,
 } from '../utils/clinical-record-status-rules'
-import { applyDictationFields } from '../utils/apply-clinical-dictation-fields'
+import { applyDictationFields, type FieldApplyMode } from '../utils/apply-clinical-dictation-fields'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -310,7 +310,10 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   // Merges dictation suggestions into the draft fields.
   // Pure logic is delegated to applyDictationFields so it can be tested independently.
   // Calling setField() enters the normal draft/autosave pipeline — no bypass occurs.
-  const handleApplyDictationFields = (fields: Partial<Record<ClinicalDictationFieldKey, string>>) => {
+  const handleApplyDictationFields = (
+    fields: Partial<Record<ClinicalDictationFieldKey, string>>,
+    modes?: Partial<Record<ClinicalDictationFieldKey, FieldApplyMode>>,
+  ) => {
     if (!canEditClinicalContent) return
 
     // Snapshot current field values (draft overrides applied on top of record)
@@ -319,7 +322,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
       currentValues[key] = field(key as keyof UpdateClinicalRecordDto)
     }
 
-    const { draftPatch, targetSection } = applyDictationFields(fields, currentValues)
+    const { draftPatch, targetSection } = applyDictationFields(fields, currentValues, modes)
 
     for (const [key, value] of Object.entries(draftPatch)) {
       setField(key as keyof UpdateClinicalRecordDto)(value as string)
@@ -645,6 +648,17 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
                   readOnly={isReadOnly}
                   onApplyFields={handleApplyDictationFields}
                   onApplyOdontogram={handleApplyDictationOdontogram}
+                  currentFieldValues={{
+                    chiefComplaint:      field('chiefComplaint'),
+                    anamnesis:           field('anamnesis'),
+                    clinicalEvolution:   field('clinicalEvolution'),
+                    diagnosis:           field('diagnosis'),
+                    proceduresPerformed: field('proceduresPerformed'),
+                    treatmentPlan:       field('treatmentPlan'),
+                    prescription:        field('prescription'),
+                    recommendations:     field('recommendations'),
+                    privateNotes:        field('privateNotes'),
+                  }}
                 />
               </>
             )}
