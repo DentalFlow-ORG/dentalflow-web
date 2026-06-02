@@ -704,7 +704,7 @@ export function VoiceDictationCard({ recordId, readOnly, onApplyFields, onApplyO
   const fieldEntries = Object.entries(suggestedFields) as [ClinicalDictationFieldKey, string][]
   const hasFields = fieldEntries.length > 0
   const hasAnySuggestions = hasFields || odontogramSuggestions.length > 0
-  const canApply = selectedFieldKeys.size > 0 || selectedOdontogramTeeth.size > 0
+  const canApply = selectedFieldKeys.size > 0 || (!!onApplyOdontogram && selectedOdontogramTeeth.size > 0)
   const transcriptIsLong = (transcript?.length ?? 0) > TRANSCRIPT_COLLAPSE_THRESHOLD
 
   // ── Render ──────────────────────────────────────────────────────────────────

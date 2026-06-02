@@ -558,6 +558,32 @@ describe('field selection', () => {
 
     expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeDisabled()
   })
+
+  it('disables the apply button when only odontogram teeth are selected but onApplyOdontogram is absent', async () => {
+    // Backend returns only odontogram suggestions (no classifiable text fields)
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Consulta.',
+      fields: {},
+      odontogramSuggestions: [
+        { toothNumber: '36', condition: 'caries' },
+      ],
+    })
+    const user = userEvent.setup()
+    // renderCard() does not pass onApplyOdontogram
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(
+      () => expect(screen.getByText(/Sugestões para odontograma/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+
+    // Odontogram checkbox is checked by default but no handler → apply must be disabled
+    expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeDisabled()
+  })
 })
 
 // ── 12. Accessibility ─────────────────────────────────────────────────────────
