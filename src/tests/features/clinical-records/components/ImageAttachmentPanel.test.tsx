@@ -159,7 +159,7 @@ describe('ImageAttachmentPanel — mobile device', () => {
     expect(screen.getByRole('button', { name: /Tirar foto/i })).toBeInTheDocument()
   })
 
-  it('the camera input has capture="environment" on mobile', async () => {
+  it('the camera input has capture="environment" and accept="image/*" on mobile', async () => {
     renderPanel()
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /Tirar foto/i })).toBeInTheDocument(),
@@ -167,6 +167,10 @@ describe('ImageAttachmentPanel — mobile device', () => {
     const cameraInput = document.querySelector('input[capture="environment"]') as HTMLInputElement
     expect(cameraInput).not.toBeNull()
     expect(cameraInput).toHaveAttribute('capture', 'environment')
+    // Camera capture must accept any image format — the device camera may produce
+    // formats not listed in specific MIME types (e.g. HEIC). Format validation still
+    // runs in handleFileSelect via ALLOWED_MIME_TYPES after the file is selected.
+    expect(cameraInput).toHaveAttribute('accept', 'image/*')
   })
 
   it('the regular file input does NOT have a capture attribute on mobile', async () => {

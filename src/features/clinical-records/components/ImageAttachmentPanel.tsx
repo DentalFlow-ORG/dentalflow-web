@@ -221,12 +221,16 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
           />
           {/* capture="environment" opens the rear camera on mobile; only rendered on
               mobile devices where capture is natively supported. On desktop this input
-              would silently degrade to a plain file picker, which is misleading. */}
+              would silently degrade to a plain file picker, which is misleading.
+              accept="image/*" is intentionally broader here — camera-captured images
+              may arrive in device-native formats (HEIC, etc.) that would be rejected
+              by specific MIME types. The format validation in handleFileSelect still
+              enforces the allowed types after the file is selected. */}
           {isMobile && (
             <input
               ref={cameraInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/*"
               capture="environment"
               className="sr-only"
               onChange={handleFileSelect}
@@ -256,6 +260,7 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
               type="button"
               variant="outline"
               size="sm"
+              title="Selecionar imagem da galeria ou arquivos salvos"
               onClick={() => inputRef.current?.click()}
               disabled={isUploading}
             >
@@ -267,6 +272,7 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
                 type="button"
                 variant="outline"
                 size="sm"
+                title="Abrir câmera do dispositivo"
                 onClick={() => cameraInputRef.current?.click()}
                 disabled={isUploading}
               >
@@ -298,6 +304,7 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
                   type="button"
                   variant="outline"
                   size="sm"
+                  title="Selecionar imagem da galeria ou arquivos salvos"
                   onClick={() => inputRef.current?.click()}
                   disabled={isUploading}
                 >
@@ -309,6 +316,7 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
                     type="button"
                     variant="outline"
                     size="sm"
+                    title="Abrir câmera do dispositivo"
                     onClick={() => cameraInputRef.current?.click()}
                     disabled={isUploading}
                   >
