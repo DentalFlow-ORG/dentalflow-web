@@ -31,8 +31,8 @@ const PAYMENT_STATUS_CONFIG: Record<AppointmentPaymentStatus, PaymentStatusConfi
   },
   CANCELED: {
     label: 'Cancelado',
-    className: 'border-border bg-muted text-muted-foreground',
-    dotClass: 'bg-muted-foreground/50',
+    className: 'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700/60 dark:bg-slate-800/50 dark:text-slate-300',
+    dotClass: 'bg-slate-400 dark:bg-slate-500',
   },
 }
 

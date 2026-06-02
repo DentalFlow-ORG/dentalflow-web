@@ -24,7 +24,7 @@ const STATUS_CONFIG: Record<LeadStatus, { label: string; className: string }> = 
   },
   ARCHIVED: {
     label: 'Arquivado',
-    className: 'border-border bg-muted text-muted-foreground',
+    className: 'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700/60 dark:bg-slate-800/50 dark:text-slate-300',
   },
 }
 

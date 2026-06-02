@@ -235,7 +235,7 @@ function DentitionToggle({
           'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
           mode === 'permanent'
             ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
-            : 'text-muted-foreground hover:text-foreground dark:text-slate-400 dark:hover:text-slate-100',
+            : 'text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white',
         )}
       >
         Permanente
@@ -247,7 +247,7 @@ function DentitionToggle({
           'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
           mode === 'deciduous'
             ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
-            : 'text-muted-foreground hover:text-foreground dark:text-slate-400 dark:hover:text-slate-100',
+            : 'text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white',
         )}
       >
         Decídua
