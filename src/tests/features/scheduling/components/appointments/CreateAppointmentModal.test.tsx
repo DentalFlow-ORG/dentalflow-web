@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, waitFor, within } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
 import { CreateAppointmentModal } from '@/features/scheduling/components/appointments/CreateAppointmentModal'
 import type { ProfileListItem } from '@/features/scheduling/types/profile.types'
@@ -34,14 +34,38 @@ vi.mock('@/features/patients/services/patients.service', () => ({
   getPatientHistory: vi.fn(),
 }))
 
-const mockCompressAvatar = vi.fn()
-
 vi.mock('@/lib/compress-avatar', () => ({
-  compressAvatar: (...args: unknown[]) => mockCompressAvatar(...args),
   ALLOWED_AVATAR_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
   MAX_AVATAR_INPUT_BYTES: 5 * 1024 * 1024,
   MAX_AVATAR_DIMENSION: 512,
   JPEG_QUALITY: 0.82,
+}))
+
+// Mock the crop modal so tests can confirm crops without real canvas/image ops.
+// The mock auto-exposes a "Salvar foto" button that confirms with 'base64mock'.
+vi.mock('@/features/patients/components/AvatarCropModal', () => ({
+  AvatarCropModal: ({
+    open,
+    onConfirm,
+    onCancel,
+  }: {
+    open: boolean
+    onConfirm: (base64: string) => void
+    onCancel: () => void
+    imageFile: File | null
+    patientName?: string
+    onError?: (m: string) => void
+  }) =>
+    open ? (
+      <div data-testid="avatar-crop-modal">
+        <button type="button" onClick={() => onConfirm('base64mock')}>
+          Salvar foto
+        </button>
+        <button type="button" onClick={onCancel}>
+          Cancelar
+        </button>
+      </div>
+    ) : null,
 }))
 
 const mockShowAlert = vi.fn()
@@ -111,7 +135,6 @@ const MOCK_SLOT = { time: '10:00', available: true, durationMinutes: 30 }
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockCompressAvatar.mockResolvedValue('base64mock')
   mockCreateAppointment.mockResolvedValue(MOCK_APPOINTMENT)
   mockUpsertPatientAvatar.mockResolvedValue(undefined)
   mockGetAvailableSlots.mockResolvedValue([MOCK_SLOT])
@@ -162,12 +185,16 @@ function submitForm() {
   fireEvent.submit(form)
 }
 
-// Simulates selecting an image file through the hidden avatar file input.
+// Simulates selecting an image file and confirming through the crop modal.
 async function selectAvatarFile(mimeType = 'image/jpeg') {
-  const fileInput = document.querySelector('input[type="file"][accept*="image"]') as HTMLInputElement
+  // Use the gallery input (no capture attribute) to avoid ambiguity
+  const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
   const file = new File(['img-data'], 'photo.jpg', { type: mimeType })
   fireEvent.change(fileInput, { target: { files: [file] } })
-  // Wait for compressAvatar (async) to resolve and state to update.
+  // Crop modal appears — click Salvar foto to confirm
+  await waitFor(() => screen.getByTestId('avatar-crop-modal'))
+  fireEvent.click(screen.getByRole('button', { name: /Salvar foto/i }))
+  // Wait for crop modal to close and widget to reflect the saved photo
   await waitFor(() => screen.getByRole('button', { name: /Remover foto/i }))
 }
 
@@ -193,13 +220,7 @@ describe('patient photo section', () => {
 // ── File selection ─────────────────────────────────────────────────────────────
 
 describe('file selection', () => {
-  it('calls compressAvatar when a valid file is selected', async () => {
-    renderModal()
-    await selectAvatarFile()
-    expect(mockCompressAvatar).toHaveBeenCalledOnce()
-  })
-
-  it('shows "Remover foto" after a valid file is selected', async () => {
+  it('shows "Remover foto" after a valid file is selected and crop is confirmed', async () => {
     renderModal()
     await selectAvatarFile()
     expect(screen.getByRole('button', { name: /Remover foto/i })).toBeInTheDocument()
@@ -208,7 +229,6 @@ describe('file selection', () => {
   it('changes upload button label from "Adicionar" to "Alterar" after selection', async () => {
     renderModal()
     await selectAvatarFile()
-    // Widget switches aria-label from "Adicionar foto" to "Alterar foto" once photo is set
     expect(screen.getByRole('button', { name: /Alterar foto do paciente/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Adicionar foto do paciente/i })).not.toBeInTheDocument()
   })
@@ -221,25 +241,25 @@ describe('file selection', () => {
 
   it('shows an error alert and no preview when an invalid MIME type is selected', async () => {
     renderModal()
-    const fileInput = document.querySelector('input[type="file"][accept*="image"]') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
     const file = new File(['data'], 'video.mp4', { type: 'video/mp4' })
     fireEvent.change(fileInput, { target: { files: [file] } })
     await waitFor(() => {
-      // onError passes message to showAlert with title 'Foto inválida'
       expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Foto inválida' }))
     })
     expect(screen.queryByRole('button', { name: /Remover foto/i })).not.toBeInTheDocument()
   })
 
-  it('shows an error alert when compressAvatar throws', async () => {
-    mockCompressAvatar.mockRejectedValueOnce(new Error('canvas fail'))
+  it('does not save photo when crop is cancelled', async () => {
     renderModal()
-    const fileInput = document.querySelector('input[type="file"][accept*="image"]') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
     const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' })
     fireEvent.change(fileInput, { target: { files: [file] } })
+    const cropModal = await waitFor(() => screen.getByTestId('avatar-crop-modal'))
+    // Use within to avoid matching the "Cancelar" button of the appointment modal
+    fireEvent.click(within(cropModal).getByRole('button', { name: /Cancelar/i }))
     await waitFor(() => {
-      // onError passes message to showAlert with title 'Foto inválida'
-      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Foto inválida' }))
+      expect(screen.queryByTestId('avatar-crop-modal')).not.toBeInTheDocument()
     })
     expect(screen.queryByRole('button', { name: /Remover foto/i })).not.toBeInTheDocument()
   })

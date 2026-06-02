@@ -1,12 +1,9 @@
-import { Camera, Loader2, Plus, X } from 'lucide-react'
-import { useRef } from 'react'
+import { Camera, ImageIcon, Loader2, Plus, Upload, X } from 'lucide-react'
+import { useState, useRef } from 'react'
 
 import { cn } from '@/lib/utils'
-import {
-  ALLOWED_AVATAR_TYPES,
-  MAX_AVATAR_INPUT_BYTES,
-  compressAvatar,
-} from '@/lib/compress-avatar'
+import { ALLOWED_AVATAR_TYPES, MAX_AVATAR_INPUT_BYTES } from '@/lib/compress-avatar'
+import { AvatarCropModal } from './AvatarCropModal'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -38,7 +35,7 @@ type Props = {
    */
   onUpload?: (base64: string | null) => void
   /**
-   * Called when file validation fails (wrong type, oversized, or canvas error).
+   * Called when file validation fails or canvas export fails.
    * Lets callers surface the error in their own alert/toast system.
    */
   onError?: (message: string) => void
@@ -57,11 +54,15 @@ export function PatientAvatarWidget({
   size = 'md',
   className,
 }: Props) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const [showSourcePicker, setShowSourcePicker] = useState(false)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+
   const sizeClass = SIZE[size]
   const isInteractive = Boolean(onUpload) && !isSaving
 
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.currentTarget.value = ''
     if (!file || !onUpload) return
@@ -71,28 +72,53 @@ export function PatientAvatarWidget({
       return
     }
     if (file.size > MAX_AVATAR_INPUT_BYTES) {
-      onError?.(`Arquivo muito grande. O tamanho máximo é ${MAX_AVATAR_INPUT_BYTES / 1024 / 1024} MB.`)
+      onError?.(
+        `Arquivo muito grande. O tamanho máximo é ${MAX_AVATAR_INPUT_BYTES / 1024 / 1024} MB.`,
+      )
       return
     }
-    try {
-      const base64 = await compressAvatar(file)
-      onUpload(base64)
-    } catch {
-      onError?.('Não foi possível processar a imagem.')
-    }
+    setPendingFile(file)
+  }
+
+  const handleCropConfirm = (base64: string) => {
+    setPendingFile(null)
+    onUpload?.(base64)
+  }
+
+  const handleCropCancel = () => {
+    setPendingFile(null)
+  }
+
+  const handleCropError = (message: string) => {
+    onError?.(message)
   }
 
   return (
     <div className={cn('relative shrink-0', className)}>
-      {/* Hidden file input — managed by the widget */}
+      {/* Hidden gallery input — no capture attribute → file picker / gallery */}
       {onUpload && (
         <input
-          ref={inputRef}
+          ref={fileInputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
           className="sr-only"
-          onChange={handleFile}
+          onChange={handleFileChange}
           disabled={isSaving}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Hidden camera input — capture="user" → webcam / front camera */}
+      {onUpload && (
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          capture="user"
+          className="sr-only"
+          onChange={handleFileChange}
+          disabled={isSaving}
+          aria-hidden="true"
         />
       )}
 
@@ -119,11 +145,10 @@ export function PatientAvatarWidget({
       </div>
 
       {/* ── Upload button — covers the full circle ─────────────────────── */}
-      {/* Uses a named group so the Plus icon responds only to this button  */}
       {isInteractive && (
         <button
           type="button"
-          onClick={() => inputRef.current?.click()}
+          onClick={() => setShowSourcePicker((s) => !s)}
           aria-label={avatarUrl ? 'Alterar foto do paciente' : 'Adicionar foto do paciente'}
           title={avatarUrl ? 'Alterar foto' : 'Adicionar foto'}
           className={cn(
@@ -145,15 +170,61 @@ export function PatientAvatarWidget({
         </button>
       )}
 
+      {/* ── Source picker — appears on circle click ─────────────────────── */}
+      {isInteractive && showSourcePicker && (
+        <>
+          {/* Invisible full-screen backdrop — closes picker on outside click */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setShowSourcePicker(false)}
+            aria-hidden="true"
+          />
+
+          {/* Picker panel */}
+          <div
+            className={cn(
+              'absolute left-0 z-50 mt-1 min-w-[11rem] rounded-xl border border-border bg-card p-1 shadow-lg',
+              'top-full',
+            )}
+            role="menu"
+            aria-label="Selecionar origem da foto"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+              onClick={() => {
+                setShowSourcePicker(false)
+                fileInputRef.current?.click()
+              }}
+            >
+              <Upload className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              Enviar imagem
+            </button>
+
+            <button
+              type="button"
+              role="menuitem"
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+              onClick={() => {
+                setShowSourcePicker(false)
+                cameraInputRef.current?.click()
+              }}
+            >
+              <Camera className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              Tirar foto
+            </button>
+          </div>
+        </>
+      )}
+
       {/* ── Camera badge — persistent add affordance for touch/mobile ───── */}
-      {/* Shown at the bottom-right when no photo exists, so users on         */}
-      {/* hover-less devices can still discover the avatar is interactive.    */}
-      {isInteractive && !avatarUrl && (
+      {isInteractive && !avatarUrl && !showSourcePicker && (
         <span
           className="pointer-events-none absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow-sm ring-2 ring-card"
           aria-hidden="true"
         >
-          <Camera className="h-2.5 w-2.5" />
+          <ImageIcon className="h-2.5 w-2.5" />
         </span>
       )}
 
@@ -182,6 +253,16 @@ export function PatientAvatarWidget({
           <Loader2 className="h-4 w-4 animate-spin text-white" aria-hidden="true" />
         </div>
       )}
+
+      {/* ── Crop modal — opens after file/camera selection ───────────────── */}
+      <AvatarCropModal
+        open={pendingFile !== null}
+        imageFile={pendingFile}
+        patientName={name}
+        onConfirm={handleCropConfirm}
+        onCancel={handleCropCancel}
+        onError={handleCropError}
+      />
     </div>
   )
 }

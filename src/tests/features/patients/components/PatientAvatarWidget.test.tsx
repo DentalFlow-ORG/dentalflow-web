@@ -1,9 +1,42 @@
-import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, waitFor, within } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
 import {
   PatientAvatarWidget,
   getAvatarInitials,
 } from '@/features/patients/components/PatientAvatarWidget'
+
+// ── Mock AvatarCropModal to isolate widget behaviour from canvas/image ops ────
+// The modal's own rendering and crop export are tested in AvatarCropModal.test.tsx.
+
+vi.mock('@/features/patients/components/AvatarCropModal', () => ({
+  AvatarCropModal: ({
+    open,
+    onConfirm,
+    onCancel,
+    onError,
+    patientName,
+  }: {
+    open: boolean
+    onConfirm: (base64: string) => void
+    onCancel: () => void
+    onError?: (msg: string) => void
+    imageFile: File | null
+    patientName?: string
+  }) =>
+    open ? (
+      <div data-testid="avatar-crop-modal" aria-label={`Ajustar foto${patientName ? ` de ${patientName}` : ''}`}>
+        <button type="button" onClick={() => onConfirm('CROPPED_BASE64')}>
+          Salvar foto
+        </button>
+        <button type="button" onClick={onCancel}>
+          Cancelar
+        </button>
+        <button type="button" onClick={() => onError?.('canvas falhou')}>
+          Trigger Error
+        </button>
+      </div>
+    ) : null,
+}))
 
 // ── getAvatarInitials unit tests ──────────────────────────────────────────────
 
@@ -27,13 +60,11 @@ describe('getAvatarInitials', () => {
 describe('PatientAvatarWidget — display-only', () => {
   it('shows initials when no avatarUrl is provided', () => {
     render(<PatientAvatarWidget name="João Silva" />)
-    // Initials are inside an aria-hidden div, so we look by text content
     expect(document.body.textContent).toContain('JS')
   })
 
   it('renders an img when avatarUrl is provided', () => {
     render(<PatientAvatarWidget name="Ana Luz" avatarUrl="abc123" />)
-    // The img is inside an aria-hidden container (purely decorative), so query by DOM directly
     const img = document.querySelector('img') as HTMLImageElement
     expect(img).not.toBeNull()
     expect(img).toHaveAttribute('src', 'data:image/jpeg;base64,abc123')
@@ -93,15 +124,67 @@ describe('PatientAvatarWidget — interactive', () => {
     await user.click(screen.getByRole('button', { name: /remover foto do paciente/i }))
     expect(onUpload).toHaveBeenCalledWith(null)
   })
+})
 
-  it('opens the file input when the upload button is clicked', async () => {
+// ── Source picker ─────────────────────────────────────────────────────────────
+
+describe('PatientAvatarWidget — source picker', () => {
+  it('shows the source picker when the upload button is clicked', async () => {
     const user = userEvent.setup()
     render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
-    const uploadButton = screen.getByRole('button', { name: /adicionar foto do paciente/i })
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
-    const clickSpy = vi.spyOn(fileInput, 'click')
-    await user.click(uploadButton)
-    expect(clickSpy).toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
+    const menu = screen.getByRole('menu', { name: /Selecionar origem da foto/i })
+    expect(within(menu).getByRole('menuitem', { name: /Enviar imagem/i })).toBeInTheDocument()
+    expect(within(menu).getByRole('menuitem', { name: /Tirar foto/i })).toBeInTheDocument()
+  })
+
+  it('"Tirar foto" is always present in the picker — not hidden on desktop', async () => {
+    const user = userEvent.setup()
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
+    const menu = screen.getByRole('menu', { name: /Selecionar origem da foto/i })
+    const cameraBtn = within(menu).getByRole('menuitem', { name: /Tirar foto/i })
+    expect(cameraBtn).toBeInTheDocument()
+    expect(cameraBtn).not.toHaveClass('hidden')
+    expect(cameraBtn).not.toHaveClass('sr-only')
+  })
+
+  it('"Enviar imagem" and "Tirar foto" target different hidden inputs', async () => {
+    const user = userEvent.setup()
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
+
+    const inputs = document.querySelectorAll('input[type="file"]')
+    expect(inputs.length).toBe(2)
+
+    const galleryInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const cameraInput = document.querySelector('input[type="file"][capture]') as HTMLInputElement
+    expect(galleryInput).not.toBeNull()
+    expect(cameraInput).not.toBeNull()
+
+    const gallerySpy = vi.spyOn(galleryInput, 'click')
+    const cameraSpy = vi.spyOn(cameraInput, 'click')
+
+    await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
+    const menu1 = screen.getByRole('menu')
+    await user.click(within(menu1).getByRole('menuitem', { name: /Enviar imagem/i }))
+    expect(gallerySpy).toHaveBeenCalledTimes(1)
+    expect(cameraSpy).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
+    const menu2 = screen.getByRole('menu')
+    await user.click(within(menu2).getByRole('menuitem', { name: /Tirar foto/i }))
+    expect(cameraSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('closes the source picker when clicking outside', async () => {
+    const user = userEvent.setup()
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
+    expect(screen.getByRole('menu', { name: /Selecionar origem da foto/i })).toBeInTheDocument()
+    // Click on the backdrop (fixed overlay)
+    const backdrop = document.querySelector('.fixed.inset-0.z-40') as HTMLElement
+    fireEvent.click(backdrop)
+    expect(screen.queryByRole('menu', { name: /Selecionar origem da foto/i })).not.toBeInTheDocument()
   })
 })
 
@@ -113,7 +196,7 @@ describe('PatientAvatarWidget — file validation', () => {
     const onError = vi.fn()
     render(<PatientAvatarWidget name="Ana" onUpload={onUpload} onError={onError} />)
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
     const file = new File(['data'], 'video.mp4', { type: 'video/mp4' })
     fireEvent.change(fileInput, { target: { files: [file] } })
 
@@ -128,8 +211,7 @@ describe('PatientAvatarWidget — file validation', () => {
     const onError = vi.fn()
     render(<PatientAvatarWidget name="Ana" onUpload={onUpload} onError={onError} />)
 
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
-    // 6 MB > 5 MB limit
+    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
     const blob = new Blob([new Uint8Array(6 * 1024 * 1024)], { type: 'image/jpeg' })
     const file = new File([blob], 'big.jpg', { type: 'image/jpeg' })
     fireEvent.change(fileInput, { target: { files: [file] } })
@@ -141,13 +223,101 @@ describe('PatientAvatarWidget — file validation', () => {
   })
 })
 
+// ── Crop modal integration ────────────────────────────────────────────────────
+
+describe('PatientAvatarWidget — crop modal', () => {
+  it('opens the crop modal when a valid file is selected via gallery input', async () => {
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
+
+    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' })
+    fireEvent.change(fileInput, { target: { files: [file] } })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('avatar-crop-modal')).toBeInTheDocument()
+    })
+  })
+
+  it('opens the crop modal when a valid file is selected via camera input', async () => {
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
+
+    const cameraInput = document.querySelector('input[type="file"][capture]') as HTMLInputElement
+    const file = new File(['data'], 'webcam.jpg', { type: 'image/jpeg' })
+    fireEvent.change(cameraInput, { target: { files: [file] } })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('avatar-crop-modal')).toBeInTheDocument()
+    })
+  })
+
+  it('does NOT call onUpload when crop is cancelled', async () => {
+    const onUpload = vi.fn()
+    render(<PatientAvatarWidget name="Ana" onUpload={onUpload} />)
+
+    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [new File(['x'], 'a.jpg', { type: 'image/jpeg' })] } })
+
+    await waitFor(() => screen.getByTestId('avatar-crop-modal'))
+    fireEvent.click(screen.getByRole('button', { name: /Cancelar/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('avatar-crop-modal')).not.toBeInTheDocument()
+    })
+    expect(onUpload).not.toHaveBeenCalled()
+  })
+
+  it('calls onUpload with the cropped base64 when crop is confirmed', async () => {
+    const onUpload = vi.fn()
+    render(<PatientAvatarWidget name="Ana" onUpload={onUpload} />)
+
+    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [new File(['x'], 'a.jpg', { type: 'image/jpeg' })] } })
+
+    await waitFor(() => screen.getByTestId('avatar-crop-modal'))
+    fireEvent.click(screen.getByRole('button', { name: /Salvar foto/i }))
+
+    await waitFor(() => {
+      expect(onUpload).toHaveBeenCalledWith('CROPPED_BASE64')
+    })
+  })
+
+  it('calls onUpload exactly once even if confirmed multiple times (modal closes)', async () => {
+    const onUpload = vi.fn()
+    render(<PatientAvatarWidget name="Ana" onUpload={onUpload} />)
+
+    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [new File(['x'], 'a.jpg', { type: 'image/jpeg' })] } })
+
+    await waitFor(() => screen.getByTestId('avatar-crop-modal'))
+    fireEvent.click(screen.getByRole('button', { name: /Salvar foto/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('avatar-crop-modal')).not.toBeInTheDocument()
+    })
+    expect(onUpload).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls onError when crop export reports an error', async () => {
+    const onError = vi.fn()
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} onError={onError} />)
+
+    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [new File(['x'], 'a.jpg', { type: 'image/jpeg' })] } })
+
+    await waitFor(() => screen.getByTestId('avatar-crop-modal'))
+    fireEvent.click(screen.getByRole('button', { name: /Trigger Error/i }))
+
+    expect(onError).toHaveBeenCalledWith('canvas falhou')
+  })
+})
+
 // ── Disabled / saving state ───────────────────────────────────────────────────
 
 describe('PatientAvatarWidget — saving state', () => {
-  it('disables the file input when isSaving is true', () => {
+  it('disables both file inputs when isSaving is true', () => {
     render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} isSaving />)
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
-    expect(fileInput).toBeDisabled()
+    const inputs = document.querySelectorAll('input[type="file"]')
+    inputs.forEach((input) => expect(input).toBeDisabled())
   })
 
   it('does not render the upload or remove buttons when isSaving is true', () => {
@@ -158,7 +328,6 @@ describe('PatientAvatarWidget — saving state', () => {
 
   it('shows a spinner when isSaving is true', () => {
     render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} isSaving />)
-    // Loader2 renders as an SVG inside the overlay — check via role
     expect(document.querySelector('.animate-spin')).toBeInTheDocument()
   })
 })
