@@ -75,7 +75,12 @@ export function ClinicalRecordListItem({ record }: Props) {
         {/* Chief complaint (xl+) */}
         <div className="hidden w-44 shrink-0 xl:block">
           {record.chiefComplaint ? (
-            <p className="truncate text-xs text-muted-foreground/80">{record.chiefComplaint}</p>
+            <p
+              className="truncate text-xs text-muted-foreground/80"
+              title={record.chiefComplaint}
+            >
+              {record.chiefComplaint}
+            </p>
           ) : (
             <span className="text-xs italic text-muted-foreground/30">—</span>
           )}

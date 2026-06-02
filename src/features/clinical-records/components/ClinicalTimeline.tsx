@@ -106,14 +106,14 @@ function ClinicalTimelineItem({ record }: ItemProps) {
         </div>
 
         {record.chiefComplaint && (
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             <span className="font-medium text-foreground">Queixa principal:</span>{' '}
             {record.chiefComplaint}
           </p>
         )}
 
         {record.clinicalEvolution && (
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
             {record.clinicalEvolution}
           </p>
         )}
