@@ -105,7 +105,7 @@ describe('AvatarCropModal - rendering', () => {
   it('renders the updated helper description', () => {
     renderModal()
     expect(
-      screen.getByText(/Arraste para enquadrar a foto. Use girar para ajustar a orientação./i),
+      screen.getAllByText(/Ajuste o quadrado pelas bordas/i)[0],
     ).toBeInTheDocument()
   })
 
@@ -140,8 +140,9 @@ describe('AvatarCropModal - crop stage', () => {
 
     expect(stage).toBeInTheDocument()
     expect(stage.className).toContain('overflow-hidden')
-    expect(stage.style.width).toBe('448px')
-    expect(stage.style.height).toBe('360px')
+    expect(stage.style.width).toBe('560px')
+    expect(stage.style.height).toBe('500px')
+    expect(stage.style.touchAction).toBe('none')
   })
 
   it('renders the square crop frame and circular mask/ring', () => {
@@ -155,16 +156,16 @@ describe('AvatarCropModal - crop stage', () => {
     renderModal()
     const frame = screen.getByTestId('crop-square-frame')
 
-    expect(frame.style.width).toBe('312px')
-    expect(frame.style.height).toBe('312px')
+    expect(frame.style.width).toBe('420px')
+    expect(frame.style.height).toBe('420px')
   })
 
   it('image is not forced to square dimensions after natural load', () => {
     renderModal()
     const img = loadImage(1200, 800)
 
-    expect(img.style.width).toBe('468px')
-    expect(img.style.height).toBe('312px')
+    expect(img.style.width).toBe('630px')
+    expect(img.style.height).toBe('420px')
     expect(img.style.maxWidth).toBe('none')
   })
 
@@ -174,6 +175,34 @@ describe('AvatarCropModal - crop stage', () => {
 
     expect(img).toBeInTheDocument()
     expect((img as HTMLImageElement).style.opacity).toBe('0')
+  })
+
+  it('renders resize handles on the crop square corners', () => {
+    renderModal()
+
+    expect(screen.getByTestId('crop-resize-handle-top-left')).toBeInTheDocument()
+    expect(screen.getByTestId('crop-resize-handle-top-right')).toBeInTheDocument()
+    expect(screen.getByTestId('crop-resize-handle-bottom-left')).toBeInTheDocument()
+    expect(screen.getByTestId('crop-resize-handle-bottom-right')).toBeInTheDocument()
+  })
+
+  it('resize handles use touch-action none', () => {
+    renderModal()
+    expect(screen.getByTestId('crop-resize-handle-bottom-right').style.touchAction).toBe('none')
+  })
+
+  it('resizing a corner keeps the crop frame square', () => {
+    renderModal()
+    loadImage(1200, 800)
+    const handle = screen.getByTestId('crop-resize-handle-bottom-right')
+
+    fireEvent.pointerDown(handle, { pointerId: 2, clientX: 420, clientY: 420 })
+    fireEvent.pointerMove(handle, { pointerId: 2, clientX: 450, clientY: 450 })
+    fireEvent.pointerUp(handle, { pointerId: 2, clientX: 450, clientY: 450 })
+
+    const frame = screen.getByTestId('crop-square-frame')
+    expect(frame.style.width).toBe(frame.style.height)
+    expect(frame.style.width).toBe('480px')
   })
 })
 
@@ -295,6 +324,23 @@ describe('AvatarCropModal - confirm export', () => {
     expect(args[2]).toBeCloseTo(-256)
     expect(args[3]).toBeCloseTo(768)
     expect(args[4]).toBeCloseTo(512)
+  })
+
+  it('export uses the resized crop size', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    loadImage(1200, 800)
+    const handle = screen.getByTestId('crop-resize-handle-top-left')
+
+    fireEvent.pointerDown(handle, { pointerId: 3, clientX: 100, clientY: 100 })
+    fireEvent.pointerMove(handle, { pointerId: 3, clientX: 160, clientY: 160 })
+    fireEvent.pointerUp(handle, { pointerId: 3, clientX: 160, clientY: 160 })
+    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+
+    await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
+    const args = mockDrawImage.mock.calls[0] as [unknown, number, number, number, number]
+    expect(args[3]).toBeGreaterThan(768)
+    expect(args[4]).toBeGreaterThan(512)
   })
 
   it('calls onError and onCancel when getContext returns null', async () => {

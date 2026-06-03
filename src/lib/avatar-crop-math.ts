@@ -40,6 +40,8 @@ export interface CropExportTransform {
   drawHeight: number
 }
 
+export type CropResizeHandle = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+
 function safeDimension(value: number): number {
   return Math.max(1, value)
 }
@@ -66,6 +68,43 @@ export function computeRotatedDimensions(
   return { width, height }
 }
 
+export function clampCropSize(cropSize: number, minSize: number, maxSize: number): number {
+  const safeMin = safeDimension(minSize)
+  const safeMax = Math.max(safeMin, maxSize)
+
+  return Math.max(safeMin, Math.min(safeMax, cropSize))
+}
+
+export function computeCoverScale(
+  naturalW: number,
+  naturalH: number,
+  rotation: RotationDegrees,
+  cropSize: number,
+): number {
+  const rotated = computeRotatedDimensions(naturalW, naturalH, rotation)
+
+  return Math.max(cropSize / rotated.width, cropSize / rotated.height)
+}
+
+export function computeCenteredCropResize(params: {
+  startSize: number
+  deltaX: number
+  deltaY: number
+  handle: CropResizeHandle
+  minSize: number
+  maxSize: number
+}): number {
+  const { startSize, deltaX, deltaY, handle, minSize, maxSize } = params
+  const outwardDeltaByHandle: Record<CropResizeHandle, number> = {
+    'top-left': Math.max(-deltaX, -deltaY),
+    'top-right': Math.max(deltaX, -deltaY),
+    'bottom-left': Math.max(-deltaX, deltaY),
+    'bottom-right': Math.max(deltaX, deltaY),
+  }
+
+  return clampCropSize(startSize + outwardDeltaByHandle[handle] * 2, minSize, maxSize)
+}
+
 /**
  * Cover scale for a square crop. It uses a single uniform scale, based on the
  * rotated bounds, so the image can never be stretched independently on X/Y.
@@ -75,13 +114,15 @@ export function computeInitialImageTransform(params: {
   naturalH: number
   rotation: RotationDegrees
   cropSize: number
+  scale?: number
   offset?: Point
 }): ImageTransform {
-  const { naturalW, naturalH, rotation, cropSize, offset = { x: 0, y: 0 } } = params
+  const { naturalW, naturalH, rotation, cropSize, scale: requestedScale, offset = { x: 0, y: 0 } } = params
   const naturalWidth = safeDimension(naturalW)
   const naturalHeight = safeDimension(naturalH)
   const rotated = computeRotatedDimensions(naturalWidth, naturalHeight, rotation)
-  const scale = Math.max(cropSize / rotated.width, cropSize / rotated.height)
+  const coverScale = computeCoverScale(naturalWidth, naturalHeight, rotation, cropSize)
+  const scale = Math.max(requestedScale ?? coverScale, coverScale)
   const displayWidth = naturalWidth * scale
   const displayHeight = naturalHeight * scale
   const rotatedWidth = rotated.width * scale

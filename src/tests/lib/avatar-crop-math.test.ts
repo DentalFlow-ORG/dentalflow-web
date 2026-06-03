@@ -1,5 +1,8 @@
 import {
+  clampCropSize,
   clampCropPosition,
+  computeCenteredCropResize,
+  computeCoverScale,
   computeCropExportTransform,
   computeInitialImageTransform,
   computeRotatedDimensions,
@@ -8,7 +11,7 @@ import {
   type RotationDegrees,
 } from '@/lib/avatar-crop-math'
 
-const CROP = 312
+const CROP = 420
 const OUT = 512
 
 describe('computeRotatedDimensions', () => {
@@ -65,11 +68,11 @@ describe('computeInitialImageTransform', () => {
   })
 
   it('uses square crop dimensions on both axes', () => {
-    const layout = getCropStageLayout({ stageWidth: 448, stageHeight: 360, cropSize: CROP })
+    const layout = getCropStageLayout({ stageWidth: 560, stageHeight: 500, cropSize: CROP })
 
     expect(layout.cropSize).toBe(CROP)
-    expect(layout.cropLeft).toBeCloseTo((448 - CROP) / 2)
-    expect(layout.cropTop).toBeCloseTo((360 - CROP) / 2)
+    expect(layout.cropLeft).toBeCloseTo((560 - CROP) / 2)
+    expect(layout.cropTop).toBeCloseTo((500 - CROP) / 2)
   })
 
   it('scales small images up uniformly to avoid empty crop output', () => {
@@ -106,16 +109,59 @@ describe('computeInitialImageTransform', () => {
   })
 })
 
+describe('crop resizing', () => {
+  it('keeps the resized crop square by returning one size for both axes', () => {
+    const size = computeCenteredCropResize({
+      startSize: 420,
+      deltaX: 24,
+      deltaY: 12,
+      handle: 'bottom-right',
+      minSize: 180,
+      maxSize: 500,
+    })
+
+    expect(size).toBe(468)
+  })
+
+  it('clamps crop size to the minimum', () => {
+    expect(clampCropSize(120, 180, 500)).toBe(180)
+  })
+
+  it('clamps crop size to the maximum stage bounds', () => {
+    expect(clampCropSize(620, 180, 500)).toBe(500)
+  })
+
+  it('resizing from a corner changes width and height equally', () => {
+    const nextSize = computeCenteredCropResize({
+      startSize: 420,
+      deltaX: -40,
+      deltaY: -20,
+      handle: 'top-left',
+      minSize: 180,
+      maxSize: 500,
+    })
+
+    expect(nextSize).toBe(500)
+  })
+
+  it('computes the minimum cover scale for a larger resized crop', () => {
+    const initialScale = computeCoverScale(1200, 800, 0, 420)
+    const resizedScale = computeCoverScale(1200, 800, 0, 500)
+
+    expect(resizedScale).toBeGreaterThan(initialScale)
+  })
+})
+
 describe('clampCropPosition', () => {
   it('passes an offset inside the available horizontal overflow unchanged', () => {
-    const offset = clampCropPosition({ x: 40, y: 0 }, 468, CROP, CROP)
+    const offset = clampCropPosition({ x: 40, y: 0 }, 630, CROP, CROP)
 
     expect(offset).toEqual({ x: 40, y: 0 })
   })
 
   it('limits horizontal overflow to the rotated image bounds', () => {
-    const maxX = (468 - CROP) / 2
-    const offset = clampCropPosition({ x: 999, y: 0 }, 468, CROP, CROP)
+    const maxX = (630 - CROP) / 2
+    const offset = clampCropPosition({ x: 999, y: 0 }, 630, CROP, CROP)
 
     expect(offset.x).toBe(maxX)
     expect(offset.y).toBe(0)
@@ -141,14 +187,18 @@ describe('computeCropExportTransform', () => {
     naturalW?: number
     naturalH?: number
     rotation?: RotationDegrees
+    cropSize?: number
+    scale?: number
     offset?: { x: number; y: number }
   } = {}) {
     const rotation = params.rotation ?? 0
+    const cropSize = params.cropSize ?? CROP
     const preview = computeInitialImageTransform({
       naturalW: params.naturalW ?? 1200,
       naturalH: params.naturalH ?? 800,
       rotation,
-      cropSize: CROP,
+      cropSize,
+      scale: params.scale,
       offset: params.offset,
     })
 
@@ -158,7 +208,7 @@ describe('computeCropExportTransform', () => {
       rotation,
       scale: preview.scale,
       offset: preview.offset,
-      cropSize: CROP,
+      cropSize,
       outputSize: OUT,
     })
   }
@@ -181,6 +231,14 @@ describe('computeCropExportTransform', () => {
     expect(moved.translateY).toBe(centered.translateY)
   })
 
+  it('changes export scale when crop size changes while image scale is preserved', () => {
+    const centered = exportTransform({ cropSize: 420, scale: 420 / 800 })
+    const resized = exportTransform({ cropSize: 300, scale: 420 / 800 })
+
+    expect(resized.drawWidth).toBeGreaterThan(centered.drawWidth)
+    expect(resized.drawHeight).toBeGreaterThan(centered.drawHeight)
+  })
+
   it('changes export rotation when the preview rotates', () => {
     const centered = exportTransform({ rotation: 0 })
     const rotated = exportTransform({ rotation: 270 })
@@ -188,5 +246,13 @@ describe('computeCropExportTransform', () => {
     expect(centered.rotationRadians).toBe(0)
     expect(rotated.rotationRadians).toBeCloseTo((270 * Math.PI) / 180)
     expect(rotated.rotationRadians).not.toBe(centered.rotationRadians)
+  })
+
+  it('rotation with a resized crop still computes valid 512 output', () => {
+    const rotated = exportTransform({ rotation: 270, cropSize: 300 })
+
+    expect(rotated.outputSize).toBe(OUT)
+    expect(rotated.drawWidth).toBeGreaterThan(0)
+    expect(rotated.drawHeight).toBeGreaterThan(0)
   })
 })
