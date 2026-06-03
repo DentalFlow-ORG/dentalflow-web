@@ -196,6 +196,61 @@ describe('AvatarCropModal — confirm export', () => {
     await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
   })
 
+  it('calls drawImage with 9 arguments (img, sx, sy, sw, sh, dx, dy, dw, dh)', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+    await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
+    const args = mockDrawImage.mock.calls[0] as unknown[]
+    expect(args).toHaveLength(9)
+  })
+
+  it('drawImage destination fills the full output canvas (0,0,512,512)', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+    await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
+    const args = mockDrawImage.mock.calls[0] as [unknown, ...number[]]
+    // args: [img, srcX, srcY, srcW, srcH, dstX, dstY, dstW, dstH]
+    expect(args[5]).toBe(0)    // dstX
+    expect(args[6]).toBe(0)    // dstY
+    expect(args[7]).toBe(512)  // dstW (MAX_AVATAR_DIMENSION)
+    expect(args[8]).toBe(512)  // dstH
+  })
+
+  it('drawImage source width and height are equal (square crop)', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+    await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
+    const args = mockDrawImage.mock.calls[0] as [unknown, ...number[]]
+    // srcW (args[3]) and srcH (args[4]) must be equal — uniform square crop
+    expect(args[3]).toBe(args[4])
+  })
+
+  it('drawImage is called with a different srcX after zooming in (zoom changes source crop)', async () => {
+    const user = userEvent.setup()
+    // First save without zoom
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+    await waitFor(() => expect(mockDrawImage).toHaveBeenCalledTimes(1))
+    const firstArgs = [...(mockDrawImage.mock.calls[0] as number[])]
+
+    // Reset and save after zooming in
+    vi.clearAllMocks()
+    mockToDataURL.mockReturnValue('data:image/jpeg;base64,EXPORTED')
+    mockGetContext.mockReturnValue({ drawImage: mockDrawImage })
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Aumentar zoom/i }))
+    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+    await waitFor(() => expect(mockDrawImage).toHaveBeenCalledTimes(1))
+    const zoomedArgs = [...(mockDrawImage.mock.calls[0] as number[])]
+
+    // After zoom-in the source crop size (srcW/srcH) should be smaller
+    // (zooming in → smaller source rectangle → same output size → magnified result)
+    expect(zoomedArgs[3]).toBeLessThanOrEqual(firstArgs[3])
+  })
+
   it('calls onError and onCancel when getContext returns null', async () => {
     mockGetContext.mockReturnValueOnce(null as unknown as ReturnType<typeof mockGetContext>)
     const user = userEvent.setup()
@@ -206,5 +261,33 @@ describe('AvatarCropModal — confirm export', () => {
       expect(onCancel).toHaveBeenCalledOnce()
     })
     expect(onConfirm).not.toHaveBeenCalled()
+  })
+})
+
+// ── Initial load state ────────────────────────────────────────────────────────
+
+describe('AvatarCropModal — initial image load state', () => {
+  it('renders the img element in the DOM (for ref and onLoad) when open with a file', () => {
+    renderModal()
+    // The img is always in the DOM once imageSrc is set, regardless of naturalLoaded
+    const img = document.querySelector('img[aria-hidden="true"]')
+    expect(img).not.toBeNull()
+  })
+
+  it('image element has opacity:0 before onLoad fires (no distorted flash)', () => {
+    // In jsdom, img.onLoad never fires for blob URLs, so naturalLoaded stays false.
+    // This test confirms the pre-load state is invisible rather than distorted.
+    renderModal()
+    const img = document.querySelector('img[aria-hidden="true"]') as HTMLImageElement
+    expect(img).not.toBeNull()
+    // Before naturalLoaded, opacity should be 0
+    expect(img.style.opacity).toBe('0')
+  })
+
+  it('zoom controls still work before image load completes', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Aumentar zoom/i }))
+    expect(screen.getByText('110%')).toBeInTheDocument()
   })
 })

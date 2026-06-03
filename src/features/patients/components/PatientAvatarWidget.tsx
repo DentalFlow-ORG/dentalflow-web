@@ -228,7 +228,7 @@ export function PatientAvatarWidget({
                 <button
                   type="button"
                   role="menuitem"
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
                   onClick={handleGalleryClick}
                 >
                   <RefreshCw className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -238,7 +238,7 @@ export function PatientAvatarWidget({
                 <button
                   type="button"
                   role="menuitem"
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
                   onClick={handleCameraClick}
                 >
                   <ImagePlus className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -248,7 +248,7 @@ export function PatientAvatarWidget({
                 <button
                   type="button"
                   role="menuitem"
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-red-600 hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none dark:text-red-400 dark:hover:bg-red-950/20"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-400/60"
                   onClick={handleRemoveClick}
                 >
                   <Trash2 className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -260,7 +260,7 @@ export function PatientAvatarWidget({
                 <button
                   type="button"
                   role="menuitem"
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
                   onClick={handleGalleryClick}
                 >
                   <Upload className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -270,7 +270,7 @@ export function PatientAvatarWidget({
                 <button
                   type="button"
                   role="menuitem"
-                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
                   onClick={handleCameraClick}
                 >
                   <ImagePlus className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />

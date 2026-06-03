@@ -5,6 +5,11 @@ import { Dialog } from 'radix-ui'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { JPEG_QUALITY, MAX_AVATAR_DIMENSION } from '@/lib/compress-avatar'
+import {
+  clampCropOffset,
+  computeBaseScale,
+  computeCropExportRect,
+} from '@/lib/avatar-crop-math'
 
 // Display size of the circular crop area in px
 const CROP_SIZE = 240
@@ -37,44 +42,48 @@ export function AvatarCropModal({
   const [zoom, setZoom] = useState(1)
   const [offset, setOffset] = useState<Offset>({ x: 0, y: 0 })
   const [naturalSize, setNaturalSize] = useState({ w: 1, h: 1 })
+  // Tracks whether the image has finished loading and naturalSize is reliable.
+  // Until true the image is rendered invisible to prevent showing a distorted
+  // version while naturalSize is still at the {1,1} placeholder.
+  const [naturalLoaded, setNaturalLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
 
   // Create and revoke the object URL for the selected file.
-  // naturalSize is reset first so the preview uses correct cover-fit from the
-  // first frame, even before the new image fires its onLoad event.
   useEffect(() => {
     if (!imageFile) return
     const url = URL.createObjectURL(imageFile)
     setNaturalSize({ w: 1, h: 1 })
+    setNaturalLoaded(false)
     setImageSrc(url)
     setZoom(1)
     setOffset({ x: 0, y: 0 })
     return () => {
       URL.revokeObjectURL(url)
       setImageSrc(null)
+      setNaturalLoaded(false)
     }
   }, [imageFile])
 
-  // Cover-fit: scale so the image fills the crop circle (larger dimension wins)
-  const initialScale = Math.max(
-    CROP_SIZE / Math.max(naturalSize.w, 1),
-    CROP_SIZE / Math.max(naturalSize.h, 1),
-  )
-  const effectiveScale = initialScale * zoom
+  // Derived render values ─────────────────────────────────────────────────────
+
+  const baseScale = computeBaseScale(naturalSize.w, naturalSize.h, CROP_SIZE)
+  const effectiveScale = baseScale * zoom
   const displayW = naturalSize.w * effectiveScale
   const displayH = naturalSize.h * effectiveScale
 
-  // Clamp offset so image always covers the full crop area
-  const maxOx = Math.max(0, (displayW - CROP_SIZE) / 2)
-  const maxOy = Math.max(0, (displayH - CROP_SIZE) / 2)
-  const clampedOx = Math.max(-maxOx, Math.min(maxOx, offset.x))
-  const clampedOy = Math.max(-maxOy, Math.min(maxOy, offset.y))
+  const { clampedOx, clampedOy } = clampCropOffset(
+    offset.x,
+    offset.y,
+    displayW,
+    displayH,
+    CROP_SIZE,
+  )
 
   const imageLeft = (CROP_SIZE - displayW) / 2 + clampedOx
-  const imageTop = (CROP_SIZE - displayH) / 2 + clampedOy
+  const imageTop  = (CROP_SIZE - displayH) / 2 + clampedOy
 
   // ── Drag handlers ──────────────────────────────────────────────────────────
 
@@ -98,10 +107,8 @@ export function AvatarCropModal({
 
   // ── Zoom ───────────────────────────────────────────────────────────────────
 
-  const zoomIn = () =>
-    setZoom((z) => Math.min(3, Math.round((z + 0.1) * 10) / 10))
-  const zoomOut = () =>
-    setZoom((z) => Math.max(1, Math.round((z - 0.1) * 10) / 10))
+  const zoomIn  = () => setZoom((z) => Math.min(3, Math.round((z + 0.1) * 10) / 10))
+  const zoomOut = () => setZoom((z) => Math.max(1, Math.round((z - 0.1) * 10) / 10))
 
   // ── Export ─────────────────────────────────────────────────────────────────
 
@@ -111,7 +118,7 @@ export function AvatarCropModal({
 
     const out = MAX_AVATAR_DIMENSION
     const canvas = document.createElement('canvas')
-    canvas.width = out
+    canvas.width  = out
     canvas.height = out
     const ctx = canvas.getContext('2d')
     if (!ctx) {
@@ -120,13 +127,19 @@ export function AvatarCropModal({
       return
     }
 
-    // Map the crop area back to image source coordinates
-    const srcX = -imageLeft / effectiveScale
-    const srcY = -imageTop / effectiveScale
-    const srcW = CROP_SIZE / effectiveScale
-    const srcH = CROP_SIZE / effectiveScale
+    // Map the visible circular crop area back to source image coordinates.
+    // Uses the same clampedOx/clampedOy that drove the render so the saved
+    // result is pixel-accurate to what the user saw in the preview.
+    const { srcX, srcY, srcSize } = computeCropExportRect({
+      naturalW: naturalSize.w,
+      naturalH: naturalSize.h,
+      cropSize: CROP_SIZE,
+      effectiveScale,
+      clampedOx,
+      clampedOy,
+    })
 
-    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, out, out)
+    ctx.drawImage(img, srcX, srcY, srcSize, srcSize, 0, 0, out, out)
     const base64 = canvas.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1]
     onConfirm(base64)
   }
@@ -151,14 +164,14 @@ export function AvatarCropModal({
               {title}
             </Dialog.Title>
             <Dialog.Description className="mt-0.5 text-xs text-muted-foreground">
-              Arraste para posicionar · use + / − para ajustar o zoom.
+              Arraste para centralizar o rosto · use + / − para ajustar o zoom.
             </Dialog.Description>
           </div>
 
           {/* Crop area */}
           <div className="flex flex-col items-center gap-5 px-5 py-6">
             <div
-              className="relative overflow-hidden bg-muted select-none"
+              className="relative overflow-hidden bg-card select-none"
               style={{
                 width: CROP_SIZE,
                 height: CROP_SIZE,
@@ -180,8 +193,9 @@ export function AvatarCropModal({
                   aria-hidden="true"
                   draggable={false}
                   onLoad={(e) => {
-                    const img = e.currentTarget
-                    setNaturalSize({ w: img.naturalWidth || 1, h: img.naturalHeight || 1 })
+                    const el = e.currentTarget
+                    setNaturalSize({ w: el.naturalWidth || 1, h: el.naturalHeight || 1 })
+                    setNaturalLoaded(true)
                   }}
                   style={{
                     position: 'absolute',
@@ -189,11 +203,16 @@ export function AvatarCropModal({
                     height: displayH,
                     left: imageLeft,
                     top: imageTop,
+                    // Keep the element in the DOM for imgRef / onLoad, but
+                    // invisible until naturalSize is known to prevent the brief
+                    // distorted frame caused by the {w:1, h:1} placeholder.
+                    opacity: naturalLoaded ? 1 : 0,
                     pointerEvents: 'none',
                     userSelect: 'none',
                   }}
                 />
               )}
+
               {/* Dimming overlay: transparent inside the crop circle, dark outside */}
               <div
                 className="pointer-events-none absolute inset-0"
@@ -203,7 +222,7 @@ export function AvatarCropModal({
                   background: `radial-gradient(circle ${CROP_SIZE / 2 - 1}px at 50% 50%, transparent 100%, rgba(0,0,0,0.55) 100%)`,
                 }}
               />
-              {/* Visible circle border marking the crop boundary */}
+              {/* Visible ring marking the exact crop boundary */}
               <div
                 className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-white/50"
                 aria-hidden="true"
