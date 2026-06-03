@@ -339,6 +339,54 @@ function PatientDetailPanel({
   )
 }
 
+function PatientSkeletonRow() {
+  return (
+    <tr aria-hidden="true">
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
+          <div className="space-y-1.5">
+            <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+            <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+          </div>
+        </div>
+      </td>
+      <td className="hidden px-4 py-3 sm:table-cell">
+        <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+      </td>
+      <td className="px-4 py-3 text-center">
+        <div className="mx-auto h-4 w-12 animate-pulse rounded bg-muted" />
+      </td>
+      <td className="hidden px-4 py-3 md:table-cell">
+        <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+      </td>
+      <td className="px-4 py-3" />
+    </tr>
+  )
+}
+
+function PatientMobileCardSkeleton() {
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 shadow-sm" aria-hidden="true">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
+          <div className="space-y-1.5">
+            <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+            <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+          </div>
+        </div>
+        <div className="h-5 w-16 animate-pulse rounded-full bg-muted" />
+      </div>
+      <div className="mt-4 space-y-2">
+        <div className="h-3 w-14 animate-pulse rounded bg-muted" />
+        <div className="h-4 w-36 animate-pulse rounded bg-muted" />
+      </div>
+      <div className="mt-4 h-9 w-full animate-pulse rounded-md bg-muted" />
+    </div>
+  )
+}
+
 export function PatientsPageContainer() {
   const {
     patients,
@@ -416,11 +464,10 @@ export function PatientsPageContainer() {
       </PanelCard>
 
       <ListPageShell
-        isLoading={isLoading}
-        loadingMessage="Carregando pacientes…"
+        isLoading={false}
         error={error}
         onRetry={handleRefresh}
-        isEmpty={patients.length === 0}
+        isEmpty={!isLoading && patients.length === 0}
         emptyState={
           <EmptyState
             icon={Users2}
@@ -430,7 +477,7 @@ export function PatientsPageContainer() {
         }
       >
         <>
-          <KpiGrid patients={filteredPatients} />
+          {!isLoading && <KpiGrid patients={filteredPatients} />}
 
           <PanelCard>
             <div className="mb-5 flex items-center justify-between gap-3">
@@ -447,7 +494,9 @@ export function PatientsPageContainer() {
 
             <div className="overflow-hidden rounded-lg border border-border">
               <div className="space-y-3 bg-muted p-3 lg:hidden">
-                {filteredPatients.length === 0 ? (
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => <PatientMobileCardSkeleton key={i} />)
+                ) : filteredPatients.length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
                     {hasFilters
                       ? 'Nenhum paciente encontrado para os filtros aplicados.'
@@ -476,7 +525,9 @@ export function PatientsPageContainer() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border bg-card">
-                    {filteredPatients.length === 0 ? (
+                    {isLoading ? (
+                      Array.from({ length: 8 }).map((_, i) => <PatientSkeletonRow key={i} />)
+                    ) : filteredPatients.length === 0 ? (
                       <tr>
                         <td
                           colSpan={5}
