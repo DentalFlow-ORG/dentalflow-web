@@ -7,8 +7,9 @@ import { AvatarCropModal } from '@/features/patients/components/AvatarCropModal'
 // export path can run without errors.
 
 const mockDrawImage = vi.fn()
+const mockFillRect  = vi.fn()
 const mockToDataURL = vi.fn(() => 'data:image/jpeg;base64,EXPORTED')
-const mockGetContext = vi.fn(() => ({ drawImage: mockDrawImage }))
+const mockGetContext = vi.fn(() => ({ drawImage: mockDrawImage, fillRect: mockFillRect }))
 const mockCanvas = {
   width: 0,
   height: 0,
@@ -39,7 +40,7 @@ beforeAll(() => {
 beforeEach(() => {
   vi.clearAllMocks()
   mockToDataURL.mockReturnValue('data:image/jpeg;base64,EXPORTED')
-  mockGetContext.mockReturnValue({ drawImage: mockDrawImage })
+  mockGetContext.mockReturnValue({ drawImage: mockDrawImage, fillRect: mockFillRect })
 })
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -113,12 +114,18 @@ describe('AvatarCropModal — circular crop overlay', () => {
     expect(screen.getByTestId('crop-circle-overlay')).toBeInTheDocument()
   })
 
-  it('crop area container is not rounded-full (square with overlay, not clipped circle)', () => {
+  it('crop area container is not rounded-full (square viewport with overlay, not clipped circle)', () => {
     renderModal()
     const overlay = screen.getByTestId('crop-circle-overlay')
-    // The container is the parent — it should NOT have rounded-full
     const container = overlay.parentElement!
     expect(container.className).not.toContain('rounded-full')
+  })
+
+  it('crop area container has overflow-hidden', () => {
+    renderModal()
+    const overlay = screen.getByTestId('crop-circle-overlay')
+    const container = overlay.parentElement!
+    expect(container.className).toContain('overflow-hidden')
   })
 })
 
@@ -196,59 +203,62 @@ describe('AvatarCropModal — confirm export', () => {
     await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
   })
 
-  it('calls drawImage with 9 arguments (img, sx, sy, sw, sh, dx, dy, dw, dh)', async () => {
+  it('calls drawImage with 5 arguments: (img, dx, dy, dw, dh)', async () => {
     const user = userEvent.setup()
     renderModal()
     await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
     await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
     const args = mockDrawImage.mock.calls[0] as unknown[]
-    expect(args).toHaveLength(9)
+    expect(args).toHaveLength(5)
   })
 
-  it('drawImage destination fills the full output canvas (0,0,512,512)', async () => {
+  it('calls fillRect with white before drawImage to prevent black borders', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+    await waitFor(() => expect(mockFillRect).toHaveBeenCalled())
+    // fillRect must be called before drawImage
+    expect(mockFillRect).toHaveBeenCalledBefore(mockDrawImage)
+    const fillArgs = mockFillRect.mock.calls[0] as number[]
+    expect(fillArgs).toEqual([0, 0, 512, 512])
+  })
+
+  it('drawImage destination fills the output canvas for a 1×1 natural image at zoom 1', async () => {
+    // In jsdom onLoad never fires, so naturalSize stays {1,1}.
+    // baseScale=min(240,240)=240, effectiveScale=240, displayW/H=240, imageLeft/Top=0
+    // → dx=0, dy=0, dw=512, dh=512
     const user = userEvent.setup()
     renderModal()
     await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
     await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
-    const args = mockDrawImage.mock.calls[0] as [unknown, ...number[]]
-    // args: [img, srcX, srcY, srcW, srcH, dstX, dstY, dstW, dstH]
-    expect(args[5]).toBe(0)    // dstX
-    expect(args[6]).toBe(0)    // dstY
-    expect(args[7]).toBe(512)  // dstW (MAX_AVATAR_DIMENSION)
-    expect(args[8]).toBe(512)  // dstH
+    const args = mockDrawImage.mock.calls[0] as [unknown, number, number, number, number]
+    expect(args[1]).toBeCloseTo(0)    // dx
+    expect(args[2]).toBeCloseTo(0)    // dy
+    expect(args[3]).toBeCloseTo(512)  // dw
+    expect(args[4]).toBeCloseTo(512)  // dh
   })
 
-  it('drawImage source width and height are equal (square crop)', async () => {
+  it('zoom-in increases dw in export (zoomed image takes more canvas space)', async () => {
     const user = userEvent.setup()
-    renderModal()
-    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
-    await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
-    const args = mockDrawImage.mock.calls[0] as [unknown, ...number[]]
-    // srcW (args[3]) and srcH (args[4]) must be equal — uniform square crop
-    expect(args[3]).toBe(args[4])
-  })
 
-  it('drawImage is called with a different srcX after zooming in (zoom changes source crop)', async () => {
-    const user = userEvent.setup()
     // First save without zoom
     renderModal()
     await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
     await waitFor(() => expect(mockDrawImage).toHaveBeenCalledTimes(1))
-    const firstArgs = [...(mockDrawImage.mock.calls[0] as number[])]
+    const firstDw = (mockDrawImage.mock.calls[0] as [unknown, number, number, number, number])[3]
 
     // Reset and save after zooming in
     vi.clearAllMocks()
     mockToDataURL.mockReturnValue('data:image/jpeg;base64,EXPORTED')
-    mockGetContext.mockReturnValue({ drawImage: mockDrawImage })
+    mockGetContext.mockReturnValue({ drawImage: mockDrawImage, fillRect: mockFillRect })
     renderModal()
     await user.click(screen.getByRole('button', { name: /Aumentar zoom/i }))
     await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
     await waitFor(() => expect(mockDrawImage).toHaveBeenCalledTimes(1))
-    const zoomedArgs = [...(mockDrawImage.mock.calls[0] as number[])]
+    const zoomedDw = (mockDrawImage.mock.calls[0] as [unknown, number, number, number, number])[3]
 
-    // After zoom-in the source crop size (srcW/srcH) should be smaller
-    // (zooming in → smaller source rectangle → same output size → magnified result)
-    expect(zoomedArgs[3]).toBeLessThanOrEqual(firstArgs[3])
+    // More zoom → image fills more of the canvas → dw increases
+    expect(zoomedDw).toBeGreaterThan(firstDw)
   })
 
   it('calls onError and onCancel when getContext returns null', async () => {
@@ -269,18 +279,15 @@ describe('AvatarCropModal — confirm export', () => {
 describe('AvatarCropModal — initial image load state', () => {
   it('renders the img element in the DOM (for ref and onLoad) when open with a file', () => {
     renderModal()
-    // The img is always in the DOM once imageSrc is set, regardless of naturalLoaded
     const img = document.querySelector('img[aria-hidden="true"]')
     expect(img).not.toBeNull()
   })
 
   it('image element has opacity:0 before onLoad fires (no distorted flash)', () => {
     // In jsdom, img.onLoad never fires for blob URLs, so naturalLoaded stays false.
-    // This test confirms the pre-load state is invisible rather than distorted.
     renderModal()
     const img = document.querySelector('img[aria-hidden="true"]') as HTMLImageElement
     expect(img).not.toBeNull()
-    // Before naturalLoaded, opacity should be 0
     expect(img.style.opacity).toBe('0')
   })
 

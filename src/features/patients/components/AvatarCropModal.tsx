@@ -8,7 +8,7 @@ import { JPEG_QUALITY, MAX_AVATAR_DIMENSION } from '@/lib/compress-avatar'
 import {
   clampCropOffset,
   computeBaseScale,
-  computeCropExportRect,
+  computeExportDestination,
 } from '@/lib/avatar-crop-math'
 
 // Display size of the circular crop area in px
@@ -48,7 +48,13 @@ export function AvatarCropModal({
   const [naturalLoaded, setNaturalLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+
   const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
+  // Ref mirror of isDragging state — read inside RAF callbacks to avoid stale closures.
+  const isDraggingRef = useRef(false)
+  // Pending pointer position for RAF-throttled move updates.
+  const rafId = useRef<number | null>(null)
+  const pendingPointer = useRef<{ x: number; y: number } | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
 
   // Create and revoke the object URL for the selected file.
@@ -89,20 +95,39 @@ export function AvatarCropModal({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId)
+    // Cancel any in-flight RAF before starting a new drag sequence.
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current)
+      rafId.current = null
+    }
+    isDraggingRef.current = true
     setIsDragging(true)
     dragStart.current = { x: e.clientX, y: e.clientY, ox: clampedOx, oy: clampedOy }
   }
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging || !dragStart.current) return
-    const dx = e.clientX - dragStart.current.x
-    const dy = e.clientY - dragStart.current.y
-    setOffset({ x: dragStart.current.ox + dx, y: dragStart.current.oy + dy })
+    if (!isDraggingRef.current || !dragStart.current) return
+    // Store latest pointer; the RAF will read it to avoid processing stale moves.
+    pendingPointer.current = { x: e.clientX, y: e.clientY }
+    if (rafId.current === null) {
+      rafId.current = requestAnimationFrame(() => {
+        rafId.current = null
+        const ds = dragStart.current
+        const pp = pendingPointer.current
+        if (!isDraggingRef.current || !ds || !pp) return
+        setOffset({ x: ds.ox + (pp.x - ds.x), y: ds.oy + (pp.y - ds.y) })
+      })
+    }
   }
 
   const handlePointerUp = () => {
+    isDraggingRef.current = false
     setIsDragging(false)
     dragStart.current = null
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current)
+      rafId.current = null
+    }
   }
 
   // ── Zoom ───────────────────────────────────────────────────────────────────
@@ -127,19 +152,25 @@ export function AvatarCropModal({
       return
     }
 
-    // Map the visible circular crop area back to source image coordinates.
-    // Uses the same clampedOx/clampedOy that drove the render so the saved
-    // result is pixel-accurate to what the user saw in the preview.
-    const { srcX, srcY, srcSize } = computeCropExportRect({
+    // Fill with white before drawing so any empty space from the fit-scale
+    // positioning shows as white instead of transparent/black.
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, out, out)
+
+    // Compute destination rect that mirrors the preview transform directly.
+    // 5-arg drawImage(img, dx, dy, dw, dh) is simpler and more faithful than
+    // computing source coords, so preview and export always match.
+    const { dx, dy, dw, dh } = computeExportDestination({
       naturalW: naturalSize.w,
       naturalH: naturalSize.h,
       cropSize: CROP_SIZE,
       effectiveScale,
       clampedOx,
       clampedOy,
+      outputSize: out,
     })
 
-    ctx.drawImage(img, srcX, srcY, srcSize, srcSize, 0, 0, out, out)
+    ctx.drawImage(img, dx, dy, dw, dh)
     const base64 = canvas.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1]
     onConfirm(base64)
   }
@@ -171,7 +202,7 @@ export function AvatarCropModal({
           {/* Crop area */}
           <div className="flex flex-col items-center gap-5 px-5 py-6">
             <div
-              className="relative overflow-hidden bg-card select-none"
+              className="relative overflow-hidden bg-muted select-none"
               style={{
                 width: CROP_SIZE,
                 height: CROP_SIZE,

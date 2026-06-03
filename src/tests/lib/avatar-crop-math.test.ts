@@ -1,94 +1,113 @@
 import {
   clampCropOffset,
   computeBaseScale,
-  computeCropExportRect,
+  computeExportDestination,
 } from '@/lib/avatar-crop-math'
 
 const CROP = 240  // matching AvatarCropModal's CROP_SIZE
+const OUT  = 512  // MAX_AVATAR_DIMENSION
 
-// ── computeBaseScale ──────────────────────────────────────────────────────────
+// ── computeBaseScale (fit / contain) ──────────────────────────────────────────
 
 describe('computeBaseScale', () => {
-  it('uses height as limiting dimension for landscape (wider than tall)', () => {
-    // 1200×800 → max(240/1200, 240/800) = max(0.2, 0.3) = 0.3
-    expect(computeBaseScale(1200, 800, CROP)).toBeCloseTo(0.3)
+  it('fits landscape: width fills cropSize, height has gap (smaller scale wins)', () => {
+    // 1200×800 → min(240/1200, 240/800) = min(0.2, 0.3) = 0.2
+    expect(computeBaseScale(1200, 800, CROP)).toBeCloseTo(0.2)
   })
 
-  it('uses width as limiting dimension for portrait (taller than wide)', () => {
-    // 800×1200 → max(240/800, 240/1200) = max(0.3, 0.2) = 0.3
-    expect(computeBaseScale(800, 1200, CROP)).toBeCloseTo(0.3)
+  it('fits portrait: height fills cropSize, width has gap', () => {
+    // 800×1200 → min(240/800, 240/1200) = min(0.3, 0.2) = 0.2
+    expect(computeBaseScale(800, 1200, CROP)).toBeCloseTo(0.2)
   })
 
   it('returns 1 for a square image equal to cropSize', () => {
     expect(computeBaseScale(240, 240, CROP)).toBeCloseTo(1)
   })
 
-  it('returns > 1 for an image smaller than cropSize (scale up to fill)', () => {
-    // 120×120 needs 2× scale to fill 240
+  it('scales up small images to fit (returns > 1)', () => {
+    // 120×120 → min(2, 2) = 2
     expect(computeBaseScale(120, 120, CROP)).toBeCloseTo(2)
   })
 
-  it('uses the LARGER of the two axis scales (cover behaviour)', () => {
-    // 300×100 → max(240/300, 240/100) = max(0.8, 2.4) = 2.4
-    expect(computeBaseScale(300, 100, CROP)).toBeCloseTo(2.4)
+  it('uses the SMALLER of the two axis scales (contain, not cover)', () => {
+    // 300×100 → min(240/300, 240/100) = min(0.8, 2.4) = 0.8
+    expect(computeBaseScale(300, 100, CROP)).toBeCloseTo(0.8)
   })
 
   it('handles degenerate natural size of 1×1 without division by zero', () => {
     expect(computeBaseScale(1, 1, CROP)).toBe(CROP)
   })
 
-  it('produces equal displayW and displayH only for square images', () => {
+  it('landscape: displayW equals cropSize at baseScale (width is the limiting axis)', () => {
     const scale = computeBaseScale(1200, 800, CROP)
-    // displayW = 1200 * 0.3 = 360, displayH = 800 * 0.3 = 240
-    expect(1200 * scale).not.toBeCloseTo(800 * scale)
+    expect(1200 * scale).toBeCloseTo(CROP)
+  })
+
+  it('landscape: displayH < cropSize at baseScale (vertical gap is expected)', () => {
+    const scale = computeBaseScale(1200, 800, CROP)
+    expect(800 * scale).toBeLessThan(CROP)
+  })
+
+  it('portrait: displayH equals cropSize at baseScale (height is the limiting axis)', () => {
+    const scale = computeBaseScale(800, 1200, CROP)
+    expect(1200 * scale).toBeCloseTo(CROP)
   })
 })
 
-// ── clampCropOffset ───────────────────────────────────────────────────────────
+// ── clampCropOffset (generous clamp) ─────────────────────────────────────────
 
 describe('clampCropOffset', () => {
-  it('returns (0,0) when displayW and displayH equal cropSize (no slack to drag)', () => {
-    const result = clampCropOffset(99, 99, CROP, CROP, CROP)
-    expect(result.clampedOx).toBe(0)
-    expect(result.clampedOy).toBe(0)
-  })
+  // minOverlap = CROP/4 = 60
+  // maxOx = (cropSize + displayW)/2 - minOverlap
 
-  it('passes through offset within the allowed range', () => {
-    // displayW=360 → maxOx=(360-240)/2=60; offset=30 is within bounds
-    const { clampedOx, clampedOy } = clampCropOffset(30, 20, 360, 280, CROP)
-    expect(clampedOx).toBe(30)
-    expect(clampedOy).toBe(20)
+  it('passes offset within the generous range unchanged', () => {
+    // displayW=240 → maxOx=(240+240)/2-60=180; 100 < 180
+    const { clampedOx } = clampCropOffset(100, 0, CROP, CROP, CROP)
+    expect(clampedOx).toBe(100)
   })
 
   it('clamps positive offset to maxOx when too large', () => {
-    const { clampedOx } = clampCropOffset(999, 0, 360, CROP, CROP)
-    // maxOx = (360-240)/2 = 60
-    expect(clampedOx).toBe(60)
+    // displayW=240 → maxOx=180
+    const { clampedOx } = clampCropOffset(999, 0, CROP, CROP, CROP)
+    expect(clampedOx).toBe(180)
   })
 
   it('clamps negative offset to -maxOx when too large (opposite direction)', () => {
-    const { clampedOx } = clampCropOffset(-999, 0, 360, CROP, CROP)
-    expect(clampedOx).toBe(-60)
+    const { clampedOx } = clampCropOffset(-999, 0, CROP, CROP, CROP)
+    expect(clampedOx).toBe(-180)
   })
 
-  it('handles portrait where height creates slack and width does not', () => {
-    // displayW=240 (no horizontal slack), displayH=360 (vertical slack=60)
-    const { clampedOx, clampedOy } = clampCropOffset(50, 50, CROP, 360, CROP)
-    expect(clampedOx).toBe(0)   // no slack → clamped to 0
-    expect(clampedOy).toBe(50)  // within ±60
-  })
-
-  it('preserves symmetry: clampedOx == -clampedOx with opposite input', () => {
-    const pos = clampCropOffset(30, 0, 360, CROP, CROP)
-    const neg = clampCropOffset(-30, 0, 360, CROP, CROP)
+  it('clamp is symmetric: pos and neg inputs produce mirrored outputs', () => {
+    const pos = clampCropOffset(500, 0, CROP, CROP, CROP)
+    const neg = clampCropOffset(-500, 0, CROP, CROP, CROP)
     expect(pos.clampedOx).toBe(-neg.clampedOx)
+  })
+
+  it('larger displayW allows larger maxOx', () => {
+    // displayW=400 → maxOx=(240+400)/2-60=320-60=260
+    const { clampedOx } = clampCropOffset(999, 0, 400, CROP, CROP)
+    expect(clampedOx).toBe(260)
+  })
+
+  it('x and y axes are clamped independently', () => {
+    // displayW=240 maxOx=180, displayH=200 maxOy=(240+200)/2-60=160
+    const { clampedOx, clampedOy } = clampCropOffset(100, 200, CROP, 200, CROP)
+    expect(clampedOx).toBe(100) // 100 < 180 → passes through
+    expect(clampedOy).toBe(160) // 200 > 160 → clamped
+  })
+
+  it('allows image to be positioned so empty space shows inside the viewport', () => {
+    // At fit scale for landscape, displayW=240, so ox=0 means image is centered
+    // but the user can still drag it — clamping only prevents full disappearance
+    const { clampedOx } = clampCropOffset(50, 0, CROP, CROP, CROP)
+    expect(clampedOx).toBe(50) // drag is permitted
   })
 })
 
-// ── computeCropExportRect ─────────────────────────────────────────────────────
+// ── computeExportDestination ──────────────────────────────────────────────────
 
-describe('computeCropExportRect', () => {
-  function exportRect(
+describe('computeExportDestination', () => {
+  function exportDest(
     naturalW: number,
     naturalH: number,
     zoom: number,
@@ -100,116 +119,100 @@ describe('computeCropExportRect', () => {
     const displayW = naturalW * effectiveScale
     const displayH = naturalH * effectiveScale
     const { clampedOx, clampedOy } = clampCropOffset(ox, oy, displayW, displayH, CROP)
-    return computeCropExportRect({
+    return computeExportDestination({
       naturalW,
       naturalH,
       cropSize: CROP,
       effectiveScale,
       clampedOx,
       clampedOy,
+      outputSize: OUT,
     })
   }
 
   // ── Landscape 1200×800 ────────────────────────────────────────────────────
 
-  it('landscape at zoom 1 no drag: srcX=200, srcY=0, srcSize=800', () => {
-    const { srcX, srcY, srcSize } = exportRect(1200, 800, 1)
-    // baseScale=0.3 → effectiveScale=0.3 → srcSize=240/0.3=800
-    // imageLeft=(240-360)/2=-60 → srcX=60/0.3=200
-    expect(srcX).toBeCloseTo(200)
-    expect(srcY).toBeCloseTo(0)
-    expect(srcSize).toBeCloseTo(800)
+  it('landscape at zoom 1: dw fills output, dy has vertical centering offset', () => {
+    const { dx, dy, dw, dh } = exportDest(1200, 800, 1)
+    // baseScale=0.2, displayW=240 → imageLeft=0, dx=0
+    // displayH=160, imageTop=(240-160)/2=40
+    expect(dx).toBeCloseTo(0)
+    expect(dy).toBeCloseTo(40 * (OUT / CROP))
+    expect(dw).toBeCloseTo(OUT)
+    expect(dh).toBeCloseTo(160 * (OUT / CROP))
   })
 
-  it('landscape at zoom 2 no drag: takes a smaller central crop', () => {
-    const { srcX, srcY, srcSize } = exportRect(1200, 800, 2)
-    // effectiveScale=0.6 → srcSize=240/0.6=400
-    // imageLeft=(240-720)/2=-240 → srcX=240/0.6=400
-    // imageTop=(240-480)/2=-120 → srcY=120/0.6=200
-    expect(srcX).toBeCloseTo(400)
-    expect(srcY).toBeCloseTo(200)
-    expect(srcSize).toBeCloseTo(400)
-  })
-
-  it('srcX + srcSize <= naturalW (crop never escapes right edge)', () => {
-    const { srcX, srcSize } = exportRect(1200, 800, 1)
-    expect(srcX + srcSize).toBeLessThanOrEqual(1200 + 0.001)
-  })
-
-  it('srcY + srcSize <= naturalH (crop never escapes bottom edge)', () => {
-    const { srcX: _, srcY, srcSize } = exportRect(1200, 800, 1)
-    expect(srcY + srcSize).toBeLessThanOrEqual(800 + 0.001)
+  it('landscape at zoom 2: image grows and overflows viewport on all sides', () => {
+    const { dx, dy, dw, dh } = exportDest(1200, 800, 2)
+    // effectiveScale=0.4, displayW=480, imageLeft=(240-480)/2=-120
+    // displayH=320, imageTop=(240-320)/2=-40
+    expect(dx).toBeCloseTo(-120 * (OUT / CROP))
+    expect(dy).toBeCloseTo(-40  * (OUT / CROP))
+    expect(dw).toBeCloseTo(480 * (OUT / CROP))
+    expect(dh).toBeCloseTo(320 * (OUT / CROP))
   })
 
   // ── Portrait 800×1200 ─────────────────────────────────────────────────────
 
-  it('portrait at zoom 1 no drag: srcX=0, srcY=200, srcSize=800', () => {
-    const { srcX, srcY, srcSize } = exportRect(800, 1200, 1)
-    // baseScale = max(240/800, 240/1200) = 0.3
-    // displayW=240 (no left overflow), displayH=360 (vertical overflow)
-    // imageLeft=(240-240)/2=0 → srcX=0
-    // imageTop=(240-360)/2=-60 → srcY=60/0.3=200
-    expect(srcX).toBeCloseTo(0)
-    expect(srcY).toBeCloseTo(200)
-    expect(srcSize).toBeCloseTo(800)
-  })
-
-  // ── Drag offset ───────────────────────────────────────────────────────────
-
-  it('dragging right (positive ox) shifts srcX left (shows more of left side)', () => {
-    const { srcX: centerSrcX } = exportRect(1200, 800, 1, 0)
-    const { srcX: draggedSrcX } = exportRect(1200, 800, 1, 30)
-    expect(draggedSrcX).toBeLessThan(centerSrcX)
-  })
-
-  it('dragging left (negative ox) shifts srcX right (shows more of right side)', () => {
-    const { srcX: centerSrcX } = exportRect(1200, 800, 1, 0)
-    const { srcX: draggedSrcX } = exportRect(1200, 800, 1, -30)
-    expect(draggedSrcX).toBeGreaterThan(centerSrcX)
-  })
-
-  it('drag offset is reflected in srcX change proportional to scale', () => {
-    // base=0.3, ox=30 → clampedOx=30 → imageLeft=-60+30=-30 → srcX=30/0.3=100
-    const { srcX } = exportRect(1200, 800, 1, 30)
-    expect(srcX).toBeCloseTo(100)
+  it('portrait at zoom 1: dh fills output, dx has horizontal centering offset', () => {
+    const { dx, dy, dw, dh } = exportDest(800, 1200, 1)
+    // baseScale=0.2, displayW=160, imageLeft=40
+    // displayH=240 → imageTop=0
+    expect(dx).toBeCloseTo(40 * (OUT / CROP))
+    expect(dy).toBeCloseTo(0)
+    expect(dw).toBeCloseTo(160 * (OUT / CROP))
+    expect(dh).toBeCloseTo(OUT)
   })
 
   // ── Square image ──────────────────────────────────────────────────────────
 
-  it('square image at zoom 1: srcX=srcY=0, srcSize=naturalW (no crop)', () => {
-    const { srcX, srcY, srcSize } = exportRect(240, 240, 1)
-    expect(srcX).toBeCloseTo(0)
-    expect(srcY).toBeCloseTo(0)
-    expect(srcSize).toBeCloseTo(240)
+  it('square image at zoom 1: destination fills output canvas exactly', () => {
+    const { dx, dy, dw, dh } = exportDest(240, 240, 1)
+    expect(dx).toBeCloseTo(0)
+    expect(dy).toBeCloseTo(0)
+    expect(dw).toBeCloseTo(OUT)
+    expect(dh).toBeCloseTo(OUT)
+  })
+
+  // ── Aspect ratio preservation ─────────────────────────────────────────────
+
+  it('dw/dh preserves the natural aspect ratio at zoom 1', () => {
+    const { dw, dh } = exportDest(1200, 800, 1)
+    expect(dw / dh).toBeCloseTo(1200 / 800)
+  })
+
+  it('dw/dh preserves the natural aspect ratio at zoom 2', () => {
+    const { dw, dh } = exportDest(1200, 800, 2)
+    expect(dw / dh).toBeCloseTo(1200 / 800)
   })
 
   // ── Zoom uniformity ───────────────────────────────────────────────────────
 
-  it('srcSize is the same in both axes (uniform square crop, no stretching)', () => {
-    // srcSize is a single value used for both W and H in drawImage
-    const r1 = exportRect(1200, 800, 1)
-    const r2 = exportRect(1200, 800, 2)
-    // Both should return a single srcSize (not separate srcW/srcH)
-    expect(typeof r1.srcSize).toBe('number')
-    expect(typeof r2.srcSize).toBe('number')
-    expect(r2.srcSize).toBeLessThan(r1.srcSize) // more zoom → smaller source crop
+  it('zoom 2 doubles both dw and dh compared to zoom 1', () => {
+    const r1 = exportDest(1200, 800, 1)
+    const r2 = exportDest(1200, 800, 2)
+    expect(r2.dw).toBeCloseTo(r1.dw * 2)
+    expect(r2.dh).toBeCloseTo(r1.dh * 2)
   })
 
-  it('increasing zoom halves srcSize relative to zoom factor', () => {
-    const { srcSize: s1 } = exportRect(1200, 800, 1)
-    const { srcSize: s2 } = exportRect(1200, 800, 2)
-    expect(s2).toBeCloseTo(s1 / 2)
+  it('zooming in increases dw (image appears larger in export)', () => {
+    const { dw: dw1 } = exportDest(1200, 800, 1)
+    const { dw: dw2 } = exportDest(1200, 800, 2)
+    expect(dw2).toBeGreaterThan(dw1)
   })
 
-  // ── Clamping ──────────────────────────────────────────────────────────────
+  // ── Drag offset ───────────────────────────────────────────────────────────
 
-  it('srcX is never negative even with extreme drag offset', () => {
-    const { srcX } = exportRect(1200, 800, 1, 9999)
-    expect(srcX).toBeGreaterThanOrEqual(0)
+  it('dragging right (positive ox) shifts dx positively', () => {
+    const { dx: dx0 }  = exportDest(1200, 800, 1, 0)
+    const { dx: dx30 } = exportDest(1200, 800, 1, 30)
+    // ox=30 → clampedOx=30 → imageLeft += 30 → dx += 30*(OUT/CROP)
+    expect(dx30).toBeCloseTo(dx0 + 30 * (OUT / CROP))
   })
 
-  it('srcY is never negative even with extreme drag offset', () => {
-    const { srcY } = exportRect(1200, 800, 1, 0, 9999)
-    expect(srcY).toBeGreaterThanOrEqual(0)
+  it('dragging left (negative ox) shifts dx negatively', () => {
+    const { dx: dx0 }   = exportDest(1200, 800, 1, 0)
+    const { dx: dxNeg } = exportDest(1200, 800, 1, -30)
+    expect(dxNeg).toBeCloseTo(dx0 - 30 * (OUT / CROP))
   })
 })

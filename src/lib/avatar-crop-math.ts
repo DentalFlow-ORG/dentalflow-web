@@ -2,23 +2,26 @@
 // Extracted so they can be unit-tested without a DOM, canvas, or React.
 
 /**
- * Cover-fit scale: the minimum scale that makes the image fill the crop square
- * on both axes (larger natural dimension wins, matching CSS object-fit:cover).
+ * Fit scale: the maximum scale that makes the whole image fit inside the crop
+ * square on both axes without overflow (CSS object-fit:contain behaviour).
+ * At zoom=1 the full image is visible with its natural aspect ratio; the user
+ * zooms in to fill the crop circle.
  */
 export function computeBaseScale(
   naturalW: number,
   naturalH: number,
   cropSize: number,
 ): number {
-  return Math.max(
+  return Math.min(
     cropSize / Math.max(naturalW, 1),
     cropSize / Math.max(naturalH, 1),
   )
 }
 
 /**
- * Clamp the drag offset so the image always covers the full crop area —
- * no empty space can appear inside the crop circle regardless of user drag.
+ * Generous drag clamp: keeps at least cropSize/4 pixels of the image
+ * overlapping the crop viewport so the image never fully disappears, but
+ * does NOT force the image to cover the crop area — empty space is allowed.
  */
 export function clampCropOffset(
   ox: number,
@@ -27,57 +30,59 @@ export function clampCropOffset(
   displayH: number,
   cropSize: number,
 ): { clampedOx: number; clampedOy: number } {
-  const maxOx = Math.max(0, (displayW - cropSize) / 2)
-  const maxOy = Math.max(0, (displayH - cropSize) / 2)
+  const minOverlap = cropSize / 4
+  const maxOx = (cropSize + displayW) / 2 - minOverlap
+  const maxOy = (cropSize + displayH) / 2 - minOverlap
   return {
     clampedOx: Math.max(-maxOx, Math.min(maxOx, ox)),
     clampedOy: Math.max(-maxOy, Math.min(maxOy, oy)),
   }
 }
 
-export interface CropExportRect {
-  /** Left edge of source crop in natural image pixels. */
-  srcX: number
-  /** Top edge of source crop in natural image pixels. */
-  srcY: number
-  /** Side length of the square crop in natural image pixels. */
-  srcSize: number
+export interface ExportDestination {
+  /** Destination x on the output canvas in px. */
+  dx: number
+  /** Destination y on the output canvas in px. */
+  dy: number
+  /** Destination width on the output canvas in px. */
+  dw: number
+  /** Destination height on the output canvas in px. */
+  dh: number
 }
 
 /**
- * Convert the current render state (zoom, offset, crop size) back to the
- * source rectangle that must be passed to ctx.drawImage() so the exported
- * canvas exactly matches the circular crop preview.
+ * Compute the drawImage destination rectangle so the exported canvas exactly
+ * mirrors the preview transform.
  *
- * All returned values are in natural (intrinsic) image pixel coordinates.
- * srcX/srcY are clamped to [0, natural − srcSize] to prevent black edges
- * from floating-point drift at boundary zoom/offset combinations.
+ * Strategy: scale the preview viewport coordinates by (outputSize / cropSize).
+ * The caller should ctx.fillRect with a neutral background before drawing to
+ * handle any empty space introduced by the fit-scale initial positioning.
  */
-export function computeCropExportRect(params: {
+export function computeExportDestination(params: {
   naturalW: number
   naturalH: number
   cropSize: number
   effectiveScale: number
   clampedOx: number
   clampedOy: number
-}): CropExportRect {
-  const { naturalW, naturalH, cropSize, effectiveScale, clampedOx, clampedOy } = params
+  outputSize: number
+}): ExportDestination {
+  const { naturalW, naturalH, cropSize, effectiveScale, clampedOx, clampedOy, outputSize } = params
 
   const displayW = naturalW * effectiveScale
   const displayH = naturalH * effectiveScale
 
-  // CSS left/top of the image element relative to the crop container
+  // CSS left/top of the image element inside the preview viewport
   const imageLeft = (cropSize - displayW) / 2 + clampedOx
   const imageTop  = (cropSize - displayH) / 2 + clampedOy
 
-  // Map crop container origin → natural image coordinates
-  const srcSize = cropSize / effectiveScale
-  const rawSrcX = -imageLeft / effectiveScale
-  const rawSrcY = -imageTop  / effectiveScale
+  // Scale up to output canvas coordinates — same transform, larger canvas
+  const canvasScale = outputSize / cropSize
 
-  // Clamp to image bounds (guards against sub-pixel floating-point drift)
-  const srcX = Math.max(0, Math.min(naturalW - srcSize, rawSrcX))
-  const srcY = Math.max(0, Math.min(naturalH - srcSize, rawSrcY))
-
-  return { srcX, srcY, srcSize }
+  return {
+    dx: imageLeft * canvasScale,
+    dy: imageTop  * canvasScale,
+    dw: displayW  * canvasScale,
+    dh: displayH  * canvasScale,
+  }
 }
