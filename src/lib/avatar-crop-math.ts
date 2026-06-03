@@ -1,88 +1,169 @@
-// Pure math helpers for AvatarCropModal crop/zoom/export logic.
-// Extracted so they can be unit-tested without a DOM, canvas, or React.
+// Pure math helpers for the Google-like avatar cropper.
+// The model is intentionally center-based: preview and canvas export share the
+// same image center, rotation, uniform scale, and square crop size.
 
-/**
- * Cover scale: the minimum scale that makes the image fill the crop viewport
- * on both axes (larger natural dimension wins, matching CSS object-fit:cover).
- * At zoom=1 the image exactly covers the square with no empty gaps.
- * Aspect ratio is preserved — the shorter axis fills exactly, the longer overflows.
- */
-export function computeBaseScale(
+export type RotationDegrees = 0 | 90 | 180 | 270
+
+export interface Size {
+  width: number
+  height: number
+}
+
+export interface Point {
+  x: number
+  y: number
+}
+
+export interface CropStageLayout {
+  stageWidth: number
+  stageHeight: number
+  cropSize: number
+  cropLeft: number
+  cropTop: number
+}
+
+export interface ImageTransform {
+  scale: number
+  displayWidth: number
+  displayHeight: number
+  rotatedWidth: number
+  rotatedHeight: number
+  offset: Point
+}
+
+export interface CropExportTransform {
+  outputSize: number
+  translateX: number
+  translateY: number
+  rotationRadians: number
+  drawWidth: number
+  drawHeight: number
+}
+
+function safeDimension(value: number): number {
+  return Math.max(1, value)
+}
+
+export function rotateLeft(rotation: RotationDegrees): RotationDegrees {
+  if (rotation === 0) return 270
+  if (rotation === 270) return 180
+  if (rotation === 180) return 90
+  return 0
+}
+
+export function computeRotatedDimensions(
   naturalW: number,
   naturalH: number,
-  cropSize: number,
-): number {
-  return Math.max(
-    cropSize / Math.max(naturalW, 1),
-    cropSize / Math.max(naturalH, 1),
-  )
+  rotation: RotationDegrees,
+): Size {
+  const width = safeDimension(naturalW)
+  const height = safeDimension(naturalH)
+
+  if (rotation === 90 || rotation === 270) {
+    return { width: height, height: width }
+  }
+
+  return { width, height }
 }
 
 /**
- * Cover-model clamp: the image is always at least as large as the viewport on
- * each axis (guaranteed by cover scale), so the maximum drag distance equals
- * half the overflow on that axis. This prevents any empty gap from appearing
- * inside the crop area regardless of drag direction.
+ * Cover scale for a square crop. It uses a single uniform scale, based on the
+ * rotated bounds, so the image can never be stretched independently on X/Y.
  */
-export function clampCropOffset(
-  ox: number,
-  oy: number,
-  displayW: number,
-  displayH: number,
-  cropSize: number,
-): { clampedOx: number; clampedOy: number } {
-  const maxOx = Math.max(0, (displayW - cropSize) / 2)
-  const maxOy = Math.max(0, (displayH - cropSize) / 2)
+export function computeInitialImageTransform(params: {
+  naturalW: number
+  naturalH: number
+  rotation: RotationDegrees
+  cropSize: number
+  offset?: Point
+}): ImageTransform {
+  const { naturalW, naturalH, rotation, cropSize, offset = { x: 0, y: 0 } } = params
+  const naturalWidth = safeDimension(naturalW)
+  const naturalHeight = safeDimension(naturalH)
+  const rotated = computeRotatedDimensions(naturalWidth, naturalHeight, rotation)
+  const scale = Math.max(cropSize / rotated.width, cropSize / rotated.height)
+  const displayWidth = naturalWidth * scale
+  const displayHeight = naturalHeight * scale
+  const rotatedWidth = rotated.width * scale
+  const rotatedHeight = rotated.height * scale
+  const clamped = clampCropPosition(offset, rotatedWidth, rotatedHeight, cropSize)
+
   return {
-    clampedOx: Math.max(-maxOx, Math.min(maxOx, ox)),
-    clampedOy: Math.max(-maxOy, Math.min(maxOy, oy)),
+    scale,
+    displayWidth,
+    displayHeight,
+    rotatedWidth,
+    rotatedHeight,
+    offset: clamped,
   }
 }
 
-export interface ExportDestination {
-  /** Destination x on the output canvas in px. */
-  dx: number
-  /** Destination y on the output canvas in px. */
-  dy: number
-  /** Destination width on the output canvas in px. */
-  dw: number
-  /** Destination height on the output canvas in px. */
-  dh: number
+/**
+ * Clamp the image center relative to the crop center. At every allowed offset,
+ * the rotated image bounds fully cover the square crop viewport.
+ */
+export function clampCropPosition(
+  offset: Point,
+  rotatedDisplayW: number,
+  rotatedDisplayH: number,
+  cropSize: number,
+): Point {
+  const maxX = Math.max(0, (rotatedDisplayW - cropSize) / 2)
+  const maxY = Math.max(0, (rotatedDisplayH - cropSize) / 2)
+
+  return {
+    x: maxX === 0 ? 0 : Math.max(-maxX, Math.min(maxX, offset.x)),
+    y: maxY === 0 ? 0 : Math.max(-maxY, Math.min(maxY, offset.y)),
+  }
+}
+
+export function getCropStageLayout(params: {
+  stageWidth: number
+  stageHeight: number
+  cropSize: number
+}): CropStageLayout {
+  const stageWidth = safeDimension(params.stageWidth)
+  const stageHeight = safeDimension(params.stageHeight)
+  const cropSize = Math.min(params.cropSize, stageWidth, stageHeight)
+
+  return {
+    stageWidth,
+    stageHeight,
+    cropSize,
+    cropLeft: (stageWidth - cropSize) / 2,
+    cropTop: (stageHeight - cropSize) / 2,
+  }
 }
 
 /**
- * Compute the drawImage destination rectangle so the exported canvas exactly
- * mirrors the preview transform.
- *
- * Strategy: scale the preview viewport coordinates by (outputSize / cropSize).
- * With cover scale the image always fills the viewport, so the safety fillRect
- * background will not be visible — but it is still written before drawImage.
+ * Canvas transform that mirrors the centered preview crop exactly.
  */
-export function computeExportDestination(params: {
+export function computeCropExportTransform(params: {
   naturalW: number
   naturalH: number
+  rotation: RotationDegrees
+  scale: number
+  offset: Point
   cropSize: number
-  effectiveScale: number
-  clampedOx: number
-  clampedOy: number
   outputSize: number
-}): ExportDestination {
-  const { naturalW, naturalH, cropSize, effectiveScale, clampedOx, clampedOy, outputSize } = params
-
-  const displayW = naturalW * effectiveScale
-  const displayH = naturalH * effectiveScale
-
-  // CSS left/top of the image element inside the preview viewport
-  const imageLeft = (cropSize - displayW) / 2 + clampedOx
-  const imageTop  = (cropSize - displayH) / 2 + clampedOy
-
-  // Scale up to output canvas coordinates — same transform, larger canvas
+}): CropExportTransform {
+  const {
+    naturalW,
+    naturalH,
+    rotation,
+    scale,
+    offset,
+    cropSize,
+    outputSize,
+  } = params
   const canvasScale = outputSize / cropSize
 
   return {
-    dx: imageLeft * canvasScale,
-    dy: imageTop  * canvasScale,
-    dw: displayW  * canvasScale,
-    dh: displayH  * canvasScale,
+    outputSize,
+    translateX: outputSize / 2 + offset.x * canvasScale,
+    translateY: outputSize / 2 + offset.y * canvasScale,
+    rotationRadians: (rotation * Math.PI) / 180,
+    drawWidth: safeDimension(naturalW) * scale * canvasScale,
+    drawHeight: safeDimension(naturalH) * scale * canvasScale,
   }
 }

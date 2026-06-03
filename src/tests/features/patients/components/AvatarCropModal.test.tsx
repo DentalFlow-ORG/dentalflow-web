@@ -1,15 +1,24 @@
-import { render, screen, waitFor } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
 import { AvatarCropModal } from '@/features/patients/components/AvatarCropModal'
 
-// ── Canvas mock ───────────────────────────────────────────────────────────────
-// jsdom has no real canvas; mock document.createElement('canvas') so the
-// export path can run without errors.
-
 const mockDrawImage = vi.fn()
-const mockFillRect  = vi.fn()
+const mockFillRect = vi.fn()
+const mockSave = vi.fn()
+const mockRestore = vi.fn()
+const mockTranslate = vi.fn()
+const mockRotate = vi.fn()
 const mockToDataURL = vi.fn(() => 'data:image/jpeg;base64,EXPORTED')
-const mockGetContext = vi.fn(() => ({ drawImage: mockDrawImage, fillRect: mockFillRect }))
+const mockContext = {
+  drawImage: mockDrawImage,
+  fillRect: mockFillRect,
+  save: mockSave,
+  restore: mockRestore,
+  translate: mockTranslate,
+  rotate: mockRotate,
+  fillStyle: '',
+}
+const mockGetContext = vi.fn(() => mockContext)
 const mockCanvas = {
   width: 0,
   height: 0,
@@ -18,32 +27,36 @@ const mockCanvas = {
 }
 
 const originalCreateElement = document.createElement.bind(document)
+
 beforeAll(() => {
   vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
     if (tag === 'canvas') return mockCanvas as unknown as HTMLElement
     return originalCreateElement(tag)
   })
-})
-afterAll(() => {
-  vi.restoreAllMocks()
-})
 
-// URL mocks so createObjectURL/revokeObjectURL don't throw in jsdom
-beforeAll(() => {
   vi.stubGlobal('URL', {
     ...URL,
     createObjectURL: vi.fn(() => 'blob:mocked'),
     revokeObjectURL: vi.fn(),
   })
+
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    callback(0)
+    return 1
+  })
+  vi.stubGlobal('cancelAnimationFrame', vi.fn())
+})
+
+afterAll(() => {
+  vi.restoreAllMocks()
 })
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockContext.fillStyle = ''
   mockToDataURL.mockReturnValue('data:image/jpeg;base64,EXPORTED')
-  mockGetContext.mockReturnValue({ drawImage: mockDrawImage, fillRect: mockFillRect })
+  mockGetContext.mockReturnValue(mockContext)
 })
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 const MOCK_FILE = new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
 
@@ -70,9 +83,15 @@ function renderModal(overrides: {
   return { onConfirm, onCancel, onError }
 }
 
-// ── Rendering ─────────────────────────────────────────────────────────────────
+function loadImage(width: number, height: number) {
+  const img = screen.getByTestId('avatar-crop-image') as HTMLImageElement
+  Object.defineProperty(img, 'naturalWidth', { configurable: true, value: width })
+  Object.defineProperty(img, 'naturalHeight', { configurable: true, value: height })
+  fireEvent.load(img)
+  return img
+}
 
-describe('AvatarCropModal — rendering', () => {
+describe('AvatarCropModal - rendering', () => {
   it('renders the dialog title when open', () => {
     renderModal()
     expect(screen.getByText(/Ajustar foto do paciente/i)).toBeInTheDocument()
@@ -83,21 +102,29 @@ describe('AvatarCropModal — rendering', () => {
     expect(screen.getByText(/Ajustar foto de Maria/i)).toBeInTheDocument()
   })
 
+  it('renders the updated helper description', () => {
+    renderModal()
+    expect(
+      screen.getByText(/Arraste para enquadrar a foto. Use girar para ajustar a orientação./i),
+    ).toBeInTheDocument()
+  })
+
   it('renders Cancelar and Salvar foto buttons', () => {
     renderModal()
     expect(screen.getByRole('button', { name: /Cancelar/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Salvar foto/i })).toBeInTheDocument()
   })
 
-  it('renders zoom-in and zoom-out buttons', () => {
+  it('does not render zoom controls', () => {
     renderModal()
-    expect(screen.getByRole('button', { name: /Aumentar zoom/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Reduzir zoom/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Aumentar zoom/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Reduzir zoom/i })).not.toBeInTheDocument()
+    expect(screen.queryByText(/100%|110%|300%/)).not.toBeInTheDocument()
   })
 
-  it('shows 100% zoom by default', () => {
+  it('renders the rotate-left button', () => {
     renderModal()
-    expect(screen.getByText('100%')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Girar para esquerda/i })).toBeInTheDocument()
   })
 
   it('does not render when open is false', () => {
@@ -106,86 +133,84 @@ describe('AvatarCropModal — rendering', () => {
   })
 })
 
-// ── Crop overlay ──────────────────────────────────────────────────────────────
-
-describe('AvatarCropModal — circular crop overlay', () => {
-  it('renders the dimming overlay element for the circular crop mask', () => {
+describe('AvatarCropModal - crop stage', () => {
+  it('renders a modal-bounded crop stage with overflow hidden', () => {
     renderModal()
-    expect(screen.getByTestId('crop-circle-overlay')).toBeInTheDocument()
+    const stage = screen.getByTestId('avatar-crop-stage')
+
+    expect(stage).toBeInTheDocument()
+    expect(stage.className).toContain('overflow-hidden')
+    expect(stage.style.width).toBe('448px')
+    expect(stage.style.height).toBe('360px')
   })
 
-  it('renders the crop ring element', () => {
+  it('renders the square crop frame and circular mask/ring', () => {
     renderModal()
+    expect(screen.getByTestId('crop-square-frame')).toBeInTheDocument()
+    expect(screen.getByTestId('crop-circle-overlay')).toBeInTheDocument()
     expect(screen.getByTestId('crop-circle-ring')).toBeInTheDocument()
   })
 
-  it('crop area container is not rounded-full (square viewport with circular overlay)', () => {
+  it('crop frame keeps the same X/Y size', () => {
     renderModal()
-    const overlay = screen.getByTestId('crop-circle-overlay')
-    const container = overlay.parentElement!
-    expect(container.className).not.toContain('rounded-full')
+    const frame = screen.getByTestId('crop-square-frame')
+
+    expect(frame.style.width).toBe('312px')
+    expect(frame.style.height).toBe('312px')
   })
 
-  it('crop area container has overflow-hidden', () => {
+  it('image is not forced to square dimensions after natural load', () => {
     renderModal()
-    const overlay = screen.getByTestId('crop-circle-overlay')
-    const container = overlay.parentElement!
-    expect(container.className).toContain('overflow-hidden')
+    const img = loadImage(1200, 800)
+
+    expect(img.style.width).toBe('468px')
+    expect(img.style.height).toBe('312px')
+    expect(img.style.maxWidth).toBe('none')
   })
 
-  it('crop ring is a separate element from the dimming overlay', () => {
+  it('image starts invisible before natural dimensions are known', () => {
     renderModal()
-    // Both elements exist independently — ring is sibling to the overlay
-    const overlay = screen.getByTestId('crop-circle-overlay')
-    const ring = screen.getByTestId('crop-circle-ring')
-    expect(overlay.parentElement).toBe(ring.parentElement)
-    expect(overlay).not.toBe(ring)
-  })
-})
+    const img = screen.getByTestId('avatar-crop-image')
 
-// ── Zoom controls ─────────────────────────────────────────────────────────────
-
-describe('AvatarCropModal — zoom controls', () => {
-  it('increases zoom when + is clicked', async () => {
-    const user = userEvent.setup()
-    renderModal()
-    await user.click(screen.getByRole('button', { name: /Aumentar zoom/i }))
-    expect(screen.getByText('110%')).toBeInTheDocument()
-  })
-
-  it('decreases zoom when - is clicked after zooming in', async () => {
-    const user = userEvent.setup()
-    renderModal()
-    await user.click(screen.getByRole('button', { name: /Aumentar zoom/i }))
-    await user.click(screen.getByRole('button', { name: /Aumentar zoom/i }))
-    await user.click(screen.getByRole('button', { name: /Reduzir zoom/i }))
-    expect(screen.getByText('110%')).toBeInTheDocument()
-  })
-
-  it('zoom-out button is disabled at minimum zoom (100%)', () => {
-    renderModal()
-    expect(screen.getByRole('button', { name: /Reduzir zoom/i })).toBeDisabled()
-  })
-
-  it('zoom-in button is disabled at maximum zoom (300%)', async () => {
-    const user = userEvent.setup()
-    renderModal()
-    // Click 20 times to reach 300% (from 100%, 20 × 10% = 200% increase)
-    for (let i = 0; i < 20; i++) {
-      await user.click(screen.getByRole('button', { name: /Aumentar zoom/i }))
-    }
-    expect(screen.getByRole('button', { name: /Aumentar zoom/i })).toBeDisabled()
-    expect(screen.getByText('300%')).toBeInTheDocument()
+    expect(img).toBeInTheDocument()
+    expect((img as HTMLImageElement).style.opacity).toBe('0')
   })
 })
 
-// ── Cancel ─────────────────────────────────────────────────────────────────────
+describe('AvatarCropModal - rotate left', () => {
+  it('clicking rotate-left updates preview rotation to 270 degrees', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    const img = loadImage(1200, 800)
 
-describe('AvatarCropModal — cancel', () => {
+    await user.click(screen.getByRole('button', { name: /Girar para esquerda/i }))
+
+    expect(img.style.transform).toContain('rotate(270deg)')
+  })
+
+  it('rotate-left can be clicked repeatedly through 270, 180, 90 and 0', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    const img = loadImage(1200, 800)
+    const button = screen.getByRole('button', { name: /Girar para esquerda/i })
+
+    await user.click(button)
+    expect(img.style.transform).toContain('rotate(270deg)')
+    await user.click(button)
+    expect(img.style.transform).toContain('rotate(180deg)')
+    await user.click(button)
+    expect(img.style.transform).toContain('rotate(90deg)')
+    await user.click(button)
+    expect(img.style.transform).toContain('rotate(0deg)')
+  })
+})
+
+describe('AvatarCropModal - cancel', () => {
   it('calls onCancel when the Cancelar button is clicked', async () => {
     const user = userEvent.setup()
     const { onCancel, onConfirm } = renderModal()
     await user.click(screen.getByRole('button', { name: /Cancelar/i }))
+
     expect(onCancel).toHaveBeenCalledOnce()
     expect(onConfirm).not.toHaveBeenCalled()
   })
@@ -194,120 +219,95 @@ describe('AvatarCropModal — cancel', () => {
     const user = userEvent.setup()
     const { onCancel } = renderModal()
     await user.keyboard('{Escape}')
+
     expect(onCancel).toHaveBeenCalledOnce()
   })
 })
 
-// ── Confirm / export ──────────────────────────────────────────────────────────
-
-describe('AvatarCropModal — confirm export', () => {
+describe('AvatarCropModal - confirm export', () => {
   it('calls onConfirm with base64 when Salvar foto is clicked', async () => {
     const user = userEvent.setup()
     const { onConfirm } = renderModal()
+    loadImage(1200, 800)
+
     await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+
     await waitFor(() => {
       expect(onConfirm).toHaveBeenCalledWith('EXPORTED')
     })
   })
 
-  it('calls drawImage on the canvas context', async () => {
+  it('fills the 512x512 output with white before drawing', async () => {
     const user = userEvent.setup()
     renderModal()
-    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
-    await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
-  })
+    loadImage(1200, 800)
 
-  it('calls drawImage with 5 arguments: (img, dx, dy, dw, dh)', async () => {
-    const user = userEvent.setup()
-    renderModal()
     await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
-    await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
-    const args = mockDrawImage.mock.calls[0] as unknown[]
-    expect(args).toHaveLength(5)
-  })
 
-  it('calls fillRect with white before drawImage (safety background fill)', async () => {
-    const user = userEvent.setup()
-    renderModal()
-    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
-    await waitFor(() => expect(mockFillRect).toHaveBeenCalled())
+    await waitFor(() => expect(mockFillRect).toHaveBeenCalledWith(0, 0, 512, 512))
     expect(mockFillRect).toHaveBeenCalledBefore(mockDrawImage)
-    const fillArgs = mockFillRect.mock.calls[0] as number[]
-    expect(fillArgs).toEqual([0, 0, 512, 512])
   })
 
-  it('drawImage destination fills the output canvas for a 1×1 natural image at zoom 1', async () => {
-    // In jsdom onLoad never fires, so naturalSize stays {1,1}.
-    // cover baseScale = max(280/1, 280/1) = 280; effectiveScale=280
-    // displayW=displayH=280; maxOx=maxOy=0; imageLeft=imageTop=0
-    // → dx=0, dy=0, dw=280*(512/280)=512, dh=512
+  it('uses canvas translate and rotate before drawImage', async () => {
     const user = userEvent.setup()
     renderModal()
+    loadImage(1200, 800)
+
+    await user.click(screen.getByRole('button', { name: /Girar para esquerda/i }))
     await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+
+    await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
+    expect(mockSave).toHaveBeenCalledBefore(mockTranslate)
+    expect(mockTranslate).toHaveBeenCalledWith(256, 256)
+    expect(mockRotate).toHaveBeenCalledWith((270 * Math.PI) / 180)
+    expect(mockRotate).toHaveBeenCalledBefore(mockDrawImage)
+    expect(mockRestore).toHaveBeenCalled()
+  })
+
+  it('saving uses the adjusted crop offset after dragging', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    loadImage(1200, 800)
+    const stage = screen.getByTestId('avatar-crop-stage')
+
+    fireEvent.pointerDown(stage, { pointerId: 1, clientX: 200, clientY: 200 })
+    fireEvent.pointerMove(stage, { pointerId: 1, clientX: 240, clientY: 200 })
+    fireEvent.pointerUp(stage, { pointerId: 1, clientX: 240, clientY: 200 })
+    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+
+    await waitFor(() => expect(mockTranslate).toHaveBeenCalled())
+    const [translateX, translateY] = mockTranslate.mock.calls[0] as [number, number]
+    expect(translateX).toBeGreaterThan(256)
+    expect(translateY).toBe(256)
+  })
+
+  it('drawImage receives centered destination args for the transformed image', async () => {
+    const user = userEvent.setup()
+    renderModal()
+    loadImage(1200, 800)
+
+    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+
     await waitFor(() => expect(mockDrawImage).toHaveBeenCalled())
     const args = mockDrawImage.mock.calls[0] as [unknown, number, number, number, number]
-    expect(args[1]).toBeCloseTo(0)    // dx
-    expect(args[2]).toBeCloseTo(0)    // dy
-    expect(args[3]).toBeCloseTo(512)  // dw
-    expect(args[4]).toBeCloseTo(512)  // dh
-  })
-
-  it('zoom-in increases dw in export (cover scale: zoomed image overflows more)', async () => {
-    const user = userEvent.setup()
-
-    // First save without zoom
-    renderModal()
-    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
-    await waitFor(() => expect(mockDrawImage).toHaveBeenCalledTimes(1))
-    const firstDw = (mockDrawImage.mock.calls[0] as [unknown, number, number, number, number])[3]
-
-    // Reset and save after zooming in
-    vi.clearAllMocks()
-    mockToDataURL.mockReturnValue('data:image/jpeg;base64,EXPORTED')
-    mockGetContext.mockReturnValue({ drawImage: mockDrawImage, fillRect: mockFillRect })
-    renderModal()
-    await user.click(screen.getByRole('button', { name: /Aumentar zoom/i }))
-    await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
-    await waitFor(() => expect(mockDrawImage).toHaveBeenCalledTimes(1))
-    const zoomedDw = (mockDrawImage.mock.calls[0] as [unknown, number, number, number, number])[3]
-
-    expect(zoomedDw).toBeGreaterThan(firstDw)
+    expect(args).toHaveLength(5)
+    expect(args[1]).toBeCloseTo(-384)
+    expect(args[2]).toBeCloseTo(-256)
+    expect(args[3]).toBeCloseTo(768)
+    expect(args[4]).toBeCloseTo(512)
   })
 
   it('calls onError and onCancel when getContext returns null', async () => {
-    mockGetContext.mockReturnValueOnce(null as unknown as ReturnType<typeof mockGetContext>)
+    mockGetContext.mockReturnValueOnce(null as unknown as typeof mockContext)
     const user = userEvent.setup()
     const { onConfirm, onCancel, onError } = renderModal()
+
     await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
+
     await waitFor(() => {
       expect(onError).toHaveBeenCalledWith(expect.stringMatching(/processar a imagem/i))
       expect(onCancel).toHaveBeenCalledOnce()
     })
     expect(onConfirm).not.toHaveBeenCalled()
-  })
-})
-
-// ── Initial load state ────────────────────────────────────────────────────────
-
-describe('AvatarCropModal — initial image load state', () => {
-  it('renders the img element in the DOM (for ref and onLoad) when open with a file', () => {
-    renderModal()
-    const img = document.querySelector('img[aria-hidden="true"]')
-    expect(img).not.toBeNull()
-  })
-
-  it('image element has opacity:0 before onLoad fires (no distorted flash)', () => {
-    // In jsdom, img.onLoad never fires for blob URLs, so naturalLoaded stays false.
-    renderModal()
-    const img = document.querySelector('img[aria-hidden="true"]') as HTMLImageElement
-    expect(img).not.toBeNull()
-    expect(img.style.opacity).toBe('0')
-  })
-
-  it('zoom controls still work before image load completes', async () => {
-    const user = userEvent.setup()
-    renderModal()
-    await user.click(screen.getByRole('button', { name: /Aumentar zoom/i }))
-    expect(screen.getByText('110%')).toBeInTheDocument()
   })
 })

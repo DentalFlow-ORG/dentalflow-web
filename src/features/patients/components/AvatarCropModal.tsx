@@ -1,39 +1,33 @@
 import { useEffect, useRef, useState } from 'react'
-import { Minus, Plus } from 'lucide-react'
+import { RotateCcw } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { JPEG_QUALITY, MAX_AVATAR_DIMENSION } from '@/lib/compress-avatar'
 import {
-  clampCropOffset,
-  computeBaseScale,
-  computeExportDestination,
+  clampCropPosition,
+  computeCropExportTransform,
+  computeInitialImageTransform,
+  getCropStageLayout,
+  rotateLeft,
+  type Point,
+  type RotationDegrees,
 } from '@/lib/avatar-crop-math'
+import { cn } from '@/lib/utils'
 
-// Square viewport size in px — drives all drag/zoom math
-const CROP_SIZE = 280
-// Circular crop area diameter in px — smaller than CROP_SIZE so the corners are visibly dimmed
-const CIRCLE_SIZE = 220
-// Pixel offset from viewport edge to circle edge (centers the circle inside the square)
-const CIRCLE_OFFSET = (CROP_SIZE - CIRCLE_SIZE) / 2
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-type Offset = { x: number; y: number }
+const STAGE_WIDTH = 448
+const STAGE_HEIGHT = 360
+const CROP_SIZE = 312
+const CROP_INSET = 24
 
 type Props = {
   open: boolean
-  /** The raw File to crop. The modal manages the object-URL lifecycle. */
   imageFile: File | null
   patientName?: string
   onCancel: () => void
   onConfirm: (base64: string) => void
-  /** Called when canvas export fails (e.g. unsupported browser). */
   onError?: (message: string) => void
 }
-
-// ── Component ─────────────────────────────────────────────────────────────────
 
 export function AvatarCropModal({
   open,
@@ -43,31 +37,29 @@ export function AvatarCropModal({
   onConfirm,
   onError,
 }: Props) {
-  const [zoom, setZoom] = useState(1)
-  const [offset, setOffset] = useState<Offset>({ x: 0, y: 0 })
+  const [offset, setOffset] = useState<Point>({ x: 0, y: 0 })
+  const [rotation, setRotation] = useState<RotationDegrees>(0)
   const [naturalSize, setNaturalSize] = useState({ w: 1, h: 1 })
-  // Until true the image is invisible — prevents a distorted frame from the {1,1} placeholder.
   const [naturalLoaded, setNaturalLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
+  const imgRef = useRef<HTMLImageElement>(null)
+  const stageShellRef = useRef<HTMLDivElement>(null)
   const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
-  // Ref mirror of isDragging — read inside RAF callbacks to avoid stale closures.
   const isDraggingRef = useRef(false)
-  // Pending pointer position for RAF-throttled move updates.
   const rafId = useRef<number | null>(null)
   const pendingPointer = useRef<{ x: number; y: number } | null>(null)
-  const imgRef = useRef<HTMLImageElement>(null)
 
-  // Create and revoke the object URL for the selected file.
   useEffect(() => {
     if (!imageFile) return
     const url = URL.createObjectURL(imageFile)
     setNaturalSize({ w: 1, h: 1 })
     setNaturalLoaded(false)
     setImageSrc(url)
-    setZoom(1)
     setOffset({ x: 0, y: 0 })
+    setRotation(0)
+
     return () => {
       URL.revokeObjectURL(url)
       setImageSrc(null)
@@ -75,67 +67,108 @@ export function AvatarCropModal({
     }
   }, [imageFile])
 
-  // Derived render values ─────────────────────────────────────────────────────
+  const [stageWidth, setStageWidth] = useState(STAGE_WIDTH)
 
-  const baseScale = computeBaseScale(naturalSize.w, naturalSize.h, CROP_SIZE)
-  const effectiveScale = baseScale * zoom
-  const displayW = naturalSize.w * effectiveScale
-  const displayH = naturalSize.h * effectiveScale
+  useEffect(() => {
+    const shell = stageShellRef.current
+    if (!shell || typeof ResizeObserver === 'undefined') return
 
-  const { clampedOx, clampedOy } = clampCropOffset(
-    offset.x,
-    offset.y,
-    displayW,
-    displayH,
-    CROP_SIZE,
-  )
+    const observer = new ResizeObserver(([entry]) => {
+      const nextWidth = Math.min(STAGE_WIDTH, Math.max(1, entry.contentRect.width))
+      setStageWidth(nextWidth)
+    })
+    observer.observe(shell)
 
-  const imageLeft = (CROP_SIZE - displayW) / 2 + clampedOx
-  const imageTop  = (CROP_SIZE - displayH) / 2 + clampedOy
+    return () => observer.disconnect()
+  }, [])
 
-  // ── Drag handlers ──────────────────────────────────────────────────────────
+  const layout = getCropStageLayout({
+    stageWidth,
+    stageHeight: STAGE_HEIGHT,
+    cropSize: Math.min(CROP_SIZE, stageWidth),
+  })
+  const circleSize = Math.max(1, layout.cropSize - CROP_INSET)
+  const circleOffset = (layout.cropSize - circleSize) / 2
+
+  const imageTransform = computeInitialImageTransform({
+    naturalW: naturalSize.w,
+    naturalH: naturalSize.h,
+    rotation,
+    cropSize: layout.cropSize,
+    offset,
+  })
+
+  const cropCenterX = layout.stageWidth / 2
+  const cropCenterY = layout.stageHeight / 2
+  const imageCenterX = cropCenterX + imageTransform.offset.x
+  const imageCenterY = cropCenterY + imageTransform.offset.y
+
+  const stopDrag = () => {
+    isDraggingRef.current = false
+    setIsDragging(false)
+    dragStart.current = null
+    pendingPointer.current = null
+    if (rafId.current !== null) {
+      cancelAnimationFrame(rafId.current)
+      rafId.current = null
+    }
+  }
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId)
+    e.currentTarget.setPointerCapture?.(e.pointerId)
     if (rafId.current !== null) {
       cancelAnimationFrame(rafId.current)
       rafId.current = null
     }
     isDraggingRef.current = true
     setIsDragging(true)
-    dragStart.current = { x: e.clientX, y: e.clientY, ox: clampedOx, oy: clampedOy }
+    dragStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+      ox: imageTransform.offset.x,
+      oy: imageTransform.offset.y,
+    }
   }
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDraggingRef.current || !dragStart.current) return
     pendingPointer.current = { x: e.clientX, y: e.clientY }
+
     if (rafId.current === null) {
       rafId.current = requestAnimationFrame(() => {
         rafId.current = null
         const ds = dragStart.current
         const pp = pendingPointer.current
         if (!isDraggingRef.current || !ds || !pp) return
-        setOffset({ x: ds.ox + (pp.x - ds.x), y: ds.oy + (pp.y - ds.y) })
+
+        const nextOffset = {
+          x: ds.ox + (pp.x - ds.x),
+          y: ds.oy + (pp.y - ds.y),
+        }
+        setOffset(
+          clampCropPosition(
+            nextOffset,
+            imageTransform.rotatedWidth,
+            imageTransform.rotatedHeight,
+            layout.cropSize,
+          ),
+        )
       })
     }
   }
 
-  const handlePointerUp = () => {
-    isDraggingRef.current = false
-    setIsDragging(false)
-    dragStart.current = null
-    if (rafId.current !== null) {
-      cancelAnimationFrame(rafId.current)
-      rafId.current = null
-    }
+  const handleRotateLeft = () => {
+    const nextRotation = rotateLeft(rotation)
+    const nextTransform = computeInitialImageTransform({
+      naturalW: naturalSize.w,
+      naturalH: naturalSize.h,
+      rotation: nextRotation,
+      cropSize: layout.cropSize,
+      offset,
+    })
+    setRotation(nextRotation)
+    setOffset(nextTransform.offset)
   }
-
-  // ── Zoom ───────────────────────────────────────────────────────────────────
-
-  const zoomIn  = () => setZoom((z) => Math.min(3, Math.round((z + 0.1) * 10) / 10))
-  const zoomOut = () => setZoom((z) => Math.max(1, Math.round((z - 0.1) * 10) / 10))
-
-  // ── Export ─────────────────────────────────────────────────────────────────
 
   const handleConfirm = () => {
     const img = imgRef.current
@@ -143,7 +176,7 @@ export function AvatarCropModal({
 
     const out = MAX_AVATAR_DIMENSION
     const canvas = document.createElement('canvas')
-    canvas.width  = out
+    canvas.width = out
     canvas.height = out
     const ctx = canvas.getContext('2d')
     if (!ctx) {
@@ -152,23 +185,31 @@ export function AvatarCropModal({
       return
     }
 
-    // Safety fill — with cover scale the image always covers this background,
-    // but keep it as a neutral fallback for sub-pixel edge cases.
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, out, out)
 
-    // Mirror the preview transform directly onto the output canvas.
-    const { dx, dy, dw, dh } = computeExportDestination({
+    const exportTransform = computeCropExportTransform({
       naturalW: naturalSize.w,
       naturalH: naturalSize.h,
-      cropSize: CROP_SIZE,
-      effectiveScale,
-      clampedOx,
-      clampedOy,
+      rotation,
+      scale: imageTransform.scale,
+      offset: imageTransform.offset,
+      cropSize: layout.cropSize,
       outputSize: out,
     })
 
-    ctx.drawImage(img, dx, dy, dw, dh)
+    ctx.save()
+    ctx.translate(exportTransform.translateX, exportTransform.translateY)
+    ctx.rotate(exportTransform.rotationRadians)
+    ctx.drawImage(
+      img,
+      -exportTransform.drawWidth / 2,
+      -exportTransform.drawHeight / 2,
+      exportTransform.drawWidth,
+      exportTransform.drawHeight,
+    )
+    ctx.restore()
+
     const base64 = canvas.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1]
     onConfirm(base64)
   }
@@ -178,42 +219,46 @@ export function AvatarCropModal({
   return (
     <Dialog.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) onCancel() }}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-in fade-in-0 duration-150" />
+        <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/55 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-[24px] border border-border bg-card shadow-2xl animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-[70] w-[94vw] max-w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-border bg-card shadow-2xl animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={(e) => {
             e.preventDefault()
             onCancel()
           }}
           onInteractOutside={onCancel}
         >
-          {/* Header */}
-          <div className="border-b border-border px-5 py-4">
+          <div className="border-b border-border px-6 py-5">
             <Dialog.Title className="text-base font-semibold text-foreground">
               {title}
             </Dialog.Title>
-            <Dialog.Description className="mt-0.5 text-xs text-muted-foreground">
-              Arraste a imagem para centralizar. Use o zoom para ajustar.
+            <Dialog.Description className="mt-1 text-sm text-muted-foreground">
+              Arraste para enquadrar a foto. Use girar para ajustar a orientação.
             </Dialog.Description>
           </div>
 
-          {/* Crop area */}
-          <div className="flex flex-col items-center gap-5 px-5 py-6">
-            <div
-              className="relative overflow-hidden rounded-2xl bg-neutral-950 select-none"
-              style={{
-                width: CROP_SIZE,
-                height: CROP_SIZE,
-                cursor: isDragging ? 'grabbing' : 'grab',
-                touchAction: 'none',
-              }}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerUp}
-              role="presentation"
-              aria-label="Área de recorte circular — arraste para posicionar"
-            >
+          <div className="flex flex-col items-center gap-4 px-5 py-6">
+            <div ref={stageShellRef} className="w-full max-w-[448px]">
+              <div
+                className={cn(
+                  'relative overflow-hidden rounded-[22px] border border-border bg-muted select-none',
+                  'shadow-inner',
+                )}
+                data-testid="avatar-crop-stage"
+                style={{
+                  width: layout.stageWidth,
+                  height: layout.stageHeight,
+                  maxWidth: '100%',
+                  cursor: isDragging ? 'grabbing' : 'grab',
+                  touchAction: 'none',
+                }}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={stopDrag}
+                onPointerCancel={stopDrag}
+                role="presentation"
+                aria-label="Área de recorte quadrada. Arraste para enquadrar a foto."
+              >
               {imageSrc && (
                 <img
                   ref={imgRef}
@@ -225,91 +270,78 @@ export function AvatarCropModal({
                     const el = e.currentTarget
                     setNaturalSize({ w: el.naturalWidth || 1, h: el.naturalHeight || 1 })
                     setNaturalLoaded(true)
+                    setOffset({ x: 0, y: 0 })
                   }}
+                  data-testid="avatar-crop-image"
                   style={{
                     position: 'absolute',
-                    width: displayW,
-                    height: displayH,
-                    left: imageLeft,
-                    top: imageTop,
-                    // Keep the element in the DOM for imgRef / onLoad, but
-                    // invisible until naturalSize is known to prevent the brief
-                    // distorted frame from the {w:1, h:1} placeholder.
+                    width: imageTransform.displayWidth,
+                    height: imageTransform.displayHeight,
+                    left: imageCenterX,
+                    top: imageCenterY,
+                    transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+                    transformOrigin: 'center center',
                     opacity: naturalLoaded ? 1 : 0,
                     pointerEvents: 'none',
                     userSelect: 'none',
+                    maxWidth: 'none',
                   }}
                 />
               )}
 
-              {/* Dimming overlay: transparent inside the crop circle, dimmed outside */}
               <div
-                className="pointer-events-none absolute inset-0"
+                className="pointer-events-none absolute border border-white/60 shadow-[0_0_0_999px_rgba(15,23,42,0.34)] ring-1 ring-primary/30"
+                data-testid="crop-square-frame"
+                aria-hidden="true"
+                style={{
+                  width: layout.cropSize,
+                  height: layout.cropSize,
+                  left: layout.cropLeft,
+                  top: layout.cropTop,
+                }}
+              />
+
+              <div
+                className="pointer-events-none absolute"
                 data-testid="crop-circle-overlay"
                 aria-hidden="true"
                 style={{
-                  background: `radial-gradient(circle ${CIRCLE_SIZE / 2}px at 50% 50%, transparent 100%, rgba(0,0,0,0.45) 100%)`,
+                  width: layout.cropSize,
+                  height: layout.cropSize,
+                  left: layout.cropLeft,
+                  top: layout.cropTop,
+                  background: `radial-gradient(circle ${circleSize / 2}px at 50% 50%, transparent 99%, rgba(15,23,42,0.22) 100%)`,
                 }}
               />
 
-              {/* Ring marking the exact crop boundary */}
               <div
-                className="pointer-events-none absolute rounded-full ring-2 ring-white/70"
+                className="pointer-events-none absolute rounded-full ring-2 ring-white/80 shadow-[0_0_0_1px_rgba(30,58,138,0.25)]"
                 data-testid="crop-circle-ring"
                 aria-hidden="true"
                 style={{
-                  width: CIRCLE_SIZE,
-                  height: CIRCLE_SIZE,
-                  top: CIRCLE_OFFSET,
-                  left: CIRCLE_OFFSET,
+                  width: circleSize,
+                  height: circleSize,
+                  left: layout.cropLeft + circleOffset,
+                  top: layout.cropTop + circleOffset,
                 }}
               />
+              </div>
             </div>
 
-            {/* Zoom controls */}
-            <div className="flex items-center gap-3" role="group" aria-label="Controles de zoom">
-              <button
-                type="button"
-                aria-label="Reduzir zoom"
-                onClick={zoomOut}
-                disabled={zoom <= 1}
-                className={cn(
-                  'flex h-11 w-11 items-center justify-center rounded-full border border-border',
-                  'text-foreground transition-colors hover:bg-muted',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70',
-                  'disabled:cursor-not-allowed disabled:opacity-40',
-                )}
-              >
-                <Minus className="h-4 w-4" aria-hidden="true" />
-              </button>
-
-              <span
-                aria-live="polite"
-                aria-label={`Zoom: ${(zoom * 100).toFixed(0)}%`}
-                className="min-w-[3.5rem] text-center text-sm tabular-nums text-muted-foreground"
-              >
-                {(zoom * 100).toFixed(0)}%
-              </span>
-
-              <button
-                type="button"
-                aria-label="Aumentar zoom"
-                onClick={zoomIn}
-                disabled={zoom >= 3}
-                className={cn(
-                  'flex h-11 w-11 items-center justify-center rounded-full border border-border',
-                  'text-foreground transition-colors hover:bg-muted',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70',
-                  'disabled:cursor-not-allowed disabled:opacity-40',
-                )}
-              >
-                <Plus className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleRotateLeft}
+              aria-label="Girar para esquerda"
+              className="gap-2 rounded-full"
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              Girar para esquerda
+            </Button>
           </div>
 
-          {/* Footer */}
-          <div className="flex flex-col-reverse gap-3 border-t border-border px-5 py-4 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-5 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
