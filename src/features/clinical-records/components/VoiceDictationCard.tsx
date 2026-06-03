@@ -841,9 +841,9 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
             >
               {formatTime(elapsedSeconds)}
             </span>
-            {elapsedSeconds >= MAX_RECORDING_SECONDS - 10 && (
+            {elapsedSeconds >= MAX_RECORDING_SECONDS - 30 && (
               <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
-                Encerrando em {MAX_RECORDING_SECONDS - elapsedSeconds}s
+                Restam {MAX_RECORDING_SECONDS - elapsedSeconds}s de gravação.
               </p>
             )}
           </div>

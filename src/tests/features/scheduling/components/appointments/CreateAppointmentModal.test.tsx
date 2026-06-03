@@ -41,6 +41,11 @@ vi.mock('@/lib/compress-avatar', () => ({
   JPEG_QUALITY: 0.82,
 }))
 
+// Mock CameraPreviewModal to prevent webcam API calls in tests.
+vi.mock('@/features/patients/components/CameraPreviewModal', () => ({
+  CameraPreviewModal: () => null,
+}))
+
 // Mock the crop modal so tests can confirm crops without real canvas/image ops.
 // The mock auto-exposes a "Salvar foto" button that confirms with 'base64mock'.
 vi.mock('@/features/patients/components/AvatarCropModal', () => ({
@@ -187,15 +192,14 @@ function submitForm() {
 
 // Simulates selecting an image file and confirming through the crop modal.
 async function selectAvatarFile(mimeType = 'image/jpeg') {
-  // Use the gallery input (no capture attribute) to avoid ambiguity
-  const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+  const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
   const file = new File(['img-data'], 'photo.jpg', { type: mimeType })
   fireEvent.change(fileInput, { target: { files: [file] } })
   // Crop modal appears — click Salvar foto to confirm
   await waitFor(() => screen.getByTestId('avatar-crop-modal'))
   fireEvent.click(screen.getByRole('button', { name: /Salvar foto/i }))
-  // Wait for crop modal to close and widget to reflect the saved photo
-  await waitFor(() => screen.getByRole('button', { name: /Remover foto/i }))
+  // Wait for crop modal to close and widget to show "Alterar foto" (photo is set)
+  await waitFor(() => screen.getByRole('button', { name: /Alterar foto do paciente/i }))
 }
 
 // ── Photo upload section — UI rendering ───────────────────────────────────────
@@ -220,10 +224,13 @@ describe('patient photo section', () => {
 // ── File selection ─────────────────────────────────────────────────────────────
 
 describe('file selection', () => {
-  it('shows "Remover foto" after a valid file is selected and crop is confirmed', async () => {
+  it('shows "Remover foto" in the picker after a valid file is selected and crop is confirmed', async () => {
+    const user = userEvent.setup()
     renderModal()
     await selectAvatarFile()
-    expect(screen.getByRole('button', { name: /Remover foto/i })).toBeInTheDocument()
+    // Open the picker to check "Remover foto" is available
+    await user.click(screen.getByRole('button', { name: /Alterar foto do paciente/i }))
+    expect(screen.getByRole('menuitem', { name: /Remover foto/i })).toBeInTheDocument()
   })
 
   it('changes upload button label from "Adicionar" to "Alterar" after selection', async () => {
@@ -252,7 +259,7 @@ describe('file selection', () => {
 
   it('does not save photo when crop is cancelled', async () => {
     renderModal()
-    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' })
     fireEvent.change(fileInput, { target: { files: [file] } })
     const cropModal = await waitFor(() => screen.getByTestId('avatar-crop-modal'))
@@ -261,27 +268,32 @@ describe('file selection', () => {
     await waitFor(() => {
       expect(screen.queryByTestId('avatar-crop-modal')).not.toBeInTheDocument()
     })
-    expect(screen.queryByRole('button', { name: /Remover foto/i })).not.toBeInTheDocument()
+    // Photo was not saved — still showing "Adicionar" label, not "Alterar"
+    expect(screen.queryByRole('button', { name: /Alterar foto do paciente/i })).not.toBeInTheDocument()
   })
 })
 
 // ── Photo removal ─────────────────────────────────────────────────────────────
 
 describe('photo removal', () => {
-  it('hides "Remover foto" after clicking it', async () => {
+  it('closes picker and hides "Remover foto" after clicking it', async () => {
     const user = userEvent.setup()
     renderModal()
     await selectAvatarFile()
-    await user.click(screen.getByRole('button', { name: /Remover foto/i }))
-    expect(screen.queryByRole('button', { name: /Remover foto/i })).not.toBeInTheDocument()
+    // Open picker and click Remover foto
+    await user.click(screen.getByRole('button', { name: /Alterar foto do paciente/i }))
+    await user.click(screen.getByRole('menuitem', { name: /Remover foto/i }))
+    // Picker is closed; no picker items visible
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
-  it('resets label back to "Enviar foto" after removing', async () => {
+  it('resets label back to "Adicionar foto" after removing via picker', async () => {
     const user = userEvent.setup()
     renderModal()
     await selectAvatarFile()
-    await user.click(screen.getByRole('button', { name: /Remover foto/i }))
-    expect(screen.getByRole('button', { name: /Adicionar foto/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Alterar foto do paciente/i }))
+    await user.click(screen.getByRole('menuitem', { name: /Remover foto/i }))
+    expect(screen.getByRole('button', { name: /Adicionar foto do paciente/i })).toBeInTheDocument()
   })
 })
 

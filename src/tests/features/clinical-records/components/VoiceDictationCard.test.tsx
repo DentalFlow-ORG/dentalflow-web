@@ -1511,7 +1511,130 @@ describe('odontogram suggestions panel', () => {
   })
 })
 
-// ── 19. Processing step labels (renumbered from 17) ──────────────────────────
+// ── 19. Recording warning threshold ──────────────────────────────────────────
+// The warning "Restam Xs de gravação." must appear at 30 s remaining, not 10 s.
+// Strategy: fake all timers before render so the recording setInterval is
+// registered with the fake clock. Use fireEvent (synchronous) for the click,
+// then flush the getUserMedia microtask with await act(async () => {}).
+
+describe('recording warning threshold', () => {
+  // Ensure fake timers are always restored even if a test times out.
+  afterEach(() => vi.useRealTimers())
+
+  it('shows "Restam 30s de gravação." at exactly 30 s remaining (150 s elapsed)', async () => {
+    vi.useFakeTimers()
+    renderCard()
+    // Synchronous click — does not depend on timer advancement
+    act(() => { fireEvent.click(screen.getByRole('button', { name: /Gravar consulta/i })) })
+    // Flush the getUserMedia mock (promise-based, not timer-based) so
+    // startRecording() completes and the setInterval is registered with fake clock
+    await act(async () => { await Promise.resolve() })
+    // 180 - 150 = 30 s remaining → warning threshold
+    act(() => vi.advanceTimersByTime(150_000))
+    expect(screen.getByText(/Restam 30s de gravação\./i)).toBeInTheDocument()
+  })
+
+  it('does NOT show a warning at 149 s (31 s remaining — below threshold)', async () => {
+    vi.useFakeTimers()
+    renderCard()
+    act(() => { fireEvent.click(screen.getByRole('button', { name: /Gravar consulta/i })) })
+    await act(async () => { await Promise.resolve() })
+    act(() => vi.advanceTimersByTime(149_000))
+    expect(screen.queryByText(/Restam/i)).not.toBeInTheDocument()
+  })
+
+  it('does NOT show the old "Encerrando em" text at any point during recording', async () => {
+    vi.useFakeTimers()
+    renderCard()
+    act(() => { fireEvent.click(screen.getByRole('button', { name: /Gravar consulta/i })) })
+    await act(async () => { await Promise.resolve() })
+    act(() => vi.advanceTimersByTime(170_000))
+    expect(screen.queryByText(/Encerrando/i)).not.toBeInTheDocument()
+  })
+})
+
+// ── 20. Post-success regression tests ─────────────────────────────────────────
+// These guard against the frontend crashing AFTER the API returns a valid
+// response (e.g. missing odontogramSuggestions, partial/malformed items).
+
+describe('post-success normalization', () => {
+  // Ensure any leaked fake timers from preceding tests don't break waitFor
+  beforeEach(() => vi.useRealTimers())
+  it('renders transcript and fields without error when response has no odontogramSuggestions key', async () => {
+    // Older backend versions or mocks may omit the key entirely
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Consulta registrada.',
+      fields: { chiefComplaint: 'Dor leve' },
+      // odontogramSuggestions intentionally absent
+    })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(
+      () => expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+    // Generic error must NOT appear
+    expect(screen.queryByText(/Não foi possível processar o ditado clínico agora/i)).not.toBeInTheDocument()
+    expect(screen.getByText('Consulta registrada.')).toBeInTheDocument()
+  })
+
+  it('renders odontogram suggestions from the backend and does not crash', async () => {
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Dente 36 com cárie.',
+      fields: { chiefComplaint: 'Cárie' },
+      odontogramSuggestions: [
+        { toothNumber: '36', condition: 'caries', notes: 'Cárie mesial.', confidence: 'high' },
+        { toothNumber: '11', condition: 'crown' }, // minimal — no notes/confidence
+      ],
+    })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    await waitFor(
+      () => expect(screen.getByText(/Sugestões para odontograma/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+    expect(screen.queryByText(/Não foi possível processar/i)).not.toBeInTheDocument()
+    expect(screen.getAllByText(/Dente 36/i).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(/Dente 11/i).length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('ignores malformed odontogram items (missing toothNumber) and shows remaining valid ones', async () => {
+    mockDictateClinicalRecord.mockResolvedValueOnce({
+      transcript: 'Consulta.',
+      fields: { chiefComplaint: 'Rotina' },
+      odontogramSuggestions: [
+        { toothNumber: '46', condition: 'caries' },
+        // malformed: missing condition — backend validated but testing frontend defensiveness
+        { toothNumber: '21', condition: '' },
+      ],
+    })
+    const user = userEvent.setup()
+    renderCard()
+
+    await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
+
+    // Must reach success state without crashing
+    await waitFor(
+      () => expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(),
+      { timeout: 3000 },
+    )
+    expect(screen.queryByText(/Não foi possível processar/i)).not.toBeInTheDocument()
+  })
+})
+
+// ── 21. Processing step labels (renumbered from 17) ──────────────────────────
 
 describe('processing step labels', () => {
   // ── "Transcrevendo consulta…" appears while the API is pending ─────────────

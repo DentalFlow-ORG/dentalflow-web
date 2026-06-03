@@ -105,6 +105,23 @@ describe('AvatarCropModal — rendering', () => {
   })
 })
 
+// ── Crop overlay ──────────────────────────────────────────────────────────────
+
+describe('AvatarCropModal — circular crop overlay', () => {
+  it('renders the dimming overlay element for the circular crop mask', () => {
+    renderModal()
+    expect(screen.getByTestId('crop-circle-overlay')).toBeInTheDocument()
+  })
+
+  it('crop area container is not rounded-full (square with overlay, not clipped circle)', () => {
+    renderModal()
+    const overlay = screen.getByTestId('crop-circle-overlay')
+    // The container is the parent — it should NOT have rounded-full
+    const container = overlay.parentElement!
+    expect(container.className).not.toContain('rounded-full')
+  })
+})
+
 // ── Zoom controls ─────────────────────────────────────────────────────────────
 
 describe('AvatarCropModal — zoom controls', () => {

@@ -20,9 +20,12 @@ export function dictateClinicalRecord(
   recordId: string,
   payload: DictateClinicalRecordRequest,
 ): Promise<DictateClinicalRecordResponse> {
+  // AI processing (Whisper + GPT classification) can take > 15 s for long
+  // recordings. 50 s gives headroom under the component's own 45 s safety net.
   return apiRequest<DictateClinicalRecordResponse>(`${BASE}/${recordId}/dictate`, {
     method: 'POST',
     accessToken: getAccessToken(),
     body: JSON.stringify(payload),
+    timeoutMs: 50_000,
   })
 }

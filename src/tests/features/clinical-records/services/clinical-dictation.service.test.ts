@@ -98,6 +98,12 @@ describe('dictateClinicalRecord', () => {
     await expect(dictateClinicalRecord(RECORD_ID, VALID_REQUEST)).rejects.toThrow('Network error')
   })
 
+  it('passes timeoutMs: 50_000 so long AI processing does not abort prematurely', async () => {
+    await dictateClinicalRecord(RECORD_ID, VALID_REQUEST)
+    const [, options] = mockApiRequest.mock.calls[0]
+    expect((options as Record<string, unknown>).timeoutMs).toBe(50_000)
+  })
+
   it('does not mutate the payload object passed by the caller', async () => {
     const payload: DictateClinicalRecordRequest = {
       audioBase64: 'AAA=',

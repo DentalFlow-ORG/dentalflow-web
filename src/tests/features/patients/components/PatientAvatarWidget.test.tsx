@@ -38,6 +38,55 @@ vi.mock('@/features/patients/components/AvatarCropModal', () => ({
     ) : null,
 }))
 
+// ── Mock CameraPreviewModal to isolate widget from webcam/video ops ───────────
+// The modal's own rendering and capture flow are tested in CameraPreviewModal.test.tsx.
+
+vi.mock('@/features/patients/components/CameraPreviewModal', () => ({
+  CameraPreviewModal: ({
+    open,
+    onCapture,
+    onCancel,
+  }: {
+    open: boolean
+    onCapture: (file: File) => void
+    onCancel: () => void
+  }) =>
+    open ? (
+      <div data-testid="camera-preview-modal">
+        <button
+          type="button"
+          onClick={() => onCapture(new File(['webcam'], 'webcam.jpg', { type: 'image/jpeg' }))}
+        >
+          Capturar foto
+        </button>
+        <button type="button" onClick={onCancel}>
+          Cancelar câmera
+        </button>
+      </div>
+    ) : null,
+}))
+
+// ── getUserMedia mock ─────────────────────────────────────────────────────────
+
+const mockGetUserMedia = vi.fn()
+
+beforeAll(() => {
+  Object.defineProperty(navigator, 'mediaDevices', {
+    value: { getUserMedia: mockGetUserMedia },
+    configurable: true,
+    writable: true,
+  })
+})
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  mockGetUserMedia.mockResolvedValue({
+    getTracks: () => [{ stop: vi.fn() }],
+  } as unknown as MediaStream)
+  ;(navigator.mediaDevices as unknown as { getUserMedia: typeof mockGetUserMedia }).getUserMedia =
+    mockGetUserMedia
+})
+
 // ── getAvatarInitials unit tests ──────────────────────────────────────────────
 
 describe('getAvatarInitials', () => {
@@ -78,11 +127,10 @@ describe('PatientAvatarWidget — display-only', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('does not render a remove button when onUpload is absent', () => {
+  it('does not render a remove option when onUpload is absent', () => {
     render(<PatientAvatarWidget name="João Silva" avatarUrl="abc123" />)
-    expect(
-      screen.queryByRole('button', { name: /remover foto/i }),
-    ).not.toBeInTheDocument()
+    // No interactive buttons at all when display-only
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })
 
@@ -103,42 +151,39 @@ describe('PatientAvatarWidget — interactive', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders a remove button when a photo exists', () => {
+  it('does NOT render a standalone border remove button — remove lives in the picker', () => {
     render(<PatientAvatarWidget name="Ana" avatarUrl="abc123" onUpload={vi.fn()} />)
-    expect(
-      screen.getByRole('button', { name: /remover foto do paciente/i }),
-    ).toBeInTheDocument()
+    // Only one button: the main avatar circle button (no separate X on the border)
+    const buttons = screen.getAllByRole('button')
+    expect(buttons).toHaveLength(1)
   })
 
-  it('does not render a remove button when there is no photo', () => {
-    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
-    expect(
-      screen.queryByRole('button', { name: /remover foto/i }),
-    ).not.toBeInTheDocument()
-  })
-
-  it('calls onUpload(null) when the remove button is clicked', async () => {
+  it('calls onUpload(null) when "Remover foto" is selected in the picker', async () => {
     const user = userEvent.setup()
     const onUpload = vi.fn()
     render(<PatientAvatarWidget name="Ana" avatarUrl="abc123" onUpload={onUpload} />)
-    await user.click(screen.getByRole('button', { name: /remover foto do paciente/i }))
+    // Open picker
+    await user.click(screen.getByRole('button', { name: /alterar foto do paciente/i }))
+    // Click "Remover foto" in the picker
+    await user.click(screen.getByRole('menuitem', { name: /Remover foto/i }))
     expect(onUpload).toHaveBeenCalledWith(null)
   })
 })
 
 // ── Source picker ─────────────────────────────────────────────────────────────
 
-describe('PatientAvatarWidget — source picker', () => {
-  it('shows the source picker when the upload button is clicked', async () => {
+describe('PatientAvatarWidget — source picker (no photo)', () => {
+  it('shows "Enviar imagem" and "Tirar foto" when no photo exists', async () => {
     const user = userEvent.setup()
     render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
     await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
     const menu = screen.getByRole('menu', { name: /Selecionar origem da foto/i })
     expect(within(menu).getByRole('menuitem', { name: /Enviar imagem/i })).toBeInTheDocument()
     expect(within(menu).getByRole('menuitem', { name: /Tirar foto/i })).toBeInTheDocument()
+    expect(within(menu).queryByRole('menuitem', { name: /Remover foto/i })).not.toBeInTheDocument()
   })
 
-  it('"Tirar foto" is always present in the picker — not hidden on desktop', async () => {
+  it('"Tirar foto" is always visible in the picker when no photo — not hidden on desktop', async () => {
     const user = userEvent.setup()
     render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
     await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
@@ -148,32 +193,82 @@ describe('PatientAvatarWidget — source picker', () => {
     expect(cameraBtn).not.toHaveClass('hidden')
     expect(cameraBtn).not.toHaveClass('sr-only')
   })
+})
 
-  it('"Enviar imagem" and "Tirar foto" target different hidden inputs', async () => {
+describe('PatientAvatarWidget — source picker (has photo)', () => {
+  it('shows "Trocar foto", "Tirar nova foto", "Remover foto" when photo exists', async () => {
+    const user = userEvent.setup()
+    render(<PatientAvatarWidget name="Ana" avatarUrl="abc123" onUpload={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: /alterar foto do paciente/i }))
+    const menu = screen.getByRole('menu', { name: /Selecionar origem da foto/i })
+    expect(within(menu).getByRole('menuitem', { name: /Trocar foto/i })).toBeInTheDocument()
+    expect(within(menu).getByRole('menuitem', { name: /Tirar nova foto/i })).toBeInTheDocument()
+    expect(within(menu).getByRole('menuitem', { name: /Remover foto/i })).toBeInTheDocument()
+    // "Enviar imagem" and "Tirar foto" (no-photo labels) should NOT be shown
+    expect(within(menu).queryByRole('menuitem', { name: /^Enviar imagem$/i })).not.toBeInTheDocument()
+    expect(within(menu).queryByRole('menuitem', { name: /^Tirar foto$/i })).not.toBeInTheDocument()
+  })
+})
+
+describe('PatientAvatarWidget — source picker interactions', () => {
+  it('"Enviar imagem" triggers the gallery file input', async () => {
     const user = userEvent.setup()
     render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
 
-    const inputs = document.querySelectorAll('input[type="file"]')
-    expect(inputs.length).toBe(2)
-
     const galleryInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
-    const cameraInput = document.querySelector('input[type="file"][capture]') as HTMLInputElement
     expect(galleryInput).not.toBeNull()
-    expect(cameraInput).not.toBeNull()
-
     const gallerySpy = vi.spyOn(galleryInput, 'click')
-    const cameraSpy = vi.spyOn(cameraInput, 'click')
 
     await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
-    const menu1 = screen.getByRole('menu')
-    await user.click(within(menu1).getByRole('menuitem', { name: /Enviar imagem/i }))
+    await user.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: /Enviar imagem/i }))
     expect(gallerySpy).toHaveBeenCalledTimes(1)
-    expect(cameraSpy).not.toHaveBeenCalled()
+  })
+
+  it('"Tirar foto" opens the camera preview modal when getUserMedia is available', async () => {
+    const user = userEvent.setup()
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
 
     await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
-    const menu2 = screen.getByRole('menu')
-    await user.click(within(menu2).getByRole('menuitem', { name: /Tirar foto/i }))
-    expect(cameraSpy).toHaveBeenCalledTimes(1)
+    await user.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: /Tirar foto/i }))
+
+    // CameraPreviewModal should open (mocked)
+    await waitFor(() => {
+      expect(screen.getByTestId('camera-preview-modal')).toBeInTheDocument()
+    })
+  })
+
+  it('capturing from camera preview opens the crop modal with the captured file', async () => {
+    const user = userEvent.setup()
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
+    await user.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: /Tirar foto/i }))
+
+    await waitFor(() => screen.getByTestId('camera-preview-modal'))
+    // Simulate capture
+    await user.click(screen.getByRole('button', { name: /Capturar foto/i }))
+
+    // Camera preview closes and crop modal opens
+    await waitFor(() => {
+      expect(screen.queryByTestId('camera-preview-modal')).not.toBeInTheDocument()
+      expect(screen.getByTestId('avatar-crop-modal')).toBeInTheDocument()
+    })
+  })
+
+  it('cancelling camera preview closes it without opening the crop modal', async () => {
+    const user = userEvent.setup()
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
+    await user.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: /Tirar foto/i }))
+
+    await waitFor(() => screen.getByTestId('camera-preview-modal'))
+    await user.click(screen.getByRole('button', { name: /Cancelar câmera/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('camera-preview-modal')).not.toBeInTheDocument()
+    })
+    expect(screen.queryByTestId('avatar-crop-modal')).not.toBeInTheDocument()
   })
 
   it('closes the source picker when clicking outside', async () => {
@@ -181,7 +276,6 @@ describe('PatientAvatarWidget — source picker', () => {
     render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
     await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
     expect(screen.getByRole('menu', { name: /Selecionar origem da foto/i })).toBeInTheDocument()
-    // Click on the backdrop (fixed overlay)
     const backdrop = document.querySelector('.fixed.inset-0.z-40') as HTMLElement
     fireEvent.click(backdrop)
     expect(screen.queryByRole('menu', { name: /Selecionar origem da foto/i })).not.toBeInTheDocument()
@@ -205,7 +299,7 @@ describe('PatientAvatarWidget — file validation', () => {
     const onError = vi.fn()
     render(<PatientAvatarWidget name="Ana" onUpload={onUpload} onError={onError} />)
 
-    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     const file = new File(['data'], 'video.mp4', { type: 'video/mp4' })
     fireEvent.change(fileInput, { target: { files: [file] } })
 
@@ -220,7 +314,7 @@ describe('PatientAvatarWidget — file validation', () => {
     const onError = vi.fn()
     render(<PatientAvatarWidget name="Ana" onUpload={onUpload} onError={onError} />)
 
-    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     const blob = new Blob([new Uint8Array(6 * 1024 * 1024)], { type: 'image/jpeg' })
     const file = new File([blob], 'big.jpg', { type: 'image/jpeg' })
     fireEvent.change(fileInput, { target: { files: [file] } })
@@ -238,21 +332,9 @@ describe('PatientAvatarWidget — crop modal', () => {
   it('opens the crop modal when a valid file is selected via gallery input', async () => {
     render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
 
-    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' })
     fireEvent.change(fileInput, { target: { files: [file] } })
-
-    await waitFor(() => {
-      expect(screen.getByTestId('avatar-crop-modal')).toBeInTheDocument()
-    })
-  })
-
-  it('opens the crop modal when a valid file is selected via camera input', async () => {
-    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
-
-    const cameraInput = document.querySelector('input[type="file"][capture]') as HTMLInputElement
-    const file = new File(['data'], 'webcam.jpg', { type: 'image/jpeg' })
-    fireEvent.change(cameraInput, { target: { files: [file] } })
 
     await waitFor(() => {
       expect(screen.getByTestId('avatar-crop-modal')).toBeInTheDocument()
@@ -263,7 +345,7 @@ describe('PatientAvatarWidget — crop modal', () => {
     const onUpload = vi.fn()
     render(<PatientAvatarWidget name="Ana" onUpload={onUpload} />)
 
-    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     fireEvent.change(fileInput, { target: { files: [new File(['x'], 'a.jpg', { type: 'image/jpeg' })] } })
 
     await waitFor(() => screen.getByTestId('avatar-crop-modal'))
@@ -279,7 +361,7 @@ describe('PatientAvatarWidget — crop modal', () => {
     const onUpload = vi.fn()
     render(<PatientAvatarWidget name="Ana" onUpload={onUpload} />)
 
-    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     fireEvent.change(fileInput, { target: { files: [new File(['x'], 'a.jpg', { type: 'image/jpeg' })] } })
 
     await waitFor(() => screen.getByTestId('avatar-crop-modal'))
@@ -294,7 +376,7 @@ describe('PatientAvatarWidget — crop modal', () => {
     const onUpload = vi.fn()
     render(<PatientAvatarWidget name="Ana" onUpload={onUpload} />)
 
-    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     fireEvent.change(fileInput, { target: { files: [new File(['x'], 'a.jpg', { type: 'image/jpeg' })] } })
 
     await waitFor(() => screen.getByTestId('avatar-crop-modal'))
@@ -310,7 +392,7 @@ describe('PatientAvatarWidget — crop modal', () => {
     const onError = vi.fn()
     render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} onError={onError} />)
 
-    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     fireEvent.change(fileInput, { target: { files: [new File(['x'], 'a.jpg', { type: 'image/jpeg' })] } })
 
     await waitFor(() => screen.getByTestId('avatar-crop-modal'))
@@ -323,16 +405,16 @@ describe('PatientAvatarWidget — crop modal', () => {
 // ── Disabled / saving state ───────────────────────────────────────────────────
 
 describe('PatientAvatarWidget — saving state', () => {
-  it('disables both file inputs when isSaving is true', () => {
+  it('disables the gallery file input when isSaving is true', () => {
     render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} isSaving />)
-    const inputs = document.querySelectorAll('input[type="file"]')
-    inputs.forEach((input) => expect(input).toBeDisabled())
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    expect(input).toBeDisabled()
   })
 
-  it('does not render the upload or remove buttons when isSaving is true', () => {
+  it('does not render the upload button or any interactive picker when isSaving is true', () => {
     render(<PatientAvatarWidget name="Ana" avatarUrl="abc123" onUpload={vi.fn()} isSaving />)
     expect(screen.queryByRole('button', { name: /alterar foto/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /remover foto/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   })
 
   it('shows a spinner when isSaving is true', () => {
@@ -354,8 +436,10 @@ describe('PatientAvatarWidget — accessibility', () => {
     expect(screen.getByRole('button', { name: 'Alterar foto do paciente' })).toBeInTheDocument()
   })
 
-  it('remove button has a meaningful aria-label', () => {
+  it('"Remover foto" is accessible as a menuitem inside the picker when photo exists', async () => {
+    const user = userEvent.setup()
     render(<PatientAvatarWidget name="João" avatarUrl="x" onUpload={vi.fn()} />)
-    expect(screen.getByRole('button', { name: 'Remover foto do paciente' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Alterar foto do paciente' }))
+    expect(screen.getByRole('menuitem', { name: /Remover foto/i })).toBeInTheDocument()
   })
 })

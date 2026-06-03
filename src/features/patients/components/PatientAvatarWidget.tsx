@@ -1,9 +1,10 @@
-import { Camera, ImageIcon, Loader2, Plus, Upload, X } from 'lucide-react'
+import { ImagePlus, Loader2, Plus, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
 import { cn } from '@/lib/utils'
 import { ALLOWED_AVATAR_TYPES, MAX_AVATAR_INPUT_BYTES } from '@/lib/compress-avatar'
 import { AvatarCropModal } from './AvatarCropModal'
+import { CameraPreviewModal } from './CameraPreviewModal'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -55,12 +56,13 @@ export function PatientAvatarWidget({
   className,
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
   const [showSourcePicker, setShowSourcePicker] = useState(false)
+  const [showCameraPreview, setShowCameraPreview] = useState(false)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
 
   const sizeClass = SIZE[size]
   const isInteractive = Boolean(onUpload) && !isSaving
+  const hasPhoto = Boolean(avatarUrl)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -80,6 +82,33 @@ export function PatientAvatarWidget({
     setPendingFile(file)
   }
 
+  const handleCameraClick = () => {
+    setShowSourcePicker(false)
+    // On desktop getUserMedia is preferred so the dentist gets a live preview;
+    // on older browsers / non-secure contexts mediaDevices may be absent.
+    if (typeof navigator !== 'undefined' && 'mediaDevices' in navigator) {
+      setShowCameraPreview(true)
+    } else {
+      // Dynamically create a camera-capture input as a fallback
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = 'image/jpeg,image/png,image/webp'
+      input.capture = 'user'
+      input.onchange = handleFileChange as unknown as EventListener
+      input.click()
+    }
+  }
+
+  const handleGalleryClick = () => {
+    setShowSourcePicker(false)
+    fileInputRef.current?.click()
+  }
+
+  const handleRemoveClick = () => {
+    setShowSourcePicker(false)
+    onUpload!(null)
+  }
+
   const handleCropConfirm = (base64: string) => {
     setPendingFile(null)
     onUpload?.(base64)
@@ -91,6 +120,15 @@ export function PatientAvatarWidget({
 
   const handleCropError = (message: string) => {
     onError?.(message)
+  }
+
+  const handleCameraCapture = (file: File) => {
+    setShowCameraPreview(false)
+    setPendingFile(file)
+  }
+
+  const handleCameraPreviewCancel = () => {
+    setShowCameraPreview(false)
   }
 
   // Close the source picker when the user presses Escape
@@ -111,20 +149,6 @@ export function PatientAvatarWidget({
           ref={fileInputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          className="sr-only"
-          onChange={handleFileChange}
-          disabled={isSaving}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Hidden camera input — capture="user" → webcam / front camera */}
-      {onUpload && (
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          capture="user"
           className="sr-only"
           onChange={handleFileChange}
           disabled={isSaving}
@@ -159,8 +183,8 @@ export function PatientAvatarWidget({
         <button
           type="button"
           onClick={() => setShowSourcePicker((s) => !s)}
-          aria-label={avatarUrl ? 'Alterar foto do paciente' : 'Adicionar foto do paciente'}
-          title={avatarUrl ? 'Alterar foto' : 'Adicionar foto'}
+          aria-label={hasPhoto ? 'Alterar foto do paciente' : 'Adicionar foto do paciente'}
+          title={hasPhoto ? 'Alterar foto' : 'Adicionar foto'}
           className={cn(
             'group/circle absolute inset-0 flex items-center justify-center rounded-full',
             'cursor-pointer select-none',
@@ -199,62 +223,63 @@ export function PatientAvatarWidget({
             role="menu"
             aria-label="Selecionar origem da foto"
           >
-            <button
-              type="button"
-              role="menuitem"
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
-              onClick={() => {
-                setShowSourcePicker(false)
-                fileInputRef.current?.click()
-              }}
-            >
-              <Upload className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              Enviar imagem
-            </button>
+            {hasPhoto ? (
+              <>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                  onClick={handleGalleryClick}
+                >
+                  <RefreshCw className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  Trocar foto
+                </button>
 
-            <button
-              type="button"
-              role="menuitem"
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
-              onClick={() => {
-                setShowSourcePicker(false)
-                cameraInputRef.current?.click()
-              }}
-            >
-              <Camera className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              Tirar foto
-            </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                  onClick={handleCameraClick}
+                >
+                  <ImagePlus className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  Tirar nova foto
+                </button>
+
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-red-600 hover:bg-red-50 focus-visible:bg-red-50 focus-visible:outline-none dark:text-red-400 dark:hover:bg-red-950/20"
+                  onClick={handleRemoveClick}
+                >
+                  <Trash2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  Remover foto
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                  onClick={handleGalleryClick}
+                >
+                  <Upload className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  Enviar imagem
+                </button>
+
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                  onClick={handleCameraClick}
+                >
+                  <ImagePlus className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  Tirar foto
+                </button>
+              </>
+            )}
           </div>
         </>
-      )}
-
-      {/* ── Camera badge — persistent add affordance for touch/mobile ───── */}
-      {isInteractive && !avatarUrl && !showSourcePicker && (
-        <span
-          className="pointer-events-none absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white shadow-sm ring-2 ring-card"
-          aria-hidden="true"
-        >
-          <ImageIcon className="h-2.5 w-2.5" />
-        </span>
-      )}
-
-      {/* ── Remove (×) button — top-right when a photo exists ───────────── */}
-      {isInteractive && avatarUrl && (
-        <button
-          type="button"
-          onClick={() => onUpload!(null)}
-          aria-label="Remover foto do paciente"
-          title="Remover foto"
-          className={cn(
-            'absolute -right-0.5 -top-0.5 z-10',
-            'flex h-5 w-5 items-center justify-center',
-            'rounded-full bg-red-500 text-white shadow-sm ring-2 ring-card',
-            'transition-colors hover:bg-red-600',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-1',
-          )}
-        >
-          <X className="h-2.5 w-2.5" aria-hidden="true" />
-        </button>
       )}
 
       {/* ── Saving spinner ───────────────────────────────────────────────── */}
@@ -264,7 +289,7 @@ export function PatientAvatarWidget({
         </div>
       )}
 
-      {/* ── Crop modal — opens after file/camera selection ───────────────── */}
+      {/* ── Crop modal — opens after file/gallery selection ──────────────── */}
       <AvatarCropModal
         open={pendingFile !== null}
         imageFile={pendingFile}
@@ -272,6 +297,13 @@ export function PatientAvatarWidget({
         onConfirm={handleCropConfirm}
         onCancel={handleCropCancel}
         onError={handleCropError}
+      />
+
+      {/* ── Camera preview modal — opens on webcam/desktop camera click ──── */}
+      <CameraPreviewModal
+        open={showCameraPreview}
+        onCapture={handleCameraCapture}
+        onCancel={handleCameraPreviewCancel}
       />
     </div>
   )

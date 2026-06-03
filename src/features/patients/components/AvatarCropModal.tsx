@@ -138,7 +138,6 @@ export function AvatarCropModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          aria-describedby="crop-modal-desc"
           className="fixed left-1/2 top-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-card shadow-2xl animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={(e) => {
             e.preventDefault()
@@ -151,15 +150,15 @@ export function AvatarCropModal({
             <Dialog.Title className="text-base font-semibold text-foreground">
               {title}
             </Dialog.Title>
-            <p id="crop-modal-desc" className="mt-0.5 text-xs text-muted-foreground">
+            <Dialog.Description className="mt-0.5 text-xs text-muted-foreground">
               Arraste para posicionar · use + / − para ajustar o zoom.
-            </p>
+            </Dialog.Description>
           </div>
 
           {/* Crop area */}
           <div className="flex flex-col items-center gap-5 px-5 py-6">
             <div
-              className="relative overflow-hidden rounded-full bg-muted ring-2 ring-primary/30 select-none"
+              className="relative overflow-hidden bg-muted select-none"
               style={{
                 width: CROP_SIZE,
                 height: CROP_SIZE,
@@ -195,6 +194,20 @@ export function AvatarCropModal({
                   }}
                 />
               )}
+              {/* Dimming overlay: transparent inside the crop circle, dark outside */}
+              <div
+                className="pointer-events-none absolute inset-0"
+                data-testid="crop-circle-overlay"
+                aria-hidden="true"
+                style={{
+                  background: `radial-gradient(circle ${CROP_SIZE / 2 - 1}px at 50% 50%, transparent 100%, rgba(0,0,0,0.55) 100%)`,
+                }}
+              />
+              {/* Visible circle border marking the crop boundary */}
+              <div
+                className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-white/50"
+                aria-hidden="true"
+              />
             </div>
 
             {/* Zoom controls */}
