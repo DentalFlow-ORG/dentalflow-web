@@ -19,6 +19,29 @@ export function __resetAvatarCache(): void {
   avatarCache.clear()
 }
 
+// ── Public cache helpers ──────────────────────────────────────────────────────
+// These allow callers (e.g. usePatientsPage) to pre-warm the cache with data
+// they already have, so usePatientAvatar can serve hits without extra fetches.
+
+/** Returns the cached avatarUrl, null if cached as absent, or undefined if not cached at all. */
+export function getCachedPatientAvatar(identifier: string): string | null | undefined {
+  if (!avatarCache.has(identifier)) return undefined
+  return avatarCache.get(identifier) ?? null
+}
+
+/** Writes an avatar url (or null) into the session cache for the given identifier. */
+export function setCachedPatientAvatar(identifier: string, avatarUrl: string | null): void {
+  avatarCache.set(identifier, avatarUrl)
+}
+
+/**
+ * Returns only the identifiers that are NOT already in the session cache.
+ * Use this to avoid re-requesting data the cache already holds.
+ */
+export function getMissingPatientAvatarIdentifiers(identifiers: string[]): string[] {
+  return identifiers.filter((id) => !avatarCache.has(id))
+}
+
 function getInitialState(identifier: string | null | undefined): State {
   if (!identifier) return { avatarUrl: null, isLoading: false, isSaving: false }
   if (avatarCache.has(identifier)) {

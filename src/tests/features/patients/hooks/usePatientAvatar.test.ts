@@ -1,5 +1,11 @@
 import { renderHook, waitFor, act } from '@/test-utils/render-utils'
-import { usePatientAvatar, __resetAvatarCache } from '@/features/patients/hooks/usePatientAvatar'
+import {
+  usePatientAvatar,
+  __resetAvatarCache,
+  getCachedPatientAvatar,
+  setCachedPatientAvatar,
+  getMissingPatientAvatarIdentifiers,
+} from '@/features/patients/hooks/usePatientAvatar'
 
 // ── Service mocks ─────────────────────────────────────────────────────────────
 
@@ -185,5 +191,82 @@ describe('usePatientAvatar — update() cache write-through', () => {
     unmount()
     const { result: second } = renderHook(() => usePatientAvatar(ID))
     expect(second.current.avatarUrl).toBe('base64abc')  // original value
+  })
+})
+
+// ── Cache helper functions ────────────────────────────────────────────────────
+
+describe('getCachedPatientAvatar', () => {
+  it('returns undefined when the identifier has never been cached', () => {
+    expect(getCachedPatientAvatar('never@cached.com')).toBeUndefined()
+  })
+
+  it('returns the avatarUrl after setCachedPatientAvatar is called', () => {
+    setCachedPatientAvatar('warm@test.com', 'base64warm')
+    expect(getCachedPatientAvatar('warm@test.com')).toBe('base64warm')
+  })
+
+  it('returns null when the identifier was explicitly cached as absent (no photo)', () => {
+    setCachedPatientAvatar('nophoto@test.com', null)
+    expect(getCachedPatientAvatar('nophoto@test.com')).toBeNull()
+  })
+})
+
+describe('getMissingPatientAvatarIdentifiers', () => {
+  it('returns all identifiers when none are cached', () => {
+    const ids = ['x@test.com', 'y@test.com']
+    expect(getMissingPatientAvatarIdentifiers(ids)).toEqual(ids)
+  })
+
+  it('excludes identifiers that are already in the cache', () => {
+    setCachedPatientAvatar('cached@test.com', 'base64data')
+    const result = getMissingPatientAvatarIdentifiers([
+      'cached@test.com',
+      'missing@test.com',
+    ])
+    expect(result).toEqual(['missing@test.com'])
+  })
+
+  it('excludes identifiers cached as null (explicitly absent)', () => {
+    setCachedPatientAvatar('absent@test.com', null)
+    const result = getMissingPatientAvatarIdentifiers(['absent@test.com', 'other@test.com'])
+    expect(result).not.toContain('absent@test.com')
+    expect(result).toContain('other@test.com')
+  })
+
+  it('returns an empty array when all identifiers are cached', () => {
+    setCachedPatientAvatar('a@test.com', 'img1')
+    setCachedPatientAvatar('b@test.com', 'img2')
+    expect(getMissingPatientAvatarIdentifiers(['a@test.com', 'b@test.com'])).toEqual([])
+  })
+
+  it('returns an empty array for an empty input', () => {
+    expect(getMissingPatientAvatarIdentifiers([])).toEqual([])
+  })
+})
+
+describe('setCachedPatientAvatar — usePatientAvatar hook benefits from pre-warmed cache', () => {
+  it('usePatientAvatar starts with isLoading=false when identifier was pre-warmed', () => {
+    setCachedPatientAvatar('prewarm@test.com', 'base64prewarm')
+
+    let initialIsLoading: boolean | undefined
+    renderHook(() => {
+      const hook = usePatientAvatar('prewarm@test.com')
+      if (initialIsLoading === undefined) initialIsLoading = hook.isLoading
+      return hook
+    })
+
+    expect(initialIsLoading).toBe(false)
+    expect(mockGet).not.toHaveBeenCalled()
+  })
+
+  it('usePatientAvatar returns the pre-warmed avatarUrl without a network call', async () => {
+    setCachedPatientAvatar('instant@test.com', 'base64instant')
+
+    const { result } = renderHook(() => usePatientAvatar('instant@test.com'))
+
+    expect(result.current.avatarUrl).toBe('base64instant')
+    expect(result.current.isLoading).toBe(false)
+    expect(mockGet).not.toHaveBeenCalled()
   })
 })

@@ -33,3 +33,12 @@ export function upsertPatientAvatar(identifier: string, avatarBase64: string | n
     headers: { 'Content-Type': 'application/json' },
   })
 }
+
+export function batchGetPatientAvatars(identifiers: string[]) {
+  return apiRequest<{ avatars: Record<string, string | null> }>('/patients/avatars/batch', {
+    method: 'POST',
+    accessToken: getAccessToken(),
+    body: JSON.stringify({ identifiers }),
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
