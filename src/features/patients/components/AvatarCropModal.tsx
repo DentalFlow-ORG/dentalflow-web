@@ -11,8 +11,12 @@ import {
   computeExportDestination,
 } from '@/lib/avatar-crop-math'
 
-// Display size of the circular crop area in px
-const CROP_SIZE = 240
+// Square viewport size in px — drives all drag/zoom math
+const CROP_SIZE = 280
+// Circular crop area diameter in px — smaller than CROP_SIZE so the corners are visibly dimmed
+const CIRCLE_SIZE = 220
+// Pixel offset from viewport edge to circle edge (centers the circle inside the square)
+const CIRCLE_OFFSET = (CROP_SIZE - CIRCLE_SIZE) / 2
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -42,15 +46,13 @@ export function AvatarCropModal({
   const [zoom, setZoom] = useState(1)
   const [offset, setOffset] = useState<Offset>({ x: 0, y: 0 })
   const [naturalSize, setNaturalSize] = useState({ w: 1, h: 1 })
-  // Tracks whether the image has finished loading and naturalSize is reliable.
-  // Until true the image is rendered invisible to prevent showing a distorted
-  // version while naturalSize is still at the {1,1} placeholder.
+  // Until true the image is invisible — prevents a distorted frame from the {1,1} placeholder.
   const [naturalLoaded, setNaturalLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
   const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null)
-  // Ref mirror of isDragging state — read inside RAF callbacks to avoid stale closures.
+  // Ref mirror of isDragging — read inside RAF callbacks to avoid stale closures.
   const isDraggingRef = useRef(false)
   // Pending pointer position for RAF-throttled move updates.
   const rafId = useRef<number | null>(null)
@@ -95,7 +97,6 @@ export function AvatarCropModal({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId)
-    // Cancel any in-flight RAF before starting a new drag sequence.
     if (rafId.current !== null) {
       cancelAnimationFrame(rafId.current)
       rafId.current = null
@@ -107,7 +108,6 @@ export function AvatarCropModal({
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDraggingRef.current || !dragStart.current) return
-    // Store latest pointer; the RAF will read it to avoid processing stale moves.
     pendingPointer.current = { x: e.clientX, y: e.clientY }
     if (rafId.current === null) {
       rafId.current = requestAnimationFrame(() => {
@@ -152,14 +152,12 @@ export function AvatarCropModal({
       return
     }
 
-    // Fill with white before drawing so any empty space from the fit-scale
-    // positioning shows as white instead of transparent/black.
+    // Safety fill — with cover scale the image always covers this background,
+    // but keep it as a neutral fallback for sub-pixel edge cases.
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, out, out)
 
-    // Compute destination rect that mirrors the preview transform directly.
-    // 5-arg drawImage(img, dx, dy, dw, dh) is simpler and more faithful than
-    // computing source coords, so preview and export always match.
+    // Mirror the preview transform directly onto the output canvas.
     const { dx, dy, dw, dh } = computeExportDestination({
       naturalW: naturalSize.w,
       naturalH: naturalSize.h,
@@ -182,7 +180,7 @@ export function AvatarCropModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-card shadow-2xl animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-[24px] border border-border bg-card shadow-2xl animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={(e) => {
             e.preventDefault()
             onCancel()
@@ -195,14 +193,14 @@ export function AvatarCropModal({
               {title}
             </Dialog.Title>
             <Dialog.Description className="mt-0.5 text-xs text-muted-foreground">
-              Arraste para centralizar o rosto · use + / − para ajustar o zoom.
+              Arraste a imagem para centralizar. Use o zoom para ajustar.
             </Dialog.Description>
           </div>
 
           {/* Crop area */}
           <div className="flex flex-col items-center gap-5 px-5 py-6">
             <div
-              className="relative overflow-hidden bg-muted select-none"
+              className="relative overflow-hidden rounded-2xl bg-neutral-950 select-none"
               style={{
                 width: CROP_SIZE,
                 height: CROP_SIZE,
@@ -236,7 +234,7 @@ export function AvatarCropModal({
                     top: imageTop,
                     // Keep the element in the DOM for imgRef / onLoad, but
                     // invisible until naturalSize is known to prevent the brief
-                    // distorted frame caused by the {w:1, h:1} placeholder.
+                    // distorted frame from the {w:1, h:1} placeholder.
                     opacity: naturalLoaded ? 1 : 0,
                     pointerEvents: 'none',
                     userSelect: 'none',
@@ -244,19 +242,27 @@ export function AvatarCropModal({
                 />
               )}
 
-              {/* Dimming overlay: transparent inside the crop circle, dark outside */}
+              {/* Dimming overlay: transparent inside the crop circle, dimmed outside */}
               <div
                 className="pointer-events-none absolute inset-0"
                 data-testid="crop-circle-overlay"
                 aria-hidden="true"
                 style={{
-                  background: `radial-gradient(circle ${CROP_SIZE / 2 - 1}px at 50% 50%, transparent 100%, rgba(0,0,0,0.55) 100%)`,
+                  background: `radial-gradient(circle ${CIRCLE_SIZE / 2}px at 50% 50%, transparent 100%, rgba(0,0,0,0.45) 100%)`,
                 }}
               />
-              {/* Visible ring marking the exact crop boundary */}
+
+              {/* Ring marking the exact crop boundary */}
               <div
-                className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-white/50"
+                className="pointer-events-none absolute rounded-full ring-2 ring-white/70"
+                data-testid="crop-circle-ring"
                 aria-hidden="true"
+                style={{
+                  width: CIRCLE_SIZE,
+                  height: CIRCLE_SIZE,
+                  top: CIRCLE_OFFSET,
+                  left: CIRCLE_OFFSET,
+                }}
               />
             </div>
 

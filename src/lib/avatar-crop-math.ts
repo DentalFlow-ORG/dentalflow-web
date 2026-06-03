@@ -2,26 +2,27 @@
 // Extracted so they can be unit-tested without a DOM, canvas, or React.
 
 /**
- * Fit scale: the maximum scale that makes the whole image fit inside the crop
- * square on both axes without overflow (CSS object-fit:contain behaviour).
- * At zoom=1 the full image is visible with its natural aspect ratio; the user
- * zooms in to fill the crop circle.
+ * Cover scale: the minimum scale that makes the image fill the crop viewport
+ * on both axes (larger natural dimension wins, matching CSS object-fit:cover).
+ * At zoom=1 the image exactly covers the square with no empty gaps.
+ * Aspect ratio is preserved — the shorter axis fills exactly, the longer overflows.
  */
 export function computeBaseScale(
   naturalW: number,
   naturalH: number,
   cropSize: number,
 ): number {
-  return Math.min(
+  return Math.max(
     cropSize / Math.max(naturalW, 1),
     cropSize / Math.max(naturalH, 1),
   )
 }
 
 /**
- * Generous drag clamp: keeps at least cropSize/4 pixels of the image
- * overlapping the crop viewport so the image never fully disappears, but
- * does NOT force the image to cover the crop area — empty space is allowed.
+ * Cover-model clamp: the image is always at least as large as the viewport on
+ * each axis (guaranteed by cover scale), so the maximum drag distance equals
+ * half the overflow on that axis. This prevents any empty gap from appearing
+ * inside the crop area regardless of drag direction.
  */
 export function clampCropOffset(
   ox: number,
@@ -30,9 +31,8 @@ export function clampCropOffset(
   displayH: number,
   cropSize: number,
 ): { clampedOx: number; clampedOy: number } {
-  const minOverlap = cropSize / 4
-  const maxOx = (cropSize + displayW) / 2 - minOverlap
-  const maxOy = (cropSize + displayH) / 2 - minOverlap
+  const maxOx = Math.max(0, (displayW - cropSize) / 2)
+  const maxOy = Math.max(0, (displayH - cropSize) / 2)
   return {
     clampedOx: Math.max(-maxOx, Math.min(maxOx, ox)),
     clampedOy: Math.max(-maxOy, Math.min(maxOy, oy)),
@@ -55,8 +55,8 @@ export interface ExportDestination {
  * mirrors the preview transform.
  *
  * Strategy: scale the preview viewport coordinates by (outputSize / cropSize).
- * The caller should ctx.fillRect with a neutral background before drawing to
- * handle any empty space introduced by the fit-scale initial positioning.
+ * With cover scale the image always fills the viewport, so the safety fillRect
+ * background will not be visible — but it is still written before drawImage.
  */
 export function computeExportDestination(params: {
   naturalW: number

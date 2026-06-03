@@ -114,7 +114,12 @@ describe('AvatarCropModal — circular crop overlay', () => {
     expect(screen.getByTestId('crop-circle-overlay')).toBeInTheDocument()
   })
 
-  it('crop area container is not rounded-full (square viewport with overlay, not clipped circle)', () => {
+  it('renders the crop ring element', () => {
+    renderModal()
+    expect(screen.getByTestId('crop-circle-ring')).toBeInTheDocument()
+  })
+
+  it('crop area container is not rounded-full (square viewport with circular overlay)', () => {
     renderModal()
     const overlay = screen.getByTestId('crop-circle-overlay')
     const container = overlay.parentElement!
@@ -126,6 +131,15 @@ describe('AvatarCropModal — circular crop overlay', () => {
     const overlay = screen.getByTestId('crop-circle-overlay')
     const container = overlay.parentElement!
     expect(container.className).toContain('overflow-hidden')
+  })
+
+  it('crop ring is a separate element from the dimming overlay', () => {
+    renderModal()
+    // Both elements exist independently — ring is sibling to the overlay
+    const overlay = screen.getByTestId('crop-circle-overlay')
+    const ring = screen.getByTestId('crop-circle-ring')
+    expect(overlay.parentElement).toBe(ring.parentElement)
+    expect(overlay).not.toBe(ring)
   })
 })
 
@@ -212,12 +226,11 @@ describe('AvatarCropModal — confirm export', () => {
     expect(args).toHaveLength(5)
   })
 
-  it('calls fillRect with white before drawImage to prevent black borders', async () => {
+  it('calls fillRect with white before drawImage (safety background fill)', async () => {
     const user = userEvent.setup()
     renderModal()
     await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
     await waitFor(() => expect(mockFillRect).toHaveBeenCalled())
-    // fillRect must be called before drawImage
     expect(mockFillRect).toHaveBeenCalledBefore(mockDrawImage)
     const fillArgs = mockFillRect.mock.calls[0] as number[]
     expect(fillArgs).toEqual([0, 0, 512, 512])
@@ -225,8 +238,9 @@ describe('AvatarCropModal — confirm export', () => {
 
   it('drawImage destination fills the output canvas for a 1×1 natural image at zoom 1', async () => {
     // In jsdom onLoad never fires, so naturalSize stays {1,1}.
-    // baseScale=min(240,240)=240, effectiveScale=240, displayW/H=240, imageLeft/Top=0
-    // → dx=0, dy=0, dw=512, dh=512
+    // cover baseScale = max(280/1, 280/1) = 280; effectiveScale=280
+    // displayW=displayH=280; maxOx=maxOy=0; imageLeft=imageTop=0
+    // → dx=0, dy=0, dw=280*(512/280)=512, dh=512
     const user = userEvent.setup()
     renderModal()
     await user.click(screen.getByRole('button', { name: /Salvar foto/i }))
@@ -238,7 +252,7 @@ describe('AvatarCropModal — confirm export', () => {
     expect(args[4]).toBeCloseTo(512)  // dh
   })
 
-  it('zoom-in increases dw in export (zoomed image takes more canvas space)', async () => {
+  it('zoom-in increases dw in export (cover scale: zoomed image overflows more)', async () => {
     const user = userEvent.setup()
 
     // First save without zoom
@@ -257,7 +271,6 @@ describe('AvatarCropModal — confirm export', () => {
     await waitFor(() => expect(mockDrawImage).toHaveBeenCalledTimes(1))
     const zoomedDw = (mockDrawImage.mock.calls[0] as [unknown, number, number, number, number])[3]
 
-    // More zoom → image fills more of the canvas → dw increases
     expect(zoomedDw).toBeGreaterThan(firstDw)
   })
 
