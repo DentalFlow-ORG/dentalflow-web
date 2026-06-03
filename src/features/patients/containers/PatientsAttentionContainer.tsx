@@ -14,6 +14,7 @@ import { Link } from '@tanstack/react-router'
 import { Dialog } from 'radix-ui'
 
 import { EmptyState } from '@/components/common/EmptyState'
+import { PatientAvatarWidget } from '../components/PatientAvatarWidget'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { MetricCard } from '@/components/common/MetricCard'
@@ -89,25 +90,30 @@ function PriorityBadge({ priority }: { priority: AttentionPriority }) {
 function AttentionMobileCard({
   item,
   onSelect,
+  avatarUrl,
 }: {
   item: PatientAttentionItem
   onSelect: (item: PatientAttentionItem) => void
+  avatarUrl?: string | null
 }) {
   return (
     <article className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="truncate text-sm font-semibold text-foreground">
-              {item.patientName}
-            </h3>
-            {item.hasWhatsappConsent && (
-              <MessageCircle className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-label="WhatsApp autorizado" />
+        <div className="flex min-w-0 items-center gap-3">
+          <PatientAvatarWidget name={item.patientName} avatarUrl={avatarUrl} size="md" />
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="truncate text-sm font-semibold text-foreground">
+                {item.patientName}
+              </h3>
+              {item.hasWhatsappConsent && (
+                <MessageCircle className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-label="WhatsApp autorizado" />
+              )}
+            </div>
+            {item.patientEmail && (
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">{item.patientEmail}</p>
             )}
           </div>
-          {item.patientEmail && (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">{item.patientEmail}</p>
-          )}
         </div>
         <PriorityBadge priority={item.priority} />
       </div>
@@ -154,9 +160,11 @@ function AttentionMobileCard({
 function AttentionDetailPanel({
   item,
   onClose,
+  avatarUrl,
 }: {
   item: PatientAttentionItem | null
   onClose: () => void
+  avatarUrl?: string | null
 }) {
   return (
     <Dialog.Root open={!!item} onOpenChange={(open: boolean) => !open && onClose()}>
@@ -167,13 +175,20 @@ function AttentionDetailPanel({
           aria-describedby={undefined}
         >
           <div className="flex items-start justify-between border-b border-border px-6 py-4">
-            <div>
-              <Dialog.Title className="text-base font-semibold text-foreground">
-                {item?.patientName}
-              </Dialog.Title>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {item?.patientEmail ?? item?.patientPhone ?? 'Sem contato registrado'}
-              </p>
+            <div className="flex items-center gap-4">
+              <PatientAvatarWidget
+                name={item?.patientName ?? ''}
+                avatarUrl={avatarUrl}
+                size="lg"
+              />
+              <div>
+                <Dialog.Title className="text-base font-semibold text-foreground">
+                  {item?.patientName}
+                </Dialog.Title>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {item?.patientEmail ?? item?.patientPhone ?? 'Sem contato registrado'}
+                </p>
+              </div>
             </div>
             <Dialog.Close asChild>
               <Button
@@ -290,6 +305,7 @@ export function PatientsAttentionContainer() {
     summary,
     allItems,
     filteredItems,
+    avatarsByIdentifier,
     isLoading,
     error,
     search,
@@ -446,6 +462,7 @@ export function PatientsAttentionContainer() {
                       key={item.identifier}
                       item={item}
                       onSelect={setSelectedItem}
+                      avatarUrl={avatarsByIdentifier[item.identifier]}
                     />
                   ))
                 )}
@@ -491,15 +508,24 @@ export function PatientsAttentionContainer() {
                           }}
                         >
                           <td className="px-4 py-3">
-                            <div className="flex items-center gap-1.5">
-                              <p className="font-medium text-foreground">{item.patientName}</p>
-                              {item.hasWhatsappConsent && (
-                                <MessageCircle className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-label="WhatsApp autorizado" />
-                              )}
+                            <div className="flex items-center gap-3">
+                              <PatientAvatarWidget
+                                name={item.patientName}
+                                avatarUrl={avatarsByIdentifier[item.identifier]}
+                                size="md"
+                              />
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <p className="font-medium text-foreground">{item.patientName}</p>
+                                  {item.hasWhatsappConsent && (
+                                    <MessageCircle className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-label="WhatsApp autorizado" />
+                                  )}
+                                </div>
+                                {item.patientEmail && (
+                                  <p className="text-xs text-muted-foreground">{item.patientEmail}</p>
+                                )}
+                              </div>
                             </div>
-                            {item.patientEmail && (
-                              <p className="text-xs text-muted-foreground">{item.patientEmail}</p>
-                            )}
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex flex-wrap gap-1">
@@ -544,7 +570,11 @@ export function PatientsAttentionContainer() {
         </>
       </ListPageShell>
 
-      <AttentionDetailPanel item={selectedItem} onClose={() => setSelectedItem(null)} />
+      <AttentionDetailPanel
+        item={selectedItem}
+        onClose={() => setSelectedItem(null)}
+        avatarUrl={selectedItem ? avatarsByIdentifier[selectedItem.identifier] : undefined}
+      />
     </AppPage>
   )
 }
