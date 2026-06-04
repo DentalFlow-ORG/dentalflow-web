@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react'
+
 import { AlertCircle, ExternalLink } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
@@ -21,6 +24,7 @@ import {
   DENTIST_ALLOWED_TRANSITIONS,
   useSchedulePage,
 } from '../hooks/useSchedulePage'
+import { getWeekDates, toDateInputValue } from '../utils/time'
 import { TABS } from '../constants/schedule-tabs'
 
 export function SchedulePageContainer() {
@@ -44,6 +48,21 @@ export function SchedulePageContainer() {
     isActionLoading,
     handleStatusChange,
   } = useSchedulePage()
+
+  // Shared mobile selected date — persists across Agenda/Lista view switches
+  const [mobileSelectedDate, setMobileSelectedDate] = useState<string>(() => {
+    const dates = getWeekDates(weekStart).map(toDateInputValue)
+    const today = brazilTodayIso()
+    return dates.includes(today) ? today : dates[0]
+  })
+
+  useEffect(() => {
+    const dates = getWeekDates(weekStart).map(toDateInputValue)
+    const today = brazilTodayIso()
+    setMobileSelectedDate((prev) =>
+      dates.includes(prev) ? prev : dates.includes(today) ? today : dates[0],
+    )
+  }, [weekStart])
 
   return (
     <AppPage spacing="loose">
@@ -144,6 +163,8 @@ export function SchedulePageContainer() {
                     weekStart={weekStart}
                     isLoading={isBootstrapping}
                     onAppointmentClick={setDrawerAppointment}
+                    selectedDate={mobileSelectedDate}
+                    onSelectedDateChange={setMobileSelectedDate}
                   />
                 ) : (
                   <MobileAgendaList
@@ -151,6 +172,8 @@ export function SchedulePageContainer() {
                     weekStart={weekStart}
                     isLoading={isBootstrapping}
                     onAppointmentClick={setDrawerAppointment}
+                    selectedDate={mobileSelectedDate}
+                    onSelectedDateChange={setMobileSelectedDate}
                   />
                 )}
               </div>

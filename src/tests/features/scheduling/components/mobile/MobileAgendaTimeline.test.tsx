@@ -254,6 +254,53 @@ describe('MobileAgendaTimeline — create action', () => {
   })
 })
 
+// ── Controlled date selection ─────────────────────────────────────────────────
+
+describe('MobileAgendaTimeline — controlled date', () => {
+  it('shows appointments for the provided selectedDate instead of today', () => {
+    // APPT_TODAY is on 2026-05-26 (today); pass selectedDate pointing to 2026-05-27
+    render(
+      <MobileAgendaTimeline
+        appointments={[APPT_TODAY]}
+        weekStart={WEEK_START}
+        onAppointmentClick={vi.fn()}
+        selectedDate="2026-05-27"
+      />,
+    )
+    // Today's appointment should not be visible — the controlled date differs
+    expect(screen.queryByText('Test Patient')).not.toBeInTheDocument()
+    expect(screen.getByText('Nenhuma consulta agendada neste dia.')).toBeInTheDocument()
+  })
+
+  it('calls onSelectedDateChange when a day strip button is clicked', () => {
+    const onDateChange = vi.fn()
+    render(
+      <MobileAgendaTimeline
+        appointments={[]}
+        weekStart={WEEK_START}
+        onAppointmentClick={vi.fn()}
+        selectedDate="2026-05-26"
+        onSelectedDateChange={onDateChange}
+      />,
+    )
+    // Click Wednesday May 27 (qua = quarta-feira)
+    fireEvent.click(screen.getByRole('button', { name: /qua 27/i }))
+    expect(onDateChange).toHaveBeenCalledWith('2026-05-27')
+  })
+
+  it('works without controlled props (uncontrolled backward compat)', () => {
+    render(
+      <MobileAgendaTimeline
+        appointments={[APPT_TODAY]}
+        weekStart={WEEK_START}
+        onAppointmentClick={vi.fn()}
+      />,
+    )
+    // Default selection is today → today's appointment is visible
+    expect(screen.getByText('Test Patient')).toBeInTheDocument()
+  })
+})
+
 // ── Loading state ─────────────────────────────────────────────────────────────
 
 describe('MobileAgendaTimeline — loading state', () => {

@@ -21,6 +21,9 @@ type MobileAgendaListProps = {
   isLoading?: boolean
   canCreate?: boolean
   onCreateAppointment?: () => void
+  // Optional controlled date selection — when provided, the parent owns the state
+  selectedDate?: string
+  onSelectedDateChange?: (date: string) => void
 }
 
 export function MobileAgendaList({
@@ -30,20 +33,23 @@ export function MobileAgendaList({
   isLoading = false,
   canCreate = false,
   onCreateAppointment,
+  selectedDate: controlledDate,
+  onSelectedDateChange,
 }: MobileAgendaListProps) {
   const todayStr = brazilTodayIso()
 
   const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart])
   const weekDateStrings = useMemo(() => weekDates.map(toDateInputValue), [weekDates])
 
-  // Initialize to today if today is in the current week, else the first day of the week
-  const [selectedDate, setSelectedDate] = useState<string>(() =>
+  // Internal state — used when no controlled date is provided
+  const [internalDate, setInternalDate] = useState<string>(() =>
     weekDateStrings.includes(todayStr) ? todayStr : weekDateStrings[0],
   )
 
-  // When the week changes (desktop navigation), reset selected day
+  // Reset internal state when the week changes (uncontrolled mode)
+  // In controlled mode the parent resets its own state; updating internalDate is harmless
   useEffect(() => {
-    setSelectedDate((prev) =>
+    setInternalDate((prev) =>
       weekDateStrings.includes(prev)
         ? prev
         : weekDateStrings.includes(todayStr)
@@ -51,6 +57,14 @@ export function MobileAgendaList({
           : weekDateStrings[0],
     )
   }, [weekDateStrings, todayStr])
+
+  // Controlled date takes priority over internal state
+  const selectedDate = controlledDate ?? internalDate
+
+  function handleSelectDate(date: string) {
+    setInternalDate(date)
+    onSelectedDateChange?.(date)
+  }
 
   // Filter and sort appointments for the selected day
   const dayAppointments = useMemo(
@@ -91,7 +105,7 @@ export function MobileAgendaList({
               <button
                 key={dateStr}
                 type="button"
-                onClick={() => setSelectedDate(dateStr)}
+                onClick={() => handleSelectDate(dateStr)}
                 aria-pressed={isSelected}
                 aria-label={`${weekday} ${numericDay}${count > 0 ? `, ${count} consulta${count !== 1 ? 's' : ''}` : ''}`}
                 className={cn(

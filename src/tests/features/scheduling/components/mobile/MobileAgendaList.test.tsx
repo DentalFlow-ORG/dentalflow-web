@@ -1,4 +1,4 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen } from '@/test-utils/render-utils'
 
 import { MobileAgendaList } from '@/features/scheduling/components/mobile/MobileAgendaList'
 import { makeAppointment, DEFAULT_APPT_DATE } from '@/test-utils/factories/appointment.factory'
@@ -114,6 +114,53 @@ describe('MobileAgendaList — create action', () => {
     expect(
       screen.queryByRole('button', { name: /Novo agendamento/i }),
     ).not.toBeInTheDocument()
+  })
+})
+
+// ── Controlled date selection ─────────────────────────────────────────────────
+
+describe('MobileAgendaList — controlled date', () => {
+  it('shows appointments for the provided selectedDate instead of today', () => {
+    // APPT_TODAY is on 2026-05-26 (today); pass selectedDate pointing to 2026-05-27
+    render(
+      <MobileAgendaList
+        appointments={[APPT_TODAY]}
+        weekStart={WEEK_START}
+        onAppointmentClick={vi.fn()}
+        selectedDate="2026-05-27"
+      />,
+    )
+    // Today's appointment should not be visible — the controlled date differs
+    expect(screen.queryByText('Test Patient')).not.toBeInTheDocument()
+    expect(screen.getByText('Nenhuma consulta agendada neste dia.')).toBeInTheDocument()
+  })
+
+  it('calls onSelectedDateChange when a day strip button is clicked', () => {
+    const onDateChange = vi.fn()
+    render(
+      <MobileAgendaList
+        appointments={[]}
+        weekStart={WEEK_START}
+        onAppointmentClick={vi.fn()}
+        selectedDate="2026-05-26"
+        onSelectedDateChange={onDateChange}
+      />,
+    )
+    // Click Wednesday May 27 (qua = quarta-feira)
+    fireEvent.click(screen.getByRole('button', { name: /qua 27/i }))
+    expect(onDateChange).toHaveBeenCalledWith('2026-05-27')
+  })
+
+  it('works without controlled props (uncontrolled backward compat)', () => {
+    render(
+      <MobileAgendaList
+        appointments={[APPT_TODAY]}
+        weekStart={WEEK_START}
+        onAppointmentClick={vi.fn()}
+      />,
+    )
+    // Default selection is today → today's appointment is visible
+    expect(screen.getByText('Test Patient')).toBeInTheDocument()
   })
 })
 

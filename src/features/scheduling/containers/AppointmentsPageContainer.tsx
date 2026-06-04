@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react'
+
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
 import { AppointmentTable } from '../components/appointments/AppointmentTable'
@@ -13,6 +16,7 @@ import { SchedulingToolbar } from '../components/SchedulingToolbar'
 import { MobileAgendaList } from '../components/mobile/MobileAgendaList'
 import { MobileAgendaTimeline } from '../components/mobile/MobileAgendaTimeline'
 import { useAppointmentsPage } from '../hooks/useAppointmentsPage'
+import { getWeekDates, toDateInputValue } from '../utils/time'
 
 export function AppointmentsPageContainer() {
   const {
@@ -54,6 +58,21 @@ export function AppointmentsPageContainer() {
     handleSyncGoogleCalendar,
     handleDisconnectGoogleCalendar,
   } = useAppointmentsPage()
+
+  // Shared mobile selected date — persists across Agenda/Lista view switches
+  const [mobileSelectedDate, setMobileSelectedDate] = useState<string>(() => {
+    const dates = getWeekDates(weekStart).map(toDateInputValue)
+    const today = brazilTodayIso()
+    return dates.includes(today) ? today : dates[0]
+  })
+
+  useEffect(() => {
+    const dates = getWeekDates(weekStart).map(toDateInputValue)
+    const today = brazilTodayIso()
+    setMobileSelectedDate((prev) =>
+      dates.includes(prev) ? prev : dates.includes(today) ? today : dates[0],
+    )
+  }, [weekStart])
 
   return (
     <AppPage>
@@ -124,6 +143,8 @@ export function AppointmentsPageContainer() {
                 onAppointmentClick={setDrawerAppointment}
                 canCreate
                 onCreateAppointment={() => setIsCreating(true)}
+                selectedDate={mobileSelectedDate}
+                onSelectedDateChange={setMobileSelectedDate}
               />
             ) : (
               <MobileAgendaList
@@ -133,6 +154,8 @@ export function AppointmentsPageContainer() {
                 onAppointmentClick={setDrawerAppointment}
                 canCreate
                 onCreateAppointment={() => setIsCreating(true)}
+                selectedDate={mobileSelectedDate}
+                onSelectedDateChange={setMobileSelectedDate}
               />
             )}
           </div>
