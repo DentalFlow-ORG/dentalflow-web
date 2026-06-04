@@ -1,4 +1,4 @@
-import type { AppointmentPaymentMethod, AppointmentStatus } from '../types/scheduling.types'
+import type { AppointmentPaymentMethod, AppointmentPaymentStatus, AppointmentStatus } from '../types/scheduling.types'
 
 export const PAYMENT_METHOD_LABELS: Record<AppointmentPaymentMethod, string> = {
   CASH: 'Dinheiro',
@@ -10,6 +10,29 @@ export const PAYMENT_METHOD_LABELS: Record<AppointmentPaymentMethod, string> = {
   OTHER: 'Outro',
 }
 
+// Flat label maps — use these when only the text label is needed (aria-labels,
+// tooltips, KPI cards, compact display). For badge rendering use
+// AppointmentStatusBadge / AppointmentPaymentBadge directly.
+export const STATUS_LABELS: Record<AppointmentStatus, string> = {
+  PENDING: 'Pendente',
+  CONFIRMED: 'Confirmado',
+  CANCELED: 'Cancelado',
+  COMPLETED: 'Concluído',
+  NO_SHOW: 'Não compareceu',
+}
+
+export const PAYMENT_STATUS_LABELS: Record<AppointmentPaymentStatus, string> = {
+  PAYMENT_PENDING: 'Pagamento pendente',
+  PAID: 'Pago',
+  PARTIALLY_PAID: 'Pago parcialmente',
+  REFUNDED: 'Reembolsado',
+  CANCELED: 'Cancelado',
+}
+
+// Calendar card colors — intentionally different from badge colors.
+// Cards need full background fills and hover transitions; badges use subtle
+// translucent tints. Keep these separate so card and badge styles can evolve
+// independently.
 export const STATUS_COLORS: Record<AppointmentStatus, string> = {
   PENDING:
     'border-amber-300 bg-amber-100 text-amber-950 hover:bg-amber-200 dark:border-amber-700/60 dark:bg-amber-900/80 dark:text-amber-200 dark:hover:bg-amber-800/80 dark:hover:border-amber-600/80',
