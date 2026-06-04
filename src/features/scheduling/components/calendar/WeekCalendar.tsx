@@ -235,7 +235,18 @@ export function WeekCalendar({
               })}
             </div>
 
+            {/* Empty week state — shown instead of the time grid when there are no appointments */}
+            {visibleAppointments.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
+                <CalendarDays className="h-8 w-8 text-muted-foreground/30" aria-hidden="true" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Nenhuma consulta agendada nesta semana.
+                </p>
+              </div>
+            ) : null}
+
             {/* Time grid body */}
+            {visibleAppointments.length > 0 && (
             <div className="relative" style={{ height: `${gridBodyHeight}px` }}>
               {/* Background: time labels + grid lines */}
               <div className="absolute inset-0 grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))]">
@@ -337,6 +348,7 @@ export function WeekCalendar({
                 ))}
               </div>
             </div>
+            )}
           </div>
         </div>
       </div>

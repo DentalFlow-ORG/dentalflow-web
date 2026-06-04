@@ -44,7 +44,7 @@ describe('MobileAgendaList — rendering', () => {
         onAppointmentClick={vi.fn()}
       />,
     )
-    expect(screen.getByText('Nenhuma consulta agendada')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma consulta agendada neste dia.')).toBeInTheDocument()
   })
 
   it('shows "Hoje" as the day header label for today', () => {
@@ -114,6 +114,47 @@ describe('MobileAgendaList — create action', () => {
     expect(
       screen.queryByRole('button', { name: /Novo agendamento/i }),
     ).not.toBeInTheDocument()
+  })
+})
+
+// ── Loading state ─────────────────────────────────────────────────────────────
+
+describe('MobileAgendaList — loading state', () => {
+  it('shows loading skeleton when isLoading is true', () => {
+    render(
+      <MobileAgendaList
+        appointments={[]}
+        weekStart={WEEK_START}
+        isLoading
+        onAppointmentClick={vi.fn()}
+      />,
+    )
+    expect(screen.getByRole('status', { name: /Carregando/i })).toBeInTheDocument()
+  })
+
+  it('does not show empty state when isLoading is true', () => {
+    render(
+      <MobileAgendaList
+        appointments={[]}
+        weekStart={WEEK_START}
+        isLoading
+        onAppointmentClick={vi.fn()}
+      />,
+    )
+    expect(screen.queryByText(/Nenhuma consulta agendada/i)).not.toBeInTheDocument()
+  })
+
+  it('shows appointments (not skeleton) when isLoading is false', () => {
+    render(
+      <MobileAgendaList
+        appointments={[APPT_TODAY]}
+        weekStart={WEEK_START}
+        isLoading={false}
+        onAppointmentClick={vi.fn()}
+      />,
+    )
+    expect(screen.queryByRole('status', { name: /Carregando/i })).not.toBeInTheDocument()
+    expect(screen.getByText('Test Patient')).toBeInTheDocument()
   })
 })
 

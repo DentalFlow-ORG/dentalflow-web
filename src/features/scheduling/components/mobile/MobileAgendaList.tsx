@@ -18,6 +18,7 @@ type MobileAgendaListProps = {
   appointments: Appointment[]
   weekStart: Date
   onAppointmentClick: (appointment: Appointment) => void
+  isLoading?: boolean
   canCreate?: boolean
   onCreateAppointment?: () => void
 }
@@ -26,6 +27,7 @@ export function MobileAgendaList({
   appointments,
   weekStart,
   onAppointmentClick,
+  isLoading = false,
   canCreate = false,
   onCreateAppointment,
 }: MobileAgendaListProps) {
@@ -133,11 +135,24 @@ export function MobileAgendaList({
           </span>
         </div>
 
-        {dayAppointments.length === 0 ? (
+        {isLoading ? (
+          <div
+            role="status"
+            aria-label="Carregando consultas..."
+            className="space-y-2"
+          >
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-16 animate-pulse rounded-xl border border-border bg-muted"
+              />
+            ))}
+          </div>
+        ) : dayAppointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 px-4 py-10 text-center">
             <CalendarDays className="mb-2 h-8 w-8 text-muted-foreground/40" aria-hidden="true" />
             <p className="text-sm font-medium text-muted-foreground">
-              Nenhuma consulta agendada
+              Nenhuma consulta agendada neste dia.
             </p>
             {canCreate && (
               <p className="mt-1 text-xs text-muted-foreground/70">

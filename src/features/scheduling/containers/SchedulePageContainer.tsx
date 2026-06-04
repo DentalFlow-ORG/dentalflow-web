@@ -137,6 +137,7 @@ export function SchedulePageContainer() {
                 <MobileAgendaList
                   appointments={appointments}
                   weekStart={weekStart}
+                  isLoading={isBootstrapping}
                   onAppointmentClick={setDrawerAppointment}
                 />
               </div>

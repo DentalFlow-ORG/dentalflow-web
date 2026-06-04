@@ -120,6 +120,7 @@ export function AppointmentsPageContainer() {
             <MobileAgendaList
               appointments={appointments}
               weekStart={weekStart}
+              isLoading={isLoading}
               onAppointmentClick={setDrawerAppointment}
               canCreate
               onCreateAppointment={() => setIsCreating(true)}
