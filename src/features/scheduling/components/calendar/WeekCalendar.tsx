@@ -1,5 +1,5 @@
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react'
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils'
 
 import {
   addDays,
-  formatWallTime,
   formatWeekDayHeader,
   formatWeekRangeLabel,
   getBrazilWeekStart,
@@ -23,7 +22,6 @@ import type {
   Availability,
   AvailabilityException,
 } from '../../types/scheduling.types'
-import { STATUS_COLORS } from '../../constants/appointment-display'
 import {
   PX_PER_MINUTE,
   SLOT_HEIGHT_PX,
@@ -34,6 +32,7 @@ import {
   isSlotInsideWorkingRanges,
   minutesToTime,
 } from '../../utils/week-calendar-layout'
+import { CalendarAppointmentCard } from './CalendarAppointmentCard'
 
 type WeekCalendarProps = {
   appointments: Appointment[]
@@ -320,7 +319,7 @@ export function WeekCalendar({
                       const widthPct = 100 / appt.colCount
 
                       return (
-                        <AppointmentCard
+                        <CalendarAppointmentCard
                           key={appt.id}
                           appointment={appt}
                           style={{
@@ -344,41 +343,4 @@ export function WeekCalendar({
   )
 }
 
-function AppointmentCard({
-  appointment,
-  style,
-  onClick,
-}: {
-  appointment: Appointment
-  style: CSSProperties
-  onClick: (appointment: Appointment) => void
-}) {
-  const isShort = (appointment.durationMinutes ?? 30) < 30
-
-  return (
-    <button
-      type="button"
-      onClick={() => onClick(appointment)}
-      style={style}
-      className={cn(
-        'absolute overflow-hidden rounded-md border px-2 py-1 text-left shadow-sm transition hover:shadow-md hover:z-10 focus:outline-none focus:ring-2 focus:ring-primary/20',
-        STATUS_COLORS[appointment.status],
-      )}
-    >
-      <div className="flex items-baseline justify-between gap-1">
-        <span className="truncate text-xs font-bold leading-tight">
-          {appointment.patientName}
-        </span>
-        <span className="shrink-0 text-[10px] font-semibold opacity-70">
-          {formatWallTime(appointment.startTime)}
-        </span>
-      </div>
-      {!isShort && (
-        <p className="mt-0.5 truncate text-[11px] font-medium opacity-75">
-          {appointment.service?.name ?? appointment.profile?.displayName ?? 'Profissional'}
-        </p>
-      )}
-    </button>
-  )
-}
 
