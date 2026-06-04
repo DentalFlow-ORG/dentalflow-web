@@ -225,7 +225,7 @@ export function WeekCalendar({
                     {dayStatus.kind === 'special' && dayStatus.timeRange && (
                       <p
                         className="mt-0.5 truncate text-[10px] font-semibold text-indigo-600"
-                        title={`Horario especial: ${dayStatus.timeRange}`}
+                        title={`Horário especial: ${dayStatus.timeRange}`}
                       >
                         Especial: {dayStatus.timeRange}
                       </p>
