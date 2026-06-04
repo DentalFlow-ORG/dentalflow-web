@@ -6,13 +6,6 @@ import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { getProfile } from '../../services/profiles.service'
 import type { ProfileService } from '../../types/profile.types'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
@@ -46,6 +39,7 @@ import type {
   UpdateAppointmentDto,
 } from '../../types/scheduling.types'
 import { SlotPicker } from './SlotPicker'
+import { AppointmentServiceValueSection } from './AppointmentServiceValueSection'
 
 type EditAppointmentModalProps = {
   appointment: Appointment | null
@@ -63,8 +57,6 @@ type FormState = {
   notes: string
   estimatedAmount: string
 }
-
-const NO_SERVICE_SENTINEL = '__NO_SERVICE__'
 
 export function EditAppointmentModal({
   appointment,
@@ -156,7 +148,7 @@ export function EditAppointmentModal({
   const currentAppointment = appointment
   const isPastAppointment = hasAppointmentTimePassed(currentAppointment)
   const modalTitle = isPastAppointment ? 'Reagendar consulta' : 'Editar agendamento'
-  const submitLabel = isPastAppointment ? 'Reagendar consulta' : 'Salvar alteracoes'
+  const submitLabel = isPastAppointment ? 'Reagendar consulta' : 'Salvar alterações'
   const submittingLabel = isPastAppointment ? 'Reagendando...' : 'Salvando...'
 
   function set(field: keyof FormState, value: string) {
@@ -257,7 +249,7 @@ export function EditAppointmentModal({
               </Dialog.Title>
               <p className="mt-1 text-sm text-muted-foreground">
                 {isPastAppointment
-                  ? 'Esta consulta ja passou. Ajuste data e horario para remarcar.'
+                  ? 'Esta consulta já passou. Ajuste a data e o horário para remarcar.'
                   : currentAppointment.profile?.displayName ?? 'Profissional não informado'}
               </p>
             </div>
@@ -311,84 +303,28 @@ export function EditAppointmentModal({
               </FormField>
             </div>
 
-            <FormField label="Serviço" htmlFor="editServiceId" optional>
-              <Select
-                disabled={
-                  isLoadingServices ||
-                  services.length === 0 ||
-                  isSubmitting ||
-                  isPastAppointment
-                }
-                value={form.serviceId || NO_SERVICE_SENTINEL}
-                onValueChange={(value) => {
-                  set('serviceId', value === NO_SERVICE_SENTINEL ? '' : value)
-                  set('startTime', '')
-                  setEstimateManuallyEdited(false)
-                }}
-              >
-                <SelectTrigger id="editServiceId">
-                  <SelectValue
-                    placeholder={
-                      isLoadingServices
-                        ? 'Carregando...'
-                        : services.length === 0
-                          ? 'Nenhum servico cadastrado'
-                          : 'Selecione um servico'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NO_SERVICE_SENTINEL}>Sem serviço</SelectItem>
-                  {services.map((service) => (
-                    <SelectItem key={service.id} value={service.id}>
-                      {service.name}
-                      {service.durationMinutes ? ` (${service.durationMinutes} min)` : ''}
-                      {service.priceFrom != null
-                        ? ` — R$ ${service.priceFrom.toFixed(2).replace('.', ',')}`
-                        : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            {/* Estimated amount */}
-            {!isPastAppointment && (
-              <FormField
-                label="Valor previsto (R$)"
-                htmlFor="editEstimatedAmount"
-                optional
-                hint="Preenchido pelo serviço selecionado. Ajuste para desconto ou negociação."
-              >
-                <TextInput
-                  id="editEstimatedAmount"
-                  inputMode="decimal"
-                  disabled={isSubmitting}
-                  placeholder="Ex: 250,00"
-                  value={form.estimatedAmount}
-                  onChange={(e) => {
-                    set('estimatedAmount', e.target.value)
-                    setEstimateManuallyEdited(true)
-                  }}
-                />
-                {estimateManuallyEdited && form.serviceId && (() => {
-                  const svc = services.find((s) => s.id === form.serviceId)
-                  return svc?.priceFrom != null ? (
-                    <button
-                      type="button"
-                      className="mt-1 text-xs text-primary hover:underline"
-                      onClick={() => {
-                        const cents = Math.round(svc.priceFrom! * 100)
-                        set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
-                        setEstimateManuallyEdited(false)
-                      }}
-                    >
-                      Restaurar valor do serviço (R$ {svc.priceFrom.toFixed(2).replace('.', ',')})
-                    </button>
-                  ) : null
-                })()}
-              </FormField>
-            )}
+            {/* Service + estimated amount */}
+            <AppointmentServiceValueSection
+              services={services}
+              serviceId={form.serviceId}
+              isSelectDisabled={
+                isLoadingServices || services.length === 0 || isSubmitting || isPastAppointment
+              }
+              isSubmitting={isSubmitting}
+              isLoading={isLoadingServices}
+              showNoServiceOption
+              showEstimatedAmount={!isPastAppointment}
+              estimatedAmount={form.estimatedAmount}
+              estimateManuallyEdited={estimateManuallyEdited}
+              onServiceChange={(id) => {
+                set('serviceId', id)
+                set('startTime', '')
+                setEstimateManuallyEdited(false)
+              }}
+              onAmountChange={(v) => set('estimatedAmount', v)}
+              onAmountManuallyEdited={() => setEstimateManuallyEdited(true)}
+              onAmountRestored={() => setEstimateManuallyEdited(false)}
+            />
 
             {/* Date */}
             <FormField label="Data" htmlFor="editAppointmentDate">

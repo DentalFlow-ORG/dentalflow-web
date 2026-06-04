@@ -44,6 +44,7 @@ import type {
   CreateAppointmentDto,
 } from '../../types/scheduling.types'
 import { SlotPicker } from './SlotPicker'
+import { AppointmentServiceValueSection } from './AppointmentServiceValueSection'
 
 type CreateAppointmentModalProps = {
   open: boolean
@@ -327,73 +328,20 @@ export function CreateAppointmentModal({
               </Select>
             </FormField>
 
-            {/* Service */}
-            <FormField label="Serviço" htmlFor="serviceId" optional>
-              <Select
-                disabled={!form.profileId || services.length === 0 || isSubmitting}
-                value={form.serviceId}
-                onValueChange={(value) => set('serviceId', value)}
-              >
-                <SelectTrigger id="serviceId">
-                  <SelectValue
-                    placeholder={
-                      !form.profileId
-                        ? 'Selecione um profissional primeiro'
-                        : services.length === 0
-                          ? 'Nenhum servico cadastrado'
-                          : 'Selecione um servico (opcional)'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                      {s.durationMinutes ? ` (${s.durationMinutes} min)` : ''}
-                      {s.priceFrom != null
-                        ? ` — R$ ${s.priceFrom.toFixed(2).replace('.', ',')}`
-                        : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            {/* Estimated value */}
-            <FormField
-              label="Valor previsto (R$)"
-              htmlFor="estimatedAmount"
-              optional
-              hint="Preenchido pelo serviço selecionado. Ajuste para desconto ou negociação."
-            >
-              <TextInput
-                id="estimatedAmount"
-                inputMode="decimal"
-                disabled={isSubmitting}
-                placeholder="Ex: 250,00"
-                value={form.estimatedAmount}
-                onChange={(e) => {
-                  set('estimatedAmount', e.target.value)
-                  setEstimateManuallyEdited(true)
-                }}
-              />
-              {estimateManuallyEdited && form.serviceId && (() => {
-                const svc = services.find((s) => s.id === form.serviceId)
-                return svc?.priceFrom != null ? (
-                  <button
-                    type="button"
-                    className="mt-1 text-xs text-primary hover:underline"
-                    onClick={() => {
-                      const cents = Math.round(svc.priceFrom! * 100)
-                      set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
-                      setEstimateManuallyEdited(false)
-                    }}
-                  >
-                    Restaurar valor do serviço (R$ {svc.priceFrom.toFixed(2).replace('.', ',')})
-                  </button>
-                ) : null
-              })()}
-            </FormField>
+            {/* Service + estimated amount */}
+            <AppointmentServiceValueSection
+              services={services}
+              serviceId={form.serviceId}
+              isSelectDisabled={!form.profileId || services.length === 0 || isSubmitting}
+              isSubmitting={isSubmitting}
+              noProfessionalHint={!form.profileId}
+              estimatedAmount={form.estimatedAmount}
+              estimateManuallyEdited={estimateManuallyEdited}
+              onServiceChange={(id) => set('serviceId', id)}
+              onAmountChange={(v) => set('estimatedAmount', v)}
+              onAmountManuallyEdited={() => setEstimateManuallyEdited(true)}
+              onAmountRestored={() => setEstimateManuallyEdited(false)}
+            />
 
             {/* Date */}
             <FormField label="Data" htmlFor="appointmentDate">
