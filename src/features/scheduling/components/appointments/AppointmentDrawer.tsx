@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react'
 import {
   CalendarDays,
-  Check,
-  CheckCircle2,
   ChevronRight,
   ClipboardList,
   Loader2,
   Pencil,
   Plus,
-  UserX,
   X,
 } from 'lucide-react'
 import { Dialog } from 'radix-ui'
@@ -28,13 +25,10 @@ import {
   formatWallTime,
 } from '../../utils/time'
 import type { Appointment, AppointmentStatus } from '../../types/scheduling.types'
-import {
-  getAvailableTransitions,
-  isTerminalStatus,
-} from '../../utils/appointment-state-machine'
 import { getInitials } from '../../utils/appointment-form-utils'
 import { AppointmentStatusBadge } from './AppointmentStatusBadge'
 import { AppointmentPaymentSection } from './AppointmentPaymentSection'
+import { AppointmentStatusActions } from './AppointmentStatusActions'
 
 type AppointmentDrawerProps = {
   appointment: Appointment | null
@@ -142,7 +136,7 @@ export function AppointmentDrawer({
 
                 {/* Actions */}
                 {!readOnly && (
-                  <DrawerActions
+                  <AppointmentStatusActions
                     appointment={active}
                     isLoading={isActionLoading}
                     allowedTransitions={allowedTransitions}
@@ -222,92 +216,6 @@ export function AppointmentDrawer({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  )
-}
-
-function DrawerActions({
-  appointment,
-  isLoading,
-  allowedTransitions,
-  onStatusChange,
-  onCancelRequest,
-}: {
-  appointment: Appointment
-  isLoading: boolean
-  allowedTransitions?: AppointmentStatus[]
-  onStatusChange: (id: string, status: AppointmentStatus) => void
-  onCancelRequest: (appointment: Appointment) => void
-}) {
-  const { id, status } = appointment
-
-  const available = getAvailableTransitions(appointment, {
-    roleAllowedTargets: allowedTransitions,
-  })
-  const can = (target: AppointmentStatus) => available.includes(target)
-
-  if (isTerminalStatus(status) || available.length === 0) {
-    return null
-  }
-
-  return (
-    <div className="overflow-hidden rounded-lg border border-border bg-card">
-      <p className="border-b border-border px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        Ações
-      </p>
-      <div className="flex flex-col gap-1.5 p-3">
-        {can('CONFIRMED') && (
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="w-full justify-start"
-            disabled={isLoading}
-            onClick={() => onStatusChange(id, 'CONFIRMED')}
-          >
-            <Check />
-            Confirmar agendamento
-          </Button>
-        )}
-        {can('COMPLETED') && (
-          <Button
-            type="button"
-            size="sm"
-            className="w-full justify-start"
-            disabled={isLoading}
-            onClick={() => onStatusChange(id, 'COMPLETED')}
-          >
-            <CheckCircle2 />
-            Concluir consulta
-          </Button>
-        )}
-        {can('NO_SHOW') && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/40 dark:hover:text-orange-300"
-            disabled={isLoading}
-            onClick={() => onStatusChange(id, 'NO_SHOW')}
-          >
-            <UserX />
-            Não compareceu
-          </Button>
-        )}
-        {can('CANCELED') && (
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            className="w-full justify-start"
-            disabled={isLoading}
-            onClick={() => onCancelRequest(appointment)}
-          >
-            <X />
-            Cancelar agendamento
-          </Button>
-        )}
-      </div>
-    </div>
   )
 }
 
