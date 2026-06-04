@@ -280,6 +280,9 @@ export function CreateAppointmentModal({
             >
               Novo agendamento
             </Dialog.Title>
+            <Dialog.Description className="sr-only">
+              Preencha os dados para criar um novo agendamento de consulta.
+            </Dialog.Description>
             <Button
               type="button"
               variant="ghost"

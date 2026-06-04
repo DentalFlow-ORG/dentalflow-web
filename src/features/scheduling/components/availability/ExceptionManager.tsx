@@ -114,7 +114,7 @@ export function ExceptionManager({
             onClick={() => setIsAdding(true)}
             disabled={loadingId !== null}
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
             Adicionar
           </Button>
         )}
@@ -132,7 +132,7 @@ export function ExceptionManager({
 
       {sortedExceptions.length === 0 && !isAdding ? (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-card py-10 text-center">
-          <CalendarOff className="h-8 w-8 text-muted-foreground/40" />
+          <CalendarOff className="h-8 w-8 text-muted-foreground/40" aria-hidden="true" />
           <p className="text-sm text-muted-foreground">
             Nenhuma exceção cadastrada. Adicione folgas e horários especiais.
           </p>

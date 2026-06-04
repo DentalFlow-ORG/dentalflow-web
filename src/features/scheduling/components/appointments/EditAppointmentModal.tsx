@@ -247,11 +247,11 @@ export function EditAppointmentModal({
               >
                 {modalTitle}
               </Dialog.Title>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <Dialog.Description className="mt-1 text-sm text-muted-foreground">
                 {isPastAppointment
                   ? 'Esta consulta já passou. Ajuste a data e o horário para remarcar.'
                   : currentAppointment.profile?.displayName ?? 'Profissional não informado'}
-              </p>
+              </Dialog.Description>
             </div>
             <Button
               type="button"
