@@ -17,18 +17,20 @@ export function ViewToggle({ view, onChange }: ViewToggleProps) {
         variant={view === 'calendar' ? 'secondary' : 'ghost'}
         size="icon-sm"
         onClick={() => onChange('calendar')}
-        title="Calendário semanal"
+        aria-label="Calendário semanal"
+        aria-pressed={view === 'calendar'}
       >
-        <CalendarDays className="h-4 w-4" />
+        <CalendarDays className="h-4 w-4" aria-hidden="true" />
       </Button>
       <Button
         type="button"
         variant={view === 'table' ? 'secondary' : 'ghost'}
         size="icon-sm"
         onClick={() => onChange('table')}
-        title="Lista"
+        aria-label="Lista"
+        aria-pressed={view === 'table'}
       >
-        <List className="h-4 w-4" />
+        <List className="h-4 w-4" aria-hidden="true" />
       </Button>
     </div>
   )

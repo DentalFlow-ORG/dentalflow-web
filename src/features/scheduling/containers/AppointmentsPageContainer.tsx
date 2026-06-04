@@ -1,10 +1,6 @@
-import { CalendarCheck, Link2Off, Loader2, Plus, RefreshCw } from 'lucide-react'
-
 import { ListPageShell } from '@/components/common/ListPageShell'
-import { ListToolbar } from '@/components/common/ListToolbar'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
-import { Button } from '@/components/ui/button'
 
 import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
 import { AppointmentTable } from '../components/appointments/AppointmentTable'
@@ -12,7 +8,8 @@ import { CancelAppointmentDialog } from '../components/appointments/CancelAppoin
 import { CreateAppointmentModal } from '../components/appointments/CreateAppointmentModal'
 import { EditAppointmentModal } from '../components/appointments/EditAppointmentModal'
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
-import { ViewToggle } from '../components/shared/ViewToggle'
+import { SchedulingKpiCards } from '../components/SchedulingKpiCards'
+import { SchedulingToolbar } from '../components/SchedulingToolbar'
 import { useAppointmentsPage } from '../hooks/useAppointmentsPage'
 
 export function AppointmentsPageContainer() {
@@ -63,65 +60,6 @@ export function AppointmentsPageContainer() {
         eyebrow="Agenda"
         title="Agendamentos"
         description="Gerencie as consultas da clínica, acompanhe status e registre novos atendimentos."
-        action={
-          <div className="flex flex-wrap justify-end gap-2">
-            {canManageGoogleCalendar && googleCalendar?.connected ? (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleSyncGoogleCalendar}
-                  disabled={isCalendarActionLoading}
-                  title={googleCalendar.calendarSummary ?? 'Google Agenda conectado'}
-                >
-                  {isCalendarActionLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
-                  )}
-                  Sincronizar
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={handleDisconnectGoogleCalendar}
-                  disabled={isCalendarActionLoading}
-                >
-                  <Link2Off className="h-4 w-4" aria-hidden="true" />
-                  Desconectar
-                </Button>
-              </>
-            ) : canManageGoogleCalendar ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleConnectGoogleCalendar}
-                disabled={isCalendarActionLoading}
-              >
-                {isCalendarActionLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                ) : (
-                  <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-                )}
-                Google Agenda
-              </Button>
-            ) : isDentistGoogleCalendarLocked ? (
-              <Button
-                type="button"
-                variant="outline"
-                disabled
-                title="Disponível nos planos Professional e Premium"
-              >
-                <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-                Google Agenda
-              </Button>
-            ) : null}
-            <Button onClick={() => setIsCreating(true)}>
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Novo agendamento
-            </Button>
-          </div>
-        }
       />
 
       <ListPageShell
@@ -130,23 +68,32 @@ export function AppointmentsPageContainer() {
         error={error}
       >
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <ListToolbar
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                searchPlaceholder="Pesquisar por paciente, e-mail ou telefone..."
-                filterDefs={filterDefs}
-                activeFilters={activeFilters}
-                onFilterChange={setFilter}
-                onClearAll={clearAll}
-                filteredCount={filteredCount}
-                totalCount={allAppointments.length}
-              />
-            </div>
-            <ViewToggle view={view} onChange={setView} />
-          </div>
+          {/* KPI cards — today at a glance */}
+          <SchedulingKpiCards appointments={allAppointments} />
 
+          {/* Toolbar — search, filters, view toggle, actions */}
+          <SchedulingToolbar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            activeFilters={activeFilters}
+            filterDefs={filterDefs}
+            onFilterChange={setFilter}
+            onClearAll={clearAll}
+            filteredCount={filteredCount}
+            totalCount={allAppointments.length}
+            view={view}
+            onViewChange={setView}
+            onNewAppointment={() => setIsCreating(true)}
+            googleCalendar={googleCalendar}
+            canManageGoogleCalendar={canManageGoogleCalendar}
+            isDentistGoogleCalendarLocked={isDentistGoogleCalendarLocked}
+            isCalendarActionLoading={isCalendarActionLoading}
+            onConnectGoogleCalendar={handleConnectGoogleCalendar}
+            onSyncGoogleCalendar={handleSyncGoogleCalendar}
+            onDisconnectGoogleCalendar={handleDisconnectGoogleCalendar}
+          />
+
+          {/* Calendar workspace */}
           {view === 'calendar' ? (
             <WeekCalendar
               appointments={appointments}
