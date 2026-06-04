@@ -15,6 +15,7 @@ import { AvailabilityManager } from '../components/availability/AvailabilityMana
 import { ExceptionManager } from '../components/availability/ExceptionManager'
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
 import { ViewToggle } from '../components/shared/ViewToggle'
+import { MobileAgendaList } from '../components/mobile/MobileAgendaList'
 import {
   DENTIST_ALLOWED_TRANSITIONS,
   useSchedulePage,
@@ -101,32 +102,44 @@ export function SchedulePageContainer() {
               aria-labelledby="tab-schedule-agenda"
               className="space-y-4"
             >
-              {view === 'calendar' ? (
-                <WeekCalendar
+              {/* Desktop agenda */}
+              <div className="hidden md:block">
+                {view === 'calendar' ? (
+                  <WeekCalendar
+                    appointments={appointments}
+                    weekStart={weekStart}
+                    profileAvailability={availability}
+                    profileExceptions={exceptions}
+                    toolbarAction={<ViewToggle view={view} onChange={setView} />}
+                    onWeekChange={setWeekStart}
+                    onAppointmentClick={setDrawerAppointment}
+                  />
+                ) : (
+                  <>
+                    <div className="flex justify-end">
+                      <ViewToggle view={view} onChange={setView} />
+                    </div>
+                    <AppointmentTable
+                      appointments={appointments}
+                      isActionLoading={isActionLoading}
+                      allowedTransitions={DENTIST_ALLOWED_TRANSITIONS}
+                      emptyDescription="Nenhuma consulta vinculada ao seu perfil."
+                      onRowClick={setDrawerAppointment}
+                      onStatusChange={handleStatusChange}
+                      onCancelRequest={() => {}}
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* Mobile agenda — intentionally designed day-list view */}
+              <div className="md:hidden">
+                <MobileAgendaList
                   appointments={appointments}
                   weekStart={weekStart}
-                  profileAvailability={availability}
-                  profileExceptions={exceptions}
-                  toolbarAction={<ViewToggle view={view} onChange={setView} />}
-                  onWeekChange={setWeekStart}
                   onAppointmentClick={setDrawerAppointment}
                 />
-              ) : (
-                <>
-                  <div className="flex justify-end">
-                    <ViewToggle view={view} onChange={setView} />
-                  </div>
-                  <AppointmentTable
-                    appointments={appointments}
-                    isActionLoading={isActionLoading}
-                    allowedTransitions={DENTIST_ALLOWED_TRANSITIONS}
-                    emptyDescription="Nenhuma consulta vinculada ao seu perfil."
-                    onRowClick={setDrawerAppointment}
-                    onStatusChange={handleStatusChange}
-                    onCancelRequest={() => {}}
-                  />
-                </>
-              )}
+              </div>
             </div>
           )}
 

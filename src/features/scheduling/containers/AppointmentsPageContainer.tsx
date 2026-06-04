@@ -10,6 +10,7 @@ import { EditAppointmentModal } from '../components/appointments/EditAppointment
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
 import { SchedulingKpiCards } from '../components/SchedulingKpiCards'
 import { SchedulingToolbar } from '../components/SchedulingToolbar'
+import { MobileAgendaList } from '../components/mobile/MobileAgendaList'
 import { useAppointmentsPage } from '../hooks/useAppointmentsPage'
 
 export function AppointmentsPageContainer() {
@@ -93,24 +94,37 @@ export function AppointmentsPageContainer() {
             onDisconnectGoogleCalendar={handleDisconnectGoogleCalendar}
           />
 
-          {/* Calendar workspace */}
-          {view === 'calendar' ? (
-            <WeekCalendar
+          {/* Desktop workspace */}
+          <div className="hidden md:block">
+            {view === 'calendar' ? (
+              <WeekCalendar
+                appointments={appointments}
+                weekStart={weekStart}
+                profileAvailability={calendarAvailability}
+                onWeekChange={setWeekStart}
+                onAppointmentClick={setDrawerAppointment}
+              />
+            ) : (
+              <AppointmentTable
+                appointments={appointments}
+                isActionLoading={isActionLoading}
+                onRowClick={setDrawerAppointment}
+                onStatusChange={handleStatusChange}
+                onCancelRequest={handleCancelRequest}
+              />
+            )}
+          </div>
+
+          {/* Mobile workspace — intentionally designed day-list view */}
+          <div className="md:hidden">
+            <MobileAgendaList
               appointments={appointments}
               weekStart={weekStart}
-              profileAvailability={calendarAvailability}
-              onWeekChange={setWeekStart}
               onAppointmentClick={setDrawerAppointment}
+              canCreate
+              onCreateAppointment={() => setIsCreating(true)}
             />
-          ) : (
-            <AppointmentTable
-              appointments={appointments}
-              isActionLoading={isActionLoading}
-              onRowClick={setDrawerAppointment}
-              onStatusChange={handleStatusChange}
-              onCancelRequest={handleCancelRequest}
-            />
-          )}
+          </div>
         </div>
       </ListPageShell>
 
