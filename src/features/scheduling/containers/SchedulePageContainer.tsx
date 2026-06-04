@@ -16,6 +16,7 @@ import { ExceptionManager } from '../components/availability/ExceptionManager'
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
 import { ViewToggle } from '../components/shared/ViewToggle'
 import { MobileAgendaList } from '../components/mobile/MobileAgendaList'
+import { MobileAgendaTimeline } from '../components/mobile/MobileAgendaTimeline'
 import {
   DENTIST_ALLOWED_TRANSITIONS,
   useSchedulePage,
@@ -132,14 +133,26 @@ export function SchedulePageContainer() {
                 )}
               </div>
 
-              {/* Mobile agenda — intentionally designed day-list view */}
-              <div className="md:hidden">
-                <MobileAgendaList
-                  appointments={appointments}
-                  weekStart={weekStart}
-                  isLoading={isBootstrapping}
-                  onAppointmentClick={setDrawerAppointment}
-                />
+              {/* Mobile agenda — view toggle + timeline or list */}
+              <div className="md:hidden space-y-3">
+                <div className="flex justify-end">
+                  <ViewToggle view={view} onChange={setView} />
+                </div>
+                {view === 'calendar' ? (
+                  <MobileAgendaTimeline
+                    appointments={appointments}
+                    weekStart={weekStart}
+                    isLoading={isBootstrapping}
+                    onAppointmentClick={setDrawerAppointment}
+                  />
+                ) : (
+                  <MobileAgendaList
+                    appointments={appointments}
+                    weekStart={weekStart}
+                    isLoading={isBootstrapping}
+                    onAppointmentClick={setDrawerAppointment}
+                  />
+                )}
               </div>
             </div>
           )}

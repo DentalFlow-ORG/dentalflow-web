@@ -11,6 +11,7 @@ import { WeekCalendar } from '../components/calendar/WeekCalendar'
 import { SchedulingKpiCards } from '../components/SchedulingKpiCards'
 import { SchedulingToolbar } from '../components/SchedulingToolbar'
 import { MobileAgendaList } from '../components/mobile/MobileAgendaList'
+import { MobileAgendaTimeline } from '../components/mobile/MobileAgendaTimeline'
 import { useAppointmentsPage } from '../hooks/useAppointmentsPage'
 
 export function AppointmentsPageContainer() {
@@ -113,16 +114,27 @@ export function AppointmentsPageContainer() {
             )}
           </div>
 
-          {/* Mobile workspace — intentionally designed day-list view */}
+          {/* Mobile workspace — agenda timeline or list depending on selected view */}
           <div className="md:hidden">
-            <MobileAgendaList
-              appointments={appointments}
-              weekStart={weekStart}
-              isLoading={isLoading}
-              onAppointmentClick={setDrawerAppointment}
-              canCreate
-              onCreateAppointment={() => setIsCreating(true)}
-            />
+            {view === 'calendar' ? (
+              <MobileAgendaTimeline
+                appointments={appointments}
+                weekStart={weekStart}
+                isLoading={isLoading}
+                onAppointmentClick={setDrawerAppointment}
+                canCreate
+                onCreateAppointment={() => setIsCreating(true)}
+              />
+            ) : (
+              <MobileAgendaList
+                appointments={appointments}
+                weekStart={weekStart}
+                isLoading={isLoading}
+                onAppointmentClick={setDrawerAppointment}
+                canCreate
+                onCreateAppointment={() => setIsCreating(true)}
+              />
+            )}
           </div>
         </div>
       </ListPageShell>
