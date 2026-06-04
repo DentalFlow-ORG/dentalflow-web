@@ -56,15 +56,17 @@ export function WeekCalendar({
   const [calendarInputDate, setCalendarInputDate] = useState(() =>
     toDateInputValue(weekStart),
   )
-  const weekDates = getWeekDates(weekStart)
+
+  // Memoize weekDates so downstream memos can use it directly as a dependency
+  // instead of using weekStart as an indirect proxy.
+  const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart])
 
   const visibleAppointments = useMemo(
     () =>
       appointments.filter((appt) =>
         weekDates.some((d) => isoDateToString(appt.appointmentDate) === toDateInputValue(d)),
       ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [appointments, weekStart],
+    [appointments, weekDates],
   )
 
   const slots = useMemo(
@@ -75,23 +77,22 @@ export function WeekCalendar({
         profileAvailability,
         profileExceptions,
       ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [visibleAppointments, weekStart, profileAvailability, profileExceptions],
+    [visibleAppointments, weekDates, profileAvailability, profileExceptions],
   )
   const firstSlotMinutes = slots[0]
   const gridBodyHeight = slots.length * SLOT_HEIGHT_PX
 
-  // Pre-compute per-day positioned appointments
+  // Pre-compute per-day positioned appointments.
+  // computeDayLayout handles its own deterministic sort internally.
   const dayLayouts = useMemo(() => {
     return weekDates.map((date) => {
       const dateStr = toDateInputValue(date)
-      const dayAppointments = visibleAppointments
-        .filter((appt) => isoDateToString(appt.appointmentDate) === dateStr)
-        .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
+      const dayAppointments = visibleAppointments.filter(
+        (appt) => isoDateToString(appt.appointmentDate) === dateStr,
+      )
       return { date, appointments: computeDayLayout(dayAppointments) }
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleAppointments, weekStart])
+  }, [visibleAppointments, weekDates])
 
   function goToPrevWeek() {
     const next = addDays(weekStart, -7)
