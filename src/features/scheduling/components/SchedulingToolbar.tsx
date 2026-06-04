@@ -23,10 +23,9 @@ type SchedulingToolbarProps = {
   onViewChange: (view: AppointmentsView) => void
   // New appointment
   onNewAppointment: () => void
-  // Google Calendar (optional — only present for roles that support it)
+  // Google Calendar (optional — only OWNER sees these controls)
   googleCalendar?: GoogleCalendarStatus | null
   canManageGoogleCalendar?: boolean
-  isDentistGoogleCalendarLocked?: boolean
   isCalendarActionLoading?: boolean
   onConnectGoogleCalendar?: () => void
   onSyncGoogleCalendar?: () => void
@@ -47,7 +46,6 @@ export function SchedulingToolbar({
   onNewAppointment,
   googleCalendar,
   canManageGoogleCalendar,
-  isDentistGoogleCalendarLocked,
   isCalendarActionLoading,
   onConnectGoogleCalendar,
   onSyncGoogleCalendar,
@@ -78,7 +76,6 @@ export function SchedulingToolbar({
           <GoogleCalendarButton
             googleCalendar={googleCalendar ?? null}
             canManageGoogleCalendar={canManageGoogleCalendar ?? false}
-            isDentistGoogleCalendarLocked={isDentistGoogleCalendarLocked ?? false}
             isCalendarActionLoading={isCalendarActionLoading ?? false}
             onConnect={onConnectGoogleCalendar ?? (() => {})}
             onSync={onSyncGoogleCalendar ?? (() => {})}
@@ -98,7 +95,6 @@ export function SchedulingToolbar({
 function GoogleCalendarButton({
   googleCalendar,
   canManageGoogleCalendar,
-  isDentistGoogleCalendarLocked,
   isCalendarActionLoading,
   onConnect,
   onSync,
@@ -106,7 +102,6 @@ function GoogleCalendarButton({
 }: {
   googleCalendar: GoogleCalendarStatus | null
   canManageGoogleCalendar: boolean
-  isDentistGoogleCalendarLocked: boolean
   isCalendarActionLoading: boolean
   onConnect: () => void
   onSync: () => void
@@ -161,22 +156,6 @@ function GoogleCalendarButton({
         ) : (
           <CalendarCheck className="h-4 w-4" aria-hidden="true" />
         )}
-        <span className="hidden sm:inline">Google Agenda</span>
-      </Button>
-    )
-  }
-
-  if (isDentistGoogleCalendarLocked) {
-    return (
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled
-        aria-label="Google Agenda disponível nos planos Professional e Premium"
-        title="Disponível nos planos Professional e Premium"
-      >
-        <CalendarCheck className="h-4 w-4" aria-hidden="true" />
         <span className="hidden sm:inline">Google Agenda</span>
       </Button>
     )

@@ -36,7 +36,6 @@ export function AppointmentsPageContainer() {
     googleCalendar,
     isCalendarActionLoading,
     canManageGoogleCalendar,
-    isDentistGoogleCalendarLocked,
     searchQuery,
     setSearchQuery,
     activeFilters,
@@ -87,7 +86,6 @@ export function AppointmentsPageContainer() {
             onNewAppointment={() => setIsCreating(true)}
             googleCalendar={googleCalendar}
             canManageGoogleCalendar={canManageGoogleCalendar}
-            isDentistGoogleCalendarLocked={isDentistGoogleCalendarLocked}
             isCalendarActionLoading={isCalendarActionLoading}
             onConnectGoogleCalendar={handleConnectGoogleCalendar}
             onSyncGoogleCalendar={handleSyncGoogleCalendar}

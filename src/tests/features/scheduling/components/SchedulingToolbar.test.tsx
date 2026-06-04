@@ -98,12 +98,11 @@ describe('SchedulingToolbar — filters', () => {
 })
 
 describe('SchedulingToolbar — Google Calendar hidden when no role', () => {
-  it('does not render Google Calendar buttons when canManageGoogleCalendar is false and locked is false', () => {
+  it('does not render Google Calendar buttons for ASSISTANT (canManageGoogleCalendar=false)', () => {
     render(
       <SchedulingToolbar
         {...baseProps}
         canManageGoogleCalendar={false}
-        isDentistGoogleCalendarLocked={false}
       />,
     )
     expect(
@@ -111,15 +110,16 @@ describe('SchedulingToolbar — Google Calendar hidden when no role', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('renders a disabled Google Agenda button when isDentistGoogleCalendarLocked is true', () => {
+  it('renders connect button for OWNER (canManageGoogleCalendar=true, not connected)', () => {
     render(
       <SchedulingToolbar
         {...baseProps}
-        canManageGoogleCalendar={false}
-        isDentistGoogleCalendarLocked={true}
+        canManageGoogleCalendar={true}
+        googleCalendar={{ connected: false, calendarSummary: null, connectedAt: null, lastSyncedAt: null }}
       />,
     )
-    const btn = screen.getByRole('button', { name: /Google Agenda/i })
-    expect(btn).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: /Conectar Google Agenda/i }),
+    ).toBeInTheDocument()
   })
 })

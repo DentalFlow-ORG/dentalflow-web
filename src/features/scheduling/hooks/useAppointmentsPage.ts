@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FilterDef } from '@/components/common/ListToolbar'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
 import { listProfiles } from '../services/profiles.service'
 import type { ProfileListItem } from '../types/profile.types'
 import { useListFilter } from '@/hooks/useListFilter'
@@ -31,13 +30,14 @@ export type AppointmentsView = 'calendar' | 'table'
 export function useAppointmentsPage() {
   const { showAlert } = useGlobalAlerts()
   const { user } = useAuth()
-  const billingStatus = getCachedBillingStatus()
-  const isProfessionalOrPremium =
-    billingStatus?.planKey === 'professional' || billingStatus?.planKey === 'premium'
-  const canManageGoogleCalendar =
-    user?.role === 'OWNER' || (user?.role === 'DENTIST' && isProfessionalOrPremium)
-  const isDentistGoogleCalendarLocked =
-    user?.role === 'DENTIST' && !isProfessionalOrPremium
+
+  // Google Calendar integration is available to OWNER only on this page.
+  // The route (/app/agendamentos) is guarded to OWNER and ASSISTANT, so only
+  // OWNER reaches this hook. DENTIST has no GCal UI because the backend OAuth
+  // callback currently redirects to /app/agendamentos which DENTIST cannot
+  // access — surfacing GCal for DENTIST requires a role-aware callback redirect
+  // (e.g. POST /calendar-integrations/google/connect accepting a returnPath param).
+  const canManageGoogleCalendar = user?.role === 'OWNER'
 
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([])
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
@@ -273,7 +273,6 @@ export function useAppointmentsPage() {
     googleCalendar,
     isCalendarActionLoading,
     canManageGoogleCalendar,
-    isDentistGoogleCalendarLocked,
     searchQuery,
     setSearchQuery,
     activeFilters,
