@@ -13,6 +13,8 @@ import {
 import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
 import { setBillingAccess } from '@/features/theme/billing-theme-override'
 
+import { getRoleHomeRoute } from '@/features/home/config/role-home-config'
+
 import { useAuth } from '../hooks/useAuth'
 import type { AuthUserRole } from '../types'
 
@@ -149,9 +151,9 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
   )
 }
 
-function getDeniedRedirectPath(role: AuthUserRole | undefined) {
-  if (role === 'ADMIN') return '/app/admin'
-  if (role === 'DENTIST') return '/app/inicio'
-  if (role === 'PATIENT') return '/'
-  return '/app'
+function getDeniedRedirectPath(role: AuthUserRole | undefined): string {
+  // Each known role maps to its own home. Undefined role falls back to the
+  // default non-admin home (/app) — same as the previous hardcoded fallback.
+  if (role) return getRoleHomeRoute(role)
+  return getRoleHomeRoute('OWNER')
 }
