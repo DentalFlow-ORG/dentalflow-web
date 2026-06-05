@@ -36,12 +36,12 @@ export function TeamMemberIdentity({
         size={size}
       />
       <div className="min-w-0">
-        <p className={cn('truncate font-semibold text-foreground', TEXT_SIZE[size])}>
+        <p className={cn('break-words font-semibold text-foreground', TEXT_SIZE[size])}>
           {fullName}
         </p>
-        <p className="truncate text-xs text-muted-foreground">{member.email}</p>
+        <p className="break-all text-xs text-muted-foreground">{member.email}</p>
         {showPhone && member.phone && (
-          <p className="truncate text-xs text-muted-foreground">{member.phone}</p>
+          <p className="break-words text-xs text-muted-foreground">{member.phone}</p>
         )}
       </div>
     </div>

@@ -24,11 +24,11 @@ export function TeamMemberCards({
       {members.map((member) => (
         <article
           key={member.id}
-          className="overflow-hidden rounded-xl border border-border bg-card p-4 shadow-sm"
+          className="min-w-0 overflow-hidden rounded-xl border border-border bg-card p-4 shadow-sm"
         >
           <div className="flex min-w-0 flex-col gap-3">
-            <div className="flex min-w-0 items-start justify-between gap-3">
-              <TeamMemberIdentity member={member} size="md" showPhone className="flex-1" />
+            <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+              <TeamMemberIdentity member={member} size="md" showPhone className="flex-1 basis-56" />
               <TeamRoleBadge role={member.role} className="shrink-0" />
             </div>
 
@@ -43,7 +43,7 @@ export function TeamMemberCards({
             </div>
 
             {member.profile && (
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="break-words text-xs text-muted-foreground">
                 {member.profile.displayName}
               </p>
             )}

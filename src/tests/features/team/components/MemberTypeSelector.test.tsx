@@ -21,6 +21,19 @@ describe('MemberTypeSelector — rendering', () => {
     render(<MemberTypeSelector value="DENTIST" onChange={vi.fn()} />)
     expect(screen.getAllByRole('button')).toHaveLength(2)
   })
+
+  it('exposes the selected option state to assistive technology', () => {
+    render(<MemberTypeSelector value="DENTIST" onChange={vi.fn()} />)
+
+    expect(screen.getByRole('button', { name: /profissional/i })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(screen.getByRole('button', { name: /assistente/i })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
 })
 
 // ── Selection ─────────────────────────────────────────────────────────────────

@@ -30,7 +30,7 @@ function buildPriceLabel(
 // ── Chip ─────────────────────────────────────────────────────────────────────
 
 const chipClass =
-  'inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground'
+  'inline-flex max-w-full items-center whitespace-normal break-words rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground'
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -47,7 +47,7 @@ export function ServicePriceDurationBadge({
   if (!hasDuration && priceLabel == null) return null
 
   return (
-    <div className={cn('flex flex-wrap items-center gap-1.5', className)}>
+    <div className={cn('flex min-w-0 flex-wrap items-center gap-1.5', className)}>
       {hasDuration && (
         <span className={chipClass}>
           {durationMinutes} min

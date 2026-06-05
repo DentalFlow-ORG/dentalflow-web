@@ -406,7 +406,7 @@ function InfoRow({
   return (
     <div className={className}>
       <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className={`mt-0.5 text-sm font-medium ${muted ? 'text-muted-foreground' : 'text-foreground'}`}>
+      <dd className={`mt-0.5 break-words text-sm font-medium ${muted ? 'text-muted-foreground' : 'text-foreground'}`}>
         {value}
       </dd>
     </div>

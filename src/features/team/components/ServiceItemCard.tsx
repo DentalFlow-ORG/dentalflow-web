@@ -44,7 +44,7 @@ export function ServiceItemCard({
           </StatusBadge>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <ServicePriceDurationBadge
             durationMinutes={service.durationMinutes}
             priceFrom={service.priceFrom}
@@ -52,9 +52,9 @@ export function ServiceItemCard({
             isPriceDisplayed={service.isPriceDisplayed}
           />
           {!readOnly && (
-            <span className="inline-flex max-w-full items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+            <span className="inline-flex max-w-full flex-wrap items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
               Custo direto:{' '}
-              <span className="ml-1 text-foreground">
+              <span className="ml-1 break-words text-foreground">
                 {service.estimatedDirectCostCents != null
                   ? formatCurrencyBRL(service.estimatedDirectCostCents / 100)
                   : 'Não configurado'}
