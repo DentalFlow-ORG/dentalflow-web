@@ -256,7 +256,7 @@ function PatientDetailPanel({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-card shadow-xl focus:outline-none"
+          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col overflow-hidden bg-card shadow-xl focus:outline-none"
           aria-describedby={undefined}
         >
           {/* ── Header: avatar + identity ── */}

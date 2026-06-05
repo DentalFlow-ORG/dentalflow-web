@@ -152,7 +152,7 @@ export function PatientAvatarWidget({
           className="sr-only"
           onChange={handleFileChange}
           disabled={isSaving}
-          aria-hidden="true"
+          tabIndex={-1}
         />
       )}
 

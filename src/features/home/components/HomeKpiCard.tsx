@@ -98,7 +98,7 @@ export function HomeKpiCard({
       )}
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs font-medium text-muted-foreground">{label}</p>
+        <p className="line-clamp-2 text-xs font-medium text-muted-foreground">{label}</p>
 
         {isLoading ? (
           <div

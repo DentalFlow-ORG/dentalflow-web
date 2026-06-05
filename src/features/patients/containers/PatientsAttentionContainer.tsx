@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   AlertCircle,
@@ -20,6 +20,7 @@ import { Dialog } from 'radix-ui'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
+import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
@@ -153,7 +154,7 @@ function AttentionDetailPanel({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-card shadow-xl focus:outline-none"
+          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col overflow-hidden bg-card shadow-xl focus:outline-none"
           aria-describedby={undefined}
         >
           {/* ── Header ── */}
@@ -341,6 +342,16 @@ export function PatientsAttentionContainer() {
   } = usePatientsAttention()
 
   const [selectedItem, setSelectedItem] = useState<PatientAttentionItem | null>(null)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  useEffect(() => { setPage(1) }, [search, reasonFilter, priorityFilter, whatsappFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize))
+  const paginatedItems = useMemo(
+    () => filteredItems.slice((page - 1) * pageSize, page * pageSize),
+    [filteredItems, page, pageSize],
+  )
 
   const highPriorityCount = allItems.filter((i) => i.priority === 'HIGH').length
 
@@ -466,30 +477,32 @@ export function PatientsAttentionContainer() {
                   </SelectContent>
                 </Select>
               </FormField>
+              <FormField label="WhatsApp" htmlFor="attentionWhatsapp">
+                <Select
+                  value={whatsappFilter}
+                  onValueChange={(v) => setWhatsappFilter(v as WhatsAppFilter)}
+                >
+                  <SelectTrigger id="attentionWhatsapp">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {WHATSAPP_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
             </div>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <Select
-                value={whatsappFilter}
-                onValueChange={(v) => setWhatsappFilter(v as WhatsAppFilter)}
-              >
-                <SelectTrigger className="w-56">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {WHATSAPP_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {hasFilters && (
+            {hasFilters && (
+              <div className="mt-3 flex justify-end">
                 <Button type="button" variant="ghost" size="sm" onClick={clearFilters}>
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
                   Limpar filtros
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </PanelCard>
 
           {/* Attention list */}
@@ -515,7 +528,7 @@ export function PatientsAttentionContainer() {
                   }
                 />
               ) : (
-                filteredItems.map((item) => (
+                paginatedItems.map((item) => (
                   <AttentionMobileCard
                     key={item.identifier}
                     item={item}
@@ -556,7 +569,7 @@ export function PatientsAttentionContainer() {
                       </td>
                     </tr>
                   ) : (
-                    filteredItems.map((item) => (
+                    paginatedItems.map((item) => (
                       <tr
                         key={item.identifier}
                         role="button"
@@ -617,6 +630,21 @@ export function PatientsAttentionContainer() {
               </table>
             </div>
           </HomeSection>
+
+          {/* Pagination */}
+          {filteredItems.length > 0 && (
+            <div className="border-t border-border pt-3">
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                filteredCount={filteredItems.length}
+                pageSize={pageSize}
+                pageSizeOptions={[10, 25, 50]}
+                onPageChange={setPage}
+                onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
+              />
+            </div>
+          )}
 
           {/* Quick navigation */}
           <HomeActionGrid columns={2}>

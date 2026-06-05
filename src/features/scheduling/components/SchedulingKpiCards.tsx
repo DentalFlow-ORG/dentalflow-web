@@ -101,7 +101,7 @@ function KpiCard({
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-xs text-muted-foreground">{label}</p>
+        <p className="line-clamp-2 text-xs text-muted-foreground">{label}</p>
         <p className={`mt-1 text-xl font-semibold leading-none tabular-nums ${valueColor}`}>
           {value}
         </p>
