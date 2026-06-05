@@ -1,5 +1,12 @@
 import { useState } from 'react'
-import { Loader2, ShieldOff } from 'lucide-react'
+import {
+  CalendarClock,
+  CalendarOff,
+  Loader2,
+  ShieldOff,
+  Sparkles,
+  Stethoscope,
+} from 'lucide-react'
 
 import { AppPage } from '@/components/layout/AppPage'
 import { PanelCard } from '@/components/common/PanelCard'
@@ -8,15 +15,47 @@ import { BackButton } from '@/components/common/BackButton'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
+import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
+import { HomeSection } from '@/features/home/components/HomeSection'
 import { AvailabilityManager } from '@/features/scheduling/components/availability/AvailabilityManager'
 import { ExceptionManager } from '@/features/scheduling/components/availability/ExceptionManager'
 
 import { useTeamMemberProfile } from '../hooks/useTeamMemberProfile'
+import { TeamMemberAvatar } from '../components/TeamMemberAvatar'
+import { TeamRoleBadge } from '../components/TeamRoleBadge'
 import { ProfilePublishBadge } from '../components/ProfilePublishBadge'
 import { ServicesPanel } from '../components/ServicesPanel'
+import type { ProfileDetail, ServiceItem } from '../types/team.types'
+import type { Availability } from '@/features/scheduling/types/scheduling.types'
 
 type Props = {
   profileId: string
+}
+
+type ProfileKpis = {
+  activeServices: number
+  specialties: number
+  availabilityDays: number
+  publication: string
+}
+
+export function computeProfileKpis(
+  profile: ProfileDetail,
+  availability: Availability[],
+  services: ServiceItem[],
+): ProfileKpis {
+  return {
+    activeServices: services.filter((service) => service.isActive).length,
+    specialties: profile.profileSpecialties.length,
+    availabilityDays: new Set(
+      availability
+        .filter((slot) => slot.isActive)
+        .map((slot) => slot.dayOfWeek),
+    ).size,
+    publication: profile.isPublished ? 'Publicado' : 'Não publicado',
+  }
 }
 
 export function TeamMemberProfileContainer({ profileId }: Props) {
@@ -63,142 +102,84 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
 
   return (
     <AppPage>
-      {/* Back navigation */}
       <div>
         <BackButton to={backPath} label={backLabel} variant="ghost" className="-ml-2" />
       </div>
 
-      {/* Status states */}
       {status === 'loading' && <LoadingState />}
       {status === 'forbidden' && <ForbiddenState backPath={backPath} backLabel={backLabel} />}
       {status === 'not-found' && <NotFoundState backPath={backPath} backLabel={backLabel} />}
       {status === 'error' && <ErrorState onRetry={load} />}
 
-      {/* Main content */}
       {status === 'ready' && profile && (
         <>
-          {/* Page header */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-                Equipe
-              </p>
-              <h1 className="mt-2 truncate text-2xl font-semibold text-foreground sm:text-3xl">
-                {displayName || profile.displayName}
-              </h1>
-              {publishError && (
-                <div className="mt-3">
-                  <InlineFeedback tone="error">{publishError}</InlineFeedback>
-                </div>
-              )}
-            </div>
-            <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
-              <div className="flex flex-wrap gap-2 sm:justify-end">
-                <StatusBadge tone="muted">Profissional</StatusBadge>
-                {isActive !== null && (
-                  <StatusBadge tone={isActive ? 'success' : 'muted'}>
-                    {isActive ? 'Ativo' : 'Inativo'}
-                  </StatusBadge>
-                )}
-                <ProfilePublishBadge isPublished={profile.isPublished} />
+          <ProfileCommandHeader
+            profile={profile}
+            displayName={displayName}
+            email={email}
+            phone={phone}
+            isActive={isActive}
+            isOwner={isOwner}
+            isPublishingProfile={isPublishingProfile}
+            publishError={publishError}
+            onPublishClick={handlePublishClick}
+          />
+
+          <ProfileKpiStrip
+            profile={profile}
+            availability={availability}
+            services={services}
+          />
+
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+            <ProfileInfoSection
+              profile={profile}
+              displayName={displayName}
+              email={email}
+              phone={phone}
+            />
+
+            <HomeSection
+              title="Disponibilidade semanal"
+              description="Configure dias e horários recorrentes de atendimento deste profissional."
+            >
+              <div className="mt-4">
+                <AvailabilityManager
+                  profileId={profileId}
+                  slots={availability}
+                  onSlotsChange={setAvailability}
+                />
               </div>
-              {isOwner && (
-                <Button
-                  variant={profile.isPublished ? 'outline' : 'default'}
-                  size="sm"
-                  onClick={handlePublishClick}
-                  disabled={isPublishingProfile}
-                >
-                  {isPublishingProfile && (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  )}
-                  {isPublishingProfile
-                    ? 'Atualizando...'
-                    : profile.isPublished
-                      ? 'Despublicar perfil'
-                      : 'Publicar perfil'}
-                </Button>
-              )}
-            </div>
+            </HomeSection>
           </div>
 
-          {/* Content grid */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Basic information */}
-            <PanelCard>
-              <h2 className="mb-4 text-base font-semibold text-foreground">
-                Informações do profissional
-              </h2>
-              <dl className="space-y-3">
-                <InfoRow label="Nome profissional" value={profile.displayName} />
-                {displayName && displayName !== profile.displayName && (
-                  <InfoRow label="Nome completo" value={displayName} />
-                )}
-                {email && <InfoRow label="E-mail" value={email} />}
-                {phone && <InfoRow label="Telefone" value={phone} />}
-                {profile.crmNumber && (
-                  <InfoRow
-                    label="CRO"
-                    value={
-                      profile.crmState
-                        ? `${profile.crmNumber} — ${profile.crmState}`
-                        : profile.crmNumber
-                    }
-                  />
-                )}
-                {profile.bio && <InfoRow label="Sobre" value={profile.bio} />}
-                {profile.profileSpecialties.length > 0 && (
-                  <div>
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Especialidades
-                    </dt>
-                    <dd className="mt-1.5 flex flex-wrap gap-1.5">
-                      {profile.profileSpecialties.map(({ specialty }) => (
-                        <span
-                          key={specialty.id}
-                          className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-primary"
-                        >
-                          {specialty.name}
-                        </span>
-                      ))}
-                    </dd>
-                  </div>
-                )}
-                {profile.profileSpecialties.length === 0 && (
-                  <InfoRow label="Especialidades" value="Nenhuma especialidade cadastrada" muted />
-                )}
-              </dl>
-            </PanelCard>
-
-            {/* Availability editor */}
-            <PanelCard>
-              <AvailabilityManager
+          <HomeSection
+            title="Exceções e bloqueios"
+            description="Registre folgas, bloqueios e horários especiais em datas específicas."
+          >
+            <div className="mt-4">
+              <ExceptionManager
                 profileId={profileId}
-                slots={availability}
-                onSlotsChange={setAvailability}
+                exceptions={exceptions}
+                onExceptionsChange={setExceptions}
+                title="Exceções e bloqueios"
               />
-            </PanelCard>
-          </div>
+            </div>
+          </HomeSection>
 
-          {/* Exceptions editor */}
-          <PanelCard>
-            <ExceptionManager
-              profileId={profileId}
-              exceptions={exceptions}
-              onExceptionsChange={setExceptions}
-              title="Exceções e bloqueios"
-            />
-          </PanelCard>
-
-          {/* Services panel */}
-          <PanelCard>
-            <ServicesPanel
-              profileId={profileId}
-              services={services}
-              onServicesChange={setServices}
-              readOnly={user?.role !== 'OWNER'}
-            />
-          </PanelCard>
+          <HomeSection
+            title="Serviços e procedimentos"
+            description="Configure duração, valores e custos estimados dos atendimentos deste profissional."
+          >
+            <div className="mt-4">
+              <ServicesPanel
+                profileId={profileId}
+                services={services}
+                onServicesChange={setServices}
+                readOnly={user?.role !== 'OWNER'}
+              />
+            </div>
+          </HomeSection>
 
           <ConfirmDialog
             open={confirmUnpublishOpen}
@@ -218,25 +199,240 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
   )
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
+function ProfileCommandHeader({
+  profile,
+  displayName,
+  email,
+  phone,
+  isActive,
+  isOwner,
+  isPublishingProfile,
+  publishError,
+  onPublishClick,
+}: {
+  profile: ProfileDetail
+  displayName: string
+  email: string | null
+  phone: string | null
+  isActive: boolean | null
+  isOwner: boolean
+  isPublishingProfile: boolean
+  publishError: string | null
+  onPublishClick: () => void
+}) {
+  const title = profile.displayName
+  const summary = buildProfileSummary({ profile, email, phone })
+  const [firstName, ...lastNameParts] = (displayName || profile.displayName).split(' ')
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-start">
+        <TeamMemberAvatar
+          firstName={firstName}
+          lastName={lastNameParts.join(' ')}
+          email={email}
+          role="DENTIST"
+          size="lg"
+          className="h-16 w-16 text-base"
+        />
+
+        <div className="min-w-0 flex-1">
+          <HomeDashboardHeader
+            eyebrow="Perfil profissional"
+            title={title}
+            description={summary}
+            className="md:items-start"
+            actions={
+              isOwner ? (
+                <Button
+                  variant={profile.isPublished ? 'outline' : 'default'}
+                  size="sm"
+                  onClick={onPublishClick}
+                  disabled={isPublishingProfile}
+                >
+                  {isPublishingProfile && (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  )}
+                  {isPublishingProfile
+                    ? 'Atualizando...'
+                    : profile.isPublished
+                      ? 'Despublicar perfil'
+                      : 'Publicar perfil'}
+                </Button>
+              ) : null
+            }
+          />
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <TeamRoleBadge role="DENTIST" />
+            {isActive !== null && (
+              <StatusBadge tone={isActive ? 'success' : 'muted'}>
+                {isActive ? 'Ativo' : 'Inativo'}
+              </StatusBadge>
+            )}
+            <ProfilePublishBadge isPublished={profile.isPublished} />
+          </div>
+
+          {publishError && (
+            <div className="mt-4">
+              <InlineFeedback tone="error">{publishError}</InlineFeedback>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProfileKpiStrip({
+  profile,
+  availability,
+  services,
+}: {
+  profile: ProfileDetail
+  availability: Availability[]
+  services: ServiceItem[]
+}) {
+  const kpis = computeProfileKpis(profile, availability, services)
+
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <HomeKpiCard
+        label="Serviços ativos"
+        value={String(kpis.activeServices)}
+        description={`${services.length} cadastrados`}
+        icon={Stethoscope}
+        tone="primary"
+      />
+      <HomeKpiCard
+        label="Especialidades"
+        value={String(kpis.specialties)}
+        description="Áreas vinculadas"
+        icon={Sparkles}
+        tone="info"
+      />
+      <HomeKpiCard
+        label="Disponibilidade"
+        value={String(kpis.availabilityDays)}
+        description="dias com horários"
+        icon={CalendarClock}
+        tone="neutral"
+      />
+      <HomeKpiCard
+        label="Publicação"
+        value={kpis.publication}
+        description="Visibilidade do perfil"
+        icon={Sparkles}
+        tone={profile.isPublished ? 'success' : 'warning'}
+      />
+    </div>
+  )
+}
+
+function ProfileInfoSection({
+  profile,
+  displayName,
+  email,
+  phone,
+}: {
+  profile: ProfileDetail
+  displayName: string
+  email: string | null
+  phone: string | null
+}) {
+  return (
+    <HomeSection
+      title="Informações do profissional"
+      description="Dados públicos e clínicos usados para identificar este perfil."
+    >
+      <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+        <InfoRow label="Nome profissional" value={profile.displayName} />
+        {displayName && displayName !== profile.displayName && (
+          <InfoRow label="Nome completo" value={displayName} />
+        )}
+        {email && <InfoRow label="E-mail" value={email} />}
+        {phone && <InfoRow label="Telefone" value={phone} />}
+        {profile.crmNumber && (
+          <InfoRow
+            label="CRO"
+            value={
+              profile.crmState
+                ? `${profile.crmNumber} - ${profile.crmState}`
+                : profile.crmNumber
+            }
+          />
+        )}
+        {profile.bio && <InfoRow label="Sobre" value={profile.bio} className="sm:col-span-2" />}
+        {profile.profileSpecialties.length > 0 ? (
+          <div className="sm:col-span-2">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Especialidades
+            </dt>
+            <dd className="mt-2 flex flex-wrap gap-1.5">
+              {profile.profileSpecialties.map(({ specialty }) => (
+                <span
+                  key={specialty.id}
+                  className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-primary dark:border-blue-800/50 dark:bg-blue-950/40 dark:text-blue-300"
+                >
+                  {specialty.name}
+                </span>
+              ))}
+            </dd>
+          </div>
+        ) : (
+          <InfoRow
+            label="Especialidades"
+            value="Nenhuma especialidade cadastrada"
+            muted
+            className="sm:col-span-2"
+          />
+        )}
+      </dl>
+    </HomeSection>
+  )
+}
 
 function InfoRow({
   label,
   value,
   muted = false,
+  className,
 }: {
   label: string
   value: string
   muted?: boolean
+  className?: string
 }) {
   return (
-    <div>
+    <div className={className}>
       <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className={`mt-0.5 text-sm font-medium ${muted ? 'text-muted-foreground' : 'text-foreground'}`}>
         {value}
       </dd>
     </div>
   )
+}
+
+function buildProfileSummary({
+  profile,
+  email,
+  phone,
+}: {
+  profile: ProfileDetail
+  email: string | null
+  phone: string | null
+}) {
+  const parts = [
+    email,
+    phone,
+    profile.crmNumber
+      ? `CRO ${profile.crmNumber}${profile.crmState ? `/${profile.crmState}` : ''}`
+      : null,
+  ].filter(Boolean)
+
+  return parts.length > 0
+    ? parts.join(' | ')
+    : 'Acompanhe dados, agenda, exceções e serviços deste profissional.'
 }
 
 function LoadingState() {
@@ -256,39 +452,35 @@ function LoadingState() {
 
 function ForbiddenState({ backPath, backLabel }: { backPath: string; backLabel: string }) {
   return (
-    <PanelCard className="flex flex-col items-center gap-3 py-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-        <ShieldOff className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-      </div>
-      <div>
-        <p className="font-semibold text-foreground">Acesso não autorizado</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Você não tem permissão para acessar este perfil profissional.
-        </p>
-      </div>
-      <BackButton to={backPath} label={backLabel} />
-    </PanelCard>
+    <HomeEmptyState
+      icon={ShieldOff}
+      title="Acesso não autorizado"
+      description="Você não tem permissão para acessar este perfil profissional."
+      action={<BackButton to={backPath} label={backLabel} />}
+    />
   )
 }
 
 function NotFoundState({ backPath, backLabel }: { backPath: string; backLabel: string }) {
   return (
-    <PanelCard className="flex flex-col items-center gap-3 py-12 text-center">
-      <p className="font-semibold text-foreground">Profissional não encontrado.</p>
-      <BackButton to={backPath} label={backLabel} />
-    </PanelCard>
+    <HomeEmptyState
+      icon={Stethoscope}
+      title="Profissional não encontrado."
+      action={<BackButton to={backPath} label={backLabel} />}
+    />
   )
 }
 
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
-    <PanelCard className="flex flex-col items-center gap-3 py-12 text-center">
-      <p className="font-semibold text-foreground">
-        Não foi possível carregar o perfil profissional.
-      </p>
-      <Button variant="outline" size="sm" onClick={onRetry}>
-        Tentar novamente
-      </Button>
-    </PanelCard>
+    <HomeEmptyState
+      icon={CalendarOff}
+      title="Não foi possível carregar o perfil profissional."
+      action={(
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          Tentar novamente
+        </Button>
+      )}
+    />
   )
 }
