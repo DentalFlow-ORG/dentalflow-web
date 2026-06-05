@@ -1,14 +1,18 @@
-import { ShieldOff } from 'lucide-react'
+import { useState } from 'react'
+import { Loader2, ShieldOff } from 'lucide-react'
 
 import { AppPage } from '@/components/layout/AppPage'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { BackButton } from '@/components/common/BackButton'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import { AvailabilityManager } from '@/features/scheduling/components/availability/AvailabilityManager'
 import { ExceptionManager } from '@/features/scheduling/components/availability/ExceptionManager'
 
 import { useTeamMemberProfile } from '../hooks/useTeamMemberProfile'
+import { ProfilePublishBadge } from '../components/ProfilePublishBadge'
 import { ServicesPanel } from '../components/ServicesPanel'
 
 type Props = {
@@ -16,12 +20,46 @@ type Props = {
 }
 
 export function TeamMemberProfileContainer({ profileId }: Props) {
-  const { profile, status, displayName, email, phone, isActive, availability, setAvailability, exceptions, setExceptions, services, setServices, user, load } =
+  const [confirmUnpublishOpen, setConfirmUnpublishOpen] = useState(false)
+  const {
+    profile,
+    status,
+    displayName,
+    email,
+    phone,
+    isActive,
+    availability,
+    setAvailability,
+    exceptions,
+    setExceptions,
+    services,
+    setServices,
+    user,
+    isPublishingProfile,
+    publishError,
+    togglePublishStatus,
+    load,
+  } =
     useTeamMemberProfile(profileId)
 
   const isDentist = user?.role === 'DENTIST'
+  const isOwner = user?.role === 'OWNER'
   const backPath = isDentist ? '/app/agenda' : '/app/equipe'
   const backLabel = isDentist ? 'Voltar para agenda' : 'Voltar para equipe'
+
+  async function handlePublishClick() {
+    if (!profile) return
+    if (profile.isPublished) {
+      setConfirmUnpublishOpen(true)
+      return
+    }
+    await togglePublishStatus()
+  }
+
+  async function handleConfirmUnpublish() {
+    const updated = await togglePublishStatus()
+    if (updated) setConfirmUnpublishOpen(false)
+  }
 
   return (
     <AppPage>
@@ -40,7 +78,7 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
       {status === 'ready' && profile && (
         <>
           {/* Page header */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                 Equipe
@@ -48,17 +86,39 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
               <h1 className="mt-2 truncate text-2xl font-semibold text-foreground sm:text-3xl">
                 {displayName || profile.displayName}
               </h1>
-            </div>
-            <div className="flex shrink-0 flex-wrap gap-2">
-              <StatusBadge tone="muted">Profissional</StatusBadge>
-              {isActive !== null && (
-                <StatusBadge tone={isActive ? 'success' : 'muted'}>
-                  {isActive ? 'Ativo' : 'Inativo'}
-                </StatusBadge>
+              {publishError && (
+                <div className="mt-3">
+                  <InlineFeedback tone="error">{publishError}</InlineFeedback>
+                </div>
               )}
-              <StatusBadge tone={profile.isPublished ? 'success' : 'muted'}>
-                {profile.isPublished ? 'Perfil publicado' : 'Perfil não publicado'}
-              </StatusBadge>
+            </div>
+            <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
+              <div className="flex flex-wrap gap-2 sm:justify-end">
+                <StatusBadge tone="muted">Profissional</StatusBadge>
+                {isActive !== null && (
+                  <StatusBadge tone={isActive ? 'success' : 'muted'}>
+                    {isActive ? 'Ativo' : 'Inativo'}
+                  </StatusBadge>
+                )}
+                <ProfilePublishBadge isPublished={profile.isPublished} />
+              </div>
+              {isOwner && (
+                <Button
+                  variant={profile.isPublished ? 'outline' : 'default'}
+                  size="sm"
+                  onClick={handlePublishClick}
+                  disabled={isPublishingProfile}
+                >
+                  {isPublishingProfile && (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  )}
+                  {isPublishingProfile
+                    ? 'Atualizando...'
+                    : profile.isPublished
+                      ? 'Despublicar perfil'
+                      : 'Publicar perfil'}
+                </Button>
+              )}
             </div>
           </div>
 
@@ -139,6 +199,19 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
               readOnly={user?.role !== 'OWNER'}
             />
           </PanelCard>
+
+          <ConfirmDialog
+            open={confirmUnpublishOpen}
+            tone="warning"
+            title="Despublicar perfil?"
+            subject={profile.displayName}
+            description="O perfil deixará de aparecer publicamente até ser publicado novamente."
+            confirmLabel="Despublicar"
+            cancelLabel="Cancelar"
+            isConfirming={isPublishingProfile}
+            onConfirm={handleConfirmUnpublish}
+            onCancel={() => setConfirmUnpublishOpen(false)}
+          />
         </>
       )}
     </AppPage>

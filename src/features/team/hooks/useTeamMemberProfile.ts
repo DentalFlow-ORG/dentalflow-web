@@ -11,7 +11,11 @@ import type {
   AvailabilityException,
 } from '@/features/scheduling/types/scheduling.types'
 
-import { getClinicProfile, listClinicMembers } from '../services/team.service'
+import {
+  getClinicProfile,
+  listClinicMembers,
+  toggleProfilePublishStatus,
+} from '../services/team.service'
 import type { MemberListItem, ProfileDetail, ServiceItem } from '../types/team.types'
 
 export type ProfileLoadStatus = 'loading' | 'ready' | 'forbidden' | 'not-found' | 'error'
@@ -24,6 +28,8 @@ export function useTeamMemberProfile(profileId: string) {
   const [exceptions, setExceptions] = useState<AvailabilityException[]>([])
   const [services, setServices] = useState<ServiceItem[]>([])
   const [status, setStatus] = useState<ProfileLoadStatus>('loading')
+  const [isPublishingProfile, setIsPublishingProfile] = useState(false)
+  const [publishError, setPublishError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setStatus('loading')
@@ -32,6 +38,7 @@ export function useTeamMemberProfile(profileId: string) {
     setAvailability([])
     setExceptions([])
     setServices([])
+    setPublishError(null)
 
     try {
       const [profileData, slots, excs] = await Promise.all([
@@ -82,5 +89,48 @@ export function useTeamMemberProfile(profileId: string) {
 
   const isActive = member ? member.isActive : user?.role === 'DENTIST' ? true : null
 
-  return { profile, member, user, status, displayName, email, phone, isActive, availability, setAvailability, exceptions, setExceptions, services, setServices, load }
+  const togglePublishStatus = useCallback(async () => {
+    if (!profile || user?.role !== 'OWNER') return false
+
+    setIsPublishingProfile(true)
+    setPublishError(null)
+
+    try {
+      const result = await toggleProfilePublishStatus(profile.id)
+      setProfile((current) =>
+        current ? { ...current, isPublished: result.isPublished } : current,
+      )
+      return true
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : 'Não foi possível atualizar a publicação do perfil.'
+      setPublishError(msg)
+      return false
+    } finally {
+      setIsPublishingProfile(false)
+    }
+  }, [profile, user?.role])
+
+  return {
+    profile,
+    member,
+    user,
+    status,
+    displayName,
+    email,
+    phone,
+    isActive,
+    availability,
+    setAvailability,
+    exceptions,
+    setExceptions,
+    services,
+    setServices,
+    isPublishingProfile,
+    publishError,
+    togglePublishStatus,
+    load,
+  }
 }

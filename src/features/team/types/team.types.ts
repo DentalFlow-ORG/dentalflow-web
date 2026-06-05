@@ -130,3 +130,9 @@ export type ProfileDetail = {
   profileSpecialties: ProfileSpecialtyItem[]
   services: ServiceItem[]
 }
+
+export type ProfilePublishResult = {
+  id: string
+  slug: string
+  isPublished: boolean
+}
