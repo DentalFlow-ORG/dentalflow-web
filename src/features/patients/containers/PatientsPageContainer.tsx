@@ -256,42 +256,40 @@ function PatientDetailPanel({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col overflow-hidden bg-card shadow-xl focus:outline-none"
+          className="fixed inset-0 z-50 flex w-full flex-col overflow-hidden bg-card shadow-xl focus:outline-none sm:inset-y-0 sm:left-auto sm:right-0 sm:max-w-lg"
           aria-describedby={undefined}
         >
           {/* ── Header: avatar + identity ── */}
-          <div className="flex items-start justify-between border-b border-border px-6 py-4">
-            <div className="flex min-w-0 items-start gap-4">
-              <PatientAvatarWidget
-                name={patient?.patientName ?? ''}
-                avatarUrl={avatarUrl}
-                isSaving={isSaving}
-                onUpload={handleAvatarChange}
-                onError={(msg) =>
-                  showAlert({ title: 'Foto inválida', description: msg, tone: 'error' })
-                }
-                size="lg"
-              />
-              <div className="min-w-0 pt-0.5">
-                <Dialog.Title className="text-base font-semibold text-foreground">
-                  {patient?.patientName}
-                </Dialog.Title>
-                {patient?.patientEmail && (
-                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Mail className="h-3 w-3 shrink-0" aria-hidden="true" />
-                    <span className="truncate">{patient.patientEmail}</span>
-                  </p>
-                )}
-                {patient?.patientPhone && (
-                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Phone className="h-3 w-3 shrink-0" aria-hidden="true" />
-                    <span>{patient.patientPhone}</span>
-                  </p>
-                )}
-                {!patient?.patientEmail && !patient?.patientPhone && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">Sem contato cadastrado</p>
-                )}
-              </div>
+          <div className="flex items-start gap-3 border-b border-border bg-gradient-to-br from-muted/50 to-transparent px-5 py-5">
+            <PatientAvatarWidget
+              name={patient?.patientName ?? ''}
+              avatarUrl={avatarUrl}
+              isSaving={isSaving}
+              onUpload={handleAvatarChange}
+              onError={(msg) =>
+                showAlert({ title: 'Foto inválida', description: msg, tone: 'error' })
+              }
+              size="lg"
+            />
+            <div className="min-w-0 flex-1 pt-0.5">
+              <Dialog.Title className="text-base font-semibold text-foreground">
+                {patient?.patientName}
+              </Dialog.Title>
+              {patient?.patientEmail && (
+                <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Mail className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{patient.patientEmail}</span>
+                </p>
+              )}
+              {patient?.patientPhone && (
+                <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Phone className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  <span>{patient.patientPhone}</span>
+                </p>
+              )}
+              {!patient?.patientEmail && !patient?.patientPhone && (
+                <p className="mt-0.5 text-xs text-muted-foreground">Sem contato cadastrado</p>
+              )}
             </div>
             <Dialog.Close asChild>
               <Button
@@ -308,7 +306,7 @@ function PatientDetailPanel({
 
           {/* ── Stats strip ── */}
           {patient && (
-            <div className="grid grid-cols-4 divide-x divide-border border-b border-border bg-muted/60">
+            <div className="grid grid-cols-2 divide-x divide-y divide-border border-b border-border bg-muted/60 sm:grid-cols-4 sm:divide-y-0">
               <PanelStat
                 value={String(patient.totalAppointments)}
                 label="Total"

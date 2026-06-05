@@ -102,7 +102,7 @@ function KpiCard({
       </div>
       <div className="min-w-0">
         <p className="line-clamp-2 text-xs text-muted-foreground">{label}</p>
-        <p className={`mt-1 text-xl font-semibold leading-none tabular-nums ${valueColor}`}>
+        <p className={`mt-1 min-w-0 break-words text-base font-semibold leading-tight tabular-nums sm:text-xl ${valueColor}`}>
           {value}
         </p>
       </div>

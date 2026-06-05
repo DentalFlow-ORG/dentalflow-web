@@ -92,7 +92,7 @@ function CardContent({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-semibold text-foreground">{title}</p>
+          <p className="whitespace-normal break-words text-sm font-semibold leading-snug text-foreground">{title}</p>
           {badge !== undefined && badge !== null && String(badge) !== '' && (
             <span
               className={cn(
@@ -105,7 +105,7 @@ function CardContent({
           )}
         </div>
         {description && (
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">{description}</p>
+          <p className="mt-0.5 line-clamp-2 break-words text-xs leading-snug text-muted-foreground">{description}</p>
         )}
       </div>
 
@@ -125,7 +125,7 @@ function cardClasses(
   className?: string,
 ) {
   return cn(
-    'flex w-full items-center gap-3 rounded-xl border p-4 text-left shadow-sm',
+    'flex min-w-0 w-full max-w-full items-center gap-3 overflow-hidden rounded-xl border p-4 text-left shadow-sm',
     'transition-colors duration-150',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
     TONE_BASE[tone],

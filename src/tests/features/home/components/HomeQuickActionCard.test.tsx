@@ -106,6 +106,23 @@ describe('HomeQuickActionCard — disabled', () => {
   })
 })
 
+// ── Title wrapping ────────────────────────────────────────────────────────────
+
+describe('HomeQuickActionCard — title wrapping', () => {
+  it('does not apply truncate class to the title element', () => {
+    render(<HomeQuickActionCard title="Pagamentos e recebimentos pendentes" to="/app/financeiro" />)
+    const title = screen.getByText('Pagamentos e recebimentos pendentes')
+    expect(title).not.toHaveClass('truncate')
+  })
+
+  it('renders a long title fully without cutting it off', () => {
+    render(
+      <HomeQuickActionCard title="Agendamentos e consultas da clínica" to="/app/agendamentos" />,
+    )
+    expect(screen.getByText('Agendamentos e consultas da clínica')).toBeInTheDocument()
+  })
+})
+
 // ── Tones ─────────────────────────────────────────────────────────────────────
 
 describe('HomeQuickActionCard — tones', () => {

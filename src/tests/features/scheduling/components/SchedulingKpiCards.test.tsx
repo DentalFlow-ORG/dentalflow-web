@@ -102,6 +102,15 @@ describe('SchedulingKpiCards', () => {
     expect(screen.getByText(/250/)).toBeInTheDocument()
   })
 
+  it('renders a large Faturamento previsto value without breaking', () => {
+    const appts = [makeAppointment({ estimatedAmountCents: 1234567, status: 'PENDING' })]
+    render(<SchedulingKpiCards appointments={appts} />)
+    expect(screen.getByText(/12\.345/)).toBeInTheDocument()
+    const label = screen.getByText('Faturamento previsto')
+    const valueEl = label.nextElementSibling
+    expect(valueEl).toHaveClass('text-base')
+  })
+
   it('excludes non-today appointments from all KPIs', () => {
     const other = makeAppointment({ appointmentDate: '2026-01-01', status: 'CONFIRMED' })
     render(<SchedulingKpiCards appointments={[other]} />)

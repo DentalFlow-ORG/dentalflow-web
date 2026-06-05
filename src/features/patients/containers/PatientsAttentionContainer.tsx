@@ -154,37 +154,41 @@ function AttentionDetailPanel({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col overflow-hidden bg-card shadow-xl focus:outline-none"
+          className="fixed inset-0 z-50 flex w-full flex-col overflow-hidden bg-card shadow-xl focus:outline-none sm:inset-y-0 sm:left-auto sm:right-0 sm:max-w-md"
           aria-describedby={undefined}
         >
           {/* ── Header ── */}
-          <div className="flex items-start justify-between border-b border-border px-6 py-4">
-            <div className="flex min-w-0 items-start gap-4">
-              <PatientAvatar
-                name={item?.patientName ?? ''}
-                avatarUrl={avatarUrl}
-                size="lg"
-              />
-              <div className="min-w-0 pt-0.5">
-                <Dialog.Title className="text-base font-semibold text-foreground">
-                  {item?.patientName}
-                </Dialog.Title>
-                {item?.patientEmail && (
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                    <Mail className="h-3 w-3 shrink-0" aria-hidden="true" />
-                    <span className="truncate">{item.patientEmail}</span>
-                  </p>
-                )}
-                {item?.patientPhone && (
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                    <Phone className="h-3 w-3 shrink-0" aria-hidden="true" />
-                    <span>{item.patientPhone}</span>
-                  </p>
-                )}
-                {!item?.patientEmail && !item?.patientPhone && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">Sem contato registrado</p>
-                )}
-              </div>
+          <div className="flex items-start gap-3 border-b border-border bg-gradient-to-br from-muted/50 to-transparent px-5 py-5">
+            <PatientAvatar
+              name={item?.patientName ?? ''}
+              avatarUrl={avatarUrl}
+              size="lg"
+            />
+            <div className="min-w-0 flex-1 pt-0.5">
+              <Dialog.Title className="text-base font-semibold text-foreground">
+                {item?.patientName}
+              </Dialog.Title>
+              {item && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <PatientPriorityBadge priority={item.priority} />
+                  {item.allReasons[0] && <AttentionReasonBadge reason={item.allReasons[0]} />}
+                </div>
+              )}
+              {item?.patientEmail && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+                  <Mail className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{item.patientEmail}</span>
+                </p>
+              )}
+              {item?.patientPhone && (
+                <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                  <Phone className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  <span>{item.patientPhone}</span>
+                </p>
+              )}
+              {!item?.patientEmail && !item?.patientPhone && (
+                <p className="mt-0.5 text-xs text-muted-foreground">Sem contato registrado</p>
+              )}
             </div>
             <Dialog.Close asChild>
               <Button
@@ -434,7 +438,7 @@ export function PatientsAttentionContainer() {
 
           {/* Filters */}
           <PanelCard className="p-4">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <FormField label="Buscar paciente" htmlFor="attentionSearch" className="lg:col-span-2">
                 <TextInput
                   id="attentionSearch"
@@ -629,22 +633,22 @@ export function PatientsAttentionContainer() {
                 </tbody>
               </table>
             </div>
-          </HomeSection>
 
-          {/* Pagination */}
-          {filteredItems.length > 0 && (
-            <div className="border-t border-border pt-3">
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                filteredCount={filteredItems.length}
-                pageSize={pageSize}
-                pageSizeOptions={[10, 25, 50]}
-                onPageChange={setPage}
-                onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
-              />
-            </div>
-          )}
+            {/* Pagination */}
+            {filteredItems.length > 0 && (
+              <div className="mt-4 border-t border-border pt-3">
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  filteredCount={filteredItems.length}
+                  pageSize={pageSize}
+                  pageSizeOptions={[10, 25, 50]}
+                  onPageChange={setPage}
+                  onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
+                />
+              </div>
+            )}
+          </HomeSection>
 
           {/* Quick navigation */}
           <HomeActionGrid columns={2}>
