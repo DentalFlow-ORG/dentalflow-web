@@ -1,14 +1,8 @@
-import { useState } from 'react'
 import {
   ClipboardList,
   Globe,
-  KeyRound,
-  MoreHorizontal,
-  Pencil,
   Plus,
   Stethoscope,
-  Trash2,
-  User,
   Users,
 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
@@ -19,11 +13,8 @@ import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { ListToolbar } from '@/components/common/ListToolbar'
 import { Pagination } from '@/components/common/Pagination'
-import { PanelCard } from '@/components/common/PanelCard'
-import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
 import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
@@ -31,6 +22,8 @@ import { HomeSection } from '@/features/home/components/HomeSection'
 
 import { ClinicMemberFormModal } from '../components/ClinicMemberFormModal'
 import { ClinicMemberPasswordModal } from '../components/ClinicMemberPasswordModal'
+import { TeamMemberCards } from '../components/TeamMemberCards'
+import { TeamMembersTable } from '../components/TeamMembersTable'
 import { useTeamPage } from '../hooks/useTeamPage'
 import type { MemberListItem, UserLimitUsage } from '../types/team.types'
 
@@ -55,78 +48,6 @@ export function computeTeamKpis(
   }
 }
 
-type MemberRowActionsProps = {
-  member: MemberListItem
-  onEdit: () => void
-  onPassword: () => void
-  onDelete: () => void
-}
-
-function MemberRowActions({ member, onEdit, onPassword, onDelete }: MemberRowActionsProps) {
-  const [open, setOpen] = useState(false)
-  const fullName = `${member.firstName} ${member.lastName}`
-
-  return (
-    <div className="flex items-center justify-end gap-1.5">
-      <Button size="xs" variant="outline" onClick={onEdit}>
-        <Pencil aria-hidden="true" />
-        Editar
-      </Button>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            size="icon-xs"
-            variant="ghost"
-            aria-label={`Mais ações para ${fullName}`}
-            aria-haspopup="menu"
-          >
-            <MoreHorizontal aria-hidden="true" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent align="end" className="w-48 overflow-hidden py-1">
-          {member.profile && (
-            <>
-              <Link
-                to="/app/equipe/$profileId"
-                params={{ profileId: member.profile.id }}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none"
-                onClick={() => setOpen(false)}
-              >
-                <User className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                Ver perfil
-              </Link>
-              <div className="mx-1 my-0.5 h-px bg-border" role="separator" />
-            </>
-          )}
-          <button
-            type="button"
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none"
-            onClick={() => {
-              setOpen(false)
-              onPassword()
-            }}
-          >
-            <KeyRound className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            Alterar senha
-          </button>
-          <div className="mx-1 my-0.5 h-px bg-border" role="separator" />
-          <button
-            type="button"
-            className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 focus:bg-destructive/10 focus:outline-none dark:hover:bg-destructive/35 dark:focus:bg-destructive/35"
-            onClick={() => {
-              setOpen(false)
-              onDelete()
-            }}
-          >
-            <Trash2 className="h-4 w-4" aria-hidden="true" />
-            Desativar
-          </button>
-        </PopoverContent>
-      </Popover>
-    </div>
-  )
-}
-
 export function TeamPageContainer() {
   const {
     members,
@@ -144,7 +65,6 @@ export function TeamPageContainer() {
     filteredCount,
     pageSize,
     filterDefs,
-    roleLabel,
     usage,
     hasReachedUserLimit,
     createOpen,
@@ -265,160 +185,39 @@ export function TeamPageContainer() {
                 <FilteredEmptyState icon={Users} onClear={clearAll} />
               ) : (
                 <div className="space-y-4">
-                  <div className="space-y-3 md:hidden">
-                    {members.map((member) => (
-                      <PanelCard key={member.id} className="p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold text-foreground">
-                              {member.firstName} {member.lastName}
-                            </p>
-                            <p className="truncate text-xs text-muted-foreground">{member.email}</p>
-                          </div>
-                          <StatusBadge tone="muted">
-                            {roleLabel[member.role] ?? member.role}
-                          </StatusBadge>
-                        </div>
-                        <div className="mt-2 flex items-center gap-2">
-                          <StatusBadge tone={member.isActive ? 'success' : 'muted'}>
-                            {member.isActive ? 'Ativo' : 'Inativo'}
-                          </StatusBadge>
-                          {member.profile && (
-                            <span className="truncate text-xs text-muted-foreground">
-                              {member.profile.displayName}
-                            </span>
-                          )}
-                        </div>
-                        <div className="mt-4 flex flex-col gap-2">
-                          {member.profile && (
-                            <Button size="sm" variant="outline" className="w-full" asChild>
-                              <Link
-                                to="/app/equipe/$profileId"
-                                params={{ profileId: member.profile.id }}
-                              >
-                                <User className="h-4 w-4" aria-hidden="true" />
-                                Ver perfil
-                              </Link>
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="w-full"
-                            onClick={() => setEditTarget(member)}
-                          >
-                            <Pencil className="h-4 w-4" aria-hidden="true" />
-                            Editar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="w-full"
-                            onClick={() =>
-                              setPasswordTarget({
-                                id: member.id,
-                                name: `${member.firstName} ${member.lastName}`,
-                              })
-                            }
-                          >
-                            <KeyRound className="h-4 w-4" aria-hidden="true" />
-                            Alterar senha
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="w-full"
-                            onClick={() =>
-                              setDeleteTarget({
-                                id: member.id,
-                                name: `${member.firstName} ${member.lastName}`,
-                              })
-                            }
-                          >
-                            <Trash2 className="h-4 w-4" aria-hidden="true" />
-                            Desativar
-                          </Button>
-                        </div>
-                      </PanelCard>
-                    ))}
-                  </div>
+                  <TeamMemberCards
+                    members={members}
+                    onEdit={setEditTarget}
+                    onPassword={(member) =>
+                      setPasswordTarget({
+                        id: member.id,
+                        name: `${member.firstName} ${member.lastName}`,
+                      })
+                    }
+                    onDelete={(member) =>
+                      setDeleteTarget({
+                        id: member.id,
+                        name: `${member.firstName} ${member.lastName}`,
+                      })
+                    }
+                  />
 
-                  <div className="hidden overflow-hidden rounded-lg border border-border bg-card shadow-sm md:block">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm" aria-label="Usuários da clínica">
-                        <thead>
-                          <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            <th scope="col" className="px-4 py-3">Usuário</th>
-                            <th scope="col" className="px-4 py-3">Papel</th>
-                            <th scope="col" className="px-4 py-3">Status</th>
-                            <th scope="col" className="hidden px-4 py-3 md:table-cell">Perfil</th>
-                            <th scope="col" className="px-4 py-3 text-right">Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border">
-                          {members.map((member) => (
-                            <tr
-                              key={member.id}
-                              role="button"
-                              tabIndex={0}
-                              aria-label={`Editar ${member.firstName} ${member.lastName}`}
-                              className="cursor-pointer transition-colors hover:bg-muted/60 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-                              onClick={() => setEditTarget(member)}
-                              onKeyDown={(event) => {
-                                if (event.target !== event.currentTarget) return
-                                if (event.key === 'Enter' || event.key === ' ') {
-                                  event.preventDefault()
-                                  setEditTarget(member)
-                                }
-                              }}
-                            >
-                              <td className="px-4 py-3">
-                                <p className="font-semibold text-foreground">
-                                  {member.firstName} {member.lastName}
-                                </p>
-                                <p className="mt-0.5 text-xs text-muted-foreground">{member.email}</p>
-                              </td>
-                              <td className="px-4 py-3">
-                                <StatusBadge tone="muted">
-                                  {roleLabel[member.role] ?? member.role}
-                                </StatusBadge>
-                              </td>
-                              <td className="px-4 py-3">
-                                <StatusBadge tone={member.isActive ? 'success' : 'muted'}>
-                                  {member.isActive ? 'Ativo' : 'Inativo'}
-                                </StatusBadge>
-                              </td>
-                              <td className="hidden px-4 py-3 text-xs text-muted-foreground md:table-cell">
-                                {member.profile ? (
-                                  <span>{member.profile.displayName}</span>
-                                ) : (
-                                  <span className="text-muted-foreground">—</span>
-                                )}
-                              </td>
-                              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                <MemberRowActions
-                                  member={member}
-                                  onEdit={() => setEditTarget(member)}
-                                  onPassword={() =>
-                                    setPasswordTarget({
-                                      id: member.id,
-                                      name: `${member.firstName} ${member.lastName}`,
-                                    })
-                                  }
-                                  onDelete={() =>
-                                    setDeleteTarget({
-                                      id: member.id,
-                                      name: `${member.firstName} ${member.lastName}`,
-                                    })
-                                  }
-                                />
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                  <TeamMembersTable
+                    members={members}
+                    onEdit={setEditTarget}
+                    onPassword={(member) =>
+                      setPasswordTarget({
+                        id: member.id,
+                        name: `${member.firstName} ${member.lastName}`,
+                      })
+                    }
+                    onDelete={(member) =>
+                      setDeleteTarget({
+                        id: member.id,
+                        name: `${member.firstName} ${member.lastName}`,
+                      })
+                    }
+                  />
 
                   <Pagination
                     page={page}
