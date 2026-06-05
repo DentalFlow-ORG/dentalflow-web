@@ -1,19 +1,55 @@
+import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Calendar, Package, Receipt, TrendingUp } from 'lucide-react'
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Package,
+  TrendingUp,
+  Users2,
+} from 'lucide-react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
-import { MetricCard } from '@/components/common/MetricCard'
-import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AppointmentDrawer } from '@/features/scheduling/components/appointments/AppointmentDrawer'
-import { formatAppointmentDateLong, formatWallTime } from '@/features/scheduling/utils/time'
+import { AppointmentStatusBadge } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
+import type { Appointment } from '@/features/scheduling/types/scheduling.types'
+import {
+  formatAppointmentDate,
+  formatAppointmentDateLong,
+  formatWallTime,
+} from '@/features/scheduling/utils/time'
+
+import { HomeActionGrid } from '@/features/home/components/HomeActionGrid'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
+import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
+import { HomeQuickActionCard } from '@/features/home/components/HomeQuickActionCard'
+import { HomeSection } from '@/features/home/components/HomeSection'
+import { useLeadSummary } from '@/features/home/hooks/useLeadSummary'
 
 import { useDashboardPage } from '../hooks/useDashboardPage'
 import { ProductivityCenter } from './ProductivityCenter'
+
+// ── Currency helper ───────────────────────────────────────────────────────────
+
+const brlCents = (v: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v / 100)
+
+// ── Section link helper ───────────────────────────────────────────────────────
+
+function SectionLink({ to, label }: { to: string; label: string }) {
+  return (
+    <Button variant="outline" size="sm" className="shrink-0" asChild>
+      <Link to={to as never}>{label}</Link>
+    </Button>
+  )
+}
+
+// ── DashboardPageContainer ────────────────────────────────────────────────────
 
 export function DashboardPageContainer() {
   const { user } = useAuth()
@@ -25,24 +61,61 @@ export function DashboardPageContainer() {
   return <AssistantDashboard />
 }
 
+// ── AssistantDashboard ────────────────────────────────────────────────────────
+
 function AssistantDashboard() {
   const {
     today,
+    appointments,
     statusCounts,
     upcomingAppointments,
-    activeDentists,
     isLoading,
     error,
     drawerAppointment,
     setDrawerAppointment,
   } = useDashboardPage()
 
+  const { data: leadData, isLoading: isLeadLoading } = useLeadSummary()
+
+  // NEW + CONTACTED leads = active leads that need follow-up
+  const activeLeads = leadData !== null ? leadData.new + leadData.contacted : null
+
+  // PENDING appointments, sorted by time, capped at 8
+  const pendingConfirmations = useMemo(
+    () =>
+      appointments
+        .filter((a) => a.status === 'PENDING')
+        .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
+        .slice(0, 8),
+    [appointments],
+  )
+
+  // Appointments with outstanding payment (not canceled), capped at 5
+  const pendingPayments = useMemo(
+    () =>
+      appointments
+        .filter(
+          (a) =>
+            (a.paymentStatus === 'PAYMENT_PENDING' || a.paymentStatus === 'PARTIALLY_PAID') &&
+            (a.status === 'CONFIRMED' || a.status === 'COMPLETED'),
+        )
+        .slice(0, 5),
+    [appointments],
+  )
+
   return (
     <AppPage spacing="loose">
-      <AppPageHeader
-        eyebrow="Hoje"
-        title="Visão geral"
+      <HomeDashboardHeader
+        eyebrow="Operação"
+        title="Central de atendimento"
         description={formatAppointmentDateLong(today)}
+        badge={
+          statusCounts.pending > 0 ? (
+            <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+              {statusCounts.pending} a confirmar
+            </span>
+          ) : undefined
+        }
       />
 
       {error && <InlineFeedback>{error}</InlineFeedback>}
@@ -51,146 +124,77 @@ function AssistantDashboard() {
         <LoadingCard message="Carregando dados do dia..." />
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <MetricCard
+          {/* KPI row */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <HomeKpiCard
+              label="Consultas hoje"
               value={String(statusCounts.total)}
-              label="consultas hoje"
-              className="border-primary/30 bg-card sm:col-span-2 xl:col-span-1"
+              icon={CalendarDays}
+              tone="primary"
             />
-            <MetricCard value={String(statusCounts.confirmed)} label="confirmadas" />
-            <MetricCard
+            <HomeKpiCard
+              label="A confirmar"
               value={String(statusCounts.pending)}
-              label="aguardando confirmação"
+              icon={Clock}
+              tone={statusCounts.pending > 0 ? 'warning' : 'neutral'}
             />
-            <MetricCard value={String(statusCounts.completed)} label="concluídas" />
-            <MetricCard
-              value={String(statusCounts.canceledOrNoShow)}
-              label="canceladas / não compareceu"
+            <HomeKpiCard
+              label="Confirmadas"
+              value={String(statusCounts.confirmed)}
+              icon={CheckCircle2}
+              tone={statusCounts.confirmed > 0 ? 'success' : 'neutral'}
+            />
+            <HomeKpiCard
+              label="Leads ativos"
+              value={activeLeads !== null ? String(activeLeads) : '—'}
+              icon={TrendingUp}
+              tone={activeLeads && activeLeads > 0 ? 'info' : 'neutral'}
+              isLoading={isLeadLoading}
             />
           </div>
 
+          {/* Pending confirmations — primary operational focus */}
+          <ConfirmationsSection
+            appointments={pendingConfirmations}
+            onAppointmentClick={setDrawerAppointment}
+          />
+
+          {/* Today schedule + Pending payments */}
           <div className="grid gap-5 lg:grid-cols-2">
-            <PanelCard>
-              <h2 className="text-base font-semibold text-foreground">
-                Próximas consultas
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Agendamentos pendentes ou confirmados do dia
-              </p>
-              {upcomingAppointments.length === 0 ? (
-                <div className="mt-4 flex flex-col items-center gap-2 py-6 text-center">
-                  <Calendar
-                    className="h-8 w-8 text-muted-foreground/40"
-                    aria-hidden="true"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Nenhuma consulta pendente para hoje.
-                  </p>
-                </div>
-              ) : (
-                <ul className="mt-4 divide-y divide-border">
-                  {upcomingAppointments.map((appt) => (
-                    <li key={appt.id}>
-                      <button
-                        type="button"
-                        className="-mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded px-2 py-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary/20"
-                        onClick={() => setDrawerAppointment(appt)}
-                      >
-                        <span className="min-w-0">
-                          <span className="block truncate font-medium text-foreground">
-                            {appt.patientName}
-                          </span>
-                          {appt.service && (
-                            <span className="block truncate text-muted-foreground">
-                              {appt.service.name}
-                            </span>
-                          )}
-                        </span>
-                        <span className="shrink-0 text-right">
-                          <span className="block font-medium text-foreground">
-                            {formatWallTime(appt.startTime)}
-                          </span>
-                          <span className="block text-muted-foreground">
-                            {appt.profile?.displayName ?? 'Profissional não informado'}
-                          </span>
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </PanelCard>
-
-            <PanelCard>
-              <h2 className="text-base font-semibold text-foreground">
-                Alertas do dia
-              </h2>
-              <div className="mt-4 space-y-4">
-                {statusCounts.pending > 0 ? (
-                  <InlineFeedback tone="warning">
-                    <p className="font-medium">
-                      {statusCounts.pending}{' '}
-                      {statusCounts.pending === 1
-                        ? 'consulta aguarda confirmação'
-                        : 'consultas aguardam confirmação'}
-                    </p>
-                    <Button variant="outline" size="sm" className="mt-3" asChild>
-                      <Link to="/app/agendamentos">Ver agendamentos</Link>
-                    </Button>
-                  </InlineFeedback>
-                ) : (
-                  <InlineFeedback tone="success">
-                    Todas as consultas estão confirmadas ou concluídas.
-                  </InlineFeedback>
-                )}
-
-                {activeDentists.length > 0 && (
-                  <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Profissionais com agenda hoje
-                    </p>
-                    <ul className="space-y-1">
-                      {activeDentists.map((name) => (
-                        <li key={name} className="text-sm text-foreground">
-                          {name}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </PanelCard>
+            <TodayScheduleSection
+              appointments={upcomingAppointments}
+              onAppointmentClick={setDrawerAppointment}
+            />
+            <PendingPaymentsSection appointments={pendingPayments} />
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap">
-            <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
-              <Link to="/app/agendamentos">
-                <Calendar className="h-4 w-4" aria-hidden="true" />
-                Agendamentos
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
-              <Link to="/app/leads">
-                <TrendingUp className="h-4 w-4" aria-hidden="true" />
-                Leads
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
-              <Link to="/app/estoque">
-                <Package className="h-4 w-4" aria-hidden="true" />
-                Estoque
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
-              <Link to="/app/notas-fiscais">
-                <Receipt className="h-4 w-4" aria-hidden="true" />
-                Notas fiscais
-              </Link>
-            </Button>
-          </div>
+          {/* Quick access — valid ASSISTANT routes only */}
+          <HomeActionGrid columns={4}>
+            <HomeQuickActionCard
+              title="Agendamentos"
+              icon={CalendarDays}
+              to="/app/agendamentos"
+            />
+            <HomeQuickActionCard
+              title="Pacientes"
+              icon={Users2}
+              to="/app/pacientes"
+            />
+            <HomeQuickActionCard
+              title="Leads"
+              icon={TrendingUp}
+              to="/app/leads"
+            />
+            <HomeQuickActionCard
+              title="Estoque"
+              icon={Package}
+              to="/app/estoque"
+            />
+          </HomeActionGrid>
         </>
       )}
 
+      {/* Read-only drawer — full mutations available at /app/agendamentos */}
       <AppointmentDrawer
         appointment={drawerAppointment}
         readOnly
@@ -200,5 +204,173 @@ function AssistantDashboard() {
         onCancelRequest={() => {}}
       />
     </AppPage>
+  )
+}
+
+// ── Section components ────────────────────────────────────────────────────────
+
+function ConfirmationsSection({
+  appointments,
+  onAppointmentClick,
+}: {
+  appointments: Appointment[]
+  onAppointmentClick: (a: Appointment) => void
+}) {
+  return (
+    <HomeSection
+      title="A confirmar"
+      description={
+        appointments.length > 0
+          ? `${appointments.length} consulta${appointments.length !== 1 ? 's' : ''} aguardando confirmação`
+          : 'Todas as consultas do dia estão confirmadas ou concluídas'
+      }
+      action={<SectionLink to="/app/agendamentos" label="Gerenciar" />}
+    >
+      {appointments.length === 0 ? (
+        <HomeEmptyState
+          compact
+          icon={CheckCircle2}
+          title="Nenhuma confirmação pendente."
+          description="As consultas do dia estão sob controle."
+        />
+      ) : (
+        <ul className="mt-4 divide-y divide-border">
+          {appointments.map((appt) => (
+            <li key={appt.id}>
+              <button
+                type="button"
+                className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded px-2 py-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                onClick={() => onAppointmentClick(appt)}
+              >
+                <span className="w-12 shrink-0 text-right">
+                  <span className="block text-sm font-bold tabular-nums text-foreground">
+                    {formatWallTime(appt.startTime)}
+                  </span>
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold text-foreground">
+                    {appt.patientName}
+                  </span>
+                  {appt.service && (
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {appt.service.name}
+                    </span>
+                  )}
+                  {appt.patientPhone && (
+                    <span className="block text-xs text-muted-foreground">
+                      {appt.patientPhone}
+                    </span>
+                  )}
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {appt.profile?.displayName}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </HomeSection>
+  )
+}
+
+function TodayScheduleSection({
+  appointments,
+  onAppointmentClick,
+}: {
+  appointments: Appointment[]
+  onAppointmentClick: (a: Appointment) => void
+}) {
+  return (
+    <HomeSection
+      title="Agenda do dia"
+      description="Próximas consultas pendentes e confirmadas"
+      action={<SectionLink to="/app/agendamentos" label="Ver agenda" />}
+    >
+      {appointments.length === 0 ? (
+        <HomeEmptyState
+          compact
+          icon={CalendarDays}
+          title="Nenhuma consulta pendente para hoje."
+        />
+      ) : (
+        <ul className="mt-4 divide-y divide-border">
+          {appointments.map((appt) => (
+            <li key={appt.id}>
+              <button
+                type="button"
+                className="-mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded px-2 py-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                onClick={() => onAppointmentClick(appt)}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-semibold text-foreground">
+                    {appt.patientName}
+                  </span>
+                  {appt.service && (
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {appt.service.name}
+                    </span>
+                  )}
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <AppointmentStatusBadge status={appt.status} />
+                  <span className="text-sm font-medium tabular-nums text-foreground">
+                    {formatWallTime(appt.startTime)}
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </HomeSection>
+  )
+}
+
+function PendingPaymentsSection({ appointments }: { appointments: Appointment[] }) {
+  return (
+    <HomeSection
+      title="Pagamentos pendentes"
+      description="Consultas com pagamento em aberto"
+      // ASSISTANT cannot access /app/financeiro — link to agendamentos instead
+      action={<SectionLink to="/app/agendamentos" label="Ver agendamentos" />}
+    >
+      {appointments.length === 0 ? (
+        <HomeEmptyState
+          compact
+          icon={CheckCircle2}
+          title="Nenhum pagamento pendente."
+        />
+      ) : (
+        <ul className="mt-4 divide-y divide-border">
+          {appointments.map((appt) => (
+            <li
+              key={appt.id}
+              className="flex items-center justify-between gap-3 py-3 text-sm"
+            >
+              <span className="min-w-0">
+                <span className="block truncate font-semibold text-foreground">
+                  {appt.patientName}
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  {formatAppointmentDate(appt.appointmentDate)}
+                  {appt.profile?.displayName ? ` · ${appt.profile.displayName}` : ''}
+                </span>
+              </span>
+              <span className="flex shrink-0 flex-col items-end gap-1">
+                {appt.estimatedAmountCents != null && (
+                  <span className="font-semibold text-foreground">
+                    {brlCents(appt.estimatedAmountCents)}
+                  </span>
+                )}
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                  {appt.paymentStatus === 'PARTIALLY_PAID' ? 'Parcial' : 'Pendente'}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </HomeSection>
   )
 }
