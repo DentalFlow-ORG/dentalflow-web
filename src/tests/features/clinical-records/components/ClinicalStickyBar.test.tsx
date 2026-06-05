@@ -157,7 +157,7 @@ describe('ClinicalStickyBar — layout contract', () => {
     expect(screen.queryByText(/voltar/i)).toBeNull()
   })
 
-  it('applies sticky positioning classes', () => {
+  it('is in normal document flow — not sticky or fixed', () => {
     const { container } = render(
       <ClinicalStickyBar
         record={makeRecord()}
@@ -168,7 +168,9 @@ describe('ClinicalStickyBar — layout contract', () => {
       />,
     )
     const bar = container.firstElementChild
-    expect(bar).toHaveClass('sticky')
-    expect(bar).toHaveClass('top-20')
+    // Must not use sticky/fixed positioning — that caused content overlap
+    expect(bar).not.toHaveClass('sticky')
+    expect(bar).not.toHaveClass('fixed')
+    expect(bar).not.toHaveClass('absolute')
   })
 })

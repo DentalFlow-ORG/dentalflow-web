@@ -30,10 +30,10 @@ type Props = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 /**
- * Compact sticky bar that stays below the app header as the user scrolls.
- * Shows patient identity and—for DRAFT records—quick Save + Complete actions.
- * Destructive status transitions (Lock, Cancel, Restore) remain in the full
- * ClinicalRecordActions bar so they keep their confirmation dialogs.
+ * Patient identity + quick-action bar rendered at the top of the clinical
+ * record editor, in normal document flow (non-sticky).
+ * Shows patient name/status and—for DRAFT records—Save + Complete actions.
+ * Destructive transitions (Lock, Cancel, Restore) stay in ClinicalRecordActions.
  *
  * Breakout pattern: negative horizontal margins cancel the parent <main> padding
  * so the bar stretches edge-to-edge while keeping internal content aligned.
@@ -52,10 +52,8 @@ export function ClinicalStickyBar({
       className={cn(
         // Breakout: cancel parent <main> px-4 / sm:px-6 / lg:px-8 then restore internally
         '-mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8',
-        // Sticky below app header (h-20 = top-20) and above most content
-        'sticky top-20 z-20',
-        // Visual style — matches app header aesthetic
-        'border-b border-border bg-background/95 backdrop-blur-sm',
+        // In normal document flow — no sticky/fixed to prevent content overlap
+        'border-b border-border bg-card',
         'print:hidden',
       )}
     >

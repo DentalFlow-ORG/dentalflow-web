@@ -380,9 +380,8 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <>
-      {/* ── Back navigation — rendered above the sticky bar so it is never   */}
-      {/* covered when the bar sticks on scroll.                              */}
+    <div className="space-y-4">
+      {/* ── Back navigation ─────────────────────────────────────────────────── */}
       <Link
         to="/app/prontuario"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -391,9 +390,10 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         Prontuários
       </Link>
 
-      {/* ── Sticky identity + quick actions bar ─────────────────────────────── */}
-      {/* Renders outside AppPage so it can break out of the main's padding.    */}
-      {/* Shows patient name, status badge, and Save/Complete for DRAFT records. */}
+      {/* ── Patient identity + quick actions bar ────────────────────────────── */}
+      {/* Renders outside AppPage so its breakout margins cancel <main> padding. */}
+      {/* In normal document flow — no sticky positioning — so it never covers   */}
+      {/* the content below it.                                                  */}
       <ClinicalStickyBar
         record={record}
         isSaving={isSaving}
@@ -672,7 +672,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
           identifier={identifier}
         />
       </AppPage>
-    </>
+    </div>
   )
 }
 
