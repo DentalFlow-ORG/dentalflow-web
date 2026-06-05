@@ -50,6 +50,22 @@ describe('PatientAvatar — initials fallback', () => {
     render(<PatientAvatar name="   " />)
     expect(screen.getByText('?')).toBeInTheDocument()
   })
+
+  it('handles accented first name correctly (Ícaro → ÍC)', () => {
+    render(<PatientAvatar name="Ícaro" />)
+    // Single word: first 2 chars uppercased — accented Í is preserved
+    expect(screen.getByText('ÍC')).toBeInTheDocument()
+  })
+
+  it('handles accented multi-word name correctly (Ícaro Almeida → ÍA)', () => {
+    render(<PatientAvatar name="Ícaro Almeida" />)
+    expect(screen.getByText('ÍA')).toBeInTheDocument()
+  })
+
+  it('handles accented last name (Ana Ávila → AÁ)', () => {
+    render(<PatientAvatar name="Ana Ávila" />)
+    expect(screen.getByText('AÁ')).toBeInTheDocument()
+  })
 })
 
 // ── Accessible label ──────────────────────────────────────────────────────────

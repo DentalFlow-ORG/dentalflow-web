@@ -123,6 +123,7 @@ function AttentionMobileCard({
         type="button"
         variant="outline"
         size="sm"
+        aria-label={`Ver detalhes de ${item.patientName}`}
         className="mt-4 w-full"
         onClick={() => onSelect(item)}
       >
