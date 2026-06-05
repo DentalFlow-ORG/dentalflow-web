@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Calendar, ClipboardList, Package, Receipt } from 'lucide-react'
+import { Calendar, Package, Receipt, TrendingUp } from 'lucide-react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
@@ -10,21 +10,10 @@ import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AppointmentDrawer } from '@/features/scheduling/components/appointments/AppointmentDrawer'
-import { formatWallTime } from '@/features/scheduling/utils/time'
+import { formatAppointmentDateLong, formatWallTime } from '@/features/scheduling/utils/time'
 
 import { useDashboardPage } from '../hooks/useDashboardPage'
 import { ProductivityCenter } from './ProductivityCenter'
-
-function formatTodayLabel(isoDate: string): string {
-  const [year, month, day] = isoDate.split('-').map(Number)
-  const d = new Date(year, month - 1, day)
-  return d.toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-}
 
 export function DashboardPageContainer() {
   const { user } = useAuth()
@@ -53,7 +42,7 @@ function AssistantDashboard() {
       <AppPageHeader
         eyebrow="Hoje"
         title="Visão geral"
-        description={formatTodayLabel(today)}
+        description={formatAppointmentDateLong(today)}
       />
 
       {error && <InlineFeedback>{error}</InlineFeedback>}
@@ -181,9 +170,9 @@ function AssistantDashboard() {
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>
-              <Link to="/app/prontuario">
-                <ClipboardList className="h-4 w-4" aria-hidden="true" />
-                Prontuários
+              <Link to="/app/leads">
+                <TrendingUp className="h-4 w-4" aria-hidden="true" />
+                Leads
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start lg:w-auto" asChild>

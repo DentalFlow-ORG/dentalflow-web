@@ -11,20 +11,10 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { AppointmentDrawer } from '@/features/scheduling/components/appointments/AppointmentDrawer'
+import { listProfiles } from '@/features/scheduling/services/profiles.service'
 import { listAppointments } from '@/features/scheduling/services/scheduling.service'
 import type { Appointment } from '@/features/scheduling/types/scheduling.types'
-import { formatWallTime } from '@/features/scheduling/utils/time'
-
-function formatTodayLabel(isoDate: string): string {
-  const [year, month, day] = isoDate.split('-').map(Number)
-  const d = new Date(year, month - 1, day)
-  return d.toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-}
+import { formatAppointmentDateLong, formatWallTime } from '@/features/scheduling/utils/time'
 
 export function DentistHomePageContainer() {
   const { user } = useAuth()
@@ -38,11 +28,16 @@ export function DentistHomePageContainer() {
   useEffect(() => {
     setIsLoading(true)
     setError(null)
-    listAppointments(today)
-      .then(setAppointments)
+    // Fetch profiles and today's appointments in parallel, then keep only
+    // the appointments that belong to this dentist's own profile.
+    Promise.all([listProfiles(), listAppointments(today)])
+      .then(([profiles, appts]) => {
+        const ownProfile = profiles.find((p) => p.userId === user?.id) ?? null
+        setAppointments(ownProfile ? appts.filter((a) => a.profileId === ownProfile.id) : [])
+      })
       .catch(() => setError('Não foi possível carregar os dados do dia. Tente recarregar a página.'))
       .finally(() => setIsLoading(false))
-  }, [today])
+  }, [today, user?.id])
 
   const statusCounts = useMemo(() => {
     const confirmed = appointments.filter((a) => a.status === 'CONFIRMED').length
@@ -67,7 +62,7 @@ export function DentistHomePageContainer() {
       <AppPageHeader
         eyebrow="Hoje"
         title={greeting}
-        description={formatTodayLabel(today)}
+        description={formatAppointmentDateLong(today)}
       />
 
       {error && <InlineFeedback>{error}</InlineFeedback>}
