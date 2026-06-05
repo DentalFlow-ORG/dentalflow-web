@@ -4,6 +4,9 @@ import {
   BarChart3,
   CalendarDays,
   CheckCircle2,
+  ClipboardList,
+  Mail,
+  Phone,
   RefreshCw,
   Users2,
   X,
@@ -36,12 +39,14 @@ import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
 import { HomeQuickActionCard } from '@/features/home/components/HomeQuickActionCard'
 import { HomeSection } from '@/features/home/components/HomeSection'
 
+import { AppointmentStatusBadge } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
+import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
+import { cn } from '@/lib/utils'
 import { formatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
 
 import { usePatientHistory } from '../hooks/usePatientHistory'
 import { usePatientsPage } from '../hooks/usePatientsPage'
 import type { PatientAppointment, PatientSummary } from '../types/patients.types'
-import { type BadgeTone, STATUS_LABEL, STATUS_TONE } from '../constants/appointment-display'
 
 const formatDate = formatDateBR
 const formatTime = (t: string | null | undefined) => safeFormatTimeBR(t)
@@ -95,37 +100,57 @@ function PatientKpiRow({ patients }: { patients: PatientSummary[] }) {
   )
 }
 
-// ── Appointment row (used inside detail panel – P3 scope) ─────────────────────
+// ── Appointment row (used inside detail panel) ────────────────────────────────
 
 function AppointmentRow({ appt }: { appt: PatientAppointment }) {
-  const tone: BadgeTone = STATUS_TONE[appt.status] ?? 'muted'
-
   return (
-    <div className="rounded-lg border border-border bg-muted px-4 py-3">
+    <div className="rounded-xl border border-border bg-card px-4 py-3.5 shadow-sm">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-foreground">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-foreground">
             {appt.service?.name ?? 'Consulta'}
           </p>
           {appt.profile && (
             <p className="mt-0.5 text-xs text-muted-foreground">{appt.profile.displayName}</p>
           )}
+          <div className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span>
+              {formatDate(appt.appointmentDate)} · {formatTime(appt.startTime)}–
+              {formatTime(appt.endTime)}
+            </span>
+          </div>
+          {appt.notes && (
+            <p className="mt-1.5 text-xs italic text-muted-foreground/70">{appt.notes}</p>
+          )}
         </div>
-        <StatusBadge tone={tone}>{STATUS_LABEL[appt.status] ?? appt.status}</StatusBadge>
+        <AppointmentStatusBadge status={appt.status as AppointmentStatus} />
       </div>
-      <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-        <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        <span>
-          {formatDate(appt.appointmentDate)} · {formatTime(appt.startTime)}–
-          {formatTime(appt.endTime)}
-        </span>
-      </div>
-      {appt.notes && (
-        <p className="mt-1.5 text-xs italic text-muted-foreground/70">{appt.notes}</p>
-      )}
     </div>
   )
 }
+
+// ── Panel stat cell ───────────────────────────────────────────────────────────
+
+function PanelStat({
+  value,
+  label,
+  valueClassName,
+}: {
+  value: string
+  label: string
+  valueClassName?: string
+}) {
+  return (
+    <div className="flex flex-col items-center px-3 py-3 text-center">
+      <p className={cn('text-lg font-bold leading-none', valueClassName ?? 'text-foreground')}>
+        {value}
+      </p>
+      <p className="mt-1 text-[11px] text-muted-foreground">{label}</p>
+    </div>
+  )
+}
+
 
 // ── Mobile card ───────────────────────────────────────────────────────────────
 
@@ -188,7 +213,7 @@ function PatientMobileCard({
   )
 }
 
-// ── Detail panel (P3 – kept as-is with PatientAvatarWidget for upload) ────────
+// ── Patient detail panel ──────────────────────────────────────────────────────
 
 type PanelTab = 'consultas' | 'prontuarios'
 
@@ -203,6 +228,7 @@ function PatientDetailPanel({
   const { user } = useAuth()
   const { showAlert } = useGlobalAlerts()
   const canViewClinicalTimeline = user?.role === 'OWNER' || user?.role === 'DENTIST'
+  const canSchedule = user?.role === 'OWNER' || user?.role === 'ASSISTANT'
   const { appointments, isLoading } = usePatientHistory(patient)
   const { records: clinicalRecords, isLoading: isLoadingTimeline } = usePatientClinicalTimeline(
     canViewClinicalTimeline ? patient?.identifier ?? null : null,
@@ -232,23 +258,38 @@ function PatientDetailPanel({
           className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-card shadow-xl focus:outline-none"
           aria-describedby={undefined}
         >
+          {/* ── Header: avatar + identity ── */}
           <div className="flex items-start justify-between border-b border-border px-6 py-4">
-            <div className="flex items-center gap-4">
+            <div className="flex min-w-0 items-start gap-4">
               <PatientAvatarWidget
                 name={patient?.patientName ?? ''}
                 avatarUrl={avatarUrl}
                 isSaving={isSaving}
                 onUpload={handleAvatarChange}
-                onError={(msg) => showAlert({ title: 'Foto inválida', description: msg, tone: 'error' })}
+                onError={(msg) =>
+                  showAlert({ title: 'Foto inválida', description: msg, tone: 'error' })
+                }
                 size="lg"
               />
-              <div>
+              <div className="min-w-0 pt-0.5">
                 <Dialog.Title className="text-base font-semibold text-foreground">
                   {patient?.patientName}
                 </Dialog.Title>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {patient?.patientEmail ?? patient?.patientPhone ?? 'Sem contato'}
-                </p>
+                {patient?.patientEmail && (
+                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Mail className="h-3 w-3 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{patient.patientEmail}</span>
+                  </p>
+                )}
+                {patient?.patientPhone && (
+                  <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Phone className="h-3 w-3 shrink-0" aria-hidden="true" />
+                    <span>{patient.patientPhone}</span>
+                  </p>
+                )}
+                {!patient?.patientEmail && !patient?.patientPhone && (
+                  <p className="mt-0.5 text-xs text-muted-foreground">Sem contato cadastrado</p>
+                )}
               </div>
             </div>
             <Dialog.Close asChild>
@@ -257,37 +298,86 @@ function PatientDetailPanel({
                 variant="ghost"
                 size="icon"
                 aria-label="Fechar painel do paciente"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </Button>
             </Dialog.Close>
           </div>
 
+          {/* ── Stats strip ── */}
           {patient && (
-            <div className="grid grid-cols-3 divide-x divide-border border-b border-border bg-muted">
-              <div className="px-4 py-3 text-center">
-                <p className="text-xl font-bold text-foreground">
-                  {patient.totalAppointments}
-                </p>
-                <p className="text-xs text-muted-foreground">Total</p>
-              </div>
-              <div className="px-4 py-3 text-center">
-                <p className="text-xl font-bold text-emerald-600">
-                  {patient.completedAppointments}
-                </p>
-                <p className="text-xs text-muted-foreground">Concluídas</p>
-              </div>
-              <div className="px-4 py-3 text-center">
-                <p className="text-xl font-bold text-red-500">
-                  {patient.canceledAppointments}
-                </p>
-                <p className="text-xs text-muted-foreground">Canceladas</p>
-              </div>
+            <div className="grid grid-cols-4 divide-x divide-border border-b border-border bg-muted/60">
+              <PanelStat
+                value={String(patient.totalAppointments)}
+                label="Total"
+              />
+              <PanelStat
+                value={String(patient.completedAppointments)}
+                label="Concluídas"
+                valueClassName="text-emerald-600 dark:text-emerald-400"
+              />
+              <PanelStat
+                value={String(patient.canceledAppointments)}
+                label="Canceladas"
+                valueClassName={
+                  patient.canceledAppointments > 0
+                    ? 'text-red-600 dark:text-red-400'
+                    : undefined
+                }
+              />
+              <PanelStat
+                value={patient.lastVisit ? formatDate(patient.lastVisit) : '—'}
+                label="Última visita"
+                valueClassName="text-sm"
+              />
             </div>
           )}
 
-          <div role="tablist" aria-label="Informações do paciente" className="flex border-b border-border">
+          {/* ── Quick contact / action strip ── */}
+          {patient && (patient.patientPhone || patient.patientEmail || canSchedule) && (
+            <div className="flex flex-wrap gap-2 border-b border-border bg-card px-5 py-3">
+              {patient.patientPhone && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`tel:${patient.patientPhone}`}>
+                    <Phone className="h-3.5 w-3.5" aria-hidden="true" />
+                    Ligar
+                  </a>
+                </Button>
+              )}
+              {patient.patientEmail && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`mailto:${patient.patientEmail}`}>
+                    <Mail className="h-3.5 w-3.5" aria-hidden="true" />
+                    E-mail
+                  </a>
+                </Button>
+              )}
+              {canSchedule && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/app/agendamentos">
+                    <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+                    Agendar
+                  </Link>
+                </Button>
+              )}
+              {canViewClinicalTimeline && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/app/prontuario">
+                    <ClipboardList className="h-3.5 w-3.5" aria-hidden="true" />
+                    Prontuários
+                  </Link>
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* ── Tabs ── */}
+          <div
+            role="tablist"
+            aria-label="Informações do paciente"
+            className="flex border-b border-border"
+          >
             {([
               { id: 'consultas', label: 'Consultas' },
               { id: 'prontuarios', label: 'Prontuários' },
@@ -300,26 +390,37 @@ function PatientDetailPanel({
                 aria-selected={activeTab === tab.id}
                 aria-controls={`panel-patient-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                className={cn(
+                  'flex-1 py-2.5 text-sm font-medium transition-colors',
                   activeTab === tab.id
                     ? 'border-b-2 border-primary text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
               >
                 {tab.label}
               </button>
             ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          {/* ── Tab panels ── */}
+          <div className="flex-1 overflow-y-auto px-6 py-5">
             {activeTab === 'consultas' && (
-              <div id="panel-patient-consultas" role="tabpanel" aria-labelledby="tab-patient-consultas">
+              <div
+                id="panel-patient-consultas"
+                role="tabpanel"
+                aria-labelledby="tab-patient-consultas"
+              >
                 <ListPageShell
                   isLoading={isLoading}
                   loadingMessage="Carregando histórico…"
                   isEmpty={!isLoading && appointments.length === 0}
                   emptyState={
-                    <p className="text-sm text-muted-foreground">Nenhuma consulta encontrada.</p>
+                    <HomeEmptyState
+                      compact
+                      icon={CalendarDays}
+                      title="Nenhuma consulta encontrada."
+                      description="O histórico de consultas aparecerá aqui."
+                    />
                   }
                 >
                   <div className="space-y-3">
@@ -332,25 +433,35 @@ function PatientDetailPanel({
             )}
 
             {activeTab === 'prontuarios' && (
-              <div id="panel-patient-prontuarios" role="tabpanel" aria-labelledby="tab-patient-prontuarios">
+              <div
+                id="panel-patient-prontuarios"
+                role="tabpanel"
+                aria-labelledby="tab-patient-prontuarios"
+              >
                 {canViewClinicalTimeline ? (
                   <ListPageShell
                     isLoading={isLoadingTimeline}
                     loadingMessage="Carregando prontuários…"
                     isEmpty={!isLoadingTimeline && clinicalRecords.length === 0}
                     emptyState={
-                      <p className="text-sm text-muted-foreground">Nenhum prontuário encontrado.</p>
+                      <HomeEmptyState
+                        compact
+                        icon={ClipboardList}
+                        title="Nenhum prontuário encontrado."
+                        description="Os prontuários criados para este paciente aparecerão aqui."
+                      />
                     }
                   >
                     <ClinicalTimeline records={clinicalRecords} />
                   </ListPageShell>
                 ) : (
-                  <div className="rounded-lg border border-border bg-muted px-4 py-5">
-                    <p className="text-sm font-medium text-foreground">
-                      Informações clínicas restritas ao proprietário e dentistas.
+                  <div className="rounded-xl border border-border bg-muted/60 px-5 py-5">
+                    <p className="text-sm font-semibold text-foreground">
+                      Informações clínicas restritas
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      O histórico administrativo de consultas continua disponível nesta tela.
+                    <p className="mt-1.5 text-sm text-muted-foreground">
+                      O acesso a prontuários é exclusivo para proprietários e dentistas. O
+                      histórico administrativo de consultas está disponível na aba anterior.
                     </p>
                   </div>
                 )}

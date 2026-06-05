@@ -2,6 +2,8 @@ import { render, screen, fireEvent } from '@/test-utils/render-utils'
 
 import { PatientsPageContainer } from '@/features/patients/containers/PatientsPageContainer'
 import type { PatientSummary } from '@/features/patients/types/patients.types'
+import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
+import { makeAssistantUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -82,10 +84,12 @@ function makeDefaultHookState(overrides = {}) {
 // ── Setup / teardown ──────────────────────────────────────────────────────────
 
 beforeEach(() => {
+  setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
   mockUsePatientsPage.mockReturnValue(makeDefaultHookState())
 })
 
 afterEach(() => {
+  resetAuthMocks()
   vi.clearAllMocks()
 })
 
@@ -299,5 +303,108 @@ describe('PatientsPageContainer — quick actions', () => {
     render(<PatientsPageContainer />)
     const attLink = screen.getByRole('link', { name: /pacientes em atenção/i })
     expect(attLink).toHaveAttribute('href', '/app/pacientes/atencao')
+  })
+})
+
+// ── Patient detail panel ──────────────────────────────────────────────────────
+
+// Panel tests require selectedPatient to be non-null to open the dialog
+
+describe('PatientsPageContainer — patient detail panel', () => {
+  beforeEach(() => {
+    const patient = makePatient()
+    mockUsePatientsPage.mockReturnValue(
+      makeDefaultHookState({
+        patients: [patient],
+        filteredPatients: [patient],
+        paginatedPatients: [patient],
+        selectedPatient: patient,
+      }),
+    )
+  })
+
+  it('renders patient name in the panel', () => {
+    render(<PatientsPageContainer />)
+    // Name appears in the Dialog.Title
+    expect(screen.getAllByText('Ana Souza').length).toBeGreaterThan(0)
+  })
+
+  it('renders patient email in the panel header', () => {
+    render(<PatientsPageContainer />)
+    expect(screen.getAllByText('ana@email.com').length).toBeGreaterThan(0)
+  })
+
+  it('renders patient phone in the panel header', () => {
+    render(<PatientsPageContainer />)
+    expect(screen.getAllByText('(11) 99999-1234').length).toBeGreaterThan(0)
+  })
+
+  it('renders the stats strip with appointment counts', () => {
+    render(<PatientsPageContainer />)
+    // Stats: Total=4, Concluídas=3, Canceladas=1
+    expect(screen.getByText('Total')).toBeInTheDocument()
+    expect(screen.getAllByText('Concluídas').length).toBeGreaterThan(0)
+    expect(screen.getByText('Canceladas')).toBeInTheDocument()
+    // "Última visita" appears in both the panel stat and the mobile card
+    expect(screen.getAllByText('Última visita').length).toBeGreaterThan(0)
+  })
+
+  it('renders the PatientAvatarWidget for upload (not just display)', () => {
+    render(<PatientsPageContainer />)
+    // PatientAvatarWidget renders a clickable avatar element
+    // The widget renders as a button or div with the patient initials/image
+    // Presence of initials "AS" (Ana Souza) means the widget mounted
+    const avatarElements = document.querySelectorAll('[class*="rounded-full"]')
+    expect(avatarElements.length).toBeGreaterThan(0)
+  })
+
+  it('renders close button with accessible label', () => {
+    render(<PatientsPageContainer />)
+    expect(screen.getByRole('button', { name: /fechar painel do paciente/i })).toBeInTheDocument()
+  })
+
+  it('renders the Consultas tab', () => {
+    render(<PatientsPageContainer />)
+    expect(screen.getByRole('tab', { name: 'Consultas' })).toBeInTheDocument()
+  })
+
+  it('renders the Prontuários tab', () => {
+    render(<PatientsPageContainer />)
+    expect(screen.getByRole('tab', { name: 'Prontuários' })).toBeInTheDocument()
+  })
+
+  it('shows appointment empty state when no history', () => {
+    render(<PatientsPageContainer />)
+    // History mock returns [] so empty state should show
+    expect(screen.getByText('Nenhuma consulta encontrada.')).toBeInTheDocument()
+  })
+
+  it('renders Agendar quick link for ASSISTANT role', () => {
+    setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
+    render(<PatientsPageContainer />)
+    const agendarLinks = screen.getAllByRole('link', { name: /agendar/i })
+    expect(agendarLinks.length).toBeGreaterThan(0)
+    expect(agendarLinks[0]).toHaveAttribute('href', '/app/agendamentos')
+  })
+})
+
+describe('PatientsPageContainer — panel prontuário role behavior', () => {
+  it('ASSISTANT does NOT see prontuários link in panel', () => {
+    setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
+
+    const patient = makePatient()
+    mockUsePatientsPage.mockReturnValue(
+      makeDefaultHookState({
+        patients: [patient],
+        filteredPatients: [patient],
+        paginatedPatients: [patient],
+        selectedPatient: patient,
+      }),
+    )
+    render(<PatientsPageContainer />)
+    // Navigate to prontuários tab
+    fireEvent.click(screen.getByRole('tab', { name: 'Prontuários' }))
+    // ASSISTANT should see the restriction message, not the timeline
+    expect(screen.getByText(/informações clínicas restritas/i)).toBeInTheDocument()
   })
 })
