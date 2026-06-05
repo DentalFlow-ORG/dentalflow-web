@@ -43,8 +43,6 @@ import {
   FiscalFeaturePage,
   FiscalProfilePage,
   InventoryFeaturePage,
-  LeadsFeaturePage,
-  LeadsPage,
   NotificationSettingsPage,
   OAuthSuccessPage,
   PatientsAttentionPage,
@@ -345,16 +343,6 @@ const patientsAttentionRoute = createRoute({
   ),
 })
 
-const leadsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/app/leads',
-  component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
-      <LeadsPage />
-    </ProtectedAppRoute>
-  ),
-})
-
 const reportsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/relatorios',
@@ -540,12 +528,6 @@ const inventoryFeatureRoute = createRoute({
   component: InventoryFeaturePage,
 })
 
-const leadsFeatureRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/funcionalidades/leads',
-  component: LeadsFeaturePage,
-})
-
 const reportsFeatureRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/funcionalidades/relatorios',
@@ -576,7 +558,6 @@ const routeTree = rootRoute.addChildren([
   fiscalInvoicesRoute,
   patientsRoute,
   patientsAttentionRoute,
-  leadsRoute,
   reportsRoute,
   subscriptionRoute,
   subscriptionSuccessRoute,
@@ -615,7 +596,6 @@ const routeTree = rootRoute.addChildren([
   patientsFeatureRoute,
   clinicalRecordsFeatureRoute,
   inventoryFeatureRoute,
-  leadsFeatureRoute,
   reportsFeatureRoute,
   fiscalFeatureRoute,
 ])

@@ -19,7 +19,6 @@ import {
   Package,
   ShieldCheck,
   Sun,
-  TrendingUp,
   Users,
   Users2,
   X,
@@ -73,7 +72,6 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Agenda', to: '/app/agendamentos', icon: CalendarDays, roles: ['OWNER', 'ASSISTANT'] },
       { label: 'Pacientes', to: '/app/pacientes', icon: Users2, roles: ['OWNER', 'ASSISTANT'] },
       { label: 'Prontuários', to: '/app/prontuario', icon: ClipboardList, roles: ['OWNER'] },
-      { label: 'Leads', to: '/app/leads', icon: TrendingUp, roles: ['OWNER', 'ASSISTANT'] },
     ],
   },
   {

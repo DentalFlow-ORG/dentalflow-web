@@ -104,10 +104,6 @@ describe('role-based navigation', () => {
     expect(screen.getAllByRole('link', { name: 'Pacientes' }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: 'Prontuários' }).length).toBeGreaterThan(0)
 
-    // Leads is only in the desktop Clínica group — expand it first
-    fireEvent.click(screen.getByRole('button', { name: 'Clínica' }))
-    expect(screen.getAllByRole('link', { name: 'Leads' }).length).toBeGreaterThan(0)
-
     // Equipe is only in the desktop Gestão group — expand it first
     fireEvent.click(screen.getByRole('button', { name: 'Gestão' }))
     expect(screen.getAllByRole('link', { name: 'Equipe' }).length).toBeGreaterThan(0)
@@ -130,7 +126,6 @@ describe('role-based navigation', () => {
     expect(screen.queryAllByRole('link', { name: 'Agenda' })).toHaveLength(0)
     expect(screen.queryAllByRole('link', { name: 'Equipe' })).toHaveLength(0)
     expect(screen.queryAllByRole('link', { name: 'Estoque' })).toHaveLength(0)
-    expect(screen.queryAllByRole('link', { name: 'Leads' })).toHaveLength(0)
     expect(screen.queryAllByRole('link', { name: 'Configurações' })).toHaveLength(0)
   })
 
@@ -163,10 +158,6 @@ describe('role-based navigation', () => {
     expect(screen.getAllByRole('link', { name: 'Agenda' }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: 'Pacientes' }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: 'Estoque' }).length).toBeGreaterThan(0)
-
-    // Leads is only in the desktop Clínica group — expand it first
-    fireEvent.click(screen.getByRole('button', { name: 'Clínica' }))
-    expect(screen.getAllByRole('link', { name: 'Leads' }).length).toBeGreaterThan(0)
 
     // OWNER-only items not visible to ASSISTANT
     expect(screen.queryAllByRole('link', { name: 'Equipe' })).toHaveLength(0)

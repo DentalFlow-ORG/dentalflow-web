@@ -8,7 +8,6 @@ import {
   DollarSign,
   Landmark,
   Package,
-  TrendingUp,
   Users2,
 } from 'lucide-react'
 
@@ -32,7 +31,6 @@ import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
 import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
 import { HomeQuickActionCard } from '@/features/home/components/HomeQuickActionCard'
 import { HomeSection } from '@/features/home/components/HomeSection'
-import { useLeadSummary } from '@/features/home/hooks/useLeadSummary'
 
 import { TodayAppointmentsChart } from '../components/TodayAppointmentsChart'
 import { useProductivitySummary } from '../hooks/useProductivitySummary'
@@ -469,14 +467,10 @@ function RecentCanceledPanel({
 
 export function ProductivityCenter() {
   const { data, isLoading, error } = useProductivitySummary()
-  const { data: leadData, isLoading: isLeadLoading } = useLeadSummary()
 
   const stockAlerts = data
     ? data.inventory.lowStockCount + data.inventory.expiringSoonCount
     : 0
-
-  // New + Contacted = leads that haven't been scheduled yet and need follow-up
-  const activeLeads = leadData !== null ? leadData.new + leadData.contacted : null
 
   return (
     <AppPage spacing="loose">
@@ -492,8 +486,8 @@ export function ProductivityCenter() {
         <LoadingCard message="Carregando dados da clínica..." />
       ) : data ? (
         <>
-          {/* KPI row — 5 cards: agenda, payments, revenue, leads, stock */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
+          {/* KPI row — 4 cards: agenda, payments, revenue, stock */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <HomeKpiCard
               label="Consultas hoje"
               value={String(data.today.appointmentsTotal)}
@@ -511,13 +505,6 @@ export function ProductivityCenter() {
               value={brl(data.finance.monthIncome)}
               icon={Landmark}
               tone="success"
-            />
-            <HomeKpiCard
-              label="Leads ativos"
-              value={activeLeads !== null ? String(activeLeads) : '—'}
-              icon={TrendingUp}
-              tone={activeLeads && activeLeads > 0 ? 'info' : 'neutral'}
-              isLoading={isLeadLoading}
             />
             <HomeKpiCard
               label="Alertas de estoque"

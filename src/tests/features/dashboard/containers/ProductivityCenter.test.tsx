@@ -21,11 +21,6 @@ vi.mock('@/features/dashboard/hooks/useProductivitySummary', () => ({
   useProductivitySummary: () => mockUseProductivitySummary(),
 }))
 
-const mockUseLeadSummary = vi.fn()
-vi.mock('@/features/home/hooks/useLeadSummary', () => ({
-  useLeadSummary: () => mockUseLeadSummary(),
-}))
-
 // ── Factories ─────────────────────────────────────────────────────────────────
 
 function makeProductivitySummary(
@@ -59,7 +54,6 @@ function makeProductivitySummary(
 
 beforeEach(() => {
   mockUseProductivitySummary.mockReturnValue({ data: null, isLoading: false, error: null })
-  mockUseLeadSummary.mockReturnValue({ data: null, isLoading: false })
 })
 
 afterEach(() => {
@@ -165,28 +159,6 @@ describe('ProductivityCenter — KPI cards', () => {
   it('renders the "Alertas de estoque" KPI card', () => {
     render(<ProductivityCenter />)
     expect(screen.getByText('Alertas de estoque')).toBeInTheDocument()
-  })
-
-  it('renders the "Leads ativos" KPI card', () => {
-    render(<ProductivityCenter />)
-    expect(screen.getByText('Leads ativos')).toBeInTheDocument()
-  })
-
-  it('shows leads count when lead data is available', () => {
-    // Use leads counts that don't collide with consultas hoje (5) from makeProductivitySummary
-    mockUseLeadSummary.mockReturnValue({
-      data: { new: 2, contacted: 1, scheduled: 1, converted: 5, lost: 1, archived: 0 },
-      isLoading: false,
-    })
-    render(<ProductivityCenter />)
-    // new (2) + contacted (1) = 3 active leads — "3" is distinct from consultas (5)
-    expect(screen.getByText('3')).toBeInTheDocument()
-  })
-
-  it('shows "—" for leads when lead data is unavailable', () => {
-    mockUseLeadSummary.mockReturnValue({ data: null, isLoading: false })
-    render(<ProductivityCenter />)
-    expect(screen.getByText('—')).toBeInTheDocument()
   })
 })
 

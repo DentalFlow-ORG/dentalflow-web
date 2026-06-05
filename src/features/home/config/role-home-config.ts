@@ -93,7 +93,6 @@ export type HomeFeature =
   | 'whatsappActions'    // WhatsApp notifications / contact buttons
   | 'clinicalRecords'    // Prontuários (/app/prontuario)
   | 'patients'           // Patient list (/app/pacientes)
-  | 'leads'              // Lead pipeline (/app/leads)
   | 'finance'            // Financial overview (/app/financeiro)
   | 'stock'              // Inventory (/app/estoque)
   | 'team'               // Team profiles (/app/equipe)
@@ -135,7 +134,6 @@ export const ROLE_FEATURE_MATRIX: RoleMatrix = {
     whatsappActions: 'editable',
     clinicalRecords: 'editable',
     patients: 'editable',
-    leads: 'editable',
     finance: 'plan-gated',
     stock: 'plan-gated',
     team: 'editable',
@@ -160,7 +158,6 @@ export const ROLE_FEATURE_MATRIX: RoleMatrix = {
     whatsappActions: 'editable',
     clinicalRecords: 'hidden',    // route denied: allowedRoles=['OWNER','DENTIST']
     patients: 'editable',
-    leads: 'editable',
     finance: 'hidden',            // route denied: allowedRoles=['OWNER']
     stock: 'plan-gated',
     team: 'hidden',               // route denied: allowedRoles=['OWNER']
@@ -185,7 +182,6 @@ export const ROLE_FEATURE_MATRIX: RoleMatrix = {
     whatsappActions: 'hidden',
     clinicalRecords: 'editable',
     patients: 'hidden',
-    leads: 'hidden',
     finance: 'hidden',
     stock: 'hidden',
     team: 'read-only',            // can view own profile via /app/equipe/$profileId
@@ -210,7 +206,6 @@ export const ROLE_FEATURE_MATRIX: RoleMatrix = {
     whatsappActions: 'hidden',
     clinicalRecords: 'hidden',
     patients: 'hidden',
-    leads: 'hidden',
     finance: 'hidden',
     stock: 'hidden',
     team: 'hidden',
@@ -235,7 +230,6 @@ export const ROLE_FEATURE_MATRIX: RoleMatrix = {
     whatsappActions: 'hidden',
     clinicalRecords: 'future',
     patients: 'hidden',
-    leads: 'hidden',
     finance: 'hidden',
     stock: 'hidden',
     team: 'hidden',

@@ -22,11 +22,6 @@ vi.mock('@/features/dashboard/hooks/useDashboardPage', () => ({
   useDashboardPage: () => mockUseDashboardPage(),
 }))
 
-const mockUseLeadSummary = vi.fn()
-vi.mock('@/features/home/hooks/useLeadSummary', () => ({
-  useLeadSummary: () => mockUseLeadSummary(),
-}))
-
 // Prevent ProductivityCenter from mounting and firing requests for OWNER tests
 vi.mock('@/features/dashboard/containers/ProductivityCenter', () => ({
   ProductivityCenter: () => <div data-testid="productivity-center" />,
@@ -57,7 +52,6 @@ beforeEach(() => {
   vi.setSystemTime(new Date('2026-06-04T15:00:00.000Z'))
   setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
   mockUseDashboardPage.mockReturnValue(makeDefaultDashboard())
-  mockUseLeadSummary.mockReturnValue({ data: null, isLoading: false })
 })
 
 afterEach(() => {
@@ -115,16 +109,22 @@ describe('DashboardPageContainer — ASSISTANT quick actions', () => {
     expect(links.length).toBeGreaterThan(0)
   })
 
-  it('renders a Leads quick action link', () => {
+  it('renders a "Pacientes em atenção" quick action link', () => {
     render(<DashboardPageContainer />)
-    const leadsLinks = screen.getAllByRole('link', { name: /leads/i })
-    expect(leadsLinks.length).toBeGreaterThan(0)
-    expect(leadsLinks[0]).toHaveAttribute('href', '/app/leads')
+    const attLink = screen.getByRole('link', { name: /pacientes em atenção/i })
+    expect(attLink).toBeInTheDocument()
+    expect(attLink).toHaveAttribute('href', '/app/pacientes/atencao')
+  })
+
+  it('does NOT render a Leads quick action link', () => {
+    render(<DashboardPageContainer />)
+    expect(document.querySelector('a[href="/app/leads"]')).toBeNull()
   })
 
   it('renders a Pacientes quick action link', () => {
     render(<DashboardPageContainer />)
-    expect(screen.getByRole('link', { name: /pacientes/i })).toHaveAttribute('href', '/app/pacientes')
+    // Use exact name to avoid matching "Pacientes em atenção"
+    expect(screen.getByRole('link', { name: 'Pacientes' })).toHaveAttribute('href', '/app/pacientes')
   })
 
   it('renders an Estoque quick action link', () => {
@@ -159,25 +159,9 @@ describe('DashboardPageContainer — ASSISTANT KPI cards', () => {
     expect(screen.getByText('Confirmadas')).toBeInTheDocument()
   })
 
-  it('renders "Leads ativos" KPI card', () => {
+  it('does NOT render "Leads ativos" KPI card', () => {
     render(<DashboardPageContainer />)
-    expect(screen.getByText('Leads ativos')).toBeInTheDocument()
-  })
-
-  it('shows lead count from useLeadSummary when available', () => {
-    mockUseLeadSummary.mockReturnValue({
-      data: { new: 2, contacted: 1, scheduled: 0, converted: 0, lost: 0, archived: 0 },
-      isLoading: false,
-    })
-    render(<DashboardPageContainer />)
-    // new (2) + contacted (1) = 3 — distinct from any appointment counts in default mock
-    expect(screen.getByText('3')).toBeInTheDocument()
-  })
-
-  it('shows "—" for leads when summary is unavailable', () => {
-    mockUseLeadSummary.mockReturnValue({ data: null, isLoading: false })
-    render(<DashboardPageContainer />)
-    expect(screen.getByText('—')).toBeInTheDocument()
+    expect(screen.queryByText('Leads ativos')).not.toBeInTheDocument()
   })
 })
 

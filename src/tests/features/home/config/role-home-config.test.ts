@@ -155,10 +155,6 @@ describe('Feature matrix — ASSISTANT', () => {
     expect(getRoleFeatureAccess('ASSISTANT', 'clinicalRecords')).toBe('hidden')
   })
 
-  it('has editable access to leads', () => {
-    expect(getRoleFeatureAccess('ASSISTANT', 'leads')).toBe('editable')
-  })
-
   it('has hidden access to finance', () => {
     expect(getRoleFeatureAccess('ASSISTANT', 'finance')).toBe('hidden')
   })
@@ -227,10 +223,6 @@ describe('Feature matrix — DENTIST', () => {
     expect(getRoleFeatureAccess('DENTIST', 'patients')).toBe('hidden')
   })
 
-  it('has hidden access to leads', () => {
-    expect(getRoleFeatureAccess('DENTIST', 'leads')).toBe('hidden')
-  })
-
   it('has hidden access to finance', () => {
     expect(getRoleFeatureAccess('DENTIST', 'finance')).toBe('hidden')
   })
@@ -282,7 +274,7 @@ describe('ROLE_FEATURE_MATRIX — completeness', () => {
   const allFeatures: HomeFeature[] = [
     'home', 'clinicAgenda', 'myAgenda', 'createAppointment', 'editAppointment',
     'cancelAppointment', 'statusTransitions', 'paymentUpdate', 'whatsappActions',
-    'clinicalRecords', 'patients', 'leads', 'finance', 'stock', 'team',
+    'clinicalRecords', 'patients', 'finance', 'stock', 'team',
     'googleCalendar', 'availability', 'subscription', 'reports', 'settings',
     'fiscalInvoices', 'adminPanel',
   ]

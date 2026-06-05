@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
+  AlertCircle,
   CalendarDays,
   CheckCircle2,
   Clock,
   Package,
-  TrendingUp,
   Users2,
 } from 'lucide-react'
 
@@ -29,7 +29,6 @@ import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
 import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
 import { HomeQuickActionCard } from '@/features/home/components/HomeQuickActionCard'
 import { HomeSection } from '@/features/home/components/HomeSection'
-import { useLeadSummary } from '@/features/home/hooks/useLeadSummary'
 
 import { useDashboardPage } from '../hooks/useDashboardPage'
 import { ProductivityCenter } from './ProductivityCenter'
@@ -74,11 +73,6 @@ function AssistantDashboard() {
     drawerAppointment,
     setDrawerAppointment,
   } = useDashboardPage()
-
-  const { data: leadData, isLoading: isLeadLoading } = useLeadSummary()
-
-  // NEW + CONTACTED leads = active leads that need follow-up
-  const activeLeads = leadData !== null ? leadData.new + leadData.contacted : null
 
   // PENDING appointments, sorted by time, capped at 8
   const pendingConfirmations = useMemo(
@@ -125,7 +119,7 @@ function AssistantDashboard() {
       ) : (
         <>
           {/* KPI row */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <HomeKpiCard
               label="Consultas hoje"
               value={String(statusCounts.total)}
@@ -143,13 +137,6 @@ function AssistantDashboard() {
               value={String(statusCounts.confirmed)}
               icon={CheckCircle2}
               tone={statusCounts.confirmed > 0 ? 'success' : 'neutral'}
-            />
-            <HomeKpiCard
-              label="Leads ativos"
-              value={activeLeads !== null ? String(activeLeads) : '—'}
-              icon={TrendingUp}
-              tone={activeLeads && activeLeads > 0 ? 'info' : 'neutral'}
-              isLoading={isLeadLoading}
             />
           </div>
 
@@ -181,9 +168,9 @@ function AssistantDashboard() {
               to="/app/pacientes"
             />
             <HomeQuickActionCard
-              title="Leads"
-              icon={TrendingUp}
-              to="/app/leads"
+              title="Pacientes em atenção"
+              icon={AlertCircle}
+              to="/app/pacientes/atencao"
             />
             <HomeQuickActionCard
               title="Estoque"
