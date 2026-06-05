@@ -32,8 +32,7 @@ type HomeDashboardHeaderProps = {
  * an inline `badge` next to the title and a dedicated `actions` slot that
  * sits on the right on desktop.
  *
- * Do not wire this into the existing dashboards until the corresponding
- * Block 4–6 redesign for that role is implemented.
+ * Used by OWNER, ASSISTANT, DENTIST, and ADMIN home containers.
  */
 export function HomeDashboardHeader({
   eyebrow,
