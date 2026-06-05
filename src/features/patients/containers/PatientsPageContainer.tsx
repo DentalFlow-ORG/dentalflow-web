@@ -1,26 +1,40 @@
 import { useState } from 'react'
-import { AlertCircle, CalendarDays, ChevronRight, RefreshCw, Users2, X } from 'lucide-react'
+import {
+  AlertCircle,
+  BarChart3,
+  CalendarDays,
+  CheckCircle2,
+  RefreshCw,
+  Users2,
+  X,
+} from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { Dialog } from 'radix-ui'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { PatientAvatarWidget } from '../components/PatientAvatarWidget'
+import { PatientIdentityBadge } from '../components/PatientIdentityBadge'
 import { usePatientAvatar } from '../hooks/usePatientAvatar'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
-import { EmptyState } from '@/components/common/EmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
-import { MetricCard } from '@/components/common/MetricCard'
-import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
+import { Pagination } from '@/components/common/Pagination'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ClinicalTimeline } from '@/features/clinical-records/components/ClinicalTimeline'
 import { usePatientClinicalTimeline } from '@/features/clinical-records/hooks/usePatientClinicalTimeline'
+
+import { HomeActionGrid } from '@/features/home/components/HomeActionGrid'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
+import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
+import { HomeQuickActionCard } from '@/features/home/components/HomeQuickActionCard'
+import { HomeSection } from '@/features/home/components/HomeSection'
 
 import { formatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
 
@@ -32,32 +46,56 @@ import { type BadgeTone, STATUS_LABEL, STATUS_TONE } from '../constants/appointm
 const formatDate = formatDateBR
 const formatTime = (t: string | null | undefined) => safeFormatTimeBR(t)
 
-function KpiGrid({ patients }: { patients: PatientSummary[] }) {
+// ── KPI section ───────────────────────────────────────────────────────────────
+
+function PatientKpiRow({ patients }: { patients: PatientSummary[] }) {
   const totalPatients = patients.length
   const totalAppointments = patients.reduce(
-    (total, patient) => total + patient.totalAppointments,
+    (sum, p) => sum + p.totalAppointments,
     0,
   )
   const totalCompleted = patients.reduce(
-    (total, patient) => total + patient.completedAppointments,
+    (sum, p) => sum + p.completedAppointments,
     0,
   )
   const completionRate =
     totalAppointments > 0
-      ? ((totalCompleted / totalAppointments) * 100).toFixed(1)
-      : '0.0'
+      ? `${((totalCompleted / totalAppointments) * 100).toFixed(1)}%`
+      : '0.0%'
   const avgPerPatient =
     totalPatients > 0 ? (totalAppointments / totalPatients).toFixed(1) : '0.0'
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <MetricCard value={String(totalPatients)} label="Pacientes cadastrados" />
-      <MetricCard value={String(totalAppointments)} label="Consultas no total" />
-      <MetricCard value={`${completionRate}%`} label="Taxa de conclusão" />
-      <MetricCard value={avgPerPatient} label="Consultas por paciente" />
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <HomeKpiCard
+        label="Pacientes cadastrados"
+        value={String(totalPatients)}
+        icon={Users2}
+        tone="primary"
+      />
+      <HomeKpiCard
+        label="Consultas no total"
+        value={String(totalAppointments)}
+        icon={CalendarDays}
+        tone="neutral"
+      />
+      <HomeKpiCard
+        label="Taxa de conclusão"
+        value={completionRate}
+        icon={CheckCircle2}
+        tone={totalCompleted > 0 ? 'success' : 'neutral'}
+      />
+      <HomeKpiCard
+        label="Média por paciente"
+        value={avgPerPatient}
+        icon={BarChart3}
+        tone="neutral"
+      />
     </div>
   )
 }
+
+// ── Appointment row (used inside detail panel – P3 scope) ─────────────────────
 
 function AppointmentRow({ appt }: { appt: PatientAppointment }) {
   const tone: BadgeTone = STATUS_TONE[appt.status] ?? 'muted'
@@ -89,6 +127,8 @@ function AppointmentRow({ appt }: { appt: PatientAppointment }) {
   )
 }
 
+// ── Mobile card ───────────────────────────────────────────────────────────────
+
 function PatientMobileCard({
   patient,
   onOpenDetails,
@@ -96,59 +136,43 @@ function PatientMobileCard({
   patient: PatientSummary
   onOpenDetails: (patient: PatientSummary) => void
 }) {
-  const hasContact = Boolean(patient.patientPhone || patient.patientEmail)
   const completionSummary =
     patient.totalAppointments > 0
       ? `${patient.completedAppointments} de ${patient.totalAppointments} consultas concluídas`
       : 'Nenhuma consulta registrada'
 
   return (
-    <article className="rounded-lg border border-border bg-card p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <PatientAvatarWidget
-            name={patient.patientName}
-            avatarUrl={patient.avatarUrl}
-            size="md"
-          />
-          <div className="min-w-0">
-            <h3 className="truncate text-sm font-semibold text-foreground">
-              {patient.patientName}
-            </h3>
-            <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-              {patient.lastVisit
-                ? `Última visita em ${formatDate(patient.lastVisit)}`
-                : 'Sem visita registrada'}
-            </p>
-          </div>
-        </div>
+    <article className="rounded-xl border border-border bg-card p-4 shadow-sm">
+      <div className="flex items-start gap-3">
+        <PatientIdentityBadge
+          name={patient.patientName}
+          email={patient.patientEmail}
+          phone={patient.patientPhone}
+          avatarUrl={patient.avatarUrl}
+          size="md"
+          className="flex-1 min-w-0"
+        />
         <StatusBadge tone={patient.totalAppointments > 0 ? 'success' : 'muted'}>
           {patient.totalAppointments} consulta{patient.totalAppointments !== 1 ? 's' : ''}
         </StatusBadge>
       </div>
 
-      <div className="mt-4 grid gap-3 text-sm text-foreground">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Contato</p>
-          {hasContact ? (
-            <div className="mt-1 space-y-0.5">
-              {patient.patientPhone && <p>{patient.patientPhone}</p>}
-              {patient.patientEmail && <p className="wrap-break-word">{patient.patientEmail}</p>}
-            </div>
-          ) : (
-            <p className="mt-1 text-muted-foreground">Sem contato cadastrado</p>
-          )}
-        </div>
+      <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+        <span>
+          {patient.lastVisit
+            ? `Última visita em ${formatDate(patient.lastVisit)}`
+            : 'Sem visita registrada'}
+        </span>
+      </div>
 
-        <div className="flex flex-wrap gap-2">
-          <StatusBadge tone="muted">{completionSummary}</StatusBadge>
-          {patient.canceledAppointments > 0 && (
-            <StatusBadge tone="warning">
-              {patient.canceledAppointments} cancelada
-              {patient.canceledAppointments !== 1 ? 's' : ''}
-            </StatusBadge>
-          )}
-        </div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <StatusBadge tone="muted">{completionSummary}</StatusBadge>
+        {patient.canceledAppointments > 0 && (
+          <StatusBadge tone="warning">
+            {patient.canceledAppointments} cancelada
+            {patient.canceledAppointments !== 1 ? 's' : ''}
+          </StatusBadge>
+        )}
       </div>
 
       <Button
@@ -158,12 +182,13 @@ function PatientMobileCard({
         className="mt-4 w-full"
         onClick={() => onOpenDetails(patient)}
       >
-        Ver detalhes do paciente
-        <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        Ver detalhes
       </Button>
     </article>
   )
 }
+
+// ── Detail panel (P3 – kept as-is with PatientAvatarWidget for upload) ────────
 
 type PanelTab = 'consultas' | 'prontuarios'
 
@@ -262,7 +287,6 @@ function PatientDetailPanel({
             </div>
           )}
 
-          {/* Tabs */}
           <div role="tablist" aria-label="Informações do paciente" className="flex border-b border-border">
             {([
               { id: 'consultas', label: 'Consultas' },
@@ -339,6 +363,8 @@ function PatientDetailPanel({
   )
 }
 
+// ── Skeleton loaders ──────────────────────────────────────────────────────────
+
 function PatientSkeletonRow() {
   return (
     <tr aria-hidden="true">
@@ -350,9 +376,6 @@ function PatientSkeletonRow() {
             <div className="h-3 w-24 animate-pulse rounded bg-muted" />
           </div>
         </div>
-      </td>
-      <td className="hidden px-4 py-3 sm:table-cell">
-        <div className="h-4 w-24 animate-pulse rounded bg-muted" />
       </td>
       <td className="px-4 py-3 text-center">
         <div className="mx-auto h-4 w-12 animate-pulse rounded bg-muted" />
@@ -367,25 +390,22 @@ function PatientSkeletonRow() {
 
 function PatientMobileCardSkeleton() {
   return (
-    <div className="rounded-lg border border-border bg-card p-4 shadow-sm" aria-hidden="true">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
-          <div className="space-y-1.5">
-            <div className="h-4 w-32 animate-pulse rounded bg-muted" />
-            <div className="h-3 w-24 animate-pulse rounded bg-muted" />
-          </div>
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm" aria-hidden="true">
+      <div className="flex items-start gap-3">
+        <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+          <div className="h-3 w-24 animate-pulse rounded bg-muted" />
         </div>
         <div className="h-5 w-16 animate-pulse rounded-full bg-muted" />
       </div>
-      <div className="mt-4 space-y-2">
-        <div className="h-3 w-14 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-36 animate-pulse rounded bg-muted" />
-      </div>
+      <div className="mt-3 h-3 w-36 animate-pulse rounded bg-muted" />
       <div className="mt-4 h-9 w-full animate-pulse rounded-md bg-muted" />
     </div>
   )
 }
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export function PatientsPageContainer() {
   const {
@@ -412,12 +432,12 @@ export function PatientsPageContainer() {
   } = usePatientsPage()
 
   return (
-    <AppPage>
-      <AppPageHeader
-        eyebrow="Clínica"
-        title="Pacientes"
-        description="Lista de pacientes com base no histórico de consultas."
-        action={
+    <AppPage spacing="loose">
+      <HomeDashboardHeader
+        eyebrow="Pacientes"
+        title="Base de pacientes"
+        description="Acompanhe histórico, contatos e recorrência dos pacientes da clínica."
+        actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild>
               <Link to="/app/pacientes/atencao">
@@ -433,6 +453,7 @@ export function PatientsPageContainer() {
         }
       />
 
+      {/* Filter controls */}
       <PanelCard className="p-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <FormField label="Buscar paciente" htmlFor="patientSearch" className="lg:col-span-2">
@@ -463,148 +484,130 @@ export function PatientsPageContainer() {
         </div>
       </PanelCard>
 
-      <ListPageShell
-        isLoading={false}
-        error={error}
-        onRetry={handleRefresh}
-        isEmpty={!isLoading && patients.length === 0}
-        emptyState={
-          <EmptyState
-            icon={Users2}
-            title="Nenhum paciente registrado"
-            description="Os pacientes aparecem aqui a partir dos agendamentos registrados na clínica."
-          />
-        }
-      >
-        <>
-          {!isLoading && <KpiGrid patients={filteredPatients} />}
+      {/* Error state */}
+      {error && <InlineFeedback tone="error">{error}</InlineFeedback>}
 
-          <PanelCard>
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-foreground">
-                  Lista de pacientes
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Ordenado pela consulta mais recente.
-                </p>
-              </div>
-              <Users2 className="h-5 w-5 text-primary" aria-hidden="true" />
+      {/* No patients at all */}
+      {!isLoading && !error && patients.length === 0 && (
+        <HomeEmptyState
+          icon={Users2}
+          title="Nenhum paciente registrado"
+          description="Os pacientes aparecem aqui a partir dos agendamentos registrados na clínica."
+        />
+      )}
+
+      {/* Main content — KPIs + list */}
+      {(isLoading || patients.length > 0) && (
+        <>
+          {/* KPI row — computed from filtered patients */}
+          {!isLoading && <PatientKpiRow patients={filteredPatients} />}
+
+          {/* Patient list section */}
+          <HomeSection
+            title="Pacientes cadastrados"
+            description="Ordenado pela consulta mais recente."
+          >
+            {/* Mobile cards */}
+            <div className="mt-4 space-y-3 lg:hidden">
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, i) => <PatientMobileCardSkeleton key={i} />)
+              ) : filteredPatients.length === 0 ? (
+                <HomeEmptyState
+                  compact
+                  icon={Users2}
+                  title={hasFilters ? 'Nenhum resultado para sua busca' : 'Nenhum paciente encontrado.'}
+                  description={hasFilters ? 'Tente ajustar os filtros ou pesquisar por outro contato.' : undefined}
+                />
+              ) : (
+                paginatedPatients.map((patient) => (
+                  <PatientMobileCard
+                    key={patient.identifier}
+                    patient={patient}
+                    onOpenDetails={setSelectedPatient}
+                  />
+                ))
+              )}
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-border">
-              <div className="space-y-3 bg-muted p-3 lg:hidden">
-                {isLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => <PatientMobileCardSkeleton key={i} />)
-                ) : filteredPatients.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
-                    {hasFilters
-                      ? 'Nenhum paciente encontrado para os filtros aplicados.'
-                      : 'Nenhum paciente encontrado.'}
-                  </div>
-                ) : (
-                  paginatedPatients.map((patient) => (
-                    <PatientMobileCard
-                      key={patient.identifier}
-                      patient={patient}
-                      onOpenDetails={setSelectedPatient}
-                    />
-                  ))
-                )}
-              </div>
-
-              <div className="hidden lg:block">
-                <table className="w-full text-sm" aria-label="Lista de pacientes">
-                  <thead>
-                    <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      <th scope="col" className="px-4 py-3">Paciente</th>
-                      <th scope="col" className="hidden px-4 py-3 sm:table-cell">Contato</th>
-                      <th scope="col" className="px-4 py-3 text-center">Consultas</th>
-                      <th scope="col" className="hidden px-4 py-3 md:table-cell">Última visita</th>
-                      <th scope="col" className="px-4 py-3" />
+            {/* Desktop table */}
+            <div className="mt-4 hidden overflow-hidden rounded-lg border border-border lg:block">
+              <table className="w-full text-sm" aria-label="Lista de pacientes">
+                <thead>
+                  <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <th scope="col" className="px-4 py-3">Paciente</th>
+                    <th scope="col" className="px-4 py-3 text-center">Consultas</th>
+                    <th scope="col" className="hidden px-4 py-3 md:table-cell">Última visita</th>
+                    <th scope="col" className="px-4 py-3" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border bg-card">
+                  {isLoading ? (
+                    Array.from({ length: 8 }).map((_, i) => <PatientSkeletonRow key={i} />)
+                  ) : filteredPatients.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-10">
+                        <HomeEmptyState
+                          compact
+                          icon={Users2}
+                          title={hasFilters ? 'Nenhum resultado para sua busca' : 'Nenhum paciente encontrado.'}
+                          description={hasFilters ? 'Tente ajustar os filtros ou pesquisar por outro contato.' : undefined}
+                        />
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border bg-card">
-                    {isLoading ? (
-                      Array.from({ length: 8 }).map((_, i) => <PatientSkeletonRow key={i} />)
-                    ) : filteredPatients.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={5}
-                          className="px-4 py-8 text-center text-sm text-muted-foreground"
-                        >
-                          {hasFilters
-                            ? 'Nenhum paciente encontrado para os filtros aplicados.'
-                            : 'Nenhum paciente encontrado.'}
+                  ) : (
+                    paginatedPatients.map((patient) => (
+                      <tr
+                        key={patient.identifier}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Ver detalhes de ${patient.patientName}`}
+                        className="cursor-pointer hover:bg-muted/50 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                        onClick={() => setSelectedPatient(patient)}
+                        onKeyDown={(event) => {
+                          if (event.target !== event.currentTarget) return
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            setSelectedPatient(patient)
+                          }
+                        }}
+                      >
+                        <td className="px-4 py-3">
+                          <PatientIdentityBadge
+                            name={patient.patientName}
+                            email={patient.patientEmail}
+                            phone={patient.patientPhone}
+                            avatarUrl={patient.avatarUrl}
+                            size="md"
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="font-semibold text-foreground">
+                            {patient.totalAppointments}
+                          </span>
+                          <span className="ml-1 text-xs text-muted-foreground">
+                            ({patient.completedAppointments} ✓)
+                          </span>
+                        </td>
+                        <td className="hidden px-4 py-3 text-foreground md:table-cell">
+                          {patient.lastVisit ? (
+                            formatDate(patient.lastVisit)
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <RefreshCw className="ml-auto h-4 w-4 rotate-0 scale-0 text-muted-foreground opacity-0 group-hover:opacity-100" aria-hidden="true" />
                         </td>
                       </tr>
-                    ) : (
-                      paginatedPatients.map((patient) => (
-                        <tr
-                          key={patient.identifier}
-                          role="button"
-                          tabIndex={0}
-                          aria-label={`Ver detalhes de ${patient.patientName}`}
-                          className="cursor-pointer hover:bg-muted/50 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-                          onClick={() => setSelectedPatient(patient)}
-                          onKeyDown={(event) => {
-                            if (event.target !== event.currentTarget) return
-                            if (event.key === 'Enter' || event.key === ' ') {
-                              event.preventDefault()
-                              setSelectedPatient(patient)
-                            }
-                          }}
-                        >
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <PatientAvatarWidget
-                                name={patient.patientName}
-                                avatarUrl={patient.avatarUrl}
-                                size="md"
-                              />
-                              <div>
-                                <p className="font-medium text-foreground">
-                                  {patient.patientName}
-                                </p>
-                                {patient.patientEmail && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {patient.patientEmail}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="hidden px-4 py-3 text-foreground sm:table-cell">
-                            {patient.patientPhone ?? (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="font-semibold text-foreground">
-                              {patient.totalAppointments}
-                            </span>
-                            <span className="ml-1 text-xs text-muted-foreground">
-                              ({patient.completedAppointments} ✓)
-                            </span>
-                          </td>
-                          <td className="hidden px-4 py-3 text-foreground md:table-cell">
-                            {patient.lastVisit ? (
-                              formatDate(patient.lastVisit)
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-              <div className="border-t border-border px-4 py-3">
+            {/* Pagination */}
+            {(isLoading || filteredPatients.length > 0) && (
+              <div className="mt-4 border-t border-border pt-3">
                 <Pagination
                   page={page}
                   totalPages={totalPages}
@@ -615,10 +618,27 @@ export function PatientsPageContainer() {
                   onPageSizeChange={setPageSize}
                 />
               </div>
-            </div>
-          </PanelCard>
+            )}
+          </HomeSection>
+
+          {/* Quick access */}
+          <HomeActionGrid columns={2}>
+            <HomeQuickActionCard
+              title="Pacientes em atenção"
+              description="Inativos, sem consulta futura ou pagamentos pendentes"
+              icon={AlertCircle}
+              to="/app/pacientes/atencao"
+              tone="warning"
+            />
+            <HomeQuickActionCard
+              title="Agendamentos"
+              description="Consulte e gerencie todos os agendamentos da clínica"
+              icon={CalendarDays}
+              to="/app/agendamentos"
+            />
+          </HomeActionGrid>
         </>
-      </ListPageShell>
+      )}
 
       <PatientDetailPanel
         patient={selectedPatient}
