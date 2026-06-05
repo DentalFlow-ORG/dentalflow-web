@@ -1,15 +1,16 @@
-import { Loader2, Pencil, Plus, Stethoscope, Trash2 } from 'lucide-react'
+import { Loader2, Plus, Stethoscope } from 'lucide-react'
 import { useState } from 'react'
 
-import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
-import { formatCurrencyBRL, parseCurrencyBRL } from '@/lib/number-formatters'
+import { parseCurrencyBRL } from '@/lib/number-formatters'
 import { ApiError } from '@/services/http'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
 
+import { ServiceItemCard } from './ServiceItemCard'
 import { createService, deleteService, updateService } from '../services/team.service'
 import type { CreateServiceDto, ServiceItem, UpdateServiceDto } from '../types/team.types'
 
@@ -286,19 +287,18 @@ export function ServicesPanel({ profileId, services, onServicesChange, readOnly 
         />
       )}
 
-      {/* Empty state */}
       {sortedServices.length === 0 && !isAdding && (
-        <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-card py-10 text-center">
-          <Stethoscope className="h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
-            Nenhum procedimento cadastrado. Adicione os serviços oferecidos pelo profissional.
-          </p>
-        </div>
+        <HomeEmptyState
+          compact
+          icon={Stethoscope}
+          title="Nenhum procedimento cadastrado"
+          description="Adicione os serviços oferecidos pelo profissional."
+        />
       )}
 
       {/* Service list */}
       {sortedServices.length > 0 && (
-        <div className="space-y-2">
+        <div className="grid gap-3">
           {sortedServices.map((svc) =>
             !readOnly && editingId === svc.id ? (
               <ServiceForm
@@ -312,7 +312,7 @@ export function ServicesPanel({ profileId, services, onServicesChange, readOnly 
                 }}
               />
             ) : (
-              <ServiceRow
+              <ServiceItemCard
                 key={svc.id}
                 service={svc}
                 readOnly={readOnly}
@@ -342,87 +342,6 @@ export function ServicesPanel({ profileId, services, onServicesChange, readOnly 
         onConfirm={() => deletingId && handleDelete(deletingId)}
         onCancel={() => setDeletingId(null)}
       />
-    </div>
-  )
-}
-
-// ── ServiceRow ────────────────────────────────────────────────────────────────
-
-type ServiceRowProps = {
-  service: ServiceItem
-  readOnly: boolean
-  isLoading: boolean
-  onEditStart: () => void
-  onDeleteStart: () => void
-}
-
-function ServiceRow({ service, readOnly, isLoading, onEditStart, onDeleteStart }: ServiceRowProps) {
-  const priceDisplay = (() => {
-    if (service.priceFrom != null && service.priceTo != null) {
-      return `${formatCurrencyBRL(service.priceFrom)} – ${formatCurrencyBRL(service.priceTo)}`
-    }
-    if (service.priceFrom != null) return `A partir de ${formatCurrencyBRL(service.priceFrom)}`
-    if (service.priceTo != null) return `Até ${formatCurrencyBRL(service.priceTo)}`
-    return null
-  })()
-
-  return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0 flex-1 space-y-1.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-semibold text-foreground">{service.name}</p>
-          <span
-            className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
-              service.isActive
-                ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
-                : 'border-border bg-muted text-muted-foreground'
-            }`}
-          >
-            {service.isActive ? 'Ativo' : 'Inativo'}
-          </span>
-        </div>
-
-        {service.description && (
-          <p className="line-clamp-2 text-xs text-muted-foreground">{service.description}</p>
-        )}
-
-        <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
-          {priceDisplay && <span>{priceDisplay}</span>}
-          {service.durationMinutes != null && <span>{service.durationMinutes} min</span>}
-          {!readOnly && (
-            <span>
-              Custo direto:{' '}
-              {service.estimatedDirectCostCents != null ? (
-                <span className="font-medium text-foreground">
-                  {formatCurrencyBRL(service.estimatedDirectCostCents / 100)}
-                </span>
-              ) : (
-                <em className="not-italic text-muted-foreground/60">Não configurado</em>
-              )}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {!readOnly && (
-        <div className="flex shrink-0 items-center justify-end gap-1">
-          <ActionIconButton
-            onClick={onEditStart}
-            disabled={isLoading}
-            aria-label="Editar serviço"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </ActionIconButton>
-          <ActionIconButton
-            tone="danger"
-            onClick={onDeleteStart}
-            disabled={isLoading}
-            aria-label="Remover serviço"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </ActionIconButton>
-        </div>
-      )}
     </div>
   )
 }
@@ -464,72 +383,81 @@ function ServiceForm(props: ServiceFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 rounded-lg border border-border bg-muted p-4"
+      className="space-y-5 rounded-xl border border-primary/20 bg-primary/5 p-4 dark:bg-primary/10"
     >
       {validationError && (
         <InlineFeedback tone="error">{validationError}</InlineFeedback>
       )}
 
-      <FormField label="Nome" htmlFor="svc-name">
-        <TextInput
-          id="svc-name"
-          value={form.name}
-          onChange={(e) => set('name', e.target.value)}
-          placeholder="Ex: Limpeza dental"
-          required
-          disabled={isLoading}
-          maxLength={100}
-        />
-      </FormField>
+      <fieldset className="space-y-4">
+        <legend className="text-sm font-semibold text-foreground">Identificação</legend>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <FormField label="Nome" htmlFor="svc-name">
+            <TextInput
+              id="svc-name"
+              value={form.name}
+              onChange={(e) => set('name', e.target.value)}
+              placeholder="Ex: Limpeza dental"
+              required
+              disabled={isLoading}
+              maxLength={100}
+            />
+          </FormField>
 
-      <FormField label="Descrição" htmlFor="svc-description" optional>
-        <TextArea
-          id="svc-description"
-          value={form.description}
-          onChange={(e) => set('description', e.target.value)}
-          placeholder="Descreva o procedimento (opcional)"
-          disabled={isLoading}
-          maxLength={2000}
-          className="min-h-20"
-        />
-      </FormField>
+          <FormField label="Descrição" htmlFor="svc-description" optional>
+            <TextArea
+              id="svc-description"
+              value={form.description}
+              onChange={(e) => set('description', e.target.value)}
+              placeholder="Descreva o procedimento (opcional)"
+              disabled={isLoading}
+              maxLength={2000}
+              className="min-h-20"
+            />
+          </FormField>
+        </div>
+      </fieldset>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label="Preço a partir de (R$)" htmlFor="svc-price-from" optional>
-          <TextInput
-            id="svc-price-from"
-            value={form.priceFrom}
-            onChange={(e) => set('priceFrom', e.target.value)}
-            placeholder="0,00"
-            disabled={isLoading}
-            inputMode="decimal"
-          />
-        </FormField>
+      <fieldset className="space-y-4">
+        <legend className="text-sm font-semibold text-foreground">Duração e preço</legend>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField label="Duração (min)" htmlFor="svc-duration" optional>
+            <TextInput
+              id="svc-duration"
+              value={form.durationMinutes}
+              onChange={(e) => set('durationMinutes', e.target.value)}
+              placeholder="Ex: 60"
+              disabled={isLoading}
+              inputMode="numeric"
+            />
+          </FormField>
 
-        <FormField label="Preço até (R$)" htmlFor="svc-price-to" optional>
-          <TextInput
-            id="svc-price-to"
-            value={form.priceTo}
-            onChange={(e) => set('priceTo', e.target.value)}
-            placeholder="0,00"
-            disabled={isLoading}
-            inputMode="decimal"
-          />
-        </FormField>
-      </div>
+          <FormField label="Preço a partir de (R$)" htmlFor="svc-price-from" optional>
+            <TextInput
+              id="svc-price-from"
+              value={form.priceFrom}
+              onChange={(e) => set('priceFrom', e.target.value)}
+              placeholder="0,00"
+              disabled={isLoading}
+              inputMode="decimal"
+            />
+          </FormField>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label="Duração (min)" htmlFor="svc-duration" optional>
-          <TextInput
-            id="svc-duration"
-            value={form.durationMinutes}
-            onChange={(e) => set('durationMinutes', e.target.value)}
-            placeholder="Ex: 60"
-            disabled={isLoading}
-            inputMode="numeric"
-          />
-        </FormField>
+          <FormField label="Preço até (R$)" htmlFor="svc-price-to" optional>
+            <TextInput
+              id="svc-price-to"
+              value={form.priceTo}
+              onChange={(e) => set('priceTo', e.target.value)}
+              placeholder="0,00"
+              disabled={isLoading}
+              inputMode="decimal"
+            />
+          </FormField>
+        </div>
+      </fieldset>
 
+      <fieldset className="space-y-4">
+        <legend className="text-sm font-semibold text-foreground">Custos internos</legend>
         <FormField
           label="Custo direto estimado (R$)"
           htmlFor="svc-cost"
@@ -545,9 +473,9 @@ function ServiceForm(props: ServiceFormProps) {
             inputMode="decimal"
           />
         </FormField>
-      </div>
+      </fieldset>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
         <input
           id="svc-active"
           type="checkbox"
