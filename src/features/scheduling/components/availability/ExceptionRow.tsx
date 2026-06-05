@@ -2,62 +2,56 @@ import { Pencil, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { formatDateBR } from '@/lib/date-time-formatters'
+import { cn } from '@/lib/utils'
 
+import type { AvailabilityException } from '../../types/scheduling.types'
 import { formatWallTime } from '../../utils/time'
-import type { AvailabilityException, CreateAvailabilityExceptionDto } from '../../types/scheduling.types'
-import { ExceptionForm } from './ExceptionForm'
 
 type ExceptionRowProps = {
   exception: AvailabilityException
-  isEditing: boolean
   isLoading: boolean
-  onEditStart: () => void
-  onEditCancel: () => void
-  onEdit: (dto: CreateAvailabilityExceptionDto) => void
+  isPast: boolean
+  onEdit: () => void
   onDelete: () => void
 }
 
 export function ExceptionRow({
   exception,
-  isEditing,
   isLoading,
-  onEditStart,
-  onEditCancel,
+  isPast,
   onEdit,
   onDelete,
 }: ExceptionRowProps) {
-  if (isEditing) {
-    return (
-      <ExceptionForm
-        initial={{
-          exceptionDate: exception.exceptionDate,
-          isDayOff: exception.isDayOff,
-          startTime: exception.startTime,
-          endTime: exception.endTime,
-          reason: exception.reason,
-        }}
-        isLoading={isLoading}
-        onSubmit={onEdit}
-        onCancel={onEditCancel}
-      />
-    )
-  }
-
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      data-testid={`exception-row-${exception.id}`}
+      className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-foreground">
-          {formatDateBR(exception.exceptionDate)}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-foreground">
+            {formatDateBR(exception.exceptionDate)}
+          </p>
+          <span
+            className={cn(
+              'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+              isPast
+                ? 'bg-muted text-muted-foreground'
+                : 'bg-primary/10 text-primary dark:bg-primary/15',
+            )}
+          >
+            {isPast ? 'Passada' : 'Próxima'}
+          </span>
+        </div>
         <p className="mt-0.5 text-xs text-muted-foreground">
           {exception.isDayOff ? (
-            <span className="font-medium text-red-600 dark:text-red-400">Folga</span>
+            <span className="font-medium text-red-600 dark:text-red-400">Folga ocasional</span>
           ) : (
             <>
-              Horário especial:{' '}
-              {exception.startTime && formatWallTime(exception.startTime)}
-              {' – '}
-              {exception.endTime && formatWallTime(exception.endTime)}
+              <span className="font-medium text-foreground">Horário especial</span>
+              {exception.startTime && exception.endTime && (
+                <> · {formatWallTime(exception.startTime)} – {formatWallTime(exception.endTime)}</>
+              )}
             </>
           )}
           {exception.reason && (
@@ -65,12 +59,13 @@ export function ExceptionRow({
           )}
         </p>
       </div>
+
       <div className="flex shrink-0 items-center justify-end gap-1">
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
-          onClick={onEditStart}
+          onClick={onEdit}
           disabled={isLoading}
           aria-label="Editar exceção"
         >

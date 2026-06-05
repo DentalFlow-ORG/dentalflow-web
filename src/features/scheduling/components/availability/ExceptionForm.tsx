@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { Loader2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
@@ -24,9 +24,20 @@ type ExceptionFormProps = {
   isLoading: boolean
   onSubmit: (dto: CreateAvailabilityExceptionDto) => void
   onCancel: () => void
+  saveLabel?: string
+  onDelete?: () => void
+  isDeleting?: boolean
 }
 
-export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: ExceptionFormProps) {
+export function ExceptionForm({
+  initial,
+  isLoading,
+  onSubmit,
+  onCancel,
+  saveLabel,
+  onDelete,
+  isDeleting = false,
+}: ExceptionFormProps) {
   const [isDayOff, setIsDayOff] = useState(initial?.isDayOff ?? true)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -82,7 +93,7 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
                 : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
             )}
           >
-            Folga
+            Folga ocasional
           </button>
           <button
             type="button"
@@ -133,14 +144,48 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
         />
       </FormField>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={isLoading}>
-          Cancelar
-        </Button>
-        <Button type="submit" size="sm" disabled={isLoading}>
-          {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          {isLoading ? 'Salvando...' : 'Salvar'}
-        </Button>
+      <div
+        className={cn(
+          'flex flex-col-reverse gap-2',
+          onDelete
+            ? 'sm:flex-row sm:items-center sm:justify-between'
+            : 'sm:flex-row sm:justify-end',
+        )}
+      >
+        {onDelete && (
+          <Button
+            type="button"
+            variant="dangerGhost"
+            size="sm"
+            onClick={onDelete}
+            disabled={isLoading || isDeleting}
+          >
+            {isDeleting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {isDeleting ? (
+              'Excluindo...'
+            ) : (
+              <>
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                Excluir exceção
+              </>
+            )}
+          </Button>
+        )}
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onCancel}
+            disabled={isLoading || isDeleting}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" size="sm" disabled={isLoading || isDeleting}>
+            {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {isLoading ? 'Salvando...' : (saveLabel ?? 'Salvar')}
+          </Button>
+        </div>
       </div>
     </form>
   )
