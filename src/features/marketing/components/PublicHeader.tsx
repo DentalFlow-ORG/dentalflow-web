@@ -42,7 +42,7 @@ type DropdownGroup = {
 const produtoDropdown: DropdownItem[] = [
   {
     label: 'Para administradores / gestores',
-    description: 'Financeiro, relatórios, leads e IA de gestão',
+    description: 'Financeiro, relatórios e IA de gestão',
     href: '/para-gestores',
     icon: LayoutDashboard,
   },
@@ -86,8 +86,8 @@ const funcionalidadesDropdown: DropdownItem[] = [
     icon: CreditCard,
   },
   {
-    label: 'Pacientes e leads',
-    description: 'Cadastro, histórico e CRM de leads',
+    label: 'Pacientes',
+    description: 'Cadastro e histórico de pacientes',
     href: '/funcionalidades/pacientes',
     icon: Users,
   },

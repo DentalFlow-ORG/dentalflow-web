@@ -151,7 +151,7 @@ describe('FeatureDetailPage — related features', () => {
     render(<FeatureDetailPage content={agenda} />)
     expect(screen.getByText('Prontuário eletrônico')).toBeInTheDocument()
     expect(screen.getByText('Gestão financeira')).toBeInTheDocument()
-    expect(screen.getByText('Pacientes e leads')).toBeInTheDocument()
+    expect(screen.getByText('Pacientes')).toBeInTheDocument()
   })
 
   it('does not include the current feature label in the related section', () => {

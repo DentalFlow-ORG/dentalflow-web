@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { SiteFooter } from '@/components/layout/SiteFooter'
 import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
 
-import { LeadChatWidget } from './LeadChatWidget'
 import { PublicHeader } from './PublicHeader'
 
 type PublicLayoutProps = {
@@ -40,7 +39,6 @@ export function PublicLayout({ children, bgClassName, darkHero = false }: Public
       <PublicHeader isScrolled={isScrolled} isDarkHero={isDarkHero} />
       <main id="main-content">{children}</main>
       <SiteFooter />
-      <LeadChatWidget />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import {
   createRoute,
   createRootRoute,
   createRouter,
+  redirect,
 } from '@tanstack/react-router'
 
 import { RootRoute } from '@/app/RootRoute'
@@ -343,6 +344,15 @@ const patientsAttentionRoute = createRoute({
   ),
 })
 
+// Redirect old /app/leads bookmarks to the patient attention queue
+const leadsRedirectRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/leads',
+  beforeLoad: () => {
+    throw redirect({ to: '/app/pacientes/atencao' })
+  },
+})
+
 const reportsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/relatorios',
@@ -558,6 +568,7 @@ const routeTree = rootRoute.addChildren([
   fiscalInvoicesRoute,
   patientsRoute,
   patientsAttentionRoute,
+  leadsRedirectRoute,
   reportsRoute,
   subscriptionRoute,
   subscriptionSuccessRoute,
