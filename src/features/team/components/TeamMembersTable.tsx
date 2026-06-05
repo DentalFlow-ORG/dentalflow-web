@@ -22,7 +22,7 @@ export function TeamMembersTable({
   return (
     <div className="hidden overflow-hidden rounded-lg border border-border bg-card shadow-sm md:block">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] text-sm" aria-label="Usuários da clínica">
+        <table className="w-full min-w-[640px] text-sm" aria-label="Usuários da clínica">
           <thead>
             <tr className="border-b border-border bg-muted/70 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <th scope="col" className="px-4 py-3">
@@ -72,10 +72,12 @@ export function TeamMembersTable({
                 </td>
                 <td className="px-4 py-4">
                   <div className="flex min-w-0 flex-col items-start gap-1.5">
-                    <ProfilePublishBadge
-                      hasProfile={!!member.profile}
-                      isPublished={member.profile?.isPublished}
-                    />
+                    {member.role === 'DENTIST' && (
+                      <ProfilePublishBadge
+                        hasProfile={!!member.profile}
+                        isPublished={member.profile?.isPublished}
+                      />
+                    )}
                     {member.profile && (
                       <span className="max-w-[180px] truncate text-xs text-muted-foreground">
                         {member.profile.displayName}

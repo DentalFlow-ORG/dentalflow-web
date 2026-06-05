@@ -81,8 +81,22 @@ describe('TeamMemberCards', () => {
     expect(screen.getByText('Profissional')).toBeInTheDocument()
     expect(screen.getByText('Assistente')).toBeInTheDocument()
     expect(screen.getByText('Publicado')).toBeInTheDocument()
-    expect(screen.getByText('Sem perfil')).toBeInTheDocument()
+    expect(screen.queryByText('Sem perfil')).toBeNull()
     expect(screen.getByText('Inativo')).toBeInTheDocument()
+  })
+
+  it('shows publish badge for DENTIST cards and hides it for ASSISTANT cards', () => {
+    render(
+      <TeamMemberCards
+        members={MEMBERS}
+        onEdit={vi.fn()}
+        onPassword={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText('Publicado')).toBeInTheDocument()
+    expect(screen.queryByText('Sem perfil')).toBeNull()
   })
 
   it('shows profile links only for members with a profile', () => {

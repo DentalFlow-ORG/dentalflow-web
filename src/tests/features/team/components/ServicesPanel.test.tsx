@@ -263,4 +263,36 @@ describe('ServicesPanel', () => {
 
     expect(screen.getByRole('textbox', { name: /nome/i })).toHaveValue('')
   })
+
+  it('shows the internal heading by default', () => {
+    renderPanel()
+
+    expect(screen.getByRole('heading', { name: /serviços e procedimentos/i })).toBeInTheDocument()
+  })
+
+  it('hides the internal heading when hideTitle is true', () => {
+    render(
+      <ServicesPanel
+        profileId="profile-1"
+        services={[makeService()]}
+        onServicesChange={vi.fn()}
+        hideTitle
+      />,
+    )
+
+    expect(screen.queryByRole('heading', { name: /serviços e procedimentos/i })).toBeNull()
+  })
+
+  it('still shows the Adicionar button when hideTitle is true', () => {
+    render(
+      <ServicesPanel
+        profileId="profile-1"
+        services={[]}
+        onServicesChange={vi.fn()}
+        hideTitle
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: /adicionar/i })).toBeInTheDocument()
+  })
 })

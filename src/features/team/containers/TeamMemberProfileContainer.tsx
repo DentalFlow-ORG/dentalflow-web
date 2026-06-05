@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import {
+  Award,
   CalendarClock,
   CalendarOff,
   Loader2,
   ShieldOff,
-  Sparkles,
   Stethoscope,
 } from 'lucide-react'
 
@@ -38,7 +38,6 @@ type ProfileKpis = {
   activeServices: number
   specialties: number
   availabilityDays: number
-  publication: string
 }
 
 export function computeProfileKpis(
@@ -54,7 +53,6 @@ export function computeProfileKpis(
         .filter((slot) => slot.isActive)
         .map((slot) => slot.dayOfWeek),
     ).size,
-    publication: profile.isPublished ? 'Publicado' : 'Não publicado',
   }
 }
 
@@ -117,7 +115,6 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
             profile={profile}
             displayName={displayName}
             email={email}
-            phone={phone}
             isActive={isActive}
             isOwner={isOwner}
             isPublishingProfile={isPublishingProfile}
@@ -162,7 +159,7 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
                 profileId={profileId}
                 exceptions={exceptions}
                 onExceptionsChange={setExceptions}
-                title="Exceções e bloqueios"
+                hideTitle
               />
             </div>
           </HomeSection>
@@ -177,6 +174,7 @@ export function TeamMemberProfileContainer({ profileId }: Props) {
                 services={services}
                 onServicesChange={setServices}
                 readOnly={user?.role !== 'OWNER'}
+                hideTitle
               />
             </div>
           </HomeSection>
@@ -203,7 +201,6 @@ function ProfileCommandHeader({
   profile,
   displayName,
   email,
-  phone,
   isActive,
   isOwner,
   isPublishingProfile,
@@ -213,73 +210,61 @@ function ProfileCommandHeader({
   profile: ProfileDetail
   displayName: string
   email: string | null
-  phone: string | null
   isActive: boolean | null
   isOwner: boolean
   isPublishingProfile: boolean
   publishError: string | null
   onPublishClick: () => void
 }) {
-  const title = profile.displayName
-  const summary = buildProfileSummary({ profile, email, phone })
   const [firstName, ...lastNameParts] = (displayName || profile.displayName).split(' ')
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-start">
+      <HomeDashboardHeader
+        eyebrow="Perfil profissional"
+        title={profile.displayName}
+        description="Gerencie dados, disponibilidade, exceções e serviços deste profissional."
+        actions={
+          isOwner ? (
+            <Button
+              variant={profile.isPublished ? 'outline' : 'default'}
+              size="sm"
+              onClick={onPublishClick}
+              disabled={isPublishingProfile}
+            >
+              {isPublishingProfile && (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              )}
+              {isPublishingProfile
+                ? 'Atualizando...'
+                : profile.isPublished
+                  ? 'Despublicar perfil'
+                  : 'Publicar perfil'}
+            </Button>
+          ) : null
+        }
+      />
+
+      <div className="flex flex-wrap items-center gap-3">
         <TeamMemberAvatar
           firstName={firstName}
           lastName={lastNameParts.join(' ')}
           email={email}
           role="DENTIST"
           size="lg"
-          className="h-16 w-16 text-base"
         />
-
-        <div className="min-w-0 flex-1">
-          <HomeDashboardHeader
-            eyebrow="Perfil profissional"
-            title={title}
-            description={summary}
-            className="md:items-start"
-            actions={
-              isOwner ? (
-                <Button
-                  variant={profile.isPublished ? 'outline' : 'default'}
-                  size="sm"
-                  onClick={onPublishClick}
-                  disabled={isPublishingProfile}
-                >
-                  {isPublishingProfile && (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  )}
-                  {isPublishingProfile
-                    ? 'Atualizando...'
-                    : profile.isPublished
-                      ? 'Despublicar perfil'
-                      : 'Publicar perfil'}
-                </Button>
-              ) : null
-            }
-          />
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <TeamRoleBadge role="DENTIST" />
-            {isActive !== null && (
-              <StatusBadge tone={isActive ? 'success' : 'muted'}>
-                {isActive ? 'Ativo' : 'Inativo'}
-              </StatusBadge>
-            )}
-            <ProfilePublishBadge isPublished={profile.isPublished} />
-          </div>
-
-          {publishError && (
-            <div className="mt-4">
-              <InlineFeedback tone="error">{publishError}</InlineFeedback>
-            </div>
-          )}
-        </div>
+        <TeamRoleBadge role="DENTIST" />
+        {isActive !== null && (
+          <StatusBadge tone={isActive ? 'success' : 'muted'}>
+            {isActive ? 'Ativo' : 'Inativo'}
+          </StatusBadge>
+        )}
+        <ProfilePublishBadge isPublished={profile.isPublished} />
       </div>
+
+      {publishError && (
+        <InlineFeedback tone="error">{publishError}</InlineFeedback>
+      )}
     </div>
   )
 }
@@ -288,28 +273,32 @@ function ProfileKpiStrip({
   profile,
   availability,
   services,
+  isLoading,
 }: {
   profile: ProfileDetail
   availability: Availability[]
   services: ServiceItem[]
+  isLoading?: boolean
 }) {
   const kpis = computeProfileKpis(profile, availability, services)
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       <HomeKpiCard
         label="Serviços ativos"
         value={String(kpis.activeServices)}
         description={`${services.length} cadastrados`}
         icon={Stethoscope}
         tone="primary"
+        isLoading={isLoading}
       />
       <HomeKpiCard
         label="Especialidades"
         value={String(kpis.specialties)}
         description="Áreas vinculadas"
-        icon={Sparkles}
+        icon={Award}
         tone="info"
+        isLoading={isLoading}
       />
       <HomeKpiCard
         label="Disponibilidade"
@@ -317,13 +306,7 @@ function ProfileKpiStrip({
         description="dias com horários"
         icon={CalendarClock}
         tone="neutral"
-      />
-      <HomeKpiCard
-        label="Publicação"
-        value={kpis.publication}
-        description="Visibilidade do perfil"
-        icon={Sparkles}
-        tone={profile.isPublished ? 'success' : 'warning'}
+        isLoading={isLoading}
       />
     </div>
   )
@@ -413,27 +396,6 @@ function InfoRow({
   )
 }
 
-function buildProfileSummary({
-  profile,
-  email,
-  phone,
-}: {
-  profile: ProfileDetail
-  email: string | null
-  phone: string | null
-}) {
-  const parts = [
-    email,
-    phone,
-    profile.crmNumber
-      ? `CRO ${profile.crmNumber}${profile.crmState ? `/${profile.crmState}` : ''}`
-      : null,
-  ].filter(Boolean)
-
-  return parts.length > 0
-    ? parts.join(' | ')
-    : 'Acompanhe dados, agenda, exceções e serviços deste profissional.'
-}
 
 function LoadingState() {
   return (

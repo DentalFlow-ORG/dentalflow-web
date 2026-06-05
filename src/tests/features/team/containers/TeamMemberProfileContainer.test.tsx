@@ -219,7 +219,7 @@ describe('TeamMemberProfileContainer publish controls', () => {
     expect(await screen.findByText('Serviços ativos')).toBeInTheDocument()
     expect(screen.getAllByText('Especialidades').length).toBeGreaterThan(0)
     expect(screen.getByText('Disponibilidade')).toBeInTheDocument()
-    expect(screen.getByText('Publicação')).toBeInTheDocument()
+    expect(screen.queryByText('Publicação')).toBeNull()
     expect(screen.getAllByText('1').length).toBeGreaterThan(0)
     expect(screen.getAllByText('2').length).toBeGreaterThanOrEqual(2)
     expect(screen.getAllByText('Publicado').length).toBeGreaterThan(0)

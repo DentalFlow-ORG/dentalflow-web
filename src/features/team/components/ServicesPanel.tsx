@@ -21,6 +21,7 @@ type ServicesPanelProps = {
   services: ServiceItem[]
   onServicesChange: (services: ServiceItem[]) => void
   readOnly?: boolean
+  hideTitle?: boolean
 }
 
 // ── Money conversion helpers ──────────────────────────────────────────────────
@@ -149,7 +150,7 @@ export function toUpdateDto(form: ServiceFormState): UpdateServiceDto {
 
 // ── Main panel ────────────────────────────────────────────────────────────────
 
-export function ServicesPanel({ profileId, services, onServicesChange, readOnly = false }: ServicesPanelProps) {
+export function ServicesPanel({ profileId, services, onServicesChange, readOnly = false, hideTitle = false }: ServicesPanelProps) {
   const { showAlert } = useGlobalAlerts()
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -239,12 +240,14 @@ export function ServicesPanel({ profileId, services, onServicesChange, readOnly 
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h3 className="text-base font-semibold text-foreground">Serviços e procedimentos</h3>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Gerencie os procedimentos oferecidos e configure o custo direto estimado para análise de margem.
-          </p>
-        </div>
+        {!hideTitle && (
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold text-foreground">Serviços e procedimentos</h3>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Gerencie os procedimentos oferecidos e configure o custo direto estimado para análise de margem.
+            </p>
+          </div>
+        )}
         {!readOnly && !isAdding && (
           <Button
             type="button"

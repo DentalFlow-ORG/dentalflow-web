@@ -23,6 +23,7 @@ type ExceptionManagerProps = {
   exceptions: AvailabilityException[]
   onExceptionsChange: (exceptions: AvailabilityException[]) => void
   title?: string
+  hideTitle?: boolean
 }
 
 export function ExceptionManager({
@@ -30,6 +31,7 @@ export function ExceptionManager({
   exceptions,
   onExceptionsChange,
   title = 'Exceções de agenda',
+  hideTitle = false,
 }: ExceptionManagerProps) {
   const { showAlert } = useGlobalAlerts()
   const [isAdding, setIsAdding] = useState(false)
@@ -100,12 +102,14 @@ export function ExceptionManager({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h3 className="text-base font-semibold text-foreground">{title}</h3>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Registre folgas ou horários especiais em datas específicas.
-          </p>
-        </div>
+        {!hideTitle && (
+          <div className="min-w-0">
+            <h3 className="text-base font-semibold text-foreground">{title}</h3>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Registre folgas ou horários especiais em datas específicas.
+            </p>
+          </div>
+        )}
         {!isAdding && (
           <Button
             type="button"

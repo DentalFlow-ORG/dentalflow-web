@@ -82,8 +82,22 @@ describe('TeamMembersTable', () => {
     expect(screen.getByText('Profissional')).toBeInTheDocument()
     expect(screen.getByText('Assistente')).toBeInTheDocument()
     expect(screen.getByText('Publicado')).toBeInTheDocument()
-    expect(screen.getByText('Sem perfil')).toBeInTheDocument()
+    expect(screen.queryByText('Sem perfil')).toBeNull()
     expect(screen.getByText('Inativo')).toBeInTheDocument()
+  })
+
+  it('shows publish badge for DENTIST rows and hides it for ASSISTANT rows', () => {
+    render(
+      <TeamMembersTable
+        members={MEMBERS}
+        onEdit={vi.fn()}
+        onPassword={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText('Publicado')).toBeInTheDocument()
+    expect(screen.queryByText('Sem perfil')).toBeNull()
   })
 
   it('calls edit callback when a row is clicked', async () => {

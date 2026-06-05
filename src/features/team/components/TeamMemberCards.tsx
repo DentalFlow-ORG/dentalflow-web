@@ -36,10 +36,12 @@ export function TeamMemberCards({
               <StatusBadge tone={member.isActive ? 'success' : 'muted'}>
                 {member.isActive ? 'Ativo' : 'Inativo'}
               </StatusBadge>
-              <ProfilePublishBadge
-                hasProfile={!!member.profile}
-                isPublished={member.profile?.isPublished}
-              />
+              {member.role === 'DENTIST' && (
+                <ProfilePublishBadge
+                  hasProfile={!!member.profile}
+                  isPublished={member.profile?.isPublished}
+                />
+              )}
             </div>
 
             {member.profile && (
