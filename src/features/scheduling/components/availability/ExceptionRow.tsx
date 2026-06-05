@@ -25,7 +25,10 @@ export function ExceptionRow({
   return (
     <div
       data-testid={`exception-row-${exception.id}`}
-      className="flex flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+      className={cn(
+        'flex flex-col gap-3 rounded-lg border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between',
+        isPast ? 'border-border/60' : 'border-border',
+      )}
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -34,10 +37,10 @@ export function ExceptionRow({
           </p>
           <span
             className={cn(
-              'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+              'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium',
               isPast
-                ? 'bg-muted text-muted-foreground'
-                : 'bg-primary/10 text-primary dark:bg-primary/15',
+                ? 'border-border/60 bg-muted text-muted-foreground'
+                : 'border-primary/20 bg-primary/10 text-primary dark:border-primary/30 dark:bg-primary/15',
             )}
           >
             {isPast ? 'Passada' : 'Próxima'}
@@ -69,7 +72,7 @@ export function ExceptionRow({
           disabled={isLoading}
           aria-label="Editar exceção"
         >
-          <Pencil className="h-3.5 w-3.5" />
+          <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
         <Button
           type="button"
@@ -79,7 +82,7 @@ export function ExceptionRow({
           disabled={isLoading}
           aria-label="Remover exceção"
         >
-          <Trash2 className="h-3.5 w-3.5" />
+          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
       </div>
     </div>

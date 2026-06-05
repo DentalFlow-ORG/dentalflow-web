@@ -27,6 +27,7 @@ type ExceptionFormProps = {
   saveLabel?: string
   onDelete?: () => void
   isDeleting?: boolean
+  className?: string
 }
 
 export function ExceptionForm({
@@ -37,6 +38,7 @@ export function ExceptionForm({
   saveLabel,
   onDelete,
   isDeleting = false,
+  className,
 }: ExceptionFormProps) {
   const [isDayOff, setIsDayOff] = useState(initial?.isDayOff ?? true)
 
@@ -61,7 +63,7 @@ export function ExceptionForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-lg border border-border bg-muted p-4 space-y-4"
+      className={className ?? 'rounded-lg border border-border bg-muted p-4 space-y-4'}
     >
       {initial ? (
         <div>
@@ -82,10 +84,15 @@ export function ExceptionForm({
       {/* Type toggle */}
       <div>
         <p className="mb-2 text-sm font-semibold text-foreground">Tipo</p>
-        <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1">
+        <div
+          role="group"
+          aria-label="Tipo de exceção"
+          className="flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1"
+        >
           <button
             type="button"
             onClick={() => setIsDayOff(true)}
+            aria-pressed={isDayOff}
             className={cn(
               'flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors',
               isDayOff
@@ -98,6 +105,7 @@ export function ExceptionForm({
           <button
             type="button"
             onClick={() => setIsDayOff(false)}
+            aria-pressed={!isDayOff}
             className={cn(
               'flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors',
               !isDayOff

@@ -195,12 +195,17 @@ export function ExceptionManager({
         {/* Filter tabs + filtered list */}
         {!isAdding && exceptions.length > 0 && (
           <div className="space-y-4">
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1">
+            <div
+              role="group"
+              aria-label="Filtrar por período"
+              className="flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1"
+            >
               {FILTERS.map((f) => (
                 <button
                   key={f.value}
                   type="button"
                   onClick={() => setFilter(f.value)}
+                  aria-pressed={filter === f.value}
                   className={cn(
                     'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
                     filter === f.value

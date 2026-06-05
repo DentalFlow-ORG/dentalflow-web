@@ -86,6 +86,7 @@ export function ExceptionEditModal({
                 saveLabel="Salvar alterações"
                 onDelete={onDelete}
                 isDeleting={isDeleting}
+                className="space-y-4"
               />
             )}
           </div>

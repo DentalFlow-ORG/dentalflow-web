@@ -383,6 +383,48 @@ describe('ExceptionManager — row delete', () => {
   })
 })
 
+describe('ExceptionManager — accessibility', () => {
+  it('active filter button has aria-pressed="true", others have aria-pressed="false"', () => {
+    renderManager([FUTURE_1])
+
+    expect(screen.getByRole('button', { name: 'Próximas' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Passadas' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Todas' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('aria-pressed updates when a different filter is selected', async () => {
+    const user = userEvent.setup()
+    renderManager([FUTURE_1, PAST_1])
+
+    await user.click(screen.getByRole('button', { name: 'Passadas' }))
+
+    expect(screen.getByRole('button', { name: 'Passadas' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Próximas' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('Adicionar button is visible when hideTitle is true', () => {
+    renderManager([FUTURE_1], { hideTitle: true })
+
+    expect(screen.getByRole('button', { name: /adicionar/i })).toBeInTheDocument()
+  })
+
+  it('type toggle buttons have aria-pressed reflecting current selection', async () => {
+    const user = userEvent.setup()
+    renderManager([])
+
+    await user.click(screen.getByRole('button', { name: /adicionar/i }))
+
+    // Default: isDayOff=true → "Folga ocasional" is pressed
+    expect(screen.getByRole('button', { name: /folga ocasional/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /horário especial/i })).toHaveAttribute('aria-pressed', 'false')
+
+    await user.click(screen.getByRole('button', { name: /horário especial/i }))
+
+    expect(screen.getByRole('button', { name: /folga ocasional/i })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /horário especial/i })).toHaveAttribute('aria-pressed', 'true')
+  })
+})
+
 describe('ExceptionManager — no recurrence', () => {
   it('does not show any recurrence or yearly-repeat UI', () => {
     renderManager([FUTURE_1, PAST_1, FUTURE_2, PAST_2])
