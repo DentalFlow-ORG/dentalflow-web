@@ -381,6 +381,16 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
   return (
     <>
+      {/* ── Back navigation — rendered above the sticky bar so it is never   */}
+      {/* covered when the bar sticks on scroll.                              */}
+      <Link
+        to="/app/prontuario"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        Prontuários
+      </Link>
+
       {/* ── Sticky identity + quick actions bar ─────────────────────────────── */}
       {/* Renders outside AppPage so it can break out of the main's padding.    */}
       {/* Shows patient name, status badge, and Save/Complete for DRAFT records. */}
@@ -393,15 +403,6 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
       />
 
       <AppPage>
-        {/* ── Back navigation ─────────────────────────────────────────────── */}
-        <Link
-          to="/app/prontuario"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Prontuários
-        </Link>
-
         {/* ── Patient header ───────────────────────────────────────────────── */}
         <ClinicalRecordHeader record={record} />
 
