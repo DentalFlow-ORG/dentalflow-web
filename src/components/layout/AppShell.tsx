@@ -470,7 +470,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
           </div>
         )}
 
-        <main className="px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
+        <main className="min-w-0 overflow-x-hidden px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
           {children}
           <div className="h-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden print:hidden" aria-hidden="true" />
         </main>

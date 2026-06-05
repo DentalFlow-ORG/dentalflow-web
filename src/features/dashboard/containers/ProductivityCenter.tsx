@@ -348,14 +348,14 @@ function PatientsFollowUpPanel({
           {examples.map((p, i) => (
             <li
               key={i}
-              className="flex items-center justify-between gap-3 py-3 text-sm"
+              className="flex flex-col gap-0.5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3"
             >
               <span className="min-w-0 truncate font-medium text-foreground">
                 {p.patientName}
               </span>
               {p.lastVisit && (
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  Última visita: {formatAppointmentDate(p.lastVisit)}
+                <span className="text-xs text-muted-foreground sm:shrink-0">
+                  Última: {formatAppointmentDate(p.lastVisit)}
                 </span>
               )}
             </li>
@@ -401,7 +401,7 @@ function InventoryAlertPanel({
           {products.map((product) => (
             <li
               key={product.id}
-              className="flex items-center justify-between gap-3 py-3 text-sm"
+              className="flex flex-col gap-1.5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3"
             >
               <div className="min-w-0">
                 <p className="truncate font-medium text-foreground">{product.name}</p>
@@ -411,7 +411,7 @@ function InventoryAlertPanel({
                   </p>
                 )}
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex items-center gap-2 sm:shrink-0">
                 <StockStatusBadge status={product.status} />
                 <span className="text-xs text-muted-foreground">
                   {product.currentQuantity} {product.unit}
@@ -523,7 +523,7 @@ export function ProductivityCenter() {
           )}
 
           {/* Today schedule + pending payments */}
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid min-w-0 gap-5 lg:grid-cols-2">
             <TodaySchedulePanel
               appointments={data.upcomingToday}
               total={data.today.appointmentsTotal}
@@ -545,7 +545,7 @@ export function ProductivityCenter() {
           />
 
           {/* Patient follow-up + inventory */}
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid min-w-0 gap-5 lg:grid-cols-2">
             <PatientsFollowUpPanel
               count={data.patients.withoutReturnCount}
               examples={data.patients.examples}

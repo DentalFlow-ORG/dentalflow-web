@@ -33,7 +33,7 @@ export function HomeActionGrid({
   className,
 }: HomeActionGridProps) {
   return (
-    <div className={cn('grid gap-3', COLS_CLASS[columns], className)}>
+    <div className={cn('grid min-w-0 w-full gap-3', COLS_CLASS[columns], className)}>
       {children}
     </div>
   )
