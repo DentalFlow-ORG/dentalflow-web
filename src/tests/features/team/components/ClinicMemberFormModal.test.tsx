@@ -296,6 +296,56 @@ describe('ClinicMemberFormModal — DENTIST/ASSISTANT availability behavior', ()
   })
 })
 
+describe('ClinicMemberFormModal — accessibility and layout', () => {
+  it('renders the dialog title as an accessible heading element', async () => {
+    renderModal()
+    expect(await screen.findByRole('heading', { name: /novo membro/i })).toBeInTheDocument()
+  })
+
+  it('renders the dialog title as a heading in edit mode', async () => {
+    renderModal({ initialData: makeMember() })
+    expect(await screen.findByRole('heading', { name: /editar membro/i })).toBeInTheDocument()
+  })
+
+  it('renders the dialog description', async () => {
+    renderModal()
+    await screen.findByText('Novo membro')
+    expect(
+      screen.getByText('Adicione um profissional ou assistente à clínica.'),
+    ).toBeInTheDocument()
+  })
+
+  it('Dialog.Content has viewport-safe layout classes', async () => {
+    renderModal()
+    await screen.findByText('Novo membro')
+    const dialog = screen.getByRole('dialog')
+    expect(dialog.className).toContain('max-h-[calc(100dvh-2rem)]')
+    expect(dialog.className).toContain('overflow-hidden')
+    expect(dialog.className).toContain('flex')
+  })
+
+  it('scrollable body has internal scroll classes', async () => {
+    renderModal()
+    await screen.findByText('Novo membro')
+    const dialog = screen.getByRole('dialog')
+    const scrollableBody = dialog.querySelector('.overflow-y-auto')
+    expect(scrollableBody).toBeInTheDocument()
+    expect(scrollableBody!.className).toContain('min-h-0')
+    expect(scrollableBody!.className).toContain('flex-1')
+  })
+
+  it('footer buttons are outside the scrollable body', async () => {
+    renderModal()
+    await screen.findByText('Novo membro')
+    const dialog = screen.getByRole('dialog')
+    const scrollableBody = dialog.querySelector('.overflow-y-auto')
+    const cancelBtn = screen.getByRole('button', { name: /cancelar/i })
+    const submitBtn = screen.getByRole('button', { name: /criar membro/i })
+    expect(scrollableBody).not.toContainElement(cancelBtn)
+    expect(scrollableBody).not.toContainElement(submitBtn)
+  })
+})
+
 describe('ClinicMemberFormModal — interactions', () => {
   it('cancel button calls onClose', async () => {
     const user = userEvent.setup()
