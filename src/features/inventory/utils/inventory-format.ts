@@ -57,3 +57,20 @@ export function formatQuantityTransition(
 ): string {
   return `${previousQuantity} → ${newQuantity}`
 }
+
+// generatedAt on copilot results are real timestamps — display in Brazil timezone with "às" separator
+export function formatInventoryTimestamp(iso: string | null | undefined): string {
+  if (!iso) return ''
+  try {
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(iso)).replace(', ', ' às ')
+  } catch {
+    return iso
+  }
+}
