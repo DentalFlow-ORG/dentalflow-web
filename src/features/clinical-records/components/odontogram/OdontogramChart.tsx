@@ -69,7 +69,7 @@ export function OdontogramChart({
       {isMobile ? (
         <QuadrantLayout {...iProps} upperTeeth={upperTeeth} lowerTeeth={lowerTeeth} />
       ) : (
-        <div className="overflow-x-auto pb-2">
+        <div className="app-scrollbar overflow-x-auto pb-2">
           <div className="mx-auto w-fit">
             <FullArch teeth={upperTeeth} lower={false} {...iProps} />
             <FullNumberRow teeth={upperTeeth} />

@@ -125,7 +125,7 @@ export function AppointmentDrawer({
               </div>
 
               {/* Body */}
-              <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
+              <div className="app-scrollbar flex-1 space-y-5 overflow-y-auto px-5 py-5">
                 {/* Status actions */}
                 {!readOnly && (
                   <AppointmentStatusActions

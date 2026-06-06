@@ -161,7 +161,7 @@ export function WeekCalendar({
           <span className="text-[11px] text-muted-foreground">Arraste para ver sábado e domingo</span>
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
         </div>
-        <div className="relative overflow-x-auto">
+        <div className="app-scrollbar relative overflow-x-auto">
           {/* Right-side fade indicating more content */}
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-linear-to-l from-card/70 to-transparent lg:hidden" />
           <div className="min-w-245">

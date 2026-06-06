@@ -267,7 +267,7 @@ export function EditAppointmentModal({
           <form
             id="edit-appointment-form"
             onSubmit={handleSubmit}
-            className="flex-1 space-y-5 overflow-y-auto px-6 py-6"
+            className="app-scrollbar flex-1 space-y-5 overflow-y-auto px-6 py-6"
           >
             <FormField label="Paciente" htmlFor="editPatientName">
               <TextInput

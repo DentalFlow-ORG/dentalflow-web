@@ -298,7 +298,7 @@ export function CreateAppointmentModal({
           <form
             id="create-appointment-form"
             onSubmit={handleSubmit}
-            className="flex-1 overflow-y-auto px-6 py-6 space-y-5"
+            className="app-scrollbar flex-1 overflow-y-auto px-6 py-6 space-y-5"
           >
             {/* Dentist */}
             <FormField label="Profissional" htmlFor="profileId">

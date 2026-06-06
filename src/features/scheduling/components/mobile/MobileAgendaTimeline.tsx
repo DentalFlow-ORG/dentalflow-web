@@ -94,7 +94,7 @@ export function MobileAgendaTimeline({
   return (
     <div className="space-y-4">
       {/* Day strip */}
-      <div className="overflow-x-auto rounded-lg border border-border bg-card px-3 py-3 shadow-sm">
+      <div className="app-scrollbar overflow-x-auto rounded-lg border border-border bg-card px-3 py-3 shadow-sm">
         <div className="flex gap-1.5">
           {weekDates.map((date) => {
             const dateStr = toDateInputValue(date)
