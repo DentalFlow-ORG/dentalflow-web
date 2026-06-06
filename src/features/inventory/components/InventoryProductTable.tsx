@@ -88,7 +88,7 @@ export function InventoryProductTable({
 
       {/* Desktop table — visible at md and above */}
       <div className="hidden overflow-hidden rounded-lg border border-border md:block">
-        <div className="overflow-x-auto">
+        <div className="app-scrollbar overflow-x-auto">
           <table
             className="w-full min-w-[900px] text-sm"
             aria-label="Lista de produtos em estoque"
@@ -116,12 +116,10 @@ export function InventoryProductTable({
               ) : (
                 products.map((product) => (
                   <tr key={product.id} className="hover:bg-muted/70">
-                    <td className="px-4 py-3">
-                      <p className="max-w-[200px] truncate font-medium text-foreground">
-                        {product.name}
-                      </p>
+                    <td className="max-w-[240px] overflow-hidden px-4 py-3">
+                      <p className="truncate font-medium text-foreground">{product.name}</p>
                       {product.description && (
-                        <p className="mt-0.5 max-w-[200px] truncate text-xs text-muted-foreground">
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
                           {product.description}
                         </p>
                       )}
@@ -199,7 +197,14 @@ export function InventoryProductTable({
                       <StockStatusBadge status={product.status} />
                     </td>
                     <td
-                      className={`px-4 py-3 ${product.status === 'EXPIRED' ? 'font-medium text-red-600 dark:text-red-400' : product.status === 'EXPIRING' ? 'font-medium text-amber-700 dark:text-amber-400' : 'text-muted-foreground'}`}
+                      className={cn(
+                        'px-4 py-3',
+                        product.status === 'EXPIRED'
+                          ? 'font-medium text-red-600 dark:text-red-400'
+                          : product.status === 'EXPIRING'
+                            ? 'font-medium text-amber-700 dark:text-amber-400'
+                            : 'text-muted-foreground',
+                      )}
                     >
                       {product.expiresAt ? (
                         formatProductDate(product.expiresAt)
@@ -218,7 +223,7 @@ export function InventoryProductTable({
                       {product.supplier ?? <span className="text-muted-foreground">—</span>}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-0.5">
+                      <div className="flex items-center gap-1">
                         <button
                           type="button"
                           title="Ver detalhes"
