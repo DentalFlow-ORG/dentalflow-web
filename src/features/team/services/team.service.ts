@@ -7,7 +7,6 @@ import type {
   CreateServiceDto,
   MemberListItem,
   ProfileDetail,
-  ProfilePublishResult,
   ServiceItem,
   Specialty,
   TeamMembersResponse,
@@ -67,13 +66,6 @@ export function deleteClinicMember(memberId: string) {
 export function getClinicProfile(profileId: string) {
   return apiRequest<ProfileDetail>(`/profiles/${profileId}`, {
     method: 'GET',
-    accessToken: getAccessToken(),
-  })
-}
-
-export function toggleProfilePublishStatus(profileId: string) {
-  return apiRequest<ProfilePublishResult>(`/profiles/${profileId}/publish`, {
-    method: 'PATCH',
     accessToken: getAccessToken(),
   })
 }

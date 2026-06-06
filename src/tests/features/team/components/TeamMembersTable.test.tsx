@@ -66,7 +66,7 @@ const MEMBERS: MemberListItem[] = [
 ]
 
 describe('TeamMembersTable', () => {
-  it('renders members with role and profile badges', () => {
+  it('renders members with role and status badges', () => {
     render(
       <TeamMembersTable
         members={MEMBERS}
@@ -81,12 +81,13 @@ describe('TeamMembersTable', () => {
     expect(screen.getByText('Bruno Lima')).toBeInTheDocument()
     expect(screen.getByText('Profissional')).toBeInTheDocument()
     expect(screen.getByText('Assistente')).toBeInTheDocument()
-    expect(screen.getByText('Publicado')).toBeInTheDocument()
-    expect(screen.queryByText('Sem perfil')).toBeNull()
     expect(screen.getByText('Inativo')).toBeInTheDocument()
+    expect(screen.queryByText('Publicado')).toBeNull()
+    expect(screen.queryByText('Não publicado')).toBeNull()
+    expect(screen.queryByText('Sem perfil')).toBeNull()
   })
 
-  it('shows publish badge for DENTIST rows and hides it for ASSISTANT rows', () => {
+  it('does not show publication status in any row', () => {
     render(
       <TeamMembersTable
         members={MEMBERS}
@@ -96,7 +97,8 @@ describe('TeamMembersTable', () => {
       />,
     )
 
-    expect(screen.getByText('Publicado')).toBeInTheDocument()
+    expect(screen.queryByText('Publicado')).toBeNull()
+    expect(screen.queryByText('Não publicado')).toBeNull()
     expect(screen.queryByText('Sem perfil')).toBeNull()
   })
 
@@ -166,7 +168,7 @@ describe('TeamMembersTable', () => {
       />,
     )
 
-    expect(screen.queryByText(/publicar/i)).toBeNull()
-    expect(screen.queryByText(/despublicar/i)).toBeNull()
+    expect(screen.queryByRole('button', { name: /publicar/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /despublicar/i })).toBeNull()
   })
 })

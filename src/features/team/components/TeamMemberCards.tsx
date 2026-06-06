@@ -1,6 +1,5 @@
 import { StatusBadge } from '@/components/common/StatusBadge'
 
-import { ProfilePublishBadge } from './ProfilePublishBadge'
 import { TeamMemberActions } from './TeamMemberActions'
 import { TeamMemberIdentity } from './TeamMemberIdentity'
 import { TeamRoleBadge } from './TeamRoleBadge'
@@ -36,19 +35,7 @@ export function TeamMemberCards({
               <StatusBadge tone={member.isActive ? 'success' : 'muted'}>
                 {member.isActive ? 'Ativo' : 'Inativo'}
               </StatusBadge>
-              {member.role === 'DENTIST' && (
-                <ProfilePublishBadge
-                  hasProfile={!!member.profile}
-                  isPublished={member.profile?.isPublished}
-                />
-              )}
             </div>
-
-            {member.profile && (
-              <p className="break-words text-xs text-muted-foreground">
-                {member.profile.displayName}
-              </p>
-            )}
 
             <TeamMemberActions
               member={member}

@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { KeyRound, MoreHorizontal, Pencil, Trash2, User } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { KeyRound, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -30,14 +29,6 @@ export function TeamMemberActions({
   if (layout === 'mobile') {
     return (
       <div className="grid gap-2 sm:grid-cols-2">
-        {member.profile && (
-          <Button size="sm" variant="outline" className="w-full" asChild>
-            <Link to="/app/equipe/$profileId" params={{ profileId: member.profile.id }}>
-              <User className="h-4 w-4" aria-hidden="true" />
-              Ver perfil
-            </Link>
-          </Button>
-        )}
         <Button size="sm" variant="outline" className="w-full" onClick={onEdit}>
           <Pencil className="h-4 w-4" aria-hidden="true" />
           Editar
@@ -72,20 +63,6 @@ export function TeamMemberActions({
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-48 overflow-hidden py-1">
-          {member.profile && (
-            <>
-              <Link
-                to="/app/equipe/$profileId"
-                params={{ profileId: member.profile.id }}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none"
-                onClick={() => setOpen(false)}
-              >
-                <User className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                Ver perfil
-              </Link>
-              <div className="mx-1 my-0.5 h-px bg-border" role="separator" />
-            </>
-          )}
           <button
             type="button"
             className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none"

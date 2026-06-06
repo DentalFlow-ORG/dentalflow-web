@@ -35,7 +35,6 @@ describe('computeTeamKpis', () => {
 
     expect(result.dentistCount).toBe(0)
     expect(result.assistantCount).toBe(0)
-    expect(result.publishedCount).toBe(0)
   })
 
   it('formats usage as used over limit when limit is greater than zero', () => {
@@ -74,37 +73,6 @@ describe('computeTeamKpis', () => {
     )
 
     expect(result.assistantCount).toBe(2)
-  })
-
-  it('only counts profiles explicitly published as true', () => {
-    const result = computeTeamKpis(
-      [
-        makeMember({
-          id: 'published',
-          profile: {
-            id: 'profile-1',
-            userId: 'published',
-            slug: 'published',
-            displayName: 'Publicado',
-            isPublished: true,
-          },
-        }),
-        makeMember({
-          id: 'draft',
-          profile: {
-            id: 'profile-2',
-            userId: 'draft',
-            slug: 'draft',
-            displayName: 'Rascunho',
-            isPublished: false,
-          },
-        }),
-        makeMember({ id: 'without-profile', profile: null }),
-      ],
-      makeUsage(),
-    )
-
-    expect(result.publishedCount).toBe(1)
   })
 
   it('marks the limit as reached when remaining is not positive and limit is greater than zero', () => {

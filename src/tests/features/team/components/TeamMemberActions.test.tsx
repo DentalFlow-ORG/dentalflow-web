@@ -1,30 +1,7 @@
-import type { AnchorHTMLAttributes, ReactNode } from 'react'
-
 import { render, screen, userEvent } from '@/test-utils/render-utils'
 
 import { TeamMemberActions } from '@/features/team/components/TeamMemberActions'
 import type { MemberListItem } from '@/features/team/types/team.types'
-
-vi.mock('@tanstack/react-router', () => ({
-  Link: ({
-    to,
-    params,
-    children,
-    ...props
-  }: {
-    to: string
-    params?: unknown
-    children: ReactNode
-  } & AnchorHTMLAttributes<HTMLAnchorElement>) => {
-    void params
-
-    return (
-      <a href={to} {...props}>
-        {children}
-      </a>
-    )
-  },
-}))
 
 function makeMember(overrides: Partial<MemberListItem> = {}): MemberListItem {
   return {
@@ -64,8 +41,6 @@ describe('TeamMemberActions', () => {
       />,
     )
 
-    expect(screen.getByRole('link', { name: /ver perfil/i })).toBeInTheDocument()
-
     await user.click(screen.getByRole('button', { name: /editar/i }))
     await user.click(screen.getByRole('button', { name: /alterar senha/i }))
     await user.click(screen.getByRole('button', { name: /desativar/i }))
@@ -73,20 +48,6 @@ describe('TeamMemberActions', () => {
     expect(onEdit).toHaveBeenCalledTimes(1)
     expect(onPassword).toHaveBeenCalledTimes(1)
     expect(onDelete).toHaveBeenCalledTimes(1)
-  })
-
-  it('omits profile link when member has no profile', () => {
-    render(
-      <TeamMemberActions
-        member={makeMember({ profile: null })}
-        layout="mobile"
-        onEdit={vi.fn()}
-        onPassword={vi.fn()}
-        onDelete={vi.fn()}
-      />,
-    )
-
-    expect(screen.queryByRole('link', { name: /ver perfil/i })).toBeNull()
   })
 
   it('does not expose publish or unpublish actions', () => {

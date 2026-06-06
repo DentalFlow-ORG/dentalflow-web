@@ -1,6 +1,5 @@
 import { StatusBadge } from '@/components/common/StatusBadge'
 
-import { ProfilePublishBadge } from './ProfilePublishBadge'
 import { TeamMemberActions } from './TeamMemberActions'
 import { TeamMemberIdentity } from './TeamMemberIdentity'
 import { TeamRoleBadge } from './TeamRoleBadge'
@@ -34,9 +33,6 @@ export function TeamMembersTable({
               <th scope="col" className="px-4 py-3">
                 Status
               </th>
-              <th scope="col" className="px-4 py-3">
-                Perfil
-              </th>
               <th scope="col" className="px-4 py-3 text-right">
                 Ações
               </th>
@@ -69,21 +65,6 @@ export function TeamMembersTable({
                   <StatusBadge tone={member.isActive ? 'success' : 'muted'}>
                     {member.isActive ? 'Ativo' : 'Inativo'}
                   </StatusBadge>
-                </td>
-                <td className="px-4 py-4">
-                  <div className="flex min-w-0 flex-col items-start gap-1.5">
-                    {member.role === 'DENTIST' && (
-                      <ProfilePublishBadge
-                        hasProfile={!!member.profile}
-                        isPublished={member.profile?.isPublished}
-                      />
-                    )}
-                    {member.profile && (
-                      <span className="max-w-[180px] truncate text-xs text-muted-foreground">
-                        {member.profile.displayName}
-                      </span>
-                    )}
-                  </div>
                 </td>
                 <td className="px-4 py-4" onClick={(event) => event.stopPropagation()}>
                   <TeamMemberActions

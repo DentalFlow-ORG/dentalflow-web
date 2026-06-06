@@ -162,7 +162,6 @@ export function ClinicMemberFormModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          aria-labelledby="clinic-member-form-title"
           className="fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-2xl max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
@@ -170,7 +169,6 @@ export function ClinicMemberFormModal({
           {/* Header */}
           <div className="shrink-0 border-b border-border px-6 py-5">
             <Dialog.Title
-              id="clinic-member-form-title"
               className="text-base font-semibold text-foreground"
             >
               {isEditMode ? 'Editar membro' : 'Novo membro'}
@@ -183,7 +181,7 @@ export function ClinicMemberFormModal({
           </div>
 
           {/* Scrollable body */}
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto">
             <form id="clinic-member-form" onSubmit={handleSubmit} className="space-y-6 px-6 py-5">
               {error && <InlineFeedback tone="error">{error}</InlineFeedback>}
 
@@ -300,8 +298,7 @@ export function ClinicMemberFormModal({
             {isEditMode && form.role === 'DENTIST' && !profileId && (
               <div className="px-6 pb-5">
                 <div className="rounded-lg border border-dashed border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-                  Este profissional ainda não possui perfil público para cadastrar horários de
-                  atendimento.
+                  Disponibilidade não configurada para este profissional.
                 </div>
               </div>
             )}

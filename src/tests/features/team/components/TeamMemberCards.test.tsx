@@ -80,26 +80,13 @@ describe('TeamMemberCards', () => {
     expect(screen.getByText('Bruno Lima')).toBeInTheDocument()
     expect(screen.getByText('Profissional')).toBeInTheDocument()
     expect(screen.getByText('Assistente')).toBeInTheDocument()
-    expect(screen.getByText('Publicado')).toBeInTheDocument()
-    expect(screen.queryByText('Sem perfil')).toBeNull()
     expect(screen.getByText('Inativo')).toBeInTheDocument()
-  })
-
-  it('shows publish badge for DENTIST cards and hides it for ASSISTANT cards', () => {
-    render(
-      <TeamMemberCards
-        members={MEMBERS}
-        onEdit={vi.fn()}
-        onPassword={vi.fn()}
-        onDelete={vi.fn()}
-      />,
-    )
-
-    expect(screen.getByText('Publicado')).toBeInTheDocument()
+    expect(screen.queryByText('Publicado')).toBeNull()
+    expect(screen.queryByText('Não publicado')).toBeNull()
     expect(screen.queryByText('Sem perfil')).toBeNull()
   })
 
-  it('shows profile links only for members with a profile', () => {
+  it('does not show publication status in any card', () => {
     render(
       <TeamMemberCards
         members={MEMBERS}
@@ -109,7 +96,9 @@ describe('TeamMemberCards', () => {
       />,
     )
 
-    expect(screen.getAllByRole('link', { name: /ver perfil/i })).toHaveLength(1)
+    expect(screen.queryByText('Publicado')).toBeNull()
+    expect(screen.queryByText('Não publicado')).toBeNull()
+    expect(screen.queryByText('Sem perfil')).toBeNull()
   })
 
   it('renders edit, password, and deactivate actions', async () => {
@@ -146,7 +135,7 @@ describe('TeamMemberCards', () => {
       />,
     )
 
-    expect(screen.queryByText(/publicar/i)).toBeNull()
-    expect(screen.queryByText(/despublicar/i)).toBeNull()
+    expect(screen.queryByRole('button', { name: /publicar/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /despublicar/i })).toBeNull()
   })
 })

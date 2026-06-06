@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { AlertCircle, ExternalLink } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { AlertCircle } from 'lucide-react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
@@ -9,7 +8,6 @@ import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
@@ -182,14 +180,9 @@ export function SchedulePageContainer() {
 
           {activeTab === 'disponibilidade' && (
             <div id="panel-schedule-disponibilidade" role="tabpanel" aria-labelledby="tab-schedule-disponibilidade" className="space-y-4">
-              <ManagementBanner
-                profileId={ownProfile.id}
-                description="Gerencie os horários de atendimento no perfil profissional. A Agenda continuará usando esses horários para exibir e criar consultas."
-                buttonLabel="Gerenciar disponibilidade"
-              />
               <div>
                 <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Edição rápida na Agenda
+                  Horários de atendimento
                 </h3>
                 <PanelCard>
                   <AvailabilityManager
@@ -204,14 +197,9 @@ export function SchedulePageContainer() {
 
           {activeTab === 'excecoes' && (
             <div id="panel-schedule-excecoes" role="tabpanel" aria-labelledby="tab-schedule-excecoes" className="space-y-4">
-              <ManagementBanner
-                profileId={ownProfile.id}
-                description="Folgas, férias, feriados e horários especiais devem ser mantidos no perfil profissional. A Agenda usa essas exceções para bloquear ou ajustar horários."
-                buttonLabel="Gerenciar exceções"
-              />
               <div>
                 <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Edição rápida na Agenda
+                  Exceções de agenda
                 </h3>
                 <PanelCard>
                   <ExceptionManager
@@ -238,26 +226,3 @@ export function SchedulePageContainer() {
   )
 }
 
-function ManagementBanner({
-  profileId,
-  description,
-  buttonLabel,
-}: {
-  profileId: string
-  description: string
-  buttonLabel: string
-}) {
-  return (
-    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <p className="text-sm text-blue-700 dark:text-blue-300">{description}</p>
-        <Button size="sm" asChild className="w-full shrink-0 sm:w-auto">
-          <Link to="/app/equipe/$profileId" params={{ profileId }}>
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            {buttonLabel}
-          </Link>
-        </Button>
-      </div>
-    </div>
-  )
-}

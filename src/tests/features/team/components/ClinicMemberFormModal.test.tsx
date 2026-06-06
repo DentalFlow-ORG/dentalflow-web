@@ -273,7 +273,7 @@ describe('ClinicMemberFormModal — DENTIST/ASSISTANT availability behavior', ()
 
     await screen.findByText('Editar membro')
     expect(
-      screen.getByText(/não possui perfil público para cadastrar horários/i),
+      screen.getByText(/disponibilidade não configurada para este profissional/i),
     ).toBeInTheDocument()
   })
 
@@ -324,7 +324,7 @@ describe('ClinicMemberFormModal — accessibility and layout', () => {
     expect(dialog.className).toContain('flex')
   })
 
-  it('scrollable body has internal scroll classes', async () => {
+  it('scrollable body has internal scroll classes and app-scrollbar', async () => {
     renderModal()
     await screen.findByText('Novo membro')
     const dialog = screen.getByRole('dialog')
@@ -332,6 +332,7 @@ describe('ClinicMemberFormModal — accessibility and layout', () => {
     expect(scrollableBody).toBeInTheDocument()
     expect(scrollableBody!.className).toContain('min-h-0')
     expect(scrollableBody!.className).toContain('flex-1')
+    expect(scrollableBody!.className).toContain('app-scrollbar')
   })
 
   it('footer buttons are outside the scrollable body', async () => {

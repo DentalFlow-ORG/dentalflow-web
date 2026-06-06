@@ -1,6 +1,5 @@
 import {
   ClipboardList,
-  Globe,
   Plus,
   Stethoscope,
   Users,
@@ -31,7 +30,6 @@ export type TeamKpis = {
   usageValue: string
   dentistCount: number
   assistantCount: number
-  publishedCount: number
   isAtLimit: boolean
 }
 
@@ -43,7 +41,6 @@ export function computeTeamKpis(
     usageValue: usage.limit > 0 ? `${usage.used}/${usage.limit}` : String(usage.used),
     dentistCount: members.filter((m) => m.role === 'DENTIST').length,
     assistantCount: members.filter((m) => m.role === 'ASSISTANT').length,
-    publishedCount: members.filter((m) => m.profile?.isPublished === true).length,
     isAtLimit: usage.remaining <= 0 && usage.limit > 0,
   }
 }
@@ -91,7 +88,7 @@ export function TeamPageContainer() {
       <HomeDashboardHeader
         eyebrow="Gestão"
         title="Equipe"
-        description="Gerencie profissionais, assistentes, perfis públicos e a capacidade operacional da clínica."
+        description="Gerencie profissionais, assistentes e a capacidade operacional da clínica."
         actions={
           <Button onClick={handleCreateClick} disabled={hasReachedUserLimit}>
             <Plus className="h-4 w-4" aria-hidden="true" />
@@ -111,7 +108,7 @@ export function TeamPageContainer() {
         </InlineFeedback>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <HomeKpiCard
           label="Usuários ativos"
           value={kpis.usageValue}
@@ -134,18 +131,11 @@ export function TeamPageContainer() {
           tone="neutral"
           isLoading={isLoading}
         />
-        <HomeKpiCard
-          label="Perfis publicados"
-          value={String(kpis.publishedCount)}
-          icon={Globe}
-          tone="success"
-          isLoading={isLoading}
-        />
       </div>
 
       <HomeSection
         title="Pessoas da equipe"
-        description="Acompanhe acessos, perfis profissionais e status dos membros da clínica."
+        description="Acompanhe acessos e status dos membros da clínica."
       >
         <div className="mt-4">
           <ListPageShell

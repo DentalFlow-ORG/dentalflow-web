@@ -60,7 +60,6 @@ import {
   SubscriptionCancelPage,
   SubscriptionPage,
   SubscriptionSuccessPage,
-  TeamMemberProfilePage,
   TeamPage,
   TermsOfUsePage,
   WhatsappFeaturePage,
@@ -187,16 +186,6 @@ const teamRoute = createRoute({
   component: () => (
     <ProtectedAppRoute allowedRoles={['OWNER']}>
       <TeamPage />
-    </ProtectedAppRoute>
-  ),
-})
-
-const teamMemberProfileRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/app/equipe/$profileId',
-  component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
-      <TeamMemberProfilePage />
     </ProtectedAppRoute>
   ),
 })
@@ -563,7 +552,6 @@ const routeTree = rootRoute.addChildren([
   appointmentsRoute,
   scheduleRoute,
   teamRoute,
-  teamMemberProfileRoute,
   financeRoute,
   fiscalInvoicesRoute,
   patientsRoute,
