@@ -218,7 +218,7 @@ export function CategoryManagerModal({
               </Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+            <div className="app-scrollbar flex-1 overflow-y-auto px-5 py-5 sm:px-6">
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
                 <form className="space-y-4" onSubmit={handleSubmit}>
                   <div>
@@ -317,7 +317,7 @@ export function CategoryManagerModal({
                     <Tag className="h-5 w-5 text-primary" aria-hidden="true" />
                   </div>
 
-                  <div className="max-h-[42vh] space-y-2 overflow-y-auto pr-1">
+                  <div className="app-scrollbar max-h-[42vh] space-y-2 overflow-y-auto pr-1">
                     {categories.length === 0 ? (
                       <p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
                         Nenhuma categoria cadastrada.

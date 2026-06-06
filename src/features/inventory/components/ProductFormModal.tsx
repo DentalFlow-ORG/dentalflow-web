@@ -195,20 +195,21 @@ export function ProductFormModal({
             <h2 className="text-base font-semibold text-foreground">
               {isEditMode ? 'Editar produto' : 'Novo produto'}
             </h2>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               aria-label="Fechar"
               onClick={onClose}
-              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
-              <X className="h-5 w-5" aria-hidden="true" />
-            </button>
+              <X aria-hidden="true" />
+            </Button>
           </div>
 
           {/* ── Form ── */}
           <form className="flex flex-1 flex-col overflow-hidden" onSubmit={handleSubmit}>
             {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto px-6 py-5">
+            <div className="app-scrollbar flex-1 overflow-y-auto px-6 py-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 {error && (
                   <div className="sm:col-span-2">

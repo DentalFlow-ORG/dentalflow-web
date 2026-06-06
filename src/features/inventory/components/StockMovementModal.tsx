@@ -164,7 +164,7 @@ export function StockMovementModal({
           </div>
 
           <form className="flex flex-1 flex-col overflow-hidden" onSubmit={handleSubmit}>
-            <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+            <div className="app-scrollbar flex-1 overflow-y-auto px-5 py-5 sm:px-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 {error && (
                   <div className="sm:col-span-2">

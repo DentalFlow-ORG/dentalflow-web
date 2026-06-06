@@ -73,7 +73,7 @@ export function ProductDetailsDrawer({
               </div>
 
               {/* Body */}
-              <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
+              <div className="app-scrollbar flex-1 space-y-5 overflow-y-auto px-5 py-5">
                 {/* Actions */}
                 <DrawerSection title="Ações">
                   <div className="flex flex-col gap-1.5 p-3">
