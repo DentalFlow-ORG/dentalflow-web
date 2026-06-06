@@ -114,7 +114,6 @@ function GoogleCalendarButton({
         <Button
           type="button"
           variant="outline"
-          size="sm"
           onClick={onSync}
           disabled={isCalendarActionLoading}
           title={googleCalendar.calendarSummary ?? 'Google Agenda conectado'}
@@ -130,7 +129,6 @@ function GoogleCalendarButton({
         <Button
           type="button"
           variant="ghost"
-          size="sm"
           onClick={onDisconnect}
           disabled={isCalendarActionLoading}
           aria-label="Desconectar Google Agenda"
@@ -147,7 +145,6 @@ function GoogleCalendarButton({
       <Button
         type="button"
         variant="outline"
-        size="sm"
         onClick={onConnect}
         disabled={isCalendarActionLoading}
         aria-label="Conectar Google Agenda"

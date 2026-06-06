@@ -15,7 +15,7 @@ export function ViewToggle({ view, onChange }: ViewToggleProps) {
       <Button
         type="button"
         variant={view === 'calendar' ? 'secondary' : 'ghost'}
-        size="icon-sm"
+        size="icon"
         onClick={() => onChange('calendar')}
         aria-label="Calendário semanal"
         aria-pressed={view === 'calendar'}
@@ -25,7 +25,7 @@ export function ViewToggle({ view, onChange }: ViewToggleProps) {
       <Button
         type="button"
         variant={view === 'table' ? 'secondary' : 'ghost'}
-        size="icon-sm"
+        size="icon"
         onClick={() => onChange('table')}
         aria-label="Lista"
         aria-pressed={view === 'table'}
