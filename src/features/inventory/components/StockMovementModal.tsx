@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Loader2, MoveRight, X } from 'lucide-react'
-import { Dialog, VisuallyHidden } from 'radix-ui'
+import { Dialog } from 'radix-ui'
 
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
@@ -131,49 +131,42 @@ export function StockMovementModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-[61] flex max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
+          className="fixed left-1/2 top-1/2 z-[61] flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          <VisuallyHidden.Root asChild>
-            <Dialog.Title>Movimentar estoque</Dialog.Title>
-          </VisuallyHidden.Root>
-          <Dialog.Description className="sr-only">
-            Registre uma entrada, saída, ajuste ou perda para manter o estoque atualizado.
-          </Dialog.Description>
-
-          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border/50 px-5 py-4 sm:px-6">
+          {/* ── Header ── */}
+          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-5">
             <div className="min-w-0">
-              <h2 className="text-base font-semibold text-foreground">
+              <Dialog.Title className="text-base font-semibold text-foreground">
                 Movimentar estoque
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              </Dialog.Title>
+              <Dialog.Description className="mt-0.5 text-sm text-muted-foreground">
                 Registre uma entrada, saída, ajuste ou perda para manter o estoque atualizado.
-              </p>
+              </Dialog.Description>
             </div>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              onClick={onClose}
               aria-label="Fechar movimentação de estoque"
               className="shrink-0"
+              onClick={onClose}
             >
               <X aria-hidden="true" />
             </Button>
           </div>
 
-          <form className="flex flex-1 flex-col overflow-hidden" onSubmit={handleSubmit}>
-            <div className="app-scrollbar flex-1 overflow-y-auto px-5 py-5 sm:px-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                {error && (
-                  <div className="sm:col-span-2">
-                    <InlineFeedback>{error}</InlineFeedback>
-                  </div>
-                )}
+          {/* ── Form ── */}
+          <form id="movement-form" className="flex flex-1 flex-col overflow-hidden" onSubmit={handleSubmit}>
+            {/* Scrollable body */}
+            <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto">
+              <div className="space-y-6 px-6 py-5">
+                {error && <InlineFeedback>{error}</InlineFeedback>}
 
+                {/* ── Produto ── */}
                 {product && (
-                  <div className="sm:col-span-2 rounded-lg border border-border bg-muted px-4 py-3">
+                  <div className="rounded-lg border border-border bg-muted px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Produto
                     </p>
@@ -184,135 +177,141 @@ export function StockMovementModal({
                   </div>
                 )}
 
-                <fieldset className="sm:col-span-2">
-                  <legend className="text-sm font-semibold text-foreground">
+                {/* ── Tipo de movimentação ── */}
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Tipo de movimentação
-                  </legend>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                    {MOVEMENT_TYPE_OPTIONS.map((option) => {
-                      const isSelected = form.type === option.value
+                  </p>
+                  <fieldset>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {MOVEMENT_TYPE_OPTIONS.map((option) => {
+                        const isSelected = form.type === option.value
 
-                      return (
-                        <label key={option.value} className="block cursor-pointer">
-                          <input
-                            type="radio"
-                            name="stockMovementType"
-                            value={option.value}
-                            checked={isSelected}
-                            onChange={() => handleTypeChange(option.value)}
-                            className="peer sr-only"
-                          />
-                          <span
-                            className={cn(
-                              'flex min-h-20 flex-col justify-between rounded-lg border bg-card px-3 py-3 text-left shadow-sm transition',
-                              'peer-focus-visible:outline-none peer-focus-visible:ring-3 peer-focus-visible:ring-primary/15',
-                              isSelected
-                                ? 'border-primary bg-primary/5 text-primary'
-                                : 'border-border text-foreground hover:border-primary/35 hover:bg-primary/5',
-                            )}
-                          >
-                            <span className="flex items-start justify-between gap-3">
-                              <span className="text-sm font-semibold">{option.label}</span>
-                              {isSelected && (
-                                <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-white">
-                                  Selecionado
-                                </span>
-                              )}
-                            </span>
+                        return (
+                          <label key={option.value} className="block cursor-pointer">
+                            <input
+                              type="radio"
+                              name="stockMovementType"
+                              value={option.value}
+                              checked={isSelected}
+                              onChange={() => handleTypeChange(option.value)}
+                              className="peer sr-only"
+                            />
                             <span
                               className={cn(
-                                'mt-2 text-xs leading-5',
-                                isSelected ? 'text-primary/80' : 'text-muted-foreground',
+                                'flex min-h-20 flex-col justify-between rounded-lg border bg-card px-3 py-3 text-left shadow-sm transition',
+                                'peer-focus-visible:outline-none peer-focus-visible:ring-3 peer-focus-visible:ring-primary/15',
+                                isSelected
+                                  ? 'border-primary bg-primary/5 text-primary'
+                                  : 'border-border text-foreground hover:border-primary/35 hover:bg-primary/5',
                               )}
                             >
-                              {option.description}
+                              <span className="flex items-start justify-between gap-3">
+                                <span className="text-sm font-semibold">{option.label}</span>
+                                {isSelected && (
+                                  <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-white">
+                                    Selecionado
+                                  </span>
+                                )}
+                              </span>
+                              <span
+                                className={cn(
+                                  'mt-2 text-xs leading-5',
+                                  isSelected ? 'text-primary/80' : 'text-muted-foreground',
+                                )}
+                              >
+                                {option.description}
+                              </span>
                             </span>
-                          </span>
-                        </label>
-                      )
-                    })}
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </fieldset>
+                </div>
+
+                {/* ── Quantidade ── */}
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Quantidade
+                  </p>
+                  {isAdjustment ? (
+                    <FormField label="Quantidade final" htmlFor="stockMovementNewQuantity">
+                      <TextInput
+                        id="stockMovementNewQuantity"
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        required
+                        placeholder="0"
+                        value={form.newQuantity}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, newQuantity: event.target.value }))
+                        }
+                      />
+                    </FormField>
+                  ) : (
+                    <FormField label="Quantidade" htmlFor="stockMovementQuantity">
+                      <TextInput
+                        id="stockMovementQuantity"
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        required
+                        placeholder="0"
+                        value={form.quantity}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, quantity: event.target.value }))
+                        }
+                      />
+                    </FormField>
+                  )}
+                </div>
+
+                {/* ── Justificativa ── */}
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Justificativa
+                  </p>
+                  <div className="space-y-3">
+                    <FormField label="Motivo" htmlFor="stockMovementReason" optional>
+                      <TextInput
+                        id="stockMovementReason"
+                        value={form.reason}
+                        maxLength={120}
+                        placeholder="Ex.: Reposição, uso clínico, contagem física..."
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, reason: event.target.value }))
+                        }
+                      />
+                    </FormField>
+                    <FormField label="Observações" htmlFor="stockMovementNotes" optional>
+                      <TextArea
+                        id="stockMovementNotes"
+                        value={form.notes}
+                        maxLength={2000}
+                        placeholder="Detalhes internos da movimentação..."
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, notes: event.target.value }))
+                        }
+                      />
+                    </FormField>
                   </div>
-                </fieldset>
-
-                {isAdjustment ? (
-                  <FormField label="Quantidade final" htmlFor="stockMovementNewQuantity">
-                    <TextInput
-                      id="stockMovementNewQuantity"
-                      type="number"
-                      min="0"
-                      step="0.001"
-                      required
-                      placeholder="0"
-                      value={form.newQuantity}
-                      onChange={(event) =>
-                        setForm((current) => ({ ...current, newQuantity: event.target.value }))
-                      }
-                    />
-                  </FormField>
-                ) : (
-                  <FormField label="Quantidade" htmlFor="stockMovementQuantity">
-                    <TextInput
-                      id="stockMovementQuantity"
-                      type="number"
-                      min="0"
-                      step="0.001"
-                      required
-                      placeholder="0"
-                      value={form.quantity}
-                      onChange={(event) =>
-                        setForm((current) => ({ ...current, quantity: event.target.value }))
-                      }
-                    />
-                  </FormField>
-                )}
-
-                <FormField
-                  label="Motivo"
-                  htmlFor="stockMovementReason"
-                  optional
-                  className="sm:col-span-2"
-                >
-                  <TextInput
-                    id="stockMovementReason"
-                    value={form.reason}
-                    maxLength={120}
-                    placeholder="Ex.: Reposição, uso clínico, contagem física..."
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, reason: event.target.value }))
-                    }
-                  />
-                </FormField>
-
-                <FormField
-                  label="Observações"
-                  htmlFor="stockMovementNotes"
-                  optional
-                  className="sm:col-span-2"
-                >
-                  <TextArea
-                    id="stockMovementNotes"
-                    value={form.notes}
-                    maxLength={2000}
-                    placeholder="Detalhes internos da movimentação..."
-                    onChange={(event) =>
-                      setForm((current) => ({ ...current, notes: event.target.value }))
-                    }
-                  />
-                </FormField>
+                </div>
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-border/50 px-5 py-4 sm:flex-row sm:px-6">
+            {/* ── Footer ── */}
+            <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1"
                 onClick={onClose}
                 disabled={isSaving}
               >
                 Cancelar
               </Button>
-              <Button type="submit" className="flex-1" disabled={isSaving}>
+              <Button type="submit" form="movement-form" disabled={isSaving}>
                 {isSaving ? (
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
