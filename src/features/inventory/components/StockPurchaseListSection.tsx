@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { useStockPurchaseList } from '../hooks/useStockPurchaseList'
 import type { PurchasePriority, PurchaseListItem } from '../types/inventory.types'
 import { formatBRLCents } from '../utils/inventory-format'
+import { InventorySummaryChip } from './InventorySummaryChip'
 import { StockCopilotCard } from './StockCopilotCard'
 
 // ── Priority badge ────────────────────────────────────────────────────────────
@@ -38,30 +39,6 @@ function PriorityBadge({ priority }: { priority: PurchasePriority }) {
     >
       {PRIORITY_LABEL[priority]}
     </span>
-  )
-}
-
-// ── Summary mini-grid ─────────────────────────────────────────────────────────
-
-type SummaryChipProps = {
-  label: string
-  value: string
-  tone?: 'neutral' | 'danger' | 'warning' | 'info'
-}
-
-const CHIP_TONE: Record<NonNullable<SummaryChipProps['tone']>, string> = {
-  neutral: 'border-border bg-muted/50 text-foreground',
-  danger:  'border-red-200 bg-red-50 text-red-700 dark:border-red-800/40 dark:bg-red-950/20 dark:text-red-300',
-  warning: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/20 dark:text-amber-300',
-  info:    'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800/40 dark:bg-blue-950/20 dark:text-blue-300',
-}
-
-function SummaryChip({ label, value, tone = 'neutral' }: SummaryChipProps) {
-  return (
-    <div className={cn('rounded-lg border p-4', CHIP_TONE[tone])}>
-      <p className="text-xl font-semibold tabular-nums">{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-    </div>
   )
 }
 
@@ -219,26 +196,26 @@ export function StockPurchaseListSection() {
         <div className="mt-5 space-y-5">
           {/* Summary mini-grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            <SummaryChip
+            <InventorySummaryChip
               label="Total de itens"
               value={String(data.summary.totalItems)}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Críticos"
               value={String(data.summary.criticalItems)}
               tone={data.summary.criticalItems > 0 ? 'danger' : 'neutral'}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Alta prioridade"
               value={String(data.summary.highPriorityItems)}
               tone={data.summary.highPriorityItems > 0 ? 'warning' : 'neutral'}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Média prioridade"
               value={String(data.summary.mediumPriorityItems)}
               tone={data.summary.mediumPriorityItems > 0 ? 'info' : 'neutral'}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Custo estimado"
               value={
                 data.summary.totalEstimatedCostCents > 0

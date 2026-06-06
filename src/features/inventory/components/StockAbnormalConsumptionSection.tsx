@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 
 import { useStockAbnormalConsumption } from '../hooks/useStockAbnormalConsumption'
 import type { AbnormalConsumptionItem, AnomalySeverity, AnomalyType } from '../types/inventory.types'
+import { InventorySummaryChip } from './InventorySummaryChip'
 import { StockAbnormalConsumptionCopilotCard } from './StockAbnormalConsumptionCopilotCard'
 
 // ── Labels ────────────────────────────────────────────────────────────────────
@@ -44,36 +45,6 @@ function SeverityBadge({ severity }: { severity: AnomalySeverity }) {
     >
       {SEVERITY_LABEL[severity]}
     </span>
-  )
-}
-
-// ── Summary chip ──────────────────────────────────────────────────────────────
-
-type ChipTone = 'neutral' | 'danger' | 'warning' | 'info'
-
-const CHIP_TONE_CLASS: Record<ChipTone, string> = {
-  neutral: 'border-border bg-muted/50 text-foreground',
-  danger:
-    'border-red-200 bg-red-50 text-red-700 dark:border-red-800/40 dark:bg-red-950/20 dark:text-red-300',
-  warning:
-    'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/20 dark:text-amber-300',
-  info: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800/40 dark:bg-blue-950/20 dark:text-blue-300',
-}
-
-function SummaryChip({
-  label,
-  value,
-  tone = 'neutral',
-}: {
-  label: string
-  value: string
-  tone?: ChipTone
-}) {
-  return (
-    <div className={cn('rounded-lg border p-4', CHIP_TONE_CLASS[tone])}>
-      <p className="text-xl font-semibold tabular-nums">{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-    </div>
   )
 }
 
@@ -226,21 +197,21 @@ export function StockAbnormalConsumptionSection() {
 
           {/* Summary mini-grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <SummaryChip
+            <InventorySummaryChip
               label="Total de anomalias"
               value={String(data.summary.totalAnomalies)}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Alta atenção"
               value={String(data.summary.highSeverity)}
               tone={data.summary.highSeverity > 0 ? 'danger' : 'neutral'}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Atenção média"
               value={String(data.summary.mediumSeverity)}
               tone={data.summary.mediumSeverity > 0 ? 'warning' : 'neutral'}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Baixa atenção"
               value={String(data.summary.lowSeverity)}
               tone={data.summary.lowSeverity > 0 ? 'info' : 'neutral'}
