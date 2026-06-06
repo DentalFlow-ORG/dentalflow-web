@@ -1,6 +1,19 @@
-import { AlertTriangle, Eye, Loader2, Minus, MoveRight, Pencil, Plus, Power, PowerOff } from 'lucide-react'
+import { useState } from 'react'
+import {
+  AlertTriangle,
+  Eye,
+  Loader2,
+  Minus,
+  MoreHorizontal,
+  MoveRight,
+  Pencil,
+  Plus,
+  Power,
+  PowerOff,
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 import type { StockProduct } from '../types/inventory.types'
 import { formatBRLCents, formatProductDate, formatQuantity } from '../utils/inventory-format'
@@ -27,9 +40,14 @@ export function InventoryProductCard({
   quickMovingIds,
   onQuickMove,
 }: InventoryProductCardProps) {
+  const [menuOpen, setMenuOpen] = useState(false)
   const isInactive = product.status === 'INACTIVE'
   const hasStockWarning = product.status === 'EMPTY' || product.status === 'LOW'
   const hasExpiryWarning = product.status === 'EXPIRED' || product.status === 'EXPIRING'
+
+  const hasMenuActions = !isInactive
+    ? true
+    : !!(onReactivate)
 
   return (
     <article
@@ -166,83 +184,92 @@ export function InventoryProductCard({
       )}
 
       {/* Actions */}
-      <div className="mt-4 flex flex-col gap-2">
-        {!isInactive ? (
-          <>
-            <div className="grid grid-cols-2 gap-2">
+      <div className="mt-4 flex items-center gap-2 border-t border-border/50 pt-3">
+        {/* Primary: Ver detalhes — always visible, full-width */}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          aria-label={`Ver detalhes de ${product.name}`}
+          onClick={() => onViewDetails(product)}
+        >
+          <Eye aria-hidden="true" />
+          Ver detalhes
+        </Button>
+
+        {/* Secondary actions: compact popover menu */}
+        {hasMenuActions && (
+          <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+            <PopoverTrigger asChild>
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                aria-label={`Ver detalhes de ${product.name}`}
-                onClick={() => onViewDetails(product)}
+                size="icon-sm"
+                aria-label={`Mais ações para ${product.name}`}
+                aria-haspopup="menu"
               >
-                <Eye aria-hidden="true" />
-                Ver detalhes
+                <MoreHorizontal aria-hidden="true" />
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                aria-label={`Editar produto ${product.name}`}
-                onClick={() => onEdit(product)}
-              >
-                <Pencil aria-hidden="true" />
-                Editar
-              </Button>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full"
-              aria-label={`Movimentar estoque de ${product.name}`}
-              onClick={() => onMove(product)}
-            >
-              <MoveRight aria-hidden="true" />
-              Movimentar
-            </Button>
-            {onDeactivate && (
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                className="w-full"
-                aria-label={`Desativar produto ${product.name}`}
-                onClick={() => onDeactivate(product)}
-              >
-                <PowerOff aria-hidden="true" />
-                Desativar produto
-              </Button>
-            )}
-          </>
-        ) : (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full"
-              aria-label={`Ver detalhes de ${product.name}`}
-              onClick={() => onViewDetails(product)}
-            >
-              <Eye aria-hidden="true" />
-              Ver detalhes
-            </Button>
-            {onReactivate && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full"
-                aria-label={`Reativar produto ${product.name}`}
-                onClick={() => onReactivate(product)}
-              >
-                <Power aria-hidden="true" />
-                Reativar produto
-              </Button>
-            )}
-          </>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-48 overflow-hidden py-1">
+              {!isInactive && (
+                <>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      onEdit(product)
+                    }}
+                  >
+                    <Pencil className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      onMove(product)
+                    }}
+                  >
+                    <MoveRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    Movimentar
+                  </button>
+                  {onDeactivate && (
+                    <>
+                      <div className="mx-1 my-0.5 h-px bg-border" role="separator" />
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 focus:bg-destructive/10 focus:outline-none dark:hover:bg-destructive/35 dark:focus:bg-destructive/35"
+                        onClick={() => {
+                          setMenuOpen(false)
+                          onDeactivate(product)
+                        }}
+                      >
+                        <PowerOff className="h-4 w-4" aria-hidden="true" />
+                        Desativar
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
+              {isInactive && onReactivate && (
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted focus:bg-muted focus:outline-none"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    onReactivate(product)
+                  }}
+                >
+                  <Power className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  Reativar
+                </button>
+              )}
+            </PopoverContent>
+          </Popover>
         )}
       </div>
     </article>
