@@ -420,22 +420,26 @@ export function FiscalInvoicesPageContainer() {
               {isInvoiceFormOpen && (
                 <div className="space-y-3">
                   {appointmentWarnings?.paymentPending && (
-                    <InlineFeedback tone="warning">
-                      <p className="font-semibold">Consulta com pagamento pendente</p>
-                      <p className="mt-1 leading-6">
-                        O pagamento desta consulta ainda não foi registrado. Verifique o valor
-                        antes de salvar a nota.
-                      </p>
-                    </InlineFeedback>
+                    <div role="alert">
+                      <InlineFeedback tone="warning">
+                        <p className="font-semibold">Consulta com pagamento pendente</p>
+                        <p className="mt-1 leading-6">
+                          O pagamento desta consulta ainda não foi registrado. Verifique o valor
+                          antes de salvar a nota.
+                        </p>
+                      </InlineFeedback>
+                    </div>
                   )}
                   {appointmentWarnings?.hasExistingInvoice && (
-                    <InlineFeedback tone="warning">
-                      <p className="font-semibold">Já existe uma nota vinculada a esta consulta</p>
-                      <p className="mt-1 leading-6">
-                        Salvar irá criar uma nova nota separada. A nota existente não será alterada.
-                        Certifique-se de que uma duplicidade é intencional.
-                      </p>
-                    </InlineFeedback>
+                    <div role="alert">
+                      <InlineFeedback tone="warning">
+                        <p className="font-semibold">Já existe uma nota vinculada a esta consulta</p>
+                        <p className="mt-1 leading-6">
+                          Salvar irá criar uma nova nota separada. A nota existente não será alterada.
+                          Certifique-se de que uma duplicidade é intencional.
+                        </p>
+                      </InlineFeedback>
+                    </div>
                   )}
                   <InvoiceForm
                     form={invoiceForm}

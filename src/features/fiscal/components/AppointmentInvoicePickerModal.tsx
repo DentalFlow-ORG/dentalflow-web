@@ -96,7 +96,6 @@ export function AppointmentInvoicePickerModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0 duration-200" />
         <Dialog.Content
-          aria-describedby={undefined}
           className={cn(
             'fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col rounded-t-2xl bg-background shadow-2xl shadow-black/15',
             'sm:inset-auto sm:left-1/2 sm:top-1/2 sm:max-h-[80dvh] sm:w-full sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl',
@@ -111,9 +110,9 @@ export function AppointmentInvoicePickerModal({
               <Dialog.Title className="text-base font-semibold text-foreground">
                 Gerar nota a partir de consulta
               </Dialog.Title>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <Dialog.Description className="mt-0.5 text-xs text-muted-foreground">
                 Selecione a consulta para preencher automaticamente os dados da nota.
-              </p>
+              </Dialog.Description>
             </div>
             <Button type="button" variant="ghost" size="icon-sm" onClick={handleClose} aria-label="Fechar">
               <X />
@@ -180,7 +179,7 @@ export function AppointmentInvoicePickerModal({
           {/* List */}
           <div className="flex-1 overflow-y-auto">
             {isLoading ? (
-              <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+              <div role="status" aria-live="polite" className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 Carregando consultas...
               </div>
