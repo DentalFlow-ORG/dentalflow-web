@@ -2,14 +2,11 @@ import { FileText, Loader2, RefreshCw, Settings2, ShieldAlert, Stethoscope } fro
 import { useRef, useState } from 'react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { EmptyState } from '@/components/common/EmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
-import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
-import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
 import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
@@ -19,11 +16,10 @@ import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { AppointmentInvoicePickerModal } from '../components/AppointmentInvoicePickerModal'
 import { FiscalInvoiceFiltersBar } from '../components/FiscalInvoiceFiltersBar'
 import { FiscalSummaryKpiGrid } from '../components/FiscalSummaryKpiGrid'
-import { canCancelInvoice, canSimulateInvoice, getInvoiceActionLabel } from '../utils/invoice-actions'
+import { InvoiceList } from '../components/InvoiceList'
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
 import { InvoiceDetails } from '../components/InvoiceDetails'
 import { InvoiceForm } from '../components/InvoiceForm'
-import { INVOICE_STATUS_LABEL, INVOICE_STATUS_TONE } from '../constants/invoice-status'
 import { useFiscalInvoicesPage } from '../hooks/useFiscalInvoicesPage'
 import { getAppointmentInvoiceDraft } from '../services/fiscal.service'
 import type {
@@ -31,7 +27,6 @@ import type {
   InvoicePayload,
   ServiceInvoice,
 } from '../types/fiscal.types'
-import { formatCents, formatInvoiceDate } from '../utils/invoice-format'
 
 type ActiveWorkspace = 'profile' | 'form' | 'details' | 'none'
 
@@ -476,215 +471,23 @@ export function FiscalInvoicesPageContainer() {
             onClear={clearFilters}
           />
 
-          <PanelCard>
-            {invoices.length === 0 ? (
-              <EmptyState
-                icon={FileText}
-                title="Nenhuma nota fiscal encontrada"
-                description="Crie rascunhos para organizar a futura emissão de NFS-e da clínica."
-              />
-            ) : (
-              <div className="space-y-3">
-                {/* Mobile card list — hidden on md+ */}
-                <div className="space-y-3 md:hidden">
-                  {invoices.map((invoice) => (
-                    <PanelCard key={invoice.id} className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-foreground">{invoice.customerName}</p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {invoice.customerEmail ?? invoice.customerDocument ?? 'Sem contato'}
-                          </p>
-                        </div>
-                        <StatusBadge tone={INVOICE_STATUS_TONE[invoice.status]}>
-                          {INVOICE_STATUS_LABEL[invoice.status]}
-                        </StatusBadge>
-                      </div>
-                      <p className="mt-2 truncate text-sm text-muted-foreground">{invoice.serviceDescription}</p>
-                      <div className="mt-2 flex items-center justify-between gap-2">
-                        <span className="font-semibold text-foreground">{formatCents(invoice.amountCents)}</span>
-                        <span className="text-xs text-muted-foreground">{formatInvoiceDate(invoice.competenceDate)}</span>
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          aria-label={getInvoiceActionLabel('details', invoice.customerName)}
-                          onClick={() => {
-                            void openInvoiceDetails(invoice)
-                          }}
-                        >
-                          Ver detalhes
-                        </Button>
-                        {canEditInvoice(invoice, user?.role) && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            aria-label={getInvoiceActionLabel('edit', invoice.customerName)}
-                            onClick={() => openInvoiceForm(invoice)}
-                          >
-                            Editar
-                          </Button>
-                        )}
-                        {isOwner && invoice.status === 'DRAFT' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            aria-label={getInvoiceActionLabel('markReady', invoice.customerName)}
-                            onClick={() => {
-                              void markReady(invoice).catch(() => undefined)
-                            }}
-                          >
-                            Marcar pronta
-                          </Button>
-                        )}
-                        {isOwner && canSimulateInvoice(invoice.status, profile?.fiscalProviderMode) && (
-                          <Button
-                            size="sm"
-                            aria-label={getInvoiceActionLabel('simulate', invoice.customerName)}
-                            onClick={() => {
-                              void simulateIssue(invoice).catch(() => undefined)
-                            }}
-                          >
-                            Simular emissão
-                          </Button>
-                        )}
-                        {isOwner && canCancelInvoice(invoice.status) && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            aria-label={getInvoiceActionLabel('cancel', invoice.customerName)}
-                            onClick={() => setCancelTarget(invoice)}
-                          >
-                            Cancelar
-                          </Button>
-                        )}
-                      </div>
-                    </PanelCard>
-                  ))}
-                </div>
-
-                {/* Desktop table — hidden below md */}
-                <div className="hidden overflow-hidden rounded-lg border border-border md:block">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-230 text-sm" aria-label="Notas fiscais">
-                      <thead>
-                        <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          <th scope="col" className="px-4 py-3">Cliente</th>
-                          <th scope="col" className="px-4 py-3">Serviço</th>
-                          <th scope="col" className="px-4 py-3 text-right">Valor</th>
-                          <th scope="col" className="px-4 py-3">Status</th>
-                          <th scope="col" className="px-4 py-3">Competência</th>
-                          <th scope="col" className="px-4 py-3">Criada em</th>
-                          <th scope="col" className="px-4 py-3 text-right">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border bg-card">
-                        {invoices.map((invoice) => (
-                          <tr key={invoice.id} className="hover:bg-muted/70">
-                            <td className="px-4 py-3">
-                              <p className="font-semibold text-foreground">{invoice.customerName}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {invoice.customerEmail ?? invoice.customerDocument ?? 'Sem contato'}
-                              </p>
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {invoice.serviceDescription}
-                            </td>
-                            <td className="px-4 py-3 text-right font-semibold text-foreground">
-                              {formatCents(invoice.amountCents)}
-                            </td>
-                            <td className="px-4 py-3">
-                              <StatusBadge tone={INVOICE_STATUS_TONE[invoice.status]}>
-                                {INVOICE_STATUS_LABEL[invoice.status]}
-                              </StatusBadge>
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {formatInvoiceDate(invoice.competenceDate)}
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {formatInvoiceDate(invoice.createdAt)}
-                            </td>
-                            <td className="px-4 py-3">
-                              <div className="flex flex-wrap justify-end gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  aria-label={getInvoiceActionLabel('details', invoice.customerName)}
-                                  onClick={() => {
-                                    void openInvoiceDetails(invoice)
-                                  }}
-                                >
-                                  Ver detalhes
-                                </Button>
-                                {canEditInvoice(invoice, user?.role) && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    aria-label={getInvoiceActionLabel('edit', invoice.customerName)}
-                                    onClick={() => openInvoiceForm(invoice)}
-                                  >
-                                    Editar
-                                  </Button>
-                                )}
-                                {isOwner && invoice.status === 'DRAFT' && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    aria-label={getInvoiceActionLabel('markReady', invoice.customerName)}
-                                    onClick={() => {
-                                      void markReady(invoice).catch(() => undefined)
-                                    }}
-                                  >
-                                    Marcar pronta
-                                  </Button>
-                                )}
-                                {isOwner && canSimulateInvoice(invoice.status, profile?.fiscalProviderMode) && (
-                                  <Button
-                                    size="sm"
-                                    aria-label={getInvoiceActionLabel('simulate', invoice.customerName)}
-                                    onClick={() => {
-                                      void simulateIssue(invoice).catch(() => undefined)
-                                    }}
-                                  >
-                                    Simular emissão
-                                  </Button>
-                                )}
-                                {isOwner && canCancelInvoice(invoice.status) && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    aria-label={getInvoiceActionLabel('cancel', invoice.customerName)}
-                                    onClick={() => setCancelTarget(invoice)}
-                                  >
-                                    Cancelar
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Shared pagination */}
-                <div className="rounded-lg border border-border bg-card px-4 py-3">
-                  <Pagination
-                    page={filters.page}
-                    totalPages={totalPages}
-                    filteredCount={total}
-                    pageSize={filters.limit}
-                    onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
-                    onPageSizeChange={(limit) =>
-                      setFilters((current) => ({ ...current, page: 1, limit }))
-                    }
-                  />
-                </div>
-              </div>
-            )}
-          </PanelCard>
+          <InvoiceList
+            invoices={invoices}
+            userRole={user?.role}
+            isOwner={isOwner}
+            profile={profile}
+            page={filters.page}
+            totalPages={totalPages}
+            total={total}
+            limit={filters.limit}
+            onViewDetails={(invoice) => { void openInvoiceDetails(invoice) }}
+            onEdit={openInvoiceForm}
+            onMarkReady={(invoice) => { void markReady(invoice).catch(() => undefined) }}
+            onSimulate={(invoice) => { void simulateIssue(invoice).catch(() => undefined) }}
+            onCancel={setCancelTarget}
+            onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
+            onPageSizeChange={(limit) => setFilters((current) => ({ ...current, page: 1, limit }))}
+          />
         </div>
       </ListPageShell>
 
@@ -734,10 +537,4 @@ function getActiveWorkspaceLabel(activeWorkspace: ActiveWorkspace) {
   }
 
   return labels[activeWorkspace]
-}
-
-function canEditInvoice(invoice: ServiceInvoice, role?: string) {
-  if (role === 'OWNER') return ['DRAFT', 'READY_TO_ISSUE'].includes(invoice.status)
-  if (role === 'ASSISTANT') return invoice.status === 'DRAFT'
-  return false
 }
