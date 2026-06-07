@@ -2,7 +2,6 @@ import { FileText, Loader2, RefreshCw, Settings2, ShieldAlert, Stethoscope } fro
 import { useRef, useState } from 'react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { EmptyState } from '@/components/common/EmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
@@ -12,13 +11,13 @@ import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 import { AppointmentInvoicePickerModal } from '../components/AppointmentInvoicePickerModal'
+import { FiscalInvoiceFiltersBar } from '../components/FiscalInvoiceFiltersBar'
 import { FiscalSummaryKpiGrid } from '../components/FiscalSummaryKpiGrid'
 import { canCancelInvoice, canSimulateInvoice, getInvoiceActionLabel } from '../utils/invoice-actions'
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
@@ -31,7 +30,6 @@ import type {
   FiscalProfilePayload,
   InvoicePayload,
   ServiceInvoice,
-  ServiceInvoiceStatus,
 } from '../types/fiscal.types'
 import { formatCents, formatInvoiceDate } from '../utils/invoice-format'
 
@@ -273,16 +271,26 @@ export function FiscalInvoicesPageContainer() {
     if (activeWorkspace === 'details') setActiveWorkspace('none')
   }
 
+  function clearFilters() {
+    setFilters((current) => ({
+      ...current,
+      customer: undefined,
+      status: undefined,
+      to: undefined,
+      page: 1,
+    }))
+  }
+
   if (planBlocked) return <PlanUpgradeNotice title="Notas fiscais" />
 
   return (
     <AppPage>
-      <AppPageHeader
+      <HomeDashboardHeader
         eyebrow="Fiscal"
         title="Notas fiscais"
-        description="Prepare, organize e acompanhe as notas fiscais de serviço da clínica."
-        action={
-          <div className="flex flex-wrap gap-2">
+        description="Emita, acompanhe e organize notas fiscais da clínica com segurança, histórico e status fiscal em um só lugar."
+        actions={
+          <div className="flex flex-col gap-2 sm:flex-row *:w-full sm:*:w-auto">
             <Button variant="outline" onClick={load}>
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Atualizar
@@ -327,14 +335,10 @@ export function FiscalInvoicesPageContainer() {
           <InlineFeedback tone="warning">
             <div className="flex gap-3">
               <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-              <div>
-                <p className="font-semibold">Integração fiscal em modo local/simulação</p>
-                <p className="mt-1 leading-6">
-                  A emissão real de NFS-e ainda não está ativa. No momento, este módulo funciona
-                  como controle interno e simulação. Para emitir notas fiscais válidas, será
-                  necessário configurar uma integração fiscal homologada.
-                </p>
-              </div>
+              <p>
+                Modo local/simulação ativo. Você pode organizar rascunhos e validar o fluxo de
+                notas; a emissão real depende da configuração fiscal da clínica.
+              </p>
             </div>
           </InlineFeedback>
 
@@ -353,8 +357,7 @@ export function FiscalInvoicesPageContainer() {
                     : 'Configuração fiscal pendente'}
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Integração fiscal real ainda não configurada. Esses dados serão usados futuramente
-                  para emissão real de NFS-e.
+                  Gerencie os dados da clínica usados para emissão real de NFS-e.
                 </p>
               </div>
               {isOwner && (
@@ -463,48 +466,17 @@ export function FiscalInvoicesPageContainer() {
             </div>
           )}
 
-          <PanelCard>
-            <div className="mb-4 grid gap-3 lg:grid-cols-4">
-              <FormField label="Cliente" htmlFor="invoiceCustomer" className="lg:col-span-2">
-                <TextInput
-                  id="invoiceCustomer"
-                  placeholder="Buscar por cliente..."
-                  value={filters.customer ?? ''}
-                  onChange={(e) => setFilter('customer', e.target.value)}
-                />
-              </FormField>
-              <FormField label="Status" htmlFor="invoiceStatus">
-                <Select
-                  value={filters.status ?? '__all__'}
-                  onValueChange={(value) =>
-                    setFilter(
-                      'status',
-                      (value === '__all__' ? undefined : value) as ServiceInvoiceStatus,
-                    )
-                  }
-                >
-                  <SelectTrigger id="invoiceStatus">
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">Todos</SelectItem>
-                    {Object.entries(INVOICE_STATUS_LABEL).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-              <FormField label="Competência até" htmlFor="invoiceTo">
-                <DatePickerInput
-                  id="invoiceTo"
-                  value={filters.to ?? ''}
-                  onValueChange={(value) => setFilter('to', value)}
-                />
-              </FormField>
-            </div>
+          <FiscalInvoiceFiltersBar
+            customer={filters.customer ?? ''}
+            status={filters.status}
+            to={filters.to ?? ''}
+            onCustomerChange={(value) => setFilter('customer', value)}
+            onStatusChange={(value) => setFilter('status', value)}
+            onToChange={(value) => setFilter('to', value)}
+            onClear={clearFilters}
+          />
 
+          <PanelCard>
             {invoices.length === 0 ? (
               <EmptyState
                 icon={FileText}
