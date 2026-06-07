@@ -82,7 +82,7 @@ export function ProductDetailsDrawer({
               {/* ── Scrollable body ── */}
               <div className="app-scrollbar flex-1 space-y-5 overflow-y-auto px-5 py-5">
                 {/* Quantity summary */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <InventorySummaryChip
                     label="Quantidade atual"
                     value={formatQuantity(product.currentQuantity, product.unit)}

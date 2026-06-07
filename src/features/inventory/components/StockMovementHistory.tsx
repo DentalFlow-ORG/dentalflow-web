@@ -12,6 +12,8 @@ import {
   getMovementTypeLabel,
 } from '../utils/inventory-format'
 
+const MOVEMENT_HISTORY_LIMIT = 8
+
 type StockMovementHistoryProps = {
   product: StockProduct
   refreshKey: number
@@ -29,7 +31,7 @@ export function StockMovementHistory({
     setIsLoading(true)
     setError(null)
 
-    listProductStockMovements(product.id, { page: 1, limit: 8 })
+    listProductStockMovements(product.id, { page: 1, limit: MOVEMENT_HISTORY_LIMIT })
       .then((response) => setMovements(response.data))
       .catch(() => {
         setError('Não foi possível carregar o histórico de movimentações.')

@@ -28,7 +28,7 @@ export function ReactivateProductDialog({
         <Dialog.Content
           aria-labelledby="reactivate-dialog-title"
           aria-describedby="reactivate-dialog-desc"
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
           onEscapeKeyDown={onCancel}
           onInteractOutside={onCancel}
         >
