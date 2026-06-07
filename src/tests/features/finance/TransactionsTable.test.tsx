@@ -1,4 +1,4 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen } from '@/test-utils/render-utils'
 import { vi } from 'vitest'
 
 // Stub ExpenseClassifyAction — keeps tests focused on the table layout
@@ -214,10 +214,67 @@ describe('TransactionsTable', () => {
 
   // ── Empty state ───────────────────────────────────────────────────────────
 
-  it('renders empty state when no transactions are provided', () => {
+  it('renders generic empty state when no transactions and no emptyState prop', () => {
     renderTable([])
     const empties = screen.getAllByText('Nenhuma movimentação encontrada.')
     expect(empties.length).toBeGreaterThan(0)
+  })
+
+  it('renders contextual empty state title when emptyState prop is provided', () => {
+    renderTable([], {
+      emptyState: {
+        title: 'Nenhum recebível pendente no período selecionado',
+        description: 'Todas as entradas do período estão pagas ou não há lançamentos pendentes para cobrar.',
+        actionLabel: 'Limpar filtros',
+        onAction: vi.fn(),
+      },
+    })
+    const titles = screen.getAllByText('Nenhum recebível pendente no período selecionado')
+    expect(titles.length).toBeGreaterThan(0)
+  })
+
+  it('renders contextual empty state description when emptyState prop is provided', () => {
+    renderTable([], {
+      emptyState: {
+        title: 'Nenhum recebível pendente no período selecionado',
+        description: 'Todas as entradas do período estão pagas ou não há lançamentos pendentes para cobrar.',
+      },
+    })
+    const descriptions = screen.getAllByText(
+      'Todas as entradas do período estão pagas ou não há lançamentos pendentes para cobrar.',
+    )
+    expect(descriptions.length).toBeGreaterThan(0)
+  })
+
+  it('renders contextual action button and calls onAction when clicked', () => {
+    const onAction = vi.fn()
+    renderTable([], {
+      emptyState: {
+        title: 'Nenhum recebível pendente no período selecionado',
+        actionLabel: 'Limpar filtros',
+        onAction,
+      },
+    })
+    const buttons = screen.getAllByRole('button', { name: 'Limpar filtros' })
+    expect(buttons.length).toBeGreaterThan(0)
+    fireEvent.click(buttons[0])
+    expect(onAction).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not render contextual empty state when transactions exist', () => {
+    renderTable([incomeTransaction], {
+      emptyState: {
+        title: 'Nenhum recebível pendente no período selecionado',
+      },
+    })
+    expect(screen.queryByText('Nenhum recebível pendente no período selecionado')).not.toBeInTheDocument()
+  })
+
+  it('does not render generic empty state when emptyState prop is provided', () => {
+    renderTable([], {
+      emptyState: { title: 'Nenhum recebível pendente no período selecionado' },
+    })
+    expect(screen.queryByText('Nenhuma movimentação encontrada.')).not.toBeInTheDocument()
   })
 
   // ── Desktop wrapper ───────────────────────────────────────────────────────

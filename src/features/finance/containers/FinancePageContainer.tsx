@@ -110,6 +110,21 @@ export function FinancePageContainer() {
   const { state: diagnosisState, handleGenerate: handleGenerateDiagnosis } = useMonthlyFinanceDiagnosis()
   const { state: marginsState, load: loadMargins } = useProcedureMargins()
 
+  const pendingReceivablesEmptyState =
+    filters.type === 'INCOME' && filters.status === 'PENDING'
+      ? {
+          title: 'Nenhum recebível pendente no período selecionado',
+          description:
+            'Todas as entradas do período estão pagas ou não há lançamentos pendentes para cobrar.',
+          actionLabel: 'Limpar filtros',
+          onAction: () => {
+            setFilter('type', undefined)
+            setFilter('status', undefined)
+            setFilter('categoryId', undefined)
+          },
+        }
+      : undefined
+
   if (planBlocked) return <PlanUpgradeNotice title="Gestão financeira" />
 
   return (
@@ -218,6 +233,7 @@ export function FinancePageContainer() {
                 onClassify={handleClassify}
                 onApplyCategory={handleApplyCategory}
                 onDismissClassify={handleDismissClassify}
+                emptyState={pendingReceivablesEmptyState}
               />
               <TransactionForm
                 form={transactionForm}

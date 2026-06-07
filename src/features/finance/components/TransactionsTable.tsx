@@ -1,5 +1,35 @@
 import { ArrowDownCircle, ArrowUpCircle, Loader2, Pencil, Trash2, WalletCards } from 'lucide-react'
 
+type EmptyStateConfig = {
+  title: string
+  description?: string
+  actionLabel?: string
+  onAction?: () => void
+}
+
+function EmptyStateContent({ emptyState }: { emptyState?: EmptyStateConfig }) {
+  if (!emptyState) {
+    return <span className="text-sm text-muted-foreground">Nenhuma movimentação encontrada.</span>
+  }
+  return (
+    <div>
+      <p className="font-medium text-foreground">{emptyState.title}</p>
+      {emptyState.description && (
+        <p className="mt-1 text-sm text-muted-foreground">{emptyState.description}</p>
+      )}
+      {emptyState.actionLabel && emptyState.onAction && (
+        <button
+          type="button"
+          onClick={emptyState.onAction}
+          className="mt-3 text-xs font-medium text-primary underline-offset-4 hover:underline"
+        >
+          {emptyState.actionLabel}
+        </button>
+      )}
+    </div>
+  )
+}
+
 import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
@@ -26,6 +56,7 @@ export function TransactionsTable({
   onClassify,
   onApplyCategory,
   onDismissClassify,
+  emptyState,
 }: {
   transactions: FinancialTransaction[]
   isLoading: boolean
@@ -40,6 +71,7 @@ export function TransactionsTable({
   onClassify: (transactionId: string) => void
   onApplyCategory: (transactionId: string, categoryId: string) => void
   onDismissClassify: (transactionId: string) => void
+  emptyState?: EmptyStateConfig
 }) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
@@ -63,9 +95,9 @@ export function TransactionsTable({
       {/* ── Mobile cards ───────────────────────────────────────────────── */}
       <div className="space-y-3 md:hidden">
         {transactions.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
-            Nenhuma movimentação encontrada.
-          </p>
+          <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center">
+            <EmptyStateContent emptyState={emptyState} />
+          </div>
         ) : (
           transactions.map((transaction) => {
             const isIncome = transaction.type === 'INCOME'
@@ -176,8 +208,8 @@ export function TransactionsTable({
             <tbody className="divide-y divide-border bg-card">
               {transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">
-                    Nenhuma movimentação encontrada.
+                  <td colSpan={8} className="px-4 py-8 text-center">
+                    <EmptyStateContent emptyState={emptyState} />
                   </td>
                 </tr>
               ) : (
