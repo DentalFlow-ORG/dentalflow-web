@@ -48,77 +48,90 @@ export function FixedExpenseForm({
           <p className="text-sm text-muted-foreground">Cadastre custos recorrentes da clínica.</p>
         </div>
       </div>
-      <form className="space-y-4" onSubmit={onSubmit}>
+      <form className="space-y-5" onSubmit={onSubmit}>
         {error && <InlineFeedback>{error}</InlineFeedback>}
-        <FormField label="Categoria" htmlFor="fixedCategory">
-          <Select value={form.categoryId} onValueChange={(value) => onChange('categoryId', value)}>
-            <SelectTrigger id="fixedCategory">
-              <SelectValue placeholder="Selecione a categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormField>
-        <FormField label="Descrição" htmlFor="fixedDescription">
-          <TextInput
-            id="fixedDescription"
-            value={form.description}
-            maxLength={160}
-            placeholder="Ex.: aluguel da clínica"
-            onChange={(event) => onChange('description', event.target.value)}
-          />
-        </FormField>
-        <div className="grid items-start gap-4 sm:grid-cols-3">
-          <FormField label="Valor" htmlFor="fixedAmount">
-            <TextInput
-              id="fixedAmount"
-              type="number"
-              min="0.01"
-              step="0.01"
-              placeholder="0,00"
-              value={form.amount}
-              onChange={(event) => onChange('amount', event.target.value)}
-            />
-          </FormField>
-          <FormField label="Recorrência" htmlFor="fixedRecurrence">
-            <Select
-              value={form.recurrence}
-              onValueChange={(value) => onChange('recurrence', value as FixedExpenseRecurrence)}
-            >
-              <SelectTrigger id="fixedRecurrence">
-                <SelectValue />
+
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Identificação
+          </p>
+          <FormField label="Categoria" htmlFor="fixedCategory">
+            <Select value={form.categoryId} onValueChange={(value) => onChange('categoryId', value)}>
+              <SelectTrigger id="fixedCategory">
+                <SelectValue placeholder="Selecione a categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="MONTHLY">Mensal</SelectItem>
-                <SelectItem value="WEEKLY">Semanal</SelectItem>
-                <SelectItem value="YEARLY">Anual</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Dia" htmlFor="fixedDueDay">
+          <FormField label="Descrição" htmlFor="fixedDescription">
             <TextInput
-              id="fixedDueDay"
-              type="number"
-              min="1"
-              max="31"
-              placeholder="1–31"
-              value={form.dueDay}
-              onChange={(event) => onChange('dueDay', event.target.value)}
+              id="fixedDescription"
+              value={form.description}
+              maxLength={160}
+              placeholder="Ex.: aluguel da clínica"
+              onChange={(event) => onChange('description', event.target.value)}
             />
           </FormField>
         </div>
-        <FormField label="Início" htmlFor="fixedStartDate">
-          <DatePickerInput
-            id="fixedStartDate"
-            value={form.startDate}
-            onValueChange={(value) => onChange('startDate', value)}
-          />
-        </FormField>
+
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Recorrência
+          </p>
+          <div className="grid items-start gap-4 sm:grid-cols-3">
+            <FormField label="Valor" htmlFor="fixedAmount">
+              <TextInput
+                id="fixedAmount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                placeholder="0,00"
+                value={form.amount}
+                onChange={(event) => onChange('amount', event.target.value)}
+              />
+            </FormField>
+            <FormField label="Recorrência" htmlFor="fixedRecurrence">
+              <Select
+                value={form.recurrence}
+                onValueChange={(value) => onChange('recurrence', value as FixedExpenseRecurrence)}
+              >
+                <SelectTrigger id="fixedRecurrence">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MONTHLY">Mensal</SelectItem>
+                  <SelectItem value="WEEKLY">Semanal</SelectItem>
+                  <SelectItem value="YEARLY">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+            <FormField label="Dia" htmlFor="fixedDueDay">
+              <TextInput
+                id="fixedDueDay"
+                type="number"
+                min="1"
+                max="31"
+                placeholder="1–31"
+                value={form.dueDay}
+                onChange={(event) => onChange('dueDay', event.target.value)}
+              />
+            </FormField>
+          </div>
+          <FormField label="Início" htmlFor="fixedStartDate">
+            <DatePickerInput
+              id="fixedStartDate"
+              value={form.startDate}
+              onValueChange={(value) => onChange('startDate', value)}
+            />
+          </FormField>
+        </div>
+
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
           Salvar despesa fixa
