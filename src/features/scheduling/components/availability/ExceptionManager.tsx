@@ -198,7 +198,7 @@ export function ExceptionManager({
             <div
               role="group"
               aria-label="Filtrar por período"
-              className="flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1"
+              className="flex gap-0.5 rounded-lg border border-border bg-muted p-0.5 dark:border-slate-700 dark:bg-slate-800/80"
             >
               {FILTERS.map((f) => (
                 <button
@@ -207,10 +207,10 @@ export function ExceptionManager({
                   onClick={() => setFilter(f.value)}
                   aria-pressed={filter === f.value}
                   className={cn(
-                    'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                    'flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
                     filter === f.value
-                      ? 'bg-card text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground',
+                      ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
+                      : 'text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white',
                   )}
                 >
                   {f.label}

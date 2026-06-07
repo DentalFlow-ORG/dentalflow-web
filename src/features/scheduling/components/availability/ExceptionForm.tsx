@@ -87,17 +87,17 @@ export function ExceptionForm({
         <div
           role="group"
           aria-label="Tipo de exceção"
-          className="flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1"
+          className="flex flex-wrap gap-0.5 rounded-lg border border-border bg-muted p-0.5 dark:border-slate-700 dark:bg-slate-800/80"
         >
           <button
             type="button"
             onClick={() => setIsDayOff(true)}
             aria-pressed={isDayOff}
             className={cn(
-              'flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors',
+              'flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
               isDayOff
-                ? 'bg-primary/10 text-primary dark:bg-primary/15'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
+                : 'text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white',
             )}
           >
             Folga ocasional
@@ -107,10 +107,10 @@ export function ExceptionForm({
             onClick={() => setIsDayOff(false)}
             aria-pressed={!isDayOff}
             className={cn(
-              'flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors',
+              'flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
               !isDayOff
-                ? 'bg-primary/10 text-primary dark:bg-primary/15'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
+                : 'text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white',
             )}
           >
             Horário especial
