@@ -58,7 +58,6 @@ describe('KpiGrid', () => {
 
   it('positive netProfit card uses success tone (emerald border)', () => {
     render(<KpiGrid summary={makeSummary({ netProfit: 1000 })} />)
-    // The "Lucro líquido" label's parent card gets success tone → border-emerald-200
     const label = screen.getByText('Lucro líquido')
     const card = label.closest('[class*="border-emerald"]')
     expect(card).toBeInTheDocument()
@@ -74,7 +73,6 @@ describe('KpiGrid', () => {
   it('zero pendingReceivables card uses neutral tone (no colored border)', () => {
     render(<KpiGrid summary={makeSummary({ pendingReceivables: 0 })} />)
     const label = screen.getByText('Recebíveis pendentes')
-    // neutral = border-border, no amber/red/emerald/blue
     const card = label.closest('div[class*="rounded-lg"]')
     expect(card).toBeInTheDocument()
     expect(card?.className).not.toMatch(/border-amber/)
@@ -100,7 +98,71 @@ describe('KpiGrid', () => {
 
   it('does not render MetricCard value classes (text-2xl absent; HomeKpiCard uses text-xl)', () => {
     const { container } = render(<KpiGrid summary={makeSummary()} />)
-    // MetricCard renders values with text-2xl; HomeKpiCard uses text-xl
     expect(container.querySelector('.text-2xl')).toBeNull()
+  })
+
+  // ── Delta descriptions ─────────────────────────────────────────────────────
+
+  it('omits delta descriptions when previousSummary is not provided', () => {
+    render(<KpiGrid summary={makeSummary()} />)
+    expect(screen.queryByText(/vs\. período anterior/)).not.toBeInTheDocument()
+  })
+
+  it('omits delta descriptions when previousSummary is null', () => {
+    render(<KpiGrid summary={makeSummary()} previousSummary={null} />)
+    expect(screen.queryByText(/vs\. período anterior/)).not.toBeInTheDocument()
+  })
+
+  it('renders positive delta with plus sign', () => {
+    const current = makeSummary({ totalIncome: 12000 })
+    const previous = makeSummary({ totalIncome: 10000 })
+    render(<KpiGrid summary={current} previousSummary={previous} />)
+    // (12000 - 10000) / 10000 * 100 = +20.0%
+    expect(screen.getByText('+20,0% vs. período anterior')).toBeInTheDocument()
+  })
+
+  it('renders negative delta with minus sign', () => {
+    const current = makeSummary({ totalIncome: 8000 })
+    const previous = makeSummary({ totalIncome: 10000 })
+    render(<KpiGrid summary={current} previousSummary={previous} />)
+    // (8000 - 10000) / 10000 * 100 = -20.0%
+    expect(screen.getByText('-20,0% vs. período anterior')).toBeInTheDocument()
+  })
+
+  it('renders "Sem variação vs. período anterior" when current and previous are equal', () => {
+    const summary = makeSummary({ totalIncome: 10000 })
+    render(<KpiGrid summary={summary} previousSummary={summary} />)
+    // all kpis equal → all 6 cards should show Sem variação
+    const items = screen.getAllByText('Sem variação vs. período anterior')
+    expect(items.length).toBe(6)
+  })
+
+  it('renders "Sem variação vs. período anterior" when both current and previous are zero', () => {
+    const current = makeSummary({ totalIncome: 0 })
+    const previous = makeSummary({ totalIncome: 0 })
+    render(<KpiGrid summary={current} previousSummary={previous} />)
+    expect(screen.getAllByText('Sem variação vs. período anterior').length).toBeGreaterThan(0)
+  })
+
+  it('renders "Novo valor vs. período anterior" when previous is zero and current is non-zero', () => {
+    const current = makeSummary({ totalIncome: 5000 })
+    const previous = makeSummary({ totalIncome: 0 })
+    render(<KpiGrid summary={current} previousSummary={previous} />)
+    expect(screen.getByText('Novo valor vs. período anterior')).toBeInTheDocument()
+  })
+
+  it('renders 6 delta descriptions when previousSummary is provided', () => {
+    const summary = makeSummary()
+    const previous = makeSummary({
+      totalIncome: 9000,
+      totalExpenses: 3500,
+      netProfit: 5500,
+      profitMargin: 55,
+      pendingReceivables: 400,
+      fixedExpensesTotal: 1900,
+    })
+    render(<KpiGrid summary={summary} previousSummary={previous} />)
+    const deltas = screen.getAllByText(/vs\. período anterior/)
+    expect(deltas).toHaveLength(6)
   })
 })

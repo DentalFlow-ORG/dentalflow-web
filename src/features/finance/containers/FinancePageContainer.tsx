@@ -137,7 +137,7 @@ export function FinancePageContainer() {
       >
         {summary && (
           <>
-            <KpiGrid summary={summary} />
+            <KpiGrid summary={summary} previousSummary={previousSummary} />
 
             <FinancialAnalysisPanel summary={summary} previousSummary={previousSummary} />
 
