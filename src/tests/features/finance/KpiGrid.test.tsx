@@ -1,4 +1,4 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { render, screen, fireEvent } from '@/test-utils/render-utils'
 
 import { KpiGrid } from '@/features/finance/components/KpiGrid'
 import type { FinanceSummary } from '@/features/finance/types/finance.types'
@@ -149,6 +149,35 @@ describe('KpiGrid', () => {
     const previous = makeSummary({ totalIncome: 0 })
     render(<KpiGrid summary={current} previousSummary={previous} />)
     expect(screen.getByText('Novo valor vs. período anterior')).toBeInTheDocument()
+  })
+
+  // ── Pending receivables drill-down ────────────────────────────────────────
+
+  it('renders Recebíveis pendentes as a button when onPendingReceivablesClick is provided', () => {
+    render(<KpiGrid summary={makeSummary()} onPendingReceivablesClick={() => {}} />)
+    const btn = screen.getByRole('button', { name: 'Filtrar recebíveis pendentes' })
+    expect(btn).toBeInTheDocument()
+  })
+
+  it('calls onPendingReceivablesClick when the button is clicked', () => {
+    const handler = vi.fn()
+    render(<KpiGrid summary={makeSummary()} onPendingReceivablesClick={handler} />)
+    const btn = screen.getByRole('button', { name: 'Filtrar recebíveis pendentes' })
+    fireEvent.click(btn)
+    expect(handler).toHaveBeenCalledTimes(1)
+  })
+
+  it('button has aria-label "Filtrar recebíveis pendentes"', () => {
+    render(<KpiGrid summary={makeSummary()} onPendingReceivablesClick={() => {}} />)
+    expect(screen.getByRole('button', { name: 'Filtrar recebíveis pendentes' })).toHaveAttribute(
+      'aria-label',
+      'Filtrar recebíveis pendentes',
+    )
+  })
+
+  it('does not render a button for Recebíveis pendentes when onPendingReceivablesClick is not provided', () => {
+    render(<KpiGrid summary={makeSummary()} />)
+    expect(screen.queryByRole('button', { name: 'Filtrar recebíveis pendentes' })).not.toBeInTheDocument()
   })
 
   it('renders 6 delta descriptions when previousSummary is provided', () => {

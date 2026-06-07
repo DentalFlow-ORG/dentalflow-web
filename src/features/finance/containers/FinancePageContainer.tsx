@@ -137,7 +137,19 @@ export function FinancePageContainer() {
       >
         {summary && (
           <>
-            <KpiGrid summary={summary} previousSummary={previousSummary} />
+            <KpiGrid
+              summary={summary}
+              previousSummary={previousSummary}
+              onPendingReceivablesClick={() => {
+                setFilter('type', 'INCOME')
+                setFilter('status', 'PENDING')
+                if (typeof document !== 'undefined') {
+                  requestAnimationFrame(() => {
+                    document.getElementById('finance-transactions')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  })
+                }
+              }}
+            />
 
             <FinancialAnalysisPanel summary={summary} previousSummary={previousSummary} />
 
@@ -191,7 +203,7 @@ export function FinancePageContainer() {
               </PanelCard>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div id="finance-transactions" className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <TransactionsTable
                 transactions={transactions}
                 isLoading={isLoadingTransactions}

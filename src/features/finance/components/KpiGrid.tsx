@@ -8,6 +8,7 @@ import { formatCurrency } from '../utils/finance-format'
 type KpiGridProps = {
   summary: FinanceSummary
   previousSummary?: FinanceSummary | null
+  onPendingReceivablesClick?: () => void
 }
 
 function kpiDelta(current: number, previous: number): string {
@@ -23,7 +24,7 @@ function kpiDelta(current: number, previous: number): string {
   return `${sign}${formatted}% vs. período anterior`
 }
 
-export function KpiGrid({ summary, previousSummary }: KpiGridProps) {
+export function KpiGrid({ summary, previousSummary, onPendingReceivablesClick }: KpiGridProps) {
   const { kpis } = summary
   const prev = previousSummary?.kpis ?? null
 
@@ -57,13 +58,30 @@ export function KpiGrid({ summary, previousSummary }: KpiGridProps) {
         tone={kpis.profitMargin >= 0 ? 'success' : 'danger'}
         description={prev ? kpiDelta(kpis.profitMargin, prev.profitMargin) : undefined}
       />
-      <HomeKpiCard
-        value={formatCurrency(kpis.pendingReceivables)}
-        label="Recebíveis pendentes"
-        icon={Clock}
-        tone={kpis.pendingReceivables > 0 ? 'warning' : 'neutral'}
-        description={prev ? kpiDelta(kpis.pendingReceivables, prev.pendingReceivables) : undefined}
-      />
+      {onPendingReceivablesClick ? (
+        <button
+          type="button"
+          aria-label="Filtrar recebíveis pendentes"
+          onClick={onPendingReceivablesClick}
+          className="w-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-[inherit] hover:opacity-90 transition-opacity"
+        >
+          <HomeKpiCard
+            value={formatCurrency(kpis.pendingReceivables)}
+            label="Recebíveis pendentes"
+            icon={Clock}
+            tone={kpis.pendingReceivables > 0 ? 'warning' : 'neutral'}
+            description={prev ? kpiDelta(kpis.pendingReceivables, prev.pendingReceivables) : undefined}
+          />
+        </button>
+      ) : (
+        <HomeKpiCard
+          value={formatCurrency(kpis.pendingReceivables)}
+          label="Recebíveis pendentes"
+          icon={Clock}
+          tone={kpis.pendingReceivables > 0 ? 'warning' : 'neutral'}
+          description={prev ? kpiDelta(kpis.pendingReceivables, prev.pendingReceivables) : undefined}
+        />
+      )}
       <HomeKpiCard
         value={formatCurrency(kpis.fixedExpensesTotal)}
         label="Despesas fixas ativas"
