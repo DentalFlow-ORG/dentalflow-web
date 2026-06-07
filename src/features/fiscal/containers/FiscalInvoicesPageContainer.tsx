@@ -20,6 +20,7 @@ import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 import { AppointmentInvoicePickerModal } from '../components/AppointmentInvoicePickerModal'
 import { FiscalSummaryKpiGrid } from '../components/FiscalSummaryKpiGrid'
+import { canCancelInvoice, canSimulateInvoice } from '../utils/invoice-actions'
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
 import { InvoiceDetails } from '../components/InvoiceDetails'
 import { InvoiceForm } from '../components/InvoiceForm'
@@ -84,8 +85,10 @@ export function FiscalInvoicesPageContainer() {
   const [isProfileFormOpen, setIsProfileFormOpen] = useState(false)
   const [profileForm, setProfileForm] = useState<FiscalProfilePayload>(emptyProfileForm)
   const [cancelTarget, setCancelTarget] = useState<ServiceInvoice | null>(null)
+  const [cancelReason, setCancelReason] = useState('')
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [isLoadingDraft, setIsLoadingDraft] = useState(false)
+  const [draftLoadError, setDraftLoadError] = useState<string | null>(null)
   const [appointmentWarnings, setAppointmentWarnings] = useState<{
     paymentPending: boolean
     hasExistingInvoice: boolean
@@ -189,6 +192,7 @@ export function FiscalInvoicesPageContainer() {
 
   async function handleAppointmentSelect(appointmentId: string) {
     setIsLoadingDraft(true)
+    setDraftLoadError(null)
     try {
       const result = await getAppointmentInvoiceDraft(appointmentId)
       setAppointmentWarnings({
@@ -208,7 +212,9 @@ export function FiscalInvoicesPageContainer() {
       setActiveWorkspace('form')
       scrollToWorkspace()
     } catch {
-      // alert já via showAlert do hook não disponível aqui; fallback inline
+      setDraftLoadError(
+        'Não foi possível carregar os dados da consulta para a nota fiscal. Tente novamente.',
+      )
     } finally {
       setIsLoadingDraft(false)
     }
@@ -244,8 +250,9 @@ export function FiscalInvoicesPageContainer() {
   async function confirmCancel() {
     if (!cancelTarget) return
     try {
-      await cancel(cancelTarget, 'Cancelamento interno')
+      await cancel(cancelTarget, cancelReason.trim())
       setCancelTarget(null)
+      setCancelReason('')
     } catch {
       // O hook já exibe o alerta em português.
     }
@@ -291,7 +298,7 @@ export function FiscalInvoicesPageContainer() {
                 <Button
                   variant="outline"
                   disabled={isLoadingDraft}
-                  onClick={() => setIsPickerOpen(true)}
+                  onClick={() => { setDraftLoadError(null); setIsPickerOpen(true) }}
                 >
                   {isLoadingDraft ? (
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -370,6 +377,10 @@ export function FiscalInvoicesPageContainer() {
                 </p>
               </div>
             </InlineFeedback>
+          )}
+
+          {draftLoadError && (
+            <InlineFeedback tone="error">{draftLoadError}</InlineFeedback>
           )}
 
           {isWorkspaceOpen && (
@@ -548,7 +559,7 @@ export function FiscalInvoicesPageContainer() {
                             Marcar pronta
                           </Button>
                         )}
-                        {isOwner && invoice.status === 'READY_TO_ISSUE' && (
+                        {isOwner && canSimulateInvoice(invoice.status, profile?.fiscalProviderMode) && (
                           <Button
                             size="sm"
                             onClick={() => {
@@ -558,7 +569,7 @@ export function FiscalInvoicesPageContainer() {
                             Simular emissão
                           </Button>
                         )}
-                        {isOwner && invoice.status !== 'CANCELED' && (
+                        {isOwner && canCancelInvoice(invoice.status) && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -644,7 +655,7 @@ export function FiscalInvoicesPageContainer() {
                                     Marcar pronta
                                   </Button>
                                 )}
-                                {isOwner && invoice.status === 'READY_TO_ISSUE' && (
+                                {isOwner && canSimulateInvoice(invoice.status, profile?.fiscalProviderMode) && (
                                   <Button
                                     size="sm"
                                     onClick={() => {
@@ -654,7 +665,7 @@ export function FiscalInvoicesPageContainer() {
                                     Simular emissão
                                   </Button>
                                 )}
-                                {isOwner && invoice.status !== 'CANCELED' && (
+                                {isOwner && canCancelInvoice(invoice.status) && (
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -697,9 +708,24 @@ export function FiscalInvoicesPageContainer() {
         description="A nota será cancelada apenas no controle interno. Nenhuma NFS-e real será cancelada."
         confirmLabel="Cancelar nota"
         cancelLabel="Voltar"
-        onCancel={() => setCancelTarget(null)}
+        confirmDisabled={cancelReason.trim().length === 0}
+        onCancel={() => { setCancelTarget(null); setCancelReason('') }}
         onConfirm={confirmCancel}
-      />
+      >
+        <div className="space-y-1">
+          <FormField label="Motivo do cancelamento" htmlFor="cancelReason">
+            <TextInput
+              id="cancelReason"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Ex.: erro nos dados do tomador, duplicidade ou cancelamento solicitado"
+            />
+          </FormField>
+          <p className="text-xs text-muted-foreground">
+            Esse motivo será registrado no histórico da nota.
+          </p>
+        </div>
+      </ConfirmDialog>
 
       <AppointmentInvoicePickerModal
         open={isPickerOpen}
