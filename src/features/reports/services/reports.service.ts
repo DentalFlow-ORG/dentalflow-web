@@ -1,6 +1,5 @@
-import { env } from '@/config/env'
 import { getAccessToken } from '@/features/auth/utils/session-storage'
-import { ApiError } from '@/services/http'
+import { apiRequest } from '@/services/http'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
 import type {
   AppointmentsReportFilters,
@@ -23,29 +22,11 @@ function buildQuery(params: Record<string, string | undefined>): string {
 }
 
 async function downloadCsv(path: string, filename: string): Promise<void> {
-  if (!env.apiUrl) throw new Error('VITE_API_URL não está configurada.')
-
-  const token = getAccessToken()
-  const response = await fetch(`${env.apiUrl}${path}`, {
+  const csvText = await apiRequest<string>(path, {
     method: 'GET',
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    accessToken: getAccessToken(),
   })
-
-  if (!response.ok) {
-    let message = `Erro ${response.status} ao gerar relatório.`
-    try {
-      const body = (await response.json()) as { message?: string | string[] }
-      const raw = body?.message
-      message = Array.isArray(raw) ? raw.join('; ') : (raw ?? message)
-    } catch {
-      // ignore parse error
-    }
-    throw new ApiError(message, response.status, null)
-  }
-
-  const blob = await response.blob()
+  const blob = new Blob([csvText], { type: 'text/csv; charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -57,30 +38,10 @@ async function downloadCsv(path: string, filename: string): Promise<void> {
 }
 
 async function fetchPreview(path: string): Promise<ReportPreviewResponse> {
-  if (!env.apiUrl) throw new Error('VITE_API_URL não está configurada.')
-
-  const token = getAccessToken()
-  const response = await fetch(`${env.apiUrl}${path}`, {
+  return apiRequest<ReportPreviewResponse>(path, {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    accessToken: getAccessToken(),
   })
-
-  if (!response.ok) {
-    let message = `Erro ${response.status} ao carregar prévia.`
-    try {
-      const body = (await response.json()) as { message?: string | string[] }
-      const raw = body?.message
-      message = Array.isArray(raw) ? raw.join('; ') : (raw ?? message)
-    } catch {
-      // ignore parse error
-    }
-    throw new ApiError(message, response.status, null)
-  }
-
-  return response.json() as Promise<ReportPreviewResponse>
 }
 
 function todayISO(): string {
