@@ -27,7 +27,7 @@ export function FinanceFiltersBar({
 }) {
   return (
     <PanelCard className="p-4">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
         <FormField label="Início" htmlFor="financeFrom">
           <DatePickerInput
             id="financeFrom"

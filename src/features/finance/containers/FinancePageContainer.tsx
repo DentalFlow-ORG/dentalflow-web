@@ -6,8 +6,8 @@ import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import { useExpenseClassifier } from '../hooks/useExpenseClassifier'
 import { useFinancePage } from '../hooks/useFinancePage'
 import { useMonthlyFinanceDiagnosis } from '../hooks/useMonthlyFinanceDiagnosis'
@@ -114,11 +114,11 @@ export function FinancePageContainer() {
 
   return (
     <AppPage>
-      <AppPageHeader
-        eyebrow="Gestão financeira"
-        title="Financeiro da clínica"
-        description="Acompanhe entradas, saídas, despesas fixas e desempenho financeiro por período."
-        action={
+      <HomeDashboardHeader
+        eyebrow="Gestão"
+        title="Financeiro"
+        description="Acompanhe receita, despesas, recebíveis e oportunidades para aumentar o faturamento da clínica."
+        actions={
           <Button variant="outline" onClick={load}>
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
             Atualizar
