@@ -106,7 +106,7 @@ export function ReportsPageContainer() {
       <AppPageHeader
         eyebrow="Dados e exportação"
         title="Relatórios"
-        description="Exporte dados financeiros, agendamentos, leads, estoque e notas fiscais para analisar a clínica com segurança fora da plataforma."
+        description="Exporte dados financeiros, agendamentos, estoque e notas fiscais para analisar a clínica com segurança fora da plataforma."
       />
 
       <p className="text-sm text-muted-foreground">{reportCount} relatórios disponíveis</p>

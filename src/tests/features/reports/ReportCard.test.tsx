@@ -263,7 +263,7 @@ describe('ReportCard — footer action area', () => {
   })
 })
 
-// ── Without onPreview (Leads / direct-export behavior) ───────────────────────
+// ── Without onPreview (direct-export behavior) ───────────────────────────────
 
 describe('ReportCard — direct export (no onPreview)', () => {
   it('renders "Exportar CSV" button when onPreview is absent', () => {

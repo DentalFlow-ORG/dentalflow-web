@@ -203,7 +203,7 @@ export function ReportCard({
               ) : null}
             </>
           ) : (
-            /* Cards without preview (e.g. Leads) — direct export */
+            /* Cards without preview — direct export */
             <Button
               size="sm"
               onClick={handleExport}
