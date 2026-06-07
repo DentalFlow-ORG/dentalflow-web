@@ -148,10 +148,15 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <FinanceInsight label="Último resultado" value={lastPoint?.netProfit ?? 0} />
-        <FinanceInsight label="Melhor período" value={bestPoint.netProfit} detail={bestPoint.label} />
-        <FinanceInsight label="Maior pressão" value={worstPoint.netProfit} detail={worstPoint.label} />
+      <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Resumo do período
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <FinanceInsight label="Último resultado" value={lastPoint?.netProfit ?? 0} />
+          <FinanceInsight label="Melhor período" value={bestPoint.netProfit} detail={bestPoint.label} />
+          <FinanceInsight label="Maior pressão" value={worstPoint.netProfit} detail={worstPoint.label} />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

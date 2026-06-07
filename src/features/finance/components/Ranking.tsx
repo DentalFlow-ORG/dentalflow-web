@@ -12,9 +12,10 @@ export function Ranking({
   return (
     <div>
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      <p className="mt-0.5 text-xs text-muted-foreground">Top 5 no período selecionado</p>
       <div className="mt-3 space-y-3">
         {items.length === 0 ? (
-          <p className="rounded-md bg-muted px-3 py-3 text-sm text-muted-foreground">
+          <p className="rounded-lg border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
             Sem dados no período.
           </p>
         ) : (
