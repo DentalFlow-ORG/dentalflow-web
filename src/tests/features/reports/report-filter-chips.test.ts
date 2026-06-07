@@ -3,7 +3,6 @@ import {
   getFinanceFilterChips,
   getInventoryFilterChips,
   getInvoicesFilterChips,
-  getLeadsFilterChips,
 } from '@/features/reports/utils/report-filter-chips'
 
 const DEFAULTS = { startDate: '2026-05-07', endDate: '2026-06-06' }
@@ -118,39 +117,6 @@ describe('getInventoryFilterChips', () => {
   it('adds status chip for EXPIRING', () => {
     const chips = getInventoryFilterChips({ status: 'EXPIRING' })
     expect(chips).toContainEqual({ key: 'status', label: 'Status: Vencimento próximo' })
-  })
-})
-
-// ── getLeadsFilterChips ───────────────────────────────────────────────────────
-
-describe('getLeadsFilterChips', () => {
-  it('returns empty array when all filters match defaults', () => {
-    expect(
-      getLeadsFilterChips({ startDate: '2026-05-07', endDate: '2026-06-06' }, DEFAULTS),
-    ).toHaveLength(0)
-  })
-
-  it('adds status chip for NEW', () => {
-    const chips = getLeadsFilterChips({ status: 'NEW' }, DEFAULTS)
-    expect(chips).toContainEqual({ key: 'status', label: 'Status: Novo' })
-  })
-
-  it('adds source chip for WEBSITE', () => {
-    const chips = getLeadsFilterChips({ source: 'WEBSITE' }, DEFAULTS)
-    expect(chips).toContainEqual({ key: 'source', label: 'Origem: Site' })
-  })
-
-  it('adds source chip for REFERRAL', () => {
-    const chips = getLeadsFilterChips({ source: 'REFERRAL' }, DEFAULTS)
-    expect(chips).toContainEqual({ key: 'source', label: 'Origem: Indicação' })
-  })
-
-  it('returns all 4 chips when all filters are active', () => {
-    const chips = getLeadsFilterChips(
-      { startDate: '2026-01-01', endDate: '2026-04-30', status: 'CONVERTED', source: 'GOOGLE' },
-      DEFAULTS,
-    )
-    expect(chips).toHaveLength(4)
   })
 })
 

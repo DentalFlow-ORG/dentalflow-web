@@ -41,7 +41,6 @@ vi.mock('@/features/reports/services/reports.service', () => ({
   exportFinanceReport: vi.fn(() => Promise.resolve()),
   exportAppointmentsReport: vi.fn(() => Promise.resolve()),
   exportInventoryReport: vi.fn(() => Promise.resolve()),
-  exportLeadsReport: vi.fn(() => Promise.resolve()),
   exportInvoicesReport: vi.fn(() => Promise.resolve()),
   getFinanceReportPreview: vi.fn(() => Promise.resolve(mockPreviewData)),
   getAppointmentsReportPreview: vi.fn(() => Promise.resolve(mockPreviewData)),
@@ -92,16 +91,16 @@ describe('ReportsPageContainer — header', () => {
 // ── Reports count ─────────────────────────────────────────────────────────────
 
 describe('ReportsPageContainer — available reports count', () => {
-  it('shows "5 relatórios disponíveis" for OWNER', () => {
+  it('shows "4 relatórios disponíveis" for OWNER', () => {
     setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
     render(<ReportsPageContainer />)
-    expect(screen.getByText('5 relatórios disponíveis')).toBeInTheDocument()
+    expect(screen.getByText('4 relatórios disponíveis')).toBeInTheDocument()
   })
 
-  it('shows "4 relatórios disponíveis" for ASSISTANT', () => {
+  it('shows "3 relatórios disponíveis" for ASSISTANT', () => {
     setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
     render(<ReportsPageContainer />)
-    expect(screen.getByText('4 relatórios disponíveis')).toBeInTheDocument()
+    expect(screen.getByText('3 relatórios disponíveis')).toBeInTheDocument()
   })
 })
 
@@ -145,12 +144,11 @@ describe('ReportsPageContainer — OWNER', () => {
     expect(screen.getByRole('heading', { name: 'Relatório financeiro' })).toBeInTheDocument()
   })
 
-  it('renders all 5 section labels', () => {
+  it('renders all 4 section labels', () => {
     render(<ReportsPageContainer />)
     expect(screen.getByRole('heading', { name: 'Financeiro', level: 2 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Agendamentos', level: 2 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Estoque', level: 2 })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Leads', level: 2 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Notas fiscais', level: 2 })).toBeInTheDocument()
   })
 
@@ -186,21 +184,19 @@ describe('ReportsPageContainer — ASSISTANT', () => {
     expect(screen.getByText(/disponível apenas para proprietários/i)).toBeInTheDocument()
   })
 
-  it('renders the other 4 report section labels', () => {
+  it('renders the other 3 report section labels', () => {
     render(<ReportsPageContainer />)
     expect(screen.getByRole('heading', { name: 'Agendamentos', level: 2 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Estoque', level: 2 })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Leads', level: 2 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Notas fiscais', level: 2 })).toBeInTheDocument()
   })
 
-  it('renders the other 4 report cards', () => {
+  it('renders the other 3 report cards', () => {
     render(<ReportsPageContainer />)
     expect(
       screen.getByRole('heading', { name: 'Relatório de agendamentos' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Relatório de estoque' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Relatório de leads' })).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Relatório de notas fiscais' }),
     ).toBeInTheDocument()
@@ -241,7 +237,6 @@ describe('ReportsPageContainer — no API calls on mount', () => {
     expect(service.exportFinanceReport).not.toHaveBeenCalled()
     expect(service.exportAppointmentsReport).not.toHaveBeenCalled()
     expect(service.exportInventoryReport).not.toHaveBeenCalled()
-    expect(service.exportLeadsReport).not.toHaveBeenCalled()
     expect(service.exportInvoicesReport).not.toHaveBeenCalled()
   })
 })
@@ -253,13 +248,6 @@ describe('ReportsPageContainer — filter grid columns', () => {
     setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
     render(<ReportsPageContainer />)
     const heading = screen.getByRole('heading', { name: 'Relatório financeiro' })
-    const section = heading.closest('section')
-    expect(section?.querySelector('.lg\\:grid-cols-4')).toBeInTheDocument()
-  })
-
-  it('Leads filter grid uses lg:grid-cols-4', () => {
-    render(<ReportsPageContainer />)
-    const heading = screen.getByRole('heading', { name: 'Relatório de leads' })
     const section = heading.closest('section')
     expect(section?.querySelector('.lg\\:grid-cols-4')).toBeInTheDocument()
   })
@@ -291,17 +279,16 @@ describe('ReportsPageContainer — active filter chips', () => {
 // ── Preview buttons wired ─────────────────────────────────────────────────────
 
 describe('ReportsPageContainer — preview buttons', () => {
-  it('renders "Pré-visualizar relatório" buttons for Finance, Appointments, Inventory, Invoices', () => {
+  it('renders "Pré-visualizar relatório" buttons for all 4 reports as OWNER', () => {
     setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
     render(<ReportsPageContainer />)
     const previewButtons = screen.getAllByRole('button', { name: /pré-visualizar relatório/i })
-    // Finance, Appointments, Inventory, Invoices = 4 cards with preview
+    // Finance, Appointments, Inventory, Notas fiscais = 4 cards with preview
     expect(previewButtons.length).toBeGreaterThanOrEqual(4)
   })
 
-  it('Leads card renders "Exportar CSV" (no preview — backend mismatch)', () => {
+  it('does not render any "Exportar CSV" button on initial render', () => {
     render(<ReportsPageContainer />)
-    // Leads uses direct export, so at least one "Exportar CSV" button exists
-    expect(screen.getByRole('button', { name: /exportar csv/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /exportar csv/i })).not.toBeInTheDocument()
   })
 })

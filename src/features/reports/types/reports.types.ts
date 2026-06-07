@@ -18,13 +18,6 @@ export interface InventoryReportFilters {
   status?: string
 }
 
-export interface LeadsReportFilters {
-  startDate?: string
-  endDate?: string
-  status?: string
-  source?: string
-}
-
 export interface InvoicesReportFilters {
   startDate?: string
   endDate?: string

@@ -3,7 +3,6 @@ import type {
   FinanceReportFilters,
   InventoryReportFilters,
   InvoicesReportFilters,
-  LeadsReportFilters,
 } from '../types/reports.types'
 
 export interface FilterChip {
@@ -47,26 +46,6 @@ const INV_STATUS_LABELS: Record<string, string> = {
   EXPIRING: 'Vencimento próximo',
   EXPIRED: 'Vencido',
   INACTIVE: 'Inativo',
-}
-
-const LEADS_STATUS_LABELS: Record<string, string> = {
-  NEW: 'Novo',
-  CONTACTED: 'Em contato',
-  SCHEDULED: 'Agendado',
-  CONVERTED: 'Convertido',
-  LOST: 'Perdido',
-  ARCHIVED: 'Arquivado',
-}
-
-const LEADS_SOURCE_LABELS: Record<string, string> = {
-  MANUAL: 'Manual',
-  WEBSITE: 'Site',
-  WHATSAPP: 'WhatsApp',
-  INSTAGRAM: 'Instagram',
-  GOOGLE: 'Google',
-  REFERRAL: 'Indicação',
-  IMPORT: 'Importação',
-  OTHER: 'Outro',
 }
 
 const INVOICE_STATUS_LABELS: Record<string, string> = {
@@ -127,32 +106,6 @@ export function getInventoryFilterChips(filters: InventoryReportFilters): Filter
     chips.push({
       key: 'status',
       label: `Status: ${INV_STATUS_LABELS[filters.status] ?? filters.status}`,
-    })
-  }
-  return chips
-}
-
-export function getLeadsFilterChips(
-  filters: LeadsReportFilters,
-  defaults: DefaultDateRange,
-): FilterChip[] {
-  const chips: FilterChip[] = []
-  if (filters.startDate && filters.startDate !== defaults.startDate) {
-    chips.push({ key: 'startDate', label: `Início: ${formatChipDate(filters.startDate)}` })
-  }
-  if (filters.endDate && filters.endDate !== defaults.endDate) {
-    chips.push({ key: 'endDate', label: `Fim: ${formatChipDate(filters.endDate)}` })
-  }
-  if (filters.status) {
-    chips.push({
-      key: 'status',
-      label: `Status: ${LEADS_STATUS_LABELS[filters.status] ?? filters.status}`,
-    })
-  }
-  if (filters.source) {
-    chips.push({
-      key: 'source',
-      label: `Origem: ${LEADS_SOURCE_LABELS[filters.source] ?? filters.source}`,
     })
   }
   return chips

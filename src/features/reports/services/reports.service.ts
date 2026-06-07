@@ -6,7 +6,6 @@ import type {
   FinanceReportFilters,
   InventoryReportFilters,
   InvoicesReportFilters,
-  LeadsReportFilters,
   ReportPreviewResponse,
 } from '../types/reports.types'
 
@@ -77,16 +76,6 @@ export function exportInventoryReport(filters: InventoryReportFilters): Promise<
     status: filters.status,
   })}`
   return downloadCsv(path, `relatorio_estoque_${todayISO()}.csv`)
-}
-
-export function exportLeadsReport(filters: LeadsReportFilters): Promise<void> {
-  const path = `/reports/leads/export${buildQuery({
-    startDate: filters.startDate,
-    endDate: filters.endDate,
-    status: filters.status,
-    source: filters.source,
-  })}`
-  return downloadCsv(path, `relatorio_leads_${todayISO()}.csv`)
 }
 
 export function exportInvoicesReport(filters: InvoicesReportFilters): Promise<void> {

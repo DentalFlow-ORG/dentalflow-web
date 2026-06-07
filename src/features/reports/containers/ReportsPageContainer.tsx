@@ -24,7 +24,6 @@ import {
   exportFinanceReport,
   exportInventoryReport,
   exportInvoicesReport,
-  exportLeadsReport,
   getAppointmentsReportPreview,
   getFinanceReportPreview,
   getInventoryReportPreview,
@@ -35,7 +34,6 @@ import type {
   FinanceReportFilters,
   InventoryReportFilters,
   InvoicesReportFilters,
-  LeadsReportFilters,
 } from '../types/reports.types'
 import { ReportCard } from '../components/ReportCard'
 import { ReportFilterChips } from '../components/ReportFilterChips'
@@ -44,7 +42,6 @@ import {
   getFinanceFilterChips,
   getInventoryFilterChips,
   getInvoicesFilterChips,
-  getLeadsFilterChips,
 } from '../utils/report-filter-chips'
 
 function FilterRow({
@@ -86,27 +83,23 @@ export function ReportsPageContainer() {
   const [financeFilters, setFinanceFilters] = useState<FinanceReportFilters>(() => defaultLast30DaysRange())
   const [apptFilters, setApptFilters] = useState<AppointmentsReportFilters>(() => defaultLast30DaysRange())
   const [invFilters, setInvFilters] = useState<InventoryReportFilters>({})
-  const [leadsFilters, setLeadsFilters] = useState<LeadsReportFilters>(() => defaultLast30DaysRange())
   const [invoiceFilters, setInvoiceFilters] = useState<InvoicesReportFilters>(() => defaultLast30DaysRange())
 
   const financeError = validateReportDateRange(financeFilters.startDate, financeFilters.endDate, { allowFuture: false })
   const apptError = validateReportDateRange(apptFilters.startDate, apptFilters.endDate, { allowFuture: true })
-  const leadsError = validateReportDateRange(leadsFilters.startDate, leadsFilters.endDate, { allowFuture: false })
   const invoiceError = validateReportDateRange(invoiceFilters.startDate, invoiceFilters.endDate, { allowFuture: false })
 
   const financeChips = getFinanceFilterChips(financeFilters, defaultRange)
   const apptChips = getAppointmentsFilterChips(apptFilters, defaultRange)
   const invChips = getInventoryFilterChips(invFilters)
-  const leadsChips = getLeadsFilterChips(leadsFilters, defaultRange)
   const invoiceChips = getInvoicesFilterChips(invoiceFilters, defaultRange)
 
   function clearFinanceFilters() { setFinanceFilters(defaultLast30DaysRange()) }
   function clearApptFilters() { setApptFilters(defaultLast30DaysRange()) }
   function clearInvFilters() { setInvFilters({}) }
-  function clearLeadsFilters() { setLeadsFilters(defaultLast30DaysRange()) }
   function clearInvoiceFilters() { setInvoiceFilters(defaultLast30DaysRange()) }
 
-  const reportCount = isOwner ? 5 : 4
+  const reportCount = isOwner ? 4 : 3
 
   return (
     <AppPage spacing="loose">
@@ -302,85 +295,6 @@ export function ReportsPageContainer() {
             </FormField>
           </FilterRow>
           <ReportFilterChips chips={invChips} onClear={clearInvFilters} />
-        </ReportCard>
-      </section>
-
-      {/* ── Leads report ── */}
-      <section>
-        <ReportSectionHeader label="Leads" />
-        <ReportCard
-          title="Relatório de leads"
-          description="Lista de leads com origem, status e informações de contato. Não inclui notas livres por padrão."
-          tone="success"
-          error={leadsError}
-          onExport={() => exportLeadsReport(leadsFilters)}
-          disabled={!!leadsError}
-        >
-          <FilterRow columns={4}>
-            <FormField label="Data inicial" htmlFor="leads-start">
-              <DatePickerInput
-                id="leads-start"
-                value={leadsFilters.startDate ?? ''}
-                onValueChange={(v) =>
-                  setLeadsFilters((f) => ({ ...f, startDate: v || undefined }))
-                }
-              />
-            </FormField>
-            <FormField label="Data final" htmlFor="leads-end">
-              <DatePickerInput
-                id="leads-end"
-                value={leadsFilters.endDate ?? ''}
-                onValueChange={(v) =>
-                  setLeadsFilters((f) => ({ ...f, endDate: v || undefined }))
-                }
-              />
-            </FormField>
-            <FormField label="Status" htmlFor="leads-status">
-              <Select
-                value={leadsFilters.status ?? 'all'}
-                onValueChange={(v) =>
-                  setLeadsFilters((f) => ({ ...f, status: v === 'all' ? undefined : v }))
-                }
-              >
-                <SelectTrigger id="leads-status">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="NEW">Novo</SelectItem>
-                  <SelectItem value="CONTACTED">Em contato</SelectItem>
-                  <SelectItem value="SCHEDULED">Agendado</SelectItem>
-                  <SelectItem value="CONVERTED">Convertido</SelectItem>
-                  <SelectItem value="LOST">Perdido</SelectItem>
-                  <SelectItem value="ARCHIVED">Arquivado</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-            <FormField label="Origem" htmlFor="leads-source">
-              <Select
-                value={leadsFilters.source ?? 'all'}
-                onValueChange={(v) =>
-                  setLeadsFilters((f) => ({ ...f, source: v === 'all' ? undefined : v }))
-                }
-              >
-                <SelectTrigger id="leads-source">
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as origens</SelectItem>
-                  <SelectItem value="MANUAL">Manual</SelectItem>
-                  <SelectItem value="WEBSITE">Site</SelectItem>
-                  <SelectItem value="WHATSAPP">WhatsApp</SelectItem>
-                  <SelectItem value="INSTAGRAM">Instagram</SelectItem>
-                  <SelectItem value="GOOGLE">Google</SelectItem>
-                  <SelectItem value="REFERRAL">Indicação</SelectItem>
-                  <SelectItem value="IMPORT">Importação</SelectItem>
-                  <SelectItem value="OTHER">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-          </FilterRow>
-          <ReportFilterChips chips={leadsChips} onClear={clearLeadsFilters} />
         </ReportCard>
       </section>
 
