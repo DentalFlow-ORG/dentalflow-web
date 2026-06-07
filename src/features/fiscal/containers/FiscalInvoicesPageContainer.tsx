@@ -8,7 +8,6 @@ import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
-import { MetricCard } from '@/components/common/MetricCard'
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
@@ -20,6 +19,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 import { AppointmentInvoicePickerModal } from '../components/AppointmentInvoicePickerModal'
+import { FiscalSummaryKpiGrid } from '../components/FiscalSummaryKpiGrid'
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
 import { InvoiceDetails } from '../components/InvoiceDetails'
 import { InvoiceForm } from '../components/InvoiceForm'
@@ -332,19 +332,8 @@ export function FiscalInvoicesPageContainer() {
           </InlineFeedback>
 
           {summary && (
-            <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-              <MetricCard value={String(summary.counts.DRAFT ?? 0)} label="Rascunhos" />
-              <MetricCard
-                value={String(summary.counts.READY_TO_ISSUE ?? 0)}
-                label="Prontas para emissão"
-              />
-              <MetricCard value={String(summary.counts.SIMULATED ?? 0)} label="Simuladas" />
-              <MetricCard value={String(summary.counts.CANCELED ?? 0)} label="Canceladas" />
-              <MetricCard value={formatCents(summary.monthTotalCents)} label="Valor total do mês" />
-              <MetricCard
-                value={summary.configurationPending ? 'Pendente' : 'Ok'}
-                label="Configuração fiscal"
-              />
+            <section>
+              <FiscalSummaryKpiGrid summary={summary} />
             </section>
           )}
 
