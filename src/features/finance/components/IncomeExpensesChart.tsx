@@ -3,7 +3,6 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  Legend,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -218,14 +217,6 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
             <Tooltip
               cursor={{ stroke: refLineColor, strokeDasharray: '4 4' }}
               content={<ChartTooltip isDark={isDark} />}
-            />
-            <Legend
-              iconType="circle"
-              formatter={(value) => (
-                <span className="text-xs font-medium text-muted-foreground">
-                  {CHART_SERIES_LABELS[String(value)] ?? value}
-                </span>
-              )}
             />
             <ReferenceLine y={0} stroke={refLineColor} />
             {visibleSeries.income && (

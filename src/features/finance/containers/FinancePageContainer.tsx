@@ -197,6 +197,9 @@ export function FinancePageContainer() {
                 <h2 className="text-base font-semibold text-foreground">
                   Composição financeira
                 </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Veja onde a receita se concentra e quais categorias mais pesam no resultado.
+                </p>
                 <div className="mt-5 space-y-6">
                   <Ranking
                     title="Despesas por categoria"

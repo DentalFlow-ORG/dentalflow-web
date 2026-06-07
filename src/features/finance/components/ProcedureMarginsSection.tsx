@@ -289,7 +289,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
 
       {/* Loading */}
       {isLoading && !data && (
-        <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+        <div role="status" aria-live="polite" className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
           <span>Calculando margens por procedimento…</span>
         </div>
@@ -452,7 +452,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between border-t border-border pt-4">
+          <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
               Período: {data.period.from} a {data.period.to}
             </p>

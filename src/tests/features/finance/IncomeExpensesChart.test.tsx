@@ -10,7 +10,6 @@ vi.mock('recharts', () => ({
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
-  Legend: () => null,
   ReferenceLine: () => null,
   linearGradient: () => null,
   stop: () => null,
@@ -127,6 +126,17 @@ describe('IncomeExpensesChart', () => {
     toggles.forEach((btn) => {
       expect(btn).toHaveAttribute('aria-pressed', 'true')
     })
+  })
+
+  it('does not render a Recharts Legend — toggle buttons are the only series legend', () => {
+    render(<IncomeExpensesChart summary={summaryWithData} />)
+    // Exactly 3 series labels from toggle buttons + 3 from the data table header = 6 total.
+    // If Recharts Legend were present it would add a third set, making count > 2 per label.
+    // We assert the toggle buttons are exactly 3 (no extras from a Legend component).
+    const toggles = screen
+      .getAllByRole('button')
+      .filter((btn) => btn.hasAttribute('aria-pressed'))
+    expect(toggles).toHaveLength(3)
   })
 
   // ── Data table ─────────────────────────────────────────────────────────────

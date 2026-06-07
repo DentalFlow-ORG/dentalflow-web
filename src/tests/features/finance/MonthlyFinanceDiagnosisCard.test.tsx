@@ -149,6 +149,13 @@ describe('MonthlyFinanceDiagnosisCard', () => {
     expect(screen.getByText(/Analisando dados financeiros/)).toBeInTheDocument()
   })
 
+  it('loading state has role="status" for screen readers', () => {
+    renderCard(generatingState)
+    const status = screen.getByRole('status')
+    expect(status).toBeInTheDocument()
+    expect(status).toHaveAttribute('aria-live', 'polite')
+  })
+
   it('generate button is absent while generating without a result', () => {
     renderCard(generatingState)
     expect(screen.queryByRole('button', { name: /gerar diagnóstico/i })).not.toBeInTheDocument()

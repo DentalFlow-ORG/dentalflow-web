@@ -313,7 +313,7 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
 
       {/* Loading */}
       {isGenerating && !diagnosis && (
-        <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+        <div role="status" aria-live="polite" className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
           <span>Analisando dados financeiros de {formatMonthLabel(selectedMonth)}…</span>
         </div>

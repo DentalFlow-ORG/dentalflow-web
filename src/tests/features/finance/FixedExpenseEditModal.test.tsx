@@ -91,4 +91,16 @@ describe('FixedExpenseEditModal', () => {
     renderModal(null)
     expect(screen.queryByText('Editar despesa fixa')).not.toBeInTheDocument()
   })
+
+  it('Dialog.Content has max-h for viewport-safe scrolling', () => {
+    renderModal()
+    const content = document.body.querySelector('[role="dialog"]')
+    expect(content?.className).toMatch(/max-h-/)
+  })
+
+  it('form body area has overflow-y-auto for scrollable content', () => {
+    renderModal()
+    const scrollable = document.body.querySelector('.overflow-y-auto')
+    expect(scrollable).toBeInTheDocument()
+  })
 })

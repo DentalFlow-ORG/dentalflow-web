@@ -177,6 +177,19 @@ describe('ProcedureMarginsSection', () => {
     expect(screen.getByText('Calculando margens por procedimento…')).toBeInTheDocument()
   })
 
+  it('loading state has role="status" for screen readers', () => {
+    renderSection(loadingState)
+    const status = screen.getByRole('status')
+    expect(status).toBeInTheDocument()
+    expect(status).toHaveAttribute('aria-live', 'polite')
+  })
+
+  it('footer has flex-col class for mobile wrapping', () => {
+    const { container } = renderSection(successState)
+    const footer = container.querySelector('.border-t.border-border.pt-4')
+    expect(footer?.className).toMatch(/flex-col/)
+  })
+
   // ── Plan blocked ───────────────────────────────────────────────────────────
 
   it('renders plan-blocked message', () => {
