@@ -115,7 +115,7 @@ function ServiceRow({ item }: { item: ProcedureMarginItem }) {
   return (
     <div className="py-4 first:pt-0 last:pb-0">
       <div className="flex items-start justify-between gap-3">
-        <span className="text-sm font-medium text-foreground">{item.serviceName}</span>
+        <span className="min-w-0 truncate text-sm font-medium text-foreground">{item.serviceName}</span>
         <StatusBadge tone={tone} className={cn('shrink-0 gap-1 text-[11px]')}>
           <Icon className="h-3 w-3" aria-hidden="true" />
           {label}
@@ -238,7 +238,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
             </h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Volume, receita e desempenho por tipo de serviço no período.
+            Compare receita, custo estimado e margem para descobrir quais procedimentos mais aumentam o lucro da clínica.
           </p>
         </div>
 
@@ -414,7 +414,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
 
           {/* Service list */}
           {data.items.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
               Nenhum procedimento identificado no período selecionado.
             </p>
           ) : (

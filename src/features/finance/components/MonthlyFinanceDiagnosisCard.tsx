@@ -249,7 +249,7 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
             </h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Uma leitura simples sobre receitas, despesas e pontos de atenção do mês.
+            Entenda a saúde financeira da clínica, riscos do mês e ações prioritárias para proteger o caixa.
           </p>
         </div>
 
@@ -287,9 +287,10 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
 
       {/* Quota exceeded */}
       {isQuotaExceeded && (
-        <p className="text-sm text-amber-600 dark:text-amber-400">
+        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-400">
+          <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
           Você atingiu o limite de diagnósticos financeiros deste mês.
-        </p>
+        </div>
       )}
 
       {/* Error */}
