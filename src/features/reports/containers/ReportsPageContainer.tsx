@@ -100,6 +100,8 @@ export function ReportsPageContainer() {
           <ReportCard
             title="Relatório financeiro"
             description="Receitas, despesas e resultado líquido por período."
+            tone="primary"
+            error={financeError}
             onExport={() => exportFinanceReport(financeFilters)}
             disabled={!!financeError}
           >
@@ -164,7 +166,6 @@ export function ReportsPageContainer() {
                 </Select>
               </FormField>
             </FilterRow>
-            {financeError && <InlineFeedback tone="error">{financeError}</InlineFeedback>}
           </ReportCard>
         ) : (
           <InlineFeedback tone="info">
@@ -179,6 +180,8 @@ export function ReportsPageContainer() {
         <ReportCard
           title="Relatório de agendamentos"
           description="Consultas por período com status e informações de pagamento. Não inclui notas clínicas."
+          tone="info"
+          error={apptError}
           onExport={() => exportAppointmentsReport(apptFilters)}
           disabled={!!apptError}
         >
@@ -222,7 +225,6 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
-          {apptError && <InlineFeedback tone="error">{apptError}</InlineFeedback>}
         </ReportCard>
       </section>
 
@@ -232,6 +234,7 @@ export function ReportsPageContainer() {
         <ReportCard
           title="Relatório de estoque"
           description="Produtos, quantidades, validade e status de criticidade."
+          tone="warning"
           onExport={() => exportInventoryReport(invFilters)}
         >
           <FilterRow>
@@ -266,6 +269,8 @@ export function ReportsPageContainer() {
         <ReportCard
           title="Relatório de leads"
           description="Lista de leads com origem, status e informações de contato. Não inclui notas livres por padrão."
+          tone="success"
+          error={leadsError}
           onExport={() => exportLeadsReport(leadsFilters)}
           disabled={!!leadsError}
         >
@@ -333,7 +338,6 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
-          {leadsError && <InlineFeedback tone="error">{leadsError}</InlineFeedback>}
         </ReportCard>
       </section>
 
@@ -344,6 +348,8 @@ export function ReportsPageContainer() {
           title="Relatório de notas fiscais"
           description="Registros internos de notas fiscais com status, competência e valor."
           notice="Relatório interno. Não substitui documentos fiscais oficiais emitidos pela prefeitura."
+          tone="neutral"
+          error={invoiceError}
           onExport={() => exportInvoicesReport(invoiceFilters)}
           disabled={!!invoiceError}
         >
@@ -388,7 +394,6 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
-          {invoiceError && <InlineFeedback tone="error">{invoiceError}</InlineFeedback>}
         </ReportCard>
       </section>
 
