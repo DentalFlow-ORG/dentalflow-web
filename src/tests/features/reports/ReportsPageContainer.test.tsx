@@ -22,12 +22,31 @@ vi.mock('@/features/billing/services/billing-status-cache', () => ({
   getCachedBillingStatus: () => mockGetCachedBillingStatus(),
 }))
 
+const mockPreviewData = {
+  reportType: 'finance' as const,
+  reportTitle: 'Relatório financeiro',
+  clinic: { name: 'Clínica Teste', document: null },
+  generatedAt: '2026-06-07T12:00:00.000Z',
+  filters: [],
+  period: null,
+  recordCount: 5,
+  maxRecords: 5000,
+  isTruncated: false,
+  exportFormat: 'CSV' as const,
+  empty: false,
+  previewNote: null,
+}
+
 vi.mock('@/features/reports/services/reports.service', () => ({
   exportFinanceReport: vi.fn(() => Promise.resolve()),
   exportAppointmentsReport: vi.fn(() => Promise.resolve()),
   exportInventoryReport: vi.fn(() => Promise.resolve()),
   exportLeadsReport: vi.fn(() => Promise.resolve()),
   exportInvoicesReport: vi.fn(() => Promise.resolve()),
+  getFinanceReportPreview: vi.fn(() => Promise.resolve(mockPreviewData)),
+  getAppointmentsReportPreview: vi.fn(() => Promise.resolve(mockPreviewData)),
+  getInventoryReportPreview: vi.fn(() => Promise.resolve(mockPreviewData)),
+  getInvoicesReportPreview: vi.fn(() => Promise.resolve(mockPreviewData)),
 }))
 
 vi.mock('@/lib/date-range-rules', () => ({
@@ -224,5 +243,65 @@ describe('ReportsPageContainer — no API calls on mount', () => {
     expect(service.exportInventoryReport).not.toHaveBeenCalled()
     expect(service.exportLeadsReport).not.toHaveBeenCalled()
     expect(service.exportInvoicesReport).not.toHaveBeenCalled()
+  })
+})
+
+// ── Filter grid columns ───────────────────────────────────────────────────────
+
+describe('ReportsPageContainer — filter grid columns', () => {
+  it('Finance filter grid uses lg:grid-cols-4', () => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    render(<ReportsPageContainer />)
+    const heading = screen.getByRole('heading', { name: 'Relatório financeiro' })
+    const section = heading.closest('section')
+    expect(section?.querySelector('.lg\\:grid-cols-4')).toBeInTheDocument()
+  })
+
+  it('Leads filter grid uses lg:grid-cols-4', () => {
+    render(<ReportsPageContainer />)
+    const heading = screen.getByRole('heading', { name: 'Relatório de leads' })
+    const section = heading.closest('section')
+    expect(section?.querySelector('.lg\\:grid-cols-4')).toBeInTheDocument()
+  })
+
+  it('Appointments filter grid uses lg:grid-cols-3', () => {
+    render(<ReportsPageContainer />)
+    const heading = screen.getByRole('heading', { name: 'Relatório de agendamentos' })
+    const section = heading.closest('section')
+    expect(section?.querySelector('.lg\\:grid-cols-3')).toBeInTheDocument()
+  })
+
+  it('Fiscal filter grid uses lg:grid-cols-3', () => {
+    render(<ReportsPageContainer />)
+    const heading = screen.getByRole('heading', { name: 'Relatório de notas fiscais' })
+    const section = heading.closest('section')
+    expect(section?.querySelector('.lg\\:grid-cols-3')).toBeInTheDocument()
+  })
+})
+
+// ── Active filter chips ───────────────────────────────────────────────────────
+
+describe('ReportsPageContainer — active filter chips', () => {
+  it('does not render any "Limpar filtros" button on initial load', () => {
+    render(<ReportsPageContainer />)
+    expect(screen.queryAllByRole('button', { name: /limpar filtros/i })).toHaveLength(0)
+  })
+})
+
+// ── Preview buttons wired ─────────────────────────────────────────────────────
+
+describe('ReportsPageContainer — preview buttons', () => {
+  it('renders "Pré-visualizar relatório" buttons for Finance, Appointments, Inventory, Invoices', () => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    render(<ReportsPageContainer />)
+    const previewButtons = screen.getAllByRole('button', { name: /pré-visualizar relatório/i })
+    // Finance, Appointments, Inventory, Invoices = 4 cards with preview
+    expect(previewButtons.length).toBeGreaterThanOrEqual(4)
+  })
+
+  it('Leads card renders "Exportar CSV" (no preview — backend mismatch)', () => {
+    render(<ReportsPageContainer />)
+    // Leads uses direct export, so at least one "Exportar CSV" button exists
+    expect(screen.getByRole('button', { name: /exportar csv/i })).toBeInTheDocument()
   })
 })

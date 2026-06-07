@@ -1,10 +1,13 @@
-import { Download, Loader2 } from 'lucide-react'
+import { Download, Loader2, RotateCcw, ScanSearch } from 'lucide-react'
 import { useId, useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { cn } from '@/lib/utils'
+
+import type { ReportPreviewResponse } from '../types/reports.types'
+import { ReportPreviewPanel } from './ReportPreviewPanel'
 
 export type ReportCardTone = 'neutral' | 'primary' | 'info' | 'warning' | 'success'
 
@@ -16,6 +19,12 @@ const TONE_BORDER_TOP: Record<ReportCardTone, string> = {
   success: 'border-t-2 border-t-emerald-500 dark:border-t-emerald-400',
 }
 
+type PreviewState =
+  | { mode: 'idle' }
+  | { mode: 'previewing' }
+  | { mode: 'previewed'; data: ReportPreviewResponse }
+  | { mode: 'error'; message: string }
+
 interface ReportCardProps {
   title: string
   description: string
@@ -24,6 +33,7 @@ interface ReportCardProps {
   error?: string | null
   children?: React.ReactNode
   onExport: () => Promise<void>
+  onPreview?: () => Promise<ReportPreviewResponse>
   disabled?: boolean
 }
 
@@ -35,11 +45,26 @@ export function ReportCard({
   error,
   children,
   onExport,
+  onPreview,
   disabled = false,
 }: ReportCardProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [previewState, setPreviewState] = useState<PreviewState>({ mode: 'idle' })
   const { showAlert } = useGlobalAlerts()
   const errorId = useId()
+
+  async function handlePreview() {
+    if (!onPreview) return
+    setPreviewState({ mode: 'previewing' })
+    try {
+      const data = await onPreview()
+      setPreviewState({ mode: 'previewed', data })
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Não foi possível carregar a prévia do relatório.'
+      setPreviewState({ mode: 'error', message })
+    }
+  }
 
   async function handleExport() {
     setIsLoading(true)
@@ -58,6 +83,16 @@ export function ReportCard({
       setIsLoading(false)
     }
   }
+
+  function resetPreview() {
+    setPreviewState({ mode: 'idle' })
+  }
+
+  const isPreviewing = previewState.mode === 'previewing'
+  const hasPreviewed = previewState.mode === 'previewed'
+  const hasPreviewError = previewState.mode === 'error'
+  const canDownload =
+    hasPreviewed && !previewState.data.empty
 
   return (
     <div
@@ -95,30 +130,100 @@ export function ReportCard({
             <InlineFeedback tone="error">{error}</InlineFeedback>
           </div>
         )}
+
+        {/* Preview panel */}
+        {hasPreviewed && <ReportPreviewPanel data={previewState.data} />}
+
+        {/* Preview API error */}
+        {hasPreviewError && (
+          <InlineFeedback tone="error">{previewState.message}</InlineFeedback>
+        )}
       </div>
 
       {/* ── Footer / action area ──────────────────────────────────────────── */}
       <div className="border-t border-border px-5 py-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <Button
-            size="sm"
-            onClick={handleExport}
-            disabled={isLoading || disabled}
-            className="w-full sm:w-auto"
-            aria-describedby={disabled && !isLoading && !!error ? errorId : undefined}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                Gerando...
-              </>
-            ) : (
-              <>
-                <Download className="mr-2 h-4 w-4" aria-hidden="true" />
-                Exportar CSV
-              </>
-            )}
-          </Button>
+          {onPreview ? (
+            <>
+              {/* Cards with preview capability */}
+              {(hasPreviewed || hasPreviewError) && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetPreview}
+                  disabled={isLoading}
+                  className="w-full sm:w-auto"
+                >
+                  <RotateCcw className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Nova prévia
+                </Button>
+              )}
+
+              {canDownload ? (
+                <Button
+                  size="sm"
+                  onClick={handleExport}
+                  disabled={isLoading || disabled}
+                  className="w-full sm:w-auto"
+                  aria-describedby={disabled && !isLoading && !!error ? errorId : undefined}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Baixar CSV
+                    </>
+                  )}
+                </Button>
+              ) : !hasPreviewed ? (
+                <Button
+                  size="sm"
+                  onClick={handlePreview}
+                  disabled={isPreviewing || disabled}
+                  className="w-full sm:w-auto"
+                  aria-describedby={disabled && !isPreviewing && !!error ? errorId : undefined}
+                >
+                  {isPreviewing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                      Carregando prévia...
+                    </>
+                  ) : (
+                    <>
+                      <ScanSearch className="mr-2 h-4 w-4" aria-hidden="true" />
+                      Pré-visualizar relatório
+                    </>
+                  )}
+                </Button>
+              ) : null}
+            </>
+          ) : (
+            /* Cards without preview (e.g. Leads) — direct export */
+            <Button
+              size="sm"
+              onClick={handleExport}
+              disabled={isLoading || disabled}
+              className="w-full sm:w-auto"
+              aria-describedby={disabled && !isLoading && !!error ? errorId : undefined}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  Gerando...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Exportar CSV
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </div>

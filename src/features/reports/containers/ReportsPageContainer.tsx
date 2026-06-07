@@ -1,5 +1,5 @@
 import { AlertTriangle, ShieldCheck } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FormField } from '@/components/common/FormField'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
@@ -25,6 +25,10 @@ import {
   exportInventoryReport,
   exportInvoicesReport,
   exportLeadsReport,
+  getAppointmentsReportPreview,
+  getFinanceReportPreview,
+  getInventoryReportPreview,
+  getInvoicesReportPreview,
 } from '../services/reports.service'
 import type {
   AppointmentsReportFilters,
@@ -34,10 +38,28 @@ import type {
   LeadsReportFilters,
 } from '../types/reports.types'
 import { ReportCard } from '../components/ReportCard'
+import { ReportFilterChips } from '../components/ReportFilterChips'
+import {
+  getAppointmentsFilterChips,
+  getFinanceFilterChips,
+  getInventoryFilterChips,
+  getInvoicesFilterChips,
+  getLeadsFilterChips,
+} from '../utils/report-filter-chips'
 
-function FilterRow({ children }: { children: React.ReactNode }) {
+function FilterRow({
+  children,
+  columns = 3,
+}: {
+  children: React.ReactNode
+  columns?: 3 | 4
+}) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
+    <div
+      className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${columns === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}
+    >
+      {children}
+    </div>
   )
 }
 
@@ -59,6 +81,8 @@ export function ReportsPageContainer() {
     return <PlanUpgradeNotice title="Relatórios" />
   }
 
+  const defaultRange = useMemo(() => defaultLast30DaysRange(), [])
+
   const [financeFilters, setFinanceFilters] = useState<FinanceReportFilters>(() => defaultLast30DaysRange())
   const [apptFilters, setApptFilters] = useState<AppointmentsReportFilters>(() => defaultLast30DaysRange())
   const [invFilters, setInvFilters] = useState<InventoryReportFilters>({})
@@ -69,6 +93,18 @@ export function ReportsPageContainer() {
   const apptError = validateReportDateRange(apptFilters.startDate, apptFilters.endDate, { allowFuture: true })
   const leadsError = validateReportDateRange(leadsFilters.startDate, leadsFilters.endDate, { allowFuture: false })
   const invoiceError = validateReportDateRange(invoiceFilters.startDate, invoiceFilters.endDate, { allowFuture: false })
+
+  const financeChips = getFinanceFilterChips(financeFilters, defaultRange)
+  const apptChips = getAppointmentsFilterChips(apptFilters, defaultRange)
+  const invChips = getInventoryFilterChips(invFilters)
+  const leadsChips = getLeadsFilterChips(leadsFilters, defaultRange)
+  const invoiceChips = getInvoicesFilterChips(invoiceFilters, defaultRange)
+
+  function clearFinanceFilters() { setFinanceFilters(defaultLast30DaysRange()) }
+  function clearApptFilters() { setApptFilters(defaultLast30DaysRange()) }
+  function clearInvFilters() { setInvFilters({}) }
+  function clearLeadsFilters() { setLeadsFilters(defaultLast30DaysRange()) }
+  function clearInvoiceFilters() { setInvoiceFilters(defaultLast30DaysRange()) }
 
   const reportCount = isOwner ? 5 : 4
 
@@ -103,9 +139,10 @@ export function ReportsPageContainer() {
             tone="primary"
             error={financeError}
             onExport={() => exportFinanceReport(financeFilters)}
+            onPreview={() => getFinanceReportPreview(financeFilters)}
             disabled={!!financeError}
           >
-            <FilterRow>
+            <FilterRow columns={4}>
               <FormField label="Data inicial" htmlFor="fin-start">
                 <DatePickerInput
                   id="fin-start"
@@ -166,6 +203,7 @@ export function ReportsPageContainer() {
                 </Select>
               </FormField>
             </FilterRow>
+            <ReportFilterChips chips={financeChips} onClear={clearFinanceFilters} />
           </ReportCard>
         ) : (
           <InlineFeedback tone="info">
@@ -183,6 +221,7 @@ export function ReportsPageContainer() {
           tone="info"
           error={apptError}
           onExport={() => exportAppointmentsReport(apptFilters)}
+          onPreview={() => getAppointmentsReportPreview(apptFilters)}
           disabled={!!apptError}
         >
           <FilterRow>
@@ -225,6 +264,7 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
+          <ReportFilterChips chips={apptChips} onClear={clearApptFilters} />
         </ReportCard>
       </section>
 
@@ -236,6 +276,7 @@ export function ReportsPageContainer() {
           description="Produtos, quantidades, validade e status de criticidade."
           tone="warning"
           onExport={() => exportInventoryReport(invFilters)}
+          onPreview={() => getInventoryReportPreview(invFilters)}
         >
           <FilterRow>
             <FormField label="Status" htmlFor="inv-status">
@@ -260,6 +301,7 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
+          <ReportFilterChips chips={invChips} onClear={clearInvFilters} />
         </ReportCard>
       </section>
 
@@ -274,7 +316,7 @@ export function ReportsPageContainer() {
           onExport={() => exportLeadsReport(leadsFilters)}
           disabled={!!leadsError}
         >
-          <FilterRow>
+          <FilterRow columns={4}>
             <FormField label="Data inicial" htmlFor="leads-start">
               <DatePickerInput
                 id="leads-start"
@@ -338,6 +380,7 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
+          <ReportFilterChips chips={leadsChips} onClear={clearLeadsFilters} />
         </ReportCard>
       </section>
 
@@ -351,6 +394,7 @@ export function ReportsPageContainer() {
           tone="neutral"
           error={invoiceError}
           onExport={() => exportInvoicesReport(invoiceFilters)}
+          onPreview={() => getInvoicesReportPreview(invoiceFilters)}
           disabled={!!invoiceError}
         >
           <FilterRow>
@@ -394,6 +438,7 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
+          <ReportFilterChips chips={invoiceChips} onClear={clearInvoiceFilters} />
         </ReportCard>
       </section>
 
