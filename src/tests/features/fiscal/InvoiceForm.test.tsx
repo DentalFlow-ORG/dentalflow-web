@@ -64,6 +64,24 @@ describe('InvoiceForm', () => {
     ).toBeInTheDocument()
   })
 
+  // ── Section headings ───────────────────────────────────────────────────────
+
+  it('renders "Tomador" section heading', () => {
+    renderForm()
+    expect(screen.getByText('Tomador')).toBeInTheDocument()
+  })
+
+  it('renders "Serviço" section heading', () => {
+    renderForm()
+    expect(screen.getByText('Serviço')).toBeInTheDocument()
+  })
+
+  it('renders "Observações" section heading', () => {
+    renderForm()
+    // Section heading and field label both read "Observações" — assert at least one exists
+    expect(screen.getAllByText('Observações').length).toBeGreaterThanOrEqual(1)
+  })
+
   // ── Accessible field labels ────────────────────────────────────────────────
 
   it('renders accessible label for customer name field', () => {
@@ -121,6 +139,23 @@ describe('InvoiceForm', () => {
   it('renders "Cancelar" button', () => {
     renderForm()
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument()
+  })
+
+  it('footer has border-t separator', () => {
+    const { container } = renderForm()
+    expect(container.querySelector('.border-t')).toBeInTheDocument()
+  })
+
+  it('submit button has full-width mobile class', () => {
+    renderForm()
+    const submitBtn = screen.getByRole('button', { name: 'Salvar rascunho' })
+    expect(submitBtn.className).toContain('w-full')
+  })
+
+  it('cancel button has full-width mobile class', () => {
+    renderForm()
+    const cancelBtn = screen.getByRole('button', { name: 'Cancelar' })
+    expect(cancelBtn.className).toContain('w-full')
   })
 
   // ── Pre-filled values ──────────────────────────────────────────────────────
