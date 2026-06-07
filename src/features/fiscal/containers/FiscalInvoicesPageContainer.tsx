@@ -20,7 +20,7 @@ import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 import { AppointmentInvoicePickerModal } from '../components/AppointmentInvoicePickerModal'
 import { FiscalSummaryKpiGrid } from '../components/FiscalSummaryKpiGrid'
-import { canCancelInvoice, canSimulateInvoice } from '../utils/invoice-actions'
+import { canCancelInvoice, canSimulateInvoice, getInvoiceActionLabel } from '../utils/invoice-actions'
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
 import { InvoiceDetails } from '../components/InvoiceDetails'
 import { InvoiceForm } from '../components/InvoiceForm'
@@ -537,6 +537,7 @@ export function FiscalInvoicesPageContainer() {
                         <Button
                           variant="outline"
                           size="sm"
+                          aria-label={getInvoiceActionLabel('details', invoice.customerName)}
                           onClick={() => {
                             void openInvoiceDetails(invoice)
                           }}
@@ -547,6 +548,7 @@ export function FiscalInvoicesPageContainer() {
                           <Button
                             variant="outline"
                             size="sm"
+                            aria-label={getInvoiceActionLabel('edit', invoice.customerName)}
                             onClick={() => openInvoiceForm(invoice)}
                           >
                             Editar
@@ -556,6 +558,7 @@ export function FiscalInvoicesPageContainer() {
                           <Button
                             variant="outline"
                             size="sm"
+                            aria-label={getInvoiceActionLabel('markReady', invoice.customerName)}
                             onClick={() => {
                               void markReady(invoice).catch(() => undefined)
                             }}
@@ -566,6 +569,7 @@ export function FiscalInvoicesPageContainer() {
                         {isOwner && canSimulateInvoice(invoice.status, profile?.fiscalProviderMode) && (
                           <Button
                             size="sm"
+                            aria-label={getInvoiceActionLabel('simulate', invoice.customerName)}
                             onClick={() => {
                               void simulateIssue(invoice).catch(() => undefined)
                             }}
@@ -577,6 +581,7 @@ export function FiscalInvoicesPageContainer() {
                           <Button
                             variant="outline"
                             size="sm"
+                            aria-label={getInvoiceActionLabel('cancel', invoice.customerName)}
                             onClick={() => setCancelTarget(invoice)}
                           >
                             Cancelar
@@ -633,6 +638,7 @@ export function FiscalInvoicesPageContainer() {
                                 <Button
                                   variant="outline"
                                   size="sm"
+                                  aria-label={getInvoiceActionLabel('details', invoice.customerName)}
                                   onClick={() => {
                                     void openInvoiceDetails(invoice)
                                   }}
@@ -643,6 +649,7 @@ export function FiscalInvoicesPageContainer() {
                                   <Button
                                     variant="outline"
                                     size="sm"
+                                    aria-label={getInvoiceActionLabel('edit', invoice.customerName)}
                                     onClick={() => openInvoiceForm(invoice)}
                                   >
                                     Editar
@@ -652,6 +659,7 @@ export function FiscalInvoicesPageContainer() {
                                   <Button
                                     variant="outline"
                                     size="sm"
+                                    aria-label={getInvoiceActionLabel('markReady', invoice.customerName)}
                                     onClick={() => {
                                       void markReady(invoice).catch(() => undefined)
                                     }}
@@ -662,6 +670,7 @@ export function FiscalInvoicesPageContainer() {
                                 {isOwner && canSimulateInvoice(invoice.status, profile?.fiscalProviderMode) && (
                                   <Button
                                     size="sm"
+                                    aria-label={getInvoiceActionLabel('simulate', invoice.customerName)}
                                     onClick={() => {
                                       void simulateIssue(invoice).catch(() => undefined)
                                     }}
@@ -673,6 +682,7 @@ export function FiscalInvoicesPageContainer() {
                                   <Button
                                     variant="outline"
                                     size="sm"
+                                    aria-label={getInvoiceActionLabel('cancel', invoice.customerName)}
                                     onClick={() => setCancelTarget(invoice)}
                                   >
                                     Cancelar

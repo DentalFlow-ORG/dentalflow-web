@@ -1,4 +1,8 @@
-import { canCancelInvoice, canSimulateInvoice } from '@/features/fiscal/utils/invoice-actions'
+import {
+  canCancelInvoice,
+  canSimulateInvoice,
+  getInvoiceActionLabel,
+} from '@/features/fiscal/utils/invoice-actions'
 import type { ServiceInvoiceStatus } from '@/features/fiscal/types/fiscal.types'
 
 // ── canCancelInvoice ───────────────────────────────────────────────────────────
@@ -72,5 +76,81 @@ describe('canSimulateInvoice', () => {
 
   it('returns false for CANCELED even if providerMode is LOCAL', () => {
     expect(canSimulateInvoice('CANCELED', 'LOCAL')).toBe(false)
+  })
+})
+
+// ── getInvoiceActionLabel ──────────────────────────────────────────────────────
+
+describe('getInvoiceActionLabel', () => {
+  it('returns details label with customer name', () => {
+    expect(getInvoiceActionLabel('details', 'João Silva')).toBe(
+      'Ver detalhes da nota de João Silva',
+    )
+  })
+
+  it('returns edit label with customer name', () => {
+    expect(getInvoiceActionLabel('edit', 'João Silva')).toBe('Editar nota de João Silva')
+  })
+
+  it('returns markReady label with customer name', () => {
+    expect(getInvoiceActionLabel('markReady', 'João Silva')).toBe(
+      'Marcar nota de João Silva como pronta para emissão',
+    )
+  })
+
+  it('returns simulate label with customer name', () => {
+    expect(getInvoiceActionLabel('simulate', 'João Silva')).toBe(
+      'Simular emissão da nota de João Silva',
+    )
+  })
+
+  it('returns cancel label with customer name', () => {
+    expect(getInvoiceActionLabel('cancel', 'João Silva')).toBe('Cancelar nota de João Silva')
+  })
+
+  it('uses "nota fiscal" fallback when customerName is empty string', () => {
+    expect(getInvoiceActionLabel('details', '')).toBe('Ver detalhes da nota de nota fiscal')
+  })
+
+  it('fallback applies to all actions when name is empty', () => {
+    expect(getInvoiceActionLabel('edit', '')).toBe('Editar nota de nota fiscal')
+    expect(getInvoiceActionLabel('markReady', '')).toBe(
+      'Marcar nota de nota fiscal como pronta para emissão',
+    )
+    expect(getInvoiceActionLabel('simulate', '')).toBe('Simular emissão da nota de nota fiscal')
+    expect(getInvoiceActionLabel('cancel', '')).toBe('Cancelar nota de nota fiscal')
+  })
+
+  it('label starts with the visible button text for details', () => {
+    const label = getInvoiceActionLabel('details', 'Maria')
+    expect(label.startsWith('Ver detalhes')).toBe(true)
+  })
+
+  it('label starts with the visible button text for edit', () => {
+    const label = getInvoiceActionLabel('edit', 'Maria')
+    expect(label.startsWith('Editar')).toBe(true)
+  })
+
+  it('label starts with the visible button text for cancel', () => {
+    const label = getInvoiceActionLabel('cancel', 'Maria')
+    expect(label.startsWith('Cancelar')).toBe(true)
+  })
+
+  it('label starts with the visible button text for simulate', () => {
+    const label = getInvoiceActionLabel('simulate', 'Maria')
+    expect(label.startsWith('Simular emissão')).toBe(true)
+  })
+
+  it('label starts with "Marcar" for markReady action', () => {
+    const label = getInvoiceActionLabel('markReady', 'Maria')
+    expect(label.startsWith('Marcar')).toBe(true)
+  })
+
+  it('includes customer name in all action labels', () => {
+    const name = 'Paciente Único'
+    const actions = ['details', 'edit', 'markReady', 'simulate', 'cancel'] as const
+    for (const action of actions) {
+      expect(getInvoiceActionLabel(action, name)).toContain(name)
+    }
   })
 })

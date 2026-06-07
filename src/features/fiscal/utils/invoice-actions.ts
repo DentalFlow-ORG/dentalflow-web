@@ -18,3 +18,21 @@ export function canSimulateInvoice(
 ): boolean {
   return status === 'READY_TO_ISSUE' && providerMode === 'LOCAL'
 }
+
+export type InvoiceAction = 'details' | 'edit' | 'markReady' | 'simulate' | 'cancel'
+
+export function getInvoiceActionLabel(action: InvoiceAction, customerName: string): string {
+  const subject = customerName || 'nota fiscal'
+  switch (action) {
+    case 'details':
+      return `Ver detalhes da nota de ${subject}`
+    case 'edit':
+      return `Editar nota de ${subject}`
+    case 'markReady':
+      return `Marcar nota de ${subject} como pronta para emissão`
+    case 'simulate':
+      return `Simular emissão da nota de ${subject}`
+    case 'cancel':
+      return `Cancelar nota de ${subject}`
+  }
+}
