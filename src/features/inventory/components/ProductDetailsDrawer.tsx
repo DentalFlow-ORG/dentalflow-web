@@ -48,6 +48,15 @@ export function ProductDetailsDrawer({
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
+          {/*
+            Dialog.Title must always be in Dialog.Content — even during the close animation
+            when product becomes null and {product && ...} would hide the title.
+            The sr-only title provides the accessible dialog label; the visible product
+            name is rendered as a plain <p> inside the conditional block below.
+          */}
+          <Dialog.Title id="product-details-title" className="sr-only">
+            {product?.name ?? 'Detalhes do produto'}
+          </Dialog.Title>
           {product && (
             <>
               {/* ── Header ── */}
@@ -56,12 +65,9 @@ export function ProductDetailsDrawer({
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Produto
                   </p>
-                  <Dialog.Title
-                    id="product-details-title"
-                    className="mt-1 text-lg font-semibold leading-tight text-foreground"
-                  >
+                  <p className="mt-1 text-lg font-semibold leading-tight text-foreground">
                     {product.name}
-                  </Dialog.Title>
+                  </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <StockStatusBadge status={product.status} />
                     <span className="text-xs text-muted-foreground">{product.category.name}</span>

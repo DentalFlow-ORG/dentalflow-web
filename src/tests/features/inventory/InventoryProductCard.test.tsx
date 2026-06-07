@@ -189,6 +189,16 @@ describe('InventoryProductCard', () => {
     expect(handlers.onReactivate).toHaveBeenCalledWith(product)
   })
 
+  // ── Overflow safety ────────────────────────────────────────────────────────
+
+  it('article root has overflow-hidden to contain child overflow on mobile', () => {
+    const { container } = render(
+      <InventoryProductCard product={buildProduct()} {...defaultHandlers()} />,
+    )
+
+    expect(container.querySelector('article.overflow-hidden')).toBeInTheDocument()
+  })
+
   // ── Quick movement strip ───────────────────────────────────────────────────
 
   it('renders quick +1 and -1 buttons for active products', () => {
@@ -223,6 +233,25 @@ describe('InventoryProductCard', () => {
     await user.click(screen.getByRole('button', { name: /Remover 1 unidade/i }))
 
     expect(handlers.onQuickMove).toHaveBeenCalledWith(product, 'out')
+  })
+
+  it('disables the -1 button when currentQuantity is 0', () => {
+    const product = buildProduct({ currentQuantity: 0 })
+    render(<InventoryProductCard product={product} {...defaultHandlers()} />)
+
+    expect(
+      screen.getByRole('button', { name: /Estoque insuficiente/i }),
+    ).toBeDisabled()
+  })
+
+  it('shows a spinner for the product being moved', () => {
+    const product = buildProduct()
+    const quickMovingIds = new Set([product.id])
+    const { container } = render(
+      <InventoryProductCard product={product} {...defaultHandlers()} quickMovingIds={quickMovingIds} />,
+    )
+
+    expect(container.querySelector('.animate-spin')).toBeInTheDocument()
   })
 
   it('does not render quick movement strip for inactive product', () => {

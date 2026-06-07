@@ -51,7 +51,7 @@ export function InventoryProductCard({
 
   return (
     <article
-      className={`rounded-lg border p-4 shadow-sm ${isInactive ? 'border-border bg-muted/60' : 'border-border bg-card'}`}
+      className={`overflow-hidden rounded-lg border p-4 shadow-sm ${isInactive ? 'border-border bg-muted/60' : 'border-border bg-card'}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
@@ -61,7 +61,7 @@ export function InventoryProductCard({
           >
             {product.name}
           </h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">{product.category.name}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{product.category.name}</p>
         </div>
         <StockStatusBadge status={product.status} />
       </div>
@@ -92,7 +92,7 @@ export function InventoryProductCard({
 
       {/* Data grid */}
       <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
-        <div>
+        <div className="min-w-0">
           <dt className="font-medium uppercase tracking-wide text-muted-foreground">Quantidade</dt>
           <dd
             className={`mt-0.5 font-semibold ${product.status === 'EMPTY' ? 'text-red-600 dark:text-red-400' : product.status === 'LOW' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}
@@ -100,7 +100,7 @@ export function InventoryProductCard({
             {formatQuantity(product.currentQuantity, product.unit)}
           </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="font-medium uppercase tracking-wide text-muted-foreground">Mínimo</dt>
           <dd className="mt-0.5 font-medium text-foreground">
             {product.minQuantity > 0 ? (
@@ -110,7 +110,7 @@ export function InventoryProductCard({
             )}
           </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="font-medium uppercase tracking-wide text-muted-foreground">Validade</dt>
           <dd
             className={`mt-0.5 font-medium ${product.status === 'EXPIRED' ? 'text-red-600 dark:text-red-400' : product.status === 'EXPIRING' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}
@@ -122,14 +122,14 @@ export function InventoryProductCard({
             )}
           </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="font-medium uppercase tracking-wide text-muted-foreground">Fornecedor</dt>
           <dd className="mt-0.5 truncate font-medium text-foreground">
             {product.supplier ?? <span className="text-muted-foreground">—</span>}
           </dd>
         </div>
         {product.purchasePrice !== null && (
-          <div className="col-span-2">
+          <div className="col-span-2 min-w-0">
             <dt className="font-medium uppercase tracking-wide text-muted-foreground">
               Preço de compra
             </dt>
