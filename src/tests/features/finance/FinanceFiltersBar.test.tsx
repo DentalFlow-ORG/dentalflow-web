@@ -186,4 +186,61 @@ describe('FinanceFiltersBar', () => {
     expect(grid).toBeInTheDocument()
     expect(grid?.className).toMatch(/2xl:grid-cols-6/)
   })
+
+  // ── Active filter feedback ────────────────────────────────────────────────
+
+  it('does not render active filter section when no optional filters are set', () => {
+    renderBar(baseFilters)
+    expect(screen.queryByText('Limpar filtros')).not.toBeInTheDocument()
+    expect(screen.queryByText('Visualizando recebíveis pendentes')).not.toBeInTheDocument()
+  })
+
+  it('renders "Visualizando recebíveis pendentes" notice when type=INCOME and status=PENDING', () => {
+    renderBar({ ...baseFilters, type: 'INCOME', status: 'PENDING' })
+    expect(screen.getByText('Visualizando recebíveis pendentes')).toBeInTheDocument()
+    expect(screen.getByText('Entradas pendentes no período selecionado.')).toBeInTheDocument()
+  })
+
+  it('renders "Tipo: Entrada" chip when type=INCOME', () => {
+    renderBar({ ...baseFilters, type: 'INCOME' })
+    expect(screen.getByText('Tipo: Entrada')).toBeInTheDocument()
+  })
+
+  it('renders "Tipo: Saída" chip when type=EXPENSE', () => {
+    renderBar({ ...baseFilters, type: 'EXPENSE' })
+    expect(screen.getByText('Tipo: Saída')).toBeInTheDocument()
+  })
+
+  it('renders "Status: Pendente" chip when status=PENDING', () => {
+    renderBar({ ...baseFilters, status: 'PENDING' })
+    expect(screen.getByText('Status: Pendente')).toBeInTheDocument()
+  })
+
+  it('renders "Status: Pago" chip when status=PAID', () => {
+    renderBar({ ...baseFilters, status: 'PAID' })
+    expect(screen.getByText('Status: Pago')).toBeInTheDocument()
+  })
+
+  it('renders category chip with category name when categoryId is set', () => {
+    renderBar({ ...baseFilters, categoryId: 'cat-1' })
+    expect(screen.getByText('Categoria: Consulta')).toBeInTheDocument()
+  })
+
+  it('does not render drill-down notice when only type=INCOME without status=PENDING', () => {
+    renderBar({ ...baseFilters, type: 'INCOME' })
+    expect(screen.queryByText('Visualizando recebíveis pendentes')).not.toBeInTheDocument()
+  })
+
+  it('renders "Limpar filtros" button when any optional filter is active', () => {
+    renderBar({ ...baseFilters, status: 'PAID' })
+    expect(screen.getByRole('button', { name: /Limpar filtros/ })).toBeInTheDocument()
+  })
+
+  it('clicking "Limpar filtros" calls onChange for type, status, and categoryId with undefined', () => {
+    const { onChange } = renderBar({ ...baseFilters, type: 'INCOME', status: 'PENDING', categoryId: 'cat-1' })
+    fireEvent.click(screen.getByRole('button', { name: /Limpar filtros/ }))
+    expect(onChange).toHaveBeenCalledWith('type', undefined)
+    expect(onChange).toHaveBeenCalledWith('status', undefined)
+    expect(onChange).toHaveBeenCalledWith('categoryId', undefined)
+  })
 })
