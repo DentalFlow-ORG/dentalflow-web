@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { centsToMoneyInput, parseMoneyInputToCents } from '@/lib/money-input'
 
 import {
   createFinancialTransaction,
@@ -71,7 +72,7 @@ export function useFinanceTransactions(
       await createFinancialTransaction({
         type: transactionForm.type,
         categoryId: transactionForm.categoryId,
-        amount: Number(transactionForm.amount),
+        amount: parseMoneyInputToCents(transactionForm.amount) / 100,
         description: transactionForm.description.trim(),
         transactionDate: transactionForm.transactionDate,
         dueDate: transactionForm.dueDate || undefined,
@@ -95,7 +96,7 @@ export function useFinanceTransactions(
     setEditForm({
       type: transaction.type,
       categoryId: transaction.categoryId,
-      amount: String(transaction.amount),
+      amount: centsToMoneyInput(Math.round(Number(transaction.amount) * 100)),
       description: transaction.description,
       transactionDate: transaction.transactionDate.slice(0, 10),
       dueDate: transaction.dueDate?.slice(0, 10) ?? '',
@@ -131,7 +132,7 @@ export function useFinanceTransactions(
       await updateFinancialTransaction(editingTransaction.id, {
         type: editForm.type,
         categoryId: editForm.categoryId,
-        amount: Number(editForm.amount),
+        amount: parseMoneyInputToCents(editForm.amount) / 100,
         description: editForm.description.trim(),
         transactionDate: editForm.transactionDate,
         dueDate: editForm.dueDate || null,

@@ -1,4 +1,4 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen } from '@/test-utils/render-utils'
 import { vi } from 'vitest'
 
 vi.mock('@/components/common/DatePickerInput', () => ({
@@ -168,5 +168,42 @@ describe('InvoiceForm', () => {
   it('displays pre-filled service description', () => {
     renderForm({ form: { ...emptyForm, serviceDescription: 'Consulta odontológica' } })
     expect(screen.getByLabelText('Serviço prestado')).toHaveValue('Consulta odontológica')
+  })
+
+  // ── Money input behaviour ──────────────────────────────────────────────────
+
+  it('amount field displays "250,00" when amountCents is 25000', () => {
+    renderForm({ form: { ...emptyForm, amountCents: 25000 } })
+    expect(screen.getByLabelText('Valor')).toHaveValue('250,00')
+  })
+
+  it('amount field calls onChange with 9 cents when user types "9"', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Valor'), { target: { value: '9' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ amountCents: 9 }))
+  })
+
+  it('amount field calls onChange with 90 cents when user types "90"', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Valor'), { target: { value: '90' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ amountCents: 90 }))
   })
 })

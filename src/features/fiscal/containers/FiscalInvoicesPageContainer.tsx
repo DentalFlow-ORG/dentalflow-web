@@ -80,6 +80,8 @@ export function FiscalInvoicesPageContainer() {
   const [cancelTarget, setCancelTarget] = useState<ServiceInvoice | null>(null)
   const [cancelReason, setCancelReason] = useState('')
   const [isPickerOpen, setIsPickerOpen] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [isProfileSaving, setIsProfileSaving] = useState(false)
   const [isLoadingDraft, setIsLoadingDraft] = useState(false)
   const [draftLoadError, setDraftLoadError] = useState<string | null>(null)
   const [appointmentWarnings, setAppointmentWarnings] = useState<{
@@ -227,6 +229,7 @@ export function FiscalInvoicesPageContainer() {
   }
 
   async function submitProfile() {
+    setIsProfileSaving(true)
     try {
       await saveProfile({
         ...profileForm,
@@ -237,17 +240,22 @@ export function FiscalInvoicesPageContainer() {
       if (activeWorkspace === 'profile') setActiveWorkspace('none')
     } catch {
       // O hook já exibe o alerta em português; manter o formulário aberto ajuda na correção.
+    } finally {
+      setIsProfileSaving(false)
     }
   }
 
   async function confirmCancel() {
     if (!cancelTarget) return
+    setIsCancelling(true)
     try {
       await cancel(cancelTarget, cancelReason.trim())
       setCancelTarget(null)
       setCancelReason('')
     } catch {
       // O hook já exibe o alerta em português.
+    } finally {
+      setIsCancelling(false)
     }
   }
 
@@ -327,15 +335,17 @@ export function FiscalInvoicesPageContainer() {
         onRetry={load}
       >
         <div className="space-y-6">
-          <InlineFeedback tone="warning">
-            <div className="flex gap-3">
-              <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-              <p>
-                Modo local/simulação ativo. Você pode organizar rascunhos e validar o fluxo de
-                notas; a emissão real depende da configuração fiscal da clínica.
-              </p>
-            </div>
-          </InlineFeedback>
+          {profileResponse?.providerMode === 'LOCAL' && (
+            <InlineFeedback tone="warning">
+              <div className="flex gap-3">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                <p>
+                  Modo local/simulação ativo. Você pode organizar rascunhos e validar o fluxo de
+                  notas; a emissão real depende da configuração fiscal da clínica.
+                </p>
+              </div>
+            </InlineFeedback>
+          )}
 
           {summary && (
             <section>
@@ -411,6 +421,7 @@ export function FiscalInvoicesPageContainer() {
                       if (activeWorkspace === 'profile') setActiveWorkspace('none')
                     }}
                     onSubmit={submitProfile}
+                    isSaving={isProfileSaving}
                   />
                 </div>
               )}
@@ -498,6 +509,7 @@ export function FiscalInvoicesPageContainer() {
         confirmLabel="Cancelar nota"
         cancelLabel="Voltar"
         confirmDisabled={cancelReason.trim().length === 0}
+        isConfirming={isCancelling}
         onCancel={() => { setCancelTarget(null); setCancelReason('') }}
         onConfirm={confirmCancel}
       >

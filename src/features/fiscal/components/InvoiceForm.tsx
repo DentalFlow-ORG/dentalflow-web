@@ -99,7 +99,7 @@ export function InvoiceForm({ form, editing, onChange, onCancel, onSubmit }: Pro
             <FormField label="Valor" htmlFor="amount">
               <TextInput
                 id="amount"
-                inputMode="decimal"
+                inputMode="numeric"
                 value={toMoneyInput(form.amountCents)}
                 onChange={(e) =>
                   onChange({ ...form, amountCents: fromMoneyInput(e.target.value) })

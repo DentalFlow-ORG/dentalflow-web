@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ApiError } from '@/services/http'
+import { centsToMoneyInput, formatMoneyInputFromDigits, parseMoneyInputToCents } from '@/lib/money-input'
 
 import type { StockCategory, StockProduct } from '../types/inventory.types'
 import { createStockProduct, updateStockProduct } from '../services/inventory.service'
@@ -53,8 +54,7 @@ function productToForm(product: StockProduct): ProductFormState {
     unit: product.unit,
     currentQuantity: String(product.currentQuantity),
     minQuantity: product.minQuantity > 0 ? String(product.minQuantity) : '',
-    purchasePrice:
-      product.purchasePrice !== null ? (product.purchasePrice / 100).toFixed(2) : '',
+    purchasePrice: centsToMoneyInput(product.purchasePrice),
     supplier: product.supplier ?? '',
     // expiresAt arrives as ISO string ("2025-12-31T00:00:00.000Z") — slice to YYYY-MM-DD
     expiresAt: product.expiresAt ? product.expiresAt.slice(0, 10) : '',
@@ -108,12 +108,7 @@ export function ProductFormModal({
       return
     }
 
-    const rawPrice = form.purchasePrice.trim().replace(',', '.')
-    const parsedPriceValue = parseFloat(rawPrice)
-    const parsedPrice =
-      rawPrice !== '' && !isNaN(parsedPriceValue)
-        ? Math.round(parsedPriceValue * 100)
-        : undefined
+    const parsedPrice = form.purchasePrice ? parseMoneyInputToCents(form.purchasePrice) : undefined
 
     const parsedQtyValue = parseFloat(form.currentQuantity)
     const parsedQty =
@@ -343,12 +338,10 @@ export function ProductFormModal({
                   <FormField label="Valor de compra (R$)" htmlFor="prodPrice" optional>
                     <TextInput
                       id="prodPrice"
-                      type="number"
-                      min="0"
-                      step="0.01"
+                      inputMode="numeric"
                       placeholder="0,00"
                       value={form.purchasePrice}
-                      onChange={(e) => setField('purchasePrice', e.target.value)}
+                      onChange={(e) => setField('purchasePrice', formatMoneyInputFromDigits(e.target.value))}
                     />
                   </FormField>
                 </div>

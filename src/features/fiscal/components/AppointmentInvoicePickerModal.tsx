@@ -134,9 +134,10 @@ export function AppointmentInvoicePickerModal({
           <div className="border-b border-border px-5 py-4">
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="sm:col-span-2">
-                <FormField label="Paciente">
+                <FormField label="Paciente" htmlFor="appointmentInvoicePatientSearch">
                   <div className="flex gap-2">
                     <TextInput
+                      id="appointmentInvoicePatientSearch"
                       placeholder="Buscar por nome..."
                       value={pendingSearch}
                       onChange={(e) => setPendingSearch(e.target.value)}
@@ -148,7 +149,7 @@ export function AppointmentInvoicePickerModal({
                   </div>
                 </FormField>
               </div>
-              <FormField label="Status de pagamento">
+              <FormField label="Status de pagamento" htmlFor="appointmentInvoicePaymentStatus">
                 <Select
                   value={filters.paymentStatus ?? '__all__'}
                   onValueChange={(v) =>
@@ -158,7 +159,7 @@ export function AppointmentInvoicePickerModal({
                     )
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="appointmentInvoicePaymentStatus" className="w-full">
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
                   <SelectContent>

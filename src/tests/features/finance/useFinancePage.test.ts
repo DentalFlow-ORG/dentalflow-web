@@ -422,7 +422,7 @@ describe('useFinancePage', () => {
     act(() => {
       result.current.setTransaction('type', 'INCOME')
       result.current.setTransaction('categoryId', 'cat-1')
-      result.current.setTransaction('amount', '500')
+      result.current.setTransaction('amount', '500,00')
       result.current.setTransaction('description', 'Consulta')
       result.current.setTransaction('transactionDate', '2026-06-10')
       result.current.setTransaction('status', 'PAID')
@@ -478,7 +478,7 @@ describe('useFinancePage', () => {
 
     act(() => result.current.handleOpenEdit(transaction))
     act(() => result.current.setEditField('description', 'Consulta Atualizada'))
-    act(() => result.current.setEditField('amount', '750'))
+    act(() => result.current.setEditField('amount', '750,00'))
 
     await act(async () => {
       await result.current.handleUpdateTransaction(fakeEvent)
@@ -613,7 +613,7 @@ describe('useFinancePage', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     act(() => result.current.setFixedExpense('categoryId', 'cat-2'))
-    act(() => result.current.setFixedExpense('amount', '3000'))
+    act(() => result.current.setFixedExpense('amount', '3000,00'))
     act(() => result.current.setFixedExpense('description', 'Aluguel'))
     act(() => result.current.setFixedExpense('recurrence', 'MONTHLY'))
     act(() => result.current.setFixedExpense('dueDay', '5'))
@@ -642,7 +642,7 @@ describe('useFinancePage', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     act(() => result.current.handleOpenEditFixedExpense(expense))
-    act(() => result.current.setFixedExpenseEditField('amount', '3500'))
+    act(() => result.current.setFixedExpenseEditField('amount', '3500,00'))
 
     await act(async () => {
       await result.current.handleUpdateFixedExpense(fakeEvent)

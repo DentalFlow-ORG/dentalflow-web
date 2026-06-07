@@ -138,4 +138,11 @@ describe('AppointmentInvoicePickerModal', () => {
       expect(screen.getByRole('button', { name: 'Buscar' })).toBeInTheDocument()
     })
   })
+
+  it('patient search input is associated with its label', async () => {
+    renderModal()
+    await waitFor(() => {
+      expect(screen.getByLabelText('Paciente')).toBeInTheDocument()
+    })
+  })
 })

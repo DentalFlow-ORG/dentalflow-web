@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { centsToMoneyInput, parseMoneyInputToCents } from '@/lib/money-input'
 
 import {
   createFixedExpense,
@@ -59,7 +60,7 @@ export function useFinanceFixedExpenses(reload: () => void, filters: FinanceFilt
     setFixedExpenseEditForm({
       categoryId: expense.categoryId,
       description: expense.description,
-      amount: String(expense.amount),
+      amount: centsToMoneyInput(Math.round(Number(expense.amount) * 100)),
       recurrence: expense.recurrence,
       dueDay: String(expense.dueDay),
       startDate: expense.startDate.slice(0, 10),
@@ -93,7 +94,7 @@ export function useFinanceFixedExpenses(reload: () => void, filters: FinanceFilt
     try {
       await createFixedExpense({
         categoryId: fixedExpenseForm.categoryId,
-        amount: Number(fixedExpenseForm.amount),
+        amount: parseMoneyInputToCents(fixedExpenseForm.amount) / 100,
         description: fixedExpenseForm.description.trim(),
         recurrence: fixedExpenseForm.recurrence,
         dueDay: Number(fixedExpenseForm.dueDay),
@@ -133,7 +134,7 @@ export function useFinanceFixedExpenses(reload: () => void, filters: FinanceFilt
       await updateFixedExpense(editingFixedExpense.id, {
         categoryId: fixedExpenseEditForm.categoryId,
         description: fixedExpenseEditForm.description.trim(),
-        amount: Number(fixedExpenseEditForm.amount),
+        amount: parseMoneyInputToCents(fixedExpenseEditForm.amount) / 100,
         recurrence: fixedExpenseEditForm.recurrence,
         dueDay: Number(fixedExpenseEditForm.dueDay),
         startDate: fixedExpenseEditForm.startDate,

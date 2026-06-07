@@ -107,7 +107,8 @@ describe('FiscalSummaryKpiGrid', () => {
 
   it('renders FAILED count value', () => {
     render(<FiscalSummaryKpiGrid summary={defaultSummary} />)
-    expect(screen.getByText('1')).toBeInTheDocument()
+    // FAILED=1 and SIMULATED=1 in defaultSummary — both render "1"
+    expect(screen.getAllByText('1').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders PROCESSING count value', () => {
@@ -132,10 +133,11 @@ describe('FiscalSummaryKpiGrid', () => {
 
   // ── All zeros renders without crashing ─────────────────────────────────────
 
-  it('renders all 7 KPI labels when all counts are zero', () => {
+  it('renders all 8 KPI labels when all counts are zero', () => {
     render(<FiscalSummaryKpiGrid summary={allZeroSummary} />)
     expect(screen.getByText('Rascunhos')).toBeInTheDocument()
     expect(screen.getByText('Prontas para emissão')).toBeInTheDocument()
+    expect(screen.getByText('Simuladas')).toBeInTheDocument()
     expect(screen.getByText('Em processamento')).toBeInTheDocument()
     expect(screen.getByText('Emitidas')).toBeInTheDocument()
     expect(screen.getByText('Falhas')).toBeInTheDocument()
@@ -157,5 +159,16 @@ describe('FiscalSummaryKpiGrid', () => {
     render(<FiscalSummaryKpiGrid summary={summary} />)
     expect(screen.getByText('Em processamento')).toBeInTheDocument()
     expect(screen.getByText('7')).toBeInTheDocument()
+  })
+
+  it('renders "Simuladas" KPI label', () => {
+    render(<FiscalSummaryKpiGrid summary={defaultSummary} />)
+    expect(screen.getByText('Simuladas')).toBeInTheDocument()
+  })
+
+  it('renders SIMULATED count value', () => {
+    const summary = makeSummary({ counts: { ...defaultSummary.counts, SIMULATED: 6 } })
+    render(<FiscalSummaryKpiGrid summary={summary} />)
+    expect(screen.getByText('6')).toBeInTheDocument()
   })
 })

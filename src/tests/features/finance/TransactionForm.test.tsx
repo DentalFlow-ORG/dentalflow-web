@@ -184,8 +184,20 @@ describe('TransactionForm', () => {
 
   it('calls onChange with (description, value) when description input changes', () => {
     const { onChange } = renderForm()
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Consulta ortopédica' } })
+    fireEvent.change(screen.getByLabelText('Descrição'), { target: { value: 'Consulta ortopédica' } })
     expect(onChange).toHaveBeenCalledWith('description', 'Consulta ortopédica')
+  })
+
+  it('calls onChange with (amount, "0,09") when user types "9" in amount field', () => {
+    const { onChange } = renderForm()
+    fireEvent.change(screen.getByLabelText('Valor'), { target: { value: '9' } })
+    expect(onChange).toHaveBeenCalledWith('amount', '0,09')
+  })
+
+  it('calls onChange with (amount, "90,00") when user types "9000" in amount field', () => {
+    const { onChange } = renderForm()
+    fireEvent.change(screen.getByLabelText('Valor'), { target: { value: '9000' } })
+    expect(onChange).toHaveBeenCalledWith('amount', '90,00')
   })
 
   it('calls onChange with (transactionDate, value) when date input changes', () => {

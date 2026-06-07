@@ -2,6 +2,7 @@ import { Loader2, Scale } from 'lucide-react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
+import { formatMoneyInputFromDigits } from '@/lib/money-input'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
@@ -88,12 +89,10 @@ export function FixedExpenseForm({
             <FormField label="Valor" htmlFor="fixedAmount">
               <TextInput
                 id="fixedAmount"
-                type="number"
-                min="0.01"
-                step="0.01"
+                inputMode="numeric"
                 placeholder="0,00"
                 value={form.amount}
-                onChange={(event) => onChange('amount', event.target.value)}
+                onChange={(event) => onChange('amount', formatMoneyInputFromDigits(event.target.value))}
               />
             </FormField>
             <FormField label="Recorrência" htmlFor="fixedRecurrence">

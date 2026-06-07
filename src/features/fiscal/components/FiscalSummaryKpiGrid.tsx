@@ -1,4 +1,4 @@
-import { Ban, CheckCircle, Clock, DollarSign, FileText, Hourglass, XCircle } from 'lucide-react'
+import { Ban, CheckCircle, Clock, DollarSign, FileText, FlaskConical, Hourglass, XCircle } from 'lucide-react'
 
 import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
 
@@ -25,6 +25,12 @@ export function FiscalSummaryKpiGrid({ summary }: Props) {
         value={String(counts.READY_TO_ISSUE ?? 0)}
         icon={Clock}
         tone={counts.READY_TO_ISSUE > 0 ? 'warning' : 'neutral'}
+      />
+      <HomeKpiCard
+        label="Simuladas"
+        value={String(counts.SIMULATED ?? 0)}
+        icon={FlaskConical}
+        tone={counts.SIMULATED > 0 ? 'success' : 'neutral'}
       />
       <HomeKpiCard
         label="Em processamento"

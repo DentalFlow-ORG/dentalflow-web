@@ -3,6 +3,7 @@ import { Dialog } from 'radix-ui'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
+import { formatMoneyInputFromDigits } from '@/lib/money-input'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import {
@@ -132,12 +133,10 @@ export function TransactionEditModal({
                   <FormField label="Valor" htmlFor="editTxAmount">
                     <TextInput
                       id="editTxAmount"
-                      type="number"
-                      min="0.01"
-                      step="0.01"
+                      inputMode="numeric"
                       placeholder="0,00"
                       value={form.amount}
-                      onChange={(event) => onChange('amount', event.target.value)}
+                      onChange={(event) => onChange('amount', formatMoneyInputFromDigits(event.target.value))}
                     />
                   </FormField>
                   <FormField label="Data" htmlFor="editTxDate">
