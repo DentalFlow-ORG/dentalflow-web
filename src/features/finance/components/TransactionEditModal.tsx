@@ -63,6 +63,9 @@ export function TransactionEditModal({
               <X className="h-5 w-5" />
             </button>
           </div>
+          <Dialog.Description className="sr-only">
+            Atualize os dados do lançamento financeiro selecionado.
+          </Dialog.Description>
 
           <form className="space-y-4 px-6 py-5" onSubmit={onSubmit}>
             {error && <InlineFeedback>{error}</InlineFeedback>}
