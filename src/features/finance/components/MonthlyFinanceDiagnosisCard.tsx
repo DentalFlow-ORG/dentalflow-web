@@ -254,11 +254,11 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
         </div>
 
         {/* Month selector + generate button */}
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <MonthPickerInput
             value={selectedMonth}
             onValueChange={setSelectedMonth}
-            className="w-40"
+            className="w-full sm:w-40"
           />
           {!diagnosis && (
             <Button

@@ -157,6 +157,13 @@ describe('ProcedureMarginsSection', () => {
     expect(screen.getByRole('button', { name: /carregar análise/i })).toBeInTheDocument()
   })
 
+  it('action wrapper has mobile-safe w-full class', () => {
+    renderSection(idleState)
+    const btn = screen.getByRole('button', { name: /carregar análise/i })
+    const wrapper = btn.parentElement
+    expect(wrapper?.className).toMatch(/w-full/)
+  })
+
   it('load button calls onLoad with selected month', () => {
     const { onLoad } = renderSection(idleState)
     fireEvent.click(screen.getByRole('button', { name: /carregar análise/i }))

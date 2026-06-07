@@ -242,11 +242,11 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <MonthPickerInput
             value={selectedMonth}
             onValueChange={setSelectedMonth}
-            className="w-40"
+            className="w-full sm:w-40"
           />
           {!data && (
             <Button size="sm" onClick={handleLoad} disabled={isLoading || isPlanBlocked}>

@@ -120,6 +120,11 @@ describe('TransactionForm', () => {
     expect(screen.getByText('Descrição')).toBeInTheDocument()
   })
 
+  it('renders "Opcional" badge for the Vencimento field', () => {
+    renderForm()
+    expect(screen.getByText('Opcional')).toBeInTheDocument()
+  })
+
   // ── Submit button ──────────────────────────────────────────────────────────
 
   it('renders the submit button', () => {

@@ -129,6 +129,13 @@ describe('MonthlyFinanceDiagnosisCard', () => {
     expect(screen.getByRole('button', { name: /gerar diagnóstico/i })).toBeInTheDocument()
   })
 
+  it('action wrapper has mobile-safe w-full class', () => {
+    renderCard(idleState)
+    const btn = screen.getByRole('button', { name: /gerar diagnóstico/i })
+    const wrapper = btn.parentElement
+    expect(wrapper?.className).toMatch(/w-full/)
+  })
+
   it('generate button calls onGenerate with selectedMonth', () => {
     const { onGenerate } = renderCard(idleState)
     fireEvent.click(screen.getByRole('button', { name: /gerar diagnóstico/i }))
