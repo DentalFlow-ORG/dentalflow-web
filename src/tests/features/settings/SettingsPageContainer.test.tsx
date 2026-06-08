@@ -411,3 +411,66 @@ describe('SettingsPageContainer — clinic profile save UX', () => {
     })
   })
 })
+
+// ── Security compliance section ───────────────────────────────────────────────
+
+describe('SettingsPageContainer — security compliance section', () => {
+  it('renders section intro copy', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText(/políticas, termos e práticas de proteção de dados/i)).toBeInTheDocument()
+  })
+
+  it('renders "Dados protegidos" trust card title', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText('Dados protegidos')).toBeInTheDocument()
+  })
+
+  it('renders "Acesso por função" trust card title', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText('Acesso por função')).toBeInTheDocument()
+  })
+
+  it('renders "Documentos legais" trust card title', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText('Documentos legais')).toBeInTheDocument()
+  })
+
+  it('trust cards are not rendered as buttons or links', () => {
+    render(<SettingsPageContainer />)
+    const title = screen.getByText('Dados protegidos')
+    expect(title.closest('button')).toBeNull()
+    expect(title.closest('a')).toBeNull()
+  })
+
+  it('renders all legal link labels', () => {
+    render(<SettingsPageContainer />)
+    for (const label of [
+      'Política de Privacidade',
+      'Termos de Uso',
+      'Política de Cookies',
+      'Tratamento de Dados (LGPD)',
+      'Segurança',
+      'Direitos do Titular',
+    ]) {
+      expect(screen.getByText(label)).toBeInTheDocument()
+    }
+  })
+
+  it('Política de Privacidade link has correct href', () => {
+    render(<SettingsPageContainer />)
+    const link = screen.getByRole('link', { name: 'Política de Privacidade' })
+    expect(link).toHaveAttribute('href', '/politica-de-privacidade')
+  })
+
+  it('Tratamento de Dados link has correct href', () => {
+    render(<SettingsPageContainer />)
+    const link = screen.getByRole('link', { name: 'Tratamento de Dados (LGPD)' })
+    expect(link).toHaveAttribute('href', '/tratamento-de-dados')
+  })
+
+  it('legal link label text has truncate class for mobile overflow protection', () => {
+    render(<SettingsPageContainer />)
+    const label = screen.getByText('Política de Privacidade')
+    expect(label.className).toMatch(/truncate/)
+  })
+})

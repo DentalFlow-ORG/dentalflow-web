@@ -8,12 +8,14 @@ import {
   CalendarCheck2,
   CreditCard,
   ExternalLink,
+  FileText,
+  KeyRound,
   Landmark,
   Loader2,
   Package,
   Receipt,
   RefreshCw,
-  Shield,
+  ShieldCheck,
   Users,
   Unlink,
 } from 'lucide-react'
@@ -545,6 +547,26 @@ function BillingSection() {
   )
 }
 
+function TrustCard({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ElementType
+  title: string
+  description: string
+}) {
+  return (
+    <div className="rounded-md border border-border bg-muted/30 p-4">
+      <div className="mb-2 flex items-center gap-2">
+        <Icon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <p className="text-sm font-medium text-foreground">{title}</p>
+      </div>
+      <p className="text-xs leading-5 text-muted-foreground">{description}</p>
+    </div>
+  )
+}
+
 export function SettingsPageContainer() {
   return (
     <AppPage spacing="loose">
@@ -649,25 +671,49 @@ export function SettingsPageContainer() {
         </SettingsPanelSection>
 
         <SettingsPanelSection title="Segurança e Conformidade">
-          <div className="space-y-1">
-            {LEGAL_LINKS.map(({ label, href }) => (
-              <a
-                key={href}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between gap-2 rounded-md px-1 py-2 text-sm text-foreground transition-colors hover:bg-muted"
-              >
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  {label}
-                </div>
-                <ExternalLink
-                  className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                  aria-hidden="true"
-                />
-              </a>
-            ))}
+          <div className="space-y-6">
+            <p className="text-sm text-muted-foreground">
+              Acompanhe políticas, termos e práticas de proteção de dados usadas para manter a clínica alinhada à LGPD.
+            </p>
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <TrustCard
+                icon={ShieldCheck}
+                title="Dados protegidos"
+                description="As informações da clínica e dos pacientes são tratadas em ambiente autenticado e com controles de acesso por perfil."
+              />
+              <TrustCard
+                icon={KeyRound}
+                title="Acesso por função"
+                description="Permissões separam responsabilidades entre proprietário, dentistas e assistentes."
+              />
+              <TrustCard
+                icon={FileText}
+                title="Documentos legais"
+                description="Políticas e termos ficam centralizados para consulta sempre que necessário."
+              />
+            </div>
+
+            <div className="space-y-1 border-t border-border pt-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Documentos e políticas
+              </p>
+              {LEGAL_LINKS.map(({ label, href }) => (
+                <a
+                  key={href}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between gap-2 rounded-md px-1 py-2 text-sm text-foreground transition-colors hover:bg-muted"
+                >
+                  <span className="min-w-0 truncate">{label}</span>
+                  <ExternalLink
+                    className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                </a>
+              ))}
+            </div>
           </div>
         </SettingsPanelSection>
       </div>
