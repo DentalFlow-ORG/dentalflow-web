@@ -19,7 +19,7 @@ export function useClinicProfile() {
       .finally(() => setIsLoading(false))
   }, [])
 
-  async function save(payload: UpdateClinicProfilePayload) {
+  async function save(payload: UpdateClinicProfilePayload): Promise<boolean> {
     setIsSaving(true)
     setSaveSuccess(false)
     setSaveError(null)
@@ -27,8 +27,10 @@ export function useClinicProfile() {
       const updated = await updateClinicProfile(payload)
       setProfile(updated)
       setSaveSuccess(true)
+      return true
     } catch {
       setSaveError('Não foi possível salvar as alterações. Tente novamente.')
+      return false
     } finally {
       setIsSaving(false)
     }

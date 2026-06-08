@@ -26,6 +26,7 @@ import { PanelCard } from '@/components/common/PanelCard'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import {
   formatPhoneBR,
   formatCepBR,
@@ -94,8 +95,8 @@ function LinkRow({
 }
 
 function ClinicProfileSection() {
-  const { profile, isLoading, error, save, isSaving, saveSuccess, saveError } =
-    useClinicProfile()
+  const { profile, isLoading, error, save, isSaving, saveError } = useClinicProfile()
+  const { showAlert } = useGlobalAlerts()
 
   const [form, setForm] = useState({
     name: '',
@@ -141,7 +142,10 @@ function ClinicProfileSection() {
     if (form.city.trim()) payload.city = form.city.trim()
     if (form.state.trim()) payload.state = form.state.trim()
     if (form.postalCode.trim()) payload.postalCode = onlyDigits(form.postalCode)
-    await save(payload)
+    const ok = await save(payload)
+    if (ok) {
+      showAlert({ title: 'Perfil atualizado com sucesso.', tone: 'success' })
+    }
   }
 
   if (isLoading) {
@@ -162,102 +166,142 @@ function ClinicProfileSection() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label="Nome da clínica" htmlFor="clinic-name" className="sm:col-span-2">
-          <TextInput
-            id="clinic-name"
-            value={form.name}
-            onChange={(e) => set('name', e.target.value)}
-            placeholder="Ex: Odonto Saúde"
-            required
-          />
-        </FormField>
-
-        <FormField label="E-mail" htmlFor="clinic-email" optional>
-          <TextInput
-            id="clinic-email"
-            type="email"
-            value={form.email}
-            onChange={(e) => set('email', e.target.value)}
-            placeholder="contato@clinica.com.br"
-          />
-        </FormField>
-
-        <FormField label="Telefone" htmlFor="clinic-phone" optional>
-          <TextInput
-            id="clinic-phone"
-            value={form.phone}
-            onChange={(e) => set('phone', formatPhoneBR(e.target.value))}
-            placeholder="(11) 99999-9999"
-          />
-        </FormField>
-
-        <FormField label="Site" htmlFor="clinic-website" optional className="sm:col-span-2">
-          <TextInput
-            id="clinic-website"
-            type="url"
-            value={form.websiteUrl}
-            onChange={(e) => set('websiteUrl', e.target.value)}
-            placeholder="https://www.clinica.com.br"
-          />
-        </FormField>
-
-        <FormField label="Endereço" htmlFor="clinic-address1" optional className="sm:col-span-2">
-          <TextInput
-            id="clinic-address1"
-            value={form.addressLine1}
-            onChange={(e) => set('addressLine1', e.target.value)}
-            placeholder="Rua, número"
-          />
-        </FormField>
-
-        <FormField label="Complemento" htmlFor="clinic-address2" optional className="sm:col-span-2">
-          <TextInput
-            id="clinic-address2"
-            value={form.addressLine2}
-            onChange={(e) => set('addressLine2', e.target.value)}
-            placeholder="Sala, bloco, andar"
-          />
-        </FormField>
-
-        <FormField label="Cidade" htmlFor="clinic-city" optional>
-          <TextInput
-            id="clinic-city"
-            value={form.city}
-            onChange={(e) => set('city', e.target.value)}
-            placeholder="São Paulo"
-          />
-        </FormField>
-
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Dados de contato */}
+      <div className="space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Dados de contato
+        </p>
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="UF" htmlFor="clinic-state" optional>
+          <FormField label="Nome da clínica" htmlFor="clinic-name" className="sm:col-span-2">
             <TextInput
-              id="clinic-state"
-              value={form.state}
-              onChange={(e) => set('state', formatUf(e.target.value))}
-              placeholder="SP"
-              maxLength={2}
+              id="clinic-name"
+              value={form.name}
+              onChange={(e) => set('name', e.target.value)}
+              placeholder="Ex: Odonto Saúde"
+              required
+              disabled={isSaving}
             />
           </FormField>
 
-          <FormField label="CEP" htmlFor="clinic-cep" optional>
+          <FormField label="E-mail" htmlFor="clinic-email" optional>
             <TextInput
-              id="clinic-cep"
-              value={form.postalCode}
-              onChange={(e) => set('postalCode', formatCepBR(e.target.value))}
-              placeholder="00000-000"
+              id="clinic-email"
+              type="email"
+              value={form.email}
+              onChange={(e) => set('email', e.target.value)}
+              placeholder="contato@clinica.com.br"
+              disabled={isSaving}
+            />
+          </FormField>
+
+          <FormField label="Telefone" htmlFor="clinic-phone" optional>
+            <TextInput
+              id="clinic-phone"
+              value={form.phone}
+              onChange={(e) => set('phone', formatPhoneBR(e.target.value))}
+              placeholder="(11) 99999-9999"
+              disabled={isSaving}
+            />
+          </FormField>
+
+          <FormField label="Site" htmlFor="clinic-website" optional className="sm:col-span-2">
+            <TextInput
+              id="clinic-website"
+              type="url"
+              value={form.websiteUrl}
+              onChange={(e) => set('websiteUrl', e.target.value)}
+              placeholder="https://www.clinica.com.br"
+              disabled={isSaving}
             />
           </FormField>
         </div>
       </div>
 
-      {saveSuccess && (
-        <InlineFeedback tone="success">Perfil atualizado com sucesso.</InlineFeedback>
-      )}
+      {/* Endereço */}
+      <div className="space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Endereço
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField label="Logradouro" htmlFor="clinic-address1" optional className="sm:col-span-2">
+            <TextInput
+              id="clinic-address1"
+              value={form.addressLine1}
+              onChange={(e) => set('addressLine1', e.target.value)}
+              placeholder="Rua, número"
+              disabled={isSaving}
+            />
+          </FormField>
+
+          <FormField label="Complemento" htmlFor="clinic-address2" optional className="sm:col-span-2">
+            <TextInput
+              id="clinic-address2"
+              value={form.addressLine2}
+              onChange={(e) => set('addressLine2', e.target.value)}
+              placeholder="Sala, bloco, andar"
+              disabled={isSaving}
+            />
+          </FormField>
+
+          <FormField label="Cidade" htmlFor="clinic-city" optional>
+            <TextInput
+              id="clinic-city"
+              value={form.city}
+              onChange={(e) => set('city', e.target.value)}
+              placeholder="São Paulo"
+              disabled={isSaving}
+            />
+          </FormField>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField label="UF" htmlFor="clinic-state" optional>
+              <TextInput
+                id="clinic-state"
+                value={form.state}
+                onChange={(e) => set('state', formatUf(e.target.value))}
+                placeholder="SP"
+                maxLength={2}
+                disabled={isSaving}
+              />
+            </FormField>
+
+            <FormField label="CEP" htmlFor="clinic-cep" optional>
+              <TextInput
+                id="clinic-cep"
+                value={form.postalCode}
+                onChange={(e) => set('postalCode', formatCepBR(e.target.value))}
+                placeholder="00000-000"
+                disabled={isSaving}
+              />
+            </FormField>
+          </div>
+        </div>
+      </div>
+
+      {/* Localização (read-only) */}
+      <div className="space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Localização
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Esses dados ajudam a manter horários e documentos consistentes.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="mb-1 text-xs font-medium text-muted-foreground">Fuso horário</p>
+            <p className="text-sm text-foreground">{profile?.timezone ?? 'Não informado'}</p>
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-medium text-muted-foreground">País</p>
+            <p className="text-sm text-foreground">{profile?.country ?? 'Não informado'}</p>
+          </div>
+        </div>
+      </div>
+
       {saveError && <InlineFeedback tone="error">{saveError}</InlineFeedback>}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end border-t border-border pt-4">
         <Button type="submit" disabled={isSaving}>
           {isSaving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
           Salvar alterações

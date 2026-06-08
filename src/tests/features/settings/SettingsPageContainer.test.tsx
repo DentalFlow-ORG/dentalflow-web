@@ -42,6 +42,12 @@ vi.mock('@/features/billing/services/billing.service', () => ({
   getCurrentBillingStatus: () => mockGetCurrentBillingStatus(),
 }))
 
+const mockShowAlert = vi.fn()
+
+vi.mock('@/components/common/global-alerts-context', () => ({
+  useGlobalAlerts: () => ({ showAlert: mockShowAlert, dismissAlert: vi.fn() }),
+}))
+
 // ── Factories ─────────────────────────────────────────────────────────────────
 
 function makeClinicProfile() {
@@ -293,5 +299,115 @@ describe('SettingsPageContainer — mobile class checks', () => {
     const label = screen.getByText('Dados fiscais da clínica')
     const textContainer = label.parentElement
     expect(textContainer?.className).toMatch(/min-w-0/)
+  })
+})
+
+// ── Clinic profile form groups ────────────────────────────────────────────────
+
+describe('SettingsPageContainer — clinic profile form groups', () => {
+  it('renders "Dados de contato" sub-group label', async () => {
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Dados de contato')).toBeInTheDocument()
+    })
+  })
+
+  it('renders "Endereço" sub-group label', async () => {
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Endereço')).toBeInTheDocument()
+    })
+  })
+
+  it('renders "Localização" sub-group label', async () => {
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Localização')).toBeInTheDocument()
+    })
+  })
+
+  it('renders timezone value read-only in Localização', async () => {
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('America/Sao_Paulo')).toBeInTheDocument()
+    })
+  })
+
+  it('renders country value read-only in Localização', async () => {
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('BR')).toBeInTheDocument()
+    })
+  })
+})
+
+// ── Clinic profile save UX ────────────────────────────────────────────────────
+
+describe('SettingsPageContainer — clinic profile save UX', () => {
+  it('disables submit button while saving', async () => {
+    mockUpdateClinicProfile.mockImplementation(() => new Promise(() => {}))
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /salvar alterações/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(screen.getByRole('button', { name: /salvar alterações/i })).toBeDisabled()
+  })
+
+  it('disables clinic name input while saving', async () => {
+    mockUpdateClinicProfile.mockImplementation(() => new Promise(() => {}))
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(document.querySelector('#clinic-name')).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(document.querySelector('#clinic-name')).toBeDisabled()
+  })
+
+  it('payload does not include timezone, country, or logoUrl', async () => {
+    mockUpdateClinicProfile.mockResolvedValue(makeClinicProfile())
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /salvar alterações/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    await waitFor(() => {
+      expect(mockUpdateClinicProfile).toHaveBeenCalled()
+    })
+    const [payload] = mockUpdateClinicProfile.mock.calls[0] as [Record<string, unknown>]
+    expect(payload).not.toHaveProperty('timezone')
+    expect(payload).not.toHaveProperty('country')
+    expect(payload).not.toHaveProperty('logoUrl')
+  })
+
+  it('calls showAlert with success tone after successful save', async () => {
+    mockUpdateClinicProfile.mockResolvedValue(makeClinicProfile())
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /salvar alterações/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    await waitFor(() => {
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Perfil atualizado com sucesso.', tone: 'success' }),
+      )
+    })
+  })
+
+  it('renders save error inline when save fails', async () => {
+    mockUpdateClinicProfile.mockRejectedValue(new Error('server error'))
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /salvar alterações/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    await waitFor(() => {
+      expect(screen.getByText(/não foi possível salvar/i)).toBeInTheDocument()
+    })
   })
 })
