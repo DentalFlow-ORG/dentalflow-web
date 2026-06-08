@@ -38,6 +38,11 @@ describe('visibility', () => {
     expect(screen.getByText('Cancelar agendamento')).toBeInTheDocument()
     expect(screen.getByText(/João Silva/)).toBeInTheDocument()
   })
+
+  it('exposes an accessible name matching the dialog title', () => {
+    renderDialog()
+    expect(screen.getByRole('dialog')).toHaveAccessibleName('Cancelar agendamento')
+  })
 })
 
 // ─── cancel reason field ──────────────────────────────────────────────────────

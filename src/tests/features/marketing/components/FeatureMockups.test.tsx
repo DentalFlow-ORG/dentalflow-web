@@ -39,11 +39,6 @@ describe('FeatureMockup', () => {
     expect(screen.getByText('Itens do estoque')).toBeInTheDocument()
   })
 
-  it('renders the leads mockup', () => {
-    render(<FeatureMockup featureId="leads" />)
-    expect(screen.getByText('DentalFlow · CRM · Pipeline de leads')).toBeInTheDocument()
-  })
-
   it('renders the controle-fiscal mockup', () => {
     render(<FeatureMockup featureId="controle-fiscal" />)
     expect(screen.getByText('Registros fiscais')).toBeInTheDocument()

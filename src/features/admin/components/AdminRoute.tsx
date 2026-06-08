@@ -4,6 +4,7 @@ import { Suspense, type ReactNode } from 'react'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { AppShell } from '@/components/layout/AppShell'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { ROLE_HOME_ROUTES } from '@/features/home/config/role-home-config'
 
 type AdminRouteProps = {
   children: ReactNode
@@ -25,7 +26,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   }
 
   if (user?.role !== 'ADMIN') {
-    return <Navigate to="/app" />
+    return <Navigate to={ROLE_HOME_ROUTES.OWNER} />
   }
 
   return (

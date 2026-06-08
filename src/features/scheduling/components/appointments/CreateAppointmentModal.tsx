@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { getProfile, listProfiles } from '../../services/profiles.service'
 import type { ProfileListItem, ProfileService } from '../../types/profile.types'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { formatDateInputValue } from '@/lib/date-time-formatters'
 import {
   getCurrentTimeInputValue,
@@ -33,6 +34,8 @@ import {
   listAvailability,
   listAvailabilityExceptions,
 } from '../../services/scheduling.service'
+import { upsertPatientAvatar } from '@/features/patients/services/patients.service'
+import { PatientAvatarWidget } from '@/features/patients/components/PatientAvatarWidget'
 import type {
   Appointment,
   Availability,
@@ -41,6 +44,7 @@ import type {
   CreateAppointmentDto,
 } from '../../types/scheduling.types'
 import { SlotPicker } from './SlotPicker'
+import { AppointmentServiceValueSection } from './AppointmentServiceValueSection'
 
 type CreateAppointmentModalProps = {
   open: boolean
@@ -81,6 +85,7 @@ export function CreateAppointmentModal({
 }: CreateAppointmentModalProps) {
   const { showAlert } = useGlobalAlerts()
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [pendingAvatarBase64, setPendingAvatarBase64] = useState<string | null>(null)
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
   const [services, setServices] = useState<ProfileService[]>([])
   const [profileAvailability, setProfileAvailability] = useState<Availability[]>([])
@@ -90,7 +95,7 @@ export function CreateAppointmentModal({
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [estimateManuallyEdited, setEstimateManuallyEdited] = useState(false)
-  const todayInputValue = formatDateInputValue(new Date())
+  const todayInputValue = brazilTodayIso()
   const nowTimeInputValue = getCurrentTimeInputValue()
 
   useEffect(() => {
@@ -176,6 +181,7 @@ export function CreateAppointmentModal({
     setProfileExceptions([])
     setSlots([])
     setEstimateManuallyEdited(false)
+    setPendingAvatarBase64(null)
     onClose()
   }
 
@@ -225,9 +231,26 @@ export function CreateAppointmentModal({
         estimatedAmountCents: reaisToCents(form.estimatedAmount),
       }
       const appointment = await createAppointment(dto)
+
+      // Capture avatar before form is cleared by handleClose.
+      // The upload is non-blocking — a failure shows a warning but never
+      // undoes the appointment that was already persisted.
+      const avatarToUpload = pendingAvatarBase64
+      const avatarIdentifier = dto.patientEmail ?? dto.patientName
+
       showAlert({ title: 'Agendamento criado', tone: 'success' })
       onCreated(appointment)
       handleClose()
+
+      if (avatarToUpload) {
+        upsertPatientAvatar(avatarIdentifier, avatarToUpload).catch(() => {
+          showAlert({
+            title: 'Atenção',
+            description: 'Agendamento criado, mas a foto do paciente não pôde ser salva.',
+            tone: 'warning',
+          })
+        })
+      }
     } catch (err) {
       showAlert({
         title: 'Erro ao criar agendamento',
@@ -257,6 +280,9 @@ export function CreateAppointmentModal({
             >
               Novo agendamento
             </Dialog.Title>
+            <Dialog.Description className="sr-only">
+              Preencha os dados para criar um novo agendamento de consulta.
+            </Dialog.Description>
             <Button
               type="button"
               variant="ghost"
@@ -272,7 +298,7 @@ export function CreateAppointmentModal({
           <form
             id="create-appointment-form"
             onSubmit={handleSubmit}
-            className="flex-1 overflow-y-auto px-6 py-6 space-y-5"
+            className="app-scrollbar flex-1 overflow-y-auto px-6 py-6 space-y-5"
           >
             {/* Dentist */}
             <FormField label="Profissional" htmlFor="profileId">
@@ -305,73 +331,20 @@ export function CreateAppointmentModal({
               </Select>
             </FormField>
 
-            {/* Service */}
-            <FormField label="Serviço" htmlFor="serviceId" optional>
-              <Select
-                disabled={!form.profileId || services.length === 0 || isSubmitting}
-                value={form.serviceId}
-                onValueChange={(value) => set('serviceId', value)}
-              >
-                <SelectTrigger id="serviceId">
-                  <SelectValue
-                    placeholder={
-                      !form.profileId
-                        ? 'Selecione um profissional primeiro'
-                        : services.length === 0
-                          ? 'Nenhum servico cadastrado'
-                          : 'Selecione um servico (opcional)'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                      {s.durationMinutes ? ` (${s.durationMinutes} min)` : ''}
-                      {s.priceFrom != null
-                        ? ` — R$ ${s.priceFrom.toFixed(2).replace('.', ',')}`
-                        : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            {/* Estimated value */}
-            <FormField
-              label="Valor previsto (R$)"
-              htmlFor="estimatedAmount"
-              optional
-              hint="Preenchido pelo serviço selecionado. Ajuste para desconto ou negociação."
-            >
-              <TextInput
-                id="estimatedAmount"
-                inputMode="decimal"
-                disabled={isSubmitting}
-                placeholder="Ex: 250,00"
-                value={form.estimatedAmount}
-                onChange={(e) => {
-                  set('estimatedAmount', e.target.value)
-                  setEstimateManuallyEdited(true)
-                }}
-              />
-              {estimateManuallyEdited && form.serviceId && (() => {
-                const svc = services.find((s) => s.id === form.serviceId)
-                return svc?.priceFrom != null ? (
-                  <button
-                    type="button"
-                    className="mt-1 text-xs text-primary hover:underline"
-                    onClick={() => {
-                      const cents = Math.round(svc.priceFrom! * 100)
-                      set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
-                      setEstimateManuallyEdited(false)
-                    }}
-                  >
-                    Restaurar valor do serviço (R$ {svc.priceFrom.toFixed(2).replace('.', ',')})
-                  </button>
-                ) : null
-              })()}
-            </FormField>
+            {/* Service + estimated amount */}
+            <AppointmentServiceValueSection
+              services={services}
+              serviceId={form.serviceId}
+              isSelectDisabled={!form.profileId || services.length === 0 || isSubmitting}
+              isSubmitting={isSubmitting}
+              noProfessionalHint={!form.profileId}
+              estimatedAmount={form.estimatedAmount}
+              estimateManuallyEdited={estimateManuallyEdited}
+              onServiceChange={(id) => set('serviceId', id)}
+              onAmountChange={(v) => set('estimatedAmount', v)}
+              onAmountManuallyEdited={() => setEstimateManuallyEdited(true)}
+              onAmountRestored={() => setEstimateManuallyEdited(false)}
+            />
 
             {/* Date */}
             <FormField label="Data" htmlFor="appointmentDate">
@@ -410,6 +383,33 @@ export function CreateAppointmentModal({
                 />
               )}
             </FormField>
+
+            {/* Patient photo — optional; the PUT /patients/avatar fires after
+                appointment creation so the patient identifier is confirmed.  */}
+            <div className="rounded-xl border border-dashed border-border bg-muted/40 px-4 py-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Foto do paciente{' '}
+                <span className="font-normal normal-case tracking-normal text-muted-foreground/70">
+                  (opcional)
+                </span>
+              </p>
+              <div className="flex items-center gap-4">
+                <PatientAvatarWidget
+                  name={form.patientName}
+                  avatarUrl={pendingAvatarBase64}
+                  size="lg"
+                  onUpload={isSubmitting ? undefined : setPendingAvatarBase64}
+                  onError={(msg) =>
+                    showAlert({ title: 'Foto inválida', description: msg, tone: 'error' })
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  {pendingAvatarBase64
+                    ? 'Foto selecionada — será vinculada ao paciente após criar o agendamento.'
+                    : 'Clique na foto para selecionar. JPEG, PNG ou WebP · máx. 5 MB.'}
+                </p>
+              </div>
+            </div>
 
             {/* Patient info */}
             <FormField label="Nome do paciente" htmlFor="patientName">

@@ -10,7 +10,7 @@ export const CLINICAL_RECORD_STATUS_LABEL: Record<ClinicalRecordStatus, string> 
 export const CLINICAL_RECORD_STATUS_COLOR: Record<ClinicalRecordStatus, string> = {
   DRAFT: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
   COMPLETED: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200',
-  LOCKED: 'bg-muted text-muted-foreground',
+  LOCKED: 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300',
   CANCELED: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
 }
 

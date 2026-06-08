@@ -7,8 +7,8 @@ import { ListPageShell } from '@/components/common/ListPageShell'
 import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import {
   Select,
   SelectContent,
@@ -95,11 +95,11 @@ export function InventoryPageContainer() {
 
   return (
     <AppPage>
-      <AppPageHeader
-        eyebrow="Estoque"
-        title="Controle de Estoque"
-        description="Gerencie produtos, categorias e acompanhe os níveis de estoque da clínica."
-        action={
+      <HomeDashboardHeader
+        eyebrow="Operação"
+        title="Estoque"
+        description="Gerencie produtos, movimentações, alertas e análises para manter a clínica abastecida."
+        actions={
           <div className="flex flex-col gap-2 sm:flex-row *:w-full sm:*:w-auto">
             {isOwner && (
               <Button variant="outline" onClick={handleOpenCategoryManager}>
@@ -237,10 +237,6 @@ export function InventoryPageContainer() {
         <>
           {summary && <InventoryKpiGrid summary={summary} />}
 
-          <StockPurchaseListSection />
-
-          <StockAbnormalConsumptionSection />
-
           {hasFilters && products.length === 0 && !isLoadingProducts ? (
             <FilteredEmptyState icon={Package} onClear={handleClearFilters} />
           ) : (
@@ -261,6 +257,10 @@ export function InventoryPageContainer() {
               onQuickMove={handleQuickMove}
             />
           )}
+
+          <StockPurchaseListSection />
+
+          <StockAbnormalConsumptionSection />
 
           {summary && <InventoryAnalysisPanel summary={summary} />}
         </>

@@ -43,11 +43,12 @@ export function MemberTypeSelector({ value, onChange }: MemberTypeSelectorProps)
           <button
             key={opt.role}
             type="button"
+            aria-pressed={selected}
             onClick={() => onChange(opt.role)}
             className={cn(
-              'flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all',
+              'flex min-w-0 items-start gap-4 rounded-xl border-2 p-4 text-left transition-all',
               selected
-                ? 'border-primary bg-blue-50/60 shadow-sm shadow-primary/10'
+                ? 'border-primary bg-blue-50/60 shadow-sm shadow-primary/10 dark:bg-primary/15'
                 : 'border-border bg-card hover:border-primary/40',
             )}
           >
@@ -59,18 +60,18 @@ export function MemberTypeSelector({ value, onChange }: MemberTypeSelectorProps)
                   : 'bg-muted text-muted-foreground',
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-5 w-5" aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <p
                 className={cn(
-                  'font-semibold',
+                  'break-words font-semibold',
                   selected ? 'text-primary' : 'text-foreground',
                 )}
               >
                 {opt.title}
               </p>
-              <p className="mt-1 text-sm leading-5 text-muted-foreground">
+              <p className="mt-1 break-words text-sm leading-5 text-muted-foreground">
                 {opt.description}
               </p>
             </div>

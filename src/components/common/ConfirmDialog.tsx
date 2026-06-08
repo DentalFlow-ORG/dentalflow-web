@@ -14,7 +14,9 @@ type ConfirmDialogProps = {
   cancelLabel?: string
   tone?: 'destructive' | 'warning'
   isConfirming?: boolean
+  confirmDisabled?: boolean
   trigger?: ReactNode
+  children?: ReactNode
   onConfirm: () => void
   onCancel: () => void
 }
@@ -28,7 +30,9 @@ export function ConfirmDialog({
   cancelLabel = 'Cancelar',
   tone = 'destructive',
   isConfirming = false,
+  confirmDisabled = false,
   trigger,
+  children,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -86,6 +90,12 @@ export function ConfirmDialog({
             </Dialog.Description>
           </div>
 
+          {children && (
+            <div className="border-t border-border px-8 pb-4 pt-4">
+              {children}
+            </div>
+          )}
+
           {/* Footer */}
           <div
             className={cn(
@@ -109,7 +119,7 @@ export function ConfirmDialog({
               variant={isDestructive ? 'destructive' : 'default'}
               className="sm:w-auto"
               onClick={onConfirm}
-              disabled={isConfirming}
+              disabled={isConfirming || confirmDisabled}
             >
               {isConfirming && <Loader2 className="h-4 w-4 animate-spin" />}
               {isConfirming ? 'Aguarde...' : confirmLabel}

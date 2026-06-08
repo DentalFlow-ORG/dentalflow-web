@@ -12,13 +12,13 @@ export const INVOICE_STATUS_LABEL: Record<ServiceInvoiceStatus, string> = {
 
 export const INVOICE_STATUS_TONE: Record<
   ServiceInvoiceStatus,
-  'success' | 'warning' | 'muted'
+  'success' | 'warning' | 'danger' | 'muted'
 > = {
   DRAFT: 'muted',
   READY_TO_ISSUE: 'warning',
   SIMULATED: 'success',
   PROCESSING: 'warning',
   ISSUED: 'success',
-  FAILED: 'warning',
+  FAILED: 'danger',
   CANCELED: 'muted',
 }

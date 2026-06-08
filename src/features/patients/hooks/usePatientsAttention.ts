@@ -4,6 +4,12 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
 
 import { getPatientsAttention } from '../services/attention.service'
+import { batchGetPatientAvatars } from '../services/patients.service'
+import {
+  getCachedPatientAvatar,
+  getMissingPatientAvatarIdentifiers,
+  setCachedPatientAvatar,
+} from './usePatientAvatar'
 import type {
   AttentionPriority,
   AttentionReason,
@@ -37,6 +43,7 @@ export type WhatsAppFilter = 'ALL' | 'HAS_CONSENT'
 export function usePatientsAttention() {
   const { showAlert } = useGlobalAlerts()
   const [fetchState, dispatch] = useReducer(fetchReducer, { data: null, isLoading: true, error: null })
+  const [avatarsByIdentifier, setAvatarsByIdentifier] = useState<Record<string, string | null>>({})
   const [search, setSearch] = useState('')
   const [reasonFilter, setReasonFilter] = useState<AttentionReasonFilter>('ALL')
   const [priorityFilter, setPriorityFilter] = useState<AttentionPriorityFilter>('ALL')
@@ -45,7 +52,34 @@ export function usePatientsAttention() {
   const load = useCallback(() => {
     dispatch({ type: 'loading' })
     getPatientsAttention()
-      .then((data) => dispatch({ type: 'success', data }))
+      .then((data) => {
+        dispatch({ type: 'success', data })
+
+        const identifiers = [...new Set(data.items.map((item) => item.identifier))]
+
+        // Populate immediately from the session cache (warmed by the patient list).
+        const fromCache: Record<string, string | null> = {}
+        for (const id of identifiers) {
+          const cached = getCachedPatientAvatar(id)
+          if (cached !== undefined) fromCache[id] = cached
+        }
+        setAvatarsByIdentifier(fromCache)
+
+        // Fetch only identifiers the cache does not already hold.
+        const missing = getMissingPatientAvatarIdentifiers(identifiers)
+        if (missing.length === 0) return
+
+        batchGetPatientAvatars(missing)
+          .then((res) => {
+            for (const [id, url] of Object.entries(res.avatars)) {
+              setCachedPatientAvatar(id, url)
+            }
+            setAvatarsByIdentifier((prev) => ({ ...prev, ...res.avatars }))
+          })
+          .catch(() => {
+            // Batch failed — page keeps cached avatars/initials, no crash.
+          })
+      })
       .catch((err) => {
         const message =
           err instanceof ApiError ? err.message : 'Erro ao carregar pacientes que precisam de atenção.'
@@ -89,6 +123,7 @@ export function usePatientsAttention() {
     summary: fetchState.data?.summary ?? null,
     allItems: fetchState.data?.items ?? [],
     filteredItems,
+    avatarsByIdentifier,
     isLoading: fetchState.isLoading,
     error: fetchState.error,
     search,

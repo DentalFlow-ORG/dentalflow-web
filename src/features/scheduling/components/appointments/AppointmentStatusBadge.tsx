@@ -21,18 +21,18 @@ const STATUS_CONFIG: Record<AppointmentStatus, StatusConfig> = {
   },
   CANCELED: {
     label: 'Cancelado',
-    className: 'border-red-200 bg-red-50 text-red-700 dark:border-red-700/50 dark:bg-red-900/25 dark:text-red-400',
-    dotClass: 'bg-red-500 dark:bg-red-400/80',
+    className: 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-700/50 dark:bg-rose-900/25 dark:text-rose-400',
+    dotClass: 'bg-rose-500 dark:bg-rose-400/80',
   },
   COMPLETED: {
     label: 'Concluído',
-    className: 'border-border bg-muted text-muted-foreground',
-    dotClass: 'bg-muted-foreground/50',
+    className: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-700/50 dark:bg-blue-900/25 dark:text-blue-300',
+    dotClass: 'bg-blue-500 dark:bg-blue-400/80',
   },
   NO_SHOW: {
     label: 'Não compareceu',
-    className: 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-700/50 dark:bg-orange-900/25 dark:text-orange-300',
-    dotClass: 'bg-orange-400 dark:bg-orange-400/80',
+    className: 'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-700/50 dark:bg-violet-900/25 dark:text-violet-300',
+    dotClass: 'bg-violet-500 dark:bg-violet-400/80',
   },
 }
 

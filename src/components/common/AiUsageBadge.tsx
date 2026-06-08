@@ -15,7 +15,7 @@ export function AiUsageBadge({ quota }: { quota: AiQuotaInfo | null }) {
           ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-400'
           : isLow
             ? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-400'
-            : 'border-border bg-muted text-muted-foreground',
+            : 'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700/60 dark:bg-slate-800/50 dark:text-slate-300',
       )}
       title={quota.blockedReason ?? undefined}
     >

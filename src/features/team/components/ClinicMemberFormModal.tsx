@@ -3,8 +3,8 @@ import { Dialog } from 'radix-ui'
 import { useEffect, useState } from 'react'
 
 import { FormField } from '@/components/common/FormField'
-import { PasswordInput } from '@/components/common/PasswordInput'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { PasswordInput } from '@/components/common/PasswordInput'
 import {
   UserEmailField,
   UserNameFields,
@@ -21,10 +21,17 @@ import {
 import { onlyDigits } from '@/lib/field-formatters'
 import { AvailabilityManager } from '@/features/scheduling/components/availability/AvailabilityManager'
 import { ExceptionManager } from '@/features/scheduling/components/availability/ExceptionManager'
-import { listAvailability, listAvailabilityExceptions } from '@/features/scheduling/services/scheduling.service'
-import type { Availability, AvailabilityException } from '@/features/scheduling/types/scheduling.types'
+import {
+  listAvailability,
+  listAvailabilityExceptions,
+} from '@/features/scheduling/services/scheduling.service'
+import type {
+  Availability,
+  AvailabilityException,
+} from '@/features/scheduling/types/scheduling.types'
 
 import { createMember, updateClinicMember } from '../services/team.service'
+import { MemberTypeSelector } from './MemberTypeSelector'
 import type { MemberListItem, MemberRole } from '../types/team.types'
 
 type ClinicMemberFormModalProps = {
@@ -54,11 +61,6 @@ const EMPTY_FORM: FormState = {
   isActive: 'true',
 }
 
-const ROLE_OPTIONS: { value: MemberRole; label: string }[] = [
-  { value: 'DENTIST', label: 'Profissional' },
-  { value: 'ASSISTANT', label: 'Assistente' },
-]
-
 export function ClinicMemberFormModal({
   open,
   initialData,
@@ -77,7 +79,6 @@ export function ClinicMemberFormModal({
 
   useEffect(() => {
     if (!open) return
-
     setError(null)
     setForm(initialData ? buildInitialForm(initialData) : EMPTY_FORM)
   }, [initialData, open])
@@ -89,7 +90,6 @@ export function ClinicMemberFormModal({
       setIsAvailabilityLoading(false)
       return
     }
-
     setIsAvailabilityLoading(true)
     Promise.all([listAvailability(profileId), listAvailabilityExceptions(profileId)])
       .then(([avail, excs]) => {
@@ -100,7 +100,7 @@ export function ClinicMemberFormModal({
         const msg =
           err instanceof Error
             ? err.message
-            : 'Nao foi possivel carregar os horarios do profissional.'
+            : 'Não foi possível carregar os horários do profissional.'
         setError(msg)
       })
       .finally(() => setIsAvailabilityLoading(false))
@@ -162,30 +162,42 @@ export function ClinicMemberFormModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          aria-labelledby="clinic-member-form-title"
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-2xl max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          <div className="border-b border-border px-6 py-5">
+          {/* Header */}
+          <div className="shrink-0 border-b border-border px-6 py-5">
             <Dialog.Title
-              id="clinic-member-form-title"
               className="text-base font-semibold text-foreground"
             >
-              {isEditMode ? 'Editar usuário' : 'Novo usuário'}
+              {isEditMode ? 'Editar membro' : 'Novo membro'}
             </Dialog.Title>
             <Dialog.Description className="mt-0.5 text-sm text-muted-foreground">
               {isEditMode
-                ? `Alterando dados de ${initialData!.firstName} ${initialData!.lastName}`
+                ? `Atualize os dados de ${initialData!.firstName} ${initialData!.lastName}.`
                 : 'Adicione um profissional ou assistente à clínica.'}
             </Dialog.Description>
           </div>
 
-          <div>
-            <div className="max-h-[65vh] overflow-y-auto px-6 py-5">
-              <form id="clinic-member-form" onSubmit={handleSubmit} className="space-y-4">
-                {error && <InlineFeedback>{error}</InlineFeedback>}
+          {/* Scrollable body */}
+          <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto">
+            <form id="clinic-member-form" onSubmit={handleSubmit} className="space-y-6 px-6 py-5">
+              {error && <InlineFeedback tone="error">{error}</InlineFeedback>}
 
+              {/* Tipo de membro */}
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Tipo de membro
+                </p>
+                <MemberTypeSelector value={form.role} onChange={(role) => set('role', role)} />
+              </div>
+
+              {/* Dados do membro */}
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Dados do membro
+                </p>
                 <UserNameFields
                   fieldPrefix="member"
                   firstName={form.firstName}
@@ -193,57 +205,16 @@ export function ClinicMemberFormModal({
                   onFirstNameChange={(value) => set('firstName', value)}
                   onLastNameChange={(value) => set('lastName', value)}
                 />
-
                 <UserEmailField
                   fieldPrefix="member"
                   email={form.email}
                   onEmailChange={(value) => set('email', value)}
                 />
-
-                {!isEditMode && (
-                  <FormField
-                    label="Senha"
-                    htmlFor="memberPassword"
-                    hint="Mínimo 8 caracteres, máximo 72."
-                  >
-                    <PasswordInput
-                      id="memberPassword"
-                      required
-                      minLength={8}
-                      maxLength={72}
-                      value={form.password}
-                      placeholder="Crie uma senha inicial"
-                      onChange={(event) => set('password', event.target.value)}
-                    />
-                  </FormField>
-                )}
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <FormField label="Papel" htmlFor="memberRole">
-                    <Select
-                      value={form.role}
-                      onValueChange={(value) => set('role', value as MemberRole)}
-                    >
-                      <SelectTrigger id="memberRole">
-                        <SelectValue placeholder="Selecione o papel" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ROLE_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormField>
-
-                  <UserPhoneField
-                    fieldPrefix="member"
-                    phone={form.phone}
-                    onPhoneChange={(value) => set('phone', value)}
-                  />
-                </div>
-
+                <UserPhoneField
+                  fieldPrefix="member"
+                  phone={form.phone}
+                  onPhoneChange={(value) => set('phone', value)}
+                />
                 {isEditMode && (
                   <FormField label="Status da conta" htmlFor="memberIsActive">
                     <Select
@@ -260,61 +231,99 @@ export function ClinicMemberFormModal({
                     </Select>
                   </FormField>
                 )}
-              </form>
+              </div>
 
-              {canManageAvailability && (
-                <div className="mt-6 space-y-6 border-t border-border pt-5">
-                  {isAvailabilityLoading ? (
-                    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Carregando horarios...
-                    </div>
-                  ) : (
-                    <>
-                      <AvailabilityManager
+              {/* Senha de acesso — create mode only */}
+              {!isEditMode && (
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Senha de acesso
+                  </p>
+                  <FormField
+                    label="Senha"
+                    htmlFor="memberPassword"
+                    hint="Mínimo 8 caracteres, máximo 72."
+                  >
+                    <PasswordInput
+                      id="memberPassword"
+                      required
+                      minLength={8}
+                      maxLength={72}
+                      value={form.password}
+                      placeholder="Crie uma senha inicial"
+                      onChange={(event) => set('password', event.target.value)}
+                    />
+                  </FormField>
+                </div>
+              )}
+            </form>
+
+            {/* Disponibilidade — edit + DENTIST + hasProfile */}
+            {canManageAvailability && (
+              <div className="space-y-5 border-t border-border px-6 py-5">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Disponibilidade
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Alterações de horários e exceções são salvas automaticamente.
+                  </p>
+                </div>
+                {isAvailabilityLoading ? (
+                  <div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    Carregando horários...
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <AvailabilityManager
+                      profileId={profileId!}
+                      slots={availability}
+                      onSlotsChange={setAvailability}
+                    />
+                    <div className="border-t border-border pt-5">
+                      <ExceptionManager
                         profileId={profileId!}
-                        slots={availability}
-                        onSlotsChange={setAvailability}
+                        exceptions={exceptions}
+                        onExceptionsChange={setExceptions}
+                        title="Exceções de agenda"
                       />
-                      <div className="border-t border-border pt-5">
-                        <ExceptionManager
-                          profileId={profileId!}
-                          exceptions={exceptions}
-                          onExceptionsChange={setExceptions}
-                          title="Exceções de agenda"
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
-              {isEditMode && form.role === 'DENTIST' && !profileId && (
-                <div className="mt-6 rounded-lg border border-dashed border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-                  Este profissional ainda nao possui perfil publico para cadastrar
-                  horarios de atendimento.
+            {/* No-profile notice — edit + DENTIST + no profile */}
+            {isEditMode && form.role === 'DENTIST' && !profileId && (
+              <div className="px-6 pb-5">
+                <div className="rounded-lg border border-dashed border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+                  Disponibilidade não configurada para este profissional.
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+          </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" form="clinic-member-form" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isSubmitting
-                  ? 'Salvando...'
-                  : isEditMode
-                    ? 'Salvar alterações'
-                    : 'Criar usuário'}
-              </Button>
-            </div>
+          {/* Footer */}
+          <div className="shrink-0 flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" form="clinic-member-form" disabled={isSubmitting}>
+              {isSubmitting && (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              )}
+              {isSubmitting
+                ? 'Salvando...'
+                : isEditMode
+                  ? 'Salvar alterações'
+                  : 'Criar membro'}
+            </Button>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

@@ -19,9 +19,17 @@ type Props = {
   data: OdontogramData
   onChange: (data: OdontogramData) => void
   readOnly?: boolean
+  /**
+   * When false, the inner "Odontograma" heading is omitted.
+   * Use this when the component is already inside a ClinicalSection
+   * whose header communicates the section title, avoiding duplication.
+   * The description text is always rendered regardless of this prop.
+   * Defaults to true for backward compatibility (e.g. print layout).
+   */
+  showTitle?: boolean
 }
 
-export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
+export function OdontogramSection({ data, onChange, readOnly = false, showTitle = true }: Props) {
   const [selected, setSelected] = useState<number | null>(null)
   const [multiMode, setMultiMode] = useState(false)
   const [multiSelected, setMultiSelected] = useState<Set<number>>(new Set())
@@ -127,8 +135,10 @@ export function OdontogramSection({ data, onChange, readOnly = false }: Props) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
           <div>
-            <p className="text-sm font-semibold text-foreground">Odontograma</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            {showTitle && (
+              <p className="text-sm font-semibold text-foreground">Odontograma</p>
+            )}
+            <p className={cn('text-xs text-muted-foreground', showTitle && 'mt-0.5')}>
               {readOnly
                 ? 'Este prontuário está finalizado e o odontograma está disponível apenas para consulta.'
                 : 'Clique em um dente para registrar condição e observações clínicas.'}
@@ -217,15 +227,15 @@ function DentitionToggle({
   onChange: (mode: DentitionMode) => void
 }) {
   return (
-    <div className="flex w-fit rounded-lg border border-border bg-muted p-0.5">
+    <div className="flex w-fit rounded-lg border border-border bg-muted p-0.5 dark:border-slate-700 dark:bg-slate-800/80">
       <button
         type="button"
         onClick={() => onChange('permanent')}
         className={cn(
           'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
           mode === 'permanent'
-            ? 'bg-card text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground',
+            ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
+            : 'text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white',
         )}
       >
         Permanente
@@ -236,8 +246,8 @@ function DentitionToggle({
         className={cn(
           'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
           mode === 'deciduous'
-            ? 'bg-card text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground',
+            ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
+            : 'text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white',
         )}
       >
         Decídua

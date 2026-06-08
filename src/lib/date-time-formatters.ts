@@ -1,3 +1,5 @@
+import { BRAZIL_TZ, brazilTodayIso } from './brazil-timezone'
+
 export type DateInputValue = Date | string | null | undefined
 
 export function formatDateInputValue(value: DateInputValue) {
@@ -103,6 +105,27 @@ export function getWeekStart(date: Date) {
   return weekStart
 }
 
+/**
+ * Returns the Monday (start of ISO week) for the given Brazil calendar date.
+ *
+ * Accepts a YYYY-MM-DD string — the format produced by brazilTodayIso() and
+ * DatePickerInput — to avoid UTC-midnight parsing drift.
+ *
+ * Why a string instead of a Date:
+ *   new Date('2026-06-01') is parsed as UTC midnight. In a UTC-3 environment
+ *   that equals 2026-05-31T21:00 local, so getDay() sees Sunday and the week
+ *   start shifts back 6 days to May 25 — wrong for a Brazil user who entered
+ *   June 1.  Using new Date(y, m-1, d) (local constructor) avoids this drift.
+ */
+export function getBrazilWeekStart(isoDate: string): Date {
+  const match = isoDate.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (!match) {
+    throw new Error(`getBrazilWeekStart: expected YYYY-MM-DD, got "${isoDate}"`)
+  }
+  const [, y, m, d] = match.map(Number)
+  return getWeekStart(new Date(y, m - 1, d))
+}
+
 export function getWeekDates(weekStart: Date) {
   return Array.from({ length: 7 }, (_, index) => {
     return addDays(weekStart, index)
@@ -117,12 +140,34 @@ export function addDays(date: Date, days: number) {
 }
 
 export function isToday(date: Date) {
-  const now = new Date()
+  // Compare against Brazil calendar date so the "today" highlight in the
+  // calendar is correct even when the browser/server runs in UTC.
+  const todayStr = brazilTodayIso()
+  const [ty, tm, td] = todayStr.split('-').map(Number)
   return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
+    date.getFullYear() === ty &&
+    date.getMonth() === tm - 1 &&
+    date.getDate() === td
   )
+}
+
+/**
+ * Returns the current wall-clock time in Brazil (America/Sao_Paulo) as 'HH:mm'.
+ * Uses Intl.DateTimeFormat so the result is correct regardless of the browser's
+ * own timezone setting.
+ */
+export function brazilCurrentTimeHHmm(now = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: BRAZIL_TZ,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(now)
+  const hours   = parts.find((p) => p.type === 'hour')!.value
+  const minutes = parts.find((p) => p.type === 'minute')!.value
+  // hour12:false can produce '24' for midnight in some engines — normalise it
+  const h = String(Number(hours) % 24).padStart(2, '0')
+  return `${h}:${minutes.padStart(2, '0')}`
 }
 
 export function formatWeekDayHeader(date: Date): { weekday: string; day: string } {

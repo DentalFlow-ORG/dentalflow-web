@@ -14,9 +14,11 @@ import {
 } from 'lucide-react'
 
 import { MetricCard } from '@/components/common/MetricCard'
+import { MonthPickerInput } from '@/components/common/MonthPickerInput'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
+import { brazilCurrentIsoMonth } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 import type { DiagnosisState } from '../hooks/useMonthlyFinanceDiagnosis'
@@ -36,20 +38,18 @@ function formatMonthLabel(month: string): string {
 }
 
 function formatGeneratedAt(iso: string): string {
-  return new Date(iso).toLocaleString('pt-BR', {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  }).format(new Date(iso))
 }
 
 function currentMonth(): string {
-  const now = new Date()
-  const y = now.getFullYear()
-  const m = String(now.getMonth() + 1).padStart(2, '0')
-  return `${y}-${m}`
+  return brazilCurrentIsoMonth()
 }
 
 // ── Health badge ──────────────────────────────────────────────────────────────
@@ -249,18 +249,16 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
             </h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Uma leitura simples sobre receitas, despesas e pontos de atenção do mês.
+            Entenda a saúde financeira da clínica, riscos do mês e ações prioritárias para proteger o caixa.
           </p>
         </div>
 
         {/* Month selector + generate button */}
-        <div className="flex shrink-0 items-center gap-2">
-          <input
-            type="month"
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <MonthPickerInput
             value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            aria-label="Selecionar mês para diagnóstico"
+            onValueChange={setSelectedMonth}
+            className="w-full sm:w-40"
           />
           {!diagnosis && (
             <Button
@@ -289,9 +287,10 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
 
       {/* Quota exceeded */}
       {isQuotaExceeded && (
-        <p className="text-sm text-amber-600 dark:text-amber-400">
+        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-400">
+          <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
           Você atingiu o limite de diagnósticos financeiros deste mês.
-        </p>
+        </div>
       )}
 
       {/* Error */}
@@ -314,7 +313,7 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
 
       {/* Loading */}
       {isGenerating && !diagnosis && (
-        <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+        <div role="status" aria-live="polite" className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
           <span>Analisando dados financeiros de {formatMonthLabel(selectedMonth)}…</span>
         </div>

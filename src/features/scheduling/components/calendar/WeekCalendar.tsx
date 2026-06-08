@@ -1,18 +1,17 @@
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react'
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { Button } from '@/components/ui/button'
-import { parseIsoDateInput } from '@/lib/date-time-input'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 import {
   addDays,
-  formatWallTime,
   formatWeekDayHeader,
   formatWeekRangeLabel,
+  getBrazilWeekStart,
   getWeekDates,
-  getWeekStart,
   isToday,
   isoDateToString,
   toDateInputValue,
@@ -23,7 +22,6 @@ import type {
   Availability,
   AvailabilityException,
 } from '../../types/scheduling.types'
-import { STATUS_COLORS } from '../../constants/appointment-display'
 import {
   PX_PER_MINUTE,
   SLOT_HEIGHT_PX,
@@ -34,6 +32,7 @@ import {
   isSlotInsideWorkingRanges,
   minutesToTime,
 } from '../../utils/week-calendar-layout'
+import { CalendarAppointmentCard } from './CalendarAppointmentCard'
 
 type WeekCalendarProps = {
   appointments: Appointment[]
@@ -57,15 +56,17 @@ export function WeekCalendar({
   const [calendarInputDate, setCalendarInputDate] = useState(() =>
     toDateInputValue(weekStart),
   )
-  const weekDates = getWeekDates(weekStart)
+
+  // Memoize weekDates so downstream memos can use it directly as a dependency
+  // instead of using weekStart as an indirect proxy.
+  const weekDates = useMemo(() => getWeekDates(weekStart), [weekStart])
 
   const visibleAppointments = useMemo(
     () =>
       appointments.filter((appt) =>
         weekDates.some((d) => isoDateToString(appt.appointmentDate) === toDateInputValue(d)),
       ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [appointments, weekStart],
+    [appointments, weekDates],
   )
 
   const slots = useMemo(
@@ -76,23 +77,22 @@ export function WeekCalendar({
         profileAvailability,
         profileExceptions,
       ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [visibleAppointments, weekStart, profileAvailability, profileExceptions],
+    [visibleAppointments, weekDates, profileAvailability, profileExceptions],
   )
   const firstSlotMinutes = slots[0]
   const gridBodyHeight = slots.length * SLOT_HEIGHT_PX
 
-  // Pre-compute per-day positioned appointments
+  // Pre-compute per-day positioned appointments.
+  // computeDayLayout handles its own deterministic sort internally.
   const dayLayouts = useMemo(() => {
     return weekDates.map((date) => {
       const dateStr = toDateInputValue(date)
-      const dayAppointments = visibleAppointments
-        .filter((appt) => isoDateToString(appt.appointmentDate) === dateStr)
-        .sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))
+      const dayAppointments = visibleAppointments.filter(
+        (appt) => isoDateToString(appt.appointmentDate) === dateStr,
+      )
       return { date, appointments: computeDayLayout(dayAppointments) }
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleAppointments, weekStart])
+  }, [visibleAppointments, weekDates])
 
   function goToPrevWeek() {
     const next = addDays(weekStart, -7)
@@ -107,16 +107,15 @@ export function WeekCalendar({
   }
 
   function goToToday() {
-    const today = new Date()
-    setCalendarInputDate(toDateInputValue(today))
-    onWeekChange(getWeekStart(today))
+    const todayStr = brazilTodayIso()
+    setCalendarInputDate(todayStr)
+    onWeekChange(getBrazilWeekStart(todayStr))
   }
 
   function goToDate(value: string) {
-    const date = parseIsoDateInput(value)
-    if (!date) return
+    if (!value) return
     setCalendarInputDate(value)
-    onWeekChange(getWeekStart(date))
+    onWeekChange(getBrazilWeekStart(value))
   }
 
   const weekLabel = formatWeekRangeLabel(weekDates[0], weekDates[6])
@@ -162,7 +161,7 @@ export function WeekCalendar({
           <span className="text-[11px] text-muted-foreground">Arraste para ver sábado e domingo</span>
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
         </div>
-        <div className="relative overflow-x-auto">
+        <div className="app-scrollbar relative overflow-x-auto">
           {/* Right-side fade indicating more content */}
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-linear-to-l from-card/70 to-transparent lg:hidden" />
           <div className="min-w-245">
@@ -226,7 +225,7 @@ export function WeekCalendar({
                     {dayStatus.kind === 'special' && dayStatus.timeRange && (
                       <p
                         className="mt-0.5 truncate text-[10px] font-semibold text-indigo-600"
-                        title={`Horario especial: ${dayStatus.timeRange}`}
+                        title={`Horário especial: ${dayStatus.timeRange}`}
                       >
                         Especial: {dayStatus.timeRange}
                       </p>
@@ -236,7 +235,18 @@ export function WeekCalendar({
               })}
             </div>
 
+            {/* Empty week state — shown instead of the time grid when there are no appointments */}
+            {visibleAppointments.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
+                <CalendarDays className="h-8 w-8 text-muted-foreground/30" aria-hidden="true" />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Nenhuma consulta agendada nesta semana.
+                </p>
+              </div>
+            ) : null}
+
             {/* Time grid body */}
+            {visibleAppointments.length > 0 && (
             <div className="relative" style={{ height: `${gridBodyHeight}px` }}>
               {/* Background: time labels + grid lines */}
               <div className="absolute inset-0 grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))]">
@@ -321,7 +331,7 @@ export function WeekCalendar({
                       const widthPct = 100 / appt.colCount
 
                       return (
-                        <AppointmentCard
+                        <CalendarAppointmentCard
                           key={appt.id}
                           appointment={appt}
                           style={{
@@ -338,6 +348,7 @@ export function WeekCalendar({
                 ))}
               </div>
             </div>
+            )}
           </div>
         </div>
       </div>
@@ -345,41 +356,4 @@ export function WeekCalendar({
   )
 }
 
-function AppointmentCard({
-  appointment,
-  style,
-  onClick,
-}: {
-  appointment: Appointment
-  style: CSSProperties
-  onClick: (appointment: Appointment) => void
-}) {
-  const isShort = (appointment.durationMinutes ?? 30) < 30
-
-  return (
-    <button
-      type="button"
-      onClick={() => onClick(appointment)}
-      style={style}
-      className={cn(
-        'absolute overflow-hidden rounded-md border px-2 py-1 text-left shadow-sm transition hover:shadow-md hover:z-10 focus:outline-none focus:ring-2 focus:ring-primary/20',
-        STATUS_COLORS[appointment.status],
-      )}
-    >
-      <div className="flex items-baseline justify-between gap-1">
-        <span className="truncate text-xs font-bold leading-tight">
-          {appointment.patientName}
-        </span>
-        <span className="shrink-0 text-[10px] font-semibold opacity-70">
-          {formatWallTime(appointment.startTime)}
-        </span>
-      </div>
-      {!isShort && (
-        <p className="mt-0.5 truncate text-[11px] font-medium opacity-75">
-          {appointment.service?.name ?? appointment.profile?.displayName ?? 'Profissional'}
-        </p>
-      )}
-    </button>
-  )
-}
 

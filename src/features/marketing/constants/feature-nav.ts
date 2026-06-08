@@ -35,7 +35,7 @@ export const MAIN_FEATURES: FeatureNavItem[] = [
   },
   {
     id: 'pacientes',
-    label: 'Pacientes e leads',
+    label: 'Pacientes',
     href: '/funcionalidades/pacientes',
     icon: Users,
   },

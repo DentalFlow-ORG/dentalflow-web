@@ -42,7 +42,7 @@ export function buildAttentionChips(summary: StockSummary): AttentionChip[] {
       status: 'INACTIVE',
       label: 'Inativos',
       count: summary.inactive,
-      base: 'border-border bg-muted text-muted-foreground hover:bg-accent',
+      base: 'border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200 dark:border-slate-700/60 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/60',
       active: 'border-primary bg-primary text-primary-foreground hover:bg-primary/90',
     },
   ]

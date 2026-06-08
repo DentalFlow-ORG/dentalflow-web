@@ -15,6 +15,7 @@ import {
   maskDateInput,
   parseIsoDateInput,
 } from '@/lib/date-time-input'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 type DatePickerInputProps = {
@@ -61,9 +62,13 @@ export function DatePickerInput({
       ? displayDraft.displayValue
       : externalDisplayValue
   const [open, setOpen] = useState(false)
-  const [visibleMonth, setVisibleMonth] = useState(() =>
-    getMonthDate(selectedDate ?? new Date()),
-  )
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    if (selectedDate) return getMonthDate(selectedDate)
+    // No pre-selected date — open to Brazil today's month, not UTC month.
+    const todayStr = brazilTodayIso()
+    const [y, m, d] = todayStr.split('-').map(Number)
+    return getMonthDate(new Date(y, m - 1, d))
+  })
 
   const monthDays = useMemo(() => buildMonthDays(visibleMonth), [visibleMonth])
   const label = selectedValue ? formatDateBR(selectedValue) : placeholder
@@ -123,9 +128,12 @@ export function DatePickerInput({
   }
 
   function selectToday() {
-    const today = new Date()
-    setVisibleMonth(getMonthDate(today))
-    commit(formatDateInputValue(today))
+    // Use Brazil calendar date so "Hoje" doesn't jump to the UTC next day
+    // during the 00:00–03:00 UTC window when Brazil is still on the previous day.
+    const todayStr = brazilTodayIso()
+    const [y, m, d] = todayStr.split('-').map(Number)
+    setVisibleMonth(getMonthDate(new Date(y, m - 1, d)))
+    commit(todayStr)
   }
 
   function handleOpenChange(isOpen: boolean) {

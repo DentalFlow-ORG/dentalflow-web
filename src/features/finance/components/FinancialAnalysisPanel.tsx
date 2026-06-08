@@ -33,8 +33,8 @@ export function FinancialAnalysisPanel({
       <PanelCard>
         <AiAssistantCard
           type="finance"
-          title="Análise do período"
-          description="Recomendações baseadas nos dados reais do período selecionado."
+          title="Análise inteligente do período"
+          description="Receba recomendações práticas para aumentar receita, reduzir custos e priorizar cobranças."
           onGenerate={handleGenerate}
           invalidationKey={`${summary.period.from}|${summary.period.to}`}
           initialResult={savedAnalysis}

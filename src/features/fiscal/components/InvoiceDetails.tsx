@@ -4,10 +4,17 @@ import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
 
+import { getInvoiceEventLabel } from '../constants/invoice-events'
 import { INVOICE_STATUS_LABEL, INVOICE_STATUS_TONE } from '../constants/invoice-status'
-import type { ServiceInvoice } from '../types/fiscal.types'
+import type { FiscalProviderMode, ServiceInvoice } from '../types/fiscal.types'
 import { formatCents, formatInvoiceDate } from '../utils/invoice-format'
 import { printInvoice } from '../utils/print-invoice'
+
+const ENVIRONMENT_LABELS: Record<FiscalProviderMode, string> = {
+  LOCAL: 'Local/Simulação',
+  SANDBOX: 'Sandbox',
+  PRODUCTION: 'Produção',
+}
 
 type Props = {
   invoice: ServiceInvoice
@@ -21,15 +28,24 @@ export function InvoiceDetails({ invoice, onClose }: Props) {
         <div>
           <h2 className="text-base font-semibold text-foreground">Detalhes da nota fiscal</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Documento sem validade fiscal. Modo da integração: Local/Simulação.
+            Documento sem validade fiscal. Modo da integração:{' '}
+            {ENVIRONMENT_LABELS[invoice.environment]}.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => printInvoice(invoice)}>
+        <div className="flex shrink-0 gap-2">
+          <Button
+            variant="outline"
+            onClick={() => printInvoice(invoice)}
+            aria-label="Imprimir nota fiscal"
+          >
             <Printer className="h-4 w-4" aria-hidden="true" />
             Imprimir
           </Button>
-          <Button variant="outline" onClick={onClose}>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            aria-label="Fechar detalhes da nota fiscal"
+          >
             Fechar
           </Button>
         </div>
@@ -46,8 +62,10 @@ export function InvoiceDetails({ invoice, onClose }: Props) {
         </div>
         <div className="rounded-lg border border-border bg-muted p-4">
           <p className="text-xs font-semibold uppercase text-muted-foreground">Cliente</p>
-          <p className="mt-2 font-semibold text-foreground">{invoice.customerName}</p>
-          <p className="text-sm text-muted-foreground">{invoice.customerDocument ?? 'Sem documento'}</p>
+          <p className="mt-2 truncate font-semibold text-foreground">{invoice.customerName}</p>
+          <p className="truncate text-sm text-muted-foreground">
+            {invoice.customerDocument ?? 'Sem documento'}
+          </p>
         </div>
         <div className="rounded-lg border border-border bg-muted p-4">
           <p className="text-xs font-semibold uppercase text-muted-foreground">Valor</p>
@@ -72,17 +90,24 @@ export function InvoiceDetails({ invoice, onClose }: Props) {
             <div className="mt-2 space-y-2">
               {invoice.events.map((event) => (
                 <div key={event.id} className="rounded-md border border-border px-3 py-2">
-                  <p className="text-sm font-semibold text-foreground">{event.eventType}</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {getInvoiceEventLabel(event.eventType)}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {event.previousStatus ? INVOICE_STATUS_LABEL[event.previousStatus] : '-'} →{' '}
                     {event.nextStatus ? INVOICE_STATUS_LABEL[event.nextStatus] : '-'} ·{' '}
                     {formatInvoiceDate(event.createdAt)}
                   </p>
+                  {event.message && (
+                    <p className="mt-1 text-xs text-muted-foreground">{event.message}</p>
+                  )}
                 </div>
               ))}
             </div>
           ) : (
-            <p className="mt-2 text-sm text-muted-foreground">Nenhum evento registrado.</p>
+            <div className="mt-2 rounded-md border border-dashed border-border px-3 py-4 text-center text-sm text-muted-foreground">
+              Nenhum evento registrado.
+            </div>
           )}
         </div>
       </div>

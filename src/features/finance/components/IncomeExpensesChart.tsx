@@ -3,7 +3,6 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  Legend,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -148,10 +147,15 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <FinanceInsight label="Último resultado" value={lastPoint?.netProfit ?? 0} />
-        <FinanceInsight label="Melhor período" value={bestPoint.netProfit} detail={bestPoint.label} />
-        <FinanceInsight label="Maior pressão" value={worstPoint.netProfit} detail={worstPoint.label} />
+      <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Resumo do período
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <FinanceInsight label="Último resultado" value={lastPoint?.netProfit ?? 0} />
+          <FinanceInsight label="Melhor período" value={bestPoint.netProfit} detail={bestPoint.label} />
+          <FinanceInsight label="Maior pressão" value={worstPoint.netProfit} detail={worstPoint.label} />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -213,14 +217,6 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
             <Tooltip
               cursor={{ stroke: refLineColor, strokeDasharray: '4 4' }}
               content={<ChartTooltip isDark={isDark} />}
-            />
-            <Legend
-              iconType="circle"
-              formatter={(value) => (
-                <span className="text-xs font-medium text-muted-foreground">
-                  {CHART_SERIES_LABELS[String(value)] ?? value}
-                </span>
-              )}
             />
             <ReferenceLine y={0} stroke={refLineColor} />
             {visibleSeries.income && (

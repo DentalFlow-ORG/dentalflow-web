@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FilterDef } from '@/components/common/ListToolbar'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
 import { listProfiles } from '../services/profiles.service'
 import type { ProfileListItem } from '../types/profile.types'
 import { useListFilter } from '@/hooks/useListFilter'
@@ -20,7 +19,8 @@ import {
   syncGoogleCalendar,
 } from '../services/calendar-integrations.service'
 import type { GoogleCalendarStatus } from '../types/calendar-integration.types'
-import { getWeekStart } from '../utils/time'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { getBrazilWeekStart } from '../utils/time'
 import { useAppointmentCancel } from './useAppointmentCancel'
 import { useAppointmentStatusChange } from './useAppointmentStatusChange'
 import { FILTER_FNS, SEARCH_FN, STATUS_OPTIONS } from '../constants/appointment-filters'
@@ -30,13 +30,14 @@ export type AppointmentsView = 'calendar' | 'table'
 export function useAppointmentsPage() {
   const { showAlert } = useGlobalAlerts()
   const { user } = useAuth()
-  const billingStatus = getCachedBillingStatus()
-  const isProfessionalOrPremium =
-    billingStatus?.planKey === 'professional' || billingStatus?.planKey === 'premium'
-  const canManageGoogleCalendar =
-    user?.role === 'OWNER' || (user?.role === 'DENTIST' && isProfessionalOrPremium)
-  const isDentistGoogleCalendarLocked =
-    user?.role === 'DENTIST' && !isProfessionalOrPremium
+
+  // Google Calendar integration is available to OWNER only on this page.
+  // The route (/app/agendamentos) is guarded to OWNER and ASSISTANT, so only
+  // OWNER reaches this hook. DENTIST has no GCal UI because the backend OAuth
+  // callback currently redirects to /app/agendamentos which DENTIST cannot
+  // access — surfacing GCal for DENTIST requires a role-aware callback redirect
+  // (e.g. POST /calendar-integrations/google/connect accepting a returnPath param).
+  const canManageGoogleCalendar = user?.role === 'OWNER'
 
   const [allAppointments, setAllAppointments] = useState<Appointment[]>([])
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
@@ -48,7 +49,7 @@ export function useAppointmentsPage() {
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null)
   const [isActionLoading, setIsActionLoading] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
-  const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
+  const [weekStart, setWeekStart] = useState(() => getBrazilWeekStart(brazilTodayIso()))
   const [calendarAvailability, setCalendarAvailability] = useState<Availability[]>([])
   const [googleCalendar, setGoogleCalendar] = useState<GoogleCalendarStatus | null>(null)
   const [isCalendarActionLoading, setIsCalendarActionLoading] = useState(false)
@@ -272,7 +273,6 @@ export function useAppointmentsPage() {
     googleCalendar,
     isCalendarActionLoading,
     canManageGoogleCalendar,
-    isDentistGoogleCalendarLocked,
     searchQuery,
     setSearchQuery,
     activeFilters,

@@ -237,13 +237,13 @@ export const roleContents: Record<string, RoleContent> = {
         description: 'Processos padronizados reduzem erros e duplicações. Menos tempo em tarefas repetitivas, mais foco no paciente.',
       },
     ],
-    modules: ['Agenda', 'Pacientes', 'Notificações WhatsApp', 'Leads'],
+    modules: ['Agenda', 'Pacientes', 'Notificações WhatsApp'],
     cta: 'Começar agora',
     path: '/para-secretarias',
     accent: 'standard',
     mockupType: 'schedule',
     highlightedBenefitIndex: 0,
-    moduleIcons: [CalendarDays, Users, MessageCircle, TrendingUp],
+    moduleIcons: [CalendarDays, Users, MessageCircle],
     workflow: [
       {
         step: 1,
@@ -262,12 +262,6 @@ export const roleContents: Record<string, RoleContent> = {
         icon: MessageCircle,
         title: 'Lembretes automáticos',
         description: 'Confirmações enviadas via WhatsApp sem ligação manual. Menos faltas sem esforço.',
-      },
-      {
-        step: 4,
-        icon: TrendingUp,
-        title: 'Lead novo cadastrado',
-        description: 'Contato interessado registrado com origem e status. Nenhuma oportunidade perdida.',
       },
     ],
     finalCta: {
@@ -347,7 +341,7 @@ export const roleContents: Record<string, RoleContent> = {
   gestores: {
     role: 'Administrador / Gestor',
     tagline: 'Visão completa da clínica. Decisões com base em dados.',
-    description: 'O DentalFlow reúne financeiro, estoque, leads, relatórios e IA em um painel que qualquer gestor entende — sem precisar abrir planilha.',
+    description: 'O DentalFlow reúne financeiro, estoque, relatórios e IA em um painel que qualquer gestor entende — sem precisar abrir planilha.',
     icon: LayoutDashboard,
     benefits: [
       {
@@ -358,7 +352,7 @@ export const roleContents: Record<string, RoleContent> = {
       {
         icon: TrendingUp,
         title: 'Relatórios e indicadores',
-        description: 'Acompanhe ocupação da agenda, receita, estoque e leads com dados atualizados da operação.',
+        description: 'Acompanhe ocupação da agenda, receita e estoque com dados atualizados da operação.',
       },
       {
         icon: Bot,
@@ -371,7 +365,7 @@ export const roleContents: Record<string, RoleContent> = {
         description: 'Cadastre membros, defina perfis de acesso e garanta que cada pessoa veja apenas o que precisa.',
       },
     ],
-    modules: ['Financeiro', 'Estoque', 'Leads/CRM', 'Relatórios', 'IA de gestão', 'Equipe'],
+    modules: ['Financeiro', 'Estoque', 'Relatórios', 'IA de gestão', 'Equipe'],
     cta: 'Começar agora',
     path: '/para-gestores',
     accent: 'navy',
@@ -664,67 +658,12 @@ export const featureDetailContents: Record<string, FeatureDetailContent> = {
     ],
     planNote: 'Disponível em todos os planos.',
   },
-  leads: {
-    id: 'leads',
-    title: 'Leads e CRM',
-    eyebrow: 'Módulo de leads',
-    hero: 'Potenciais pacientes organizados. Nenhuma oportunidade perdida.',
-    heroSub: 'Centralize contatos interessados, acompanhe o status de cada lead, registre interações e defina follow-ups estruturados para a equipe de recepção.',
-    problemTitle: 'O problema de perder leads sem processo',
-    problems: [
-      'Contatos interessados chegam por diferentes canais e são perdidos por falta de organização',
-      'Sem pipeline definido, a equipe não sabe quem precisa de follow-up hoje',
-      'Oportunidades de conversão se perdem por falta de acompanhamento sistemático',
-      'Difícil saber quais origens geram mais pacientes na clínica',
-    ],
-    solutionTitle: 'O que o DentalFlow organiza em leads',
-    solutionItems: [
-      {
-        title: 'Cadastro com origem',
-        description: 'Registre o contato com a origem (site, WhatsApp, Instagram, indicação) como campo de classificação. Organização manual pela equipe.',
-        icon: Users,
-      },
-      {
-        title: 'Pipeline com status',
-        description: 'Acompanhe cada lead em um fluxo: novo, em contato, agendado, convertido ou perdido. Visibilidade clara para toda a equipe.',
-        icon: TrendingUp,
-      },
-      {
-        title: 'Timeline de interações',
-        description: 'Registre todas as interações com o lead: ligações, mensagens e reuniões. Histórico completo por contato.',
-        icon: ClipboardList,
-      },
-      {
-        title: 'Follow-up com data definida',
-        description: 'Defina a data do próximo contato para cada lead. A equipe sabe com quem precisa falar hoje.',
-        icon: CalendarDays,
-      },
-    ],
-    benefits: [
-      'Nenhum lead perdido por falta de acompanhamento',
-      'Equipe alinhada sobre quem precisa de contato hoje',
-      'Histórico completo de interações por contato',
-      'Visibilidade sobre as origens mais eficientes de novos pacientes',
-    ],
-    workflow: [
-      { step: 1, title: 'Lead cadastrado', description: 'A recepção registra nome, telefone, origem e contexto do contato interessado.' },
-      { step: 2, title: 'Status atualizado', description: 'A equipe avança o lead no pipeline: em contato, agendado, convertido.' },
-      { step: 3, title: 'Interação registrada', description: 'Cada conversa ou tentativa de contato é registrada na timeline do lead.' },
-      { step: 4, title: 'Follow-up definido', description: 'Defina a data do próximo contato. O sistema mantém os leads ativos no radar da equipe.' },
-    ],
-    roles: [
-      { role: 'Secretária / Recepção', value: 'Cadastra leads, atualiza status e registra interações do dia a dia' },
-      { role: 'Gestor / Proprietário', value: 'Acompanha pipeline, conversões e distribuição por origem' },
-    ],
-    planNote: 'Disponível nos planos Professional e Premium.',
-    disclaimer: 'Os campos de origem (Instagram, WhatsApp, Google) são informações inseridas manualmente pela equipe. O DentalFlow não integra automaticamente com redes sociais ou sistemas de anúncios.',
-  },
   relatorios: {
     id: 'relatorios',
     title: 'Relatórios e indicadores',
     eyebrow: 'Módulo de relatórios',
     hero: 'Dados da clínica organizados para decisões melhores.',
-    heroSub: 'Acompanhe a operação com relatórios de agenda, financeiro e leads filtrados por período. Base objetiva para o gestor avaliar a saúde da clínica sem planilhas manuais.',
+    heroSub: 'Acompanhe a operação com relatórios de agenda e financeiro filtrados por período. Base objetiva para o gestor avaliar a saúde da clínica sem planilhas manuais.',
     problemTitle: 'O problema de decidir sem dados organizados',
     problems: [
       'O gestor não sabe ao certo quantas consultas foram realizadas ou quantas faltaram no mês',
@@ -745,11 +684,6 @@ export const featureDetailContents: Record<string, FeatureDetailContent> = {
         icon: TrendingUp,
       },
       {
-        title: 'Relatório de leads',
-        description: 'Volume de leads por período, status do pipeline e distribuição por origem para apoiar decisões comerciais.',
-        icon: Users,
-      },
-      {
         title: 'Filtros por período',
         description: 'Selecione qualquer intervalo de datas para gerar relatórios. Compare semanas, meses ou trimestres.',
         icon: LayoutDashboard,
@@ -759,10 +693,10 @@ export const featureDetailContents: Record<string, FeatureDetailContent> = {
       'Visão objetiva da operação sem consolidação manual de dados',
       'Base para decisões de equipe, estoque e investimentos',
       'Comparação de desempenho entre períodos',
-      'Agenda, financeiro e leads em um mesmo lugar',
+      'Agenda e financeiro em um mesmo lugar',
     ],
     workflow: [
-      { step: 1, title: 'Dados no sistema', description: 'Agenda, financeiro e leads registrados no DentalFlow alimentam os relatórios automaticamente.' },
+      { step: 1, title: 'Dados no sistema', description: 'Agenda e financeiro registrados no DentalFlow alimentam os relatórios automaticamente.' },
       { step: 2, title: 'Período selecionado', description: 'O gestor define o intervalo de datas para análise.' },
       { step: 3, title: 'Relatório gerado', description: 'Os dados são consolidados e apresentados de forma clara e organizada.' },
       { step: 4, title: 'Decisão fundamentada', description: 'Com dados objetivos, o gestor decide sobre equipe, operação e investimentos com mais segurança.' },

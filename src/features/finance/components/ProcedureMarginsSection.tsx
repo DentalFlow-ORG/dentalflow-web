@@ -12,9 +12,11 @@ import {
 } from 'lucide-react'
 
 import { MetricCard } from '@/components/common/MetricCard'
+import { MonthPickerInput } from '@/components/common/MonthPickerInput'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
+import { brazilCurrentIsoMonth } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 import type { ProcedureMarginsState } from '../hooks/useProcedureMargins'
@@ -26,8 +28,7 @@ import { Ranking } from './Ranking'
 type SortKey = 'revenue' | 'volume' | 'margin' | 'name'
 
 function currentMonth(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  return brazilCurrentIsoMonth()
 }
 
 function centsToDisplay(cents: number): string {
@@ -114,7 +115,7 @@ function ServiceRow({ item }: { item: ProcedureMarginItem }) {
   return (
     <div className="py-4 first:pt-0 last:pb-0">
       <div className="flex items-start justify-between gap-3">
-        <span className="text-sm font-medium text-foreground">{item.serviceName}</span>
+        <span className="min-w-0 truncate text-sm font-medium text-foreground">{item.serviceName}</span>
         <StatusBadge tone={tone} className={cn('shrink-0 gap-1 text-[11px]')}>
           <Icon className="h-3 w-3" aria-hidden="true" />
           {label}
@@ -237,17 +238,15 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
             </h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Volume, receita e desempenho por tipo de serviço no período.
+            Compare receita, custo estimado e margem para descobrir quais procedimentos mais aumentam o lucro da clínica.
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <input
-            type="month"
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <MonthPickerInput
             value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            aria-label="Selecionar mês para análise de margens"
+            onValueChange={setSelectedMonth}
+            className="w-full sm:w-40"
           />
           {!data && (
             <Button size="sm" onClick={handleLoad} disabled={isLoading || isPlanBlocked}>
@@ -290,7 +289,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
 
       {/* Loading */}
       {isLoading && !data && (
-        <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+        <div role="status" aria-live="polite" className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
           <span>Calculando margens por procedimento…</span>
         </div>
@@ -415,7 +414,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
 
           {/* Service list */}
           {data.items.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
               Nenhum procedimento identificado no período selecionado.
             </p>
           ) : (
@@ -453,7 +452,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between border-t border-border pt-4">
+          <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
               Período: {data.period.from} a {data.period.to}
             </p>

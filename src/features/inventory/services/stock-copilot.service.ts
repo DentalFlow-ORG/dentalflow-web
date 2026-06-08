@@ -4,16 +4,19 @@ import { apiRequest } from '@/services/http'
 import type { StockCopilotResult } from '../types/inventory.types'
 
 /**
- * Fetches the cached copilot summary without triggering an AI call.
- * Returns undefined (HTTP 204) when no same-day cache exists.
- * Throws ApiError for plan/quota errors (403, 429).
+ * Returns the most-recently persisted stock copilot analysis from the DB,
+ * without checking the current purchase-list state.
+ * Returns undefined (HTTP 204) when no analysis has been generated yet.
+ * Throws ApiError on plan errors (403).
  */
-export function checkCopilotCache(): Promise<StockCopilotResult | undefined> {
-  return apiRequest<StockCopilotResult | undefined>('/stock/purchase-list/copilot-summary', {
-    method: 'POST',
-    accessToken: getAccessToken(),
-    body: JSON.stringify({ forceRefresh: false }),
-  })
+export function getLatestCopilotSummary(): Promise<StockCopilotResult | undefined> {
+  return apiRequest<StockCopilotResult | undefined>(
+    '/stock/purchase-list/copilot-summary/latest',
+    {
+      method: 'GET',
+      accessToken: getAccessToken(),
+    },
+  )
 }
 
 /**

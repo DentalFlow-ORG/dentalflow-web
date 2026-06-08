@@ -97,56 +97,71 @@ describe('isDateAvailable', () => {
 })
 
 // ── getCurrentTimeInputValue ──────────────────────────────────────────────────
+//
+// Now uses Intl.DateTimeFormat with America/Sao_Paulo, so fixtures must use
+// explicit UTC timestamps. Brazil = UTC-3, so Brazil HH:mm = UTC (HH+3):mm.
 
 describe('getCurrentTimeInputValue', () => {
   beforeEach(() => { vi.useFakeTimers() })
   afterEach(() => { vi.useRealTimers() })
 
-  it('returns the current time as an HH:mm string', () => {
-    // Local constructor: June 15, 2026 at 14:05
-    vi.setSystemTime(new Date(2026, 5, 15, 14, 5, 0))
+  it('returns the Brazil wall-clock time as HH:mm', () => {
+    // 17:05 UTC = 14:05 Brazil
+    vi.setSystemTime(new Date('2026-06-15T17:05:00Z'))
     expect(getCurrentTimeInputValue()).toBe('14:05')
   })
 
   it('zero-pads single-digit hours and minutes', () => {
-    // Local constructor: June 15, 2026 at 04:03
-    vi.setSystemTime(new Date(2026, 5, 15, 4, 3, 0))
+    // 07:03 UTC = 04:03 Brazil
+    vi.setSystemTime(new Date('2026-06-15T07:03:00Z'))
     expect(getCurrentTimeInputValue()).toBe('04:03')
+  })
+
+  it('handles midnight Brazil (03:00 UTC)', () => {
+    vi.setSystemTime(new Date('2026-06-15T03:00:00Z'))
+    expect(getCurrentTimeInputValue()).toBe('00:00')
   })
 })
 
 // ── hasAppointmentTimePassed ──────────────────────────────────────────────────
 //
 // makeAppointment() defaults: appointmentDate '2026-05-26', startTime '1970-01-01T10:00:00.000Z'
-// formatTimeInputValue uses getUTCHours → startTime always resolves to '10:00'
-// formatDateInputValue(new Date()) uses local getDate/getMonth/getFullYear
+// formatTimeInputValue uses getUTCHours → startTime always resolves to '10:00' (Brazil wall-clock)
+// hasAppointmentTimePassed now uses brazilTodayIso() and brazilCurrentTimeHHmm()
+// All system-time fixtures use explicit UTC timestamps for timezone stability.
 
 describe('hasAppointmentTimePassed', () => {
   beforeEach(() => { vi.useFakeTimers() })
   afterEach(() => { vi.useRealTimers() })
 
   it('returns true when the appointment date is before today', () => {
-    // Today is May 27 (local) — after the appointment on May 26
-    vi.setSystemTime(new Date(2026, 4, 27, 12, 0, 0))
+    // 12:00 UTC = 09:00 Brazil May 27 — appointment was on May 26
+    vi.setSystemTime(new Date('2026-05-27T12:00:00Z'))
     expect(hasAppointmentTimePassed(makeAppointment())).toBe(true)
   })
 
   it('returns false when the appointment date is after today', () => {
-    // Today is May 25 (local) — before the appointment on May 26
-    vi.setSystemTime(new Date(2026, 4, 25, 12, 0, 0))
+    // 12:00 UTC = 09:00 Brazil May 25 — appointment is on May 26
+    vi.setSystemTime(new Date('2026-05-25T12:00:00Z'))
     expect(hasAppointmentTimePassed(makeAppointment())).toBe(false)
   })
 
-  it('returns true when the appointment is today and the start time has already passed', () => {
-    // Today is May 26 at 11:00 (local) — after the 10:00 UTC start time
-    vi.setSystemTime(new Date(2026, 4, 26, 11, 0, 0))
+  it('returns true when the appointment is today and the Brazil time is after the start time', () => {
+    // 14:00 UTC = 11:00 Brazil May 26 — appointment start is at wall-clock 10:00
+    vi.setSystemTime(new Date('2026-05-26T14:00:00Z'))
     expect(hasAppointmentTimePassed(makeAppointment())).toBe(true)
   })
 
-  it('returns false when the appointment is today and the start time has not yet passed', () => {
-    // Today is May 26 at 09:00 (local) — before the 10:00 UTC start time
-    vi.setSystemTime(new Date(2026, 4, 26, 9, 0, 0))
+  it('returns false when the appointment is today and the Brazil time is before the start time', () => {
+    // 12:00 UTC = 09:00 Brazil May 26 — appointment start is at wall-clock 10:00
+    vi.setSystemTime(new Date('2026-05-26T12:00:00Z'))
     expect(hasAppointmentTimePassed(makeAppointment())).toBe(false)
+  })
+
+  it('does not shift date at 02:00 UTC (Brazil is still previous day)', () => {
+    // 02:00 UTC June 1 = 23:00 Brazil May 31 — appointment is May 26 (past)
+    vi.setSystemTime(new Date('2026-06-01T02:00:00Z'))
+    expect(hasAppointmentTimePassed(makeAppointment())).toBe(true)
   })
 })
 

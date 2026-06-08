@@ -11,8 +11,8 @@ import {
   safeFormatTimeBR,
   formatWeekDayHeader,
   formatWeekRangeLabel,
+  getBrazilWeekStart,
   getWeekDates,
-  getWeekStart,
   isToday,
   wallTimeToMinutes,
 } from '@/lib/date-time-formatters'
@@ -54,8 +54,8 @@ export {
   addDays,
   formatWeekDayHeader,
   formatWeekRangeLabel,
+  getBrazilWeekStart,
   getWeekDates,
-  getWeekStart,
   isToday,
   wallTimeToMinutes,
 }

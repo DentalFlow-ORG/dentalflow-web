@@ -4,6 +4,7 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
 
 import { listPatients } from '../services/patients.service'
+import { setCachedPatientAvatar } from './usePatientAvatar'
 import type { PatientSummary } from '../types/patients.types'
 
 type FetchState = { patients: PatientSummary[]; isLoading: boolean; error: string | null }
@@ -36,7 +37,15 @@ export function usePatientsPage() {
     (searchTerm?: string) => {
       dispatch({ type: 'loading' })
       listPatients(searchTerm)
-        .then((response) => dispatch({ type: 'success', patients: response.data }))
+        .then((response) => {
+          // listPatients already returns avatarUrl via a LEFT JOIN on patient_avatars.
+          // Pre-warm the session cache so that opening a patient's detail panel or
+          // clinical record serves the avatar instantly without a separate fetch.
+          for (const patient of response.data) {
+            setCachedPatientAvatar(patient.identifier, patient.avatarUrl ?? null)
+          }
+          dispatch({ type: 'success', patients: response.data })
+        })
         .catch((requestError) => {
           const message =
             requestError instanceof ApiError

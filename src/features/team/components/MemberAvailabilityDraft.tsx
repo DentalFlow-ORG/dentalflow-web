@@ -103,7 +103,7 @@ export function MemberAvailabilityDraft({
             disabled={disabled || !dayOfWeek || !startTime || !endTime}
             onClick={addSlot}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" aria-hidden="true" />
             Adicionar
           </Button>
         </div>
@@ -111,7 +111,7 @@ export function MemberAvailabilityDraft({
 
       {value.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-card py-8 text-center">
-          <Clock className="h-7 w-7 text-muted-foreground" />
+          <Clock className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
           <p className="text-sm text-muted-foreground">
             Nenhum horario inicial cadastrado.
           </p>
@@ -140,9 +140,10 @@ export function MemberAvailabilityDraft({
                   className="self-start text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/40 dark:hover:text-red-300 sm:self-auto"
                   disabled={disabled}
                   title="Remover horario"
+                  aria-label={`Remover horário de ${DAY_OPTIONS.find((day) => day.value === slot.dayOfWeek)?.label ?? 'atendimento'} das ${formatTimeInputValue(slot.startTime)} às ${formatTimeInputValue(slot.endTime)}`}
                   onClick={() => removeSlot(index)}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                 </Button>
               </div>
             ))}

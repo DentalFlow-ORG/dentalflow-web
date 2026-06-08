@@ -13,18 +13,24 @@ import {
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
-import { MetricCard } from '@/components/common/MetricCard'
-import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 import { AppointmentStatusBadge } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
 import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
 import {
   formatAppointmentDate,
+  formatAppointmentDateLong,
   formatWallTime,
 } from '@/features/scheduling/utils/time'
+
+import { HomeActionGrid } from '@/features/home/components/HomeActionGrid'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
+import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
+import { HomeQuickActionCard } from '@/features/home/components/HomeQuickActionCard'
+import { HomeSection } from '@/features/home/components/HomeSection'
 
 import { TodayAppointmentsChart } from '../components/TodayAppointmentsChart'
 import { useProductivitySummary } from '../hooks/useProductivitySummary'
@@ -37,27 +43,19 @@ import type {
   RecentCanceledAppointment,
 } from '../types/productivity.types'
 
+// ── Currency helpers ──────────────────────────────────────────────────────────
+
 const brl = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
 
 const brlCents = (v: number) => brl(v / 100)
 
-function todayLabel(): string {
-  return new Date().toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-}
-
-// ── Small helper components ────────────────────────────────────────────────────
+// ── Badge helpers (productivity-domain specific, kept local) ──────────────────
 
 function PriorityBadge({ priority }: { priority: string }) {
   const cls: Record<string, string> = {
     HIGH: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-    MEDIUM:
-      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+    MEDIUM: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
     LOW: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
   }
   const labels: Record<string, string> = {
@@ -91,9 +89,7 @@ function PaymentStatusBadge({ status }: { status: string }) {
   const c = config[status]
   if (!c) return null
   return (
-    <span
-      className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', c.cls)}
-    >
+    <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', c.cls)}>
       {c.label}
     </span>
   )
@@ -118,64 +114,25 @@ function StockStatusBadge({ status }: { status: string }) {
       cls: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
     },
   }
-  const c = config[status] ?? {
-    label: status,
-    cls: 'bg-muted text-muted-foreground',
-  }
+  const c = config[status] ?? { label: status, cls: 'bg-muted text-muted-foreground' }
   return (
-    <span
-      className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', c.cls)}
-    >
+    <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', c.cls)}>
       {c.label}
     </span>
   )
 }
 
-function SectionHeader({
-  title,
-  description,
-  linkTo,
-  linkLabel,
-}: {
-  title: string
-  description?: string
-  linkTo: string
-  linkLabel: string
-}) {
+// ── Section action button helper ──────────────────────────────────────────────
+
+function SectionLink({ to, label }: { to: string; label: string }) {
   return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h2 className="text-base font-semibold text-foreground">{title}</h2>
-        {description && (
-          <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
-        )}
-      </div>
-      <Button variant="outline" size="sm" className="shrink-0" asChild>
-        <Link to={linkTo as never}>{linkLabel}</Link>
-      </Button>
-    </div>
+    <Button variant="outline" size="sm" className="shrink-0" asChild>
+      <Link to={to as never}>{label}</Link>
+    </Button>
   )
 }
 
-function EmptySlot({
-  icon: Icon,
-  message,
-}: {
-  icon: React.ElementType
-  message: string
-}) {
-  return (
-    <div className="flex flex-col items-center gap-2 py-8 text-center">
-      <Icon
-        className="h-8 w-8 text-muted-foreground/40"
-        aria-hidden="true"
-      />
-      <p className="text-sm text-muted-foreground">{message}</p>
-    </div>
-  )
-}
-
-// ── Section panels ─────────────────────────────────────────────────────────────
+// ── Section panels ────────────────────────────────────────────────────────────
 
 function RecommendedActionsPanel({ actions }: { actions: ProductivityAction[] }) {
   const actionIcon: Record<string, React.ElementType> = {
@@ -187,10 +144,7 @@ function RecommendedActionsPanel({ actions }: { actions: ProductivityAction[] })
   }
 
   return (
-    <PanelCard>
-      <h2 className="text-base font-semibold text-foreground">
-        Ações recomendadas
-      </h2>
+    <HomeSection title="Ações recomendadas">
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {actions.map((action) => {
           const Icon = actionIcon[action.type] ?? AlertTriangle
@@ -205,15 +159,11 @@ function RecommendedActionsPanel({ actions }: { actions: ProductivityAction[] })
                 aria-hidden="true"
               />
               <div className="min-w-0 flex-1">
-                <div className="mb-1.5 flex items-center gap-1.5 flex-wrap">
+                <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
                   <PriorityBadge priority={action.priority} />
                 </div>
-                <p className="text-sm font-medium text-foreground">
-                  {action.title}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {action.description}
-                </p>
+                <p className="text-sm font-medium text-foreground">{action.title}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{action.description}</p>
               </div>
               <ChevronRight
                 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
@@ -223,7 +173,7 @@ function RecommendedActionsPanel({ actions }: { actions: ProductivityAction[] })
           )
         })}
       </div>
-    </PanelCard>
+    </HomeSection>
   )
 }
 
@@ -241,20 +191,19 @@ function TodaySchedulePanel({
   const subtitle =
     total === 0
       ? 'Nenhuma consulta agendada para hoje'
-      : `${total} consultas · ${confirmed} confirmadas · ${pending} aguardando`
+      : `${total} consulta${total !== 1 ? 's' : ''} · ${confirmed} confirmada${confirmed !== 1 ? 's' : ''} · ${pending} aguardando`
 
   return (
-    <PanelCard>
-      <SectionHeader
-        title="Agenda de hoje"
-        description={subtitle}
-        linkTo="/app/agendamentos"
-        linkLabel="Ver agenda"
-      />
+    <HomeSection
+      title="Agenda de hoje"
+      description={subtitle}
+      action={<SectionLink to="/app/agendamentos" label="Ver agenda" />}
+    >
       {appointments.length === 0 ? (
-        <EmptySlot
+        <HomeEmptyState
+          compact
           icon={Calendar}
-          message="Nenhuma consulta pendente para hoje."
+          title="Nenhuma consulta pendente para hoje."
         />
       ) : (
         <ul className="mt-4 divide-y divide-border">
@@ -264,19 +213,13 @@ function TodaySchedulePanel({
               className="flex items-center justify-between gap-3 py-3 text-sm"
             >
               <div className="min-w-0">
-                <p className="truncate font-medium text-foreground">
-                  {appt.patientName}
-                </p>
+                <p className="truncate font-medium text-foreground">{appt.patientName}</p>
                 {appt.serviceName && (
-                  <p className="truncate text-xs text-muted-foreground">
-                    {appt.serviceName}
-                  </p>
+                  <p className="truncate text-xs text-muted-foreground">{appt.serviceName}</p>
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <AppointmentStatusBadge
-                  status={appt.status as AppointmentStatus}
-                />
+                <AppointmentStatusBadge status={appt.status as AppointmentStatus} />
                 <span className="text-sm font-medium text-foreground">
                   {formatWallTime(appt.startTime)}
                 </span>
@@ -288,7 +231,7 @@ function TodaySchedulePanel({
           ))}
         </ul>
       )}
-    </PanelCard>
+    </HomeSection>
   )
 }
 
@@ -305,17 +248,16 @@ function PendingPaymentsPanel({
       : 'Consultas concluídas sem pagamento registrado'
 
   return (
-    <PanelCard>
-      <SectionHeader
-        title="Pagamentos pendentes"
-        description={appointments.length > 0 ? subtitle : undefined}
-        linkTo="/app/financeiro"
-        linkLabel="Ver financeiro"
-      />
+    <HomeSection
+      title="Pagamentos pendentes"
+      description={appointments.length > 0 ? subtitle : undefined}
+      action={<SectionLink to="/app/financeiro" label="Ver financeiro" />}
+    >
       {appointments.length === 0 ? (
-        <EmptySlot
+        <HomeEmptyState
+          compact
           icon={CheckCircle2}
-          message="Nenhum pagamento pendente."
+          title="Nenhum pagamento pendente."
         />
       ) : (
         <ul className="mt-4 divide-y divide-border">
@@ -325,9 +267,7 @@ function PendingPaymentsPanel({
               className="flex items-center justify-between gap-3 py-3 text-sm"
             >
               <div className="min-w-0">
-                <p className="truncate font-medium text-foreground">
-                  {appt.patientName}
-                </p>
+                <p className="truncate font-medium text-foreground">{appt.patientName}</p>
                 <p className="text-xs text-muted-foreground">
                   {formatAppointmentDate(appt.appointmentDate)}
                   {appt.profileName ? ` · ${appt.profileName}` : ''}
@@ -345,7 +285,7 @@ function PendingPaymentsPanel({
           ))}
         </ul>
       )}
-    </PanelCard>
+    </HomeSection>
   )
 }
 
@@ -361,28 +301,26 @@ function FinanceMonthPanel({
   pendingReceivables: number
 }) {
   return (
-    <PanelCard>
-      <SectionHeader
-        title="Financeiro do mês"
-        description="Receitas e despesas do mês corrente"
-        linkTo="/app/financeiro"
-        linkLabel="Abrir financeiro"
-      />
+    <HomeSection
+      title="Financeiro do mês"
+      description="Receitas e despesas do mês corrente"
+      action={<SectionLink to="/app/financeiro" label="Abrir financeiro" />}
+    >
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard value={brl(monthIncome)} label="receita recebida" tone="success" />
-        <MetricCard value={brl(monthExpenses)} label="despesas pagas" tone="neutral" />
-        <MetricCard
+        <HomeKpiCard value={brl(monthIncome)} label="Receita recebida" tone="success" />
+        <HomeKpiCard value={brl(monthExpenses)} label="Despesas pagas" tone="neutral" />
+        <HomeKpiCard
           value={brl(monthNet)}
-          label="resultado líquido"
+          label="Resultado líquido"
           tone={monthNet >= 0 ? 'success' : 'danger'}
         />
-        <MetricCard
+        <HomeKpiCard
           value={brl(pendingReceivables)}
-          label="a receber"
+          label="A receber"
           tone={pendingReceivables > 0 ? 'warning' : 'neutral'}
         />
       </div>
-    </PanelCard>
+    </HomeSection>
   )
 }
 
@@ -394,32 +332,30 @@ function PatientsFollowUpPanel({
   examples: PatientWithoutReturn[]
 }) {
   return (
-    <PanelCard>
-      <SectionHeader
-        title="Pacientes para retorno"
-        description={
-          count > 0
-            ? `${count} paciente${count === 1 ? '' : 's'} sem consulta há mais de 60 dias`
-            : 'Todos os pacientes estão com consultas recentes'
-        }
-        linkTo="/app/pacientes"
-        linkLabel="Ver pacientes"
-      />
+    <HomeSection
+      title="Pacientes para retorno"
+      description={
+        count > 0
+          ? `${count} paciente${count === 1 ? '' : 's'} sem consulta há mais de 60 dias`
+          : 'Todos os pacientes estão com consultas recentes'
+      }
+      action={<SectionLink to="/app/pacientes" label="Ver pacientes" />}
+    >
       {examples.length === 0 ? (
-        <EmptySlot icon={Users2} message="Nenhum paciente para retorno." />
+        <HomeEmptyState compact icon={Users2} title="Nenhum paciente para retorno." />
       ) : (
         <ul className="mt-4 divide-y divide-border">
           {examples.map((p, i) => (
             <li
               key={i}
-              className="flex items-center justify-between gap-3 py-3 text-sm"
+              className="flex flex-col gap-0.5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3"
             >
               <span className="min-w-0 truncate font-medium text-foreground">
                 {p.patientName}
               </span>
               {p.lastVisit && (
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  Última visita: {formatAppointmentDate(p.lastVisit)}
+                <span className="text-xs text-muted-foreground sm:shrink-0">
+                  Última: {formatAppointmentDate(p.lastVisit)}
                 </span>
               )}
             </li>
@@ -431,7 +367,7 @@ function PatientsFollowUpPanel({
           )}
         </ul>
       )}
-    </PanelCard>
+    </HomeSection>
   )
 }
 
@@ -445,43 +381,37 @@ function InventoryAlertPanel({
   products: CriticalProduct[]
 }) {
   const parts: string[] = []
-  if (lowStockCount > 0)
-    parts.push(`${lowStockCount} com estoque baixo`)
-  if (expiringSoonCount > 0)
-    parts.push(`${expiringSoonCount} com vencimento próximo`)
+  if (lowStockCount > 0) parts.push(`${lowStockCount} com estoque baixo`)
+  if (expiringSoonCount > 0) parts.push(`${expiringSoonCount} com vencimento próximo`)
 
   return (
-    <PanelCard>
-      <SectionHeader
-        title="Estoque em atenção"
-        description={
-          parts.length > 0
-            ? parts.join(' · ')
-            : 'Todos os produtos estão com estoque adequado'
-        }
-        linkTo="/app/estoque"
-        linkLabel="Ver estoque"
-      />
+    <HomeSection
+      title="Estoque em atenção"
+      description={
+        parts.length > 0
+          ? parts.join(' · ')
+          : 'Todos os produtos estão com estoque adequado'
+      }
+      action={<SectionLink to="/app/estoque" label="Ver estoque" />}
+    >
       {products.length === 0 ? (
-        <EmptySlot icon={Package} message="Nenhum produto crítico." />
+        <HomeEmptyState compact icon={Package} title="Nenhum produto crítico." />
       ) : (
         <ul className="mt-4 divide-y divide-border">
           {products.map((product) => (
             <li
               key={product.id}
-              className="flex items-center justify-between gap-3 py-3 text-sm"
+              className="flex flex-col gap-1.5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3"
             >
               <div className="min-w-0">
-                <p className="truncate font-medium text-foreground">
-                  {product.name}
-                </p>
+                <p className="truncate font-medium text-foreground">{product.name}</p>
                 {product.categoryName && (
                   <p className="truncate text-xs text-muted-foreground">
                     {product.categoryName}
                   </p>
                 )}
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex items-center gap-2 sm:shrink-0">
                 <StockStatusBadge status={product.status} />
                 <span className="text-xs text-muted-foreground">
                   {product.currentQuantity} {product.unit}
@@ -491,7 +421,7 @@ function InventoryAlertPanel({
           ))}
         </ul>
       )}
-    </PanelCard>
+    </HomeSection>
   )
 }
 
@@ -501,13 +431,11 @@ function RecentCanceledPanel({
   appointments: RecentCanceledAppointment[]
 }) {
   return (
-    <PanelCard>
-      <SectionHeader
-        title="Cancelamentos recentes"
-        description="Consultas canceladas nos últimos 7 dias"
-        linkTo="/app/agendamentos"
-        linkLabel="Ver agenda"
-      />
+    <HomeSection
+      title="Cancelamentos recentes"
+      description="Consultas canceladas nos últimos 7 dias"
+      action={<SectionLink to="/app/agendamentos" label="Ver agenda" />}
+    >
       <ul className="mt-4 divide-y divide-border">
         {appointments.map((appt) => (
           <li
@@ -515,9 +443,7 @@ function RecentCanceledPanel({
             className="flex items-center justify-between gap-3 py-3 text-sm"
           >
             <div className="min-w-0">
-              <p className="truncate font-medium text-foreground">
-                {appt.patientName}
-              </p>
+              <p className="truncate font-medium text-foreground">{appt.patientName}</p>
               {appt.cancellationReason && (
                 <p className="truncate text-xs text-muted-foreground">
                   {appt.cancellationReason}
@@ -533,7 +459,7 @@ function RecentCanceledPanel({
           </li>
         ))}
       </ul>
-    </PanelCard>
+    </HomeSection>
   )
 }
 
@@ -548,10 +474,10 @@ export function ProductivityCenter() {
 
   return (
     <AppPage spacing="loose">
-      <AppPageHeader
-        eyebrow="Dashboard"
-        title="Central de Produtividade"
-        description={`Acompanhe o que precisa de atenção na sua clínica — ${todayLabel()}`}
+      <HomeDashboardHeader
+        eyebrow="Início"
+        title="Minha clínica"
+        description={formatAppointmentDateLong(brazilTodayIso())}
       />
 
       {error && <InlineFeedback tone="error">{error}</InlineFeedback>}
@@ -560,26 +486,30 @@ export function ProductivityCenter() {
         <LoadingCard message="Carregando dados da clínica..." />
       ) : data ? (
         <>
-          {/* KPIs */}
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard
+          {/* KPI row — 4 cards: agenda, payments, revenue, stock */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <HomeKpiCard
+              label="Consultas hoje"
               value={String(data.today.appointmentsTotal)}
-              label="consultas hoje"
+              icon={CalendarDays}
               tone="primary"
             />
-            <MetricCard
+            <HomeKpiCard
+              label="Pagamentos pendentes"
               value={String(data.today.pendingPaymentsCount)}
-              label="pagamentos pendentes"
+              icon={DollarSign}
               tone={data.today.pendingPaymentsCount > 0 ? 'warning' : 'neutral'}
             />
-            <MetricCard
+            <HomeKpiCard
+              label="Receita do mês"
               value={brl(data.finance.monthIncome)}
-              label="receita do mês"
+              icon={Landmark}
               tone="success"
             />
-            <MetricCard
+            <HomeKpiCard
+              label="Alertas de estoque"
               value={String(stockAlerts)}
-              label="produtos em atenção"
+              icon={Package}
               tone={stockAlerts > 0 ? 'danger' : 'neutral'}
             />
           </div>
@@ -587,13 +517,13 @@ export function ProductivityCenter() {
           {/* Today appointments status chart */}
           <TodayAppointmentsChart today={data.today} />
 
-          {/* Recommended actions */}
+          {/* Priority actions (conditional) */}
           {data.actions.length > 0 && (
             <RecommendedActionsPanel actions={data.actions} />
           )}
 
           {/* Today schedule + pending payments */}
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid min-w-0 gap-5 lg:grid-cols-2">
             <TodaySchedulePanel
               appointments={data.upcomingToday}
               total={data.today.appointmentsTotal}
@@ -606,7 +536,7 @@ export function ProductivityCenter() {
             />
           </div>
 
-          {/* Finance month breakdown */}
+          {/* Monthly finance */}
           <FinanceMonthPanel
             monthIncome={data.finance.monthIncome}
             monthExpenses={data.finance.monthExpenses}
@@ -614,8 +544,8 @@ export function ProductivityCenter() {
             pendingReceivables={data.finance.pendingReceivables}
           />
 
-          {/* Patients follow-up + inventory */}
-          <div className="grid gap-5 lg:grid-cols-2">
+          {/* Patient follow-up + inventory */}
+          <div className="grid min-w-0 gap-5 lg:grid-cols-2">
             <PatientsFollowUpPanel
               count={data.patients.withoutReturnCount}
               examples={data.patients.examples}
@@ -632,33 +562,29 @@ export function ProductivityCenter() {
             <RecentCanceledPanel appointments={data.recentCanceled} />
           )}
 
-          {/* Finance link shortcut */}
-          <div className="flex flex-wrap gap-3">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/app/agendamentos">
-                <CalendarDays className="h-4 w-4" aria-hidden="true" />
-                Agendamentos
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/app/financeiro">
-                <Landmark className="h-4 w-4" aria-hidden="true" />
-                Financeiro
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/app/pacientes">
-                <Users2 className="h-4 w-4" aria-hidden="true" />
-                Pacientes
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/app/estoque">
-                <Package className="h-4 w-4" aria-hidden="true" />
-                Estoque
-              </Link>
-            </Button>
-          </div>
+          {/* Quick access shortcuts */}
+          <HomeActionGrid columns={4}>
+            <HomeQuickActionCard
+              title="Agendamentos"
+              icon={CalendarDays}
+              to="/app/agendamentos"
+            />
+            <HomeQuickActionCard
+              title="Financeiro"
+              icon={Landmark}
+              to="/app/financeiro"
+            />
+            <HomeQuickActionCard
+              title="Pacientes"
+              icon={Users2}
+              to="/app/pacientes"
+            />
+            <HomeQuickActionCard
+              title="Estoque"
+              icon={Package}
+              to="/app/estoque"
+            />
+          </HomeActionGrid>
         </>
       ) : null}
     </AppPage>

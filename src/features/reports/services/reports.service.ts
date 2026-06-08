@@ -1,12 +1,12 @@
-import { env } from '@/config/env'
 import { getAccessToken } from '@/features/auth/utils/session-storage'
-import { ApiError } from '@/services/http'
+import { apiRequest } from '@/services/http'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import type {
   AppointmentsReportFilters,
   FinanceReportFilters,
   InventoryReportFilters,
   InvoicesReportFilters,
-  LeadsReportFilters,
+  ReportPreviewResponse,
 } from '../types/reports.types'
 
 function buildQuery(params: Record<string, string | undefined>): string {
@@ -21,29 +21,11 @@ function buildQuery(params: Record<string, string | undefined>): string {
 }
 
 async function downloadCsv(path: string, filename: string): Promise<void> {
-  if (!env.apiUrl) throw new Error('VITE_API_URL não está configurada.')
-
-  const token = getAccessToken()
-  const response = await fetch(`${env.apiUrl}${path}`, {
+  const csvText = await apiRequest<string>(path, {
     method: 'GET',
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    accessToken: getAccessToken(),
   })
-
-  if (!response.ok) {
-    let message = `Erro ${response.status} ao gerar relatório.`
-    try {
-      const body = (await response.json()) as { message?: string | string[] }
-      const raw = body?.message
-      message = Array.isArray(raw) ? raw.join('; ') : (raw ?? message)
-    } catch {
-      // ignore parse error
-    }
-    throw new ApiError(message, response.status, null)
-  }
-
-  const blob = await response.blob()
+  const blob = new Blob([csvText], { type: 'text/csv; charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -54,9 +36,18 @@ async function downloadCsv(path: string, filename: string): Promise<void> {
   URL.revokeObjectURL(url)
 }
 
-function todayISO(): string {
-  return new Date().toISOString().slice(0, 10)
+async function fetchPreview(path: string): Promise<ReportPreviewResponse> {
+  return apiRequest<ReportPreviewResponse>(path, {
+    method: 'GET',
+    accessToken: getAccessToken(),
+  })
 }
+
+function todayISO(): string {
+  return brazilTodayIso()
+}
+
+// ── CSV exports ────────────────────────────────────────────────────────────
 
 export function exportFinanceReport(filters: FinanceReportFilters): Promise<void> {
   const path = `/reports/finance/export${buildQuery({
@@ -87,16 +78,6 @@ export function exportInventoryReport(filters: InventoryReportFilters): Promise<
   return downloadCsv(path, `relatorio_estoque_${todayISO()}.csv`)
 }
 
-export function exportLeadsReport(filters: LeadsReportFilters): Promise<void> {
-  const path = `/reports/leads/export${buildQuery({
-    startDate: filters.startDate,
-    endDate: filters.endDate,
-    status: filters.status,
-    source: filters.source,
-  })}`
-  return downloadCsv(path, `relatorio_leads_${todayISO()}.csv`)
-}
-
 export function exportInvoicesReport(filters: InvoicesReportFilters): Promise<void> {
   const path = `/reports/invoices/export${buildQuery({
     startDate: filters.startDate,
@@ -104,4 +85,52 @@ export function exportInvoicesReport(filters: InvoicesReportFilters): Promise<vo
     status: filters.status,
   })}`
   return downloadCsv(path, `relatorio_notas_fiscais_${todayISO()}.csv`)
+}
+
+// ── Preview ────────────────────────────────────────────────────────────────
+
+export function getFinanceReportPreview(
+  filters: FinanceReportFilters,
+): Promise<ReportPreviewResponse> {
+  const path = `/reports/finance/preview${buildQuery({
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    type: filters.type,
+    status: filters.status,
+    categoryId: filters.categoryId,
+  })}`
+  return fetchPreview(path)
+}
+
+export function getAppointmentsReportPreview(
+  filters: AppointmentsReportFilters,
+): Promise<ReportPreviewResponse> {
+  const path = `/reports/appointments/preview${buildQuery({
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    status: filters.status,
+    profileId: filters.profileId,
+  })}`
+  return fetchPreview(path)
+}
+
+export function getInventoryReportPreview(
+  filters: InventoryReportFilters,
+): Promise<ReportPreviewResponse> {
+  const path = `/reports/inventory/preview${buildQuery({
+    categoryId: filters.categoryId,
+    status: filters.status,
+  })}`
+  return fetchPreview(path)
+}
+
+export function getInvoicesReportPreview(
+  filters: InvoicesReportFilters,
+): Promise<ReportPreviewResponse> {
+  const path = `/reports/invoices/preview${buildQuery({
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    status: filters.status,
+  })}`
+  return fetchPreview(path)
 }

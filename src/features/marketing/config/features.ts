@@ -39,7 +39,7 @@ export const PLAN_ORDER: CommercialPlanKey[] = ['starter', 'professional', 'prem
 
 export const FEATURE_CATEGORY_LABELS: Record<CommercialFeatureCategory, string> = {
   agenda: 'Agenda e atendimento',
-  patients: 'Pacientes, prontuários e leads',
+  patients: 'Pacientes e prontuários',
   finance: 'Gestão financeira',
   inventory: 'Estoque',
   fiscal: 'Fiscal e notas',
@@ -149,16 +149,6 @@ export const commercialFeatures: CommercialFeature[] = [
     description: 'Use modelos para agilizar registros recorrentes no prontuário.',
     clientFriendlyExplanation:
       'Modelos clínicos são estruturas prontas para reduzir repetição e padronizar registros.',
-    audience: 'public',
-    availability: allPlansIncluded,
-  },
-  {
-    id: 'crm-leads',
-    title: 'CRM de leads',
-    category: 'patients',
-    description: 'Organize e acompanhe potenciais pacientes desde o primeiro contato até a conversão.',
-    clientFriendlyExplanation:
-      'Limite mensal de novos leads por plano: Starter até 30, Professional até 150, Premium sem limite.',
     audience: 'public',
     availability: allPlansIncluded,
   },
@@ -317,7 +307,6 @@ const PLAN_CARD_FEATURES: Record<
       'clinic-agenda',
       'clinical-records',
       'patients-register',
-      'crm-leads',
       'team-essential',
     ],
     upgradeHints: ['Gestão financeira completa', 'Relatórios gerenciais'],
@@ -337,7 +326,6 @@ const PLAN_CARD_FEATURES: Record<
   premium: {
     sectionLabel: 'Tudo do Professional, mais:',
     features: [
-      { id: 'crm-leads', label: 'CRM ilimitado — sem limite de leads' },
       { id: 'ai-assistant', label: 'IA ampliada — 10 análises/tipo/mês' },
       { id: 'inventory-ai-analysis', label: 'Análises de estoque com IA' },
       'priority-support',

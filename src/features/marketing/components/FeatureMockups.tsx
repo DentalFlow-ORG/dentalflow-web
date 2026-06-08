@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   FileText,
   MessageCircle,
-  TrendingUp,
   Users,
   Zap,
 } from 'lucide-react'
@@ -307,10 +306,9 @@ function RelatoriosMockup() {
           <MockupChip label="Anterior" variant="slate" />
           <MockupChip label="Trimestre" variant="slate" />
         </div>
-        <div className="mb-3 grid grid-cols-3 gap-2">
+        <div className="mb-3 grid grid-cols-2 gap-2">
           <MockupMetric label="Consultas" value="47" accent />
           <MockupMetric label="Receita" value="R$ 14.2k" accent />
-          <MockupMetric label="Leads" value="12" />
         </div>
         <div className="rounded-xl border border-white/[0.06] bg-slate-800/50 p-3">
           <p className="mb-2.5 text-[9px] font-medium text-slate-500">Consultas realizadas por semana</p>
@@ -411,66 +409,6 @@ function EstoqueMockup() {
               chip={item.alert ? <MockupChip label="Baixo" variant="red" /> : undefined}
             />
           ))}
-        </div>
-      </div>
-    </MockupShell>
-  )
-}
-
-// ── Variant: Leads / CRM ──────────────────────────────────────────────────────
-
-function LeadsMockup() {
-  const columns: { label: string; variant: ChipVariant; items: { name: string; source: string }[] }[] = [
-    {
-      label: 'Novo',
-      variant: 'slate',
-      items: [
-        { name: 'Lucas Ferreira', source: 'Instagram' },
-        { name: 'Camila Dias', source: 'Indicação' },
-      ],
-    },
-    {
-      label: 'Em contato',
-      variant: 'amber',
-      items: [{ name: 'Renata Gomes', source: 'WhatsApp' }],
-    },
-    {
-      label: 'Convertido',
-      variant: 'emerald',
-      items: [
-        { name: 'Pedro Alves', source: 'Site' },
-        { name: 'Sofia Lima', source: 'Google' },
-      ],
-    },
-  ]
-  return (
-    <MockupShell>
-      <MockupHeader title="CRM · Pipeline de leads" />
-      <div className="p-4">
-        <div className="grid grid-cols-3 gap-2">
-          {columns.map((col) => (
-            <div key={col.label} className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">
-                  {col.label}
-                </span>
-                <MockupChip label={String(col.items.length)} variant={col.variant} />
-              </div>
-              {col.items.map((item) => (
-                <div
-                  key={item.name}
-                  className="rounded-lg border border-white/[0.06] bg-slate-800/60 p-2"
-                >
-                  <p className="text-[10px] font-semibold text-slate-200">{item.name}</p>
-                  <p className="text-[9px] text-slate-500">{item.source}</p>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 flex items-center gap-2">
-          <TrendingUp className="h-3 w-3 text-emerald-500" aria-hidden="true" />
-          <span className="text-[10px] text-slate-500">5 leads este mês · 2 convertidos</span>
         </div>
       </div>
     </MockupShell>
@@ -620,7 +558,6 @@ const MOCKUP_MAP: Record<string, () => ReactElement> = {
   relatorios: RelatoriosMockup,
   ia: IaMockup,
   estoque: EstoqueMockup,
-  leads: LeadsMockup,
   'controle-fiscal': FiscalMockup,
   whatsapp: WhatsappMockup,
 }

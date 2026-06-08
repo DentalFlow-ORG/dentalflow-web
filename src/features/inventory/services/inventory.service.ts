@@ -135,20 +135,6 @@ export function reactivateStockProduct(id: string) {
 
 // â”€â”€ Movements â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-export function listStockMovements(query: ListStockMovementsQuery = {}) {
-  return apiRequest<PaginatedStockMovementsResponse>(
-    `/stock/movements${buildQuery({
-      productId: query.productId,
-      type: query.type,
-      dateFrom: query.dateFrom,
-      dateTo: query.dateTo,
-      page: query.page,
-      limit: query.limit,
-    })}`,
-    { method: 'GET', accessToken: getAccessToken() },
-  )
-}
-
 export function createStockMovement(payload: CreateStockMovementPayload) {
   return apiRequest<StockMovement>('/stock/movements', {
     method: 'POST',

@@ -24,11 +24,11 @@ export function FormField({
     <div className={cn('min-w-0 space-y-2', className)}>
       <label
         htmlFor={htmlFor}
-        className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-foreground"
+        className="flex items-center gap-x-2 text-sm font-semibold text-foreground"
       >
         <span className="min-w-0 truncate">{label}</span>
         {optional && (
-          <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+          <span className="shrink-0 whitespace-nowrap rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
             Opcional
           </span>
         )}

@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { Loader2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
@@ -24,9 +24,22 @@ type ExceptionFormProps = {
   isLoading: boolean
   onSubmit: (dto: CreateAvailabilityExceptionDto) => void
   onCancel: () => void
+  saveLabel?: string
+  onDelete?: () => void
+  isDeleting?: boolean
+  className?: string
 }
 
-export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: ExceptionFormProps) {
+export function ExceptionForm({
+  initial,
+  isLoading,
+  onSubmit,
+  onCancel,
+  saveLabel,
+  onDelete,
+  isDeleting = false,
+  className,
+}: ExceptionFormProps) {
   const [isDayOff, setIsDayOff] = useState(initial?.isDayOff ?? true)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -50,7 +63,7 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-lg border border-border bg-muted p-4 space-y-4"
+      className={className ?? 'rounded-lg border border-border bg-muted p-4 space-y-4'}
     >
       {initial ? (
         <div>
@@ -71,27 +84,33 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
       {/* Type toggle */}
       <div>
         <p className="mb-2 text-sm font-semibold text-foreground">Tipo</p>
-        <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1">
+        <div
+          role="group"
+          aria-label="Tipo de exceção"
+          className="flex flex-wrap gap-0.5 rounded-lg border border-border bg-muted p-0.5 dark:border-slate-700 dark:bg-slate-800/80"
+        >
           <button
             type="button"
             onClick={() => setIsDayOff(true)}
+            aria-pressed={isDayOff}
             className={cn(
-              'flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors',
+              'flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
               isDayOff
-                ? 'bg-primary/10 text-primary dark:bg-primary/15'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
+                : 'text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white',
             )}
           >
-            Folga
+            Folga ocasional
           </button>
           <button
             type="button"
             onClick={() => setIsDayOff(false)}
+            aria-pressed={!isDayOff}
             className={cn(
-              'flex-1 rounded-md py-1.5 text-sm font-semibold transition-colors',
+              'flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
               !isDayOff
-                ? 'bg-primary/10 text-primary dark:bg-primary/15'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                ? 'bg-card text-foreground shadow-sm dark:bg-slate-700 dark:text-white'
+                : 'text-muted-foreground hover:text-foreground dark:text-slate-300 dark:hover:text-white',
             )}
           >
             Horário especial
@@ -133,14 +152,48 @@ export function ExceptionForm({ initial, isLoading, onSubmit, onCancel }: Except
         />
       </FormField>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={isLoading}>
-          Cancelar
-        </Button>
-        <Button type="submit" size="sm" disabled={isLoading}>
-          {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          {isLoading ? 'Salvando...' : 'Salvar'}
-        </Button>
+      <div
+        className={cn(
+          'flex flex-col-reverse gap-2',
+          onDelete
+            ? 'sm:flex-row sm:items-center sm:justify-between'
+            : 'sm:flex-row sm:justify-end',
+        )}
+      >
+        {onDelete && (
+          <Button
+            type="button"
+            variant="dangerGhost"
+            size="sm"
+            onClick={onDelete}
+            disabled={isLoading || isDeleting}
+          >
+            {isDeleting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {isDeleting ? (
+              'Excluindo...'
+            ) : (
+              <>
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                Excluir exceção
+              </>
+            )}
+          </Button>
+        )}
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onCancel}
+            disabled={isLoading || isDeleting}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" size="sm" disabled={isLoading || isDeleting}>
+            {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {isLoading ? 'Salvando...' : (saveLabel ?? 'Salvar')}
+          </Button>
+        </div>
       </div>
     </form>
   )

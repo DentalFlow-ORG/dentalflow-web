@@ -2,36 +2,31 @@ import { FileText, Loader2, RefreshCw, Settings2, ShieldAlert, Stethoscope } fro
 import { useRef, useState } from 'react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { DatePickerInput } from '@/components/common/DatePickerInput'
-import { EmptyState } from '@/components/common/EmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
-import { MetricCard } from '@/components/common/MetricCard'
-import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
-import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 import { AppointmentInvoicePickerModal } from '../components/AppointmentInvoicePickerModal'
+import { FiscalInvoiceFiltersBar } from '../components/FiscalInvoiceFiltersBar'
+import { FiscalSummaryKpiGrid } from '../components/FiscalSummaryKpiGrid'
+import { InvoiceList } from '../components/InvoiceList'
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
 import { InvoiceDetails } from '../components/InvoiceDetails'
 import { InvoiceForm } from '../components/InvoiceForm'
-import { INVOICE_STATUS_LABEL, INVOICE_STATUS_TONE } from '../constants/invoice-status'
 import { useFiscalInvoicesPage } from '../hooks/useFiscalInvoicesPage'
 import { getAppointmentInvoiceDraft } from '../services/fiscal.service'
 import type {
   FiscalProfilePayload,
   InvoicePayload,
   ServiceInvoice,
-  ServiceInvoiceStatus,
 } from '../types/fiscal.types'
-import { formatCents, formatInvoiceDate } from '../utils/invoice-format'
 
 type ActiveWorkspace = 'profile' | 'form' | 'details' | 'none'
 
@@ -43,7 +38,7 @@ const emptyInvoiceForm: InvoicePayload = {
   serviceDescription: '',
   serviceCode: '',
   amountCents: 0,
-  competenceDate: new Date().toISOString().slice(0, 10),
+  competenceDate: brazilTodayIso(),
   notes: '',
 }
 
@@ -83,8 +78,12 @@ export function FiscalInvoicesPageContainer() {
   const [isProfileFormOpen, setIsProfileFormOpen] = useState(false)
   const [profileForm, setProfileForm] = useState<FiscalProfilePayload>(emptyProfileForm)
   const [cancelTarget, setCancelTarget] = useState<ServiceInvoice | null>(null)
+  const [cancelReason, setCancelReason] = useState('')
   const [isPickerOpen, setIsPickerOpen] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [isProfileSaving, setIsProfileSaving] = useState(false)
   const [isLoadingDraft, setIsLoadingDraft] = useState(false)
+  const [draftLoadError, setDraftLoadError] = useState<string | null>(null)
   const [appointmentWarnings, setAppointmentWarnings] = useState<{
     paymentPending: boolean
     hasExistingInvoice: boolean
@@ -188,6 +187,7 @@ export function FiscalInvoicesPageContainer() {
 
   async function handleAppointmentSelect(appointmentId: string) {
     setIsLoadingDraft(true)
+    setDraftLoadError(null)
     try {
       const result = await getAppointmentInvoiceDraft(appointmentId)
       setAppointmentWarnings({
@@ -207,7 +207,9 @@ export function FiscalInvoicesPageContainer() {
       setActiveWorkspace('form')
       scrollToWorkspace()
     } catch {
-      // alert já via showAlert do hook não disponível aqui; fallback inline
+      setDraftLoadError(
+        'Não foi possível carregar os dados da consulta para a nota fiscal. Tente novamente.',
+      )
     } finally {
       setIsLoadingDraft(false)
     }
@@ -227,6 +229,7 @@ export function FiscalInvoicesPageContainer() {
   }
 
   async function submitProfile() {
+    setIsProfileSaving(true)
     try {
       await saveProfile({
         ...profileForm,
@@ -237,16 +240,22 @@ export function FiscalInvoicesPageContainer() {
       if (activeWorkspace === 'profile') setActiveWorkspace('none')
     } catch {
       // O hook já exibe o alerta em português; manter o formulário aberto ajuda na correção.
+    } finally {
+      setIsProfileSaving(false)
     }
   }
 
   async function confirmCancel() {
     if (!cancelTarget) return
+    setIsCancelling(true)
     try {
-      await cancel(cancelTarget, 'Cancelamento interno')
+      await cancel(cancelTarget, cancelReason.trim())
       setCancelTarget(null)
+      setCancelReason('')
     } catch {
       // O hook já exibe o alerta em português.
+    } finally {
+      setIsCancelling(false)
     }
   }
 
@@ -265,16 +274,26 @@ export function FiscalInvoicesPageContainer() {
     if (activeWorkspace === 'details') setActiveWorkspace('none')
   }
 
+  function clearFilters() {
+    setFilters((current) => ({
+      ...current,
+      customer: undefined,
+      status: undefined,
+      to: undefined,
+      page: 1,
+    }))
+  }
+
   if (planBlocked) return <PlanUpgradeNotice title="Notas fiscais" />
 
   return (
     <AppPage>
-      <AppPageHeader
+      <HomeDashboardHeader
         eyebrow="Fiscal"
         title="Notas fiscais"
-        description="Prepare, organize e acompanhe as notas fiscais de serviço da clínica."
-        action={
-          <div className="flex flex-wrap gap-2">
+        description="Emita, acompanhe e organize notas fiscais da clínica com segurança, histórico e status fiscal em um só lugar."
+        actions={
+          <div className="flex flex-col gap-2 sm:flex-row *:w-full sm:*:w-auto">
             <Button variant="outline" onClick={load}>
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Atualizar
@@ -290,7 +309,7 @@ export function FiscalInvoicesPageContainer() {
                 <Button
                   variant="outline"
                   disabled={isLoadingDraft}
-                  onClick={() => setIsPickerOpen(true)}
+                  onClick={() => { setDraftLoadError(null); setIsPickerOpen(true) }}
                 >
                   {isLoadingDraft ? (
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -316,34 +335,21 @@ export function FiscalInvoicesPageContainer() {
         onRetry={load}
       >
         <div className="space-y-6">
-          <InlineFeedback tone="warning">
-            <div className="flex gap-3">
-              <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-              <div>
-                <p className="font-semibold">Integração fiscal em modo local/simulação</p>
-                <p className="mt-1 leading-6">
-                  A emissão real de NFS-e ainda não está ativa. No momento, este módulo funciona
-                  como controle interno e simulação. Para emitir notas fiscais válidas, será
-                  necessário configurar uma integração fiscal homologada.
+          {profileResponse?.providerMode === 'LOCAL' && (
+            <InlineFeedback tone="warning">
+              <div className="flex gap-3">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                <p>
+                  Modo local/simulação ativo. Você pode organizar rascunhos e validar o fluxo de
+                  notas; a emissão real depende da configuração fiscal da clínica.
                 </p>
               </div>
-            </div>
-          </InlineFeedback>
+            </InlineFeedback>
+          )}
 
           {summary && (
-            <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-              <MetricCard value={String(summary.counts.DRAFT ?? 0)} label="Rascunhos" />
-              <MetricCard
-                value={String(summary.counts.READY_TO_ISSUE ?? 0)}
-                label="Prontas para emissão"
-              />
-              <MetricCard value={String(summary.counts.SIMULATED ?? 0)} label="Simuladas" />
-              <MetricCard value={String(summary.counts.CANCELED ?? 0)} label="Canceladas" />
-              <MetricCard value={formatCents(summary.monthTotalCents)} label="Valor total do mês" />
-              <MetricCard
-                value={summary.configurationPending ? 'Pendente' : 'Ok'}
-                label="Configuração fiscal"
-              />
+            <section>
+              <FiscalSummaryKpiGrid summary={summary} />
             </section>
           )}
 
@@ -356,8 +362,7 @@ export function FiscalInvoicesPageContainer() {
                     : 'Configuração fiscal pendente'}
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Integração fiscal real ainda não configurada. Esses dados serão usados futuramente
-                  para emissão real de NFS-e.
+                  Gerencie os dados da clínica usados para emissão real de NFS-e.
                 </p>
               </div>
               {isOwner && (
@@ -380,6 +385,10 @@ export function FiscalInvoicesPageContainer() {
                 </p>
               </div>
             </InlineFeedback>
+          )}
+
+          {draftLoadError && (
+            <InlineFeedback tone="error">{draftLoadError}</InlineFeedback>
           )}
 
           {isWorkspaceOpen && (
@@ -412,6 +421,7 @@ export function FiscalInvoicesPageContainer() {
                       if (activeWorkspace === 'profile') setActiveWorkspace('none')
                     }}
                     onSubmit={submitProfile}
+                    isSaving={isProfileSaving}
                   />
                 </div>
               )}
@@ -419,22 +429,26 @@ export function FiscalInvoicesPageContainer() {
               {isInvoiceFormOpen && (
                 <div className="space-y-3">
                   {appointmentWarnings?.paymentPending && (
-                    <InlineFeedback tone="warning">
-                      <p className="font-semibold">Consulta com pagamento pendente</p>
-                      <p className="mt-1 leading-6">
-                        O pagamento desta consulta ainda não foi registrado. Verifique o valor
-                        antes de salvar a nota.
-                      </p>
-                    </InlineFeedback>
+                    <div role="alert">
+                      <InlineFeedback tone="warning">
+                        <p className="font-semibold">Consulta com pagamento pendente</p>
+                        <p className="mt-1 leading-6">
+                          O pagamento desta consulta ainda não foi registrado. Verifique o valor
+                          antes de salvar a nota.
+                        </p>
+                      </InlineFeedback>
+                    </div>
                   )}
                   {appointmentWarnings?.hasExistingInvoice && (
-                    <InlineFeedback tone="warning">
-                      <p className="font-semibold">Já existe uma nota vinculada a esta consulta</p>
-                      <p className="mt-1 leading-6">
-                        Salvar irá criar uma nova nota separada. A nota existente não será alterada.
-                        Certifique-se de que uma duplicidade é intencional.
-                      </p>
-                    </InlineFeedback>
+                    <div role="alert">
+                      <InlineFeedback tone="warning">
+                        <p className="font-semibold">Já existe uma nota vinculada a esta consulta</p>
+                        <p className="mt-1 leading-6">
+                          Salvar irá criar uma nova nota separada. A nota existente não será alterada.
+                          Certifique-se de que uma duplicidade é intencional.
+                        </p>
+                      </InlineFeedback>
+                    </div>
                   )}
                   <InvoiceForm
                     form={invoiceForm}
@@ -458,246 +472,33 @@ export function FiscalInvoicesPageContainer() {
             </div>
           )}
 
-          <PanelCard>
-            <div className="mb-4 grid gap-3 lg:grid-cols-4">
-              <FormField label="Cliente" htmlFor="invoiceCustomer" className="lg:col-span-2">
-                <TextInput
-                  id="invoiceCustomer"
-                  placeholder="Buscar por cliente..."
-                  value={filters.customer ?? ''}
-                  onChange={(e) => setFilter('customer', e.target.value)}
-                />
-              </FormField>
-              <FormField label="Status" htmlFor="invoiceStatus">
-                <Select
-                  value={filters.status ?? '__all__'}
-                  onValueChange={(value) =>
-                    setFilter(
-                      'status',
-                      (value === '__all__' ? undefined : value) as ServiceInvoiceStatus,
-                    )
-                  }
-                >
-                  <SelectTrigger id="invoiceStatus">
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">Todos</SelectItem>
-                    {Object.entries(INVOICE_STATUS_LABEL).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormField>
-              <FormField label="Competência até" htmlFor="invoiceTo">
-                <DatePickerInput
-                  id="invoiceTo"
-                  value={filters.to ?? ''}
-                  onValueChange={(value) => setFilter('to', value)}
-                />
-              </FormField>
-            </div>
+          <FiscalInvoiceFiltersBar
+            customer={filters.customer ?? ''}
+            status={filters.status}
+            to={filters.to ?? ''}
+            onCustomerChange={(value) => setFilter('customer', value)}
+            onStatusChange={(value) => setFilter('status', value)}
+            onToChange={(value) => setFilter('to', value)}
+            onClear={clearFilters}
+          />
 
-            {invoices.length === 0 ? (
-              <EmptyState
-                icon={FileText}
-                title="Nenhuma nota fiscal encontrada"
-                description="Crie rascunhos para organizar a futura emissão de NFS-e da clínica."
-              />
-            ) : (
-              <div className="space-y-3">
-                {/* Mobile card list — hidden on md+ */}
-                <div className="space-y-3 md:hidden">
-                  {invoices.map((invoice) => (
-                    <PanelCard key={invoice.id} className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-foreground">{invoice.customerName}</p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {invoice.customerEmail ?? invoice.customerDocument ?? 'Sem contato'}
-                          </p>
-                        </div>
-                        <StatusBadge tone={INVOICE_STATUS_TONE[invoice.status]}>
-                          {INVOICE_STATUS_LABEL[invoice.status]}
-                        </StatusBadge>
-                      </div>
-                      <p className="mt-2 truncate text-sm text-muted-foreground">{invoice.serviceDescription}</p>
-                      <div className="mt-2 flex items-center justify-between gap-2">
-                        <span className="font-semibold text-foreground">{formatCents(invoice.amountCents)}</span>
-                        <span className="text-xs text-muted-foreground">{formatInvoiceDate(invoice.competenceDate)}</span>
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            void openInvoiceDetails(invoice)
-                          }}
-                        >
-                          Ver detalhes
-                        </Button>
-                        {canEditInvoice(invoice, user?.role) && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openInvoiceForm(invoice)}
-                          >
-                            Editar
-                          </Button>
-                        )}
-                        {isOwner && invoice.status === 'DRAFT' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              void markReady(invoice).catch(() => undefined)
-                            }}
-                          >
-                            Marcar pronta
-                          </Button>
-                        )}
-                        {isOwner && invoice.status === 'READY_TO_ISSUE' && (
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              void simulateIssue(invoice).catch(() => undefined)
-                            }}
-                          >
-                            Simular emissão
-                          </Button>
-                        )}
-                        {isOwner && invoice.status !== 'CANCELED' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCancelTarget(invoice)}
-                          >
-                            Cancelar
-                          </Button>
-                        )}
-                      </div>
-                    </PanelCard>
-                  ))}
-                </div>
-
-                {/* Desktop table — hidden below md */}
-                <div className="hidden overflow-hidden rounded-lg border border-border md:block">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-230 text-sm" aria-label="Notas fiscais">
-                      <thead>
-                        <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          <th scope="col" className="px-4 py-3">Cliente</th>
-                          <th scope="col" className="px-4 py-3">Serviço</th>
-                          <th scope="col" className="px-4 py-3 text-right">Valor</th>
-                          <th scope="col" className="px-4 py-3">Status</th>
-                          <th scope="col" className="px-4 py-3">Competência</th>
-                          <th scope="col" className="px-4 py-3">Criada em</th>
-                          <th scope="col" className="px-4 py-3 text-right">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border bg-card">
-                        {invoices.map((invoice) => (
-                          <tr key={invoice.id} className="hover:bg-muted/70">
-                            <td className="px-4 py-3">
-                              <p className="font-semibold text-foreground">{invoice.customerName}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {invoice.customerEmail ?? invoice.customerDocument ?? 'Sem contato'}
-                              </p>
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {invoice.serviceDescription}
-                            </td>
-                            <td className="px-4 py-3 text-right font-semibold text-foreground">
-                              {formatCents(invoice.amountCents)}
-                            </td>
-                            <td className="px-4 py-3">
-                              <StatusBadge tone={INVOICE_STATUS_TONE[invoice.status]}>
-                                {INVOICE_STATUS_LABEL[invoice.status]}
-                              </StatusBadge>
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {formatInvoiceDate(invoice.competenceDate)}
-                            </td>
-                            <td className="px-4 py-3 text-muted-foreground">
-                              {formatInvoiceDate(invoice.createdAt)}
-                            </td>
-                            <td className="px-4 py-3">
-                              <div className="flex flex-wrap justify-end gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    void openInvoiceDetails(invoice)
-                                  }}
-                                >
-                                  Ver detalhes
-                                </Button>
-                                {canEditInvoice(invoice, user?.role) && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => openInvoiceForm(invoice)}
-                                  >
-                                    Editar
-                                  </Button>
-                                )}
-                                {isOwner && invoice.status === 'DRAFT' && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      void markReady(invoice).catch(() => undefined)
-                                    }}
-                                  >
-                                    Marcar pronta
-                                  </Button>
-                                )}
-                                {isOwner && invoice.status === 'READY_TO_ISSUE' && (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => {
-                                      void simulateIssue(invoice).catch(() => undefined)
-                                    }}
-                                  >
-                                    Simular emissão
-                                  </Button>
-                                )}
-                                {isOwner && invoice.status !== 'CANCELED' && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCancelTarget(invoice)}
-                                  >
-                                    Cancelar
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Shared pagination */}
-                <div className="rounded-lg border border-border bg-card px-4 py-3">
-                  <Pagination
-                    page={filters.page}
-                    totalPages={totalPages}
-                    filteredCount={total}
-                    pageSize={filters.limit}
-                    onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
-                    onPageSizeChange={(limit) =>
-                      setFilters((current) => ({ ...current, page: 1, limit }))
-                    }
-                  />
-                </div>
-              </div>
-            )}
-          </PanelCard>
+          <InvoiceList
+            invoices={invoices}
+            userRole={user?.role}
+            isOwner={isOwner}
+            profile={profile}
+            page={filters.page}
+            totalPages={totalPages}
+            total={total}
+            limit={filters.limit}
+            onViewDetails={(invoice) => { void openInvoiceDetails(invoice) }}
+            onEdit={openInvoiceForm}
+            onMarkReady={(invoice) => { void markReady(invoice).catch(() => undefined) }}
+            onSimulate={(invoice) => { void simulateIssue(invoice).catch(() => undefined) }}
+            onCancel={setCancelTarget}
+            onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
+            onPageSizeChange={(limit) => setFilters((current) => ({ ...current, page: 1, limit }))}
+          />
         </div>
       </ListPageShell>
 
@@ -707,9 +508,25 @@ export function FiscalInvoicesPageContainer() {
         description="A nota será cancelada apenas no controle interno. Nenhuma NFS-e real será cancelada."
         confirmLabel="Cancelar nota"
         cancelLabel="Voltar"
-        onCancel={() => setCancelTarget(null)}
+        confirmDisabled={cancelReason.trim().length === 0}
+        isConfirming={isCancelling}
+        onCancel={() => { setCancelTarget(null); setCancelReason('') }}
         onConfirm={confirmCancel}
-      />
+      >
+        <div className="space-y-1">
+          <FormField label="Motivo do cancelamento" htmlFor="cancelReason">
+            <TextInput
+              id="cancelReason"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Ex.: erro nos dados do tomador, duplicidade ou cancelamento solicitado"
+            />
+          </FormField>
+          <p className="text-xs text-muted-foreground">
+            Esse motivo será registrado no histórico da nota.
+          </p>
+        </div>
+      </ConfirmDialog>
 
       <AppointmentInvoicePickerModal
         open={isPickerOpen}
@@ -732,10 +549,4 @@ function getActiveWorkspaceLabel(activeWorkspace: ActiveWorkspace) {
   }
 
   return labels[activeWorkspace]
-}
-
-function canEditInvoice(invoice: ServiceInvoice, role?: string) {
-  if (role === 'OWNER') return ['DRAFT', 'READY_TO_ISSUE'].includes(invoice.status)
-  if (role === 'ASSISTANT') return invoice.status === 'DRAFT'
-  return false
 }

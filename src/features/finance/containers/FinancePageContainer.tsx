@@ -6,8 +6,8 @@ import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import { useExpenseClassifier } from '../hooks/useExpenseClassifier'
 import { useFinancePage } from '../hooks/useFinancePage'
 import { useMonthlyFinanceDiagnosis } from '../hooks/useMonthlyFinanceDiagnosis'
@@ -110,15 +110,30 @@ export function FinancePageContainer() {
   const { state: diagnosisState, handleGenerate: handleGenerateDiagnosis } = useMonthlyFinanceDiagnosis()
   const { state: marginsState, load: loadMargins } = useProcedureMargins()
 
+  const pendingReceivablesEmptyState =
+    filters.type === 'INCOME' && filters.status === 'PENDING'
+      ? {
+          title: 'Nenhum recebível pendente no período selecionado',
+          description:
+            'Todas as entradas do período estão pagas ou não há lançamentos pendentes para cobrar.',
+          actionLabel: 'Limpar filtros',
+          onAction: () => {
+            setFilter('type', undefined)
+            setFilter('status', undefined)
+            setFilter('categoryId', undefined)
+          },
+        }
+      : undefined
+
   if (planBlocked) return <PlanUpgradeNotice title="Gestão financeira" />
 
   return (
     <AppPage>
-      <AppPageHeader
-        eyebrow="Gestão financeira"
-        title="Financeiro da clínica"
-        description="Acompanhe entradas, saídas, despesas fixas e desempenho financeiro por período."
-        action={
+      <HomeDashboardHeader
+        eyebrow="Gestão"
+        title="Financeiro"
+        description="Acompanhe receita, despesas, recebíveis e oportunidades para aumentar o faturamento da clínica."
+        actions={
           <Button variant="outline" onClick={load}>
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
             Atualizar
@@ -137,7 +152,19 @@ export function FinancePageContainer() {
       >
         {summary && (
           <>
-            <KpiGrid summary={summary} />
+            <KpiGrid
+              summary={summary}
+              previousSummary={previousSummary}
+              onPendingReceivablesClick={() => {
+                setFilter('type', 'INCOME')
+                setFilter('status', 'PENDING')
+                if (typeof document !== 'undefined') {
+                  requestAnimationFrame(() => {
+                    document.getElementById('finance-transactions')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  })
+                }
+              }}
+            />
 
             <FinancialAnalysisPanel summary={summary} previousSummary={previousSummary} />
 
@@ -170,6 +197,9 @@ export function FinancePageContainer() {
                 <h2 className="text-base font-semibold text-foreground">
                   Composição financeira
                 </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Veja onde a receita se concentra e quais categorias mais pesam no resultado.
+                </p>
                 <div className="mt-5 space-y-6">
                   <Ranking
                     title="Despesas por categoria"
@@ -191,7 +221,7 @@ export function FinancePageContainer() {
               </PanelCard>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div id="finance-transactions" className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <TransactionsTable
                 transactions={transactions}
                 isLoading={isLoadingTransactions}
@@ -206,6 +236,7 @@ export function FinancePageContainer() {
                 onClassify={handleClassify}
                 onApplyCategory={handleApplyCategory}
                 onDismissClassify={handleDismissClassify}
+                emptyState={pendingReceivablesEmptyState}
               />
               <TransactionForm
                 form={transactionForm}

@@ -4,7 +4,7 @@ import type { NotificationStatus } from '../types/notifications.types'
 const STATUS_CONFIG: Record<NotificationStatus, { label: string; className: string }> = {
   PENDING: {
     label: 'Aguardando',
-    className: 'bg-gray-100 text-gray-600 dark:bg-secondary dark:text-muted-foreground',
+    className: 'bg-gray-100 text-gray-600 dark:bg-slate-800/60 dark:text-slate-300',
   },
   SENT: {
     label: 'Enviado',

@@ -19,7 +19,6 @@ import {
   Package,
   ShieldCheck,
   Sun,
-  TrendingUp,
   Users,
   Users2,
   X,
@@ -73,7 +72,6 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Agenda', to: '/app/agendamentos', icon: CalendarDays, roles: ['OWNER', 'ASSISTANT'] },
       { label: 'Pacientes', to: '/app/pacientes', icon: Users2, roles: ['OWNER', 'ASSISTANT'] },
       { label: 'Prontuários', to: '/app/prontuario', icon: ClipboardList, roles: ['OWNER'] },
-      { label: 'Leads', to: '/app/leads', icon: TrendingUp, roles: ['OWNER', 'ASSISTANT'] },
     ],
   },
   {
@@ -472,7 +470,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
           </div>
         )}
 
-        <main className="px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
+        <main className="min-w-0 overflow-x-hidden px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
           {children}
           <div className="h-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden print:hidden" aria-hidden="true" />
         </main>

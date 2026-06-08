@@ -27,7 +27,7 @@ export function CategoriesPanel({
             Gerencie as categorias de entradas e saídas da clínica.
           </p>
         </div>
-        <Layers className="h-5 w-5 text-primary" />
+        <Layers className="h-5 w-5 text-primary" aria-hidden="true" />
       </div>
 
       <div className="space-y-5">

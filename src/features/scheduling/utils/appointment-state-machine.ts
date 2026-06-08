@@ -17,8 +17,10 @@ export function isTerminalStatus(status: AppointmentStatus): boolean {
 
 function buildAppointmentDateTime(appointment: Appointment): Date {
   const dateStr = isoDateToString(appointment.appointmentDate) // YYYY-MM-DD
-  const timeStr = formatWallTime(appointment.startTime)        // HH:mm
-  return new Date(`${dateStr}T${timeStr}:00`)
+  const timeStr = formatWallTime(appointment.startTime)        // HH:mm (Brazil wall-clock)
+  // Brazil is UTC-3 year-round (DST abolished 2019). Suffix -03:00 converts the
+  // clinic wall-clock time to the correct UTC epoch for comparison with new Date().
+  return new Date(`${dateStr}T${timeStr}:00-03:00`)
 }
 
 /**

@@ -1,4 +1,4 @@
-import { CheckCircle2, Loader2, Lock, Sparkles, X } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Loader2, Lock, Sparkles, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -69,9 +69,10 @@ export function ExpenseClassifyAction({
   // Quota exceeded
   if (isQuotaExceeded) {
     return (
-      <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
+      <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2 text-[11px] text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-400">
+        <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
         Você atingiu o limite de classificações inteligentes deste mês.
-      </p>
+      </div>
     )
   }
 
