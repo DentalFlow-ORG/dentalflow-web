@@ -216,6 +216,38 @@ describe('TrialBanner', () => {
   })
 })
 
+// ─── ASSISTANT Notificações nav item ─────────────────────────────────────────
+
+describe('ASSISTANT Notificações footer nav', () => {
+  it('ASSISTANT sees Notificações link pointing to /app/configuracoes/notificacoes', () => {
+    setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
+    renderShell()
+    const links = screen.getAllByRole('link', { name: 'Notificações' })
+    expect(links.length).toBeGreaterThan(0)
+    links.forEach((link) => {
+      expect(link).toHaveAttribute('href', '/app/configuracoes/notificacoes')
+    })
+  })
+
+  it('ASSISTANT still does not see Configurações link for /app/configuracoes', () => {
+    setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
+    renderShell()
+    expect(screen.queryAllByRole('link', { name: 'Configurações' })).toHaveLength(0)
+  })
+
+  it('OWNER does not see a separate Notificações footer link', () => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell()
+    expect(screen.queryAllByRole('link', { name: 'Notificações' })).toHaveLength(0)
+  })
+
+  it('DENTIST does not see Notificações footer link', () => {
+    setMockAuthState({ user: makeDentistUser(), isAuthenticated: true })
+    renderShell()
+    expect(screen.queryAllByRole('link', { name: 'Notificações' })).toHaveLength(0)
+  })
+})
+
 // ─── Active route ─────────────────────────────────────────────────────────────
 
 describe('active route', () => {

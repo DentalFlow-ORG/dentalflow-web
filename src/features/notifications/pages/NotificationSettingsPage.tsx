@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Bell, Loader2, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/common/BackButton'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
 import { cn } from '@/lib/utils'
@@ -15,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
 import { useNotificationQuota } from '../hooks/useNotificationQuota'
 import { MonthlyUsageBar } from '../components/MonthlyUsageBar'
@@ -33,8 +35,9 @@ function SectionCard({ title, children }: { title: string; children: React.React
 }
 
 export function NotificationSettingsPage() {
+  const { user } = useAuth()
   const { showAlert } = useGlobalAlerts()
-  const { preferences, isLoading, isSaving, save } = useNotificationPreferences()
+  const { preferences, isLoading, isSaving, save, error } = useNotificationPreferences()
   const { quota, isLoading: quotaLoading } = useNotificationQuota()
   const [localEnabled, setLocalEnabled] = useState<boolean | null>(null)
   const [localHours, setLocalHours] = useState<number | null>(null)
@@ -76,7 +79,11 @@ export function NotificationSettingsPage() {
   if (isLoading) {
     return (
       <AppPage>
-        <div className="flex items-center justify-center py-16 text-muted-foreground">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-center py-16 text-muted-foreground"
+        >
           <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
         </div>
       </AppPage>
@@ -86,10 +93,19 @@ export function NotificationSettingsPage() {
   return (
     <AppPage>
       <AppPageHeader
+        eyebrow="Comunicação"
         title="Notificações"
-        description="Configure mensagens WhatsApp para seus pacientes."
-        action={<BackButton to="/app/configuracoes" />}
+        description="Configure lembretes automáticos e acompanhe o uso mensal de mensagens da clínica."
+        action={<BackButton to={user?.role === 'OWNER' ? '/app/configuracoes' : '/app'} />}
       />
+
+      {user?.role === 'ASSISTANT' && (
+        <InlineFeedback tone="info">
+          Você pode ajustar preferências operacionais de comunicação, mas configurações administrativas da clínica continuam restritas ao proprietário.
+        </InlineFeedback>
+      )}
+
+      {error && <InlineFeedback tone="error">{error}</InlineFeedback>}
 
       {/* Status card */}
       <SectionCard title="Status do WhatsApp">
@@ -134,7 +150,7 @@ export function NotificationSettingsPage() {
               onClick={() => handleToggleWhatsApp(!whatsappEnabled)}
             >
               {isSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : whatsappEnabled ? (
                 'Desativar'
               ) : (
@@ -164,8 +180,8 @@ export function NotificationSettingsPage() {
       {/* Usage */}
       <SectionCard title="Uso mensal">
         {quotaLoading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
+          <div role="status" aria-live="polite" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
             Carregando uso...
           </div>
         ) : quota ? (
@@ -178,7 +194,7 @@ export function NotificationSettingsPage() {
             )}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">Não foi possível carregar o uso mensal.</p>
+          <InlineFeedback tone="error">Não foi possível carregar o uso mensal.</InlineFeedback>
         )}
       </SectionCard>
 
@@ -198,7 +214,7 @@ export function NotificationSettingsPage() {
               onValueChange={(value) => handleHoursChange(Number(value))}
               disabled={isSaving}
             >
-              <SelectTrigger className="w-28 shrink-0">
+              <SelectTrigger className="w-28 shrink-0" aria-label="Antecedência do lembrete">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="max-h-60 overflow-y-auto">

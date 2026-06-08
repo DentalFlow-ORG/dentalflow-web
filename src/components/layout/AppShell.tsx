@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { Collapsible } from 'radix-ui'
 import {
   BarChart3,
+  Bell,
   Building2,
   CalendarDays,
   ChevronDown,
@@ -106,6 +107,7 @@ const NAV_GROUPS: NavGroup[] = [
 // ─── Footer items (pinned to bottom of desktop sidebar) ──────────────────────
 const FOOTER_ITEMS: NavItem[] = [
   { label: 'Configurações', to: '/app/configuracoes', icon: Settings, roles: ['OWNER'] },
+  { label: 'Notificações', to: '/app/configuracoes/notificacoes', icon: Bell, roles: ['ASSISTANT'] },
 ]
 
 // ─── Legacy flat list (used for mobile nav primary/secondary split) ───────────
