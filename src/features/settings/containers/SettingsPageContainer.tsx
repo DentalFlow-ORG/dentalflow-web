@@ -22,6 +22,8 @@ import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { PanelCard } from '@/components/common/PanelCard'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
 import {
@@ -44,7 +46,7 @@ import { useClinicProfile } from '../hooks/useClinicProfile'
 import type { UpdateClinicProfilePayload } from '../types/settings.types'
 import { LEGAL_LINKS, ROLE_INFO, STATUS_INFO } from '../constants/settings-display'
 
-function SettingsSectionCard({
+function SettingsPanelSection({
   title,
   children,
 }: {
@@ -52,12 +54,12 @@ function SettingsSectionCard({
   children: ReactNode
 }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-card">
-      <p className="border-b border-border bg-muted/40 px-5 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+    <PanelCard>
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
-      </p>
-      <div className="p-5 sm:p-6">{children}</div>
-    </div>
+      </h2>
+      {children}
+    </PanelCard>
   )
 }
 
@@ -77,13 +79,13 @@ function LinkRow({
       to={to}
       className="flex items-center justify-between gap-4 rounded-md px-1 py-2 transition-colors hover:bg-muted"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <Icon className="h-4 w-4" aria-hidden="true" />
         </div>
-        <div>
-          <p className="text-sm font-medium text-foreground">{label}</p>
-          <p className="text-xs text-muted-foreground">{description}</p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-foreground">{label}</p>
+          <p className="truncate text-xs text-muted-foreground">{description}</p>
         </div>
       </div>
       <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -144,7 +146,11 @@ function ClinicProfileSection() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex items-center gap-2 py-4 text-sm text-muted-foreground"
+      >
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         Carregando...
       </div>
@@ -224,7 +230,7 @@ function ClinicProfileSection() {
           />
         </FormField>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <FormField label="UF" htmlFor="clinic-state" optional>
             <TextInput
               id="clinic-state"
@@ -264,14 +270,16 @@ function ClinicProfileSection() {
 function CalendarSection() {
   const [status, setStatus] = useState<GoogleCalendarStatus | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [isActing, setIsActing] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [syncMessage, setSyncMessage] = useState<string | null>(null)
+  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false)
 
   useEffect(() => {
     getGoogleCalendarStatus()
       .then(setStatus)
-      .catch(() => setStatus(null))
+      .catch(() => setLoadError('Não foi possível verificar a integração com o Google Agenda.'))
       .finally(() => setIsLoading(false))
   }, [])
 
@@ -287,7 +295,8 @@ function CalendarSection() {
     }
   }
 
-  async function handleDisconnect() {
+  async function handleDisconnectConfirmed() {
+    setShowDisconnectDialog(false)
     setIsActing(true)
     setActionError(null)
     try {
@@ -322,93 +331,115 @@ function CalendarSection() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex items-center gap-2 text-sm text-muted-foreground"
+      >
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         Verificando integração...
       </div>
     )
   }
 
+  if (loadError) {
+    return <InlineFeedback tone="error">{loadError}</InlineFeedback>
+  }
+
   const connected = status?.connected ?? false
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div
-            className={
-              connected
-                ? 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
-                : 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground'
-            }
-          >
-            <CalendarCheck2 className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">
-              {connected ? status?.calendarSummary ?? 'Conectado' : 'Não conectado'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {connected
-                ? `Conectado em ${status?.connectedAt ? new Date(status.connectedAt).toLocaleDateString('pt-BR') : '—'}`
-                : 'Sincronize consultas com o Google Agenda.'}
-            </p>
-          </div>
-        </div>
+    <>
+      <ConfirmDialog
+        open={showDisconnectDialog}
+        title="Desconectar Google Calendar?"
+        description="A sincronização com o Google Calendar será interrompida. Você poderá conectar novamente depois."
+        confirmLabel="Desconectar"
+        tone="destructive"
+        isConfirming={isActing}
+        onConfirm={handleDisconnectConfirmed}
+        onCancel={() => setShowDisconnectDialog(false)}
+      />
 
-        <div className="flex shrink-0 gap-2">
-          {connected ? (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isActing}
-                onClick={handleSync}
-              >
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div
+              className={
+                connected
+                  ? 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                  : 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground'
+              }
+            >
+              <CalendarCheck2 className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-foreground">
+                {connected ? status?.calendarSummary ?? 'Conectado' : 'Não conectado'}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {connected
+                  ? `Conectado em ${status?.connectedAt ? new Date(status.connectedAt).toLocaleDateString('pt-BR') : '—'}`
+                  : 'Sincronize consultas com o Google Agenda.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row">
+            {connected ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isActing}
+                  onClick={handleSync}
+                >
+                  {isActing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                  )}
+                  Sincronizar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isActing}
+                  onClick={() => setShowDisconnectDialog(true)}
+                >
+                  <Unlink className="h-4 w-4" aria-hidden="true" />
+                  Desconectar
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" disabled={isActing} onClick={handleConnect}>
                 {isActing ? (
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                  <Calendar className="h-4 w-4" aria-hidden="true" />
                 )}
-                Sincronizar
+                Conectar Google Agenda
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isActing}
-                onClick={handleDisconnect}
-              >
-                <Unlink className="h-4 w-4" aria-hidden="true" />
-                Desconectar
-              </Button>
-            </>
-          ) : (
-            <Button size="sm" disabled={isActing} onClick={handleConnect}>
-              {isActing ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              ) : (
-                <Calendar className="h-4 w-4" aria-hidden="true" />
-              )}
-              Conectar Google Agenda
-            </Button>
-          )}
+            )}
+          </div>
         </div>
-      </div>
 
-      {syncMessage && <InlineFeedback tone="success">{syncMessage}</InlineFeedback>}
-      {actionError && <InlineFeedback tone="error">{actionError}</InlineFeedback>}
-    </div>
+        {syncMessage && <InlineFeedback tone="success">{syncMessage}</InlineFeedback>}
+        {actionError && <InlineFeedback tone="error">{actionError}</InlineFeedback>}
+      </div>
+    </>
   )
 }
 
 function BillingSection() {
   const [status, setStatus] = useState<CurrentBillingStatus | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
     getCurrentBillingStatus()
       .then(setStatus)
-      .catch(() => setStatus(null))
+      .catch(() => setLoadError('Não foi possível carregar as informações do plano.'))
       .finally(() => setIsLoading(false))
   }, [])
 
@@ -429,10 +460,16 @@ function BillingSection() {
   return (
     <div className="space-y-3">
       {isLoading ? (
-        <div className="flex items-center gap-2 pb-1 text-sm text-muted-foreground">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-2 pb-1 text-sm text-muted-foreground"
+        >
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
           Carregando plano...
         </div>
+      ) : loadError ? (
+        <InlineFeedback tone="error">{loadError}</InlineFeedback>
       ) : status && info ? (
         <div className="flex flex-wrap items-center gap-2 pb-1">
           {status.planName && (
@@ -468,38 +505,39 @@ export function SettingsPageContainer() {
   return (
     <AppPage spacing="loose">
       <AppPageHeader
-        title="Configurações da Clínica"
-        description="Gerencie dados, integrações e preferências da sua clínica."
+        eyebrow="Administração"
+        title="Configurações"
+        description="Gerencie dados da clínica, integrações, equipe, assinatura e preferências operacionais em um só lugar."
       />
 
       <div className="space-y-6">
-        <SettingsSectionCard title="Perfil da Clínica">
+        <SettingsPanelSection title="Perfil da Clínica">
           <ClinicProfileSection />
-        </SettingsSectionCard>
+        </SettingsPanelSection>
 
-        <SettingsSectionCard title="Perfil Fiscal">
+        <SettingsPanelSection title="Perfil Fiscal">
           <LinkRow
             icon={Receipt}
             label="Dados fiscais da clínica"
             description="Razão social, CNPJ, regime tributário e endereço fiscal."
             to="/app/configuracoes/fiscal"
           />
-        </SettingsSectionCard>
+        </SettingsPanelSection>
 
-        <SettingsSectionCard title="Comunicação">
+        <SettingsPanelSection title="Comunicação">
           <LinkRow
             icon={Bell}
             label="Notificações WhatsApp"
             description="Configure mensagens automáticas para pacientes."
             to="/app/configuracoes/notificacoes"
           />
-        </SettingsSectionCard>
+        </SettingsPanelSection>
 
-        <SettingsSectionCard title="Integração de Calendário">
+        <SettingsPanelSection title="Integração de Calendário">
           <CalendarSection />
-        </SettingsSectionCard>
+        </SettingsPanelSection>
 
-        <SettingsSectionCard title="Equipe e Permissões">
+        <SettingsPanelSection title="Equipe e Permissões">
           <div className="space-y-4">
             <LinkRow
               icon={Users}
@@ -523,13 +561,13 @@ export function SettingsPageContainer() {
               </div>
             </div>
           </div>
-        </SettingsSectionCard>
+        </SettingsPanelSection>
 
-        <SettingsSectionCard title="Assinatura">
+        <SettingsPanelSection title="Assinatura">
           <BillingSection />
-        </SettingsSectionCard>
+        </SettingsPanelSection>
 
-        <SettingsSectionCard title="IA e Limites">
+        <SettingsPanelSection title="IA e Limites">
           <div className="space-y-4">
             <div className="flex items-start gap-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
@@ -564,9 +602,9 @@ export function SettingsPageContainer() {
               </Link>
             </div>
           </div>
-        </SettingsSectionCard>
+        </SettingsPanelSection>
 
-        <SettingsSectionCard title="Segurança e Conformidade">
+        <SettingsPanelSection title="Segurança e Conformidade">
           <div className="space-y-1">
             {LEGAL_LINKS.map(({ label, href }) => (
               <a
@@ -587,7 +625,7 @@ export function SettingsPageContainer() {
               </a>
             ))}
           </div>
-        </SettingsSectionCard>
+        </SettingsPanelSection>
       </div>
     </AppPage>
   )
