@@ -181,7 +181,11 @@ export function useLeadsPage() {
     setIsSaving(true)
     try {
       if (drawerMode === 'create') {
-        await createLead(payload)
+        await createLead({
+          ...payload,
+          assignedToUserId: payload.assignedToUserId ?? undefined,
+          nextFollowUpAt: payload.nextFollowUpAt ?? undefined,
+        })
         showAlert({ title: 'Lead criado', description: 'O lead foi cadastrado com sucesso.', tone: 'success' })
       } else if (drawerMode === 'edit' && selectedLead) {
         await updateLead(selectedLead.id, payload)

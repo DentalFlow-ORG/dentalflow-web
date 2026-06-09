@@ -1,4 +1,4 @@
-import { renderWithProviders, screen, userEvent } from '@/test/render-utils'
+import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 import type { MemberListItem } from '@/features/team/types/team.types'
 import type { LeadFilters } from '../types/leads.types'
 import { LeadsFilters } from './LeadsFilters'
