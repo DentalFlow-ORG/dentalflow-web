@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { formatCpfCnpjBR, formatCepBR } from '@/lib/field-formatters'
 
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
@@ -35,11 +36,11 @@ const EMPTY_FORM: FiscalProfilePayload = {
 
 export function FiscalProfilePageContainer() {
   const navigate = useNavigate()
+  const { showAlert } = useGlobalAlerts()
   const [form, setForm] = useState<FiscalProfilePayload>(EMPTY_FORM)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [saveSuccess, setSaveSuccess] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -78,11 +79,10 @@ export function FiscalProfilePageContainer() {
 
   async function handleSubmit() {
     setIsSaving(true)
-    setSaveSuccess(false)
     setSaveError(null)
     try {
       await saveFiscalProfile(form)
-      setSaveSuccess(true)
+      showAlert({ title: 'Perfil fiscal atualizado com sucesso.', tone: 'success' })
     } catch {
       setSaveError('Não foi possível salvar o perfil fiscal. Tente novamente.')
     } finally {
@@ -96,7 +96,11 @@ export function FiscalProfilePageContainer() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex items-center gap-2 py-10 text-sm text-muted-foreground"
+      >
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         Carregando perfil fiscal...
       </div>
@@ -116,9 +120,6 @@ export function FiscalProfilePageContainer() {
         onSubmit={handleSubmit}
         isSaving={isSaving}
       />
-      {saveSuccess && (
-        <InlineFeedback tone="success">Perfil fiscal atualizado com sucesso.</InlineFeedback>
-      )}
       {saveError && <InlineFeedback tone="error">{saveError}</InlineFeedback>}
     </div>
   )

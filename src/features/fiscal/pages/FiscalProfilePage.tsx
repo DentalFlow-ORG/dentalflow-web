@@ -7,13 +7,11 @@ import { FiscalProfilePageContainer } from '../containers/FiscalProfilePageConta
 export function FiscalProfilePage() {
   return (
     <AppPage spacing="loose">
-      <div>
-        <BackButton to="/app/configuracoes" label="Configurações" variant="ghost" />
-      </div>
-
       <AppPageHeader
+        eyebrow="Configurações"
         title="Perfil Fiscal"
         description="Dados usados em rascunhos fiscais internos e futuras integrações de emissão."
+        action={<BackButton to="/app/configuracoes" label="Configurações" variant="ghost" />}
       />
 
       <FiscalProfilePageContainer />
