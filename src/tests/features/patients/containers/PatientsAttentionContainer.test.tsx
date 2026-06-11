@@ -1,10 +1,13 @@
-import { render, screen, fireEvent } from '@/test-utils/render-utils'
+import { fireEvent, render, screen } from '@/test-utils/render-utils'
 
 import { PatientsAttentionContainer } from '@/features/patients/containers/PatientsAttentionContainer'
-import type { AttentionPriority, PatientAttentionItem } from '@/features/patients/types/attention.types'
+import type {
+  AttentionPriority,
+  PatientAttentionItem,
+} from '@/features/patients/types/attention.types'
 import type { AttentionSummary } from '@/features/patients/types/attention.types'
-import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
 import { makeOwnerUser } from '@/test-utils/factories/user.factory'
+import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -204,9 +207,7 @@ describe('PatientsAttentionContainer — attention items', () => {
 
   it('renders "Fila de acompanhamento" section heading', () => {
     render(<PatientsAttentionContainer />)
-    expect(
-      screen.getByRole('heading', { name: /fila de acompanhamento/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /fila de acompanhamento/i })).toBeInTheDocument()
   })
 })
 
@@ -217,17 +218,14 @@ describe('PatientsAttentionContainer — priority badges', () => {
     ['HIGH', 'Alta'],
     ['MEDIUM', 'Média'],
     ['LOW', 'Baixa'],
-  ] as [AttentionPriority, string][])(
-    'renders "%s" as "%s"',
-    (priority, label) => {
-      const item = makeAttentionItem({ priority, allReasons: ['INACTIVE'] })
-      mockUsePatientsAttention.mockReturnValue(
-        makeDefaultHookState({ allItems: [item], filteredItems: [item] }),
-      )
-      render(<PatientsAttentionContainer />)
-      expect(screen.getAllByText(label).length).toBeGreaterThan(0)
-    },
-  )
+  ] as [AttentionPriority, string][])('renders "%s" as "%s"', (priority, label) => {
+    const item = makeAttentionItem({ priority, allReasons: ['INACTIVE'] })
+    mockUsePatientsAttention.mockReturnValue(
+      makeDefaultHookState({ allItems: [item], filteredItems: [item] }),
+    )
+    render(<PatientsAttentionContainer />)
+    expect(screen.getAllByText(label).length).toBeGreaterThan(0)
+  })
 })
 
 // ── Empty states ──────────────────────────────────────────────────────────────
@@ -255,9 +253,7 @@ describe('PatientsAttentionContainer — empty states', () => {
 
 describe('PatientsAttentionContainer — loading state', () => {
   it('shows loading card while loading', () => {
-    mockUsePatientsAttention.mockReturnValue(
-      makeDefaultHookState({ isLoading: true }),
-    )
+    mockUsePatientsAttention.mockReturnValue(makeDefaultHookState({ isLoading: true }))
     render(<PatientsAttentionContainer />)
     expect(screen.getByText(/analisando pacientes/i)).toBeInTheDocument()
   })
@@ -369,12 +365,74 @@ describe('PatientsAttentionContainer — no Leads content', () => {
 describe('PatientsAttentionContainer — quick navigation', () => {
   it('renders "Ver todos os pacientes" quick action link', () => {
     mockUsePatientsAttention.mockReturnValue(
-      makeDefaultHookState({ allItems: [makeAttentionItem()], filteredItems: [makeAttentionItem()] }),
+      makeDefaultHookState({
+        allItems: [makeAttentionItem()],
+        filteredItems: [makeAttentionItem()],
+      }),
     )
     render(<PatientsAttentionContainer />)
     expect(screen.getByRole('link', { name: /ver todos os pacientes/i })).toHaveAttribute(
       'href',
       '/app/pacientes',
     )
+  })
+})
+
+// ── Pagination reset on filter change ────────────────────────────────────────
+
+describe('PatientsAttentionContainer — pagination resets to page 1 on filter change', () => {
+  function makeItems(count: number): PatientAttentionItem[] {
+    return Array.from({ length: count }, (_, i) =>
+      makeAttentionItem({
+        identifier: `patient-${i}@email.com`,
+        patientName: `Patient ${i + 1}`,
+        patientEmail: `patient-${i}@email.com`,
+      }),
+    )
+  }
+
+  beforeEach(() => {
+    const items = makeItems(12)
+    mockUsePatientsAttention.mockReturnValue(
+      makeDefaultHookState({
+        allItems: items,
+        filteredItems: items,
+        summary: makeAttentionSummary({ total: 12 }),
+      }),
+    )
+  })
+
+  function navigateToPage2() {
+    fireEvent.click(screen.getByTitle('Próxima página'))
+    expect(screen.getByText('2 / 2')).toBeInTheDocument()
+  }
+
+  it('resets to page 1 when search changes', () => {
+    render(<PatientsAttentionContainer />)
+    navigateToPage2()
+    fireEvent.change(screen.getByPlaceholderText(/nome ou e-mail/i), {
+      target: { value: 'Carlos' },
+    })
+    expect(screen.getByText('1 / 2')).toBeInTheDocument()
+  })
+
+  it('resets to page 1 when reasonFilter changes', () => {
+    render(<PatientsAttentionContainer />)
+    navigateToPage2()
+    const trigger = screen.getByRole('combobox', { name: /motivo/i })
+    fireEvent.click(trigger)
+    const option = screen.getAllByRole('option').find((o) => o.textContent?.includes('Inativo'))
+    if (option) fireEvent.click(option)
+    expect(screen.getByText('1 / 2')).toBeInTheDocument()
+  })
+
+  it('resets to page 1 when priorityFilter changes', () => {
+    render(<PatientsAttentionContainer />)
+    navigateToPage2()
+    const trigger = screen.getByRole('combobox', { name: /prioridade/i })
+    fireEvent.click(trigger)
+    const option = screen.getAllByRole('option').find((o) => o.textContent?.includes('Alta'))
+    if (option) fireEvent.click(option)
+    expect(screen.getByText('1 / 2')).toBeInTheDocument()
   })
 })

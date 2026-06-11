@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
+import { Link } from '@tanstack/react-router'
 import {
   AlertCircle,
   ArrowLeft,
@@ -14,7 +15,6 @@ import {
   Users2,
   X,
 } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
 import { Dialog } from 'radix-ui'
 
 import { FormField, TextInput } from '@/components/common/FormField'
@@ -40,11 +40,12 @@ import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
 import { HomeQuickActionCard } from '@/features/home/components/HomeQuickActionCard'
 import { HomeSection } from '@/features/home/components/HomeSection'
 
-import { PatientAvatar } from '../components/PatientAvatar'
 import { AttentionReasonBadge } from '../components/AttentionReasonBadge'
+import { PatientAvatar } from '../components/PatientAvatar'
 import { PatientIdentityBadge } from '../components/PatientIdentityBadge'
 import { PatientPriorityBadge } from '../components/PatientPriorityBadge'
 
+import { PRIORITY_OPTIONS, REASON_OPTIONS, WHATSAPP_OPTIONS } from '../constants/attention-display'
 import {
   type AttentionPriorityFilter,
   type AttentionReasonFilter,
@@ -52,11 +53,6 @@ import {
   usePatientsAttention,
 } from '../hooks/usePatientsAttention'
 import type { PatientAttentionItem } from '../types/attention.types'
-import {
-  PRIORITY_OPTIONS,
-  REASON_OPTIONS,
-  WHATSAPP_OPTIONS,
-} from '../constants/attention-display'
 
 function formatDate(iso: string | null) {
   if (!iso) return '—'
@@ -159,11 +155,7 @@ function AttentionDetailPanel({
         >
           {/* ── Header ── */}
           <div className="flex items-start gap-3 border-b border-border bg-gradient-to-br from-muted/50 to-transparent px-5 py-5">
-            <PatientAvatar
-              name={item?.patientName ?? ''}
-              avatarUrl={avatarUrl}
-              size="lg"
-            />
+            <PatientAvatar name={item?.patientName ?? ''} avatarUrl={avatarUrl} size="lg" />
             <div className="min-w-0 flex-1 pt-0.5">
               <Dialog.Title className="text-base font-semibold text-foreground">
                 {item?.patientName}
@@ -294,7 +286,10 @@ function AttentionDetailPanel({
               {item.pendingAmountCents > 0 && (
                 <div className="rounded-xl border border-red-200 bg-red-50/70 px-4 py-3 dark:border-red-800/40 dark:bg-red-950/20">
                   <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" aria-hidden="true" />
+                    <CreditCard
+                      className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400"
+                      aria-hidden="true"
+                    />
                     <p className="text-sm font-semibold text-red-700 dark:text-red-300">
                       Valor pendente: {formatCurrencyBR(item.pendingAmountCents / 100)}
                     </p>
@@ -308,7 +303,10 @@ function AttentionDetailPanel({
               {/* WhatsApp consent note */}
               {item.hasWhatsappConsent && (
                 <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 dark:border-emerald-800/40 dark:bg-emerald-950/20">
-                  <MessageCircle className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                  <MessageCircle
+                    className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400"
+                    aria-hidden="true"
+                  />
                   <p className="text-sm text-emerald-700 dark:text-emerald-300">
                     Paciente autorizou contato via WhatsApp.
                   </p>
@@ -349,12 +347,12 @@ export function PatientsAttentionContainer() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
-  useEffect(() => { setPage(1) }, [search, reasonFilter, priorityFilter, whatsappFilter])
-
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize))
+  // Clamp page to valid range when filters reduce the result set
+  const effectivePage = Math.min(page, totalPages)
   const paginatedItems = useMemo(
-    () => filteredItems.slice((page - 1) * pageSize, page * pageSize),
-    [filteredItems, page, pageSize],
+    () => filteredItems.slice((effectivePage - 1) * pageSize, effectivePage * pageSize),
+    [filteredItems, effectivePage, pageSize],
   )
 
   const highPriorityCount = allItems.filter((i) => i.priority === 'HIGH').length
@@ -439,18 +437,28 @@ export function PatientsAttentionContainer() {
           {/* Filters */}
           <PanelCard className="p-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <FormField label="Buscar paciente" htmlFor="attentionSearch" className="lg:col-span-2">
+              <FormField
+                label="Buscar paciente"
+                htmlFor="attentionSearch"
+                className="lg:col-span-2"
+              >
                 <TextInput
                   id="attentionSearch"
                   placeholder="Nome ou e-mail…"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    setPage(1)
+                  }}
                 />
               </FormField>
               <FormField label="Motivo" htmlFor="attentionReason">
                 <Select
                   value={reasonFilter}
-                  onValueChange={(v) => setReasonFilter(v as AttentionReasonFilter)}
+                  onValueChange={(v) => {
+                    setReasonFilter(v as AttentionReasonFilter)
+                    setPage(1)
+                  }}
                 >
                   <SelectTrigger id="attentionReason">
                     <SelectValue />
@@ -467,7 +475,10 @@ export function PatientsAttentionContainer() {
               <FormField label="Prioridade" htmlFor="attentionPriority">
                 <Select
                   value={priorityFilter}
-                  onValueChange={(v) => setPriorityFilter(v as AttentionPriorityFilter)}
+                  onValueChange={(v) => {
+                    setPriorityFilter(v as AttentionPriorityFilter)
+                    setPage(1)
+                  }}
                 >
                   <SelectTrigger id="attentionPriority">
                     <SelectValue />
@@ -484,7 +495,10 @@ export function PatientsAttentionContainer() {
               <FormField label="WhatsApp" htmlFor="attentionWhatsapp">
                 <Select
                   value={whatsappFilter}
-                  onValueChange={(v) => setWhatsappFilter(v as WhatsAppFilter)}
+                  onValueChange={(v) => {
+                    setWhatsappFilter(v as WhatsAppFilter)
+                    setPage(1)
+                  }}
                 >
                   <SelectTrigger id="attentionWhatsapp">
                     <SelectValue />
@@ -524,7 +538,9 @@ export function PatientsAttentionContainer() {
                 <HomeEmptyState
                   compact
                   icon={Bell}
-                  title={hasFilters ? 'Nenhum paciente encontrado' : 'Todos os pacientes estão em dia'}
+                  title={
+                    hasFilters ? 'Nenhum paciente encontrado' : 'Todos os pacientes estão em dia'
+                  }
                   description={
                     hasFilters
                       ? 'Ajuste os filtros para ampliar a busca.'
@@ -548,11 +564,21 @@ export function PatientsAttentionContainer() {
               <table className="w-full text-sm" aria-label="Pacientes que precisam de atenção">
                 <thead>
                   <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    <th scope="col" className="px-4 py-3">Paciente</th>
-                    <th scope="col" className="px-4 py-3">Motivos</th>
-                    <th scope="col" className="px-4 py-3">Prioridade</th>
-                    <th scope="col" className="hidden px-4 py-3 xl:table-cell">Última consulta</th>
-                    <th scope="col" className="hidden px-4 py-3 xl:table-cell">Valor pendente</th>
+                    <th scope="col" className="px-4 py-3">
+                      Paciente
+                    </th>
+                    <th scope="col" className="px-4 py-3">
+                      Motivos
+                    </th>
+                    <th scope="col" className="px-4 py-3">
+                      Prioridade
+                    </th>
+                    <th scope="col" className="hidden px-4 py-3 xl:table-cell">
+                      Última consulta
+                    </th>
+                    <th scope="col" className="hidden px-4 py-3 xl:table-cell">
+                      Valor pendente
+                    </th>
                     <th scope="col" className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -563,7 +589,11 @@ export function PatientsAttentionContainer() {
                         <HomeEmptyState
                           compact
                           icon={Bell}
-                          title={hasFilters ? 'Nenhum paciente encontrado' : 'Todos os pacientes estão em dia'}
+                          title={
+                            hasFilters
+                              ? 'Nenhum paciente encontrado'
+                              : 'Todos os pacientes estão em dia'
+                          }
                           description={
                             hasFilters
                               ? 'Ajuste os filtros para ampliar a busca.'
@@ -625,7 +655,10 @@ export function PatientsAttentionContainer() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                          <ChevronRight
+                            className="ml-auto h-4 w-4 text-muted-foreground"
+                            aria-hidden="true"
+                          />
                         </td>
                       </tr>
                     ))
@@ -638,13 +671,16 @@ export function PatientsAttentionContainer() {
             {filteredItems.length > 0 && (
               <div className="mt-4 border-t border-border pt-3">
                 <Pagination
-                  page={page}
+                  page={effectivePage}
                   totalPages={totalPages}
                   filteredCount={filteredItems.length}
                   pageSize={pageSize}
                   pageSizeOptions={[10, 25, 50]}
                   onPageChange={setPage}
-                  onPageSizeChange={(s) => { setPageSize(s); setPage(1) }}
+                  onPageSizeChange={(s) => {
+                    setPageSize(s)
+                    setPage(1)
+                  }}
                 />
               </div>
             )}
