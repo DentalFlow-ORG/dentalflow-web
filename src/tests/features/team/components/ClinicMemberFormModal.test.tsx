@@ -1,8 +1,11 @@
 import { fireEvent, render, screen, userEvent, waitFor } from '@/test-utils/render-utils'
 
+import {
+  listAvailability,
+  listAvailabilityExceptions,
+} from '@/features/scheduling/services/scheduling.service'
 import { ClinicMemberFormModal } from '@/features/team/components/ClinicMemberFormModal'
 import { createMember, updateClinicMember } from '@/features/team/services/team.service'
-import { listAvailability, listAvailabilityExceptions } from '@/features/scheduling/services/scheduling.service'
 import type { CreateMemberResponse, MemberListItem } from '@/features/team/types/team.types'
 
 vi.mock('@/features/team/services/team.service', () => ({
@@ -397,9 +400,7 @@ describe('ClinicMemberFormModal — interactions', () => {
     expect(screen.getByRole('button', { name: /salvando/i })).toBeDisabled()
 
     resolve({ user: makeMember(), profile: null })
-    await waitFor(() =>
-      expect(screen.queryByRole('button', { name: /salvando/i })).toBeNull(),
-    )
+    await waitFor(() => expect(screen.queryByRole('button', { name: /salvando/i })).toBeNull())
   })
 
   it('shows validation error when required fields are empty', async () => {
@@ -428,9 +429,7 @@ describe('ClinicMemberFormModal — interactions', () => {
     await user.type(screen.getByLabelText('Senha'), 'curta')
     await user.click(screen.getByRole('button', { name: /criar membro/i }))
 
-    expect(
-      await screen.findByText('A senha deve ter pelo menos 8 caracteres.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('A senha deve ter pelo menos 8 caracteres.')).toBeInTheDocument()
     expect(createMember).not.toHaveBeenCalled()
   })
 })

@@ -1,4 +1,3 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   AlertTriangle,
@@ -18,25 +17,22 @@ import {
   Receipt,
   RefreshCw,
   ShieldCheck,
-  Users,
   Unlink,
+  Users,
 } from 'lucide-react'
+import { type FormEvent, type ReactNode, useEffect, useState } from 'react'
 
-import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { FormField, TextInput } from '@/components/common/FormField'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { PanelCard } from '@/components/common/PanelCard'
+import { StatusBadge } from '@/components/common/StatusBadge'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
-import { PanelCard } from '@/components/common/PanelCard'
-import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
-import {
-  formatPhoneBR,
-  formatCepBR,
-  formatUf,
-  onlyDigits,
-} from '@/lib/field-formatters'
+import { getCurrentBillingStatus } from '@/features/billing/services/billing.service'
+import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
 import {
   createGoogleCalendarConnectUrl,
   disconnectGoogleCalendar,
@@ -44,12 +40,13 @@ import {
   syncGoogleCalendar,
 } from '@/features/scheduling/services/calendar-integrations.service'
 import type { GoogleCalendarStatus } from '@/features/scheduling/types/calendar-integration.types'
-import { getCurrentBillingStatus } from '@/features/billing/services/billing.service'
-import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
+import { formatCepBR, formatPhoneBR, formatUf, onlyDigits } from '@/lib/field-formatters'
+import { isValidBrazilianPhone, isValidCEP, isValidUF } from '@/lib/validators/br'
+import { CepNotFoundError, fetchAddressByCep } from '@/services/cep/cep.service'
 
+import { LEGAL_LINKS, ROLE_INFO, STATUS_INFO } from '../constants/settings-display'
 import { useClinicProfile } from '../hooks/useClinicProfile'
 import type { UpdateClinicProfilePayload } from '../types/settings.types'
-import { LEGAL_LINKS, ROLE_INFO, STATUS_INFO } from '../constants/settings-display'
 
 function SettingsPanelSection({
   title,
@@ -101,6 +98,7 @@ function LinkRow({
 type ClinicProfileErrors = {
   name?: string
   email?: string
+  phone?: string
   websiteUrl?: string
   state?: string
   postalCode?: string
@@ -109,6 +107,7 @@ type ClinicProfileErrors = {
 function validateClinicProfile(form: {
   name: string
   email: string
+  phone: string
   websiteUrl: string
   state: string
   postalCode: string
@@ -120,16 +119,16 @@ function validateClinicProfile(form: {
   if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
     errors.email = 'Informe um e-mail válido.'
   }
-  if (
-    form.websiteUrl.trim() &&
-    !/^https?:\/\/.+/.test(form.websiteUrl.trim())
-  ) {
+  if (form.phone.trim() && !isValidBrazilianPhone(form.phone)) {
+    errors.phone = 'Informe um telefone válido com DDD.'
+  }
+  if (form.websiteUrl.trim() && !/^https?:\/\/.+/.test(form.websiteUrl.trim())) {
     errors.websiteUrl = 'Informe uma URL válida, começando com https://.'
   }
-  if (form.state.trim() && form.state.trim().length !== 2) {
-    errors.state = 'Use a sigla do estado com 2 letras.'
+  if (form.state.trim() && !isValidUF(form.state)) {
+    errors.state = 'Informe uma sigla de estado válida (ex: SP, RJ).'
   }
-  if (form.postalCode.trim() && onlyDigits(form.postalCode).length !== 8) {
+  if (form.postalCode.trim() && !isValidCEP(form.postalCode)) {
     errors.postalCode = 'Informe um CEP com 8 dígitos.'
   }
   return errors
@@ -152,6 +151,8 @@ function ClinicProfileSection() {
   })
 
   const [errors, setErrors] = useState<ClinicProfileErrors>({})
+  const [isCepLookingUp, setIsCepLookingUp] = useState(false)
+  const [cepLookupError, setCepLookupError] = useState<string | null>(null)
 
   useEffect(() => {
     if (profile) {
@@ -169,6 +170,33 @@ function ClinicProfileSection() {
     }
   }, [profile])
 
+  const postalCode = form.postalCode
+  useEffect(() => {
+    if (!isValidCEP(postalCode)) return
+    const timer = setTimeout(async () => {
+      setIsCepLookingUp(true)
+      setCepLookupError(null)
+      try {
+        const address = await fetchAddressByCep(postalCode)
+        setForm((prev) => ({
+          ...prev,
+          addressLine1: address.street || prev.addressLine1,
+          city: address.city || prev.city,
+          state: address.uf || prev.state,
+        }))
+      } catch (err) {
+        if (err instanceof CepNotFoundError) {
+          setCepLookupError('CEP não encontrado.')
+        } else {
+          setCepLookupError('Não foi possível consultar o CEP.')
+        }
+      } finally {
+        setIsCepLookingUp(false)
+      }
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [postalCode])
+
   function set(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
     if (field in errors) {
@@ -184,6 +212,7 @@ function ClinicProfileSection() {
       return
     }
     setErrors({})
+    setCepLookupError(null)
     const payload: UpdateClinicProfilePayload = {}
     if (form.name.trim()) payload.name = form.name.trim()
     if (form.email.trim()) payload.email = form.email.trim()
@@ -255,12 +284,14 @@ function ClinicProfileSection() {
             />
           </FormField>
 
-          <FormField label="Telefone" htmlFor="clinic-phone" optional>
+          <FormField label="Telefone" htmlFor="clinic-phone" error={errors.phone} optional>
             <TextInput
               id="clinic-phone"
               value={form.phone}
               onChange={(e) => set('phone', formatPhoneBR(e.target.value))}
               placeholder="(11) 99999-9999"
+              aria-invalid={Boolean(errors.phone)}
+              aria-describedby={errors.phone ? 'clinic-phone-error' : undefined}
               disabled={isSaving}
             />
           </FormField>
@@ -292,7 +323,12 @@ function ClinicProfileSection() {
           Endereço
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Logradouro" htmlFor="clinic-address1" optional className="sm:col-span-2">
+          <FormField
+            label="Logradouro"
+            htmlFor="clinic-address1"
+            optional
+            className="sm:col-span-2"
+          >
             <TextInput
               id="clinic-address1"
               value={form.addressLine1}
@@ -302,7 +338,12 @@ function ClinicProfileSection() {
             />
           </FormField>
 
-          <FormField label="Complemento" htmlFor="clinic-address2" optional className="sm:col-span-2">
+          <FormField
+            label="Complemento"
+            htmlFor="clinic-address2"
+            optional
+            className="sm:col-span-2"
+          >
             <TextInput
               id="clinic-address2"
               value={form.addressLine2}
@@ -337,17 +378,26 @@ function ClinicProfileSection() {
             </FormField>
 
             <FormField label="CEP" htmlFor="clinic-cep" error={errors.postalCode} optional>
-              <TextInput
-                id="clinic-cep"
-                value={form.postalCode}
-                onChange={(e) => set('postalCode', formatCepBR(e.target.value))}
-                placeholder="00000-000"
-                aria-invalid={Boolean(errors.postalCode)}
-                aria-describedby={errors.postalCode ? 'clinic-cep-error' : undefined}
-                disabled={isSaving}
-              />
+              <div className="relative">
+                <TextInput
+                  id="clinic-cep"
+                  value={form.postalCode}
+                  onChange={(e) => set('postalCode', formatCepBR(e.target.value))}
+                  placeholder="00000-000"
+                  aria-invalid={Boolean(errors.postalCode)}
+                  aria-describedby={errors.postalCode ? 'clinic-cep-error' : undefined}
+                  disabled={isSaving}
+                />
+                {isCepLookingUp && (
+                  <Loader2
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                )}
+              </div>
             </FormField>
           </div>
+          {cepLookupError && <p className="text-xs text-destructive">{cepLookupError}</p>}
         </div>
       </div>
 
@@ -474,7 +524,9 @@ function CalendarSection() {
               <div className="h-1.5 w-1.5 rounded-full bg-[#34A853] dark:bg-emerald-400/70" />
             </div>
             <div className="flex flex-1 items-center justify-center bg-white dark:bg-slate-900">
-              <span className="text-[13px] font-bold leading-none text-[#4285F4] dark:text-blue-200">31</span>
+              <span className="text-[13px] font-bold leading-none text-[#4285F4] dark:text-blue-200">
+                31
+              </span>
             </div>
           </div>
           <div className="min-w-0 flex-1">
@@ -505,7 +557,7 @@ function CalendarSection() {
               <div className="flex min-w-0 items-center gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-foreground">
-                    {connected ? status?.calendarSummary ?? 'Conectado' : 'Não conectado'}
+                    {connected ? (status?.calendarSummary ?? 'Conectado') : 'Não conectado'}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
                     {connected
@@ -518,12 +570,7 @@ function CalendarSection() {
               <div className="flex flex-col gap-2 sm:flex-row">
                 {connected ? (
                   <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={isActing}
-                      onClick={handleSync}
-                    >
+                    <Button variant="outline" size="sm" disabled={isActing} onClick={handleSync}>
                       {isActing ? (
                         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                       ) : (
@@ -769,7 +816,10 @@ export function SettingsPageContainer() {
                 >
                   <Landmark className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   <span className="font-medium text-foreground">Abrir análise financeira</span>
-                  <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <ArrowRight
+                    className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </Link>
                 <Link
                   to="/app/estoque"
@@ -778,11 +828,15 @@ export function SettingsPageContainer() {
                 >
                   <Package className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   <span className="font-medium text-foreground">Abrir análise de estoque</span>
-                  <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <ArrowRight
+                    className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </Link>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
-                Dica: gere uma nova análise quando os dados mudarem ou quando precisar tomar uma decisão com base nos indicadores.
+                Dica: gere uma nova análise quando os dados mudarem ou quando precisar tomar uma
+                decisão com base nos indicadores.
               </p>
             </div>
           </div>
@@ -791,7 +845,8 @@ export function SettingsPageContainer() {
         <SettingsPanelSection title="Segurança e Conformidade">
           <div className="space-y-6">
             <p className="text-sm text-muted-foreground">
-              Acompanhe políticas, termos e práticas de proteção de dados usadas para manter a clínica alinhada à LGPD.
+              Acompanhe políticas, termos e práticas de proteção de dados usadas para manter a
+              clínica alinhada à LGPD.
             </p>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

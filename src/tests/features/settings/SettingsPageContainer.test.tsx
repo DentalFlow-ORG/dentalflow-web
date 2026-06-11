@@ -1,8 +1,8 @@
-import { render, screen, waitFor, within, userEvent } from '@/test-utils/render-utils'
+import { render, screen, userEvent, waitFor, within } from '@/test-utils/render-utils'
 
 import { SettingsPageContainer } from '@/features/settings/containers/SettingsPageContainer'
 import { makeOwnerUser } from '@/test-utils/factories/user.factory'
-import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
+import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -184,9 +184,7 @@ describe('SettingsPageContainer — error states', () => {
     mockGetGoogleCalendarStatus.mockRejectedValue(new Error('network error'))
     render(<SettingsPageContainer />)
     await waitFor(() => {
-      expect(
-        screen.getByText(/não foi possível verificar a integração/i),
-      ).toBeInTheDocument()
+      expect(screen.getByText(/não foi possível verificar a integração/i)).toBeInTheDocument()
     })
   })
 
@@ -473,7 +471,7 @@ describe('SettingsPageContainer — clinic profile field validation', () => {
     await waitForForm()
     await user.type(document.querySelector('#clinic-state')!, 'S')
     await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
-    expect(screen.getByText('Use a sigla do estado com 2 letras.')).toBeInTheDocument()
+    expect(screen.getByText('Informe uma sigla de estado válida (ex: SP, RJ).')).toBeInTheDocument()
   })
 
   it('shows error for CEP with fewer than 8 digits on submit', async () => {
@@ -524,7 +522,9 @@ describe('SettingsPageContainer — clinic profile field validation', () => {
 describe('SettingsPageContainer — security compliance section', () => {
   it('renders section intro copy', () => {
     render(<SettingsPageContainer />)
-    expect(screen.getByText(/políticas, termos e práticas de proteção de dados/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/políticas, termos e práticas de proteção de dados/i),
+    ).toBeInTheDocument()
   })
 
   it('renders "Dados protegidos" trust card title', () => {

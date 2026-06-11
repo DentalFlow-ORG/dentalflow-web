@@ -18,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { onlyDigits } from '@/lib/field-formatters'
 import { AvailabilityManager } from '@/features/scheduling/components/availability/AvailabilityManager'
 import { ExceptionManager } from '@/features/scheduling/components/availability/ExceptionManager'
 import {
@@ -29,10 +28,12 @@ import type {
   Availability,
   AvailabilityException,
 } from '@/features/scheduling/types/scheduling.types'
+import { onlyDigits } from '@/lib/field-formatters'
+import { isValidBrazilianPhone } from '@/lib/validators/br'
 
 import { createMember, updateClinicMember } from '../services/team.service'
-import { MemberTypeSelector } from './MemberTypeSelector'
 import type { MemberListItem, MemberRole } from '../types/team.types'
+import { MemberTypeSelector } from './MemberTypeSelector'
 
 type ClinicMemberFormModalProps = {
   open: boolean
@@ -73,6 +74,7 @@ export function ClinicMemberFormModal({
   const [exceptions, setExceptions] = useState<AvailabilityException[]>([])
   const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [phoneError, setPhoneError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const profileId = initialData?.profile?.id
   const canManageAvailability = isEditMode && form.role === 'DENTIST' && Boolean(profileId)
@@ -80,6 +82,7 @@ export function ClinicMemberFormModal({
   useEffect(() => {
     if (!open) return
     setError(null)
+    setPhoneError(null)
     setForm(initialData ? buildInitialForm(initialData) : EMPTY_FORM)
   }, [initialData, open])
 
@@ -113,6 +116,7 @@ export function ClinicMemberFormModal({
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setError(null)
+    setPhoneError(null)
 
     if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) {
       setError('Nome, sobrenome e e-mail são obrigatórios.')
@@ -124,10 +128,14 @@ export function ClinicMemberFormModal({
       return
     }
 
+    const rawPhone = onlyDigits(form.phone)
+    if (rawPhone && !isValidBrazilianPhone(rawPhone)) {
+      setPhoneError('Informe um telefone válido com DDD.')
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      const rawPhone = onlyDigits(form.phone)
-
       if (isEditMode) {
         const member = await updateClinicMember(initialData!.id, {
           firstName: form.firstName.trim(),
@@ -168,9 +176,7 @@ export function ClinicMemberFormModal({
         >
           {/* Header */}
           <div className="shrink-0 border-b border-border px-6 py-5">
-            <Dialog.Title
-              className="text-base font-semibold text-foreground"
-            >
+            <Dialog.Title className="text-base font-semibold text-foreground">
               {isEditMode ? 'Editar membro' : 'Novo membro'}
             </Dialog.Title>
             <Dialog.Description className="mt-0.5 text-sm text-muted-foreground">
@@ -213,14 +219,15 @@ export function ClinicMemberFormModal({
                 <UserPhoneField
                   fieldPrefix="member"
                   phone={form.phone}
-                  onPhoneChange={(value) => set('phone', value)}
+                  onPhoneChange={(value) => {
+                    set('phone', value)
+                    setPhoneError(null)
+                  }}
+                  phoneError={phoneError}
                 />
                 {isEditMode && (
                   <FormField label="Status da conta" htmlFor="memberIsActive">
-                    <Select
-                      value={form.isActive}
-                      onValueChange={(value) => set('isActive', value)}
-                    >
+                    <Select value={form.isActive} onValueChange={(value) => set('isActive', value)}>
                       <SelectTrigger id="memberIsActive">
                         <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
@@ -306,23 +313,12 @@ export function ClinicMemberFormModal({
 
           {/* Footer */}
           <div className="shrink-0 flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancelar
             </Button>
             <Button type="submit" form="clinic-member-form" disabled={isSubmitting}>
-              {isSubmitting && (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              )}
-              {isSubmitting
-                ? 'Salvando...'
-                : isEditMode
-                  ? 'Salvar alterações'
-                  : 'Criar membro'}
+              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+              {isSubmitting ? 'Salvando...' : isEditMode ? 'Salvar alterações' : 'Criar membro'}
             </Button>
           </div>
         </Dialog.Content>

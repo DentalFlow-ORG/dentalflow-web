@@ -1,11 +1,32 @@
+import { useState } from 'react'
+
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
 import { formatCpfCnpjBR, formatPhoneBR } from '@/lib/field-formatters'
+import { isValidBrazilianPhone, isValidCpfOrCnpj } from '@/lib/validators/br'
 
 import type { InvoicePayload } from '../types/fiscal.types'
 import { fromMoneyInput, toMoneyInput } from '../utils/invoice-format'
+
+type InvoiceErrors = {
+  customerDocument?: string
+  customerPhone?: string
+}
+
+function validateInvoice(form: InvoicePayload): InvoiceErrors {
+  const errors: InvoiceErrors = {}
+  const doc = form.customerDocument?.trim() ?? ''
+  if (doc && !isValidCpfOrCnpj(doc)) {
+    errors.customerDocument = 'Informe um CPF ou CNPJ válido.'
+  }
+  const phone = form.customerPhone?.trim() ?? ''
+  if (phone && !isValidBrazilianPhone(phone)) {
+    errors.customerPhone = 'Informe um telefone válido com DDD.'
+  }
+  return errors
+}
 
 type Props = {
   form: InvoicePayload
@@ -16,6 +37,25 @@ type Props = {
 }
 
 export function InvoiceForm({ form, editing, onChange, onCancel, onSubmit }: Props) {
+  const [errors, setErrors] = useState<InvoiceErrors>({})
+
+  function handleChange(updated: InvoicePayload, field?: keyof InvoiceErrors) {
+    onChange(updated)
+    if (field && field in errors) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
+  }
+
+  function handleSubmit() {
+    const fieldErrors = validateInvoice(form)
+    if (Object.keys(fieldErrors).length > 0) {
+      setErrors(fieldErrors)
+      return
+    }
+    setErrors({})
+    onSubmit()
+  }
+
   return (
     <PanelCard>
       <div className="mb-5">
@@ -41,15 +81,24 @@ export function InvoiceForm({ form, editing, onChange, onCancel, onSubmit }: Pro
                 onChange={(e) => onChange({ ...form, customerName: e.target.value })}
               />
             </FormField>
-            <FormField label="CPF/CNPJ do cliente" htmlFor="customerDocument" optional>
+            <FormField
+              label="CPF/CNPJ do cliente"
+              htmlFor="customerDocument"
+              optional
+              error={errors.customerDocument}
+            >
               <TextInput
                 id="customerDocument"
                 placeholder="000.000.000-00 ou 00.000.000/0000-00"
                 value={form.customerDocument ?? ''}
                 onChange={(e) =>
-                  onChange({ ...form, customerDocument: formatCpfCnpjBR(e.target.value) })
+                  handleChange(
+                    { ...form, customerDocument: formatCpfCnpjBR(e.target.value) },
+                    'customerDocument',
+                  )
                 }
                 maxLength={18}
+                aria-invalid={Boolean(errors.customerDocument)}
               />
             </FormField>
             <FormField label="E-mail" htmlFor="customerEmail" optional>
@@ -61,15 +110,24 @@ export function InvoiceForm({ form, editing, onChange, onCancel, onSubmit }: Pro
                 onChange={(e) => onChange({ ...form, customerEmail: e.target.value })}
               />
             </FormField>
-            <FormField label="Telefone" htmlFor="customerPhone" optional>
+            <FormField
+              label="Telefone"
+              htmlFor="customerPhone"
+              optional
+              error={errors.customerPhone}
+            >
               <TextInput
                 id="customerPhone"
                 placeholder="(00) 00000-0000"
                 value={form.customerPhone ?? ''}
                 onChange={(e) =>
-                  onChange({ ...form, customerPhone: formatPhoneBR(e.target.value) })
+                  handleChange(
+                    { ...form, customerPhone: formatPhoneBR(e.target.value) },
+                    'customerPhone',
+                  )
                 }
                 maxLength={15}
+                aria-invalid={Boolean(errors.customerPhone)}
               />
             </FormField>
           </div>
@@ -101,9 +159,7 @@ export function InvoiceForm({ form, editing, onChange, onCancel, onSubmit }: Pro
                 id="amount"
                 inputMode="numeric"
                 value={toMoneyInput(form.amountCents)}
-                onChange={(e) =>
-                  onChange({ ...form, amountCents: fromMoneyInput(e.target.value) })
-                }
+                onChange={(e) => onChange({ ...form, amountCents: fromMoneyInput(e.target.value) })}
               />
             </FormField>
             <FormField label="Data de competência" htmlFor="competenceDate">
@@ -135,7 +191,7 @@ export function InvoiceForm({ form, editing, onChange, onCancel, onSubmit }: Pro
         <Button variant="outline" onClick={onCancel} className="w-full sm:w-auto">
           Cancelar
         </Button>
-        <Button onClick={onSubmit} className="w-full sm:w-auto">
+        <Button onClick={handleSubmit} className="w-full sm:w-auto">
           {editing ? 'Salvar alterações' : 'Salvar rascunho'}
         </Button>
       </div>

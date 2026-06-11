@@ -254,7 +254,7 @@ describe('FiscalProfileForm — actions', () => {
       onSubmit,
       form: makeForm({
         legalName: 'Clínica Ltda',
-        documentNumber: '12.345.678/0001-90',
+        documentNumber: '11.222.333/0001-81',
         addressZipCode: '01310-100',
         addressState: 'SP',
       }),
@@ -302,16 +302,16 @@ describe('FiscalProfileForm — field validation', () => {
     expect(screen.getByText('Informe a razão social.')).toBeInTheDocument()
   })
 
-  it('shows "Informe um CNPJ com 14 dígitos." when documentNumber is empty', () => {
+  it('shows "Informe um CNPJ válido com 14 dígitos." when documentNumber is empty', () => {
     renderForm()
     clickSave()
-    expect(screen.getByText('Informe um CNPJ com 14 dígitos.')).toBeInTheDocument()
+    expect(screen.getByText('Informe um CNPJ válido com 14 dígitos.')).toBeInTheDocument()
   })
 
-  it('shows "Informe um CNPJ com 14 dígitos." when documentNumber has fewer digits', () => {
+  it('shows "Informe um CNPJ válido com 14 dígitos." when documentNumber has fewer digits', () => {
     renderForm({ form: makeForm({ documentNumber: '12.345.678/0001' }) })
     clickSave()
-    expect(screen.getByText('Informe um CNPJ com 14 dígitos.')).toBeInTheDocument()
+    expect(screen.getByText('Informe um CNPJ válido com 14 dígitos.')).toBeInTheDocument()
   })
 
   it('shows "Informe um CEP com 8 dígitos." when zip is empty', () => {
@@ -326,16 +326,16 @@ describe('FiscalProfileForm — field validation', () => {
     expect(screen.getByText('Informe um CEP com 8 dígitos.')).toBeInTheDocument()
   })
 
-  it('shows "Use a sigla do estado com 2 letras." when state is empty', () => {
+  it('shows "Informe uma sigla de estado válida (ex: SP, RJ)." when state is empty', () => {
     renderForm()
     clickSave()
-    expect(screen.getByText('Use a sigla do estado com 2 letras.')).toBeInTheDocument()
+    expect(screen.getByText('Informe uma sigla de estado válida (ex: SP, RJ).')).toBeInTheDocument()
   })
 
-  it('shows "Use a sigla do estado com 2 letras." when state has 1 letter', () => {
+  it('shows "Informe uma sigla de estado válida (ex: SP, RJ)." when state has 1 letter', () => {
     renderForm({ form: makeForm({ addressState: 'S' }) })
     clickSave()
-    expect(screen.getByText('Use a sigla do estado com 2 letras.')).toBeInTheDocument()
+    expect(screen.getByText('Informe uma sigla de estado válida (ex: SP, RJ).')).toBeInTheDocument()
   })
 
   it('shows issRate error for value outside 0-100 range', () => {

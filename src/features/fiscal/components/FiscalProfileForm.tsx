@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 import { FormField, TextInput } from '@/components/common/FormField'
 import { PanelCard } from '@/components/common/PanelCard'
@@ -11,7 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { formatCpfCnpjBR, formatCepBR, formatUf, formatDecimalInput, onlyDigits } from '@/lib/field-formatters'
+import { formatCepBR, formatCpfCnpjBR, formatDecimalInput, formatUf } from '@/lib/field-formatters'
+import { isValidCEP, isValidCNPJ, isValidUF } from '@/lib/validators/br'
+import { CepNotFoundError, fetchAddressByCep } from '@/services/cep/cep.service'
 
 import type { FiscalProfilePayload } from '../types/fiscal.types'
 
@@ -28,19 +30,19 @@ function validateFiscalProfile(form: FiscalProfilePayload): FiscalProfileErrors 
   if (!form.legalName.trim()) {
     errors.legalName = 'Informe a razão social.'
   }
-  if (!form.documentNumber.trim() || onlyDigits(form.documentNumber).length !== 14) {
-    errors.documentNumber = 'Informe um CNPJ com 14 dígitos.'
+  if (!form.documentNumber.trim() || !isValidCNPJ(form.documentNumber)) {
+    errors.documentNumber = 'Informe um CNPJ válido com 14 dígitos.'
   }
-  if (!form.addressZipCode.trim() || onlyDigits(form.addressZipCode).length !== 8) {
+  if (!form.addressZipCode.trim() || !isValidCEP(form.addressZipCode)) {
     errors.addressZipCode = 'Informe um CEP com 8 dígitos.'
   }
-  if (!form.addressState.trim() || form.addressState.trim().length !== 2) {
-    errors.addressState = 'Use a sigla do estado com 2 letras.'
+  if (!form.addressState.trim() || !isValidUF(form.addressState)) {
+    errors.addressState = 'Informe uma sigla de estado válida (ex: SP, RJ).'
   }
   if (
     form.issRate != null &&
     form.issRate !== 0 &&
-    (isNaN(form.issRate) || form.issRate < 0 || form.issRate > 100)
+    (Number.isNaN(form.issRate) || form.issRate < 0 || form.issRate > 100)
   ) {
     errors.issRate = 'Informe uma alíquota válida entre 0 e 100.'
   }
@@ -57,11 +59,50 @@ type Props = {
 
 export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving }: Props) {
   const [errors, setErrors] = useState<FiscalProfileErrors>({})
+  const [isCepLookingUp, setIsCepLookingUp] = useState(false)
+  const [cepLookupError, setCepLookupError] = useState<string | null>(null)
+
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
+  const formRef = useRef(form)
+  formRef.current = form
+
+  const addressZipCode = form.addressZipCode
+  useEffect(() => {
+    if (!isValidCEP(addressZipCode)) return
+    const timer = setTimeout(async () => {
+      setIsCepLookingUp(true)
+      setCepLookupError(null)
+      try {
+        const address = await fetchAddressByCep(addressZipCode)
+        const currentForm = formRef.current
+        onChangeRef.current({
+          ...currentForm,
+          addressStreet: address.street || currentForm.addressStreet,
+          addressNeighborhood: address.neighborhood || currentForm.addressNeighborhood,
+          addressCity: address.city || currentForm.addressCity,
+          addressState: address.uf || currentForm.addressState,
+        })
+      } catch (err) {
+        setCepLookupError(
+          err instanceof CepNotFoundError
+            ? 'CEP não encontrado.'
+            : 'Não foi possível consultar o CEP.',
+        )
+      } finally {
+        setIsCepLookingUp(false)
+      }
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [addressZipCode])
 
   function handleChange(updated: FiscalProfilePayload, field?: keyof FiscalProfileErrors) {
     onChange(updated)
     if (field && field in errors) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
+    if (field === 'addressZipCode') {
+      setCepLookupError(null)
     }
   }
 
@@ -153,21 +194,33 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
             Endereço fiscal
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <FormField label="CEP" htmlFor="zipCode" error={errors.addressZipCode}>
-              <TextInput
-                id="zipCode"
-                placeholder="00000-000"
-                value={form.addressZipCode}
-                onChange={(e) =>
-                  handleChange(
-                    { ...form, addressZipCode: formatCepBR(e.target.value) },
-                    'addressZipCode',
-                  )
-                }
-                maxLength={9}
-                aria-invalid={Boolean(errors.addressZipCode)}
-                aria-describedby={errors.addressZipCode ? 'zipCode-error' : undefined}
-              />
+            <FormField
+              label="CEP"
+              htmlFor="zipCode"
+              error={errors.addressZipCode ?? cepLookupError ?? undefined}
+            >
+              <div className="relative">
+                <TextInput
+                  id="zipCode"
+                  placeholder="00000-000"
+                  value={form.addressZipCode}
+                  onChange={(e) =>
+                    handleChange(
+                      { ...form, addressZipCode: formatCepBR(e.target.value) },
+                      'addressZipCode',
+                    )
+                  }
+                  maxLength={9}
+                  aria-invalid={Boolean(errors.addressZipCode || cepLookupError)}
+                  aria-describedby={errors.addressZipCode ? 'zipCode-error' : undefined}
+                />
+                {isCepLookingUp && (
+                  <Loader2
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                )}
+              </div>
             </FormField>
             <FormField label="Rua" htmlFor="street" className="sm:col-span-2">
               <TextInput
@@ -211,10 +264,7 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
                 placeholder="SP"
                 value={form.addressState}
                 onChange={(e) =>
-                  handleChange(
-                    { ...form, addressState: formatUf(e.target.value) },
-                    'addressState',
-                  )
+                  handleChange({ ...form, addressState: formatUf(e.target.value) }, 'addressState')
                 }
                 aria-invalid={Boolean(errors.addressState)}
                 aria-describedby={errors.addressState ? 'state-error' : undefined}
@@ -248,7 +298,12 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label="Alíquota de ISS (%)" htmlFor="issRate" error={errors.issRate} optional>
+            <FormField
+              label="Alíquota de ISS (%)"
+              htmlFor="issRate"
+              error={errors.issRate}
+              optional
+            >
               <TextInput
                 id="issRate"
                 inputMode="decimal"
@@ -302,7 +357,12 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
       </p>
 
       <div className="mt-5 flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
-        <Button variant="outline" onClick={onCancel} disabled={isSaving} className="w-full sm:w-auto">
+        <Button
+          variant="outline"
+          onClick={onCancel}
+          disabled={isSaving}
+          className="w-full sm:w-auto"
+        >
           Cancelar
         </Button>
         <Button onClick={handleSubmit} disabled={isSaving} className="w-full sm:w-auto">
