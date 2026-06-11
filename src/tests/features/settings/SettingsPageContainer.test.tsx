@@ -412,6 +412,113 @@ describe('SettingsPageContainer — clinic profile save UX', () => {
   })
 })
 
+// ── Clinic profile field validation ──────────────────────────────────────────
+
+describe('SettingsPageContainer — clinic profile field validation', () => {
+  async function waitForForm() {
+    await waitFor(() => {
+      expect(document.querySelector('#clinic-name')).toBeInTheDocument()
+    })
+  }
+
+  it('shows error when name is empty on submit', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitForForm()
+    await user.clear(document.querySelector('#clinic-name')!)
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(screen.getByText('Informe o nome da clínica.')).toBeInTheDocument()
+  })
+
+  it('empty name error shows as role=alert', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitForForm()
+    await user.clear(document.querySelector('#clinic-name')!)
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+  })
+
+  it('empty name error marks input aria-invalid', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitForForm()
+    await user.clear(document.querySelector('#clinic-name')!)
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(document.querySelector('#clinic-name')).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('shows error for invalid email on submit', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitForForm()
+    await user.clear(document.querySelector('#clinic-email')!)
+    await user.type(document.querySelector('#clinic-email')!, 'not-an-email')
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(screen.getByText('Informe um e-mail válido.')).toBeInTheDocument()
+  })
+
+  it('shows error for invalid URL on submit', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitForForm()
+    await user.type(document.querySelector('#clinic-website')!, 'www.sem-protocolo.com')
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(screen.getByText(/URL válida.*https/i)).toBeInTheDocument()
+  })
+
+  it('shows error for UF with 1 letter on submit', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitForForm()
+    await user.type(document.querySelector('#clinic-state')!, 'S')
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(screen.getByText('Use a sigla do estado com 2 letras.')).toBeInTheDocument()
+  })
+
+  it('shows error for CEP with fewer than 8 digits on submit', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitForForm()
+    await user.type(document.querySelector('#clinic-cep')!, '123')
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(screen.getByText('Informe um CEP com 8 dígitos.')).toBeInTheDocument()
+  })
+
+  it('does not call save when validation fails', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitForForm()
+    await user.clear(document.querySelector('#clinic-name')!)
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(mockUpdateClinicProfile).not.toHaveBeenCalled()
+  })
+
+  it('valid submit still calls save with name in payload', async () => {
+    mockUpdateClinicProfile.mockResolvedValue(makeClinicProfile())
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitForForm()
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    await waitFor(() => {
+      expect(mockUpdateClinicProfile).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Clínica Teste' }),
+      )
+    })
+  })
+
+  it('clearing name error after typing a valid name', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitForForm()
+    await user.clear(document.querySelector('#clinic-name')!)
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+    expect(screen.getByText('Informe o nome da clínica.')).toBeInTheDocument()
+    await user.type(document.querySelector('#clinic-name')!, 'Nova Clínica')
+    expect(screen.queryByText('Informe o nome da clínica.')).not.toBeInTheDocument()
+  })
+})
+
 // ── Security compliance section ───────────────────────────────────────────────
 
 describe('SettingsPageContainer — security compliance section', () => {

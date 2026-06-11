@@ -98,6 +98,43 @@ function LinkRow({
   )
 }
 
+type ClinicProfileErrors = {
+  name?: string
+  email?: string
+  websiteUrl?: string
+  state?: string
+  postalCode?: string
+}
+
+function validateClinicProfile(form: {
+  name: string
+  email: string
+  websiteUrl: string
+  state: string
+  postalCode: string
+}): ClinicProfileErrors {
+  const errors: ClinicProfileErrors = {}
+  if (!form.name.trim()) {
+    errors.name = 'Informe o nome da clínica.'
+  }
+  if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    errors.email = 'Informe um e-mail válido.'
+  }
+  if (
+    form.websiteUrl.trim() &&
+    !/^https?:\/\/.+/.test(form.websiteUrl.trim())
+  ) {
+    errors.websiteUrl = 'Informe uma URL válida, começando com https://.'
+  }
+  if (form.state.trim() && form.state.trim().length !== 2) {
+    errors.state = 'Use a sigla do estado com 2 letras.'
+  }
+  if (form.postalCode.trim() && onlyDigits(form.postalCode).length !== 8) {
+    errors.postalCode = 'Informe um CEP com 8 dígitos.'
+  }
+  return errors
+}
+
 function ClinicProfileSection() {
   const { profile, isLoading, error, save, isSaving, saveError } = useClinicProfile()
   const { showAlert } = useGlobalAlerts()
@@ -113,6 +150,8 @@ function ClinicProfileSection() {
     state: '',
     postalCode: '',
   })
+
+  const [errors, setErrors] = useState<ClinicProfileErrors>({})
 
   useEffect(() => {
     if (profile) {
@@ -132,10 +171,19 @@ function ClinicProfileSection() {
 
   function set(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
+    if (field in errors) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    const fieldErrors = validateClinicProfile(form)
+    if (Object.keys(fieldErrors).length > 0) {
+      setErrors(fieldErrors)
+      return
+    }
+    setErrors({})
     const payload: UpdateClinicProfilePayload = {}
     if (form.name.trim()) payload.name = form.name.trim()
     if (form.email.trim()) payload.email = form.email.trim()
@@ -170,31 +218,39 @@ function ClinicProfileSection() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} noValidate className="space-y-6">
       {/* Dados de contato */}
       <div className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Dados de contato
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Nome da clínica" htmlFor="clinic-name" className="sm:col-span-2">
+          <FormField
+            label="Nome da clínica"
+            htmlFor="clinic-name"
+            error={errors.name}
+            className="sm:col-span-2"
+          >
             <TextInput
               id="clinic-name"
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
               placeholder="Ex: Odonto Saúde"
-              required
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? 'clinic-name-error' : undefined}
               disabled={isSaving}
             />
           </FormField>
 
-          <FormField label="E-mail" htmlFor="clinic-email" optional>
+          <FormField label="E-mail" htmlFor="clinic-email" error={errors.email} optional>
             <TextInput
               id="clinic-email"
               type="email"
               value={form.email}
               onChange={(e) => set('email', e.target.value)}
               placeholder="contato@clinica.com.br"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? 'clinic-email-error' : undefined}
               disabled={isSaving}
             />
           </FormField>
@@ -209,13 +265,21 @@ function ClinicProfileSection() {
             />
           </FormField>
 
-          <FormField label="Site" htmlFor="clinic-website" optional className="sm:col-span-2">
+          <FormField
+            label="Site"
+            htmlFor="clinic-website"
+            error={errors.websiteUrl}
+            optional
+            className="sm:col-span-2"
+          >
             <TextInput
               id="clinic-website"
               type="url"
               value={form.websiteUrl}
               onChange={(e) => set('websiteUrl', e.target.value)}
               placeholder="https://www.clinica.com.br"
+              aria-invalid={Boolean(errors.websiteUrl)}
+              aria-describedby={errors.websiteUrl ? 'clinic-website-error' : undefined}
               disabled={isSaving}
             />
           </FormField>
@@ -259,23 +323,27 @@ function ClinicProfileSection() {
           </FormField>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="UF" htmlFor="clinic-state" optional>
+            <FormField label="UF" htmlFor="clinic-state" error={errors.state} optional>
               <TextInput
                 id="clinic-state"
                 value={form.state}
                 onChange={(e) => set('state', formatUf(e.target.value))}
                 placeholder="SP"
                 maxLength={2}
+                aria-invalid={Boolean(errors.state)}
+                aria-describedby={errors.state ? 'clinic-state-error' : undefined}
                 disabled={isSaving}
               />
             </FormField>
 
-            <FormField label="CEP" htmlFor="clinic-cep" optional>
+            <FormField label="CEP" htmlFor="clinic-cep" error={errors.postalCode} optional>
               <TextInput
                 id="clinic-cep"
                 value={form.postalCode}
                 onChange={(e) => set('postalCode', formatCepBR(e.target.value))}
                 placeholder="00000-000"
+                aria-invalid={Boolean(errors.postalCode)}
+                aria-describedby={errors.postalCode ? 'clinic-cep-error' : undefined}
                 disabled={isSaving}
               />
             </FormField>

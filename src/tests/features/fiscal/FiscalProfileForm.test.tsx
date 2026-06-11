@@ -248,11 +248,26 @@ describe('FiscalProfileForm — actions', () => {
     expect(container.querySelector('.animate-spin')).not.toBeInTheDocument()
   })
 
-  it('calls onSubmit when submit button is clicked', () => {
+  it('calls onSubmit when all required fields are valid', () => {
+    const onSubmit = vi.fn()
+    renderForm({
+      onSubmit,
+      form: makeForm({
+        legalName: 'Clínica Ltda',
+        documentNumber: '12.345.678/0001-90',
+        addressZipCode: '01310-100',
+        addressState: 'SP',
+      }),
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
+
+  it('does not call onSubmit when required fields are empty', () => {
     const onSubmit = vi.fn()
     renderForm({ onSubmit })
     fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
-    expect(onSubmit).toHaveBeenCalledOnce()
+    expect(onSubmit).not.toHaveBeenCalled()
   })
 
   it('calls onCancel when cancel button is clicked', () => {
@@ -271,5 +286,80 @@ describe('FiscalProfileForm — actions', () => {
     renderForm()
     const btn = screen.getByRole('button', { name: /Salvar dados fiscais/ })
     expect(btn.className).toContain('w-full')
+  })
+})
+
+// ── Field validation ──────────────────────────────────────────────────────────
+
+describe('FiscalProfileForm — field validation', () => {
+  function clickSave() {
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+  }
+
+  it('shows "Informe a razão social." when legalName is empty', () => {
+    renderForm()
+    clickSave()
+    expect(screen.getByText('Informe a razão social.')).toBeInTheDocument()
+  })
+
+  it('shows "Informe um CNPJ com 14 dígitos." when documentNumber is empty', () => {
+    renderForm()
+    clickSave()
+    expect(screen.getByText('Informe um CNPJ com 14 dígitos.')).toBeInTheDocument()
+  })
+
+  it('shows "Informe um CNPJ com 14 dígitos." when documentNumber has fewer digits', () => {
+    renderForm({ form: makeForm({ documentNumber: '12.345.678/0001' }) })
+    clickSave()
+    expect(screen.getByText('Informe um CNPJ com 14 dígitos.')).toBeInTheDocument()
+  })
+
+  it('shows "Informe um CEP com 8 dígitos." when zip is empty', () => {
+    renderForm()
+    clickSave()
+    expect(screen.getByText('Informe um CEP com 8 dígitos.')).toBeInTheDocument()
+  })
+
+  it('shows "Informe um CEP com 8 dígitos." when zip has fewer digits', () => {
+    renderForm({ form: makeForm({ addressZipCode: '01310' }) })
+    clickSave()
+    expect(screen.getByText('Informe um CEP com 8 dígitos.')).toBeInTheDocument()
+  })
+
+  it('shows "Use a sigla do estado com 2 letras." when state is empty', () => {
+    renderForm()
+    clickSave()
+    expect(screen.getByText('Use a sigla do estado com 2 letras.')).toBeInTheDocument()
+  })
+
+  it('shows "Use a sigla do estado com 2 letras." when state has 1 letter', () => {
+    renderForm({ form: makeForm({ addressState: 'S' }) })
+    clickSave()
+    expect(screen.getByText('Use a sigla do estado com 2 letras.')).toBeInTheDocument()
+  })
+
+  it('shows issRate error for value outside 0-100 range', () => {
+    renderForm({ form: makeForm({ issRate: 150 }) })
+    clickSave()
+    expect(screen.getByText(/alíquota válida/i)).toBeInTheDocument()
+  })
+
+  it('error messages render as role=alert', () => {
+    renderForm()
+    clickSave()
+    const alerts = screen.getAllByRole('alert')
+    expect(alerts.length).toBeGreaterThan(0)
+  })
+
+  it('invalid legalName input has aria-invalid=true', () => {
+    renderForm()
+    clickSave()
+    expect(screen.getByLabelText('Razão social')).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('invalid CNPJ input has aria-invalid=true', () => {
+    renderForm()
+    clickSave()
+    expect(screen.getByLabelText('CNPJ')).toHaveAttribute('aria-invalid', 'true')
   })
 })
