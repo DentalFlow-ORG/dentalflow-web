@@ -1,8 +1,7 @@
-import { KeyRound, Pencil, Plus, Trash2, Users } from 'lucide-react'
+import { Building2, KeyRound, Pencil, Plus, Shield, Trash2, UserCheck, Users } from 'lucide-react'
 import type { ComponentProps } from 'react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { EmptyState } from '@/components/common/EmptyState'
 import { FilteredEmptyState } from '@/components/common/FilteredEmptyState'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { ListToolbar } from '@/components/common/ListToolbar'
@@ -10,8 +9,11 @@ import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
+import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
+import { HomeSection } from '@/features/home/components/HomeSection'
 
 import { UserFormModal } from '../components/UserFormModal'
 import { UserPasswordModal } from '../components/UserPasswordModal'
@@ -136,12 +138,12 @@ export function AdminUsersPageContainer() {
   } = useAdminUsersPage()
 
   return (
-    <AppPage>
-      <AppPageHeader
+    <AppPage spacing="loose">
+      <HomeDashboardHeader
         eyebrow="Administração"
         title="Usuários da plataforma"
         description="Gerencie todos os usuários cadastrados, independentemente da clínica."
-        action={
+        actions={
           <Button onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4" aria-hidden="true" />
             Novo usuário
@@ -149,177 +151,213 @@ export function AdminUsersPageContainer() {
         }
       />
 
-      <ListPageShell
-        isLoading={isLoading}
-        loadingMessage="Carregando usuários..."
-        error={loadError}
-        onRetry={load}
-        isEmpty={allUsers.length === 0}
-        emptyState={
-          <EmptyState
-            icon={Users}
-            title="Nenhum usuário encontrado"
-            description="Adicione o primeiro usuário à plataforma."
-            action={
-              <Button onClick={() => setCreateOpen(true)}>
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                Novo usuário
-              </Button>
-            }
-          />
-        }
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <HomeKpiCard
+          label="Total usuários"
+          value={String(allUsers.length)}
+          icon={Users}
+          tone="primary"
+          isLoading={isLoading}
+        />
+        <HomeKpiCard
+          label="Ativos"
+          value={String(allUsers.filter((u) => u.isActive).length)}
+          icon={UserCheck}
+          tone="success"
+          isLoading={isLoading}
+        />
+        <HomeKpiCard
+          label="Administradores"
+          value={String(allUsers.filter((u) => u.role === 'ADMIN').length)}
+          icon={Shield}
+          tone="neutral"
+          isLoading={isLoading}
+        />
+        <HomeKpiCard
+          label="Proprietários"
+          value={String(allUsers.filter((u) => u.role === 'OWNER').length)}
+          icon={Building2}
+          tone="info"
+          isLoading={isLoading}
+        />
+      </div>
+
+      <HomeSection
+        title="Usuários cadastrados"
+        description="Pesquise e filtre todos os usuários da plataforma."
       >
-        <div className="space-y-4">
-          <ListToolbar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            searchPlaceholder="Pesquisar por nome ou e-mail..."
-            filterDefs={filterDefs}
-            activeFilters={activeFilters}
-            onFilterChange={setFilter}
-            onClearAll={clearAll}
-            filteredCount={filteredCount}
-            totalCount={allUsers.length}
-          />
+        <ListPageShell
+          isLoading={isLoading}
+          loadingMessage="Carregando usuários..."
+          error={loadError}
+          onRetry={load}
+          isEmpty={allUsers.length === 0}
+          emptyState={
+            <HomeEmptyState
+              icon={Users}
+              title="Nenhum usuário encontrado"
+              description="Adicione o primeiro usuário à plataforma."
+              action={
+                <Button onClick={() => setCreateOpen(true)}>
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  Novo usuário
+                </Button>
+              }
+            />
+          }
+        >
+          <div className="space-y-4">
+            <ListToolbar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              searchPlaceholder="Pesquisar por nome ou e-mail..."
+              filterDefs={filterDefs}
+              activeFilters={activeFilters}
+              onFilterChange={setFilter}
+              onClearAll={clearAll}
+              filteredCount={filteredCount}
+              totalCount={allUsers.length}
+            />
 
-          {filteredCount === 0 ? (
-            <FilteredEmptyState icon={Users} onClear={clearAll} />
-          ) : (
-            <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-              <div className="space-y-3 p-3 md:hidden">
-                {users.map((user) => (
-                  <AdminUserMobileCard
-                    key={user.id}
-                    user={user}
-                    roleLabel={roleLabel}
-                    roleTone={roleTone}
-                    formatDate={formatDate}
-                    onEdit={setEditTarget}
-                    onPassword={setPasswordTarget}
-                    onDeactivate={setDeleteTarget}
-                  />
-                ))}
-              </div>
-
-              <div className="hidden md:block">
-                <table className="w-full text-sm" aria-label="Usuários da plataforma">
-                  <thead>
-                    <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      <th scope="col" className="px-4 py-3">
-                        Usuário
-                      </th>
-                      <th scope="col" className="px-4 py-3">
-                        Papel
-                      </th>
-                      <th scope="col" className="hidden px-4 py-3 md:table-cell">
-                        Clínica
-                      </th>
-                      <th scope="col" className="px-4 py-3">
-                        Status
-                      </th>
-                      <th scope="col" className="hidden px-4 py-3 lg:table-cell">
-                        Criado em
-                      </th>
-                      <th scope="col" className="px-4 py-3 text-right">
-                        Ações
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
+            {filteredCount === 0 ? (
+              <FilteredEmptyState icon={Users} onClear={clearAll} />
+            ) : (
+              <div className="space-y-4">
+                <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                  <div className="space-y-3 p-3 md:hidden">
                     {users.map((user) => (
-                      <tr
+                      <AdminUserMobileCard
                         key={user.id}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`Editar ${user.firstName} ${user.lastName}`}
-                        className="cursor-pointer transition-colors hover:bg-muted/60 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-                        onClick={() => setEditTarget(user)}
-                        onKeyDown={(event) => {
-                          if (event.target !== event.currentTarget) return
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault()
-                            setEditTarget(user)
-                          }
-                        }}
-                      >
-                        <td className="px-4 py-3">
-                          <p className="font-semibold text-foreground">
-                            {user.firstName} {user.lastName}
-                          </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{user.email}</p>
-                        </td>
-                        <td className="px-4 py-3">
-                          <StatusBadge tone={roleTone[user.role]}>
-                            {roleLabel[user.role]}
-                          </StatusBadge>
-                        </td>
-                        <td className="hidden px-4 py-3 md:table-cell">
-                          {user.clinic ? (
-                            <span className="text-sm text-foreground">{user.clinic.name}</span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          <StatusBadge tone={user.isActive ? 'success' : 'muted'}>
-                            {user.isActive ? 'Ativo' : 'Inativo'}
-                          </StatusBadge>
-                        </td>
-                        <td className="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell">
-                          {formatDate(user.createdAt)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div
-                            className="flex items-center justify-end gap-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Button
-                              size="icon-sm"
-                              variant="ghost"
-                              aria-label={`Editar ${user.firstName} ${user.lastName}`}
-                              title="Editar"
-                              onClick={() => setEditTarget(user)}
-                            >
-                              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                            </Button>
-                            <Button
-                              size="icon-sm"
-                              variant="ghost"
-                              aria-label={`Redefinir senha de ${user.firstName} ${user.lastName}`}
-                              title="Redefinir senha"
-                              onClick={() =>
-                                setPasswordTarget({
-                                  id: user.id,
-                                  name: `${user.firstName} ${user.lastName}`,
-                                })
-                              }
-                            >
-                              <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
-                            </Button>
-                            <Button
-                              size="icon-sm"
-                              variant="ghost"
-                              aria-label={`Desativar ${user.firstName} ${user.lastName}`}
-                              title="Desativar"
-                              className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/40 dark:hover:text-red-300"
-                              onClick={() =>
-                                setDeleteTarget({
-                                  id: user.id,
-                                  name: `${user.firstName} ${user.lastName}`,
-                                })
-                              }
-                            >
-                              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
+                        user={user}
+                        roleLabel={roleLabel}
+                        roleTone={roleTone}
+                        formatDate={formatDate}
+                        onEdit={setEditTarget}
+                        onPassword={setPasswordTarget}
+                        onDeactivate={setDeleteTarget}
+                      />
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
 
-              <div className="border-t border-border px-4 py-3">
+                  <div className="hidden md:block">
+                    <table className="w-full text-sm" aria-label="Usuários da plataforma">
+                      <thead>
+                        <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          <th scope="col" className="px-4 py-3">
+                            Usuário
+                          </th>
+                          <th scope="col" className="px-4 py-3">
+                            Papel
+                          </th>
+                          <th scope="col" className="hidden px-4 py-3 md:table-cell">
+                            Clínica
+                          </th>
+                          <th scope="col" className="px-4 py-3">
+                            Status
+                          </th>
+                          <th scope="col" className="hidden px-4 py-3 lg:table-cell">
+                            Criado em
+                          </th>
+                          <th scope="col" className="px-4 py-3 text-right">
+                            Ações
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {users.map((user) => (
+                          <tr
+                            key={user.id}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Editar ${user.firstName} ${user.lastName}`}
+                            className="cursor-pointer transition-colors hover:bg-muted/60 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                            onClick={() => setEditTarget(user)}
+                            onKeyDown={(event) => {
+                              if (event.target !== event.currentTarget) return
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault()
+                                setEditTarget(user)
+                              }
+                            }}
+                          >
+                            <td className="px-4 py-3">
+                              <p className="font-semibold text-foreground">
+                                {user.firstName} {user.lastName}
+                              </p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">{user.email}</p>
+                            </td>
+                            <td className="px-4 py-3">
+                              <StatusBadge tone={roleTone[user.role]}>
+                                {roleLabel[user.role]}
+                              </StatusBadge>
+                            </td>
+                            <td className="hidden px-4 py-3 md:table-cell">
+                              {user.clinic ? (
+                                <span className="text-sm text-foreground">{user.clinic.name}</span>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <StatusBadge tone={user.isActive ? 'success' : 'muted'}>
+                                {user.isActive ? 'Ativo' : 'Inativo'}
+                              </StatusBadge>
+                            </td>
+                            <td className="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell">
+                              {formatDate(user.createdAt)}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div
+                                className="flex items-center justify-end gap-1"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Button
+                                  size="icon-sm"
+                                  variant="ghost"
+                                  aria-label={`Editar ${user.firstName} ${user.lastName}`}
+                                  title="Editar"
+                                  onClick={() => setEditTarget(user)}
+                                >
+                                  <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                                </Button>
+                                <Button
+                                  size="icon-sm"
+                                  variant="ghost"
+                                  aria-label={`Redefinir senha de ${user.firstName} ${user.lastName}`}
+                                  title="Redefinir senha"
+                                  onClick={() =>
+                                    setPasswordTarget({
+                                      id: user.id,
+                                      name: `${user.firstName} ${user.lastName}`,
+                                    })
+                                  }
+                                >
+                                  <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
+                                </Button>
+                                <Button
+                                  size="icon-sm"
+                                  variant="ghost"
+                                  aria-label={`Desativar ${user.firstName} ${user.lastName}`}
+                                  title="Desativar"
+                                  className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/40 dark:hover:text-red-300"
+                                  onClick={() =>
+                                    setDeleteTarget({
+                                      id: user.id,
+                                      name: `${user.firstName} ${user.lastName}`,
+                                    })
+                                  }
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
                 <Pagination
                   page={page}
                   totalPages={totalPages}
@@ -329,10 +367,10 @@ export function AdminUsersPageContainer() {
                   onPageSizeChange={setPageSize}
                 />
               </div>
-            </div>
-          )}
-        </div>
-      </ListPageShell>
+            )}
+          </div>
+        </ListPageShell>
+      </HomeSection>
 
       <UserFormModal
         open={createOpen}
