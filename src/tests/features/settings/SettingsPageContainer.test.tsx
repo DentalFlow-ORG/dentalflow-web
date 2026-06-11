@@ -474,3 +474,88 @@ describe('SettingsPageContainer — security compliance section', () => {
     expect(label.className).toMatch(/truncate/)
   })
 })
+
+// ── Google Agenda section ─────────────────────────────────────────────────────
+
+describe('SettingsPageContainer — Google Agenda section identity', () => {
+  it('renders "Google Agenda" label', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText('Google Agenda')).toBeInTheDocument()
+  })
+
+  it('renders "Integração de calendário" subtitle', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText('Integração de calendário')).toBeInTheDocument()
+  })
+
+  it('disconnected description mentions "reduzir conflitos"', async () => {
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText(/reduzir conflitos/i)).toBeInTheDocument()
+    })
+  })
+
+  it('connected description mentions "sincronização"', async () => {
+    mockGetGoogleCalendarStatus.mockResolvedValue(makeConnectedCalendarStatus())
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText(/sincronização dos compromissos/i)).toBeInTheDocument()
+    })
+  })
+
+  it('shows "Conectado" badge when connected', async () => {
+    mockGetGoogleCalendarStatus.mockResolvedValue(makeConnectedCalendarStatus())
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Conectado')).toBeInTheDocument()
+    })
+  })
+
+  it('does not show "Conectado" badge when disconnected', async () => {
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.queryByText('Conectado')).not.toBeInTheDocument()
+    })
+  })
+})
+
+// ── IA e Limites section ──────────────────────────────────────────────────────
+
+describe('SettingsPageContainer — IA e Limites section', () => {
+  it('renders intro copy about accelerating analyses', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText(/acelerar análises/i)).toBeInTheDocument()
+  })
+
+  it('renders "Uso consciente" trust card', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText('Uso consciente')).toBeInTheDocument()
+  })
+
+  it('renders "Diagnósticos por contexto" trust card', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText('Diagnósticos por contexto')).toBeInTheDocument()
+  })
+
+  it('renders "Controle de custos" trust card', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText('Controle de custos')).toBeInTheDocument()
+  })
+
+  it('renders "Onde a IA é usada" sub-header', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText(/onde a ia é usada/i)).toBeInTheDocument()
+  })
+
+  it('"Abrir análise financeira" link points to /app/financeiro', () => {
+    render(<SettingsPageContainer />)
+    const link = screen.getByRole('link', { name: /abrir análise financeira/i })
+    expect(link).toHaveAttribute('href', '/app/financeiro')
+  })
+
+  it('"Abrir análise de estoque" link points to /app/estoque', () => {
+    render(<SettingsPageContainer />)
+    const link = screen.getByRole('link', { name: /abrir análise de estoque/i })
+    expect(link).toHaveAttribute('href', '/app/estoque')
+  })
+})

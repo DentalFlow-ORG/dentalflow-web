@@ -6,7 +6,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20 dark:hover:shadow-lg dark:hover:shadow-primary/35",
+          "bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary/80 hover:shadow-md hover:shadow-primary/30 hover:-translate-y-px dark:hover:bg-primary/85 dark:hover:shadow-xl dark:hover:shadow-primary/45",
         dangerGhost:
           "text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/40 dark:hover:text-red-300",
         outline:
@@ -18,7 +18,7 @@ export const buttonVariants = cva(
         ghost:
           "text-muted-foreground hover:bg-muted hover:text-primary aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted dark:hover:text-foreground",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/40 dark:focus-visible:ring-destructive/40",
+          "bg-destructive/10 text-destructive hover:bg-destructive/25 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/45 dark:focus-visible:ring-destructive/40",
         link: "h-auto rounded-none border-0 px-0 py-0 text-primary underline-offset-4 hover:underline",
         inverse:
           "border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/40",

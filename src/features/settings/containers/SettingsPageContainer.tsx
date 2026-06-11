@@ -2,11 +2,13 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   ArrowRight,
+  BarChart2,
   Bell,
   Bot,
   Calendar,
   CalendarCheck2,
   CreditCard,
+  DollarSign,
   ExternalLink,
   FileText,
   KeyRound,
@@ -375,23 +377,6 @@ function CalendarSection() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        className="flex items-center gap-2 text-sm text-muted-foreground"
-      >
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-        Verificando integração...
-      </div>
-    )
-  }
-
-  if (loadError) {
-    return <InlineFeedback tone="error">{loadError}</InlineFeedback>
-  }
-
   const connected = status?.connected ?? false
 
   return (
@@ -408,70 +393,95 @@ function CalendarSection() {
       />
 
       <div className="space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <div
-              className={
-                connected
-                  ? 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
-                  : 'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground'
-              }
-            >
-              <CalendarCheck2 className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">
-                {connected ? status?.calendarSummary ?? 'Conectado' : 'Não conectado'}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">
-                {connected
-                  ? `Conectado em ${status?.connectedAt ? new Date(status.connectedAt).toLocaleDateString('pt-BR') : '—'}`
-                  : 'Sincronize consultas com o Google Agenda.'}
-              </p>
+        {/* Integration identity header — always rendered */}
+        <div className="flex items-center gap-3 border-b border-border pb-4">
+          <div className="flex h-9 w-9 shrink-0 flex-col overflow-hidden rounded-lg border border-border shadow-sm">
+            <div className="h-2.5 bg-[#4285F4]" />
+            <div className="flex flex-1 items-center justify-center bg-white dark:bg-card">
+              <CalendarCheck2 className="h-3.5 w-3.5 text-[#4285F4]" aria-hidden="true" />
             </div>
           </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row">
-            {connected ? (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={isActing}
-                  onClick={handleSync}
-                >
-                  {isActing ? (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
-                  )}
-                  Sincronizar
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={isActing}
-                  onClick={() => setShowDisconnectDialog(true)}
-                >
-                  <Unlink className="h-4 w-4" aria-hidden="true" />
-                  Desconectar
-                </Button>
-              </>
-            ) : (
-              <Button size="sm" disabled={isActing} onClick={handleConnect}>
-                {isActing ? (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                ) : (
-                  <Calendar className="h-4 w-4" aria-hidden="true" />
-                )}
-                Conectar Google Agenda
-              </Button>
-            )}
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground">Google Agenda</p>
+            <p className="text-xs text-muted-foreground">Integração de calendário</p>
           </div>
+          {connected && (
+            <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/40 dark:text-green-300">
+              Conectado
+            </span>
+          )}
         </div>
 
-        {syncMessage && <InlineFeedback tone="success">{syncMessage}</InlineFeedback>}
-        {actionError && <InlineFeedback tone="error">{actionError}</InlineFeedback>}
+        {isLoading ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 text-sm text-muted-foreground"
+          >
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            Verificando integração...
+          </div>
+        ) : loadError ? (
+          <InlineFeedback tone="error">{loadError}</InlineFeedback>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {connected ? status?.calendarSummary ?? 'Conectado' : 'Não conectado'}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {connected
+                      ? 'Google Agenda conectado para sincronização dos compromissos da clínica.'
+                      : 'Conecte o Google Agenda para sincronizar eventos e reduzir conflitos de agenda.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 sm:flex-row">
+                {connected ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isActing}
+                      onClick={handleSync}
+                    >
+                      {isActing ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                      )}
+                      Sincronizar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isActing}
+                      onClick={() => setShowDisconnectDialog(true)}
+                    >
+                      <Unlink className="h-4 w-4" aria-hidden="true" />
+                      Desconectar
+                    </Button>
+                  </>
+                ) : (
+                  <Button size="sm" disabled={isActing} onClick={handleConnect}>
+                    {isActing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Calendar className="h-4 w-4" aria-hidden="true" />
+                    )}
+                    Conectar Google Agenda
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {syncMessage && <InlineFeedback tone="success">{syncMessage}</InlineFeedback>}
+            {actionError && <InlineFeedback tone="error">{actionError}</InlineFeedback>}
+          </>
+        )}
       </div>
     </>
   )
@@ -635,37 +645,53 @@ export function SettingsPageContainer() {
 
         <SettingsPanelSection title="IA e Limites">
           <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
-                <Bot className="h-4 w-4" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-foreground">Análise por IA</p>
-                <p className="text-xs leading-5 text-muted-foreground">
-                  A DentalFlow usa IA para gerar análises financeiras e de estoque com base nos dados
-                  da clínica. Nenhum dado clínico é incluído nas análises.
-                </p>
-              </div>
+            <p className="text-sm text-muted-foreground">
+              A IA ajuda a acelerar análises, mas cada execução consome recursos. Use diagnósticos
+              quando houver dados novos ou decisões importantes a tomar.
+            </p>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <TrustCard
+                icon={Bot}
+                title="Uso consciente"
+                description="Evite gerar análises repetidas sem mudança nos dados."
+              />
+              <TrustCard
+                icon={BarChart2}
+                title="Diagnósticos por contexto"
+                description="Financeiro e estoque devem ser analisados quando houver movimentações relevantes."
+              />
+              <TrustCard
+                icon={DollarSign}
+                title="Controle de custos"
+                description="Limites e mensagens educativas ajudam a reduzir uso desnecessário, mesmo em planos premium."
+              />
             </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Link
-                to="/app/financeiro"
-                hash="ai-analysis"
-                className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm transition-colors hover:bg-muted"
-              >
-                <Landmark className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <span className="font-medium text-foreground">Análise financeira</span>
-                <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-              </Link>
-              <Link
-                to="/app/estoque"
-                hash="inventory-ai-analysis"
-                className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm transition-colors hover:bg-muted"
-              >
-                <Package className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <span className="font-medium text-foreground">Análise de estoque</span>
-                <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-              </Link>
+
+            <div className="border-t border-border pt-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Onde a IA é usada
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Link
+                  to="/app/financeiro"
+                  hash="ai-analysis"
+                  className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm transition-colors hover:bg-muted"
+                >
+                  <Landmark className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <span className="font-medium text-foreground">Abrir análise financeira</span>
+                  <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                </Link>
+                <Link
+                  to="/app/estoque"
+                  hash="inventory-ai-analysis"
+                  className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm transition-colors hover:bg-muted"
+                >
+                  <Package className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <span className="font-medium text-foreground">Abrir análise de estoque</span>
+                  <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                </Link>
+              </div>
             </div>
           </div>
         </SettingsPanelSection>
