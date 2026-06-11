@@ -547,9 +547,14 @@ describe('SettingsPageContainer — IA e Limites section', () => {
     expect(screen.getByText('Como controlamos custos')).toBeInTheDocument()
   })
 
-  it('renders "Atalhos de análise" sub-header', () => {
+  it('renders "Atalhos para executar análises" sub-header', () => {
     render(<SettingsPageContainer />)
-    expect(screen.getByText(/atalhos de análise/i)).toBeInTheDocument()
+    expect(screen.getByText(/atalhos para executar análises/i)).toBeInTheDocument()
+  })
+
+  it('renders explanatory sentence clarifying this section does not execute AI directly', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText(/não executa a IA diretamente/i)).toBeInTheDocument()
   })
 
   it('"Abrir análise financeira" link points to /app/financeiro', () => {

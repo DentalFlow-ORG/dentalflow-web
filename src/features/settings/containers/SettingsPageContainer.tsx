@@ -82,7 +82,7 @@ function LinkRow({
   return (
     <Link
       to={to}
-      className="flex items-center justify-between gap-4 rounded-md px-1 py-2 transition-colors hover:bg-muted"
+      className="flex items-center justify-between gap-4 rounded-md px-1 py-2 transition-all hover:bg-primary/5 dark:hover:bg-white/[0.06]"
     >
       <div className="flex min-w-0 items-center gap-3">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
@@ -398,15 +398,15 @@ function CalendarSection() {
           {/* Google Calendar-inspired tile: blue header + color dots + date number */}
           <div
             aria-hidden="true"
-            className="flex h-10 w-10 shrink-0 flex-col overflow-hidden rounded-xl border border-[#e8eaed] shadow-sm dark:border-border"
+            className="flex h-10 w-10 shrink-0 flex-col overflow-hidden rounded-xl border border-[#e8eaed] shadow-sm dark:border-white/10"
           >
-            <div className="flex h-4 shrink-0 items-center justify-center gap-0.5 bg-[#4285F4]">
-              <div className="h-1.5 w-1.5 rounded-full bg-[#EA4335]" />
-              <div className="h-1.5 w-1.5 rounded-full bg-[#FBBC05]" />
-              <div className="h-1.5 w-1.5 rounded-full bg-[#34A853]" />
+            <div className="flex h-4 shrink-0 items-center justify-center gap-0.5 bg-[#4285F4] dark:bg-[#1d3461]">
+              <div className="h-1.5 w-1.5 rounded-full bg-[#EA4335] dark:bg-[#f87171]" />
+              <div className="h-1.5 w-1.5 rounded-full bg-[#FBBC05] dark:bg-[#fbbf24]" />
+              <div className="h-1.5 w-1.5 rounded-full bg-[#34A853] dark:bg-[#34d399]" />
             </div>
-            <div className="flex flex-1 items-center justify-center bg-white dark:bg-neutral-100">
-              <span className="text-[13px] font-bold leading-none text-[#4285F4]">31</span>
+            <div className="flex flex-1 items-center justify-center bg-white dark:bg-[#1a2236]">
+              <span className="text-[13px] font-bold leading-none text-[#4285F4] dark:text-[#60a5fa]">31</span>
             </div>
           </div>
           <div className="min-w-0 flex-1">
@@ -661,6 +661,11 @@ export function SettingsPageContainer() {
             </div>
 
             <p className="text-sm text-muted-foreground">
+              Esta seção não executa a IA diretamente. Ela mostra onde os recursos de IA são usados
+              e orienta a clínica a evitar análises repetidas que consomem processamento sem
+              necessidade.
+            </p>
+            <p className="text-sm text-muted-foreground">
               A IA do DentalFlow gera diagnósticos em áreas como financeiro e estoque. Cada análise
               consome recursos de processamento, por isso a plataforma orienta o uso quando houver
               dados novos, mudanças relevantes ou decisões importantes.
@@ -686,13 +691,13 @@ export function SettingsPageContainer() {
 
             <div className="border-t border-border pt-3">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Atalhos de análise
+                Atalhos para executar análises
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <Link
                   to="/app/financeiro"
                   hash="ai-analysis"
-                  className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm transition-colors hover:bg-muted"
+                  className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm transition-all hover:border-primary/20 hover:bg-primary/5 dark:hover:border-white/10 dark:hover:bg-white/[0.06]"
                 >
                   <Landmark className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   <span className="font-medium text-foreground">Abrir análise financeira</span>
@@ -701,7 +706,7 @@ export function SettingsPageContainer() {
                 <Link
                   to="/app/estoque"
                   hash="inventory-ai-analysis"
-                  className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm transition-colors hover:bg-muted"
+                  className="flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm transition-all hover:border-primary/20 hover:bg-primary/5 dark:hover:border-white/10 dark:hover:bg-white/[0.06]"
                 >
                   <Package className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   <span className="font-medium text-foreground">Abrir análise de estoque</span>
@@ -749,7 +754,7 @@ export function SettingsPageContainer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-2 rounded-md px-1 py-2 text-sm text-foreground transition-colors hover:bg-muted"
+                  className="flex items-center justify-between gap-2 rounded-md px-1 py-2 text-sm text-foreground transition-all hover:bg-primary/5 dark:hover:bg-white/[0.06]"
                 >
                   <span className="min-w-0 truncate">{label}</span>
                   <ExternalLink

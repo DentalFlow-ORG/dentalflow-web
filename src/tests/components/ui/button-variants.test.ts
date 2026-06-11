@@ -1,50 +1,56 @@
 import { buttonVariants } from '@/components/ui/button-variants'
 
-describe('buttonVariants — default', () => {
+describe('buttonVariants — default (solid premium style)', () => {
   const cls = buttonVariants({ variant: 'default' })
 
-  it('includes text-primary-foreground', () => {
+  it('is solid: includes bg-primary (no gradient)', () => {
+    expect(cls).toContain('bg-primary')
+    expect(cls).not.toContain('bg-gradient-to-b')
+    expect(cls).not.toContain('from-primary')
+  })
+
+  it('includes text-primary-foreground for light mode text', () => {
     expect(cls).toContain('text-primary-foreground')
   })
 
-  it('uses gradient background (bg-gradient-to-b)', () => {
-    expect(cls).toContain('bg-gradient-to-b')
-  })
-
-  it('gradient starts at from-primary', () => {
-    expect(cls).toContain('from-primary')
-  })
-
-  it('gradient ends at to-primary/80 for depth at rest', () => {
-    expect(cls).toContain('to-primary/80')
-  })
-
   it('includes border accent for definition', () => {
-    expect(cls).toContain('border-primary/20')
+    expect(cls).toContain('border-primary/25')
   })
 
-  it('hover changes gradient stops (from-primary/95)', () => {
-    expect(cls).toContain('hover:from-primary/95')
+  it('includes multi-layer depth shadow', () => {
+    expect(cls).toContain('shadow-[')
   })
 
-  it('hover end stop changes (to-primary/70)', () => {
-    expect(cls).toContain('hover:to-primary/70')
+  it('hover lightens background (hover:bg-primary/90)', () => {
+    expect(cls).toContain('hover:bg-primary/90')
   })
 
-  it('hover includes lift effect (-translate-y-px)', () => {
+  it('hover strengthens border', () => {
+    expect(cls).toContain('hover:border-primary/40')
+  })
+
+  it('hover deepens shadow', () => {
+    expect(cls).toContain('hover:shadow-[')
+  })
+
+  it('hover includes subtle lift', () => {
     expect(cls).toContain('hover:-translate-y-px')
   })
 
-  it('dark mode hover changes gradient start', () => {
-    expect(cls).toContain('dark:hover:from-primary/90')
+  it('dark mode uses clean neutral surface (dark:bg-slate-100)', () => {
+    expect(cls).toContain('dark:bg-slate-100')
   })
 
-  it('dark mode hover deepens shadow', () => {
-    expect(cls).toContain('dark:hover:shadow-lg')
+  it('dark mode text is high contrast (dark:text-slate-950)', () => {
+    expect(cls).toContain('dark:text-slate-950')
+  })
+
+  it('dark mode hover becomes bright white (dark:hover:bg-white)', () => {
+    expect(cls).toContain('dark:hover:bg-white')
   })
 })
 
-describe('buttonVariants — outline', () => {
+describe('buttonVariants — outline (unchanged)', () => {
   const cls = buttonVariants({ variant: 'outline' })
 
   it('includes hover:bg-primary/10 (light mode hover preserved)', () => {
