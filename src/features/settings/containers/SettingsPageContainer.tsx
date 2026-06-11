@@ -1,12 +1,12 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
+  AlertTriangle,
   ArrowRight,
   BarChart2,
   Bell,
   Bot,
   Calendar,
-  CalendarCheck2,
   CreditCard,
   DollarSign,
   ExternalLink,
@@ -395,15 +395,23 @@ function CalendarSection() {
       <div className="space-y-4">
         {/* Integration identity header — always rendered */}
         <div className="flex items-center gap-3 border-b border-border pb-4">
-          <div className="flex h-9 w-9 shrink-0 flex-col overflow-hidden rounded-lg border border-border shadow-sm">
-            <div className="h-2.5 bg-[#4285F4]" />
-            <div className="flex flex-1 items-center justify-center bg-white dark:bg-card">
-              <CalendarCheck2 className="h-3.5 w-3.5 text-[#4285F4]" aria-hidden="true" />
+          {/* Google Calendar-inspired tile: blue header + color dots + date number */}
+          <div
+            aria-hidden="true"
+            className="flex h-10 w-10 shrink-0 flex-col overflow-hidden rounded-xl border border-[#e8eaed] shadow-sm dark:border-border"
+          >
+            <div className="flex h-4 shrink-0 items-center justify-center gap-0.5 bg-[#4285F4]">
+              <div className="h-1.5 w-1.5 rounded-full bg-[#EA4335]" />
+              <div className="h-1.5 w-1.5 rounded-full bg-[#FBBC05]" />
+              <div className="h-1.5 w-1.5 rounded-full bg-[#34A853]" />
+            </div>
+            <div className="flex flex-1 items-center justify-center bg-white dark:bg-neutral-100">
+              <span className="text-[13px] font-bold leading-none text-[#4285F4]">31</span>
             </div>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-foreground">Google Agenda</p>
-            <p className="text-xs text-muted-foreground">Integração de calendário</p>
+            <p className="text-xs text-muted-foreground">Sincronização de calendário</p>
           </div>
           {connected && (
             <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/40 dark:text-green-300">
@@ -645,32 +653,40 @@ export function SettingsPageContainer() {
 
         <SettingsPanelSection title="IA e Limites">
           <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+                <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">Uso inteligente da IA</p>
+            </div>
+
             <p className="text-sm text-muted-foreground">
-              A IA ajuda a acelerar análises, mas cada execução consome recursos. Use diagnósticos
-              quando houver dados novos ou decisões importantes a tomar.
+              A IA do DentalFlow gera diagnósticos em áreas como financeiro e estoque. Cada análise
+              consome recursos de processamento, por isso a plataforma orienta o uso quando houver
+              dados novos, mudanças relevantes ou decisões importantes.
             </p>
 
             <div className="grid gap-3 sm:grid-cols-3">
               <TrustCard
-                icon={Bot}
-                title="Uso consciente"
-                description="Evite gerar análises repetidas sem mudança nos dados."
+                icon={BarChart2}
+                title="Quando usar"
+                description="Use a IA após novas movimentações financeiras, alterações no estoque ou antes de revisar decisões importantes."
               />
               <TrustCard
-                icon={BarChart2}
-                title="Diagnósticos por contexto"
-                description="Financeiro e estoque devem ser analisados quando houver movimentações relevantes."
+                icon={AlertTriangle}
+                title="Quando evitar"
+                description="Evite gerar o mesmo diagnóstico várias vezes seguidas sem mudança nos dados. Isso consome recursos sem melhorar a resposta."
               />
               <TrustCard
                 icon={DollarSign}
-                title="Controle de custos"
-                description="Limites e mensagens educativas ajudam a reduzir uso desnecessário, mesmo em planos premium."
+                title="Como controlamos custos"
+                description="Mensagens educativas, limites por plano e atalhos contextuais ajudam a evitar consumo acelerado, inclusive em planos premium."
               />
             </div>
 
             <div className="border-t border-border pt-3">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Onde a IA é usada
+                Atalhos de análise
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <Link
@@ -692,6 +708,9 @@ export function SettingsPageContainer() {
                   <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                 </Link>
               </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Dica: gere uma nova análise quando os dados mudarem ou quando precisar tomar uma decisão com base nos indicadores.
+              </p>
             </div>
           </div>
         </SettingsPanelSection>

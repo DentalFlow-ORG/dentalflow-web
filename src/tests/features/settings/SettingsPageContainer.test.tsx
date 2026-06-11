@@ -483,9 +483,9 @@ describe('SettingsPageContainer — Google Agenda section identity', () => {
     expect(screen.getByText('Google Agenda')).toBeInTheDocument()
   })
 
-  it('renders "Integração de calendário" subtitle', () => {
+  it('renders "Sincronização de calendário" subtitle', () => {
     render(<SettingsPageContainer />)
-    expect(screen.getByText('Integração de calendário')).toBeInTheDocument()
+    expect(screen.getByText('Sincronização de calendário')).toBeInTheDocument()
   })
 
   it('disconnected description mentions "reduzir conflitos"', async () => {
@@ -522,29 +522,34 @@ describe('SettingsPageContainer — Google Agenda section identity', () => {
 // ── IA e Limites section ──────────────────────────────────────────────────────
 
 describe('SettingsPageContainer — IA e Limites section', () => {
-  it('renders intro copy about accelerating analyses', () => {
+  it('renders "Uso inteligente da IA" section title', () => {
     render(<SettingsPageContainer />)
-    expect(screen.getByText(/acelerar análises/i)).toBeInTheDocument()
+    expect(screen.getByText('Uso inteligente da IA')).toBeInTheDocument()
   })
 
-  it('renders "Uso consciente" trust card', () => {
+  it('renders intro copy about processing resources', () => {
     render(<SettingsPageContainer />)
-    expect(screen.getByText('Uso consciente')).toBeInTheDocument()
+    expect(screen.getByText(/consome recursos de processamento/i)).toBeInTheDocument()
   })
 
-  it('renders "Diagnósticos por contexto" trust card', () => {
+  it('renders "Quando usar" trust card', () => {
     render(<SettingsPageContainer />)
-    expect(screen.getByText('Diagnósticos por contexto')).toBeInTheDocument()
+    expect(screen.getByText('Quando usar')).toBeInTheDocument()
   })
 
-  it('renders "Controle de custos" trust card', () => {
+  it('renders "Quando evitar" trust card', () => {
     render(<SettingsPageContainer />)
-    expect(screen.getByText('Controle de custos')).toBeInTheDocument()
+    expect(screen.getByText('Quando evitar')).toBeInTheDocument()
   })
 
-  it('renders "Onde a IA é usada" sub-header', () => {
+  it('renders "Como controlamos custos" trust card', () => {
     render(<SettingsPageContainer />)
-    expect(screen.getByText(/onde a ia é usada/i)).toBeInTheDocument()
+    expect(screen.getByText('Como controlamos custos')).toBeInTheDocument()
+  })
+
+  it('renders "Atalhos de análise" sub-header', () => {
+    render(<SettingsPageContainer />)
+    expect(screen.getByText(/atalhos de análise/i)).toBeInTheDocument()
   })
 
   it('"Abrir análise financeira" link points to /app/financeiro', () => {

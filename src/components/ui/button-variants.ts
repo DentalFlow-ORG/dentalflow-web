@@ -6,7 +6,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary/80 hover:shadow-md hover:shadow-primary/30 hover:-translate-y-px dark:hover:bg-primary/85 dark:hover:shadow-xl dark:hover:shadow-primary/45",
+          "bg-gradient-to-b from-primary to-primary/80 text-primary-foreground border-primary/20 shadow-sm shadow-primary/20 hover:from-primary/95 hover:to-primary/70 hover:border-primary/35 hover:shadow-md hover:shadow-primary/30 hover:-translate-y-px dark:to-primary/75 dark:border-primary/30 dark:shadow-primary/25 dark:hover:from-primary/90 dark:hover:to-primary/65 dark:hover:border-primary/50 dark:hover:shadow-lg dark:hover:shadow-primary/40",
         dangerGhost:
           "text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/40 dark:hover:text-red-300",
         outline:

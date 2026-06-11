@@ -3,24 +3,44 @@ import { buttonVariants } from '@/components/ui/button-variants'
 describe('buttonVariants — default', () => {
   const cls = buttonVariants({ variant: 'default' })
 
-  it('includes bg-primary base class', () => {
-    expect(cls).toContain('bg-primary')
-  })
-
-  it('includes text-primary-foreground base class', () => {
+  it('includes text-primary-foreground', () => {
     expect(cls).toContain('text-primary-foreground')
   })
 
-  it('includes hover:-translate-y-px lift effect', () => {
+  it('uses gradient background (bg-gradient-to-b)', () => {
+    expect(cls).toContain('bg-gradient-to-b')
+  })
+
+  it('gradient starts at from-primary', () => {
+    expect(cls).toContain('from-primary')
+  })
+
+  it('gradient ends at to-primary/80 for depth at rest', () => {
+    expect(cls).toContain('to-primary/80')
+  })
+
+  it('includes border accent for definition', () => {
+    expect(cls).toContain('border-primary/20')
+  })
+
+  it('hover changes gradient stops (from-primary/95)', () => {
+    expect(cls).toContain('hover:from-primary/95')
+  })
+
+  it('hover end stop changes (to-primary/70)', () => {
+    expect(cls).toContain('hover:to-primary/70')
+  })
+
+  it('hover includes lift effect (-translate-y-px)', () => {
     expect(cls).toContain('hover:-translate-y-px')
   })
 
-  it('includes dark:hover:bg-primary/85 for dark mode hover fix', () => {
-    expect(cls).toContain('dark:hover:bg-primary/85')
+  it('dark mode hover changes gradient start', () => {
+    expect(cls).toContain('dark:hover:from-primary/90')
   })
 
-  it('includes hover:bg-primary/80 for light mode hover improvement', () => {
-    expect(cls).toContain('hover:bg-primary/80')
+  it('dark mode hover deepens shadow', () => {
+    expect(cls).toContain('dark:hover:shadow-lg')
   })
 })
 
@@ -39,19 +59,19 @@ describe('buttonVariants — outline', () => {
 describe('buttonVariants — destructive', () => {
   const cls = buttonVariants({ variant: 'destructive' })
 
-  it('includes hover:bg-destructive/25 (improved from /20)', () => {
+  it('includes hover:bg-destructive/25', () => {
     expect(cls).toContain('hover:bg-destructive/25')
   })
 
-  it('includes dark:hover:bg-destructive/45 (improved dark hover)', () => {
+  it('includes dark:hover:bg-destructive/45', () => {
     expect(cls).toContain('dark:hover:bg-destructive/45')
   })
 })
 
-describe('buttonVariants — focus-visible and disabled preserved', () => {
+describe('buttonVariants — base states preserved', () => {
   const cls = buttonVariants({ variant: 'default' })
 
-  it('includes focus-visible ring class', () => {
+  it('includes focus-visible ring', () => {
     expect(cls).toContain('focus-visible:ring-3')
   })
 
@@ -61,5 +81,9 @@ describe('buttonVariants — focus-visible and disabled preserved', () => {
 
   it('includes disabled:pointer-events-none', () => {
     expect(cls).toContain('disabled:pointer-events-none')
+  })
+
+  it('includes active press translate', () => {
+    expect(cls).toContain('active:not-aria-[haspopup]:translate-y-px')
   })
 })
