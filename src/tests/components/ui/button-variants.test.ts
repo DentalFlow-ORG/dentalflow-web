@@ -3,30 +3,33 @@ import { buttonVariants } from '@/components/ui/button-variants'
 describe('buttonVariants — default (solid premium style)', () => {
   const cls = buttonVariants({ variant: 'default' })
 
-  it('is solid: includes bg-primary (no gradient)', () => {
-    expect(cls).toContain('bg-primary')
+  it('is solid: no gradient (bg-gradient-to-b absent)', () => {
     expect(cls).not.toContain('bg-gradient-to-b')
     expect(cls).not.toContain('from-primary')
   })
 
-  it('includes text-primary-foreground for light mode text', () => {
-    expect(cls).toContain('text-primary-foreground')
+  it('light mode uses clean slate-900 surface', () => {
+    expect(cls).toContain('bg-slate-900')
   })
 
-  it('includes border accent for definition', () => {
-    expect(cls).toContain('border-primary/25')
+  it('light mode text is white', () => {
+    expect(cls).toContain('text-white')
+  })
+
+  it('light mode has slate border', () => {
+    expect(cls).toContain('border-slate-800/80')
   })
 
   it('includes multi-layer depth shadow', () => {
     expect(cls).toContain('shadow-[')
   })
 
-  it('hover lightens background (hover:bg-primary/90)', () => {
-    expect(cls).toContain('hover:bg-primary/90')
+  it('hover darkens to slate-800', () => {
+    expect(cls).toContain('hover:bg-slate-800')
   })
 
-  it('hover strengthens border', () => {
-    expect(cls).toContain('hover:border-primary/40')
+  it('hover strengthens border to slate-700', () => {
+    expect(cls).toContain('hover:border-slate-700')
   })
 
   it('hover deepens shadow', () => {

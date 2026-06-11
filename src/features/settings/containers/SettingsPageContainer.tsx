@@ -400,13 +400,13 @@ function CalendarSection() {
             aria-hidden="true"
             className="flex h-10 w-10 shrink-0 flex-col overflow-hidden rounded-xl border border-[#e8eaed] shadow-sm dark:border-white/10"
           >
-            <div className="flex h-4 shrink-0 items-center justify-center gap-0.5 bg-[#4285F4] dark:bg-[#1d3461]">
-              <div className="h-1.5 w-1.5 rounded-full bg-[#EA4335] dark:bg-[#f87171]" />
-              <div className="h-1.5 w-1.5 rounded-full bg-[#FBBC05] dark:bg-[#fbbf24]" />
-              <div className="h-1.5 w-1.5 rounded-full bg-[#34A853] dark:bg-[#34d399]" />
+            <div className="flex h-4 shrink-0 items-center justify-center gap-0.5 bg-[#4285F4] dark:bg-slate-700">
+              <div className="h-1.5 w-1.5 rounded-full bg-[#EA4335] dark:bg-rose-400/70" />
+              <div className="h-1.5 w-1.5 rounded-full bg-[#FBBC05] dark:bg-amber-300/70" />
+              <div className="h-1.5 w-1.5 rounded-full bg-[#34A853] dark:bg-emerald-400/70" />
             </div>
-            <div className="flex flex-1 items-center justify-center bg-white dark:bg-[#1a2236]">
-              <span className="text-[13px] font-bold leading-none text-[#4285F4] dark:text-[#60a5fa]">31</span>
+            <div className="flex flex-1 items-center justify-center bg-white dark:bg-slate-900">
+              <span className="text-[13px] font-bold leading-none text-[#4285F4] dark:text-blue-200">31</span>
             </div>
           </div>
           <div className="min-w-0 flex-1">
