@@ -1,22 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
 import { CalendarDays, Plus } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { cn } from '@/lib/utils'
 
+import { STATUS_ACCENT_COLORS, STATUS_LABELS } from '../../constants/appointment-display'
 import type { Appointment } from '../../types/scheduling.types'
 import {
-  formatWeekDayHeader,
   formatWallTime,
+  formatWeekDayHeader,
   getWeekDates,
   isoDateToString,
   toDateInputValue,
 } from '../../utils/time'
-import {
-  STATUS_LABELS,
-  STATUS_ACCENT_COLORS,
-} from '../../constants/appointment-display'
 import { AppointmentStatusBadge } from '../appointments/AppointmentStatusBadge'
 
 type MobileAgendaTimelineProps = {
@@ -146,12 +143,7 @@ export function MobileAgendaTimeline({
       {/* Timeline content */}
       <div>
         <div className="mb-3 flex items-center justify-between px-0.5">
-          <h2
-            className={cn(
-              'text-sm font-semibold',
-              isToday ? 'text-primary' : 'text-foreground',
-            )}
-          >
+          <h2 className={cn('text-sm font-semibold', isToday ? 'text-primary' : 'text-foreground')}>
             {dayHeaderLabel}
           </h2>
           <span className="text-xs text-muted-foreground">
@@ -162,11 +154,7 @@ export function MobileAgendaTimeline({
         </div>
 
         {isLoading ? (
-          <div
-            role="status"
-            aria-label="Carregando consultas..."
-            className="space-y-3"
-          >
+          <div role="status" aria-label="Carregando consultas..." className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="flex gap-2">
                 <div className="h-10 w-14 animate-pulse rounded bg-muted" />
@@ -176,10 +164,7 @@ export function MobileAgendaTimeline({
           </div>
         ) : dayAppointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 px-4 py-10 text-center">
-            <CalendarDays
-              className="mb-2 h-8 w-8 text-muted-foreground/40"
-              aria-hidden="true"
-            />
+            <CalendarDays className="mb-2 h-8 w-8 text-muted-foreground/40" aria-hidden="true" />
             <p className="text-sm font-medium text-muted-foreground">
               Nenhuma consulta agendada neste dia.
             </p>
@@ -211,9 +196,7 @@ export function MobileAgendaTimeline({
 
               const ariaLabel = [
                 appt.patientName,
-                endTime
-                  ? `${startTime} – ${endTime}`
-                  : startTime,
+                endTime ? `${startTime} – ${endTime}` : startTime,
                 serviceName,
                 serviceName && professionalName ? professionalName : null,
                 statusLabel,

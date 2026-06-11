@@ -34,9 +34,7 @@ export function useAppointmentCancel({
     setIsActionLoading(true)
     try {
       const updated = await cancelAppointment(cancelTarget.id, reason || undefined)
-      setAppointments((prev) =>
-        prev.map((appt) => (appt.id === cancelTarget.id ? updated : appt)),
-      )
+      setAppointments((prev) => prev.map((appt) => (appt.id === cancelTarget.id ? updated : appt)))
       if (drawerAppointment?.id === cancelTarget.id) setDrawerAppointment(updated)
       setCancelTarget(null)
       showAlert({ title: 'Agendamento cancelado', tone: 'success' })

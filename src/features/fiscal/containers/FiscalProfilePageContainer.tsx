@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
-import { formatCpfCnpjBR, formatCepBR } from '@/lib/field-formatters'
+import { formatCepBR, formatCpfCnpjBR } from '@/lib/field-formatters'
 
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
 import { getFiscalProfile, saveFiscalProfile } from '../services/fiscal.service'

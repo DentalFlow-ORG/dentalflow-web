@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
-import { ArrowLeft, Printer } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { ArrowLeft, Printer } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { Button } from '@/components/ui/button'
-import { formatDateBR } from '@/lib/date-time-formatters'
 import { BRAZIL_TZ } from '@/lib/brazil-timezone'
+import { formatDateBR } from '@/lib/date-time-formatters'
 import { formatPhoneBR } from '@/lib/field-formatters'
 
 import { OdontogramChart } from '../components/odontogram/OdontogramChart'
@@ -66,7 +66,9 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
 
     void loadPrintData()
 
-    return () => { isCurrent = false }
+    return () => {
+      isCurrent = false
+    }
   }, [recordId])
 
   if (isLoading) return <LoadingCard message="Preparando prontuário para impressão..." />
@@ -78,14 +80,11 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
   return (
     <div>
       {/* Resets CSS variables to light-mode values in print so dark:* classes render correctly */}
-      <style dangerouslySetInnerHTML={{ __html: PRINT_STYLE }} />
+      <style>{PRINT_STYLE}</style>
 
       <div className="mb-6 flex items-center justify-between print:hidden">
         <Button variant="outline" size="sm" asChild>
-          <Link
-            to="/app/prontuario/$clinicalRecordId"
-            params={{ clinicalRecordId: recordId }}
-          >
+          <Link to="/app/prontuario/$clinicalRecordId" params={{ clinicalRecordId: recordId }}>
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             Voltar ao prontuário
           </Link>
@@ -112,7 +111,12 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
           <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500 dark:text-muted-foreground">
             {clinic?.phone && <span>{formatPhoneBR(clinic.phone)}</span>}
             {clinic?.email && <span>{clinic.email}</span>}
-            {clinic?.city && <span>{clinic.city}{clinic.state ? ` / ${clinic.state}` : ''}</span>}
+            {clinic?.city && (
+              <span>
+                {clinic.city}
+                {clinic.state ? ` / ${clinic.state}` : ''}
+              </span>
+            )}
           </div>
         </header>
 
@@ -154,15 +158,11 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
         {record.chiefComplaint && (
           <PrintSection title="Queixa principal" content={record.chiefComplaint} />
         )}
-        {record.anamnesis && (
-          <PrintSection title="Anamnese" content={record.anamnesis} />
-        )}
+        {record.anamnesis && <PrintSection title="Anamnese" content={record.anamnesis} />}
         {record.clinicalEvolution && (
           <PrintSection title="Evolução clínica" content={record.clinicalEvolution} />
         )}
-        {record.diagnosis && (
-          <PrintSection title="Diagnóstico" content={record.diagnosis} />
-        )}
+        {record.diagnosis && <PrintSection title="Diagnóstico" content={record.diagnosis} />}
         {record.proceduresPerformed && (
           <PrintSection title="Procedimentos realizados" content={record.proceduresPerformed} />
         )}
@@ -176,9 +176,7 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
           <PrintSection title="Recomendações ao paciente" content={record.recommendations} />
         )}
 
-        {odontogramData && (
-          <PrintOdontogramSection data={odontogramData} />
-        )}
+        {odontogramData && <PrintOdontogramSection data={odontogramData} />}
 
         {record.attachments && record.attachments.length > 0 && (
           <PrintAttachmentsSection attachments={record.attachments} />
@@ -208,12 +206,14 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
         </section>
 
         <footer className="border-t border-slate-200 pt-4 text-center text-xs text-slate-400 dark:border-border dark:text-muted-foreground/70">
-          Documento gerado pelo DentalFlow em {new Intl.DateTimeFormat('pt-BR', {
+          Documento gerado pelo DentalFlow em{' '}
+          {new Intl.DateTimeFormat('pt-BR', {
             timeZone: BRAZIL_TZ,
             day: '2-digit',
             month: 'long',
             year: 'numeric',
-          }).format(new Date())}. Este documento é de uso interno e caráter informativo.
+          }).format(new Date())}
+          . Este documento é de uso interno e caráter informativo.
         </footer>
       </div>
     </div>
@@ -244,7 +244,9 @@ function PrintOdontogramSection({ data }: { data: OdontogramData }) {
   )
 }
 
-function PrintAttachmentsSection({ attachments }: { attachments: PrintData['record']['attachments'] }) {
+function PrintAttachmentsSection({
+  attachments,
+}: { attachments: PrintData['record']['attachments'] }) {
   return (
     <section>
       <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-muted-foreground">
@@ -257,7 +259,10 @@ function PrintAttachmentsSection({ attachments }: { attachments: PrintData['reco
             : null
 
           return (
-            <div key={attachment.id} className="overflow-hidden rounded-lg border border-slate-200 dark:border-border">
+            <div
+              key={attachment.id}
+              className="overflow-hidden rounded-lg border border-slate-200 dark:border-border"
+            >
               {src ? (
                 <img
                   src={src}

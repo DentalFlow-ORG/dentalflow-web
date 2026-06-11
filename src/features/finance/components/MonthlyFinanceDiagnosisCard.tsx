@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -12,6 +11,7 @@ import {
   TrendingUp,
   XCircle,
 } from 'lucide-react'
+import { useState } from 'react'
 
 import { MetricCard } from '@/components/common/MetricCard'
 import { MonthPickerInput } from '@/components/common/MonthPickerInput'
@@ -98,7 +98,10 @@ function DiagnosisSection({
       <ul className="space-y-1.5">
         {items.map((item, i) => (
           <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-            <span className={cn('mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full', dotClass)} aria-hidden="true" />
+            <span
+              className={cn('mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full', dotClass)}
+              aria-hidden="true"
+            />
             {item}
           </li>
         ))}
@@ -119,12 +122,7 @@ function DiagnosisResult({
   isRefreshing: boolean
 }) {
   const { financeSnapshot: s } = diagnosis
-  const profitTone =
-    s.profitCents >= 0
-      ? s.profitCents > 0
-        ? 'success'
-        : 'neutral'
-      : 'danger'
+  const profitTone = s.profitCents >= 0 ? (s.profitCents > 0 ? 'success' : 'neutral') : 'danger'
 
   return (
     <div className="space-y-6">
@@ -136,21 +134,9 @@ function DiagnosisResult({
 
       {/* Mini metrics */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <MetricCard
-          label="Receita"
-          value={centsToDisplay(s.revenueCents)}
-          tone="success"
-        />
-        <MetricCard
-          label="Despesas"
-          value={centsToDisplay(s.expenseCents)}
-          tone="danger"
-        />
-        <MetricCard
-          label="Resultado"
-          value={centsToDisplay(s.profitCents)}
-          tone={profitTone}
-        />
+        <MetricCard label="Receita" value={centsToDisplay(s.revenueCents)} tone="success" />
+        <MetricCard label="Despesas" value={centsToDisplay(s.expenseCents)} tone="danger" />
+        <MetricCard label="Resultado" value={centsToDisplay(s.profitCents)} tone={profitTone} />
         <MetricCard
           label="Margem"
           value={s.profitMarginPercent !== null ? `${s.profitMarginPercent.toFixed(1)}%` : '—'}
@@ -249,7 +235,8 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
             </h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Entenda a saúde financeira da clínica, riscos do mês e ações prioritárias para proteger o caixa.
+            Entenda a saúde financeira da clínica, riscos do mês e ações prioritárias para proteger
+            o caixa.
           </p>
         </div>
 
@@ -261,11 +248,7 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
             className="w-full sm:w-40"
           />
           {!diagnosis && (
-            <Button
-              size="sm"
-              onClick={handleGenerate}
-              disabled={isGenerating || isPlanBlocked}
-            >
+            <Button size="sm" onClick={handleGenerate} disabled={isGenerating || isPlanBlocked}>
               {isGenerating ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
               ) : (
@@ -313,20 +296,24 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
 
       {/* Loading */}
       {isGenerating && !diagnosis && (
-        <div role="status" aria-live="polite" className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-3 py-6 text-sm text-muted-foreground"
+        >
           <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
           <span>Analisando dados financeiros de {formatMonthLabel(selectedMonth)}…</span>
         </div>
       )}
 
       {/* Low data from snapshot */}
-      {diagnosis &&
-        diagnosis.financeSnapshot.alerts.some((a) => a.type === 'LOW_DATA') &&
+      {diagnosis?.financeSnapshot.alerts.some((a) => a.type === 'LOW_DATA') &&
         diagnosis.highlights.length === 0 &&
         diagnosis.risks.length === 0 && (
           <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3 text-sm text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-400">
             <Lightbulb className="h-4 w-4 shrink-0" aria-hidden="true" />
-            Ainda não há dados financeiros suficientes para gerar um diagnóstico confiável deste mês.
+            Ainda não há dados financeiros suficientes para gerar um diagnóstico confiável deste
+            mês.
           </div>
         )}
 
@@ -356,4 +343,3 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
     </PanelCard>
   )
 }
-

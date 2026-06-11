@@ -1,10 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 
 import { DentistHomePageContainer } from '@/features/dashboard/containers/DentistHomePageContainer'
+import type { ProfileListItem } from '@/features/scheduling/types/profile.types'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 import { makeDentistUser } from '@/test-utils/factories/user.factory'
-import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
-import type { ProfileListItem } from '@/features/scheduling/types/profile.types'
+import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -31,15 +31,10 @@ vi.mock('@/features/scheduling/services/scheduling.service', () => ({
 
 // Prevent the full drawer from mounting (requires GlobalAlertsProvider).
 // Drawer behaviour is covered by its own test suite.
-vi.mock(
-  '@/features/scheduling/components/appointments/AppointmentDrawer',
-  () => ({
-    AppointmentDrawer: ({ appointment }: { appointment: unknown }) =>
-      appointment ? (
-        <div data-testid="appointment-drawer">drawer open</div>
-      ) : null,
-  }),
-)
+vi.mock('@/features/scheduling/components/appointments/AppointmentDrawer', () => ({
+  AppointmentDrawer: ({ appointment }: { appointment: unknown }) =>
+    appointment ? <div data-testid="appointment-drawer">drawer open</div> : null,
+}))
 
 // ── Factories ─────────────────────────────────────────────────────────────────
 
@@ -65,10 +60,18 @@ function makeProfile(overrides?: Partial<ProfileListItem>): ProfileListItem {
 
 const DENTIST_USER = makeDentistUser({ id: 'user-dentist-1' })
 const OWN_PROFILE = makeProfile({ userId: 'user-dentist-1' })
-const OTHER_PROFILE = makeProfile({ id: 'profile-other', userId: 'user-other-dentist', displayName: 'Dra. Lima' })
+const OTHER_PROFILE = makeProfile({
+  id: 'profile-other',
+  userId: 'user-other-dentist',
+  displayName: 'Dra. Lima',
+})
 
 const OWN_APPT = makeAppointment({ profileId: 'profile-dr-silva', patientName: 'Paciente Próprio' })
-const OTHER_APPT = makeAppointment({ id: 'appt-other', profileId: 'profile-other', patientName: 'Paciente de Outro' })
+const OTHER_APPT = makeAppointment({
+  id: 'appt-other',
+  profileId: 'profile-other',
+  patientName: 'Paciente de Outro',
+})
 
 beforeEach(() => {
   // No fake timers — waitFor uses setTimeout internally and hangs under fake timers.
@@ -110,7 +113,7 @@ describe('DentistHomePageContainer — header', () => {
 // ── Appointment scoping ───────────────────────────────────────────────────────
 
 describe('DentistHomePageContainer — appointment scoping', () => {
-  it('shows only appointments belonging to the dentist\'s own profile', async () => {
+  it("shows only appointments belonging to the dentist's own profile", async () => {
     render(<DentistHomePageContainer />)
     // Patient appears in both the hero and the agenda list — use getAllByText
     await waitFor(() => {
@@ -119,7 +122,7 @@ describe('DentistHomePageContainer — appointment scoping', () => {
     expect(screen.queryByText('Paciente de Outro')).not.toBeInTheDocument()
   })
 
-  it('does not count another dentist\'s appointments in the metric cards', async () => {
+  it("does not count another dentist's appointments in the metric cards", async () => {
     render(<DentistHomePageContainer />)
     await waitFor(() => {
       expect(screen.queryByText(/carregando/i)).not.toBeInTheDocument()

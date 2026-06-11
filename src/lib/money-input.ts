@@ -8,7 +8,7 @@ function centsToBRFormatted(cents: number): string {
 export function formatMoneyInputFromDigits(value: string): string {
   const digits = value.replace(/\D/g, '')
   if (!digits) return ''
-  const cents = parseInt(digits, 10)
+  const cents = Number.parseInt(digits, 10)
   if (cents === 0) return ''
   return centsToBRFormatted(cents)
 }
@@ -16,7 +16,7 @@ export function formatMoneyInputFromDigits(value: string): string {
 export function parseMoneyInputToCents(value: string): number {
   const digits = value.replace(/\D/g, '')
   if (!digits) return 0
-  return parseInt(digits, 10)
+  return Number.parseInt(digits, 10)
 }
 
 export function centsToMoneyInput(cents: number | null | undefined): string {

@@ -23,11 +23,17 @@ export function compressAvatar(file: File): Promise<string> {
       canvas.width = dim
       canvas.height = dim
       const ctx = canvas.getContext('2d')
-      if (!ctx) { reject(new Error('Canvas unavailable')); return }
+      if (!ctx) {
+        reject(new Error('Canvas unavailable'))
+        return
+      }
       ctx.drawImage(img, sx, sy, dim, dim, 0, 0, dim, dim)
       resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1])
     }
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')) }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Image load failed'))
+    }
     img.src = url
   })
 }

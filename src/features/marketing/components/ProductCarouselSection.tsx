@@ -62,14 +62,13 @@ export function ProductCarouselSection() {
       >
         {/* Heading */}
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-            Na prática
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">Na prática</p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
             Como o DentalFlow funciona no dia a dia
           </h2>
           <p className="mt-4 text-base leading-7 text-slate-500">
-            Veja como a plataforma organiza agenda, financeiro e captação de pacientes em clínicas como a sua.
+            Veja como a plataforma organiza agenda, financeiro e captação de pacientes em clínicas
+            como a sua.
           </p>
         </div>
 

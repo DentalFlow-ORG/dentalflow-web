@@ -70,7 +70,9 @@ export function KpiGrid({ summary, previousSummary, onPendingReceivablesClick }:
             label="Recebíveis pendentes"
             icon={Clock}
             tone={kpis.pendingReceivables > 0 ? 'warning' : 'neutral'}
-            description={prev ? kpiDelta(kpis.pendingReceivables, prev.pendingReceivables) : undefined}
+            description={
+              prev ? kpiDelta(kpis.pendingReceivables, prev.pendingReceivables) : undefined
+            }
           />
         </button>
       ) : (
@@ -79,7 +81,9 @@ export function KpiGrid({ summary, previousSummary, onPendingReceivablesClick }:
           label="Recebíveis pendentes"
           icon={Clock}
           tone={kpis.pendingReceivables > 0 ? 'warning' : 'neutral'}
-          description={prev ? kpiDelta(kpis.pendingReceivables, prev.pendingReceivables) : undefined}
+          description={
+            prev ? kpiDelta(kpis.pendingReceivables, prev.pendingReceivables) : undefined
+          }
         />
       )}
       <HomeKpiCard

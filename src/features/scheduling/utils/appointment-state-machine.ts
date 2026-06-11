@@ -4,11 +4,11 @@ import { formatWallTime, isoDateToString } from './time'
 // Mirrors the server-side state machine in appointments.service.ts.
 // Any change here must be reflected there and vice-versa.
 export const APPOINTMENT_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
-  PENDING:   ['CONFIRMED', 'CANCELED'],
+  PENDING: ['CONFIRMED', 'CANCELED'],
   CONFIRMED: ['COMPLETED', 'NO_SHOW', 'CANCELED'],
   COMPLETED: [],
-  NO_SHOW:   [],
-  CANCELED:  [],
+  NO_SHOW: [],
+  CANCELED: [],
 }
 
 export function isTerminalStatus(status: AppointmentStatus): boolean {
@@ -17,7 +17,7 @@ export function isTerminalStatus(status: AppointmentStatus): boolean {
 
 function buildAppointmentDateTime(appointment: Appointment): Date {
   const dateStr = isoDateToString(appointment.appointmentDate) // YYYY-MM-DD
-  const timeStr = formatWallTime(appointment.startTime)        // HH:mm (Brazil wall-clock)
+  const timeStr = formatWallTime(appointment.startTime) // HH:mm (Brazil wall-clock)
   // Brazil is UTC-3 year-round (DST abolished 2019). Suffix -03:00 converts the
   // clinic wall-clock time to the correct UTC epoch for comparison with new Date().
   return new Date(`${dateStr}T${timeStr}:00-03:00`)

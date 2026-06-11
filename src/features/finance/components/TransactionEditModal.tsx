@@ -3,7 +3,6 @@ import { Dialog } from 'radix-ui'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
-import { formatMoneyInputFromDigits } from '@/lib/money-input'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { formatMoneyInputFromDigits } from '@/lib/money-input'
 
 import type {
   FinancialCategory,
@@ -91,7 +91,9 @@ export function TransactionEditModal({
                   <FormField label="Status" htmlFor="editTxStatus">
                     <Select
                       value={form.status}
-                      onValueChange={(value) => onChange('status', value as FinancialTransactionStatus)}
+                      onValueChange={(value) =>
+                        onChange('status', value as FinancialTransactionStatus)
+                      }
                     >
                       <SelectTrigger id="editTxStatus">
                         <SelectValue />
@@ -106,7 +108,10 @@ export function TransactionEditModal({
                 </div>
 
                 <FormField label="Categoria" htmlFor="editTxCategory">
-                  <Select value={form.categoryId} onValueChange={(value) => onChange('categoryId', value)}>
+                  <Select
+                    value={form.categoryId}
+                    onValueChange={(value) => onChange('categoryId', value)}
+                  >
                     <SelectTrigger id="editTxCategory">
                       <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
@@ -136,7 +141,9 @@ export function TransactionEditModal({
                       inputMode="numeric"
                       placeholder="0,00"
                       value={form.amount}
-                      onChange={(event) => onChange('amount', formatMoneyInputFromDigits(event.target.value))}
+                      onChange={(event) =>
+                        onChange('amount', formatMoneyInputFromDigits(event.target.value))
+                      }
                     />
                   </FormField>
                   <FormField label="Data" htmlFor="editTxDate">
@@ -159,7 +166,13 @@ export function TransactionEditModal({
 
             <div className="shrink-0 border-t border-border px-6 pb-5 pt-4">
               <div className="flex gap-3">
-                <Button type="button" variant="outline" className="flex-1" onClick={onClose} disabled={isSubmitting}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                >
                   Cancelar
                 </Button>
                 <Button type="submit" className="flex-1" disabled={isSubmitting}>

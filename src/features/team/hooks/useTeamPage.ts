@@ -94,8 +94,7 @@ export function useTeamPage() {
         setUsage(fetchedUsage)
       })
       .catch((err) => {
-        const msg =
-          err instanceof Error ? err.message : 'Não foi possível carregar a equipe.'
+        const msg = err instanceof Error ? err.message : 'Não foi possível carregar a equipe.'
         setError(msg)
         showAlert({ title: 'Erro ao carregar equipe', description: msg, tone: 'error' })
       })

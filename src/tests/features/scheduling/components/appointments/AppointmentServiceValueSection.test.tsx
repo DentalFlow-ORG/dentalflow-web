@@ -49,34 +49,18 @@ describe('AppointmentServiceValueSection — service label', () => {
   })
 
   it('shows "Selecione um profissional primeiro" placeholder when noProfessionalHint', () => {
-    render(
-      <AppointmentServiceValueSection
-        {...baseProps}
-        noProfessionalHint
-      />,
-    )
+    render(<AppointmentServiceValueSection {...baseProps} noProfessionalHint />)
     // Placeholder text is inside the SelectValue — look for it in the DOM
     expect(screen.getByText(/Selecione um profissional primeiro/i)).toBeInTheDocument()
   })
 
   it('shows "Nenhum serviço cadastrado" placeholder when services is empty', () => {
-    render(
-      <AppointmentServiceValueSection
-        {...baseProps}
-        services={[]}
-      />,
-    )
+    render(<AppointmentServiceValueSection {...baseProps} services={[]} />)
     expect(screen.getByText(/Nenhum serviço cadastrado/i)).toBeInTheDocument()
   })
 
   it('shows loading placeholder when isLoading', () => {
-    render(
-      <AppointmentServiceValueSection
-        {...baseProps}
-        services={[makeService()]}
-        isLoading
-      />,
-    )
+    render(<AppointmentServiceValueSection {...baseProps} services={[makeService()]} isLoading />)
     expect(screen.getByText(/Carregando/i)).toBeInTheDocument()
   })
 })
@@ -90,12 +74,7 @@ describe('AppointmentServiceValueSection — estimated amount', () => {
   })
 
   it('hides the estimated amount field when showEstimatedAmount is false', () => {
-    render(
-      <AppointmentServiceValueSection
-        {...baseProps}
-        showEstimatedAmount={false}
-      />,
-    )
+    render(<AppointmentServiceValueSection {...baseProps} showEstimatedAmount={false} />)
     expect(screen.queryByLabelText(/Valor previsto/i)).not.toBeInTheDocument()
   })
 

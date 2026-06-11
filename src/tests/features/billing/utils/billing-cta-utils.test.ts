@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest'
 import { getPlanCtaState } from '@/features/billing/utils/billing-cta-utils'
 import { makeBillingPlan, makeBillingStatus } from '@/test-utils/factories/billing.factory'
+import { describe, expect, it } from 'vitest'
 
 type CtaArgs = Parameters<typeof getPlanCtaState>[0]
 
@@ -36,7 +36,9 @@ describe('no subscription', () => {
   })
 
   it('returns start_trial primary and checkout secondary when hasSubscription is false', () => {
-    const result = getPlanCtaState(makeArgs({ currentSubscription: makeBillingStatus({ hasSubscription: false }) }))
+    const result = getPlanCtaState(
+      makeArgs({ currentSubscription: makeBillingStatus({ hasSubscription: false }) }),
+    )
     expect(result.primary.actionType).toBe('start_trial')
     expect(result.secondary?.actionType).toBe('checkout')
   })
@@ -53,7 +55,13 @@ describe('no subscription', () => {
     const plan = makeBillingPlan({
       slug: 'premium',
       displayOrder: 2,
-      campaign: { enabled: true, promotionalPriceMonthly: null, compareAtPriceMonthly: null, promotionReady: true, couponConfigured: false },
+      campaign: {
+        enabled: true,
+        promotionalPriceMonthly: null,
+        compareAtPriceMonthly: null,
+        promotionReady: true,
+        couponConfigured: false,
+      },
     })
     const result = getPlanCtaState(makeArgs({ currentSubscription: null, plan }))
     expect(result.secondary?.helperText).toBe('Garanta a oferta de lançamento')
@@ -122,7 +130,9 @@ describe('active subscription plan change', () => {
   it('returns change_plan with upgrade label when plan displayOrder exceeds current', () => {
     const plan = makeBillingPlan({ slug: 'premium', displayOrder: 2 })
     const sub = makeBillingStatus({ planKey: 'professional', billingInterval: 'monthly' })
-    const result = getPlanCtaState(makeArgs({ plan, currentSubscription: sub, currentPlanDisplayOrder: 1 }))
+    const result = getPlanCtaState(
+      makeArgs({ plan, currentSubscription: sub, currentPlanDisplayOrder: 1 }),
+    )
     expect(result.primary.actionType).toBe('change_plan')
     expect(result.primary.label).toBe('Fazer upgrade')
   })
@@ -130,7 +140,9 @@ describe('active subscription plan change', () => {
   it('returns change_plan with generic label for a downgrade or lateral switch', () => {
     const plan = makeBillingPlan({ slug: 'starter', displayOrder: 0 })
     const sub = makeBillingStatus({ planKey: 'professional', billingInterval: 'monthly' })
-    const result = getPlanCtaState(makeArgs({ plan, currentSubscription: sub, currentPlanDisplayOrder: 1 }))
+    const result = getPlanCtaState(
+      makeArgs({ plan, currentSubscription: sub, currentPlanDisplayOrder: 1 }),
+    )
     expect(result.primary.actionType).toBe('change_plan')
     expect(result.primary.label).toBe('Trocar para este plano')
   })
@@ -138,12 +150,14 @@ describe('active subscription plan change', () => {
   it('returns change_plan with "Mudar para anual" when switching to YEARLY on the same plan', () => {
     const plan = makeBillingPlan({ slug: 'professional', displayOrder: 1 })
     const sub = makeBillingStatus({ planKey: 'professional', billingInterval: 'monthly' })
-    const result = getPlanCtaState(makeArgs({
-      plan,
-      currentSubscription: sub,
-      selectedInterval: 'YEARLY',
-      currentPlanDisplayOrder: 1,
-    }))
+    const result = getPlanCtaState(
+      makeArgs({
+        plan,
+        currentSubscription: sub,
+        selectedInterval: 'YEARLY',
+        currentPlanDisplayOrder: 1,
+      }),
+    )
     expect(result.primary.actionType).toBe('change_plan')
     expect(result.primary.label).toBe('Mudar para anual')
   })
@@ -151,12 +165,14 @@ describe('active subscription plan change', () => {
   it('returns change_plan with "Mudar para mensal" when switching to MONTHLY on the same plan', () => {
     const plan = makeBillingPlan({ slug: 'professional', displayOrder: 1 })
     const sub = makeBillingStatus({ planKey: 'professional', billingInterval: 'annual' })
-    const result = getPlanCtaState(makeArgs({
-      plan,
-      currentSubscription: sub,
-      selectedInterval: 'MONTHLY',
-      currentPlanDisplayOrder: 1,
-    }))
+    const result = getPlanCtaState(
+      makeArgs({
+        plan,
+        currentSubscription: sub,
+        selectedInterval: 'MONTHLY',
+        currentPlanDisplayOrder: 1,
+      }),
+    )
     expect(result.primary.actionType).toBe('change_plan')
     expect(result.primary.label).toBe('Mudar para mensal')
   })

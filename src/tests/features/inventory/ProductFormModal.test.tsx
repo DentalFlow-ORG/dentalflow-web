@@ -22,13 +22,19 @@ vi.mock('@/features/inventory/services/inventory.service', () => ({
 
 // Radix Select does not work in JSDOM — stub with native <select>
 vi.mock('@/components/ui/select', () => ({
-  Select: ({ value, onValueChange, children }: { value: string; onValueChange: (v: string) => void; children: React.ReactNode }) => (
+  Select: ({
+    value,
+    onValueChange,
+    children,
+  }: { value: string; onValueChange: (v: string) => void; children: React.ReactNode }) => (
     <select value={value} onChange={(e) => onValueChange(e.target.value)}>
       {children}
     </select>
   ),
   SelectTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  SelectValue: ({ placeholder }: { placeholder?: string }) => <option value="">{placeholder}</option>,
+  SelectValue: ({ placeholder }: { placeholder?: string }) => (
+    <option value="">{placeholder}</option>
+  ),
   SelectContent: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   SelectItem: ({ value, children }: { value: string; children: React.ReactNode }) => (
     <option value={value}>{children}</option>
@@ -37,16 +43,20 @@ vi.mock('@/components/ui/select', () => ({
 
 // DatePickerInput: stub with native date input
 vi.mock('@/components/common/DatePickerInput', () => ({
-  DatePickerInput: ({ id, value, onValueChange }: { id: string; value: string; onValueChange: (v: string) => void }) => (
+  DatePickerInput: ({
+    id,
+    value,
+    onValueChange,
+  }: { id: string; value: string; onValueChange: (v: string) => void }) => (
     <input id={id} type="date" value={value} onChange={(e) => onValueChange(e.target.value)} />
   ),
 }))
 
+import { ProductFormModal } from '@/features/inventory/components/ProductFormModal'
 import {
   createStockProduct,
   updateStockProduct,
 } from '@/features/inventory/services/inventory.service'
-import { ProductFormModal } from '@/features/inventory/components/ProductFormModal'
 import type { StockCategory, StockProduct } from '@/features/inventory/types/inventory.types'
 
 const mockCreate = vi.mocked(createStockProduct)
@@ -55,8 +65,24 @@ const mockUpdate = vi.mocked(updateStockProduct)
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 const categories: StockCategory[] = [
-  { id: 'cat-1', clinicId: 'clinic-1', name: 'Descartáveis', color: null, productCount: 0, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
-  { id: 'cat-2', clinicId: 'clinic-1', name: 'Anestésicos', color: null, productCount: 0, createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+  {
+    id: 'cat-1',
+    clinicId: 'clinic-1',
+    name: 'Descartáveis',
+    color: null,
+    productCount: 0,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'cat-2',
+    clinicId: 'clinic-1',
+    name: 'Anestésicos',
+    color: null,
+    productCount: 0,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  },
 ]
 
 function buildProduct(overrides: Partial<StockProduct> = {}): StockProduct {
@@ -215,10 +241,7 @@ describe('ProductFormModal', () => {
 
     await user.click(screen.getByRole('button', { name: /Salvar alterações/i }))
 
-    expect(mockUpdate).toHaveBeenCalledWith(
-      'prod-1',
-      expect.objectContaining({ name: 'Luva M' }),
-    )
+    expect(mockUpdate).toHaveBeenCalledWith('prod-1', expect.objectContaining({ name: 'Luva M' }))
   })
 
   it('renders the submit button labeled "Salvar alterações" in edit mode', () => {

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { printInvoice } from '@/features/fiscal/utils/print-invoice'
 import type { ServiceInvoice } from '@/features/fiscal/types/fiscal.types'
+import { printInvoice } from '@/features/fiscal/utils/print-invoice'
 
 const baseInvoice: ServiceInvoice = {
   id: 'inv-1',

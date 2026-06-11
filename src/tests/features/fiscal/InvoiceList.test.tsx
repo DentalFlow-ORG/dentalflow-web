@@ -72,23 +72,25 @@ function makeProfile(overrides: Partial<ClinicFiscalProfile> = {}): ClinicFiscal
   }
 }
 
-function renderList(overrides: {
-  invoices?: ServiceInvoice[]
-  userRole?: string
-  isOwner?: boolean
-  profile?: ClinicFiscalProfile | null
-  page?: number
-  totalPages?: number
-  total?: number
-  limit?: number
-  onViewDetails?: (invoice: ServiceInvoice) => void
-  onEdit?: (invoice: ServiceInvoice) => void
-  onMarkReady?: (invoice: ServiceInvoice) => void
-  onSimulate?: (invoice: ServiceInvoice) => void
-  onCancel?: (invoice: ServiceInvoice) => void
-  onPageChange?: (page: number) => void
-  onPageSizeChange?: (limit: number) => void
-} = {}) {
+function renderList(
+  overrides: {
+    invoices?: ServiceInvoice[]
+    userRole?: string
+    isOwner?: boolean
+    profile?: ClinicFiscalProfile | null
+    page?: number
+    totalPages?: number
+    total?: number
+    limit?: number
+    onViewDetails?: (invoice: ServiceInvoice) => void
+    onEdit?: (invoice: ServiceInvoice) => void
+    onMarkReady?: (invoice: ServiceInvoice) => void
+    onSimulate?: (invoice: ServiceInvoice) => void
+    onCancel?: (invoice: ServiceInvoice) => void
+    onPageChange?: (page: number) => void
+    onPageSizeChange?: (limit: number) => void
+  } = {},
+) {
   const props = {
     invoices: [makeInvoice()],
     userRole: 'OWNER' as string | undefined,
@@ -209,20 +211,36 @@ describe('InvoiceList — action guards', () => {
   it('DRAFT + OWNER: shows Ver detalhes, Editar, Marcar pronta, Cancelar', () => {
     renderList({ invoices: [makeInvoice({ status: 'DRAFT' })], isOwner: true, userRole: 'OWNER' })
     // Multiple buttons with same label (mobile + desktop) — at least one of each
-    expect(screen.getAllByRole('button', { name: /Ver detalhes da nota de João Silva/ }).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('button', { name: /Editar nota de João Silva/ }).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('button', { name: /Marcar nota de João Silva como pronta/ }).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('button', { name: /Cancelar nota de João Silva/ }).length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole('button', { name: /Ver detalhes da nota de João Silva/ }).length,
+    ).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole('button', { name: /Editar nota de João Silva/ }).length,
+    ).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole('button', { name: /Marcar nota de João Silva como pronta/ }).length,
+    ).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole('button', { name: /Cancelar nota de João Silva/ }).length,
+    ).toBeGreaterThan(0)
   })
 
   it('ISSUED + OWNER: does not show cancel button', () => {
     renderList({ invoices: [makeInvoice({ status: 'ISSUED' })], isOwner: true, userRole: 'OWNER' })
-    expect(screen.queryByRole('button', { name: /Cancelar nota de João Silva/ })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Cancelar nota de João Silva/ }),
+    ).not.toBeInTheDocument()
   })
 
   it('CANCELED + OWNER: does not show cancel button', () => {
-    renderList({ invoices: [makeInvoice({ status: 'CANCELED' })], isOwner: true, userRole: 'OWNER' })
-    expect(screen.queryByRole('button', { name: /Cancelar nota de João Silva/ })).not.toBeInTheDocument()
+    renderList({
+      invoices: [makeInvoice({ status: 'CANCELED' })],
+      isOwner: true,
+      userRole: 'OWNER',
+    })
+    expect(
+      screen.queryByRole('button', { name: /Cancelar nota de João Silva/ }),
+    ).not.toBeInTheDocument()
   })
 
   it('READY_TO_ISSUE + LOCAL profile + OWNER: shows simulate button', () => {
@@ -269,21 +287,33 @@ describe('InvoiceList — action guards', () => {
   })
 
   it('non-owner: does not see markReady button', () => {
-    renderList({ invoices: [makeInvoice({ status: 'DRAFT' })], isOwner: false, userRole: 'ASSISTANT' })
+    renderList({
+      invoices: [makeInvoice({ status: 'DRAFT' })],
+      isOwner: false,
+      userRole: 'ASSISTANT',
+    })
     expect(
       screen.queryByRole('button', { name: /Marcar nota de João Silva como pronta/ }),
     ).not.toBeInTheDocument()
   })
 
   it('non-owner: does not see cancel button', () => {
-    renderList({ invoices: [makeInvoice({ status: 'DRAFT' })], isOwner: false, userRole: 'ASSISTANT' })
+    renderList({
+      invoices: [makeInvoice({ status: 'DRAFT' })],
+      isOwner: false,
+      userRole: 'ASSISTANT',
+    })
     expect(
       screen.queryByRole('button', { name: /Cancelar nota de João Silva/ }),
     ).not.toBeInTheDocument()
   })
 
   it('ASSISTANT + DRAFT: shows edit button', () => {
-    renderList({ invoices: [makeInvoice({ status: 'DRAFT' })], isOwner: false, userRole: 'ASSISTANT' })
+    renderList({
+      invoices: [makeInvoice({ status: 'DRAFT' })],
+      isOwner: false,
+      userRole: 'ASSISTANT',
+    })
     expect(
       screen.getAllByRole('button', { name: /Editar nota de João Silva/ }).length,
     ).toBeGreaterThan(0)
@@ -304,7 +334,9 @@ describe('InvoiceList — callback wiring', () => {
     const onViewDetails = vi.fn()
     const invoice = makeInvoice()
     renderList({ invoices: [invoice], onViewDetails })
-    fireEvent.click(screen.getAllByRole('button', { name: /Ver detalhes da nota de João Silva/ })[0])
+    fireEvent.click(
+      screen.getAllByRole('button', { name: /Ver detalhes da nota de João Silva/ })[0],
+    )
     expect(onViewDetails).toHaveBeenCalledWith(invoice)
   })
 

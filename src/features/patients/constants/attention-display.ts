@@ -1,4 +1,8 @@
-import type { AttentionPriorityFilter, AttentionReasonFilter, WhatsAppFilter } from '../hooks/usePatientsAttention'
+import type {
+  AttentionPriorityFilter,
+  AttentionReasonFilter,
+  WhatsAppFilter,
+} from '../hooks/usePatientsAttention'
 import type { AttentionPriority, AttentionReason } from '../types/attention.types'
 
 import type { BadgeTone } from './appointment-display'

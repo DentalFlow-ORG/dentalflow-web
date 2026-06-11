@@ -3,8 +3,11 @@ import { CheckCircle2, LockKeyhole, ShieldCheck, Workflow, Zap } from 'lucide-re
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { cn } from '@/lib/utils'
 
+import {
+  type IntegrationCard as IntegrationCardData,
+  integrationCards,
+} from '../data/public-content'
 import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
-import { integrationCards, type IntegrationCard as IntegrationCardData } from '../data/public-content'
 
 const FEATURED_INTEGRATIONS = [
   'Google Calendar',

@@ -1,6 +1,6 @@
+import { BackButton } from '@/components/common/BackButton'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
-import { BackButton } from '@/components/common/BackButton'
 
 import { FiscalProfilePageContainer } from '../containers/FiscalProfilePageContainer'
 

@@ -1,6 +1,9 @@
-import { exportFinanceReport, getFinanceReportPreview } from '@/features/reports/services/reports.service'
-import { ApiError } from '@/services/http'
+import {
+  exportFinanceReport,
+  getFinanceReportPreview,
+} from '@/features/reports/services/reports.service'
 import type { ReportPreviewResponse } from '@/features/reports/types/reports.types'
+import { ApiError } from '@/services/http'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -93,9 +96,7 @@ describe('getFinanceReportPreview — Authorization', () => {
     await getFinanceReportPreview({})
 
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit]
-    expect((init.headers as Record<string, string>)['Authorization']).toBe(
-      `Bearer ${TEST_TOKEN}`,
-    )
+    expect((init.headers as Record<string, string>).Authorization).toBe(`Bearer ${TEST_TOKEN}`)
   })
 
   it('requests /reports/finance/preview', async () => {
@@ -130,9 +131,7 @@ describe('exportFinanceReport — Authorization', () => {
     await exportFinanceReport({})
 
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit]
-    expect((init.headers as Record<string, string>)['Authorization']).toBe(
-      `Bearer ${TEST_TOKEN}`,
-    )
+    expect((init.headers as Record<string, string>).Authorization).toBe(`Bearer ${TEST_TOKEN}`)
   })
 
   it('requests /reports/finance/export', async () => {

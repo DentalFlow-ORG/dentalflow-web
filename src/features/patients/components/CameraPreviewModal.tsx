@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { Camera, Loader2 } from 'lucide-react'
 import { Dialog } from 'radix-ui'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 
@@ -76,12 +76,16 @@ export function CameraPreviewModal({ open, onCapture, onCancel }: Props) {
     if (!ctx) return
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-    canvas.toBlob((blob) => {
-      if (!blob) return
-      const file = new File([blob], 'webcam-capture.jpg', { type: 'image/jpeg' })
-      stopStream()
-      onCapture(file)
-    }, 'image/jpeg', 0.9)
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return
+        const file = new File([blob], 'webcam-capture.jpg', { type: 'image/jpeg' })
+        stopStream()
+        onCapture(file)
+      },
+      'image/jpeg',
+      0.9,
+    )
   }
 
   const handleCancel = useCallback(() => {
@@ -90,7 +94,12 @@ export function CameraPreviewModal({ open, onCapture, onCancel }: Props) {
   }, [stopStream, onCancel])
 
   return (
-    <Dialog.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) handleCancel() }}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) handleCancel()
+      }}
+    >
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content

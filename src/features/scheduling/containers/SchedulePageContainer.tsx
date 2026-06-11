@@ -3,11 +3,11 @@ import { useEffect, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
-import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 import { AppointmentDrawer } from '../components/appointments/AppointmentDrawer'
@@ -15,15 +15,12 @@ import { AppointmentTable } from '../components/appointments/AppointmentTable'
 import { AvailabilityManager } from '../components/availability/AvailabilityManager'
 import { ExceptionManager } from '../components/availability/ExceptionManager'
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
-import { ViewToggle } from '../components/shared/ViewToggle'
 import { MobileAgendaList } from '../components/mobile/MobileAgendaList'
 import { MobileAgendaTimeline } from '../components/mobile/MobileAgendaTimeline'
-import {
-  DENTIST_ALLOWED_TRANSITIONS,
-  useSchedulePage,
-} from '../hooks/useSchedulePage'
-import { getWeekDates, toDateInputValue } from '../utils/time'
+import { ViewToggle } from '../components/shared/ViewToggle'
 import { TABS } from '../constants/schedule-tabs'
+import { DENTIST_ALLOWED_TRANSITIONS, useSchedulePage } from '../hooks/useSchedulePage'
+import { getWeekDates, toDateInputValue } from '../utils/time'
 
 export function SchedulePageContainer() {
   const {
@@ -81,8 +78,8 @@ export function SchedulePageContainer() {
             <div>
               <p className="font-semibold">Perfil não encontrado</p>
               <p className="mt-1">
-                Seu usuário não está associado a um perfil profissional nesta clínica.
-                Solicite ao responsável pela clínica que vincule seu perfil.
+                Seu usuário não está associado a um perfil profissional nesta clínica. Solicite ao
+                responsável pela clínica que vincule seu perfil.
               </p>
             </div>
           </div>
@@ -90,7 +87,11 @@ export function SchedulePageContainer() {
       ) : (
         <>
           <div className="border-b border-border">
-            <nav role="tablist" aria-label="Seções da minha agenda" className="flex gap-0 overflow-x-auto">
+            <nav
+              role="tablist"
+              aria-label="Seções da minha agenda"
+              className="flex gap-0 overflow-x-auto"
+            >
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
@@ -179,7 +180,12 @@ export function SchedulePageContainer() {
           )}
 
           {activeTab === 'disponibilidade' && (
-            <div id="panel-schedule-disponibilidade" role="tabpanel" aria-labelledby="tab-schedule-disponibilidade" className="space-y-4">
+            <div
+              id="panel-schedule-disponibilidade"
+              role="tabpanel"
+              aria-labelledby="tab-schedule-disponibilidade"
+              className="space-y-4"
+            >
               <div>
                 <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Horários de atendimento
@@ -196,7 +202,12 @@ export function SchedulePageContainer() {
           )}
 
           {activeTab === 'excecoes' && (
-            <div id="panel-schedule-excecoes" role="tabpanel" aria-labelledby="tab-schedule-excecoes" className="space-y-4">
+            <div
+              id="panel-schedule-excecoes"
+              role="tabpanel"
+              aria-labelledby="tab-schedule-excecoes"
+              className="space-y-4"
+            >
               <div>
                 <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Exceções de agenda
@@ -225,4 +236,3 @@ export function SchedulePageContainer() {
     </AppPage>
   )
 }
-

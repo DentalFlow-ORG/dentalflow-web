@@ -66,9 +66,7 @@ describe('useUnsavedChangesGuard', () => {
   it('removes the beforeunload listener on unmount', () => {
     const removeSpy = vi.spyOn(window, 'removeEventListener')
 
-    const { unmount } = renderHook(() =>
-      useUnsavedChangesGuard({ isDirty: true }),
-    )
+    const { unmount } = renderHook(() => useUnsavedChangesGuard({ isDirty: true }))
 
     unmount()
 
@@ -94,9 +92,7 @@ describe('useUnsavedChangesGuard', () => {
   it('calls useBlocker with disabled=true when isDirty is false', () => {
     renderHook(() => useUnsavedChangesGuard({ isDirty: false }))
 
-    expect(mockUseBlocker).toHaveBeenCalledWith(
-      expect.objectContaining({ disabled: true }),
-    )
+    expect(mockUseBlocker).toHaveBeenCalledWith(expect.objectContaining({ disabled: true }))
   })
 
   // T7 ─────────────────────────────────────────────────────────────────────────
@@ -104,8 +100,6 @@ describe('useUnsavedChangesGuard', () => {
   it('calls useBlocker with disabled=false when isDirty is true', () => {
     renderHook(() => useUnsavedChangesGuard({ isDirty: true }))
 
-    expect(mockUseBlocker).toHaveBeenCalledWith(
-      expect.objectContaining({ disabled: false }),
-    )
+    expect(mockUseBlocker).toHaveBeenCalledWith(expect.objectContaining({ disabled: false }))
   })
 })

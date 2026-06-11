@@ -73,9 +73,7 @@ const categories: FinancialCategory[] = [
   },
 ]
 
-function renderForm(
-  overrides: Partial<Parameters<typeof FixedExpenseForm>[0]> = {},
-) {
+function renderForm(overrides: Partial<Parameters<typeof FixedExpenseForm>[0]> = {}) {
   const props = {
     form: defaultForm,
     categories,
@@ -188,9 +186,7 @@ describe('FixedExpenseForm', () => {
 
   it('calls onSubmit when form is submitted', () => {
     const { onSubmit } = renderForm()
-    fireEvent.submit(
-      screen.getByRole('button', { name: /salvar despesa fixa/i }).closest('form')!,
-    )
+    fireEvent.submit(screen.getByRole('button', { name: /salvar despesa fixa/i }).closest('form')!)
     expect(onSubmit).toHaveBeenCalledTimes(1)
   })
 })

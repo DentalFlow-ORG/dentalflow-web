@@ -55,8 +55,8 @@ export function VideoSection() {
             Conheça o DentalFlow em poucos minutos
           </h2>
           <p className="mt-5 max-w-xl text-base leading-7 text-slate-600">
-            Veja como o DentalFlow conecta gestão, automação e clareza operacional para
-            clínicas que querem crescer com mais controle e menos retrabalho.
+            Veja como o DentalFlow conecta gestão, automação e clareza operacional para clínicas que
+            querem crescer com mais controle e menos retrabalho.
           </p>
 
           <div className="mt-8 grid gap-3 text-sm text-slate-600">

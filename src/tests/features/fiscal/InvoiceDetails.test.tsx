@@ -5,10 +5,10 @@ vi.mock('@/features/fiscal/utils/print-invoice', () => ({
   printInvoice: vi.fn(),
 }))
 
-import { printInvoice } from '@/features/fiscal/utils/print-invoice'
-import { getInvoiceEventLabel } from '@/features/fiscal/constants/invoice-events'
 import { InvoiceDetails } from '@/features/fiscal/components/InvoiceDetails'
+import { getInvoiceEventLabel } from '@/features/fiscal/constants/invoice-events'
 import type { FiscalInvoiceEvent, ServiceInvoice } from '@/features/fiscal/types/fiscal.types'
+import { printInvoice } from '@/features/fiscal/utils/print-invoice'
 
 const mockPrintInvoice = printInvoice as ReturnType<typeof vi.fn>
 
@@ -108,9 +108,7 @@ describe('InvoiceDetails', () => {
 
   it('renders "Detalhes da nota fiscal" semantic heading', () => {
     render(<InvoiceDetails invoice={makeInvoice()} onClose={vi.fn()} />)
-    expect(
-      screen.getByRole('heading', { name: 'Detalhes da nota fiscal' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Detalhes da nota fiscal' })).toBeInTheDocument()
   })
 
   it('renders "Dados do serviço" section heading', () => {
@@ -172,9 +170,7 @@ describe('InvoiceDetails', () => {
   })
 
   it('renders "Sem documento" when customerDocument is null', () => {
-    render(
-      <InvoiceDetails invoice={makeInvoice({ customerDocument: null })} onClose={vi.fn()} />,
-    )
+    render(<InvoiceDetails invoice={makeInvoice({ customerDocument: null })} onClose={vi.fn()} />)
     expect(screen.getByText('Sem documento')).toBeInTheDocument()
   })
 
@@ -310,7 +306,13 @@ describe('InvoiceDetails', () => {
   it('renders status transition labels in event row', () => {
     const invoice = makeInvoice({
       status: 'ISSUED',
-      events: [makeEvent({ eventType: 'STATUS_CHANGE', previousStatus: 'DRAFT', nextStatus: 'READY_TO_ISSUE' })],
+      events: [
+        makeEvent({
+          eventType: 'STATUS_CHANGE',
+          previousStatus: 'DRAFT',
+          nextStatus: 'READY_TO_ISSUE',
+        }),
+      ],
     })
     render(<InvoiceDetails invoice={invoice} onClose={vi.fn()} />)
     // Both labels appear inside the event row's transition text

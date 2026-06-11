@@ -1,9 +1,9 @@
-import { render, screen, fireEvent } from '@/test-utils/render-utils'
+import { fireEvent, render, screen } from '@/test-utils/render-utils'
 
 import { PatientsPageContainer } from '@/features/patients/containers/PatientsPageContainer'
 import type { PatientSummary } from '@/features/patients/types/patients.types'
-import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
 import { makeAssistantUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
+import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -298,7 +298,11 @@ describe('PatientsPageContainer — no Leads content', () => {
 describe('PatientsPageContainer — quick actions', () => {
   it('renders "Pacientes em atenção" quick action link', () => {
     mockUsePatientsPage.mockReturnValue(
-      makeDefaultHookState({ patients: [makePatient()], filteredPatients: [makePatient()], paginatedPatients: [makePatient()] }),
+      makeDefaultHookState({
+        patients: [makePatient()],
+        filteredPatients: [makePatient()],
+        paginatedPatients: [makePatient()],
+      }),
     )
     render(<PatientsPageContainer />)
     const attLink = screen.getByRole('link', { name: /pacientes em atenção/i })

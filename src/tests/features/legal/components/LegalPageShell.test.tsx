@@ -21,24 +21,40 @@ vi.mock('@/components/brand/BrandLink', () => ({
 
 describe('LegalPageShell', () => {
   it('renders children inside the main landmark', () => {
-    render(<LegalPageShell><p>Conteúdo legal da página.</p></LegalPageShell>)
+    render(
+      <LegalPageShell>
+        <p>Conteúdo legal da página.</p>
+      </LegalPageShell>,
+    )
     const main = screen.getByRole('main')
     expect(main).toContainElement(screen.getByText('Conteúdo legal da página.'))
   })
 
   it('renders the header landmark with aria-label="Cabeçalho"', () => {
-    render(<LegalPageShell><span /></LegalPageShell>)
+    render(
+      <LegalPageShell>
+        <span />
+      </LegalPageShell>,
+    )
     expect(screen.getByRole('banner', { name: 'Cabeçalho' })).toBeInTheDocument()
   })
 
   it('renders the "Voltar ao início" link pointing to "/"', () => {
-    render(<LegalPageShell><span /></LegalPageShell>)
+    render(
+      <LegalPageShell>
+        <span />
+      </LegalPageShell>,
+    )
     const link = screen.getByRole('link', { name: /Voltar ao início/i })
     expect(link).toHaveAttribute('href', '/')
   })
 
   it('renders the site footer', () => {
-    render(<LegalPageShell><span /></LegalPageShell>)
+    render(
+      <LegalPageShell>
+        <span />
+      </LegalPageShell>,
+    )
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
     expect(screen.getByText('Mock footer')).toBeInTheDocument()
   })

@@ -1,8 +1,4 @@
-import {
-  ALL_DECIDUOUS,
-  ALL_TEETH,
-  ODONTOGRAM_CONDITION_LABELS,
-} from './odontogram-status-utils'
+import { ALL_DECIDUOUS, ALL_TEETH, ODONTOGRAM_CONDITION_LABELS } from './odontogram-status-utils'
 
 // ── Valid tooth number set ────────────────────────────────────────────────────
 // FDI: permanent 11-18, 21-28, 31-38, 41-48; deciduous 51-55, 61-65, 71-75, 81-85.
@@ -16,30 +12,36 @@ const VALID_TOOTH_NUMBERS = new Set([...ALL_TEETH, ...ALL_DECIDUOUS].map(String)
 
 const CONDITION_KEYWORDS: Array<{ patterns: RegExp[]; condition: string }> = [
   // Caries — covers both accented and unaccented spellings
-  { patterns: [/carie/i, /cárie/i],                              condition: 'caries'     },
+  { patterns: [/carie/i, /cárie/i], condition: 'caries' },
   // Restored tooth
-  { patterns: [/restaurad[ao]/i, /restaura[cç][aã]o/i],          condition: 'restored'   },
+  { patterns: [/restaurad[ao]/i, /restaura[cç][aã]o/i], condition: 'restored' },
   // Indicated extraction (before absent to capture the specific intent)
   // "exodontia" is a common clinical synonym for tooth extraction in Portuguese.
-  { patterns: [/extra[cç][aã]o/i, /extrair/i, /exodontia/i, /indica[cç][aã]o de extra[cç][aã]o/i], condition: 'extraction' },
+  {
+    patterns: [/extra[cç][aã]o/i, /extrair/i, /exodontia/i, /indica[cç][aã]o de extra[cç][aã]o/i],
+    condition: 'extraction',
+  },
   // Absent / already extracted — "ausência/ausencia" (noun) covers "Ausência do dente N" patterns.
-  { patterns: [/ausente/i, /aus[eê]ncia/i, /perdid[ao]/i, /extra[ií]d[ao]/i], condition: 'absent'   },
+  { patterns: [/ausente/i, /aus[eê]ncia/i, /perdid[ao]/i, /extra[ií]d[ao]/i], condition: 'absent' },
   // Crown restoration
-  { patterns: [/\bcoroa\b/i],                                     condition: 'crown'      },
+  { patterns: [/\bcoroa\b/i], condition: 'crown' },
   // Endodontic treatment
   { patterns: [/endodontia/i, /tratamento de canal/i, /\bcanal\b/i], condition: 'endodontic' },
   // Fracture
-  { patterns: [/fratura/i],                                       condition: 'fracture'   },
+  { patterns: [/fratura/i], condition: 'fracture' },
   // Mobility
-  { patterns: [/mobilidade/i],                                    condition: 'mobility'   },
+  { patterns: [/mobilidade/i], condition: 'mobility' },
   // Implant
-  { patterns: [/implante/i],                                      condition: 'implant'    },
+  { patterns: [/implante/i], condition: 'implant' },
   // Sealant
-  { patterns: [/selante/i],                                       condition: 'sealant'    },
+  { patterns: [/selante/i], condition: 'sealant' },
   // Watch / monitor
-  { patterns: [/monitorar/i, /acompanhar/i, /observar/i],         condition: 'watch'      },
+  { patterns: [/monitorar/i, /acompanhar/i, /observar/i], condition: 'watch' },
   // Healthy / no alteration — "hígido/higido" is the formal clinical synonym for healthy.
-  { patterns: [/saud[aá]vel/i, /h[ií]gido/i, /sem alterac[aã]o/i, /sem alteração/i], condition: 'healthy' },
+  {
+    patterns: [/saud[aá]vel/i, /h[ií]gido/i, /sem alterac[aã]o/i, /sem alteração/i],
+    condition: 'healthy',
+  },
 ]
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -65,9 +67,10 @@ function detectToothNumbers(segment: string): string[] {
   // validated against the known tooth set to reject unrelated numbers.
   const found: string[] = []
   const re = /\b([1-9]\d)\b/g
-  let match: RegExpExecArray | null
-  while ((match = re.exec(segment)) !== null) {
+  let match = re.exec(segment)
+  while (match !== null) {
     if (VALID_TOOTH_NUMBERS.has(match[1])) found.push(match[1])
+    match = re.exec(segment)
   }
   return [...new Set(found)] // deduplicate within segment
 }

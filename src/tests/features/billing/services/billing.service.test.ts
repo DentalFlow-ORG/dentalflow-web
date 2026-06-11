@@ -222,7 +222,10 @@ describe('startTrial', () => {
     await startTrial(dto)
 
     const [, options] = mockApiRequest.mock.calls[0]
-    expect(JSON.parse(options.body)).toEqual({ planKey: 'professional', billingInterval: 'MONTHLY' })
+    expect(JSON.parse(options.body)).toEqual({
+      planKey: 'professional',
+      billingInterval: 'MONTHLY',
+    })
   })
 })
 

@@ -10,11 +10,16 @@ import {
   YAxis,
 } from 'recharts'
 
-import { cn } from '@/lib/utils'
 import { useTheme } from '@/features/theme/useTheme'
+import { cn } from '@/lib/utils'
 
 import type { FinanceSummary } from '../types/finance.types'
-import { formatCompactCurrency, formatCurrency, formatDate, formatShortDate } from '../utils/finance-format'
+import {
+  formatCompactCurrency,
+  formatCurrency,
+  formatDate,
+  formatShortDate,
+} from '../utils/finance-format'
 import { EmptyChart } from './EmptyChart'
 import { FinanceInsight } from './FinanceInsight'
 
@@ -153,8 +158,16 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
           <FinanceInsight label="Último resultado" value={lastPoint?.netProfit ?? 0} />
-          <FinanceInsight label="Melhor período" value={bestPoint.netProfit} detail={bestPoint.label} />
-          <FinanceInsight label="Maior pressão" value={worstPoint.netProfit} detail={worstPoint.label} />
+          <FinanceInsight
+            label="Melhor período"
+            value={bestPoint.netProfit}
+            detail={bestPoint.label}
+          />
+          <FinanceInsight
+            label="Maior pressão"
+            value={worstPoint.netProfit}
+            detail={worstPoint.label}
+          />
         </div>
       </div>
 
@@ -173,10 +186,7 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
             )}
             onClick={() => toggleSeries(series.key)}
           >
-            <span
-              className="h-2.5 w-2.5 rounded-full"
-              style={{ backgroundColor: series.color }}
-            />
+            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: series.color }} />
             {series.label}
           </button>
         ))}
@@ -270,12 +280,18 @@ export function IncomeExpensesChart({ summary }: { summary: FinanceSummary }) {
           {chartData.map((item) => (
             <div key={item.date} className="grid grid-cols-4 px-3 py-2 text-sm">
               <span className="font-medium text-foreground">{item.label}</span>
-              <span className="text-right text-emerald-700 dark:text-emerald-400">{formatCurrency(item.income)}</span>
-              <span className="text-right text-red-700 dark:text-red-400">{formatCurrency(item.expenses)}</span>
+              <span className="text-right text-emerald-700 dark:text-emerald-400">
+                {formatCurrency(item.income)}
+              </span>
+              <span className="text-right text-red-700 dark:text-red-400">
+                {formatCurrency(item.expenses)}
+              </span>
               <span
                 className={cn(
                   'text-right font-semibold',
-                  item.netProfit >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-400',
+                  item.netProfit >= 0
+                    ? 'text-emerald-700 dark:text-emerald-300'
+                    : 'text-red-700 dark:text-red-400',
                 )}
               >
                 {formatCurrency(item.netProfit)}

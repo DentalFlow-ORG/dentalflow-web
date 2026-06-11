@@ -1,6 +1,6 @@
+import { AvatarCropModal } from '@/features/patients/components/AvatarCropModal'
 import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
-import { AvatarCropModal } from '@/features/patients/components/AvatarCropModal'
 
 const mockDrawImage = vi.fn()
 const mockFillRect = vi.fn()
@@ -60,13 +60,15 @@ beforeEach(() => {
 
 const MOCK_FILE = new File(['img'], 'photo.jpg', { type: 'image/jpeg' })
 
-function renderModal(overrides: {
-  open?: boolean
-  onConfirm?: (b: string) => void
-  onCancel?: () => void
-  onError?: (m: string) => void
-  patientName?: string
-} = {}) {
+function renderModal(
+  overrides: {
+    open?: boolean
+    onConfirm?: (b: string) => void
+    onCancel?: () => void
+    onError?: (m: string) => void
+    patientName?: string
+  } = {},
+) {
   const onConfirm = overrides.onConfirm ?? vi.fn()
   const onCancel = overrides.onCancel ?? vi.fn()
   const onError = overrides.onError ?? vi.fn()
@@ -104,9 +106,7 @@ describe('AvatarCropModal - rendering', () => {
 
   it('renders the updated helper description', () => {
     renderModal()
-    expect(
-      screen.getAllByText(/Ajuste o quadrado pelas bordas/i)[0],
-    ).toBeInTheDocument()
+    expect(screen.getAllByText(/Ajuste o quadrado pelas bordas/i)[0]).toBeInTheDocument()
   })
 
   it('renders Cancelar and Salvar foto buttons', () => {

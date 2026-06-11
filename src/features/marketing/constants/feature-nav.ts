@@ -1,11 +1,4 @@
-import {
-  Bot,
-  CalendarDays,
-  ClipboardList,
-  CreditCard,
-  TrendingUp,
-  Users,
-} from 'lucide-react'
+import { Bot, CalendarDays, ClipboardList, CreditCard, TrendingUp, Users } from 'lucide-react'
 
 export type FeatureNavItem = {
   id: string
@@ -51,7 +44,7 @@ export const MAIN_FEATURES: FeatureNavItem[] = [
 /** Maps role label strings (from FeatureDetailContent.roles[].role) to public role pages. */
 export const ROLE_ROUTES: Record<string, string> = {
   'Secretária / Recepção': '/para-secretarias',
-  'Dentista': '/para-dentistas',
+  Dentista: '/para-dentistas',
   'Gestor / Proprietário': '/para-gestores',
   'Gestor/Proprietário': '/para-gestores',
 }

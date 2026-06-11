@@ -3,8 +3,8 @@ import { AlertCircle, BookOpen, FilePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import { CLINICAL_TEMPLATE_CATEGORY_LABEL } from '../utils/clinical-record-labels'
 import type { ClinicalTemplate, ClinicalTemplateCategory } from '../types/clinical-record.types'
+import { CLINICAL_TEMPLATE_CATEGORY_LABEL } from '../utils/clinical-record-labels'
 
 const UNMAPPED_CATEGORIES: ClinicalTemplateCategory[] = ['OTHER']
 
@@ -18,9 +18,7 @@ export function ClinicalTemplateSelectorPanel({ templates, onApply }: Props) {
     return (
       <div className="rounded-xl border border-dashed border-border bg-card p-5 text-center">
         <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/40" />
-        <p className="mt-2 text-sm font-medium text-muted-foreground">
-          Nenhum modelo disponível
-        </p>
+        <p className="mt-2 text-sm font-medium text-muted-foreground">Nenhum modelo disponível</p>
         <p className="mt-1 text-xs text-muted-foreground">
           Nenhum modelo clínico foi criado ainda para esta clínica.
         </p>
@@ -64,7 +62,12 @@ export function ClinicalTemplateSelectorPanel({ templates, onApply }: Props) {
                 onClick={() => onApply(t)}
               >
                 <div className="min-w-0">
-                  <p className={cn('truncate text-sm font-medium', isUnmapped ? 'text-muted-foreground/50' : 'text-foreground')}>
+                  <p
+                    className={cn(
+                      'truncate text-sm font-medium',
+                      isUnmapped ? 'text-muted-foreground/50' : 'text-foreground',
+                    )}
+                  >
                     {t.name}
                   </p>
                   {isUnmapped ? (

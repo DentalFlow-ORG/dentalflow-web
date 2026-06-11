@@ -1,10 +1,10 @@
-import { Calendar, ChevronRight } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { Calendar, ChevronRight } from 'lucide-react'
 
 import { formatDateBR } from '@/lib/date-time-formatters'
 
-import { ClinicalRecordStatusBadge } from './ClinicalRecordStatusBadge'
 import type { ClinicalRecord } from '../types/clinical-record.types'
+import { ClinicalRecordStatusBadge } from './ClinicalRecordStatusBadge'
 
 type Props = {
   record: ClinicalRecord
@@ -42,9 +42,7 @@ export function ClinicalRecordListItem({ record }: Props) {
           )}
           <p className="text-xs text-muted-foreground">{record.profile.displayName}</p>
           {record.chiefComplaint && (
-            <p className="line-clamp-1 text-xs text-muted-foreground/70">
-              {record.chiefComplaint}
-            </p>
+            <p className="line-clamp-1 text-xs text-muted-foreground/70">{record.chiefComplaint}</p>
           )}
           <div className="flex items-center gap-1 pt-0.5 text-xs text-muted-foreground/50">
             <Calendar className="h-3 w-3 shrink-0" aria-hidden="true" />
@@ -75,10 +73,7 @@ export function ClinicalRecordListItem({ record }: Props) {
         {/* Chief complaint (xl+) */}
         <div className="hidden w-44 shrink-0 xl:block">
           {record.chiefComplaint ? (
-            <p
-              className="truncate text-xs text-muted-foreground/80"
-              title={record.chiefComplaint}
-            >
+            <p className="truncate text-xs text-muted-foreground/80" title={record.chiefComplaint}>
               {record.chiefComplaint}
             </p>
           ) : (

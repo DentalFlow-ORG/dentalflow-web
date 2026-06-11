@@ -91,11 +91,11 @@ const successState: DiagnosisState = {
   diagnosis: mockDiagnosis,
 }
 
-function renderCard(
-  state: DiagnosisState = idleState,
-  onGenerate = vi.fn(),
-) {
-  return { onGenerate, ...render(<MonthlyFinanceDiagnosisCard state={state} onGenerate={onGenerate} />) }
+function renderCard(state: DiagnosisState = idleState, onGenerate = vi.fn()) {
+  return {
+    onGenerate,
+    ...render(<MonthlyFinanceDiagnosisCard state={state} onGenerate={onGenerate} />),
+  }
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────

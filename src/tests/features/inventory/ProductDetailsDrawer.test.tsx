@@ -105,9 +105,7 @@ describe('ProductDetailsDrawer', () => {
 
   it('shows — in the minimum quantity chip when minQuantity is 0', () => {
     render(
-      <ProductDetailsDrawer
-        {...defaultProps({ product: buildProduct({ minQuantity: 0 }) })}
-      />,
+      <ProductDetailsDrawer {...defaultProps({ product: buildProduct({ minQuantity: 0 }) })} />,
     )
 
     expect(screen.getByText('Quantidade mínima')).toBeInTheDocument()
@@ -140,9 +138,7 @@ describe('ProductDetailsDrawer', () => {
   it('does not render Desativar when isOwner is false', () => {
     render(<ProductDetailsDrawer {...defaultProps({ isOwner: false })} />)
 
-    expect(
-      screen.queryByRole('button', { name: /Desativar produto/i }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Desativar produto/i })).not.toBeInTheDocument()
   })
 
   // ── Actions: inactive product ──────────────────────────────────────────────
@@ -152,9 +148,7 @@ describe('ProductDetailsDrawer', () => {
     render(<ProductDetailsDrawer {...defaultProps({ product })} />)
 
     expect(screen.queryByRole('button', { name: /Editar produto/i })).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: /Movimentar estoque/i }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Movimentar estoque/i })).not.toBeInTheDocument()
   })
 
   it('renders Reativar button for inactive product when isOwner', () => {
@@ -192,9 +186,7 @@ describe('ProductDetailsDrawer', () => {
     const user = userEvent.setup()
     render(<ProductDetailsDrawer {...defaultProps({ product, onMove })} />)
 
-    await user.click(
-      screen.getByRole('button', { name: /Movimentar estoque de Luva cirúrgica/i }),
-    )
+    await user.click(screen.getByRole('button', { name: /Movimentar estoque de Luva cirúrgica/i }))
 
     expect(onMove).toHaveBeenCalledWith(product)
   })
@@ -205,9 +197,7 @@ describe('ProductDetailsDrawer', () => {
     const user = userEvent.setup()
     render(<ProductDetailsDrawer {...defaultProps({ product, onDeactivate })} />)
 
-    await user.click(
-      screen.getByRole('button', { name: /Desativar produto Luva cirúrgica/i }),
-    )
+    await user.click(screen.getByRole('button', { name: /Desativar produto Luva cirúrgica/i }))
 
     expect(onDeactivate).toHaveBeenCalledWith(product)
   })
@@ -218,9 +208,7 @@ describe('ProductDetailsDrawer', () => {
     const user = userEvent.setup()
     render(<ProductDetailsDrawer {...defaultProps({ product, onReactivate })} />)
 
-    await user.click(
-      screen.getByRole('button', { name: /Reativar produto Luva cirúrgica/i }),
-    )
+    await user.click(screen.getByRole('button', { name: /Reativar produto Luva cirúrgica/i }))
 
     expect(onReactivate).toHaveBeenCalledWith(product)
   })
@@ -281,16 +269,12 @@ describe('ProductDetailsDrawer', () => {
       />,
     )
 
-    expect(
-      screen.queryByText('Descrição e observações', { selector: 'p' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Descrição e observações', { selector: 'p' })).not.toBeInTheDocument()
   })
 
   it('renders the section when only notes is set (no description)', () => {
     render(
-      <ProductDetailsDrawer
-        {...defaultProps({ product: buildProduct({ description: null }) })}
-      />,
+      <ProductDetailsDrawer {...defaultProps({ product: buildProduct({ description: null }) })} />,
     )
 
     expect(screen.getByText('Descrição e observações', { selector: 'p' })).toBeInTheDocument()
@@ -329,9 +313,7 @@ describe('ProductDetailsDrawer', () => {
   it('renders nothing meaningful when product is null', () => {
     render(<ProductDetailsDrawer {...defaultProps({ product: null })} />)
 
-    expect(
-      screen.queryByRole('heading', { name: /Luva cirúrgica/i }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /Luva cirúrgica/i })).not.toBeInTheDocument()
   })
 
   // ── Scrollable body ────────────────────────────────────────────────────────

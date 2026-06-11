@@ -1,10 +1,9 @@
-import { useCallback, useEffect } from 'react'
 import { useBlocker } from '@tanstack/react-router'
+import { useCallback, useEffect } from 'react'
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
-const MESSAGE =
-  'Há alterações não salvas neste prontuário. Deseja sair mesmo assim?'
+const MESSAGE = 'Há alterações não salvas neste prontuário. Deseja sair mesmo assim?'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -45,10 +44,7 @@ export function useUnsavedChangesGuard({ isDirty }: Props): void {
   // shouldBlockFn is stable (useCallback with [] deps) so useBlocker's
   // internal effect does not re-register the history blocker on every render.
   // disabled: !isDirty removes the blocker entirely when there are no changes.
-  const shouldBlockFn = useCallback(
-    () => !window.confirm(MESSAGE),
-    [],
-  )
+  const shouldBlockFn = useCallback(() => !window.confirm(MESSAGE), [])
 
   useBlocker({
     shouldBlockFn,

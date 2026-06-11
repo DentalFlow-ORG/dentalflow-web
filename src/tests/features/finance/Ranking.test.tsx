@@ -57,7 +57,12 @@ describe('Ranking', () => {
   // ── Item rendering ─────────────────────────────────────────────────────────
 
   it('renders formatted amount for each item', () => {
-    render(<Ranking title="Despesas por categoria" items={[{ label: 'Aluguel', amount: 35000, color: '#EF4444' }]} />)
+    render(
+      <Ranking
+        title="Despesas por categoria"
+        items={[{ label: 'Aluguel', amount: 35000, color: '#EF4444' }]}
+      />,
+    )
     // formatCurrency(35000) → R$ 350,00 (amount is in cents) or R$ 35.000,00 depending on util
     // Just assert some currency text appears
     expect(screen.getByText(/R\$/)).toBeInTheDocument()
@@ -69,7 +74,13 @@ describe('Ranking', () => {
     const { container } = render(
       <Ranking
         title="Despesas por categoria"
-        items={[{ label: 'Um nome de categoria extremamente longo que vai transbordar', amount: 10000, color: '#10B981' }]}
+        items={[
+          {
+            label: 'Um nome de categoria extremamente longo que vai transbordar',
+            amount: 10000,
+            color: '#10B981',
+          },
+        ]}
       />,
     )
     const labelSpans = container.querySelectorAll('.truncate')

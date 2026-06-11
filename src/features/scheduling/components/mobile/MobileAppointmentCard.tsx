@@ -1,8 +1,8 @@
 import { cn } from '@/lib/utils'
 
+import { STATUS_LABELS } from '../../constants/appointment-display'
 import type { Appointment } from '../../types/scheduling.types'
 import { formatWallTime } from '../../utils/time'
-import { STATUS_LABELS } from '../../constants/appointment-display'
 import { AppointmentStatusBadge } from '../appointments/AppointmentStatusBadge'
 
 type MobileAppointmentCardProps = {
@@ -46,9 +46,7 @@ export function MobileAppointmentCard({ appointment, onClick }: MobileAppointmen
           <span className="text-sm font-bold tabular-nums text-foreground leading-tight">
             {startTime}
           </span>
-          <span className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
-            {endTime}
-          </span>
+          <span className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">{endTime}</span>
         </div>
 
         {/* Vertical divider */}

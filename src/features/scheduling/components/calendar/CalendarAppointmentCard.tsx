@@ -2,9 +2,9 @@ import type { CSSProperties } from 'react'
 
 import { cn } from '@/lib/utils'
 
+import { STATUS_COLORS, STATUS_LABELS } from '../../constants/appointment-display'
 import type { Appointment } from '../../types/scheduling.types'
 import { formatWallTime } from '../../utils/time'
-import { STATUS_COLORS, STATUS_LABELS } from '../../constants/appointment-display'
 
 type CalendarAppointmentCardProps = {
   appointment: Appointment
@@ -72,9 +72,7 @@ export function CalendarAppointmentCard({
       {isCompact ? (
         /* Compact: single row — name + time */
         <div className="flex items-center justify-between gap-1 leading-none">
-          <span className="truncate text-[11px] font-semibold">
-            {appointment.patientName}
-          </span>
+          <span className="truncate text-[11px] font-semibold">{appointment.patientName}</span>
           <span className="shrink-0 text-[10px] font-medium opacity-60">{startTime}</span>
         </div>
       ) : (
@@ -89,9 +87,7 @@ export function CalendarAppointmentCard({
 
           {/* Row 2: service / professional fallback */}
           {secondaryLine && (
-            <p className="mt-0.5 truncate text-[11px] font-medium opacity-75">
-              {secondaryLine}
-            </p>
+            <p className="mt-0.5 truncate text-[11px] font-medium opacity-75">{secondaryLine}</p>
           )}
 
           {/* Row 3 (rich only): professional name when different from service */}

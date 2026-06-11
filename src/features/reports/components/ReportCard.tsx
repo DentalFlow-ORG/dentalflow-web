@@ -2,8 +2,8 @@ import { Download, Loader2, RotateCcw, ScanSearch } from 'lucide-react'
 import { useId, useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
-import { Button } from '@/components/ui/button'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import type { ReportPreviewResponse } from '../types/reports.types'
@@ -14,7 +14,7 @@ export type ReportCardTone = 'neutral' | 'primary' | 'info' | 'warning' | 'succe
 const TONE_BORDER_TOP: Record<ReportCardTone, string> = {
   neutral: '',
   primary: 'border-t-2 border-t-primary',
-  info:    'border-t-2 border-t-blue-400 dark:border-t-blue-500',
+  info: 'border-t-2 border-t-blue-400 dark:border-t-blue-500',
   warning: 'border-t-2 border-t-amber-400 dark:border-t-amber-500',
   success: 'border-t-2 border-t-emerald-500 dark:border-t-emerald-400',
 }
@@ -76,8 +76,7 @@ export function ReportCard({
         tone: 'success',
       })
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Não foi possível gerar o relatório.'
+      const message = err instanceof Error ? err.message : 'Não foi possível gerar o relatório.'
       showAlert({ title: 'Erro ao exportar', description: message, tone: 'error' })
     } finally {
       setIsLoading(false)
@@ -91,16 +90,10 @@ export function ReportCard({
   const isPreviewing = previewState.mode === 'previewing'
   const hasPreviewed = previewState.mode === 'previewed'
   const hasPreviewError = previewState.mode === 'error'
-  const canDownload =
-    hasPreviewed && !previewState.data.empty
+  const canDownload = hasPreviewed && !previewState.data.empty
 
   return (
-    <div
-      className={cn(
-        'rounded-xl border border-border bg-card shadow-sm',
-        TONE_BORDER_TOP[tone],
-      )}
-    >
+    <div className={cn('rounded-xl border border-border bg-card shadow-sm', TONE_BORDER_TOP[tone])}>
       {/* ── Body ──────────────────────────────────────────────────────────── */}
       <div className="space-y-4 p-5">
         {/* Title row */}
@@ -135,9 +128,7 @@ export function ReportCard({
         {hasPreviewed && <ReportPreviewPanel data={previewState.data} />}
 
         {/* Preview API error */}
-        {hasPreviewError && (
-          <InlineFeedback tone="error">{previewState.message}</InlineFeedback>
-        )}
+        {hasPreviewError && <InlineFeedback tone="error">{previewState.message}</InlineFeedback>}
       </div>
 
       {/* ── Footer / action area ──────────────────────────────────────────── */}

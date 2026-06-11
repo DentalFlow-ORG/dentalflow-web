@@ -1,5 +1,5 @@
-import { INVOICE_STATUS_LABEL } from '../constants/invoice-status'
 import { ENVIRONMENT_LABELS } from '../constants/invoice-environment'
+import { INVOICE_STATUS_LABEL } from '../constants/invoice-status'
 import type { ServiceInvoice } from '../types/fiscal.types'
 import { formatCents, formatInvoiceDate } from './invoice-format'
 

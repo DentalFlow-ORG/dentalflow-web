@@ -3,8 +3,8 @@ import { Calendar, Clock, User } from 'lucide-react'
 import { EmptyState } from '@/components/common/EmptyState'
 import { cn } from '@/lib/utils'
 
-import { formatAppointmentDate, formatWallTime } from '../../utils/time'
 import type { Appointment, AppointmentStatus } from '../../types/scheduling.types'
+import { formatAppointmentDate, formatWallTime } from '../../utils/time'
 import { AppointmentStatusBadge } from './AppointmentStatusBadge'
 import { StatusActionMenu } from './StatusActionMenu'
 
@@ -44,22 +44,40 @@ export function AppointmentTable({
         <table className="w-full text-sm" aria-label="Lista de agendamentos">
           <thead>
             <tr className="border-b border-border bg-muted text-left">
-              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th
+                scope="col"
+                className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Paciente
               </th>
-              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th
+                scope="col"
+                className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Profissional
               </th>
-              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th
+                scope="col"
+                className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Data
               </th>
-              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th
+                scope="col"
+                className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Horário
               </th>
-              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th
+                scope="col"
+                className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Status
               </th>
-              <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <th
+                scope="col"
+                className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Ações
               </th>
             </tr>

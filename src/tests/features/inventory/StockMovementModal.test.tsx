@@ -20,8 +20,8 @@ vi.mock('@/features/inventory/services/inventory.service', () => ({
   updateStockCategory: vi.fn(),
 }))
 
-import { createStockMovement } from '@/features/inventory/services/inventory.service'
 import { StockMovementModal } from '@/features/inventory/components/StockMovementModal'
+import { createStockMovement } from '@/features/inventory/services/inventory.service'
 import type { StockProduct } from '@/features/inventory/types/inventory.types'
 
 const mockCreateMovement = vi.mocked(createStockMovement)

@@ -10,13 +10,25 @@ const withProfile = makeAppointment({
 })
 
 const withService = makeAppointment({
-  service: { id: 's1', name: 'Limpeza dental', durationMinutes: 60, priceFrom: null, priceTo: null },
+  service: {
+    id: 's1',
+    name: 'Limpeza dental',
+    durationMinutes: 60,
+    priceFrom: null,
+    priceTo: null,
+  },
 })
 
 const withBoth = makeAppointment({
   durationMinutes: 60,
   profile: { id: 'p1', displayName: 'Dr. Silva', userId: null },
-  service: { id: 's1', name: 'Limpeza dental', durationMinutes: 60, priceFrom: null, priceTo: null },
+  service: {
+    id: 's1',
+    name: 'Limpeza dental',
+    durationMinutes: 60,
+    priceFrom: null,
+    priceTo: null,
+  },
 })
 
 // ── Basic content ─────────────────────────────────────────────────────────────
@@ -68,13 +80,7 @@ describe('CalendarAppointmentCard — basic content', () => {
   })
 
   it('renders professional name on a third row for rich cards (60+ min) when both exist', () => {
-    render(
-      <CalendarAppointmentCard
-        appointment={withBoth}
-        style={BASE_STYLE}
-        onClick={vi.fn()}
-      />,
-    )
+    render(<CalendarAppointmentCard appointment={withBoth} style={BASE_STYLE} onClick={vi.fn()} />)
     expect(screen.getByText('Limpeza dental')).toBeInTheDocument()
     expect(screen.getByText('Dr. Silva')).toBeInTheDocument()
   })
@@ -120,13 +126,7 @@ describe('CalendarAppointmentCard — accessible label', () => {
   })
 
   it('includes the service name in the accessible label when available', () => {
-    render(
-      <CalendarAppointmentCard
-        appointment={withBoth}
-        style={BASE_STYLE}
-        onClick={vi.fn()}
-      />,
-    )
+    render(<CalendarAppointmentCard appointment={withBoth} style={BASE_STYLE} onClick={vi.fn()} />)
     const btn = screen.getByRole('button')
     expect(btn.getAttribute('aria-label')).toMatch(/Limpeza dental/i)
     expect(btn.getAttribute('aria-label')).toMatch(/Dr. Silva/i)
@@ -141,11 +141,7 @@ describe('CalendarAppointmentCard — click', () => {
     const onClick = vi.fn()
     const appointment = makeAppointment()
     render(
-      <CalendarAppointmentCard
-        appointment={appointment}
-        style={BASE_STYLE}
-        onClick={onClick}
-      />,
+      <CalendarAppointmentCard appointment={appointment} style={BASE_STYLE} onClick={onClick} />,
     )
     await user.click(screen.getByRole('button'))
     expect(onClick).toHaveBeenCalledWith(appointment)

@@ -18,11 +18,18 @@ export function RoleTrustStrip() {
           aria-label="Diferenciais da plataforma"
         >
           {SIGNALS.map((signal, index) => (
-            <span key={signal} className="flex items-center gap-1.5 text-sm text-slate-500" role="listitem">
+            <span
+              key={signal}
+              className="flex items-center gap-1.5 text-sm text-slate-500"
+              role="listitem"
+            >
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
               {signal}
               {index < SIGNALS.length - 1 && (
-                <span className="ml-3 hidden h-3.5 w-px bg-slate-200 sm:inline-block" aria-hidden="true" />
+                <span
+                  className="ml-3 hidden h-3.5 w-px bg-slate-200 sm:inline-block"
+                  aria-hidden="true"
+                />
               )}
             </span>
           ))}

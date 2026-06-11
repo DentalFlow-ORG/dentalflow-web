@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor, within } from '@/test-utils/render-utils'
-import userEvent from '@testing-library/user-event'
 import { CreateAppointmentModal } from '@/features/scheduling/components/appointments/CreateAppointmentModal'
 import type { ProfileListItem } from '@/features/scheduling/types/profile.types'
+import { fireEvent, render, screen, waitFor, within } from '@/test-utils/render-utils'
+import userEvent from '@testing-library/user-event'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -237,7 +237,9 @@ describe('file selection', () => {
     renderModal()
     await selectAvatarFile()
     expect(screen.getByRole('button', { name: /Alterar foto do paciente/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Adicionar foto do paciente/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Adicionar foto do paciente/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('shows the confirmation hint text after selection', async () => {
@@ -248,11 +250,15 @@ describe('file selection', () => {
 
   it('shows an error alert and no preview when an invalid MIME type is selected', async () => {
     renderModal()
-    const fileInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const fileInput = document.querySelector(
+      'input[type="file"]:not([capture])',
+    ) as HTMLInputElement
     const file = new File(['data'], 'video.mp4', { type: 'video/mp4' })
     fireEvent.change(fileInput, { target: { files: [file] } })
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Foto inválida' }))
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Foto inválida' }),
+      )
     })
     expect(screen.queryByRole('button', { name: /Remover foto/i })).not.toBeInTheDocument()
   })
@@ -269,7 +275,9 @@ describe('file selection', () => {
       expect(screen.queryByTestId('avatar-crop-modal')).not.toBeInTheDocument()
     })
     // Photo was not saved — still showing "Adicionar" label, not "Alterar"
-    expect(screen.queryByRole('button', { name: /Alterar foto do paciente/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Alterar foto do paciente/i }),
+    ).not.toBeInTheDocument()
   })
 })
 

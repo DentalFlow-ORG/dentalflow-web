@@ -1,7 +1,7 @@
-import { ShieldCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ShieldCheck } from 'lucide-react'
+import { TEMPLATE_LABELS, renderTemplatePreview } from '../services/notifications.service'
 import type { NotificationTemplate } from '../types/notifications.types'
-import { renderTemplatePreview, TEMPLATE_LABELS } from '../services/notifications.service'
 
 type TemplatePreviewerProps = {
   template: NotificationTemplate
@@ -26,7 +26,10 @@ export function TemplatePreviewer({ template, previewVars, className }: Template
 
       {/* Privacy notice */}
       <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
-        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600 dark:text-green-400" aria-hidden="true" />
+        <ShieldCheck
+          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600 dark:text-green-400"
+          aria-hidden="true"
+        />
         <span>A mensagem não inclui diagnóstico, prontuário ou detalhes clínicos.</span>
       </div>
     </div>

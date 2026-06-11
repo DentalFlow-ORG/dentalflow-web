@@ -1,8 +1,8 @@
 import { ImagePlus, Loader2, Plus, RefreshCw, Trash2, Upload } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { cn } from '@/lib/utils'
 import { ALLOWED_AVATAR_TYPES, MAX_AVATAR_INPUT_BYTES } from '@/lib/compress-avatar'
+import { cn } from '@/lib/utils'
 import { AvatarCropModal } from './AvatarCropModal'
 import { CameraPreviewModal } from './CameraPreviewModal'
 
@@ -231,7 +231,10 @@ export function PatientAvatarWidget({
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
                   onClick={handleGalleryClick}
                 >
-                  <RefreshCw className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <RefreshCw
+                    className="h-4 w-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   Trocar foto
                 </button>
 
@@ -241,7 +244,10 @@ export function PatientAvatarWidget({
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
                   onClick={handleCameraClick}
                 >
-                  <ImagePlus className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <ImagePlus
+                    className="h-4 w-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   Tirar nova foto
                 </button>
 
@@ -273,7 +279,10 @@ export function PatientAvatarWidget({
                   className="flex w-full items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/50"
                   onClick={handleCameraClick}
                 >
-                  <ImagePlus className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <ImagePlus
+                    className="h-4 w-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   Tirar foto
                 </button>
               </>

@@ -1,9 +1,9 @@
 import { render, screen } from '@/test-utils/render-utils'
 
 import { DashboardPageContainer } from '@/features/dashboard/containers/DashboardPageContainer'
-import { makeAppointment, DEFAULT_APPT_DATE } from '@/test-utils/factories/appointment.factory'
+import { DEFAULT_APPT_DATE, makeAppointment } from '@/test-utils/factories/appointment.factory'
 import { makeAssistantUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
-import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
+import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -65,9 +65,7 @@ afterEach(() => {
 describe('DashboardPageContainer — ASSISTANT header', () => {
   it('renders "Central de atendimento" heading', () => {
     render(<DashboardPageContainer />)
-    expect(
-      screen.getByRole('heading', { name: /central de atendimento/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /central de atendimento/i })).toBeInTheDocument()
   })
 
   it('does NOT render the old "Visão geral" heading', () => {
@@ -82,7 +80,9 @@ describe('DashboardPageContainer — ASSISTANT header', () => {
 
   it('shows a pending-confirmation badge when pending > 0', () => {
     mockUseDashboardPage.mockReturnValue(
-      makeDefaultDashboard({ statusCounts: { total: 3, confirmed: 1, pending: 2, completed: 0, canceledOrNoShow: 0 } }),
+      makeDefaultDashboard({
+        statusCounts: { total: 3, confirmed: 1, pending: 2, completed: 0, canceledOrNoShow: 0 },
+      }),
     )
     render(<DashboardPageContainer />)
     expect(screen.getByText(/2 a confirmar/i)).toBeInTheDocument()
@@ -124,7 +124,10 @@ describe('DashboardPageContainer — ASSISTANT quick actions', () => {
   it('renders a Pacientes quick action link', () => {
     render(<DashboardPageContainer />)
     // Use exact name to avoid matching "Pacientes em atenção"
-    expect(screen.getByRole('link', { name: 'Pacientes' })).toHaveAttribute('href', '/app/pacientes')
+    expect(screen.getByRole('link', { name: 'Pacientes' })).toHaveAttribute(
+      'href',
+      '/app/pacientes',
+    )
   })
 
   it('renders an Estoque quick action link', () => {
@@ -138,7 +141,9 @@ describe('DashboardPageContainer — ASSISTANT quick actions', () => {
 describe('DashboardPageContainer — ASSISTANT KPI cards', () => {
   it('renders "Consultas hoje" KPI', () => {
     mockUseDashboardPage.mockReturnValue(
-      makeDefaultDashboard({ statusCounts: { total: 8, confirmed: 5, pending: 3, completed: 0, canceledOrNoShow: 0 } }),
+      makeDefaultDashboard({
+        statusCounts: { total: 8, confirmed: 5, pending: 3, completed: 0, canceledOrNoShow: 0 },
+      }),
     )
     render(<DashboardPageContainer />)
     expect(screen.getByText('Consultas hoje')).toBeInTheDocument()
@@ -147,7 +152,9 @@ describe('DashboardPageContainer — ASSISTANT KPI cards', () => {
 
   it('renders "A confirmar" KPI', () => {
     mockUseDashboardPage.mockReturnValue(
-      makeDefaultDashboard({ statusCounts: { total: 5, confirmed: 2, pending: 3, completed: 0, canceledOrNoShow: 0 } }),
+      makeDefaultDashboard({
+        statusCounts: { total: 5, confirmed: 2, pending: 3, completed: 0, canceledOrNoShow: 0 },
+      }),
     )
     render(<DashboardPageContainer />)
     // "A confirmar" appears in both the KPI card label (<p>) and the section heading (<h2>)
@@ -248,9 +255,7 @@ describe('DashboardPageContainer — ASSISTANT pending payments section', () => 
       patientName: 'Paciente Devedor',
       estimatedAmountCents: 25000,
     })
-    mockUseDashboardPage.mockReturnValue(
-      makeDefaultDashboard({ appointments: [appt] }),
-    )
+    mockUseDashboardPage.mockReturnValue(makeDefaultDashboard({ appointments: [appt] }))
     render(<DashboardPageContainer />)
     expect(screen.getByText('Paciente Devedor')).toBeInTheDocument()
   })

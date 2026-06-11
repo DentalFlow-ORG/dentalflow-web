@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@/test-utils/render-utils'
 
 import { MobileAgendaList } from '@/features/scheduling/components/mobile/MobileAgendaList'
-import { makeAppointment, DEFAULT_APPT_DATE } from '@/test-utils/factories/appointment.factory'
+import { DEFAULT_APPT_DATE, makeAppointment } from '@/test-utils/factories/appointment.factory'
 
 // Fix "today" to the factory default date
 beforeEach(() => {
@@ -49,22 +49,14 @@ describe('MobileAgendaList — rendering', () => {
 
   it('shows "Hoje" as the day header label for today', () => {
     render(
-      <MobileAgendaList
-        appointments={[]}
-        weekStart={WEEK_START}
-        onAppointmentClick={vi.fn()}
-      />,
+      <MobileAgendaList appointments={[]} weekStart={WEEK_START} onAppointmentClick={vi.fn()} />,
     )
     expect(screen.getByText('Hoje')).toBeInTheDocument()
   })
 
   it('renders 7 day buttons in the strip', () => {
     render(
-      <MobileAgendaList
-        appointments={[]}
-        weekStart={WEEK_START}
-        onAppointmentClick={vi.fn()}
-      />,
+      <MobileAgendaList appointments={[]} weekStart={WEEK_START} onAppointmentClick={vi.fn()} />,
     )
     // 7 day buttons with aria-pressed
     // Filter to buttons that are day strip buttons (have aria-pressed)
@@ -98,22 +90,14 @@ describe('MobileAgendaList — create action', () => {
         canCreate={false}
       />,
     )
-    expect(
-      screen.queryByRole('button', { name: /Novo agendamento/i }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Novo agendamento/i })).not.toBeInTheDocument()
   })
 
   it('does not show "Novo agendamento" when canCreate is omitted', () => {
     render(
-      <MobileAgendaList
-        appointments={[]}
-        weekStart={WEEK_START}
-        onAppointmentClick={vi.fn()}
-      />,
+      <MobileAgendaList appointments={[]} weekStart={WEEK_START} onAppointmentClick={vi.fn()} />,
     )
-    expect(
-      screen.queryByRole('button', { name: /Novo agendamento/i }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Novo agendamento/i })).not.toBeInTheDocument()
   })
 })
 

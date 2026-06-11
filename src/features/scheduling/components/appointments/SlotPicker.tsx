@@ -38,11 +38,7 @@ export function SlotPicker({ slots, value, onChange, isLoading, disabled }: Slot
           type="button"
           disabled={!slot.available || disabled}
           onClick={() => onChange(slot.time)}
-          aria-label={
-            !slot.available && slot.reason
-              ? `${slot.time} — ${slot.reason}`
-              : undefined
-          }
+          aria-label={!slot.available && slot.reason ? `${slot.time} — ${slot.reason}` : undefined}
           aria-pressed={slot.available && !disabled ? value === slot.time : undefined}
           title={slot.reason ?? undefined}
           className={cn(

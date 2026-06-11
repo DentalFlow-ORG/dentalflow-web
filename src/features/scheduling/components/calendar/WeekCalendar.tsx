@@ -1,11 +1,12 @@
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react'
-import { useMemo, useState, type ReactNode } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { Button } from '@/components/ui/button'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
+import type { Appointment, Availability, AvailabilityException } from '../../types/scheduling.types'
 import {
   addDays,
   formatWeekDayHeader,
@@ -17,11 +18,6 @@ import {
   toDateInputValue,
   wallTimeToMinutes,
 } from '../../utils/time'
-import type {
-  Appointment,
-  Availability,
-  AvailabilityException,
-} from '../../types/scheduling.types'
 import {
   PX_PER_MINUTE,
   SLOT_HEIGHT_PX,
@@ -53,9 +49,7 @@ export function WeekCalendar({
   onWeekChange,
   onAppointmentClick,
 }: WeekCalendarProps) {
-  const [calendarInputDate, setCalendarInputDate] = useState(() =>
-    toDateInputValue(weekStart),
-  )
+  const [calendarInputDate, setCalendarInputDate] = useState(() => toDateInputValue(weekStart))
 
   // Memoize weekDates so downstream memos can use it directly as a dependency
   // instead of using weekStart as an indirect proxy.
@@ -70,13 +64,7 @@ export function WeekCalendar({
   )
 
   const slots = useMemo(
-    () =>
-      buildTimeSlots(
-        visibleAppointments,
-        weekDates,
-        profileAvailability,
-        profileExceptions,
-      ),
+    () => buildTimeSlots(visibleAppointments, weekDates, profileAvailability, profileExceptions),
     [visibleAppointments, weekDates, profileAvailability, profileExceptions],
   )
   const firstSlotMinutes = slots[0]
@@ -136,19 +124,29 @@ export function WeekCalendar({
           </div>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          {toolbarAction && (
-            <div className="flex shrink-0 justify-end">{toolbarAction}</div>
-          )}
+          {toolbarAction && <div className="flex shrink-0 justify-end">{toolbarAction}</div>}
           <div className="w-full sm:w-48">
             <DatePickerInput value={calendarInputDate} onValueChange={goToDate} className="h-9" />
           </div>
           <Button type="button" variant="outline" size="sm" onClick={goToToday}>
             Hoje
           </Button>
-          <Button type="button" variant="outline" size="icon-sm" onClick={goToPrevWeek} aria-label="Semana anterior">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            onClick={goToPrevWeek}
+            aria-label="Semana anterior"
+          >
             <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
-          <Button type="button" variant="outline" size="icon-sm" onClick={goToNextWeek} aria-label="Próxima semana">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            onClick={goToNextWeek}
+            aria-label="Próxima semana"
+          >
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
@@ -158,7 +156,9 @@ export function WeekCalendar({
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm shadow-black/5">
         {/* Mobile scroll hint — only visible on small screens */}
         <div className="flex items-center justify-end gap-1.5 border-b border-border px-3 py-1.5 lg:hidden">
-          <span className="text-[11px] text-muted-foreground">Arraste para ver sábado e domingo</span>
+          <span className="text-[11px] text-muted-foreground">
+            Arraste para ver sábado e domingo
+          </span>
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
         </div>
         <div className="app-scrollbar relative overflow-x-auto">
@@ -193,9 +193,9 @@ export function WeekCalendar({
                           ? 'text-primary'
                           : dayStatus.kind === 'special'
                             ? 'text-indigo-600'
-                          : !dayStatus.isWorking
-                            ? 'text-muted-foreground'
-                            : 'text-muted-foreground',
+                            : !dayStatus.isWorking
+                              ? 'text-muted-foreground'
+                              : 'text-muted-foreground',
                       )}
                     >
                       {weekday}
@@ -207,9 +207,9 @@ export function WeekCalendar({
                           ? 'text-primary'
                           : dayStatus.kind === 'special'
                             ? 'text-indigo-950'
-                          : !dayStatus.isWorking
-                            ? 'text-muted-foreground'
-                            : 'text-foreground',
+                            : !dayStatus.isWorking
+                              ? 'text-muted-foreground'
+                              : 'text-foreground',
                       )}
                     >
                       {day}
@@ -247,107 +247,106 @@ export function WeekCalendar({
 
             {/* Time grid body */}
             {visibleAppointments.length > 0 && (
-            <div className="relative" style={{ height: `${gridBodyHeight}px` }}>
-              {/* Background: time labels + grid lines */}
-              <div className="absolute inset-0 grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))]">
-                {/* Time label column */}
-                <div className="sticky left-0 z-10 border-r border-border bg-card">
-                  {slots.map((slot) => (
-                    <div
-                      key={slot}
-                      className="flex items-start border-b border-border/50 text-xs font-semibold text-muted-foreground last:border-b-0"
-                      style={{ height: `${SLOT_HEIGHT_PX}px` }}
-                    >
-                      <span className="pl-3 pt-1.5">{minutesToTime(slot)}</span>
-                    </div>
-                  ))}
+              <div className="relative" style={{ height: `${gridBodyHeight}px` }}>
+                {/* Background: time labels + grid lines */}
+                <div className="absolute inset-0 grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))]">
+                  {/* Time label column */}
+                  <div className="sticky left-0 z-10 border-r border-border bg-card">
+                    {slots.map((slot) => (
+                      <div
+                        key={slot}
+                        className="flex items-start border-b border-border/50 text-xs font-semibold text-muted-foreground last:border-b-0"
+                        style={{ height: `${SLOT_HEIGHT_PX}px` }}
+                      >
+                        <span className="pl-3 pt-1.5">{minutesToTime(slot)}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Day background columns */}
+                  {weekDates.map((date) => {
+                    const today = isToday(date)
+                    const dayStatus = getDayStatus(date, profileAvailability, profileExceptions)
+                    const workingRanges = getDayWorkingRanges(
+                      date,
+                      profileAvailability,
+                      profileExceptions,
+                    )
+
+                    return (
+                      <div
+                        key={toDateInputValue(date)}
+                        className={cn(
+                          'relative border-r border-border/50 last:border-r-0',
+                          today && dayStatus.isWorking
+                            ? 'bg-primary/5'
+                            : !dayStatus.isWorking
+                              ? 'bg-muted/50'
+                              : 'bg-card',
+                        )}
+                      >
+                        {slots.map((slot) => {
+                          const isRoutineSlot = isSlotInsideWorkingRanges(slot, workingRanges)
+
+                          return (
+                            <div
+                              key={slot}
+                              className={cn(
+                                'border-b border-border/50 last:border-b-0',
+                                isRoutineSlot
+                                  ? 'bg-transparent'
+                                  : 'bg-[repeating-linear-gradient(135deg,#f8fafc_0px,#f8fafc_8px,#eef2f7_8px,#eef2f7_12px)] dark:bg-[repeating-linear-gradient(135deg,#171717_0px,#171717_8px,#262626_8px,#262626_12px)] opacity-90',
+                              )}
+                              style={{ height: `${SLOT_HEIGHT_PX}px` }}
+                              title={
+                                isRoutineSlot
+                                  ? undefined
+                                  : 'Fora da rotina de atendimento deste dia'
+                              }
+                            />
+                          )
+                        })}
+                      </div>
+                    )
+                  })}
                 </div>
 
-                {/* Day background columns */}
-                {weekDates.map((date) => {
-                  const today = isToday(date)
-                  const dayStatus = getDayStatus(date, profileAvailability, profileExceptions)
-                  const workingRanges = getDayWorkingRanges(
-                    date,
-                    profileAvailability,
-                    profileExceptions,
-                  )
+                {/* Appointments overlay */}
+                <div className="pointer-events-none absolute inset-0 grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))]">
+                  {/* Spacer for time column */}
+                  <div />
 
-                  return (
-                    <div
-                      key={toDateInputValue(date)}
-                      className={cn(
-                        'relative border-r border-border/50 last:border-r-0',
-                        today && dayStatus.isWorking
-                          ? 'bg-primary/5'
-                          : !dayStatus.isWorking
-                            ? 'bg-muted/50'
-                            : 'bg-card',
-                      )}
-                    >
-                      {slots.map((slot) => {
-                        const isRoutineSlot = isSlotInsideWorkingRanges(slot, workingRanges)
+                  {/* Per-day appointment columns */}
+                  {dayLayouts.map(({ date, appointments: dayAppts }) => (
+                    <div key={toDateInputValue(date)} className="pointer-events-auto relative">
+                      {dayAppts.map((appt) => {
+                        const startMin = wallTimeToMinutes(appt.startTime ?? '')
+                        const top = (startMin - firstSlotMinutes) * PX_PER_MINUTE
+                        const height = Math.max(
+                          (appt.durationMinutes ?? 30) * PX_PER_MINUTE,
+                          SLOT_HEIGHT_PX / 2,
+                        )
+                        const leftPct = (appt.colIndex / appt.colCount) * 100
+                        const widthPct = 100 / appt.colCount
 
                         return (
-                          <div
-                            key={slot}
-                            className={cn(
-                              'border-b border-border/50 last:border-b-0',
-                              isRoutineSlot
-                                ? 'bg-transparent'
-                                : 'bg-[repeating-linear-gradient(135deg,#f8fafc_0px,#f8fafc_8px,#eef2f7_8px,#eef2f7_12px)] dark:bg-[repeating-linear-gradient(135deg,#171717_0px,#171717_8px,#262626_8px,#262626_12px)] opacity-90',
-                            )}
-                            style={{ height: `${SLOT_HEIGHT_PX}px` }}
-                            title={
-                              isRoutineSlot
-                                ? undefined
-                                : 'Fora da rotina de atendimento deste dia'
-                              }
-                          >
-                          </div>
+                          <CalendarAppointmentCard
+                            key={appt.id}
+                            appointment={appt}
+                            style={{
+                              top: `${top}px`,
+                              height: `${height}px`,
+                              left: `calc(${leftPct}% + 3px)`,
+                              width: `calc(${widthPct}% - 6px)`,
+                            }}
+                            onClick={onAppointmentClick}
+                          />
                         )
                       })}
                     </div>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
-
-              {/* Appointments overlay */}
-              <div className="pointer-events-none absolute inset-0 grid grid-cols-[5.5rem_repeat(7,minmax(7.5rem,1fr))]">
-                {/* Spacer for time column */}
-                <div />
-
-                {/* Per-day appointment columns */}
-                {dayLayouts.map(({ date, appointments: dayAppts }) => (
-                  <div
-                    key={toDateInputValue(date)}
-                    className="pointer-events-auto relative"
-                  >
-                    {dayAppts.map((appt) => {
-                      const startMin = wallTimeToMinutes(appt.startTime ?? '')
-                      const top = (startMin - firstSlotMinutes) * PX_PER_MINUTE
-                      const height = Math.max((appt.durationMinutes ?? 30) * PX_PER_MINUTE, SLOT_HEIGHT_PX / 2)
-                      const leftPct = (appt.colIndex / appt.colCount) * 100
-                      const widthPct = 100 / appt.colCount
-
-                      return (
-                        <CalendarAppointmentCard
-                          key={appt.id}
-                          appointment={appt}
-                          style={{
-                            top: `${top}px`,
-                            height: `${height}px`,
-                            left: `calc(${leftPct}% + 3px)`,
-                            width: `calc(${widthPct}% - 6px)`,
-                          }}
-                          onClick={onAppointmentClick}
-                        />
-                      )
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
             )}
           </div>
         </div>
@@ -355,5 +354,3 @@ export function WeekCalendar({
     </div>
   )
 }
-
-

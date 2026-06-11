@@ -1,9 +1,9 @@
 import { StatusBadge } from '@/components/common/StatusBadge'
 
+import type { MemberListItem } from '../types/team.types'
 import { TeamMemberActions } from './TeamMemberActions'
 import { TeamMemberIdentity } from './TeamMemberIdentity'
 import { TeamRoleBadge } from './TeamRoleBadge'
-import type { MemberListItem } from '../types/team.types'
 
 type TeamMembersTableProps = {
   members: MemberListItem[]
@@ -12,12 +12,7 @@ type TeamMembersTableProps = {
   onDelete: (member: MemberListItem) => void
 }
 
-export function TeamMembersTable({
-  members,
-  onEdit,
-  onPassword,
-  onDelete,
-}: TeamMembersTableProps) {
+export function TeamMembersTable({ members, onEdit, onPassword, onDelete }: TeamMembersTableProps) {
   return (
     <div className="hidden overflow-hidden rounded-lg border border-border bg-card shadow-sm md:block">
       <div className="overflow-x-auto">

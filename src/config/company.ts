@@ -169,15 +169,12 @@ export function validateCompanyConfig(): void {
 
   if (failures.length > 0) {
     const lines = failures.map(({ field, hint }) => `  • ${field}: ${hint}`)
-    const message =
-      `[company.ts] ${failures.length} placeholder(s) de produção detectado(s):\n` +
-      lines.join('\n')
+    const message = `[company.ts] ${failures.length} placeholder(s) de produção detectado(s):\n${lines.join('\n')}`
 
     if (import.meta.env.PROD) {
       throw new Error(message)
-    } else {
-      console.warn(message)
     }
+    console.warn(message)
   }
 
   // Aviso de pré-lançamento: informa campos pendentes de formalização.
@@ -189,9 +186,7 @@ export function validateCompanyConfig(): void {
 
   if (pending.length > 0) {
     console.info(
-      `[company.ts] PRÉ-LANÇAMENTO: ${pending.length} campo(s) pendente(s) de formalização antes da operação comercial com clientes: ` +
-        pending.join(', ') +
-        '\n  Consulte os TODOs em src/config/company.ts para instruções.',
+      `[company.ts] PRÉ-LANÇAMENTO: ${pending.length} campo(s) pendente(s) de formalização antes da operação comercial com clientes: ${pending.join(', ')}\n  Consulte os TODOs em src/config/company.ts para instruções.`,
     )
   }
 }

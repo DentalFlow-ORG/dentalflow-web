@@ -1,11 +1,11 @@
-import { renderHook, waitFor, act } from '@/test-utils/render-utils'
 import {
-  usePatientAvatar,
   __resetAvatarCache,
   getCachedPatientAvatar,
-  setCachedPatientAvatar,
   getMissingPatientAvatarIdentifiers,
+  setCachedPatientAvatar,
+  usePatientAvatar,
 } from '@/features/patients/hooks/usePatientAvatar'
+import { act, renderHook, waitFor } from '@/test-utils/render-utils'
 
 // ── Service mocks ─────────────────────────────────────────────────────────────
 
@@ -14,7 +14,10 @@ vi.mock('@/features/patients/services/patients.service', () => ({
   upsertPatientAvatar: vi.fn(),
 }))
 
-import { getPatientAvatar, upsertPatientAvatar } from '@/features/patients/services/patients.service'
+import {
+  getPatientAvatar,
+  upsertPatientAvatar,
+} from '@/features/patients/services/patients.service'
 
 const mockGet = vi.mocked(getPatientAvatar)
 const mockUpsert = vi.mocked(upsertPatientAvatar)
@@ -86,7 +89,7 @@ describe('usePatientAvatar — cache', () => {
 
     expect(second.current.isLoading).toBe(false)
     expect(second.current.avatarUrl).toBe('base64abc')
-    expect(mockGet).toHaveBeenCalledTimes(1)  // no second fetch
+    expect(mockGet).toHaveBeenCalledTimes(1) // no second fetch
   })
 
   it('cache hit: isLoading is false from the very first render (no loading flash)', async () => {
@@ -122,7 +125,8 @@ describe('usePatientAvatar — cache', () => {
     expect(r2.current.avatarUrl).toBe('base64xyz')
     expect(mockGet).toHaveBeenCalledTimes(2)
 
-    u1(); u2()
+    u1()
+    u2()
   })
 
   it('failure is not cached — next mount retries the fetch', async () => {
@@ -150,7 +154,9 @@ describe('usePatientAvatar — update() cache write-through', () => {
     const { result, unmount } = renderHook(() => usePatientAvatar(ID))
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    await act(async () => { await result.current.update('newphoto') })
+    await act(async () => {
+      await result.current.update('newphoto')
+    })
 
     expect(result.current.avatarUrl).toBe('newphoto')
     unmount()
@@ -159,14 +165,16 @@ describe('usePatientAvatar — update() cache write-through', () => {
     const { result: second } = renderHook(() => usePatientAvatar(ID))
     expect(second.current.isLoading).toBe(false)
     expect(second.current.avatarUrl).toBe('newphoto')
-    expect(mockGet).toHaveBeenCalledTimes(1)  // only the original fetch
+    expect(mockGet).toHaveBeenCalledTimes(1) // only the original fetch
   })
 
   it('update(null) caches null (photo removed) and next mount reflects removal', async () => {
     const { result, unmount } = renderHook(() => usePatientAvatar(ID))
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    await act(async () => { await result.current.update(null) })
+    await act(async () => {
+      await result.current.update(null)
+    })
 
     expect(result.current.avatarUrl).toBeNull()
     unmount()
@@ -184,13 +192,15 @@ describe('usePatientAvatar — update() cache write-through', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     await expect(
-      act(async () => { await result.current.update('badphoto') }),
+      act(async () => {
+        await result.current.update('badphoto')
+      }),
     ).rejects.toThrow('Não foi possível salvar a foto.')
 
     // Original cached value should be intact, not the failed write.
     unmount()
     const { result: second } = renderHook(() => usePatientAvatar(ID))
-    expect(second.current.avatarUrl).toBe('base64abc')  // original value
+    expect(second.current.avatarUrl).toBe('base64abc') // original value
   })
 })
 
@@ -220,10 +230,7 @@ describe('getMissingPatientAvatarIdentifiers', () => {
 
   it('excludes identifiers that are already in the cache', () => {
     setCachedPatientAvatar('cached@test.com', 'base64data')
-    const result = getMissingPatientAvatarIdentifiers([
-      'cached@test.com',
-      'missing@test.com',
-    ])
+    const result = getMissingPatientAvatarIdentifiers(['cached@test.com', 'missing@test.com'])
     expect(result).toEqual(['missing@test.com'])
   })
 

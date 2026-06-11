@@ -67,7 +67,9 @@ export function RoleHeroMockup({
           >
             DentalFlow
           </p>
-          <p className={cn('mt-0.5 text-sm font-semibold', isNavy ? 'text-white' : 'text-slate-700')}>
+          <p
+            className={cn('mt-0.5 text-sm font-semibold', isNavy ? 'text-white' : 'text-slate-700')}
+          >
             {role}
           </p>
         </div>
@@ -78,7 +80,9 @@ export function RoleHeroMockup({
           )}
         >
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-          <span className={cn('text-[11px] font-medium', isNavy ? 'text-slate-400' : 'text-slate-500')}>
+          <span
+            className={cn('text-[11px] font-medium', isNavy ? 'text-slate-400' : 'text-slate-500')}
+          >
             Ao vivo
           </span>
         </div>
@@ -206,24 +210,16 @@ function DashboardMockup() {
         aria-label="Indicadores do mês"
       >
         <div className="px-4 py-3 text-center">
-          <p className="text-lg font-bold tabular-nums text-white">
-            R$&nbsp;18.4k
-          </p>
-          <p className="mt-0.5 text-[10px] font-medium leading-tight text-slate-400">
-            Receita/mês
-          </p>
+          <p className="text-lg font-bold tabular-nums text-white">R$&nbsp;18.4k</p>
+          <p className="mt-0.5 text-[10px] font-medium leading-tight text-slate-400">Receita/mês</p>
         </div>
         <div className="px-4 py-3 text-center">
           <p className="text-lg font-bold tabular-nums text-emerald-400">78%</p>
-          <p className="mt-0.5 text-[10px] font-medium leading-tight text-slate-400">
-            Ocupação
-          </p>
+          <p className="mt-0.5 text-[10px] font-medium leading-tight text-slate-400">Ocupação</p>
         </div>
         <div className="px-4 py-3 text-center">
           <p className="text-lg font-bold tabular-nums text-blue-400">12</p>
-          <p className="mt-0.5 text-[10px] font-medium leading-tight text-slate-400">
-            Novos pac.
-          </p>
+          <p className="mt-0.5 text-[10px] font-medium leading-tight text-slate-400">Novos pac.</p>
         </div>
       </div>
 
@@ -238,10 +234,7 @@ function DashboardMockup() {
           {CHART_BARS.map((bar) => (
             <div key={bar.label} className="flex flex-1 flex-col items-center gap-1.5">
               <div
-                className={cn(
-                  'w-full rounded-t-sm',
-                  bar.current ? 'bg-primary' : 'bg-slate-700',
-                )}
+                className={cn('w-full rounded-t-sm', bar.current ? 'bg-primary' : 'bg-slate-700')}
                 style={{ height: `${bar.heightPx}px` }}
               />
               <span className="text-[9px] font-medium text-slate-600">{bar.label}</span>
@@ -456,7 +449,12 @@ function ChecklistMockup() {
 // ── Agenda + prontuário mockup (/para-dentistas) ───────────────────────────────
 // All data here is illustrative — shown to convey product capability, not real metrics.
 
-type Appointment = { time: string; procedure: string; status: 'confirmed' | 'active' | 'next'; current?: true }
+type Appointment = {
+  time: string
+  procedure: string
+  status: 'confirmed' | 'active' | 'next'
+  current?: true
+}
 
 const APPOINTMENTS: Appointment[] = [
   { time: '08:30', procedure: 'Consulta inicial', status: 'confirmed' },
@@ -624,7 +622,12 @@ function AgendaMockup() {
 // ── Scheduling board mockup (/para-secretarias) ────────────────────────────────
 // All data here is illustrative — shown to convey product capability, not real metrics.
 
-type SecretaryAppt = { time: string; patient: string; procedure: string; status: 'confirmed' | 'pending' | 'in-progress' }
+type SecretaryAppt = {
+  time: string
+  patient: string
+  procedure: string
+  status: 'confirmed' | 'pending' | 'in-progress'
+}
 
 const SECRETARY_APPTS: SecretaryAppt[] = [
   { time: '08:30', patient: 'Ana Martins', procedure: 'Limpeza', status: 'confirmed' },
@@ -682,9 +685,7 @@ function ScheduleMockup() {
               key={appt.time}
               className={cn(
                 'flex items-center gap-2 rounded-lg px-3 py-2',
-                appt.status === 'pending'
-                  ? 'bg-amber-50 ring-1 ring-amber-200/70'
-                  : 'bg-slate-50',
+                appt.status === 'pending' ? 'bg-amber-50 ring-1 ring-amber-200/70' : 'bg-slate-50',
               )}
             >
               <span

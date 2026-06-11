@@ -27,8 +27,8 @@ const TONE_CARD: Record<HomeKpiCardTone, string> = {
   primary: 'border-primary/25 bg-primary/5 dark:border-primary/30 dark:bg-primary/10',
   success: 'border-emerald-200 bg-emerald-50/70 dark:border-emerald-800/40 dark:bg-emerald-950/20',
   warning: 'border-amber-200 bg-amber-50/70 dark:border-amber-800/40 dark:bg-amber-950/20',
-  danger:  'border-red-200 bg-red-50/70 dark:border-red-800/40 dark:bg-red-950/20',
-  info:    'border-blue-200 bg-blue-50/70 dark:border-blue-800/40 dark:bg-blue-950/20',
+  danger: 'border-red-200 bg-red-50/70 dark:border-red-800/40 dark:bg-red-950/20',
+  info: 'border-blue-200 bg-blue-50/70 dark:border-blue-800/40 dark:bg-blue-950/20',
 }
 
 const TONE_ICON_BG: Record<HomeKpiCardTone, string> = {
@@ -36,8 +36,8 @@ const TONE_ICON_BG: Record<HomeKpiCardTone, string> = {
   primary: 'bg-primary/10 dark:bg-primary/15',
   success: 'bg-emerald-100 dark:bg-emerald-900/40',
   warning: 'bg-amber-100 dark:bg-amber-900/40',
-  danger:  'bg-red-100 dark:bg-red-900/40',
-  info:    'bg-blue-100 dark:bg-blue-900/40',
+  danger: 'bg-red-100 dark:bg-red-900/40',
+  info: 'bg-blue-100 dark:bg-blue-900/40',
 }
 
 const TONE_ICON_COLOR: Record<HomeKpiCardTone, string> = {
@@ -45,8 +45,8 @@ const TONE_ICON_COLOR: Record<HomeKpiCardTone, string> = {
   primary: 'text-primary',
   success: 'text-emerald-700 dark:text-emerald-400',
   warning: 'text-amber-700 dark:text-amber-400',
-  danger:  'text-red-700 dark:text-red-400',
-  info:    'text-blue-700 dark:text-blue-400',
+  danger: 'text-red-700 dark:text-red-400',
+  info: 'text-blue-700 dark:text-blue-400',
 }
 
 const TONE_VALUE: Record<HomeKpiCardTone, string> = {
@@ -54,8 +54,8 @@ const TONE_VALUE: Record<HomeKpiCardTone, string> = {
   primary: 'text-primary',
   success: 'text-emerald-700 dark:text-emerald-300',
   warning: 'text-amber-700 dark:text-amber-300',
-  danger:  'text-red-700 dark:text-red-300',
-  info:    'text-blue-700 dark:text-blue-300',
+  danger: 'text-red-700 dark:text-red-300',
+  info: 'text-blue-700 dark:text-blue-300',
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -108,10 +108,7 @@ export function HomeKpiCard({
           />
         ) : (
           <p
-            className={cn(
-              'mt-1 text-xl font-semibold leading-none tabular-nums',
-              TONE_VALUE[tone],
-            )}
+            className={cn('mt-1 text-xl font-semibold leading-none tabular-nums', TONE_VALUE[tone])}
           >
             {value}
           </p>

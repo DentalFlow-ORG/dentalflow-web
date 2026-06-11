@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
-import type { Dispatch, SetStateAction } from 'react'
-import type { Appointment } from '@/features/scheduling/types/scheduling.types'
 import { useAppointmentCancel } from '@/features/scheduling/hooks/useAppointmentCancel'
 import { cancelAppointment } from '@/features/scheduling/services/scheduling.service'
+import type { Appointment } from '@/features/scheduling/types/scheduling.types'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
+import { act, renderHook } from '@testing-library/react'
+import type { Dispatch, SetStateAction } from 'react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockShowAlert = vi.fn()
 
@@ -202,7 +202,10 @@ describe('loading flag', () => {
   it('sets isActionLoading(true) while pending and isActionLoading(false) after success', async () => {
     let resolveCancel!: (appt: Appointment) => void
     vi.mocked(cancelAppointment).mockImplementation(
-      () => new Promise<Appointment>((r) => { resolveCancel = r }),
+      () =>
+        new Promise<Appointment>((r) => {
+          resolveCancel = r
+        }),
     )
     const { result } = renderHookWithCancel(makeAppointment({ id: 'appt-1' }))
 
@@ -211,7 +214,9 @@ describe('loading flag', () => {
     expect(setIsActionLoading).toHaveBeenCalledTimes(1)
 
     resolveCancel(makeAppointment({ id: 'appt-1', status: 'CANCELED' }))
-    await act(async () => { await callPromise })
+    await act(async () => {
+      await callPromise
+    })
 
     expect(setIsActionLoading).toHaveBeenLastCalledWith(false)
   })

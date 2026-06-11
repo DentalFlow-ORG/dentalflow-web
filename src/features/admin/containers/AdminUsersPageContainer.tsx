@@ -1,5 +1,5 @@
-import type { ComponentProps } from 'react'
 import { KeyRound, Pencil, Plus, Trash2, Users } from 'lucide-react'
+import type { ComponentProps } from 'react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
@@ -205,12 +205,24 @@ export function AdminUsersPageContainer() {
                 <table className="w-full text-sm" aria-label="Usuários da plataforma">
                   <thead>
                     <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      <th scope="col" className="px-4 py-3">Usuário</th>
-                      <th scope="col" className="px-4 py-3">Papel</th>
-                      <th scope="col" className="hidden px-4 py-3 md:table-cell">Clínica</th>
-                      <th scope="col" className="px-4 py-3">Status</th>
-                      <th scope="col" className="hidden px-4 py-3 lg:table-cell">Criado em</th>
-                      <th scope="col" className="px-4 py-3 text-right">Ações</th>
+                      <th scope="col" className="px-4 py-3">
+                        Usuário
+                      </th>
+                      <th scope="col" className="px-4 py-3">
+                        Papel
+                      </th>
+                      <th scope="col" className="hidden px-4 py-3 md:table-cell">
+                        Clínica
+                      </th>
+                      <th scope="col" className="px-4 py-3">
+                        Status
+                      </th>
+                      <th scope="col" className="hidden px-4 py-3 lg:table-cell">
+                        Criado em
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-right">
+                        Ações
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">

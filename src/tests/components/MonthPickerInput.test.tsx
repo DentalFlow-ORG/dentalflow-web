@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
-import userEvent from '@testing-library/user-event'
 import { MonthPickerInput, maskMonthInput } from '@/components/common/MonthPickerInput'
 import { brazilCurrentIsoMonth } from '@/lib/brazil-timezone'
+import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import userEvent from '@testing-library/user-event'
 
 // ── maskMonthInput unit tests ─────────────────────────────────────────────────
 
@@ -92,7 +92,20 @@ describe('MonthPickerInput — popover', () => {
     render(<MonthPickerInput value="2026-01" />)
     await user.click(screen.getByRole('button', { name: /abrir seletor de mês/i }))
     await waitFor(() => screen.getByText('Jan'))
-    for (const abbr of ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']) {
+    for (const abbr of [
+      'Jan',
+      'Fev',
+      'Mar',
+      'Abr',
+      'Mai',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Set',
+      'Out',
+      'Nov',
+      'Dez',
+    ]) {
       expect(screen.getByRole('button', { name: abbr })).toBeInTheDocument()
     }
   })

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
@@ -76,8 +76,12 @@ export function useFinancePage() {
     [categories],
   )
 
+  // Keep a ref to showAlert so the callback doesn't need it as a dep
+  const showAlertRef = useRef(showAlert)
+  showAlertRef.current = showAlert
+
   // ── Full-page reload (called on mount, filter change, and after mutations) ─
-  function load() {
+  const load = useCallback(() => {
     setIsLoading(true)
     setLoadError(null)
 
@@ -123,14 +127,14 @@ export function useFinancePage() {
         const message =
           err instanceof Error ? err.message : 'Não foi possível carregar o financeiro.'
         setLoadError(message)
-        showAlert({
+        showAlertRef.current({
           title: 'Erro ao carregar financeiro',
           description: message,
           tone: 'error',
         })
       })
       .finally(() => setIsLoading(false))
-  }
+  }, [filters, transactionsPageSize, setTransactionsPage])
 
   // ── Pagination-only reload ─────────────────────────────────────────────────
   function loadTransactions(page = transactionsPage, pageSize = transactionsPageSize) {
@@ -156,17 +160,20 @@ export function useFinancePage() {
   }
 
   // ── Effects ────────────────────────────────────────────────────────────────
+  const loadTransactionsRef = useRef(loadTransactions)
+  loadTransactionsRef.current = loadTransactions
+
   useEffect(() => {
     load()
-  }, [filters]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [load])
 
   useEffect(() => {
     if (!didMountTransactionsPagination.current) {
       didMountTransactionsPagination.current = true
       return
     }
-    loadTransactions(transactionsPage, transactionsPageSize)
-  }, [transactionsPage, transactionsPageSize]) // eslint-disable-line react-hooks/exhaustive-deps
+    loadTransactionsRef.current(transactionsPage, transactionsPageSize)
+  }, [transactionsPage, transactionsPageSize])
 
   // ── Domain sub-hooks (each delegates CRUD state + handlers) ───────────────
   const transactionsHook = useFinanceTransactions(load, incomeCategories, expenseCategories)

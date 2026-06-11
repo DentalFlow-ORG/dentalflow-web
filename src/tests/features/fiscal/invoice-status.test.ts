@@ -1,4 +1,7 @@
-import { INVOICE_STATUS_LABEL, INVOICE_STATUS_TONE } from '@/features/fiscal/constants/invoice-status'
+import {
+  INVOICE_STATUS_LABEL,
+  INVOICE_STATUS_TONE,
+} from '@/features/fiscal/constants/invoice-status'
 import type { ServiceInvoiceStatus } from '@/features/fiscal/types/fiscal.types'
 
 const ALL_STATUSES: ServiceInvoiceStatus[] = [

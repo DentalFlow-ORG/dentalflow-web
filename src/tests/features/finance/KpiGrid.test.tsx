@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@/test-utils/render-utils'
+import { fireEvent, render, screen } from '@/test-utils/render-utils'
 
 import { KpiGrid } from '@/features/finance/components/KpiGrid'
 import type { FinanceSummary } from '@/features/finance/types/finance.types'
@@ -177,7 +177,9 @@ describe('KpiGrid', () => {
 
   it('does not render a button for Recebíveis pendentes when onPendingReceivablesClick is not provided', () => {
     render(<KpiGrid summary={makeSummary()} />)
-    expect(screen.queryByRole('button', { name: 'Filtrar recebíveis pendentes' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Filtrar recebíveis pendentes' }),
+    ).not.toBeInTheDocument()
   })
 
   it('renders 6 delta descriptions when previousSummary is provided', () => {

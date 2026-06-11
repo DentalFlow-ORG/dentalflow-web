@@ -3,8 +3,8 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import { formatWallTime } from '../../utils/time'
 import type { Availability, CreateAvailabilityDto } from '../../types/scheduling.types'
+import { formatWallTime } from '../../utils/time'
 import { DayOfWeekLabel } from '../shared/DayOfWeekLabel'
 import { AvailabilitySlotForm } from './AvailabilitySlotForm'
 

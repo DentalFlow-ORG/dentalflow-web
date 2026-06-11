@@ -44,18 +44,18 @@ describe('AttentionReasonBadge — labels', () => {
 
 describe('AttentionReasonBadge — completeness', () => {
   it('renders a non-empty visible text for every known reason', () => {
-    ALL_REASONS.forEach((reason) => {
+    for (const reason of ALL_REASONS) {
       const { container, unmount } = render(<AttentionReasonBadge reason={reason} />)
       // The badge must have visible text — not blank, not just a dot/icon
       const span = container.querySelector('span')
       expect(span?.textContent?.trim().length).toBeGreaterThan(0)
       unmount()
-    })
+    }
   })
 
   it('renders a <span> element for every reason without crashing', () => {
-    ALL_REASONS.forEach((reason) => {
+    for (const reason of ALL_REASONS) {
       expect(() => render(<AttentionReasonBadge reason={reason} />)).not.toThrow()
-    })
+    }
   })
 })

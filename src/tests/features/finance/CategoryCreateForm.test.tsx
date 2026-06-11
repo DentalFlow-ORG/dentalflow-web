@@ -34,9 +34,7 @@ const defaultForm: CategoryFormState = {
   color: '#10B981',
 }
 
-function renderForm(
-  overrides: Partial<Parameters<typeof CategoryCreateForm>[0]> = {},
-) {
+function renderForm(overrides: Partial<Parameters<typeof CategoryCreateForm>[0]> = {}) {
   const props = {
     form: defaultForm,
     error: null,

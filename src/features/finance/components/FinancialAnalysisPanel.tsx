@@ -21,6 +21,7 @@ export function FinancialAnalysisPanel({
     dataReadiness && !dataReadiness.ready ? dataReadiness.reason : undefined
 
   useEffect(() => {
+    if (isLoadingInitial) return
     if (!['#ai-analysis', '#finance-ai'].includes(window.location.hash)) return
     window.setTimeout(() => {
       sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })

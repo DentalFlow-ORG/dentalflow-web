@@ -1,13 +1,8 @@
 import { Filter, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useState } from 'react'
 
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -15,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 
 export type FilterOption = {
   value: string
@@ -104,10 +100,7 @@ export function ListToolbar({
               <Button
                 type="button"
                 variant={hasActiveFilters ? 'default' : 'outline'}
-                className={cn(
-                  'h-11 shrink-0 gap-2',
-                  hasActiveFilters && 'ring-2 ring-primary/20',
-                )}
+                className={cn('h-11 shrink-0 gap-2', hasActiveFilters && 'ring-2 ring-primary/20')}
               >
                 <SlidersHorizontal className="h-4 w-4" />
                 <span className="hidden sm:inline">Filtros</span>
@@ -130,9 +123,7 @@ export function ListToolbar({
                     <button
                       type="button"
                       onClick={() => {
-                        Object.keys(activeFilters).forEach((k) =>
-                          onFilterChange(k, null),
-                        )
+                        for (const k of Object.keys(activeFilters)) onFilterChange(k, null)
                         setFilterOpen(false)
                       }}
                       className="text-xs text-muted-foreground underline underline-offset-2 transition-colors hover:text-foreground"
@@ -196,9 +187,7 @@ export function ListToolbar({
               onClick={() => onFilterChange(badge.key, null)}
               className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 pl-3 pr-2 text-xs font-semibold leading-none text-primary transition-colors hover:bg-primary/20"
             >
-              <span className="shrink-0 font-normal text-muted-foreground">
-                {badge.defLabel}:
-              </span>
+              <span className="shrink-0 font-normal text-muted-foreground">{badge.defLabel}:</span>
               <span className="truncate">{badge.optionLabel}</span>
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <X className="h-2.5 w-2.5" />

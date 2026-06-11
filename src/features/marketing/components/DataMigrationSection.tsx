@@ -1,5 +1,5 @@
-import { Fragment } from 'react'
 import { ArrowDown, ArrowRight, CheckCircle2, Monitor, Sparkles, Upload } from 'lucide-react'
+import { Fragment } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -38,11 +38,7 @@ export function DataMigrationSection() {
   const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.12)
 
   return (
-    <section
-      ref={ref}
-      className="bg-white py-24 lg:py-32"
-      aria-labelledby="migration-heading"
-    >
+    <section ref={ref} className="bg-white py-24 lg:py-32" aria-labelledby="migration-heading">
       <div
         className={cn(
           'mx-auto max-w-6xl px-6 transition-all duration-700 lg:px-8 motion-reduce:translate-y-0 motion-reduce:opacity-100',
@@ -50,7 +46,6 @@ export function DataMigrationSection() {
         )}
       >
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
-
           {/* ── Left: copy ─────────────────────────────────────── */}
           <div>
             <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-700">
@@ -61,28 +56,20 @@ export function DataMigrationSection() {
               id="migration-heading"
               className="mt-5 text-3xl font-semibold leading-tight text-slate-900 sm:text-4xl"
             >
-              Troque de sistema{' '}
-              <span className="text-emerald-600">sem recomeçar do zero</span>
+              Troque de sistema <span className="text-emerald-600">sem recomeçar do zero</span>
             </h2>
 
             <p className="mt-5 text-lg leading-8 text-slate-600">
-              Já usa outro software na clínica? Após a contratação do plano, o DentalFlow
-              oferece{' '}
-              <strong className="font-semibold text-slate-800">migração gratuita</strong>{' '}
-              com base nos dados exportados pelo sistema anterior, ajudando sua equipe a
-              começar com mais continuidade, segurança e menos retrabalho.
+              Já usa outro software na clínica? Após a contratação do plano, o DentalFlow oferece{' '}
+              <strong className="font-semibold text-slate-800">migração gratuita</strong> com base
+              nos dados exportados pelo sistema anterior, ajudando sua equipe a começar com mais
+              continuidade, segurança e menos retrabalho.
             </p>
 
-            <ul
-              className="mt-8 space-y-3"
-              aria-label="Benefícios da migração assistida"
-            >
+            <ul className="mt-8 space-y-3" aria-label="Benefícios da migração assistida">
               {BENEFITS.map((benefit) => (
                 <li key={benefit} className="flex items-center gap-3">
-                  <CheckCircle2
-                    className="h-5 w-5 shrink-0 text-emerald-500"
-                    aria-hidden="true"
-                  />
+                  <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" aria-hidden="true" />
                   <span className="text-sm font-medium text-slate-700">{benefit}</span>
                 </li>
               ))}
@@ -98,8 +85,8 @@ export function DataMigrationSection() {
             </div>
 
             <p className="mt-5 text-xs leading-5 text-slate-400">
-              * A migração depende da disponibilidade, qualidade e formato dos dados
-              exportados pelo sistema anterior.
+              * A migração depende da disponibilidade, qualidade e formato dos dados exportados pelo
+              sistema anterior.
             </p>
           </div>
 
@@ -168,10 +155,7 @@ export function DataMigrationSection() {
                       </div>
 
                       {!isLast && (
-                        <div
-                          className="flex justify-center py-1"
-                          aria-hidden="true"
-                        >
+                        <div className="flex justify-center py-1" aria-hidden="true">
                           <ArrowDown className="h-5 w-5 text-slate-400" />
                         </div>
                       )}

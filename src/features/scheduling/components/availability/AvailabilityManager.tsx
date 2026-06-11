@@ -1,8 +1,8 @@
 import { Clock, Plus } from 'lucide-react'
 import { useState } from 'react'
 
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 
 import {
@@ -20,11 +20,7 @@ type AvailabilityManagerProps = {
   onSlotsChange: (slots: Availability[]) => void
 }
 
-export function AvailabilityManager({
-  profileId,
-  slots,
-  onSlotsChange,
-}: AvailabilityManagerProps) {
+export function AvailabilityManager({ profileId, slots, onSlotsChange }: AvailabilityManagerProps) {
   const { showAlert } = useGlobalAlerts()
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)

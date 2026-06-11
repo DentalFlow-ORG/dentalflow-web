@@ -23,9 +23,7 @@ export function PlanFeatureRow({ label, type, variant = 'light' }: Props) {
           )}
           aria-hidden="true"
         />
-        <span className={cn('text-sm', isDark ? 'text-slate-300' : 'text-slate-700')}>
-          {label}
-        </span>
+        <span className={cn('text-sm', isDark ? 'text-slate-300' : 'text-slate-700')}>{label}</span>
       </li>
     )
   }
@@ -34,10 +32,7 @@ export function PlanFeatureRow({ label, type, variant = 'light' }: Props) {
     return (
       <li aria-label={`Em breve: ${label}`} className="flex items-start gap-2.5">
         <Clock3
-          className={cn(
-            'mt-0.5 h-4 w-4 shrink-0',
-            isDark ? 'text-amber-300' : 'text-amber-400',
-          )}
+          className={cn('mt-0.5 h-4 w-4 shrink-0', isDark ? 'text-amber-300' : 'text-amber-400')}
           aria-hidden="true"
         />
         <span className={cn('flex-1 text-sm', isDark ? 'text-slate-400' : 'text-slate-600')}>
@@ -58,10 +53,7 @@ export function PlanFeatureRow({ label, type, variant = 'light' }: Props) {
   return (
     <li aria-label={`Não incluído: ${label}`} className="flex items-start gap-2.5">
       <X
-        className={cn(
-          'mt-0.5 h-4 w-4 shrink-0',
-          isDark ? 'text-slate-600' : 'text-slate-300',
-        )}
+        className={cn('mt-0.5 h-4 w-4 shrink-0', isDark ? 'text-slate-600' : 'text-slate-300')}
         aria-hidden="true"
       />
       <span className={cn('text-sm line-through', isDark ? 'text-slate-500' : 'text-slate-400')}>

@@ -27,7 +27,6 @@ export function PasswordRequirements({ password, visible }: PasswordRequirements
 
   return (
     <ul
-      role="list"
       aria-live="polite"
       aria-label="Requisitos de senha"
       className="mt-2 space-y-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs"

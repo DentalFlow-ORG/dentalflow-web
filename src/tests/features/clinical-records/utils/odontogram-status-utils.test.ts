@@ -1,11 +1,11 @@
 import {
-  getSnapshotSummary,
-  getToothKind,
-  normalizeOdontogramSnapshot,
   ODONTOGRAM_CONDITION_BUTTON_CLASSES,
   ODONTOGRAM_CONDITION_LEGEND_CLASSES,
   ODONTOGRAM_CONDITION_OPTIONS,
   ODONTOGRAM_TOOTH_TOKENS,
+  getSnapshotSummary,
+  getToothKind,
+  normalizeOdontogramSnapshot,
 } from '@/features/clinical-records/utils/odontogram-status-utils'
 
 // ── getToothKind ──────────────────────────────────────────────────────────────
@@ -73,9 +73,20 @@ describe('ODONTOGRAM_CONDITION_OPTIONS — completeness', () => {
 
   const EXPECTED_CONDITIONS = [
     // Original 6
-    'healthy', 'caries', 'restored', 'absent', 'extraction', 'crown',
+    'healthy',
+    'caries',
+    'restored',
+    'absent',
+    'extraction',
+    'crown',
     // New 7 added in Block 4
-    'endodontic', 'implant', 'fracture', 'mobility', 'sealant', 'prosthetic', 'watch',
+    'endodontic',
+    'implant',
+    'fracture',
+    'mobility',
+    'sealant',
+    'prosthetic',
+    'watch',
   ] as const
 
   it('contains exactly 13 conditions', () => {
@@ -181,9 +192,9 @@ describe('normalizeOdontogramSnapshot', () => {
   it('silently drops malformed tooth entries', () => {
     const input = {
       teeth: {
-        '11': 'not-an-object',   // string — invalid
-        '21': null,              // null — invalid
-        '31': 42,                // number — invalid
+        '11': 'not-an-object', // string — invalid
+        '21': null, // null — invalid
+        '31': 42, // number — invalid
         '41': { condition: 'crown' }, // valid
       },
     }

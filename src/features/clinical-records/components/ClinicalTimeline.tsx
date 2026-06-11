@@ -5,9 +5,9 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { formatDateLongBR } from '@/lib/date-time-formatters'
 import { cn } from '@/lib/utils'
 
-import { ClinicalRecordStatusBadge } from './ClinicalRecordStatusBadge'
 import type { ClinicalRecord } from '../types/clinical-record.types'
 import { getSnapshotSummary } from '../utils/odontogram-status-utils'
+import { ClinicalRecordStatusBadge } from './ClinicalRecordStatusBadge'
 
 type Props = {
   records: ClinicalRecord[]
@@ -92,14 +92,10 @@ function ClinicalTimelineItem({ record }: ItemProps) {
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <p className="text-sm font-semibold text-foreground">
-              {record.profile.displayName}
-            </p>
+            <p className="text-sm font-semibold text-foreground">{record.profile.displayName}</p>
             <p className="text-xs text-muted-foreground">
               {formatDateLongBR(record.createdAt.slice(0, 10))}
-              {record.appointment?.service && (
-                <> &middot; {record.appointment.service.name}</>
-              )}
+              {record.appointment?.service && <> &middot; {record.appointment.service.name}</>}
             </p>
           </div>
           <ClinicalRecordStatusBadge status={record.status} />

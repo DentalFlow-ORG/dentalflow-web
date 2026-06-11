@@ -25,21 +25,13 @@ type HomeSectionProps = {
  *
  * Does not know about roles — compose it with role-specific data above.
  */
-export function HomeSection({
-  title,
-  description,
-  action,
-  children,
-  className,
-}: HomeSectionProps) {
+export function HomeSection({ title, description, action, children, className }: HomeSectionProps) {
   return (
     <PanelCard className={className}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-base font-semibold text-foreground">{title}</h2>
-          {description && (
-            <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
-          )}
+          {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
         </div>
         {action && <div className="shrink-0">{action}</div>}
       </div>

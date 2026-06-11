@@ -1,3 +1,4 @@
+import type { Appointment, Availability, AvailabilityException } from '../types/scheduling.types'
 import {
   BUSINESS_END_TIME,
   BUSINESS_START_TIME,
@@ -6,7 +7,6 @@ import {
   toDateInputValue,
   wallTimeToMinutes,
 } from './time'
-import type { Appointment, Availability, AvailabilityException } from '../types/scheduling.types'
 
 export const SLOT_MINUTES = 30
 export const SLOT_HEIGHT_PX = 80

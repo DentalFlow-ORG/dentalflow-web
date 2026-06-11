@@ -23,10 +23,7 @@ import { useAppointmentStatusChange } from './useAppointmentStatusChange'
 export type ScheduleTab = 'agenda' | 'disponibilidade' | 'excecoes'
 export type ScheduleView = 'calendar' | 'table'
 
-export const DENTIST_ALLOWED_TRANSITIONS: AppointmentStatus[] = [
-  'COMPLETED',
-  'NO_SHOW',
-]
+export const DENTIST_ALLOWED_TRANSITIONS: AppointmentStatus[] = ['COMPLETED', 'NO_SHOW']
 
 export function useSchedulePage() {
   const { user } = useAuth()
@@ -47,10 +44,7 @@ export function useSchedulePage() {
   useEffect(() => {
     async function load() {
       try {
-        const [profiles, appts] = await Promise.all([
-          listProfiles(),
-          listAppointments(),
-        ])
+        const [profiles, appts] = await Promise.all([listProfiles(), listAppointments()])
         const mine = profiles.find((profile) => profile.userId === user?.id) ?? null
         setOwnProfile(mine)
         setAppointments(mine ? appts.filter((appt) => appt.profileId === mine.id) : [])

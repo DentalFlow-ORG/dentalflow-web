@@ -29,17 +29,15 @@ vi.mock('@/components/ui/select', () => ({
   ),
 }))
 
-import { listAppointmentsForInvoice } from '@/features/fiscal/services/fiscal.service'
 import { AppointmentInvoicePickerModal } from '@/features/fiscal/components/AppointmentInvoicePickerModal'
+import { listAppointmentsForInvoice } from '@/features/fiscal/services/fiscal.service'
 
 const mockList = listAppointmentsForInvoice as ReturnType<typeof vi.fn>
 
 const emptyResponse = { data: [], total: 0, page: 1, limit: 20 }
 
 function renderModal(open = true) {
-  return render(
-    <AppointmentInvoicePickerModal open={open} onClose={vi.fn()} onSelect={vi.fn()} />,
-  )
+  return render(<AppointmentInvoicePickerModal open={open} onClose={vi.fn()} onSelect={vi.fn()} />)
 }
 
 describe('AppointmentInvoicePickerModal', () => {
@@ -64,9 +62,7 @@ describe('AppointmentInvoicePickerModal', () => {
     renderModal()
     await waitFor(() => {
       expect(
-        screen.getByText(
-          'Selecione a consulta para preencher automaticamente os dados da nota.',
-        ),
+        screen.getByText('Selecione a consulta para preencher automaticamente os dados da nota.'),
       ).toBeInTheDocument()
     })
   })

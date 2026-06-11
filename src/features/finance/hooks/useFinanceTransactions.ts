@@ -32,8 +32,7 @@ export function useFinanceTransactions(
 ) {
   const { showAlert } = useGlobalAlerts()
 
-  const [transactionForm, setTransactionForm] =
-    useState<TransactionFormState>(emptyTransactionForm)
+  const [transactionForm, setTransactionForm] = useState<TransactionFormState>(emptyTransactionForm)
   const [transactionError, setTransactionError] = useState<string | null>(null)
   const [isSavingTransaction, setIsSavingTransaction] = useState(false)
 

@@ -41,19 +41,10 @@ export function HomeEmptyState({
 }: HomeEmptyStateProps) {
   if (compact) {
     return (
-      <div
-        className={cn(
-          'flex flex-col items-center gap-1.5 py-8 text-center',
-          className,
-        )}
-      >
-        {Icon && (
-          <Icon className="h-7 w-7 text-muted-foreground/40" aria-hidden="true" />
-        )}
+      <div className={cn('flex flex-col items-center gap-1.5 py-8 text-center', className)}>
+        {Icon && <Icon className="h-7 w-7 text-muted-foreground/40" aria-hidden="true" />}
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        {description && (
-          <p className="text-xs text-muted-foreground/70">{description}</p>
-        )}
+        {description && <p className="text-xs text-muted-foreground/70">{description}</p>}
         {action && <div className="mt-2">{action}</div>}
       </div>
     )

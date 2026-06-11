@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@/test-utils/render-utils'
 
 import { MobileAgendaTimeline } from '@/features/scheduling/components/mobile/MobileAgendaTimeline'
-import { makeAppointment, DEFAULT_APPT_DATE } from '@/test-utils/factories/appointment.factory'
+import { DEFAULT_APPT_DATE, makeAppointment } from '@/test-utils/factories/appointment.factory'
 
 // Fix "today" to the factory default date
 beforeEach(() => {
@@ -94,7 +94,13 @@ describe('MobileAgendaTimeline — rendering', () => {
   it('renders service name when provided', () => {
     const appt = makeAppointment({
       appointmentDate: DEFAULT_APPT_DATE,
-      service: { id: 's1', name: 'Limpeza dental', durationMinutes: 60, priceFrom: null, priceTo: null },
+      service: {
+        id: 's1',
+        name: 'Limpeza dental',
+        durationMinutes: 60,
+        priceFrom: null,
+        priceTo: null,
+      },
     })
     render(
       <MobileAgendaTimeline
@@ -233,9 +239,7 @@ describe('MobileAgendaTimeline — create action', () => {
         onAppointmentClick={vi.fn()}
       />,
     )
-    expect(
-      screen.queryByRole('button', { name: /Novo agendamento/i }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Novo agendamento/i })).not.toBeInTheDocument()
   })
 
   it('calls onCreateAppointment when create button is clicked', () => {

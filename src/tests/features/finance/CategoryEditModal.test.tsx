@@ -1,20 +1,31 @@
 import { render, screen } from '@/test-utils/render-utils'
+import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 
 vi.mock('@/components/ui/select', () => ({
-  Select: ({ value, onValueChange, children }: any) => (
+  Select: ({
+    value,
+    onValueChange,
+    children,
+  }: {
+    value?: string
+    onValueChange?: (v: string) => void
+    children?: ReactNode
+  }) => (
     <select value={value} onChange={(e) => onValueChange?.(e.target.value)}>
       {children}
     </select>
   ),
-  SelectTrigger: ({ children }: any) => <>{children}</>,
+  SelectTrigger: ({ children }: { children?: ReactNode }) => <>{children}</>,
   SelectValue: () => null,
-  SelectContent: ({ children }: any) => <>{children}</>,
-  SelectItem: ({ value, children }: any) => <option value={value}>{children}</option>,
+  SelectContent: ({ children }: { children?: ReactNode }) => <>{children}</>,
+  SelectItem: ({ value, children }: { value: string; children?: ReactNode }) => (
+    <option value={value}>{children}</option>
+  ),
 }))
 
 import { CategoryEditModal } from '@/features/finance/components/CategoryEditModal'
-import type { CategoryFormState } from '@/features/finance/types/finance.types'
+import type { CategoryFormState, FinancialCategory } from '@/features/finance/types/finance.types'
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -24,7 +35,7 @@ const mockCategory = {
   type: 'INCOME' as const,
   color: '#10B981',
   isDefault: false,
-} as any
+} as unknown as FinancialCategory
 
 const emptyForm: CategoryFormState = {
   name: '',
@@ -32,7 +43,7 @@ const emptyForm: CategoryFormState = {
   color: '#10B981',
 }
 
-function renderModal(category = mockCategory) {
+function renderModal(category: FinancialCategory | null = mockCategory) {
   return render(
     <CategoryEditModal
       category={category}

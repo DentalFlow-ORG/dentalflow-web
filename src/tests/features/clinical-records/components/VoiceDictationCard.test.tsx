@@ -1,8 +1,8 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { VoiceDictationCard } from '@/features/clinical-records/components/VoiceDictationCard'
 import type { ClinicalDictationFieldKey } from '@/features/clinical-records/types/clinical-dictation.types'
 import { ApiError } from '@/services/http'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -27,7 +27,9 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 let latestRecorder: FakeMediaRecorder | null = null
 
 // Receives the instance as a plain parameter so `this` is never aliased to a variable.
-function trackRecorder(recorder: FakeMediaRecorder) { latestRecorder = recorder }
+function trackRecorder(recorder: FakeMediaRecorder) {
+  latestRecorder = recorder
+}
 
 class FakeMediaRecorder {
   state: 'inactive' | 'recording' = 'inactive'
@@ -39,9 +41,13 @@ class FakeMediaRecorder {
   // string argument compiles without casting.
   static isTypeSupported = vi.fn((_type: string) => true)
 
-  constructor() { trackRecorder(this) }
+  constructor() {
+    trackRecorder(this)
+  }
 
-  start = vi.fn(() => { this.state = 'recording' })
+  start = vi.fn(() => {
+    this.state = 'recording'
+  })
 
   stop = vi.fn(() => {
     if (this.state === 'inactive') return
@@ -193,10 +199,9 @@ async function reachSuccessState(onApplyFields = vi.fn()) {
   await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
 
   await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
-  await waitFor(
-    () => expect(screen.getByText(/Transcrição/i)).toBeInTheDocument(),
-    { timeout: 3000 },
-  )
+  await waitFor(() => expect(screen.getByText(/Transcrição/i)).toBeInTheDocument(), {
+    timeout: 3000,
+  })
 }
 
 // ── 1. Premium gate ───────────────────────────────────────────────────────────
@@ -299,7 +304,9 @@ describe('successful recording flow', () => {
     await waitFor(() =>
       expect(screen.getByText(/nenhum campo clínico foi identificado/i)).toBeInTheDocument(),
     )
-    expect(screen.queryByRole('button', { name: /Aplicar campos selecionados/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Aplicar campos selecionados/i }),
+    ).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Descartar/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Gravar novamente/i })).toBeInTheDocument()
   })
@@ -375,20 +382,28 @@ describe('error handling', () => {
   it('shows the premium-only message for HTTP 402 (payment required)', async () => {
     await triggerServiceError(new ApiError('Escolha um plano', 402, null))
     await waitFor(() =>
-      expect(screen.getByText(/Ditado clínico disponível apenas no plano Premium/i)).toBeInTheDocument(),
+      expect(
+        screen.getByText(/Ditado clínico disponível apenas no plano Premium/i),
+      ).toBeInTheDocument(),
     )
   })
 
   it('shows the premium-only message for HTTP 403 (plan feature gate)', async () => {
     await triggerServiceError(new ApiError('Este recurso não está disponível', 403, null))
     await waitFor(() =>
-      expect(screen.getByText(/Ditado clínico disponível apenas no plano Premium/i)).toBeInTheDocument(),
+      expect(
+        screen.getByText(/Ditado clínico disponível apenas no plano Premium/i),
+      ).toBeInTheDocument(),
     )
   })
 
   it('shows the monthly-limit message for HTTP 429 when the message indicates quota exhaustion', async () => {
     await triggerServiceError(
-      new ApiError('Limite mensal de análises de IA atingido. Tente novamente no próximo mês.', 429, null),
+      new ApiError(
+        'Limite mensal de análises de IA atingido. Tente novamente no próximo mês.',
+        429,
+        null,
+      ),
     )
     await waitFor(() =>
       expect(screen.getByText(/Limite mensal de ditados clínicos atingido/i)).toBeInTheDocument(),
@@ -396,9 +411,7 @@ describe('error handling', () => {
   })
 
   it('shows the throttle message for HTTP 429 when the message does not indicate quota', async () => {
-    await triggerServiceError(
-      new ApiError('ThrottlerException: Too Many Requests', 429, null),
-    )
+    await triggerServiceError(new ApiError('ThrottlerException: Too Many Requests', 429, null))
     await waitFor(() =>
       expect(screen.getByText(/Muitas tentativas em pouco tempo/i)).toBeInTheDocument(),
     )
@@ -454,9 +467,7 @@ describe('processing state', () => {
     await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
     await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
 
-    await waitFor(() =>
-      expect(screen.getByRole('status')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument())
     expect(screen.queryByRole('button', { name: /Aplicar/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Descartar/i })).not.toBeInTheDocument()
   })
@@ -564,9 +575,7 @@ describe('field selection', () => {
     mockDictateClinicalRecord.mockResolvedValueOnce({
       transcript: 'Consulta.',
       fields: {},
-      odontogramSuggestions: [
-        { toothNumber: '36', condition: 'caries' },
-      ],
+      odontogramSuggestions: [{ toothNumber: '36', condition: 'caries' }],
     })
     const user = userEvent.setup()
     // renderCard() does not pass onApplyOdontogram
@@ -592,9 +601,7 @@ describe('accessibility', () => {
   it('error state container has role="alert" so screen readers announce errors immediately', async () => {
     await triggerServiceError(new ApiError('Service unavailable', 503, null))
 
-    await waitFor(() =>
-      expect(screen.getByRole('alert')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
     // The alert contains the user-facing error message
     expect(screen.getByRole('alert')).toHaveTextContent(/temporariamente indisponível/i)
   })
@@ -652,7 +659,10 @@ describe('accessibility', () => {
   })
 
   it('"Gravar novamente" in the empty-field state resets the component to idle', async () => {
-    mockDictateClinicalRecord.mockResolvedValue({ transcript: 'Transcrição sem campos.', fields: {} })
+    mockDictateClinicalRecord.mockResolvedValue({
+      transcript: 'Transcrição sem campos.',
+      fields: {},
+    })
     const user = userEvent.setup()
     renderCard()
 
@@ -737,7 +747,10 @@ describe('stop flow reliability', () => {
 
     // The "Gravando" state must be replaced by the result
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument(),
+      () =>
+        expect(
+          screen.getByRole('button', { name: /Aplicar campos selecionados/i }),
+        ).toBeInTheDocument(),
       { timeout: 3000 },
     )
     expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
@@ -762,7 +775,10 @@ describe('stop flow reliability', () => {
 
     // The component must leave recording and show the dictation result
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument(),
+      () =>
+        expect(
+          screen.getByRole('button', { name: /Aplicar campos selecionados/i }),
+        ).toBeInTheDocument(),
       { timeout: 3000 },
     )
     expect(screen.queryByText(/Gravando/i)).not.toBeInTheDocument()
@@ -780,7 +796,10 @@ describe('stop flow reliability', () => {
     // First stop — valid, triggers the full processing path
     latestRecorder!.stop()
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument(),
+      () =>
+        expect(
+          screen.getByRole('button', { name: /Aplicar campos selecionados/i }),
+        ).toBeInTheDocument(),
       { timeout: 3000 },
     )
 
@@ -791,7 +810,9 @@ describe('stop flow reliability', () => {
 
     // No additional API calls after the second stop
     expect(mockDictateClinicalRecord).toHaveBeenCalledTimes(1)
-    expect((latestRecorder!.stop as ReturnType<typeof vi.fn>).mock.calls.length).toBe(stopCallsBefore + 1)
+    expect((latestRecorder!.stop as ReturnType<typeof vi.fn>).mock.calls.length).toBe(
+      stopCallsBefore + 1,
+    )
   })
 
   // ── Empty audio produces a friendly error and leaves recording ─────────────
@@ -917,7 +938,9 @@ describe('stop flow reliability', () => {
       expect(screen.getByRole('status')).toBeInTheDocument()
 
       // Advance past the 5-second fallback window
-      act(() => { vi.advanceTimersByTime(5100) })
+      act(() => {
+        vi.advanceTimersByTime(5100)
+      })
 
       // Error state should appear; API must not have been called
       expect(screen.getByRole('alert')).toBeInTheDocument()
@@ -993,13 +1016,13 @@ describe('processing phase robustness', () => {
 
   it('shows a dev hint when the backend is unreachable (ApiError status 0)', async () => {
     await triggerServiceError(
-      new ApiError('Não foi possível conectar ao servidor. Verifique se a API está em execução.', 0, null),
+      new ApiError(
+        'Não foi possível conectar ao servidor. Verifique se a API está em execução.',
+        0,
+        null,
+      ),
     )
-    await waitFor(() =>
-      expect(
-        screen.getByText(/Backend inacessível/i),
-      ).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByText(/Backend inacessível/i)).toBeInTheDocument())
     expect(screen.queryByText(/Transcrevendo consulta/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
   })
@@ -1048,7 +1071,9 @@ describe('processing phase robustness', () => {
       expect(screen.getByRole('status')).toBeInTheDocument()
 
       // Advance past the 45-second processing timeout
-      act(() => { vi.advanceTimersByTime(46_000) })
+      act(() => {
+        vi.advanceTimersByTime(46_000)
+      })
 
       expect(screen.getByRole('alert')).toBeInTheDocument()
       expect(screen.getByRole('alert')).toHaveTextContent(/O processamento demorou muito/i)
@@ -1095,9 +1120,7 @@ describe('processing phase robustness', () => {
       await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
 
       await waitFor(() =>
-        expect(
-          screen.getByText(/O áudio ficou muito grande para envio/i),
-        ).toBeInTheDocument(),
+        expect(screen.getByText(/O áudio ficou muito grande para envio/i)).toBeInTheDocument(),
       )
 
       // API must NOT have been called
@@ -1107,9 +1130,7 @@ describe('processing phase robustness', () => {
       expect(screen.queryByRole('status')).not.toBeInTheDocument()
 
       // Alert must have fired
-      expect(mockShowAlert).toHaveBeenCalledWith(
-        expect.objectContaining({ tone: 'error' }),
-      )
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error' }))
 
       // User can retry
       expect(screen.getByRole('button', { name: /Tentar novamente/i })).toBeInTheDocument()
@@ -1149,9 +1170,7 @@ describe('MediaRecorder codec and bitrate selection', () => {
 
   it('falls back to audio/webm when audio/webm;codecs=opus is not supported', async () => {
     // Return true only for plain audio/webm
-    FakeMediaRecorder.isTypeSupported.mockImplementation((mime: string) =>
-      mime === 'audio/webm',
-    )
+    FakeMediaRecorder.isTypeSupported.mockImplementation((mime: string) => mime === 'audio/webm')
     try {
       const user = userEvent.setup()
       renderCard()
@@ -1286,10 +1305,9 @@ describe('editable field review', () => {
     await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
     await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
     await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
-    await waitFor(() =>
-      expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(),
-      { timeout: 3000 },
-    )
+    await waitFor(() => expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(), {
+      timeout: 3000,
+    })
 
     // Clear all text fields to trigger the warning
     const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
@@ -1319,7 +1337,9 @@ describe('editable field review', () => {
     await user.click(screen.getByRole('button', { name: /Gravar consulta/i }))
     await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
     await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
-    await waitFor(() => expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(), { timeout: 3000 })
+    await waitFor(() => expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(), {
+      timeout: 3000,
+    })
 
     await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
 
@@ -1381,9 +1401,7 @@ describe('odontogram suggestions panel', () => {
       { timeout: 3000 },
     )
 
-    expect(
-      screen.getByText(/Verifique os dentes identificados no ditado/i),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Verifique os dentes identificados no ditado/i)).toBeInTheDocument()
   })
 
   // ── Backend suggestions take precedence over frontend regex parsing ──────────
@@ -1394,7 +1412,13 @@ describe('odontogram suggestions panel', () => {
       fields: { chiefComplaint: 'Rotina' },
       // Backend returns a suggestion even though the transcript has no condition keywords
       odontogramSuggestions: [
-        { toothNumber: '46', condition: 'caries', notes: 'Cárie mesial.', confidence: 'high', sourceText: 'cárie no 46' },
+        {
+          toothNumber: '46',
+          condition: 'caries',
+          notes: 'Cárie mesial.',
+          confidence: 'high',
+          sourceText: 'cárie no 46',
+        },
       ],
     })
     const user = userEvent.setup()
@@ -1456,9 +1480,9 @@ describe('odontogram suggestions panel', () => {
     )
 
     // All odontogram checkboxes should be checked by default
-    const odontogramCheckboxes = screen.getAllByRole('checkbox').filter((cb) =>
-      cb.getAttribute('aria-label')?.startsWith('Selecionar dente'),
-    )
+    const odontogramCheckboxes = screen
+      .getAllByRole('checkbox')
+      .filter((cb) => cb.getAttribute('aria-label')?.startsWith('Selecionar dente'))
     expect(odontogramCheckboxes.length).toBe(2)
     for (const cb of odontogramCheckboxes) {
       expect(cb).toBeChecked()
@@ -1525,10 +1549,14 @@ describe('recording warning threshold', () => {
     vi.useFakeTimers()
     renderCard()
     // Synchronous click — does not depend on timer advancement
-    act(() => { fireEvent.click(screen.getByRole('button', { name: /Gravar consulta/i })) })
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    })
     // Flush the getUserMedia mock (promise-based, not timer-based) so
     // startRecording() completes and the setInterval is registered with fake clock
-    await act(async () => { await Promise.resolve() })
+    await act(async () => {
+      await Promise.resolve()
+    })
     // 180 - 150 = 30 s remaining → warning threshold
     act(() => vi.advanceTimersByTime(150_000))
     expect(screen.getByText(/Restam 30s de gravação\./i)).toBeInTheDocument()
@@ -1537,8 +1565,12 @@ describe('recording warning threshold', () => {
   it('does NOT show a warning at 149 s (31 s remaining — below threshold)', async () => {
     vi.useFakeTimers()
     renderCard()
-    act(() => { fireEvent.click(screen.getByRole('button', { name: /Gravar consulta/i })) })
-    await act(async () => { await Promise.resolve() })
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    })
+    await act(async () => {
+      await Promise.resolve()
+    })
     act(() => vi.advanceTimersByTime(149_000))
     expect(screen.queryByText(/Restam/i)).not.toBeInTheDocument()
   })
@@ -1546,8 +1578,12 @@ describe('recording warning threshold', () => {
   it('does NOT show the old "Encerrando em" text at any point during recording', async () => {
     vi.useFakeTimers()
     renderCard()
-    act(() => { fireEvent.click(screen.getByRole('button', { name: /Gravar consulta/i })) })
-    await act(async () => { await Promise.resolve() })
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: /Gravar consulta/i }))
+    })
+    await act(async () => {
+      await Promise.resolve()
+    })
     act(() => vi.advanceTimersByTime(170_000))
     expect(screen.queryByText(/Encerrando/i)).not.toBeInTheDocument()
   })
@@ -1574,12 +1610,13 @@ describe('post-success normalization', () => {
     await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
     await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
 
-    await waitFor(
-      () => expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(),
-      { timeout: 3000 },
-    )
+    await waitFor(() => expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(), {
+      timeout: 3000,
+    })
     // Generic error must NOT appear
-    expect(screen.queryByText(/Não foi possível processar o ditado clínico agora/i)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/Não foi possível processar o ditado clínico agora/i),
+    ).not.toBeInTheDocument()
     expect(screen.getByText('Consulta registrada.')).toBeInTheDocument()
   })
 
@@ -1626,10 +1663,9 @@ describe('post-success normalization', () => {
     await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
 
     // Must reach success state without crashing
-    await waitFor(
-      () => expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(),
-      { timeout: 3000 },
-    )
+    await waitFor(() => expect(screen.getByText(/Revise antes de aplicar/i)).toBeInTheDocument(), {
+      timeout: 3000,
+    })
     expect(screen.queryByText(/Não foi possível processar/i)).not.toBeInTheDocument()
   })
 })
@@ -1652,9 +1688,7 @@ describe('processing step labels', () => {
     await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
     await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
 
-    await waitFor(() =>
-      expect(screen.getByText(/Transcrevendo consulta/i)).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByText(/Transcrevendo consulta/i)).toBeInTheDocument())
     // The status container must still be present
     expect(screen.getByRole('status')).toBeInTheDocument()
     // The recording UI must be gone
@@ -1703,9 +1737,7 @@ describe('dev debug panel', () => {
     await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
 
     // Wait for the panel to appear (set after blobToBase64 resolves)
-    await waitFor(() =>
-      expect(screen.getByTestId('dev-debug-panel')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByTestId('dev-debug-panel')).toBeInTheDocument())
 
     const panel = screen.getByTestId('dev-debug-panel')
     // Panel must include the MIME type (FakeMediaRecorder.mimeType = 'audio/webm')
@@ -1732,12 +1764,8 @@ describe('dev debug panel', () => {
       )
 
       // And the debug panel must show the blocked flag
-      await waitFor(() =>
-        expect(screen.getByTestId('dev-debug-panel')).toBeInTheDocument(),
-      )
-      expect(screen.getByTestId('dev-debug-panel')).toHaveTextContent(
-        /Bloqueado localmente/i,
-      )
+      await waitFor(() => expect(screen.getByTestId('dev-debug-panel')).toBeInTheDocument())
+      expect(screen.getByTestId('dev-debug-panel')).toHaveTextContent(/Bloqueado localmente/i)
       // API must not have been called
       expect(mockDictateClinicalRecord).not.toHaveBeenCalled()
     } finally {
@@ -1771,7 +1799,10 @@ describe('conflict-aware review', () => {
     await waitFor(() => expect(screen.getByText(/Gravando/i)).toBeInTheDocument())
     await user.click(screen.getByRole('button', { name: /Parar gravação/i }))
     await waitFor(
-      () => expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument(),
+      () =>
+        expect(
+          screen.getByRole('button', { name: /Aplicar campos selecionados/i }),
+        ).toBeInTheDocument(),
       { timeout: 3000 },
     )
     return { user, onApplyFields }
@@ -1830,7 +1861,10 @@ describe('conflict-aware review', () => {
     const replaceBtn = screen.getByRole('button', { name: /Substituir tudo/i })
     await user.click(replaceBtn)
     expect(replaceBtn).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: /Adicionar ao final/i })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /Adicionar ao final/i })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
   })
 
   it('apply with default append mode passes modes object with append for the conflicted field', async () => {
@@ -1899,8 +1933,8 @@ describe('conflict-aware review', () => {
     await user.click(screen.getByRole('button', { name: /Editar antes de aplicar/i }))
 
     const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
-    const evolutionTextarea = textareas.find(
-      (t) => t.getAttribute('aria-label')?.includes('Evolução clínica'),
+    const evolutionTextarea = textareas.find((t) =>
+      t.getAttribute('aria-label')?.includes('Evolução clínica'),
     )
     expect(evolutionTextarea).toBeDefined()
     expect(evolutionTextarea!.value).toBe('Texto existente\n\nSensibilidade ao frio.')
@@ -1911,8 +1945,14 @@ describe('conflict-aware review', () => {
     const editBtn = screen.getByRole('button', { name: /Editar antes de aplicar/i })
     await user.click(editBtn)
     expect(editBtn).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: /Adicionar ao final/i })).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByRole('button', { name: /Substituir tudo/i })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /Adicionar ao final/i })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(screen.getByRole('button', { name: /Substituir tudo/i })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
   })
 
   it('apply with edit mode passes "edit" in the modes object', async () => {
@@ -1936,8 +1976,8 @@ describe('conflict-aware review', () => {
     await user.click(screen.getByRole('button', { name: /Editar antes de aplicar/i }))
 
     const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
-    const evolutionTextarea = textareas.find(
-      (t) => t.getAttribute('aria-label')?.includes('Evolução clínica'),
+    const evolutionTextarea = textareas.find((t) =>
+      t.getAttribute('aria-label')?.includes('Evolução clínica'),
     )!
     expect(evolutionTextarea.value).toBe('Texto existente\n\nSensibilidade ao frio.')
 
@@ -1977,8 +2017,8 @@ describe('conflict-aware review', () => {
     await user.click(screen.getByRole('button', { name: /Editar antes de aplicar/i }))
 
     const textareas = screen.getAllByRole('textbox') as HTMLTextAreaElement[]
-    const evolutionTextarea = textareas.find(
-      (t) => t.getAttribute('aria-label')?.includes('Evolução clínica'),
+    const evolutionTextarea = textareas.find((t) =>
+      t.getAttribute('aria-label')?.includes('Evolução clínica'),
     )!
     await user.clear(evolutionTextarea)
     await user.type(evolutionTextarea, 'Texto personalizado pelo dentista')

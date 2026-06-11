@@ -1,4 +1,8 @@
-import type { AppointmentPaymentMethod, AppointmentPaymentStatus, AppointmentStatus } from '../types/scheduling.types'
+import type {
+  AppointmentPaymentMethod,
+  AppointmentPaymentStatus,
+  AppointmentStatus,
+} from '../types/scheduling.types'
 
 export const PAYMENT_METHOD_LABELS: Record<AppointmentPaymentMethod, string> = {
   CASH: 'Dinheiro',

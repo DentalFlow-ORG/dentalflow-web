@@ -39,10 +39,7 @@ export function ClinicalSection({
     <Collapsible.Root
       open={expanded}
       onOpenChange={onToggle}
-      className={cn(
-        'overflow-hidden rounded-xl border border-border bg-card',
-        className,
-      )}
+      className={cn('overflow-hidden rounded-xl border border-border bg-card', className)}
     >
       <Collapsible.Trigger
         id={triggerId}
@@ -64,10 +61,12 @@ export function ClinicalSection({
               aria-hidden="true"
             />
           )}
-          <span className={cn(
-            'text-sm font-semibold transition-colors duration-150',
-            expanded ? 'text-foreground' : 'text-foreground/80',
-          )}>
+          <span
+            className={cn(
+              'text-sm font-semibold transition-colors duration-150',
+              expanded ? 'text-foreground' : 'text-foreground/80',
+            )}
+          >
             {title}
           </span>
           {hasContent && (
@@ -95,9 +94,7 @@ export function ClinicalSection({
         aria-labelledby={triggerId}
         className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up"
       >
-        <div className="border-t border-border px-5 py-5">
-          {children}
-        </div>
+        <div className="border-t border-border px-5 py-5">{children}</div>
       </Collapsible.Content>
     </Collapsible.Root>
   )

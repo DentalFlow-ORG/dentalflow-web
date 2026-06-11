@@ -31,8 +31,14 @@ const STATUS_FALLBACKS: Record<number, string> = {
 }
 
 const VALIDATION_MESSAGE_TRANSLATIONS: Array<[RegExp, string]> = [
-  [/addressState must be longer than or equal to 2 characters/i, 'UF deve ter exatamente 2 caracteres.'],
-  [/addressState must be shorter than or equal to 2 characters/i, 'UF deve ter exatamente 2 caracteres.'],
+  [
+    /addressState must be longer than or equal to 2 characters/i,
+    'UF deve ter exatamente 2 caracteres.',
+  ],
+  [
+    /addressState must be shorter than or equal to 2 characters/i,
+    'UF deve ter exatamente 2 caracteres.',
+  ],
   [/page must not be less than 1/i, 'Página deve ser maior ou igual a 1.'],
   [/page must be an integer number/i, 'Página deve ser um número inteiro.'],
   [/limit must not be greater than 100/i, 'Limite deve ser menor ou igual a 100.'],

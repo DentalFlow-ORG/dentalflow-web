@@ -19,6 +19,7 @@ export function InventoryAnalysisPanel({ summary }: { summary: StockSummary }) {
     dataReadiness && !dataReadiness.ready ? dataReadiness.reason : undefined
 
   useEffect(() => {
+    if (isLoadingInitial) return
     if (!['#inventory-ai-analysis', '#inventory-ai'].includes(window.location.hash)) return
     window.setTimeout(() => {
       sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -27,7 +28,12 @@ export function InventoryAnalysisPanel({ summary }: { summary: StockSummary }) {
   }, [isLoadingInitial])
 
   return (
-    <div id="inventory-ai-analysis" ref={sectionRef} tabIndex={-1} className="scroll-mt-24 outline-none">
+    <div
+      id="inventory-ai-analysis"
+      ref={sectionRef}
+      tabIndex={-1}
+      className="scroll-mt-24 outline-none"
+    >
       <PanelCard>
         <AiAssistantCard
           type="inventory"

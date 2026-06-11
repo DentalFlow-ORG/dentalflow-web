@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { NotificationQuota } from '../types/notifications.types'
 import { getQuota } from '../services/notifications.service'
+import type { NotificationQuota } from '../types/notifications.types'
 
 export function useNotificationQuota() {
   const [quota, setQuota] = useState<NotificationQuota | null>(null)
@@ -16,7 +16,9 @@ export function useNotificationQuota() {
       .finally(() => setIsLoading(false))
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   return { quota, isLoading, error, reload: load }
 }

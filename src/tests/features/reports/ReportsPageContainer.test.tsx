@@ -2,7 +2,7 @@ import { render, screen } from '@/test-utils/render-utils'
 
 import { ReportsPageContainer } from '@/features/reports/containers/ReportsPageContainer'
 import { makeAssistantUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
-import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
+import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -154,9 +154,7 @@ describe('ReportsPageContainer — OWNER', () => {
 
   it('does not render the ASSISTANT finance explainer', () => {
     render(<ReportsPageContainer />)
-    expect(
-      screen.queryByText(/disponível apenas para proprietários/i),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText(/disponível apenas para proprietários/i)).not.toBeInTheDocument()
   })
 })
 
@@ -174,9 +172,7 @@ describe('ReportsPageContainer — ASSISTANT', () => {
 
   it('does NOT render Finance report card', () => {
     render(<ReportsPageContainer />)
-    expect(
-      screen.queryByRole('heading', { name: 'Relatório financeiro' }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Relatório financeiro' })).not.toBeInTheDocument()
   })
 
   it('renders ASSISTANT finance unavailability explainer', () => {
@@ -193,13 +189,9 @@ describe('ReportsPageContainer — ASSISTANT', () => {
 
   it('renders the other 3 report cards', () => {
     render(<ReportsPageContainer />)
-    expect(
-      screen.getByRole('heading', { name: 'Relatório de agendamentos' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Relatório de agendamentos' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Relatório de estoque' })).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Relatório de notas fiscais' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Relatório de notas fiscais' })).toBeInTheDocument()
   })
 })
 

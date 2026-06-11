@@ -1,18 +1,14 @@
-import * as React from 'react'
 import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { Select as SelectPrimitive } from 'radix-ui'
+import type * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
-function Select({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
+function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
   return <SelectPrimitive.Root data-slot="select" {...props} />
 }
 
-function SelectValue({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Value>) {
+function SelectValue({ ...props }: React.ComponentProps<typeof SelectPrimitive.Value>) {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
@@ -135,10 +131,4 @@ function SelectScrollDownButton({
   )
 }
 
-export {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-}
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue }

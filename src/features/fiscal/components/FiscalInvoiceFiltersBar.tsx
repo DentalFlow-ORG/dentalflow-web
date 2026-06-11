@@ -77,11 +77,7 @@ export function FiscalInvoiceFiltersBar({
           </Select>
         </FormField>
         <FormField label="Competência até" htmlFor="invoiceTo">
-          <DatePickerInput
-            id="invoiceTo"
-            value={to}
-            onValueChange={onToChange}
-          />
+          <DatePickerInput id="invoiceTo" value={to} onValueChange={onToChange} />
         </FormField>
       </div>
 

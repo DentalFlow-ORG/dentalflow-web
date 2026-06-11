@@ -3,14 +3,11 @@ import { render, screen } from '@/test-utils/render-utils'
 import { AppointmentClinicalSection } from '@/features/scheduling/components/appointments/AppointmentClinicalSection'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 import {
-  setMockAuthState,
-  resetAuthMocks,
-} from '@/test-utils/mocks/auth'
-import {
-  makeOwnerUser,
   makeAssistantUser,
   makeDentistUser,
+  makeOwnerUser,
 } from '@/test-utils/factories/user.factory'
+import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
 vi.mock('@/features/auth/hooks/useAuth', async () => {
   const authMock = await import('@/test-utils/mocks/auth')

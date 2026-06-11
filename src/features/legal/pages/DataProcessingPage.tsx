@@ -2,11 +2,11 @@ import { companyInfo } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
+  LegalContactBlock,
+  LegalList,
   LegalPageHeader,
   LegalSection,
-  LegalList,
   LegalTable,
-  LegalContactBlock,
 } from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
@@ -23,23 +23,20 @@ export function DataProcessingPage() {
 
       <LegalSection id="introducao" title="1. Introdução">
         <p>
-          Este documento descreve os princípios e condições do tratamento de dados
-          realizado pela DentalFlow em relação aos dados de pacientes e clínicas.
-          Constitui um modelo de Acordo de Processamento de Dados (DPA) e deve ser
-          revisado e adaptado por advogado especializado antes de ser utilizado como
-          instrumento contratual vinculante.
+          Este documento descreve os princípios e condições do tratamento de dados realizado pela
+          DentalFlow em relação aos dados de pacientes e clínicas. Constitui um modelo de Acordo de
+          Processamento de Dados (DPA) e deve ser revisado e adaptado por advogado especializado
+          antes de ser utilizado como instrumento contratual vinculante.
         </p>
       </LegalSection>
 
       <LegalSection id="papeis" title="2. Papéis no Tratamento">
         <div className="space-y-5">
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-5">
-            <h3 className="font-semibold text-blue-900">
-              Clínica como Controladora (Controlador)
-            </h3>
+            <h3 className="font-semibold text-blue-900">Clínica como Controladora (Controlador)</h3>
             <p className="mt-2 text-blue-800">
-              A clínica odontológica determina as finalidades e os meios do tratamento
-              dos dados de seus pacientes. Como controladora, a clínica é responsável por:
+              A clínica odontológica determina as finalidades e os meios do tratamento dos dados de
+              seus pacientes. Como controladora, a clínica é responsável por:
             </p>
             <LegalList
               items={[
@@ -56,8 +53,8 @@ export function DataProcessingPage() {
               DentalFlow como Operadora (Operador/Processador)
             </h3>
             <p className="mt-2 text-emerald-800">
-              Para os dados de pacientes e registros clínicos, a DentalFlow atua como
-              operador, processando os dados conforme as instruções da clínica (controladora).
+              Para os dados de pacientes e registros clínicos, a DentalFlow atua como operador,
+              processando os dados conforme as instruções da clínica (controladora).
             </p>
             <LegalList
               items={[
@@ -75,36 +72,47 @@ export function DataProcessingPage() {
               DentalFlow como Controladora (dados próprios)
             </h3>
             <p className="mt-2 text-slate-600">
-              Para dados de contas de usuários, faturamento, segurança da plataforma e
-              analytics próprios, a DentalFlow atua como controladora independente.
+              Para dados de contas de usuários, faturamento, segurança da plataforma e analytics
+              próprios, a DentalFlow atua como controladora independente.
             </p>
           </div>
         </div>
       </LegalSection>
 
       <LegalSection id="subprocessadores" title="3. Suboperadores (Subprocessadores)">
-        <p>
-          A DentalFlow utiliza os seguintes suboperadores no processamento de dados:
-        </p>
+        <p>A DentalFlow utiliza os seguintes suboperadores no processamento de dados:</p>
         <LegalTable
           headers={['Suboperador', 'Dados', 'Finalidade', 'Localização']}
           rows={[
             ['Stripe, Inc.', 'Dados de pagamento', 'Processamento de assinaturas', 'EUA (PCI DSS)'],
-            ['Supabase / PostgreSQL', 'Todos os dados da plataforma', 'Armazenamento e banco de dados', 'Verificar região configurada'],
-            ['Google LLC', 'Metadados de eventos de agenda', 'Integração com Google Calendar', 'EUA (quando integração ativa)'],
-            ['Provedor de e-mail transacional', 'Nome, e-mail', 'Envio de notificações', 'A definir'],
+            [
+              'Supabase / PostgreSQL',
+              'Todos os dados da plataforma',
+              'Armazenamento e banco de dados',
+              'Verificar região configurada',
+            ],
+            [
+              'Google LLC',
+              'Metadados de eventos de agenda',
+              'Integração com Google Calendar',
+              'EUA (quando integração ativa)',
+            ],
+            [
+              'Provedor de e-mail transacional',
+              'Nome, e-mail',
+              'Envio de notificações',
+              'A definir',
+            ],
           ]}
         />
         <p className="text-sm text-amber-700 bg-amber-50 rounded-lg p-3 border border-amber-200">
-          A lista de suboperadores pode ser atualizada. Requer revisão jurídica para
-          assegurar adequação da transferência internacional de dados conforme Art. 33 da LGPD.
+          A lista de suboperadores pode ser atualizada. Requer revisão jurídica para assegurar
+          adequação da transferência internacional de dados conforme Art. 33 da LGPD.
         </p>
       </LegalSection>
 
       <LegalSection id="medidas-seguranca" title="4. Medidas de Segurança">
-        <p>
-          A DentalFlow adota medidas técnicas e organizacionais proporcionais ao risco:
-        </p>
+        <p>A DentalFlow adota medidas técnicas e organizacionais proporcionais ao risco:</p>
         <LegalList
           items={[
             'Comunicações protegidas por TLS/HTTPS.',
@@ -120,29 +128,26 @@ export function DataProcessingPage() {
 
       <LegalSection id="notificacao-incidentes" title="5. Notificação de Incidentes">
         <p>
-          Em caso de incidente de segurança que possa impactar dados de pacientes das
-          clínicas, a DentalFlow notificará a clínica (controladora) dentro de prazo
-          razoável, com as informações disponíveis sobre a natureza do incidente, dados
-          afetados e medidas tomadas.
+          Em caso de incidente de segurança que possa impactar dados de pacientes das clínicas, a
+          DentalFlow notificará a clínica (controladora) dentro de prazo razoável, com as
+          informações disponíveis sobre a natureza do incidente, dados afetados e medidas tomadas.
         </p>
         <p>
-          A clínica é responsável por notificar a ANPD e os titulares conforme exigido
-          pela LGPD, quando aplicável.
+          A clínica é responsável por notificar a ANPD e os titulares conforme exigido pela LGPD,
+          quando aplicável.
         </p>
       </LegalSection>
 
       <LegalSection id="confidencialidade" title="6. Confidencialidade">
         <p>
-          A DentalFlow e seus colaboradores com acesso a dados pessoais de clientes
-          estão sujeitos a obrigações de confidencialidade. Os dados de clínicas e
-          pacientes não são compartilhados entre clínicas ou com terceiros não autorizados.
+          A DentalFlow e seus colaboradores com acesso a dados pessoais de clientes estão sujeitos a
+          obrigações de confidencialidade. Os dados de clínicas e pacientes não são compartilhados
+          entre clínicas ou com terceiros não autorizados.
         </p>
       </LegalSection>
 
       <LegalSection id="encerramento" title="7. Encerramento do Contrato">
-        <p>
-          Ao término do contrato, a DentalFlow:
-        </p>
+        <p>Ao término do contrato, a DentalFlow:</p>
         <LegalList
           items={[
             'Disponibilizará ferramentas de exportação de dados dentro do período de carência pós-cancelamento.',
@@ -154,9 +159,9 @@ export function DataProcessingPage() {
 
       <LegalSection id="auditoria" title="8. Auditoria e Documentação">
         <p>
-          A DentalFlow mantém registros internos das atividades de tratamento e está
-          preparada para cooperar com auditorias realizadas pela clínica controladora ou
-          pela ANPD, dentro dos limites legais e contratuais.
+          A DentalFlow mantém registros internos das atividades de tratamento e está preparada para
+          cooperar com auditorias realizadas pela clínica controladora ou pela ANPD, dentro dos
+          limites legais e contratuais.
         </p>
       </LegalSection>
 

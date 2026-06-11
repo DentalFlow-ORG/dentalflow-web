@@ -4,7 +4,12 @@ import { vi } from 'vitest'
 // Recharts uses SVG which JSDOM doesn't support — stub all exports used by the chart
 vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  AreaChart: ({ children }: { children: React.ReactNode }) => <svg>{children}</svg>,
+  AreaChart: ({ children }: { children: React.ReactNode }) => (
+    <svg>
+      <title>chart</title>
+      {children}
+    </svg>
+  ),
   Area: () => null,
   CartesianGrid: () => null,
   XAxis: () => null,
@@ -24,7 +29,9 @@ vi.mock('@/features/theme/useTheme', () => ({
 import { IncomeExpensesChart } from '@/features/finance/components/IncomeExpensesChart'
 import type { FinanceSummary } from '@/features/finance/types/finance.types'
 
-function makeSummary(overrides: Partial<FinanceSummary['incomeVsExpenses'][0]>[] = []): FinanceSummary {
+function makeSummary(
+  overrides: Partial<FinanceSummary['incomeVsExpenses'][0]>[] = [],
+): FinanceSummary {
   return {
     period: { from: '2026-06-01', to: '2026-06-30', groupBy: 'day' },
     kpis: {
@@ -63,9 +70,7 @@ describe('IncomeExpensesChart', () => {
 
   it('renders empty state message when no data', () => {
     render(<IncomeExpensesChart summary={summaryEmpty} />)
-    expect(
-      screen.getByText('Nenhuma movimentação paga neste período.'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma movimentação paga neste período.')).toBeInTheDocument()
   })
 
   it('does not render the chart when no data', () => {
@@ -119,13 +124,11 @@ describe('IncomeExpensesChart', () => {
 
   it('all series toggle buttons start with aria-pressed=true', () => {
     render(<IncomeExpensesChart summary={summaryWithData} />)
-    const toggles = screen
-      .getAllByRole('button')
-      .filter((btn) => btn.hasAttribute('aria-pressed'))
+    const toggles = screen.getAllByRole('button').filter((btn) => btn.hasAttribute('aria-pressed'))
     expect(toggles).toHaveLength(3)
-    toggles.forEach((btn) => {
+    for (const btn of toggles) {
       expect(btn).toHaveAttribute('aria-pressed', 'true')
-    })
+    }
   })
 
   it('does not render a Recharts Legend — toggle buttons are the only series legend', () => {
@@ -133,9 +136,7 @@ describe('IncomeExpensesChart', () => {
     // Exactly 3 series labels from toggle buttons + 3 from the data table header = 6 total.
     // If Recharts Legend were present it would add a third set, making count > 2 per label.
     // We assert the toggle buttons are exactly 3 (no extras from a Legend component).
-    const toggles = screen
-      .getAllByRole('button')
-      .filter((btn) => btn.hasAttribute('aria-pressed'))
+    const toggles = screen.getAllByRole('button').filter((btn) => btn.hasAttribute('aria-pressed'))
     expect(toggles).toHaveLength(3)
   })
 

@@ -1,12 +1,9 @@
-import { AlertTriangle, ShieldCheck } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { FormField } from '@/components/common/FormField'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
+import { FormField } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
-import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
 import {
   Select,
   SelectContent,
@@ -15,10 +12,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import {
-  defaultLast30DaysRange,
-  validateReportDateRange,
-} from '@/lib/date-range-rules'
+import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
+import { defaultLast30DaysRange, validateReportDateRange } from '@/lib/date-range-rules'
+import { AlertTriangle, ShieldCheck } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ReportCard } from '../components/ReportCard'
+import { ReportFilterChips } from '../components/ReportFilterChips'
 import {
   exportAppointmentsReport,
   exportFinanceReport,
@@ -35,8 +34,6 @@ import type {
   InventoryReportFilters,
   InvoicesReportFilters,
 } from '../types/reports.types'
-import { ReportCard } from '../components/ReportCard'
-import { ReportFilterChips } from '../components/ReportFilterChips'
 import {
   getAppointmentsFilterChips,
   getFinanceFilterChips,
@@ -80,24 +77,44 @@ export function ReportsPageContainer() {
 
   const defaultRange = useMemo(() => defaultLast30DaysRange(), [])
 
-  const [financeFilters, setFinanceFilters] = useState<FinanceReportFilters>(() => defaultLast30DaysRange())
-  const [apptFilters, setApptFilters] = useState<AppointmentsReportFilters>(() => defaultLast30DaysRange())
+  const [financeFilters, setFinanceFilters] = useState<FinanceReportFilters>(() =>
+    defaultLast30DaysRange(),
+  )
+  const [apptFilters, setApptFilters] = useState<AppointmentsReportFilters>(() =>
+    defaultLast30DaysRange(),
+  )
   const [invFilters, setInvFilters] = useState<InventoryReportFilters>({})
-  const [invoiceFilters, setInvoiceFilters] = useState<InvoicesReportFilters>(() => defaultLast30DaysRange())
+  const [invoiceFilters, setInvoiceFilters] = useState<InvoicesReportFilters>(() =>
+    defaultLast30DaysRange(),
+  )
 
-  const financeError = validateReportDateRange(financeFilters.startDate, financeFilters.endDate, { allowFuture: false })
-  const apptError = validateReportDateRange(apptFilters.startDate, apptFilters.endDate, { allowFuture: true })
-  const invoiceError = validateReportDateRange(invoiceFilters.startDate, invoiceFilters.endDate, { allowFuture: false })
+  const financeError = validateReportDateRange(financeFilters.startDate, financeFilters.endDate, {
+    allowFuture: false,
+  })
+  const apptError = validateReportDateRange(apptFilters.startDate, apptFilters.endDate, {
+    allowFuture: true,
+  })
+  const invoiceError = validateReportDateRange(invoiceFilters.startDate, invoiceFilters.endDate, {
+    allowFuture: false,
+  })
 
   const financeChips = getFinanceFilterChips(financeFilters, defaultRange)
   const apptChips = getAppointmentsFilterChips(apptFilters, defaultRange)
   const invChips = getInventoryFilterChips(invFilters)
   const invoiceChips = getInvoicesFilterChips(invoiceFilters, defaultRange)
 
-  function clearFinanceFilters() { setFinanceFilters(defaultLast30DaysRange()) }
-  function clearApptFilters() { setApptFilters(defaultLast30DaysRange()) }
-  function clearInvFilters() { setInvFilters({}) }
-  function clearInvoiceFilters() { setInvoiceFilters(defaultLast30DaysRange()) }
+  function clearFinanceFilters() {
+    setFinanceFilters(defaultLast30DaysRange())
+  }
+  function clearApptFilters() {
+    setApptFilters(defaultLast30DaysRange())
+  }
+  function clearInvFilters() {
+    setInvFilters({})
+  }
+  function clearInvoiceFilters() {
+    setInvoiceFilters(defaultLast30DaysRange())
+  }
 
   const reportCount = isOwner ? 4 : 3
 
@@ -115,9 +132,8 @@ export function ReportsPageContainer() {
         <div className="flex items-start gap-2">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>
-            Os relatórios podem conter dados pessoais e financeiros da clínica. Compartilhe
-            os arquivos apenas com pessoas autorizadas e mantenha os dados protegidos conforme
-            a LGPD.
+            Os relatórios podem conter dados pessoais e financeiros da clínica. Compartilhe os
+            arquivos apenas com pessoas autorizadas e mantenha os dados protegidos conforme a LGPD.
           </span>
         </div>
       </InlineFeedback>
@@ -222,18 +238,14 @@ export function ReportsPageContainer() {
               <DatePickerInput
                 id="appt-start"
                 value={apptFilters.startDate ?? ''}
-                onValueChange={(v) =>
-                  setApptFilters((f) => ({ ...f, startDate: v || undefined }))
-                }
+                onValueChange={(v) => setApptFilters((f) => ({ ...f, startDate: v || undefined }))}
               />
             </FormField>
             <FormField label="Data final" htmlFor="appt-end">
               <DatePickerInput
                 id="appt-end"
                 value={apptFilters.endDate ?? ''}
-                onValueChange={(v) =>
-                  setApptFilters((f) => ({ ...f, endDate: v || undefined }))
-                }
+                onValueChange={(v) => setApptFilters((f) => ({ ...f, endDate: v || undefined }))}
               />
             </FormField>
             <FormField label="Status" htmlFor="appt-status">
@@ -325,9 +337,7 @@ export function ReportsPageContainer() {
               <DatePickerInput
                 id="inv-end"
                 value={invoiceFilters.endDate ?? ''}
-                onValueChange={(v) =>
-                  setInvoiceFilters((f) => ({ ...f, endDate: v || undefined }))
-                }
+                onValueChange={(v) => setInvoiceFilters((f) => ({ ...f, endDate: v || undefined }))}
               />
             </FormField>
             <FormField label="Status" htmlFor="inv-nf-status">
@@ -360,8 +370,8 @@ export function ReportsPageContainer() {
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>
-            Os arquivos exportados respeitam os filtros aplicados e podem conter até 5.000
-            registros por relatório.
+            Os arquivos exportados respeitam os filtros aplicados e podem conter até 5.000 registros
+            por relatório.
           </span>
         </div>
       </InlineFeedback>

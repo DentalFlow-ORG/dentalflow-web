@@ -6,24 +6,21 @@ import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { formatDateInputValue, formatTimeInputValue } from '@/lib/date-time-formatters'
+import {
+  WHATSAPP_PHONE_REQUIRED_MESSAGE,
+  formatPhoneBR,
+  isValidWhatsappPhoneBR,
+} from '@/lib/field-formatters'
 import { getProfile } from '../../services/profiles.service'
 import type { ProfileService } from '../../types/profile.types'
-import { brazilTodayIso } from '@/lib/brazil-timezone'
-import {
-  formatDateInputValue,
-  formatTimeInputValue,
-} from '@/lib/date-time-formatters'
 import {
   getCurrentTimeInputValue,
   hasAppointmentTimePassed,
   isDateAvailable,
   reaisToCents,
 } from '../../utils/appointment-form-utils'
-import {
-  WHATSAPP_PHONE_REQUIRED_MESSAGE,
-  formatPhoneBR,
-  isValidWhatsappPhoneBR,
-} from '@/lib/field-formatters'
 
 import {
   getAvailableSlots,
@@ -38,8 +35,8 @@ import type {
   AvailabilitySlot,
   UpdateAppointmentDto,
 } from '../../types/scheduling.types'
-import { SlotPicker } from './SlotPicker'
 import { AppointmentServiceValueSection } from './AppointmentServiceValueSection'
+import { SlotPicker } from './SlotPicker'
 
 type EditAppointmentModalProps = {
   appointment: Appointment | null
@@ -113,17 +110,16 @@ export function EditAppointmentModal({
   useEffect(() => {
     if (estimateManuallyEdited) return
     if (!form.serviceId) {
-      set('estimatedAmount', '')
+      setForm((prev) => ({ ...prev, estimatedAmount: '' }))
       return
     }
     const service = services.find((s) => s.id === form.serviceId)
     if (service?.priceFrom != null) {
       const cents = Math.round(service.priceFrom * 100)
-      set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
+      setForm((prev) => ({ ...prev, estimatedAmount: (cents / 100).toFixed(2).replace('.', ',') }))
     } else {
-      set('estimatedAmount', '')
+      setForm((prev) => ({ ...prev, estimatedAmount: '' }))
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.serviceId, services, estimateManuallyEdited])
 
   useEffect(() => {
@@ -250,7 +246,7 @@ export function EditAppointmentModal({
               <Dialog.Description className="mt-1 text-sm text-muted-foreground">
                 {isPastAppointment
                   ? 'Esta consulta já passou. Ajuste a data e o horário para remarcar.'
-                  : currentAppointment.profile?.displayName ?? 'Profissional não informado'}
+                  : (currentAppointment.profile?.displayName ?? 'Profissional não informado')}
               </Dialog.Description>
             </div>
             <Button
@@ -373,12 +369,7 @@ export function EditAppointmentModal({
           </form>
 
           <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-5 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
               Cancelar
             </Button>
             <Button
@@ -411,4 +402,3 @@ function buildFormState(appointment: Appointment | null): FormState {
         : '',
   }
 }
-

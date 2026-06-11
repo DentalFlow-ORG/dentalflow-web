@@ -1,31 +1,48 @@
 import { render, screen } from '@/test-utils/render-utils'
+import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 
 vi.mock('@/components/ui/select', () => ({
-  Select: ({ value, onValueChange, children }: any) => (
+  Select: ({
+    value,
+    onValueChange,
+    children,
+  }: {
+    value?: string
+    onValueChange?: (v: string) => void
+    children?: ReactNode
+  }) => (
     <select value={value} onChange={(e) => onValueChange?.(e.target.value)}>
       {children}
     </select>
   ),
-  SelectTrigger: ({ children }: any) => <>{children}</>,
+  SelectTrigger: ({ children }: { children?: ReactNode }) => <>{children}</>,
   SelectValue: () => null,
-  SelectContent: ({ children }: any) => <>{children}</>,
-  SelectItem: ({ value, children }: any) => <option value={value}>{children}</option>,
+  SelectContent: ({ children }: { children?: ReactNode }) => <>{children}</>,
+  SelectItem: ({ value, children }: { value: string; children?: ReactNode }) => (
+    <option value={value}>{children}</option>
+  ),
 }))
 
 vi.mock('@/components/common/DatePickerInput', () => ({
-  DatePickerInput: ({ id, value, onValueChange }: any) => (
-    <input
-      type="date"
-      id={id}
-      value={value}
-      onChange={(e) => onValueChange?.(e.target.value)}
-    />
+  DatePickerInput: ({
+    id,
+    value,
+    onValueChange,
+  }: {
+    id?: string
+    value?: string
+    onValueChange?: (v: string) => void
+  }) => (
+    <input type="date" id={id} value={value} onChange={(e) => onValueChange?.(e.target.value)} />
   ),
 }))
 
 import { TransactionEditModal } from '@/features/finance/components/TransactionEditModal'
-import type { TransactionFormState } from '@/features/finance/types/finance.types'
+import type {
+  FinancialTransaction,
+  TransactionFormState,
+} from '@/features/finance/types/finance.types'
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -41,7 +58,7 @@ const mockTransaction = {
   source: 'MANUAL',
   service: null,
   category: null,
-} as any
+} as unknown as FinancialTransaction
 
 const emptyForm: TransactionFormState = {
   type: 'INCOME',
@@ -53,7 +70,7 @@ const emptyForm: TransactionFormState = {
   status: 'PAID',
 }
 
-function renderModal(transaction = mockTransaction) {
+function renderModal(transaction: FinancialTransaction | null = mockTransaction) {
   return render(
     <TransactionEditModal
       transaction={transaction}

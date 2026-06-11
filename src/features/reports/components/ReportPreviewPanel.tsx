@@ -41,8 +41,7 @@ export function ReportPreviewPanel({ data }: ReportPreviewPanelProps) {
         <div className="flex items-center gap-1.5">
           <Building2 className="h-3 w-3 shrink-0" aria-hidden="true" />
           <span>
-            Clínica:{' '}
-            <span className="font-medium text-foreground">{data.clinic.name}</span>
+            Clínica: <span className="font-medium text-foreground">{data.clinic.name}</span>
           </span>
         </div>
         <p>Gerado em: {formatGeneratedAt(data.generatedAt)}</p>
@@ -51,8 +50,7 @@ export function ReportPreviewPanel({ data }: ReportPreviewPanelProps) {
       {/* Period */}
       {data.period && (
         <p className="text-xs text-muted-foreground">
-          Período:{' '}
-          <span className="font-medium text-foreground">{data.period.label}</span>
+          Período: <span className="font-medium text-foreground">{data.period.label}</span>
         </p>
       )}
 
@@ -99,8 +97,8 @@ export function ReportPreviewPanel({ data }: ReportPreviewPanelProps) {
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>
-              Este relatório possui mais de 5.000 registros. O arquivo exportado respeitará o
-              limite atual de 5.000 registros.
+              Este relatório possui mais de 5.000 registros. O arquivo exportado respeitará o limite
+              atual de 5.000 registros.
             </span>
           </div>
         </InlineFeedback>
@@ -108,8 +106,8 @@ export function ReportPreviewPanel({ data }: ReportPreviewPanelProps) {
 
       {/* CSV disclaimer */}
       <p className="text-xs text-muted-foreground">
-        A prévia resume os filtros e a quantidade de registros. O arquivo completo será baixado
-        em CSV.
+        A prévia resume os filtros e a quantidade de registros. O arquivo completo será baixado em
+        CSV.
       </p>
     </div>
   )

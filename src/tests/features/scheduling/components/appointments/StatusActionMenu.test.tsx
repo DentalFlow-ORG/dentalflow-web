@@ -1,7 +1,7 @@
 import { render, screen, userEvent } from '@/test-utils/render-utils'
 
-import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
 import { StatusActionMenu } from '@/features/scheduling/components/appointments/StatusActionMenu'
+import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 
 // ── Fixture ───────────────────────────────────────────────────────────────────

@@ -1,3 +1,6 @@
+import { BrandLink } from '@/components/brand/BrandLink'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Link } from '@tanstack/react-router'
 import {
   Bot,
@@ -15,9 +18,6 @@ import {
   UsersRound,
   X,
 } from 'lucide-react'
-import { BrandLink } from '@/components/brand/BrandLink'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { useDropdownNav } from '../hooks/useDropdownNav'
 
 type PublicHeaderProps = {
@@ -110,9 +110,7 @@ const DROPDOWNS: DropdownGroup[] = [
   { key: 'funcionalidades', label: 'Funcionalidades', items: funcionalidadesDropdown },
 ]
 
-const SIMPLE_NAV = [
-  { label: 'Planos', href: '/planos' },
-]
+const SIMPLE_NAV = [{ label: 'Planos', href: '/planos' }]
 
 export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicHeaderProps) {
   const {
@@ -181,12 +179,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
                   )}
                   role="menu"
                 >
-                  <div
-                    className={cn(
-                      'p-2',
-                      group.key === 'funcionalidades' && 'grid grid-cols-2',
-                    )}
-                  >
+                  <div className={cn('p-2', group.key === 'funcionalidades' && 'grid grid-cols-2')}>
                     {group.items.map((item) => {
                       const Icon = item.icon
                       return (
@@ -222,9 +215,7 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
               to={item.href}
               className={cn(
                 'df-animated-link rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-                isDarkHero
-                  ? 'text-white/80 hover:text-white'
-                  : 'text-slate-600 hover:text-primary',
+                isDarkHero ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-primary',
               )}
             >
               {item.label}
@@ -341,20 +332,12 @@ export function PublicHeader({ isScrolled = false, isDarkHero = false }: PublicH
 
           <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4">
             <Button variant="outline" className="w-full" asChild>
-              <Link
-                to="/acessar"
-                search={{ mode: 'login' }}
-                onClick={closeMobile}
-              >
+              <Link to="/acessar" search={{ mode: 'login' }} onClick={closeMobile}>
                 Entrar
               </Link>
             </Button>
             <Button className="w-full" asChild>
-              <Link
-                to="/acessar"
-                search={{ mode: 'register' }}
-                onClick={closeMobile}
-              >
+              <Link to="/acessar" search={{ mode: 'register' }} onClick={closeMobile}>
                 Começar teste grátis
                 <ChevronRight className="h-4 w-4" />
               </Link>

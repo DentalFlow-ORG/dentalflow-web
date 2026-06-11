@@ -68,9 +68,7 @@ export function ConfirmDialog({
               )}
             </div>
 
-            <Dialog.Title className="text-xl font-bold text-foreground">
-              {title}
-            </Dialog.Title>
+            <Dialog.Title className="text-xl font-bold text-foreground">{title}</Dialog.Title>
 
             {subject && (
               <p
@@ -90,11 +88,7 @@ export function ConfirmDialog({
             </Dialog.Description>
           </div>
 
-          {children && (
-            <div className="border-t border-border px-8 pb-4 pt-4">
-              {children}
-            </div>
-          )}
+          {children && <div className="border-t border-border px-8 pb-4 pt-4">{children}</div>}
 
           {/* Footer */}
           <div

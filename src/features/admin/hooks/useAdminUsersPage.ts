@@ -3,9 +3,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useListFilter } from '@/hooks/useListFilter'
 
+import { ADMIN_ROLE_LABEL, ADMIN_ROLE_TONE, USER_FILTER_DEFS } from '../constants/admin-display'
 import { deleteAdminUser, listAdminUsers } from '../services/admin-users.service'
 import type { AdminUser } from '../types/admin.types'
-import { ADMIN_ROLE_LABEL, ADMIN_ROLE_TONE, USER_FILTER_DEFS } from '../constants/admin-display'
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -23,8 +23,7 @@ const SEARCH_FN = (user: AdminUser, q: string) =>
 
 const FILTER_FNS = {
   role: (user: AdminUser, v: string) => user.role === v,
-  status: (user: AdminUser, v: string) =>
-    v === 'active' ? user.isActive : !user.isActive,
+  status: (user: AdminUser, v: string) => (v === 'active' ? user.isActive : !user.isActive),
 }
 
 type DeleteTarget = { id: string; name: string }
@@ -66,8 +65,7 @@ export function useAdminUsersPage() {
     listAdminUsers(1, 500)
       .then((res) => setAllUsers(res.data))
       .catch((err) => {
-        const msg =
-          err instanceof Error ? err.message : 'Não foi possível carregar os usuários.'
+        const msg = err instanceof Error ? err.message : 'Não foi possível carregar os usuários.'
         setLoadError(msg)
         showAlert({ title: 'Erro ao carregar usuários', description: msg, tone: 'error' })
       })

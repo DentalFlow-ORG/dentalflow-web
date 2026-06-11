@@ -21,12 +21,12 @@ vi.mock('@/features/inventory/services/inventory.service', () => ({
   listProductStockMovements: vi.fn(),
 }))
 
+import { CategoryManagerModal } from '@/features/inventory/components/CategoryManagerModal'
 import {
   createStockCategory,
-  updateStockCategory,
   deleteStockCategory,
+  updateStockCategory,
 } from '@/features/inventory/services/inventory.service'
-import { CategoryManagerModal } from '@/features/inventory/components/CategoryManagerModal'
 import type { StockCategory } from '@/features/inventory/types/inventory.types'
 import { ApiError } from '@/services/http'
 
@@ -49,9 +49,7 @@ function buildCategory(overrides: Partial<StockCategory> = {}): StockCategory {
   }
 }
 
-function defaultProps(
-  overrides: Partial<Parameters<typeof CategoryManagerModal>[0]> = {},
-) {
+function defaultProps(overrides: Partial<Parameters<typeof CategoryManagerModal>[0]> = {}) {
   return {
     open: true,
     categories: [buildCategory()],
@@ -94,9 +92,7 @@ describe('CategoryManagerModal', () => {
 
     await user.click(screen.getByRole('button', { name: `Excluir categoria ${category.name}` }))
 
-    expect(
-      await screen.findByRole('heading', { name: /Excluir categoria/i }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /Excluir categoria/i })).toBeInTheDocument()
   })
 
   it('renders a visible description in the delete confirmation dialog', async () => {
@@ -191,9 +187,10 @@ describe('CategoryManagerModal', () => {
 
     await user.click(screen.getByRole('button', { name: `Editar categoria ${category.name}` }))
 
-    expect(
-      screen.getByRole('button', { name: 'Selecionar cor Verde' }),
-    ).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Selecionar cor Verde' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
   })
 
   // ── Update payload ─────────────────────────────────────────────────────────
@@ -297,9 +294,7 @@ describe('CategoryManagerModal', () => {
     const user = userEvent.setup()
     render(<CategoryManagerModal {...defaultProps({ onClose })} />)
 
-    await user.click(
-      screen.getByRole('button', { name: /Fechar gerenciamento de categorias/i }),
-    )
+    await user.click(screen.getByRole('button', { name: /Fechar gerenciamento de categorias/i }))
 
     expect(onClose).toHaveBeenCalled()
   })

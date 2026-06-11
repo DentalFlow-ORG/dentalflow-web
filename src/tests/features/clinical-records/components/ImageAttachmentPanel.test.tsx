@@ -26,9 +26,7 @@ vi.mock('@/components/common/ConfirmDialog', () => ({
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function renderPanel(props: Partial<{ readOnly: boolean }> = {}) {
-  return render(
-    <ImageAttachmentPanel recordId="rec-1" readOnly={props.readOnly ?? false} />,
-  )
+  return render(<ImageAttachmentPanel recordId="rec-1" readOnly={props.readOnly ?? false} />)
 }
 
 function makeFile(name: string, type: string, sizeBytes: number): File {
@@ -93,9 +91,7 @@ describe('ImageAttachmentPanel — desktop (non-mobile device)', () => {
     const file = makeFile('document.pdf', 'application/pdf', 1024)
     fireEvent.change(fileInput, { target: { files: [file] } })
     await waitFor(() =>
-      expect(mockShowAlert).toHaveBeenCalledWith(
-        expect.objectContaining({ tone: 'error' }),
-      ),
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error' })),
     )
   })
 
@@ -108,9 +104,7 @@ describe('ImageAttachmentPanel — desktop (non-mobile device)', () => {
     const file = makeFile('big.jpg', 'image/jpeg', 6 * 1024 * 1024)
     fireEvent.change(fileInput, { target: { files: [file] } })
     await waitFor(() =>
-      expect(mockShowAlert).toHaveBeenCalledWith(
-        expect.objectContaining({ tone: 'error' }),
-      ),
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error' })),
     )
   })
 
@@ -118,9 +112,7 @@ describe('ImageAttachmentPanel — desktop (non-mobile device)', () => {
     renderPanel({ readOnly: true })
     await waitFor(() =>
       // The read-only description text confirms the component loaded
-      expect(
-        screen.getByText(/disponíveis apenas para consulta/i),
-      ).toBeInTheDocument(),
+      expect(screen.getByText(/disponíveis apenas para consulta/i)).toBeInTheDocument(),
     )
     expect(screen.queryByRole('button', { name: /Enviar imagem/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Tirar foto/i })).not.toBeInTheDocument()
@@ -192,7 +184,9 @@ describe('ImageAttachmentPanel — mobile device', () => {
       expect(screen.getByRole('button', { name: /Tirar foto/i })).toBeInTheDocument(),
     )
     const cameraInput = document.querySelector('input[capture="environment"]') as HTMLInputElement
-    const regularInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const regularInput = document.querySelector(
+      'input[type="file"]:not([capture])',
+    ) as HTMLInputElement
     const cameraSpy = vi.spyOn(cameraInput, 'click')
     const regularSpy = vi.spyOn(regularInput, 'click')
 
@@ -209,7 +203,9 @@ describe('ImageAttachmentPanel — mobile device', () => {
       expect(screen.getByRole('button', { name: /Enviar imagem/i })).toBeInTheDocument(),
     )
     const cameraInput = document.querySelector('input[capture="environment"]') as HTMLInputElement
-    const regularInput = document.querySelector('input[type="file"]:not([capture])') as HTMLInputElement
+    const regularInput = document.querySelector(
+      'input[type="file"]:not([capture])',
+    ) as HTMLInputElement
     const cameraSpy = vi.spyOn(cameraInput, 'click')
     const regularSpy = vi.spyOn(regularInput, 'click')
 

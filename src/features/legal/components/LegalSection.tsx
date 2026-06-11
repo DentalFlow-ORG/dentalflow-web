@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
 import { AlertTriangle, Mail } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -94,10 +94,7 @@ export function LegalTOC({ entries, className }: LegalTOCProps) {
   return (
     <nav
       aria-label="Índice do documento"
-      className={cn(
-        'mb-12 rounded-2xl border border-slate-200 bg-white p-6',
-        className,
-      )}
+      className={cn('mb-12 rounded-2xl border border-slate-200 bg-white p-6', className)}
     >
       <p className="mb-4 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
         Neste documento
@@ -130,7 +127,8 @@ export function LegalContactBlock({ email, message }: LegalContactBlockProps) {
     <div className="mt-12 rounded-2xl border border-slate-200 bg-slate-50 p-6">
       <p className="text-sm font-semibold text-slate-900">Dúvidas sobre este documento?</p>
       <p className="mt-1 text-sm leading-6 text-slate-500">
-        {message ?? 'Se tiver dúvidas sobre este documento, entre em contato pelos canais oficiais.'}
+        {message ??
+          'Se tiver dúvidas sobre este documento, entre em contato pelos canais oficiais.'}
       </p>
       <a
         href={`mailto:${email}`}

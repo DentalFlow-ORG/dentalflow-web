@@ -1,5 +1,5 @@
 import { Navigate } from '@tanstack/react-router'
-import { Suspense, type ReactNode } from 'react'
+import { type ReactNode, Suspense } from 'react'
 
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { AppShell } from '@/components/layout/AppShell'
@@ -31,9 +31,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
 
   return (
     <AppShell>
-      <Suspense fallback={<LoadingCard message="Carregando..." />}>
-        {children}
-      </Suspense>
+      <Suspense fallback={<LoadingCard message="Carregando..." />}>{children}</Suspense>
     </AppShell>
   )
 }

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@/test-utils/render-utils'
-import userEvent from '@testing-library/user-event'
 import { CancelAppointmentDialog } from '@/features/scheduling/components/appointments/CancelAppointmentDialog'
+import { fireEvent, render, screen } from '@/test-utils/render-utils'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
 
 function renderDialog(
   props: {
@@ -111,7 +111,9 @@ describe('loading state', () => {
   it('shows "Cancelando..." as the confirm button label when isCanceling is true', () => {
     renderDialog({ isCanceling: true })
     expect(screen.getByRole('button', { name: /Cancelando/i })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Confirmar cancelamento/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Confirmar cancelamento/i }),
+    ).not.toBeInTheDocument()
   })
 })
 

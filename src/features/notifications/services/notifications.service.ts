@@ -90,10 +90,7 @@ export function sendNotification(data: SendNotificationRequest) {
 }
 
 // Template variable substitution for preview only (not sent to backend)
-export function renderTemplatePreview(
-  bodyPt: string,
-  vars: Record<string, string>,
-): string {
+export function renderTemplatePreview(bodyPt: string, vars: Record<string, string>): string {
   const map: Record<string, string> = {
     patientName: vars.patientName ?? '—',
     date: vars.date ?? '—',

@@ -2,7 +2,6 @@ import { Loader2, Plus } from 'lucide-react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
-import { formatMoneyInputFromDigits } from '@/lib/money-input'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { formatMoneyInputFromDigits } from '@/lib/money-input'
 
 import type {
   FinancialCategory,
@@ -33,10 +33,7 @@ export function TransactionForm({
   categories: FinancialCategory[]
   error: string | null
   isSubmitting: boolean
-  onChange: <K extends keyof TransactionFormState>(
-    field: K,
-    value: TransactionFormState[K],
-  ) => void
+  onChange: <K extends keyof TransactionFormState>(field: K, value: TransactionFormState[K]) => void
   onSubmit: (event: React.FormEvent) => void
 }) {
   return (
@@ -89,7 +86,10 @@ export function TransactionForm({
             </FormField>
           </div>
           <FormField label="Categoria" htmlFor="transactionCategory">
-            <Select value={form.categoryId} onValueChange={(value) => onChange('categoryId', value)}>
+            <Select
+              value={form.categoryId}
+              onValueChange={(value) => onChange('categoryId', value)}
+            >
               <SelectTrigger id="transactionCategory">
                 <SelectValue placeholder="Selecione a categoria" />
               </SelectTrigger>
@@ -115,7 +115,9 @@ export function TransactionForm({
                 inputMode="numeric"
                 placeholder="0,00"
                 value={form.amount}
-                onChange={(event) => onChange('amount', formatMoneyInputFromDigits(event.target.value))}
+                onChange={(event) =>
+                  onChange('amount', formatMoneyInputFromDigits(event.target.value))
+                }
               />
             </FormField>
             <FormField label="Data" htmlFor="transactionDate">

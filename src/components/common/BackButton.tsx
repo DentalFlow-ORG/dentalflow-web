@@ -1,14 +1,15 @@
-import { ArrowLeft } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import type { LinkProps } from '@tanstack/react-router'
+import { ArrowLeft } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 type BackButtonProps = {
-  to?: string
+  to?: LinkProps['to']
   label?: string
   /** Destino quando `to` não é informado. Default: "/app". */
-  fallbackTo?: string
+  fallbackTo?: LinkProps['to']
   variant?: 'outline' | 'ghost'
   size?: 'sm' | 'default'
   className?: string
@@ -31,8 +32,7 @@ export function BackButton({
 
   return (
     <Button variant={variant} size={size} asChild className={cn(className)}>
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <Link to={dest as any}>
+      <Link to={dest}>
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         {label}
       </Link>

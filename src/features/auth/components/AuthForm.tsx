@@ -8,10 +8,10 @@ import {
   ShieldCheck,
   UserRound,
 } from 'lucide-react'
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { type FormEvent, useEffect, useId, useState } from 'react'
 
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { env } from '@/config/env'
 import { isValidPersonName } from '@/lib/field-formatters'
@@ -55,9 +55,11 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
   const termsCheckboxId = useId()
 
   useEffect(() => {
-    setError(null)
-    setGoogleError(null)
-    setAcceptedTerms(false)
+    if (mode === 'login' || mode === 'register') {
+      setError(null)
+      setGoogleError(null)
+      setAcceptedTerms(false)
+    }
   }, [mode])
 
   const handleGoogleOAuth = () => {
@@ -219,9 +221,7 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
             onFocus={() => setPasswordFocused(true)}
             onBlur={() => setPasswordFocused(false)}
           />
-          {!isLogin && (
-            <PasswordRequirements password={password} visible={passwordFocused} />
-          )}
+          {!isLogin && <PasswordRequirements password={password} visible={passwordFocused} />}
 
           {isLogin && (
             <div className="flex justify-end -mt-2">
@@ -235,12 +235,14 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
           )}
 
           {!isLogin && (
-            <div className={cn(
-              'rounded-xl border p-4 transition-colors duration-200',
-              acceptedTerms
-                ? 'border-primary/30 bg-primary/5'
-                : 'border-slate-200 bg-slate-50 hover:border-slate-300',
-            )}>
+            <div
+              className={cn(
+                'rounded-xl border p-4 transition-colors duration-200',
+                acceptedTerms
+                  ? 'border-primary/30 bg-primary/5'
+                  : 'border-slate-200 bg-slate-50 hover:border-slate-300',
+              )}
+            >
               <div className="flex items-start gap-3">
                 <input
                   id={termsCheckboxId}
@@ -250,7 +252,10 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
                   className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                   required
                 />
-                <label htmlFor={termsCheckboxId} className="cursor-pointer text-sm leading-6 text-slate-600">
+                <label
+                  htmlFor={termsCheckboxId}
+                  className="cursor-pointer text-sm leading-6 text-slate-600"
+                >
                   Li e aceito os{' '}
                   <Link
                     to="/termos-de-uso"
@@ -277,7 +282,12 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
 
           {error && <InlineFeedback>{error}</InlineFeedback>}
 
-          <Button type="submit" size="xl" className="w-full" disabled={isSubmitting || isGoogleLoading}>
+          <Button
+            type="submit"
+            size="xl"
+            className="w-full"
+            disabled={isSubmitting || isGoogleLoading}
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -327,8 +337,8 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
       )}
 
       <div className="mt-5 flex items-start gap-2 rounded-md bg-primary/5 px-3 py-2 text-xs leading-5 text-slate-600">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-        O DentalFlow nunca recebe sua senha do Google.
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />O DentalFlow nunca recebe
+        sua senha do Google.
       </div>
 
       <p className="mt-5 text-center text-sm text-slate-600">

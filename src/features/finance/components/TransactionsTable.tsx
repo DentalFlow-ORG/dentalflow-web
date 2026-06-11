@@ -36,9 +36,9 @@ import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { cn } from '@/lib/utils'
 
+import { SOURCE_LABEL, STATUS_LABEL, TYPE_LABEL, statusTone } from '../constants/finance-display'
 import type { ClassifierState } from '../hooks/useExpenseClassifier'
 import type { FinancialTransaction } from '../types/finance.types'
-import { SOURCE_LABEL, STATUS_LABEL, TYPE_LABEL, statusTone } from '../constants/finance-display'
 import { formatCurrency, formatDate } from '../utils/finance-format'
 import { ExpenseClassifyAction } from './ExpenseClassifyAction'
 
@@ -195,13 +195,27 @@ export function TransactionsTable({
           <table className="w-full min-w-205 text-sm" aria-label="Movimentações financeiras">
             <thead>
               <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <th scope="col" className="px-4 py-3">Data</th>
-                <th scope="col" className="px-4 py-3">Tipo</th>
-                <th scope="col" className="px-4 py-3">Categoria</th>
-                <th scope="col" className="px-4 py-3">Descrição</th>
-                <th scope="col" className="px-4 py-3">Origem</th>
-                <th scope="col" className="px-4 py-3">Status</th>
-                <th scope="col" className="px-4 py-3 text-right">Valor</th>
+                <th scope="col" className="px-4 py-3">
+                  Data
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Tipo
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Categoria
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Descrição
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Origem
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Status
+                </th>
+                <th scope="col" className="px-4 py-3 text-right">
+                  Valor
+                </th>
                 <th scope="col" className="px-4 py-3" />
               </tr>
             </thead>

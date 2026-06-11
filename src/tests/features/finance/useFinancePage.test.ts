@@ -1,8 +1,8 @@
 import { act, renderHook, waitFor } from '@/test-utils/render-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { FormEvent } from 'react'
 import { ApiError } from '@/services/http'
+import type { FormEvent } from 'react'
 
 const fakeEvent = { preventDefault: vi.fn() } as unknown as FormEvent
 
@@ -383,9 +383,7 @@ describe('useFinancePage', () => {
 
     expect(result.current.planBlocked).toBe(false)
     expect(result.current.loadError).toBe('Server error')
-    expect(mockShowAlert).toHaveBeenCalledWith(
-      expect.objectContaining({ tone: 'error' }),
-    )
+    expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error' }))
   })
 
   // ── Reload (refresh all) ───────────────────────────────────────────────────

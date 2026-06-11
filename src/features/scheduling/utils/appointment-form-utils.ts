@@ -1,16 +1,16 @@
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import {
   brazilCurrentTimeHHmm,
   formatDateInputValue,
   formatTimeInputValue,
 } from '@/lib/date-time-formatters'
-import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 import type { Appointment, Availability, AvailabilityException } from '../types/scheduling.types'
 
 export function reaisToCents(value: string): number | undefined {
   const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '')
-  const parsed = parseFloat(normalized)
-  if (isNaN(parsed) || parsed < 0) return undefined
+  const parsed = Number.parseFloat(normalized)
+  if (Number.isNaN(parsed) || parsed < 0) return undefined
   return Math.round(parsed * 100)
 }
 

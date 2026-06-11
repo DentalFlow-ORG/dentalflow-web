@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
 import { Loader2, Pencil, Plus, Tag, Trash2, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 
 import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { FormField, TextInput } from '@/components/common/FormField'
@@ -20,14 +20,7 @@ import type { StockCategory } from '../types/inventory.types'
 
 const CATEGORY_NAME_MAX_LENGTH = 80
 
-const CATEGORY_COLORS = [
-  '#1E3A8A',
-  '#10B981',
-  '#6366F1',
-  '#F59E0B',
-  '#EF4444',
-  '#0EA5E9',
-] as const
+const CATEGORY_COLORS = ['#1E3A8A', '#10B981', '#6366F1', '#F59E0B', '#EF4444', '#0EA5E9'] as const
 
 const CATEGORY_COLOR_LABELS: Record<(typeof CATEGORY_COLORS)[number], string> = {
   '#1E3A8A': 'Azul',
@@ -325,7 +318,9 @@ export function CategoryManagerModal({
                           <div className="flex min-w-0 items-center gap-3">
                             <span
                               className="h-3 w-3 shrink-0 rounded-full border border-border bg-muted"
-                              style={category.color ? { backgroundColor: category.color } : undefined}
+                              style={
+                                category.color ? { backgroundColor: category.color } : undefined
+                              }
                               aria-hidden="true"
                             />
                             <div className="min-w-0">
@@ -414,8 +409,8 @@ function DeleteCategoryDialog({
             </Dialog.Title>
 
             <Dialog.Description className="mt-2 text-center text-sm leading-6 text-muted-foreground">
-              Tem certeza que deseja excluir esta categoria? Categorias com produtos
-              vinculados não podem ser excluídas.
+              Tem certeza que deseja excluir esta categoria? Categorias com produtos vinculados não
+              podem ser excluídas.
             </Dialog.Description>
 
             {category && (

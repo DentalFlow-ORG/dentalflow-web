@@ -3,16 +3,15 @@ import { useCallback, useEffect, useState } from 'react'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useListFilter } from '@/hooks/useListFilter'
 
+import { CLINIC_FILTER_DEFS } from '../constants/admin-display'
 import { deleteAdminClinic, listAdminClinicsPage } from '../services/admin-clinics.service'
 import type { AdminClinic } from '../types/admin.types'
-import { CLINIC_FILTER_DEFS } from '../constants/admin-display'
 
 const DEFAULT_PAGE_SIZE = 10
 
 type DeleteTarget = { id: string; name: string }
 
-const SEARCH_FN = (clinic: AdminClinic, query: string) =>
-  clinic.name.toLowerCase().includes(query)
+const SEARCH_FN = (clinic: AdminClinic, query: string) => clinic.name.toLowerCase().includes(query)
 
 const FILTER_FNS = {
   status: (clinic: AdminClinic, value: string) => {
@@ -66,8 +65,7 @@ export function useAdminClinicsPage() {
     listAdminClinicsPage(1, 500)
       .then((response) => setAllClinics(response.data))
       .catch((err) => {
-        const msg =
-          err instanceof Error ? err.message : 'Não foi possível carregar as clínicas.'
+        const msg = err instanceof Error ? err.message : 'Não foi possível carregar as clínicas.'
         setLoadError(msg)
         showAlert({ title: 'Erro ao carregar clínicas', description: msg, tone: 'error' })
       })

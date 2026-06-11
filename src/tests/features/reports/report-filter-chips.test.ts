@@ -21,17 +21,26 @@ describe('getFinanceFilterChips', () => {
   })
 
   it('adds startDate chip when startDate differs from default', () => {
-    const chips = getFinanceFilterChips({ startDate: '2026-01-01', endDate: '2026-06-06' }, DEFAULTS)
+    const chips = getFinanceFilterChips(
+      { startDate: '2026-01-01', endDate: '2026-06-06' },
+      DEFAULTS,
+    )
     expect(chips).toContainEqual({ key: 'startDate', label: 'Início: 01/01/2026' })
   })
 
   it('adds endDate chip when endDate differs from default', () => {
-    const chips = getFinanceFilterChips({ startDate: '2026-05-07', endDate: '2026-04-01' }, DEFAULTS)
+    const chips = getFinanceFilterChips(
+      { startDate: '2026-05-07', endDate: '2026-04-01' },
+      DEFAULTS,
+    )
     expect(chips).toContainEqual({ key: 'endDate', label: 'Fim: 01/04/2026' })
   })
 
   it('does not add date chip when value matches default exactly', () => {
-    const chips = getFinanceFilterChips({ startDate: '2026-05-07', endDate: '2026-06-06' }, DEFAULTS)
+    const chips = getFinanceFilterChips(
+      { startDate: '2026-05-07', endDate: '2026-06-06' },
+      DEFAULTS,
+    )
     expect(chips.some((c) => c.key === 'startDate')).toBe(false)
     expect(chips.some((c) => c.key === 'endDate')).toBe(false)
   })

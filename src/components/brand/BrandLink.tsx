@@ -13,7 +13,12 @@ type BrandLinkProps = {
   darkMode?: boolean
 }
 
-export function BrandLink({ compact = false, className, to = '/', darkMode = false }: BrandLinkProps) {
+export function BrandLink({
+  compact = false,
+  className,
+  to = '/',
+  darkMode = false,
+}: BrandLinkProps) {
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (to !== '/' || window.location.pathname !== '/') {
       return
@@ -39,11 +44,18 @@ export function BrandLink({ compact = false, className, to = '/', darkMode = fal
         aria-hidden="true"
       />
       <div className="text-left">
-        <span className={cn('block text-lg font-semibold', darkMode ? 'text-white' : 'text-foreground')}>
+        <span
+          className={cn('block text-lg font-semibold', darkMode ? 'text-white' : 'text-foreground')}
+        >
           {companyInfo.tradeName}
         </span>
         {!compact && (
-          <span className={cn('hidden text-sm sm:block', darkMode ? 'text-white/60' : 'text-muted-foreground')}>
+          <span
+            className={cn(
+              'hidden text-sm sm:block',
+              darkMode ? 'text-white/60' : 'text-muted-foreground',
+            )}
+          >
             Gestão para clínicas odontológicas
           </span>
         )}

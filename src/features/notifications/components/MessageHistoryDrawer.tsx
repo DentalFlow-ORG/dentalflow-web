@@ -1,11 +1,11 @@
+import { Button } from '@/components/ui/button'
+import { safeFormatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
+import { cn } from '@/lib/utils'
 import { History, Loader2, MessageCircle, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { safeFormatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
 import { useNotificationMessages } from '../hooks/useNotificationMessages'
-import { MessageStatusBadge } from './MessageStatusBadge'
 import { TEMPLATE_LABELS } from '../services/notifications.service'
+import { MessageStatusBadge } from './MessageStatusBadge'
 
 type MessageHistoryDrawerProps = {
   appointmentId: string

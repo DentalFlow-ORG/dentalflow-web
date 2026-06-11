@@ -44,10 +44,7 @@ export function HomeDashboardHeader({
 }: HomeDashboardHeaderProps) {
   return (
     <div
-      className={cn(
-        'flex flex-col gap-5 md:flex-row md:items-end md:justify-between',
-        className,
-      )}
+      className={cn('flex flex-col gap-5 md:flex-row md:items-end md:justify-between', className)}
     >
       <div className="min-w-0">
         {eyebrow && (
@@ -57,23 +54,17 @@ export function HomeDashboardHeader({
         )}
 
         <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">
-            {title}
-          </h1>
+          <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">{title}</h1>
           {badge && <span>{badge}</span>}
         </div>
 
         {description && (
-          <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-            {description}
-          </p>
+          <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">{description}</p>
         )}
       </div>
 
       {actions && (
-        <div className="w-full shrink-0 sm:w-auto [&>*]:w-full sm:[&>*]:w-auto">
-          {actions}
-        </div>
+        <div className="w-full shrink-0 sm:w-auto [&>*]:w-full sm:[&>*]:w-auto">{actions}</div>
       )}
     </div>
   )

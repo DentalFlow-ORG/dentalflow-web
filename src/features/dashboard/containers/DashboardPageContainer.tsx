@@ -1,13 +1,6 @@
-import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
-import {
-  AlertCircle,
-  CalendarDays,
-  CheckCircle2,
-  Clock,
-  Package,
-  Users2,
-} from 'lucide-react'
+import { AlertCircle, CalendarDays, CheckCircle2, Clock, Package, Users2 } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
@@ -157,26 +150,14 @@ function AssistantDashboard() {
 
           {/* Quick access — valid ASSISTANT routes only */}
           <HomeActionGrid columns={4}>
-            <HomeQuickActionCard
-              title="Agendamentos"
-              icon={CalendarDays}
-              to="/app/agendamentos"
-            />
-            <HomeQuickActionCard
-              title="Pacientes"
-              icon={Users2}
-              to="/app/pacientes"
-            />
+            <HomeQuickActionCard title="Agendamentos" icon={CalendarDays} to="/app/agendamentos" />
+            <HomeQuickActionCard title="Pacientes" icon={Users2} to="/app/pacientes" />
             <HomeQuickActionCard
               title="Pacientes em atenção"
               icon={AlertCircle}
               to="/app/pacientes/atencao"
             />
-            <HomeQuickActionCard
-              title="Estoque"
-              icon={Package}
-              to="/app/estoque"
-            />
+            <HomeQuickActionCard title="Estoque" icon={Package} to="/app/estoque" />
           </HomeActionGrid>
         </>
       )}
@@ -244,9 +225,7 @@ function ConfirmationsSection({
                     </span>
                   )}
                   {appt.patientPhone && (
-                    <span className="block text-xs text-muted-foreground">
-                      {appt.patientPhone}
-                    </span>
+                    <span className="block text-xs text-muted-foreground">{appt.patientPhone}</span>
                   )}
                 </span>
                 <span className="shrink-0 text-xs text-muted-foreground">
@@ -275,11 +254,7 @@ function TodayScheduleSection({
       action={<SectionLink to="/app/agendamentos" label="Ver agenda" />}
     >
       {appointments.length === 0 ? (
-        <HomeEmptyState
-          compact
-          icon={CalendarDays}
-          title="Nenhuma consulta pendente para hoje."
-        />
+        <HomeEmptyState compact icon={CalendarDays} title="Nenhuma consulta pendente para hoje." />
       ) : (
         <ul className="mt-4 divide-y divide-border">
           {appointments.map((appt) => (
@@ -323,18 +298,11 @@ function PendingPaymentsSection({ appointments }: { appointments: Appointment[] 
       action={<SectionLink to="/app/agendamentos" label="Ver agendamentos" />}
     >
       {appointments.length === 0 ? (
-        <HomeEmptyState
-          compact
-          icon={CheckCircle2}
-          title="Nenhum pagamento pendente."
-        />
+        <HomeEmptyState compact icon={CheckCircle2} title="Nenhum pagamento pendente." />
       ) : (
         <ul className="mt-4 divide-y divide-border">
           {appointments.map((appt) => (
-            <li
-              key={appt.id}
-              className="flex items-center justify-between gap-3 py-3 text-sm"
-            >
+            <li key={appt.id} className="flex items-center justify-between gap-3 py-3 text-sm">
               <span className="min-w-0">
                 <span className="block truncate font-semibold text-foreground">
                   {appt.patientName}

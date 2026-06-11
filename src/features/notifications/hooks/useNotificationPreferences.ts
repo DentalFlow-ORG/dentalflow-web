@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { NotificationPreference } from '../types/notifications.types'
 import { getPreferences, updatePreferences } from '../services/notifications.service'
+import type { NotificationPreference } from '../types/notifications.types'
 
 export function useNotificationPreferences() {
   const [preferences, setPreferences] = useState<NotificationPreference | null>(null)
@@ -17,7 +17,9 @@ export function useNotificationPreferences() {
       .finally(() => setIsLoading(false))
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   const save = useCallback(async (data: Partial<NotificationPreference>) => {
     setIsSaving(true)

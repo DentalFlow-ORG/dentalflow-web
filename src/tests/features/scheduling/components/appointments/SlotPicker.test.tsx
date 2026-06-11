@@ -40,25 +40,14 @@ describe('SlotPicker — empty', () => {
 
 describe('SlotPicker — available slots', () => {
   it('renders available slot button with its time', () => {
-    render(
-      <SlotPicker
-        {...baseProps}
-        slots={[makeSlot({ time: '09:00' })]}
-      />,
-    )
+    render(<SlotPicker {...baseProps} slots={[makeSlot({ time: '09:00' })]} />)
     expect(screen.getByRole('button', { name: '09:00' })).toBeInTheDocument()
   })
 
   it('calls onChange with the slot time when clicked', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()
-    render(
-      <SlotPicker
-        {...baseProps}
-        slots={[makeSlot({ time: '10:00' })]}
-        onChange={onChange}
-      />,
-    )
+    render(<SlotPicker {...baseProps} slots={[makeSlot({ time: '10:00' })]} onChange={onChange} />)
     await user.click(screen.getByRole('button', { name: '10:00' }))
     expect(onChange).toHaveBeenCalledWith('10:00')
   })
@@ -75,14 +64,8 @@ describe('SlotPicker — selected state', () => {
         value="10:00"
       />,
     )
-    expect(screen.getByRole('button', { name: '10:00' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
-    expect(screen.getByRole('button', { name: '11:00' })).toHaveAttribute(
-      'aria-pressed',
-      'false',
-    )
+    expect(screen.getByRole('button', { name: '10:00' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '11:00' })).toHaveAttribute('aria-pressed', 'false')
   })
 })
 
@@ -90,12 +73,7 @@ describe('SlotPicker — selected state', () => {
 
 describe('SlotPicker — unavailable slots', () => {
   it('disables unavailable slot buttons', () => {
-    render(
-      <SlotPicker
-        {...baseProps}
-        slots={[makeSlot({ time: '10:00', available: false })]}
-      />,
-    )
+    render(<SlotPicker {...baseProps} slots={[makeSlot({ time: '10:00', available: false })]} />)
     expect(screen.getByText('10:00').closest('button')).toBeDisabled()
   })
 
@@ -103,9 +81,7 @@ describe('SlotPicker — unavailable slots', () => {
     render(
       <SlotPicker
         {...baseProps}
-        slots={[
-          makeSlot({ time: '10:00', available: false, reason: 'Horário bloqueado' }),
-        ]}
+        slots={[makeSlot({ time: '10:00', available: false, reason: 'Horário bloqueado' })]}
       />,
     )
     const btn = screen.getByText('10:00').closest('button')!

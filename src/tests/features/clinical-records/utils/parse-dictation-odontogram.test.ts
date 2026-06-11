@@ -1,7 +1,6 @@
 import { parseDictationOdontogram } from '@/features/clinical-records/utils/parse-dictation-odontogram'
 
 describe('parseDictationOdontogram', () => {
-
   // ── Basic tooth + condition detection ────────────────────────────────────────
 
   it('"dente 36 com cárie" → tooth 36, caries', () => {
@@ -135,18 +134,14 @@ describe('parseDictationOdontogram', () => {
   // ── Multiple sentences ────────────────────────────────────────────────────────
 
   it('processes multiple sentences and returns one suggestion per tooth', () => {
-    const result = parseDictationOdontogram(
-      'Dente 36 com cárie. Dente 11 com coroa.',
-    )
+    const result = parseDictationOdontogram('Dente 36 com cárie. Dente 11 com coroa.')
     const conditions = Object.fromEntries(result.map((s) => [s.toothNumber, s.condition]))
     expect(conditions['36']).toBe('caries')
     expect(conditions['11']).toBe('crown')
   })
 
   it('first mention of a tooth wins when the same tooth appears twice', () => {
-    const result = parseDictationOdontogram(
-      'Dente 36 com cárie. Dente 36 com coroa.',
-    )
+    const result = parseDictationOdontogram('Dente 36 com cárie. Dente 36 com coroa.')
     expect(result).toHaveLength(1)
     expect(result[0].condition).toBe('caries') // first mention
   })

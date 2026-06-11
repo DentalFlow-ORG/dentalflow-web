@@ -1,6 +1,7 @@
 import {
-  clampCropSize,
+  type RotationDegrees,
   clampCropPosition,
+  clampCropSize,
   computeCenteredCropResize,
   computeCoverScale,
   computeCropExportTransform,
@@ -8,7 +9,6 @@ import {
   computeRotatedDimensions,
   getCropStageLayout,
   rotateLeft,
-  type RotationDegrees,
 } from '@/lib/avatar-crop-math'
 
 const CROP = 420
@@ -183,14 +183,16 @@ describe('clampCropPosition', () => {
 })
 
 describe('computeCropExportTransform', () => {
-  function exportTransform(params: {
-    naturalW?: number
-    naturalH?: number
-    rotation?: RotationDegrees
-    cropSize?: number
-    scale?: number
-    offset?: { x: number; y: number }
-  } = {}) {
+  function exportTransform(
+    params: {
+      naturalW?: number
+      naturalH?: number
+      rotation?: RotationDegrees
+      cropSize?: number
+      scale?: number
+      offset?: { x: number; y: number }
+    } = {},
+  ) {
     const rotation = params.rotation ?? 0
     const cropSize = params.cropSize ?? CROP
     const preview = computeInitialImageTransform({

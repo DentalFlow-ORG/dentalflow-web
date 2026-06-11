@@ -1,9 +1,4 @@
-export type AppointmentStatus =
-  | 'PENDING'
-  | 'CONFIRMED'
-  | 'CANCELED'
-  | 'COMPLETED'
-  | 'NO_SHOW'
+export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'CANCELED' | 'COMPLETED' | 'NO_SHOW'
 
 export type AppointmentPaymentStatus =
   | 'PAYMENT_PENDING'

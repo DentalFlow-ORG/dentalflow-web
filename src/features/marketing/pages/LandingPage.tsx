@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 
 import { AnimatedImpactSection } from '../components/AnimatedImpactSection'
-import { usePageMeta } from '../hooks/usePageMeta'
 import { DataMigrationSection } from '../components/DataMigrationSection'
 import { HeroSection } from '../components/HeroSection'
 import { LandingIntegrationsSection } from '../components/LandingIntegrationsSection'
@@ -12,6 +11,7 @@ import { PublicLayout } from '../components/PublicLayout'
 import { SectionDivider } from '../components/SectionDivider'
 import { TrialCtaSection } from '../components/TrialCtaSection'
 import { VideoSection } from '../components/VideoSection'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 export function LandingPage() {
   usePageMeta(

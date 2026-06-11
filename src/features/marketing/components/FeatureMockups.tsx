@@ -1,14 +1,6 @@
 import type { ReactElement, ReactNode } from 'react'
 
-import {
-  Bot,
-  CalendarDays,
-  CheckCircle2,
-  FileText,
-  MessageCircle,
-  Users,
-  Zap,
-} from 'lucide-react'
+import { Bot, CalendarDays, CheckCircle2, FileText, MessageCircle, Users, Zap } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -135,12 +127,17 @@ function AgendaMockup() {
               key={s.time}
               className="flex items-start gap-2 rounded-xl border border-white/[0.05] bg-slate-800/50 p-2.5"
             >
-              <span className="mt-0.5 w-9 shrink-0 text-[9px] font-bold text-slate-500">{s.time}</span>
+              <span className="mt-0.5 w-9 shrink-0 text-[9px] font-bold text-slate-500">
+                {s.time}
+              </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-semibold text-slate-200">{s.patient}</p>
                 <p className="text-[9px] text-slate-500">{s.proc} · Dr. Carlos Lima</p>
               </div>
-              <MockupChip label={s.confirmed ? 'Confirmado' : 'Aguardando'} variant={s.confirmed ? 'emerald' : 'amber'} />
+              <MockupChip
+                label={s.confirmed ? 'Confirmado' : 'Aguardando'}
+                variant={s.confirmed ? 'emerald' : 'amber'}
+              />
             </div>
           ))}
         </div>
@@ -174,10 +171,15 @@ function ProntuariosMockup() {
           </div>
           <MockupChip label="Ativo" variant="emerald" />
         </div>
-        <p className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-slate-500">Evoluções clínicas</p>
+        <p className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-slate-500">
+          Evoluções clínicas
+        </p>
         <div className="space-y-1.5">
           {entries.map((e) => (
-            <div key={e.date} className="rounded-lg border border-white/[0.05] bg-slate-800/50 p-2.5">
+            <div
+              key={e.date}
+              className="rounded-lg border border-white/[0.05] bg-slate-800/50 p-2.5"
+            >
               <div className="flex items-center justify-between">
                 <span className="text-[9px] font-semibold text-emerald-400">{e.date}</span>
                 <span className="text-[9px] text-slate-500">{e.dentist}</span>
@@ -188,7 +190,9 @@ function ProntuariosMockup() {
         </div>
         <div className="mt-3 flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-2">
           <CalendarDays className="h-3 w-3 text-emerald-400" aria-hidden="true" />
-          <span className="text-[10px] text-emerald-300">Próxima consulta: 15 jun 2026 · 14:00</span>
+          <span className="text-[10px] text-emerald-300">
+            Próxima consulta: 15 jun 2026 · 14:00
+          </span>
         </div>
       </div>
     </MockupShell>
@@ -213,7 +217,9 @@ function FinanceiroMockup() {
           <MockupMetric label="Despesas" value="R$ 4.8k" />
           <MockupMetric label="Saldo" value="R$ 9.4k" accent />
         </div>
-        <p className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-slate-500">Últimas entradas</p>
+        <p className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-slate-500">
+          Últimas entradas
+        </p>
         <div className="space-y-1.5">
           {transactions.map((tx) => (
             <MockupRow
@@ -221,7 +227,12 @@ function FinanceiroMockup() {
               dot={tx.paid ? 'emerald' : 'amber'}
               label={tx.label}
               detail={tx.value}
-              chip={<MockupChip label={tx.paid ? 'Pago' : 'Pendente'} variant={tx.paid ? 'emerald' : 'amber'} />}
+              chip={
+                <MockupChip
+                  label={tx.paid ? 'Pago' : 'Pendente'}
+                  variant={tx.paid ? 'emerald' : 'amber'}
+                />
+              }
             />
           ))}
         </div>
@@ -233,9 +244,7 @@ function FinanceiroMockup() {
               style={{
                 height: `${h * 0.28}px`,
                 background:
-                  i === barHeights.length - 1
-                    ? 'rgb(52 211 153 / 0.7)'
-                    : 'rgb(100 116 139 / 0.3)',
+                  i === barHeights.length - 1 ? 'rgb(52 211 153 / 0.7)' : 'rgb(100 116 139 / 0.3)',
               }}
             />
           ))}
@@ -280,7 +289,10 @@ function PacientesMockup() {
                 <p className="text-[11px] font-semibold text-slate-200">{p.name}</p>
                 <p className="text-[9px] text-slate-500">Última consulta: {p.last}</p>
               </div>
-              <MockupChip label={p.active ? 'Ativo' : 'Inativo'} variant={p.active ? 'emerald' : 'slate'} />
+              <MockupChip
+                label={p.active ? 'Ativo' : 'Inativo'}
+                variant={p.active ? 'emerald' : 'slate'}
+              />
             </div>
           ))}
         </div>
@@ -311,13 +323,18 @@ function RelatoriosMockup() {
           <MockupMetric label="Receita" value="R$ 14.2k" accent />
         </div>
         <div className="rounded-xl border border-white/[0.06] bg-slate-800/50 p-3">
-          <p className="mb-2.5 text-[9px] font-medium text-slate-500">Consultas realizadas por semana</p>
+          <p className="mb-2.5 text-[9px] font-medium text-slate-500">
+            Consultas realizadas por semana
+          </p>
           <div className="space-y-2">
             {bars.map(({ label, pct }) => (
               <div key={label} className="flex items-center gap-2">
                 <span className="w-14 shrink-0 text-[9px] text-slate-500">{label}</span>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700">
-                  <div className="h-full rounded-full bg-emerald-500/70" style={{ width: `${pct}%` }} />
+                  <div
+                    className="h-full rounded-full bg-emerald-500/70"
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
                 <span className="w-7 text-right text-[9px] text-slate-400">{pct}%</span>
               </div>
@@ -348,8 +365,8 @@ function IaMockup() {
             <div className="flex items-start gap-2">
               <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
               <p className="text-[10px] leading-5 text-slate-300">
-                Receita cresceu{' '}
-                <span className="font-bold text-emerald-400">+18%</span> em relação ao mês anterior.
+                Receita cresceu <span className="font-bold text-emerald-400">+18%</span> em relação
+                ao mês anterior.
               </p>
             </div>
           </div>
@@ -357,7 +374,8 @@ function IaMockup() {
             <div className="flex items-start gap-2">
               <Zap className="mt-0.5 h-3 w-3 shrink-0 text-amber-400" aria-hidden="true" />
               <p className="text-[10px] leading-5 text-amber-300">
-                Estoque de <span className="font-bold">Luvas nitrílicas</span> abaixo do mínimo definido.
+                Estoque de <span className="font-bold">Luvas nitrílicas</span> abaixo do mínimo
+                definido.
               </p>
             </div>
           </div>
@@ -365,8 +383,8 @@ function IaMockup() {
             <div className="flex items-start gap-2">
               <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
               <p className="text-[10px] leading-5 text-slate-300">
-                Taxa de ocupação da agenda:{' '}
-                <span className="font-bold text-white">74%</span> — dentro da meta.
+                Taxa de ocupação da agenda: <span className="font-bold text-white">74%</span> —
+                dentro da meta.
               </p>
             </div>
           </div>
@@ -398,7 +416,9 @@ function EstoqueMockup() {
           <MockupMetric label="Em alerta" value="3" />
           <MockupMetric label="Movimentos" value="11" />
         </div>
-        <p className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-slate-500">Itens do estoque</p>
+        <p className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-slate-500">
+          Itens do estoque
+        </p>
         <div className="space-y-1.5">
           {items.map((item) => (
             <MockupRow
@@ -434,7 +454,9 @@ function FiscalMockup() {
           </div>
           <MockupChip label="12 registros" variant="blue" />
         </div>
-        <p className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-slate-500">Registros fiscais</p>
+        <p className="mb-2 text-[9px] font-semibold uppercase tracking-wider text-slate-500">
+          Registros fiscais
+        </p>
         <div className="space-y-1.5">
           {invoices.map((inv) => (
             <div
@@ -448,7 +470,10 @@ function FiscalMockup() {
                   {inv.service} · {inv.value}
                 </p>
               </div>
-              <MockupChip label={inv.emitted ? 'Emitido' : 'Rascunho'} variant={inv.emitted ? 'emerald' : 'amber'} />
+              <MockupChip
+                label={inv.emitted ? 'Emitido' : 'Rascunho'}
+                variant={inv.emitted ? 'emerald' : 'amber'}
+              />
             </div>
           ))}
         </div>
@@ -476,7 +501,8 @@ function WhatsappMockup() {
           <div className="flex justify-end">
             <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-emerald-600/30 px-3 py-2">
               <p className="text-[10px] leading-5 text-emerald-100">
-                Olá Ana! Lembrete: consulta amanhã às 09:00 com Dr. Carlos Lima. Confirme sua presença.
+                Olá Ana! Lembrete: consulta amanhã às 09:00 com Dr. Carlos Lima. Confirme sua
+                presença.
               </p>
               <p className="mt-0.5 text-right text-[8px] text-emerald-400/70">09:00 · ✓✓</p>
             </div>
@@ -531,7 +557,10 @@ function FallbackMockup() {
               <div key={label} className="flex items-center gap-2">
                 <span className="w-16 shrink-0 text-[9px] text-slate-500">{label}</span>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700">
-                  <div className="h-full rounded-full bg-emerald-500/70" style={{ width: `${pct}%` }} />
+                  <div
+                    className="h-full rounded-full bg-emerald-500/70"
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
                 <span className="w-7 text-right text-[9px] text-slate-400">{pct}%</span>
               </div>
@@ -540,7 +569,12 @@ function FallbackMockup() {
         </div>
         <div className="mt-4 space-y-1.5">
           {['Ana Rodrigues', 'Pedro Martins', 'Carla Santos'].map((name, i) => (
-            <MockupRow key={name} dot={i === 1 ? 'amber' : 'emerald'} label={name} detail="Consulta 14:00" />
+            <MockupRow
+              key={name}
+              dot={i === 1 ? 'amber' : 'emerald'}
+              label={name}
+              detail="Consulta 14:00"
+            />
           ))}
         </div>
       </div>

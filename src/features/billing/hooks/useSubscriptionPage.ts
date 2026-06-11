@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { getPlanFeatureSummaries } from '@/features/marketing/config/features'
 
+import { setCachedBillingStatus } from '../services/billing-status-cache'
 import {
   cancelSubscription,
   changeSubscriptionPlan,
@@ -12,10 +13,9 @@ import {
   listBillingPlans,
   startTrial,
 } from '../services/billing.service'
-import { setCachedBillingStatus } from '../services/billing-status-cache'
 import type {
-  BillingInterval,
   BillingCampaign,
+  BillingInterval,
   BillingPlan,
   CurrentBillingStatus,
 } from '../types/billing.types'
@@ -61,7 +61,7 @@ export function useSubscriptionPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [isCanceling, setIsCanceling] = useState(false)
 
-  function loadBillingStatus() {
+  const loadBillingStatus = useCallback(() => {
     setIsLoadingBillingStatus(true)
     setBillingStatusError(null)
     getCurrentBillingStatus()
@@ -77,7 +77,7 @@ export function useSubscriptionPage() {
         setBillingStatusError(msg)
       })
       .finally(() => setIsLoadingBillingStatus(false))
-  }
+  }, [])
 
   useEffect(() => {
     setIsLoadingPlans(true)
@@ -88,14 +88,13 @@ export function useSubscriptionPage() {
         setCampaign(response.campaign)
       })
       .catch((err) => {
-        const msg =
-          err instanceof Error ? err.message : 'Não foi possível carregar os planos.'
+        const msg = err instanceof Error ? err.message : 'Não foi possível carregar os planos.'
         setPlansError(msg)
       })
       .finally(() => setIsLoadingPlans(false))
 
     loadBillingStatus()
-  }, [])
+  }, [loadBillingStatus])
 
   useEffect(() => {
     if (plans.length === 0) return
@@ -120,8 +119,7 @@ export function useSubscriptionPage() {
       })
       window.location.href = '/app'
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Não foi possível iniciar o teste grátis.'
+      const msg = err instanceof Error ? err.message : 'Não foi possível iniciar o teste grátis.'
       showAlert({ title: 'Erro ao iniciar teste', description: msg, tone: 'error' })
       setStartingTrialPlanKey(null)
     }
@@ -134,8 +132,7 @@ export function useSubscriptionPage() {
       showAlert({ title: 'Redirecionando para o Stripe...', tone: 'info' })
       window.location.href = url
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Não foi possível iniciar o checkout.'
+      const msg = err instanceof Error ? err.message : 'Não foi possível iniciar o checkout.'
       showAlert({ title: 'Erro no checkout', description: msg, tone: 'error' })
       setCheckingOutPlanKey(null)
     }
@@ -153,8 +150,7 @@ export function useSubscriptionPage() {
         tone: 'success',
       })
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Não foi possível alterar o plano.'
+      const msg = err instanceof Error ? err.message : 'Não foi possível alterar o plano.'
       showAlert({ title: 'Erro ao alterar plano', description: msg, tone: 'error' })
     } finally {
       setChangingPlanKey(null)

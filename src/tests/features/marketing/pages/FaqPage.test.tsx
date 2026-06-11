@@ -19,12 +19,9 @@ vi.mock('@/features/marketing/hooks/usePageMeta', () => ({
 }))
 
 describe('FaqPage', () => {
-
   it('renders the hero heading', () => {
     render(<FaqPage />)
-    expect(
-      screen.getByRole('heading', { name: /Tire suas dúvidas/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Tire suas dúvidas/i })).toBeInTheDocument()
   })
 
   it('renders all three FAQ group headings', () => {
@@ -67,11 +64,13 @@ describe('FaqPage', () => {
 
   it('CTA links point to /acessar and /planos', () => {
     render(<FaqPage />)
-    expect(
-      screen.getByRole('link', { name: /Começar teste grátis/i }),
-    ).toHaveAttribute('href', '/acessar')
-    expect(
-      screen.getByRole('link', { name: /Ver planos e preços/i }),
-    ).toHaveAttribute('href', '/planos')
+    expect(screen.getByRole('link', { name: /Começar teste grátis/i })).toHaveAttribute(
+      'href',
+      '/acessar',
+    )
+    expect(screen.getByRole('link', { name: /Ver planos e preços/i })).toHaveAttribute(
+      'href',
+      '/planos',
+    )
   })
 })

@@ -54,8 +54,7 @@ export function AuthInfoPanel() {
       <div
         className="absolute inset-0 opacity-30"
         style={{
-          backgroundImage:
-            'radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)',
           backgroundSize: '22px 22px',
         }}
       />
@@ -66,9 +65,7 @@ export function AuthInfoPanel() {
 
       {/* Spinning ring — large decorative element */}
       <div className="pointer-events-none absolute -right-12 top-1/2 h-72 w-72 -translate-y-1/2 opacity-10">
-        <div
-          className="h-full w-full rounded-full border-2 border-dashed border-cyan-300 df-spin-slow"
-        />
+        <div className="h-full w-full rounded-full border-2 border-dashed border-cyan-300 df-spin-slow" />
       </div>
       <div className="pointer-events-none absolute -right-6 top-1/2 h-56 w-56 -translate-y-1/2 opacity-8">
         <div
@@ -102,8 +99,8 @@ export function AuthInfoPanel() {
             </span>
           </h1>
           <p className="mt-4 text-sm leading-7 text-blue-100/75 sm:text-[0.9375rem]">
-            Entre para operar a agenda, a presença digital e os dados da clínica em um
-            ambiente limpo, seguro e orientado ao crescimento.
+            Entre para operar a agenda, a presença digital e os dados da clínica em um ambiente
+            limpo, seguro e orientado ao crescimento.
           </p>
         </div>
 

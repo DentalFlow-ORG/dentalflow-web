@@ -1,13 +1,9 @@
-import { fireEvent } from '@testing-library/react'
-import { renderWithProviders, screen, waitFor, userEvent } from '@/test-utils/render-utils'
 import { CompleteProfilePage } from '@/features/auth/pages/CompleteProfilePage'
 import { makeOwnerUser } from '@/test-utils/factories/user.factory'
-import {
-  mockCompleteProfile,
-  setMockAuthState,
-  resetAuthMocks,
-} from '@/test-utils/mocks/auth'
+import { mockCompleteProfile, resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 import { mockNavigate, resetRouterMocks } from '@/test-utils/mocks/router'
+import { renderWithProviders, screen, userEvent, waitFor } from '@/test-utils/render-utils'
+import { fireEvent } from '@testing-library/react'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -42,7 +38,11 @@ vi.mock('@/components/brand/BrandLink', () => ({
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
-const incompleteUser = makeOwnerUser({ isProfileComplete: false, firstName: 'Test', lastName: 'User' })
+const incompleteUser = makeOwnerUser({
+  isProfileComplete: false,
+  firstName: 'Test',
+  lastName: 'User',
+})
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
@@ -163,9 +163,7 @@ describe('submit behavior', () => {
     // fireEvent to kick off submit without awaiting the async handler
     fireEvent.click(screen.getByRole('button', { name: /Concluir cadastro/i }))
 
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Concluindo/i })).toBeDisabled(),
-    )
+    await waitFor(() => expect(screen.getByRole('button', { name: /Concluindo/i })).toBeDisabled())
   })
 
   it('shows a success alert and navigates to /app after successful completion', async () => {
@@ -177,9 +175,7 @@ describe('submit behavior', () => {
     await user.click(screen.getByRole('button', { name: /Concluir cadastro/i }))
 
     await waitFor(() => {
-      expect(mockShowAlert).toHaveBeenCalledWith(
-        expect.objectContaining({ tone: 'success' }),
-      )
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'success' }))
       expect(mockNavigate).toHaveBeenCalledWith({ to: '/app', replace: true })
     })
   })
@@ -193,11 +189,7 @@ describe('submit behavior', () => {
     await user.click(screen.getByRole('checkbox'))
     await user.click(screen.getByRole('button', { name: /Concluir cadastro/i }))
 
-    await waitFor(() =>
-      expect(screen.getByText('Servidor indisponível')).toBeInTheDocument(),
-    )
-    expect(mockShowAlert).toHaveBeenCalledWith(
-      expect.objectContaining({ tone: 'error' }),
-    )
+    await waitFor(() => expect(screen.getByText('Servidor indisponível')).toBeInTheDocument())
+    expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error' }))
   })
 })

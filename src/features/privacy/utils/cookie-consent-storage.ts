@@ -40,7 +40,10 @@ export function buildConsent(
   }
 }
 
-export function hasConsentFor(consent: CookieConsent | null, category: keyof CookieConsent['categories']): boolean {
+export function hasConsentFor(
+  consent: CookieConsent | null,
+  category: keyof CookieConsent['categories'],
+): boolean {
   if (!consent) return false
   return consent.categories[category] === true
 }

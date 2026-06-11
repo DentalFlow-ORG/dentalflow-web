@@ -1,24 +1,20 @@
-import { useEffect, useState } from 'react'
 import { CalendarDays, Pencil, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import {
-  formatAppointmentDate,
-  formatAppointmentDateLong,
-  formatWallTime,
-} from '../../utils/time'
 import type { Appointment, AppointmentStatus } from '../../types/scheduling.types'
 import { getInitials } from '../../utils/appointment-form-utils'
-import { AppointmentStatusBadge } from './AppointmentStatusBadge'
+import { formatAppointmentDate, formatAppointmentDateLong, formatWallTime } from '../../utils/time'
+import { AppointmentClinicalSection } from './AppointmentClinicalSection'
+import { AppointmentDetailsRow, AppointmentDetailsSection } from './AppointmentDetailsSection'
+import { AppointmentNotificationSection } from './AppointmentNotificationSection'
 import { AppointmentPaymentBadge } from './AppointmentPaymentBadge'
 import { AppointmentPaymentSection } from './AppointmentPaymentSection'
 import { AppointmentStatusActions } from './AppointmentStatusActions'
-import { AppointmentClinicalSection } from './AppointmentClinicalSection'
-import { AppointmentNotificationSection } from './AppointmentNotificationSection'
-import { AppointmentDetailsSection, AppointmentDetailsRow } from './AppointmentDetailsSection'
+import { AppointmentStatusBadge } from './AppointmentStatusBadge'
 
 type AppointmentDrawerProps = {
   appointment: Appointment | null
@@ -100,18 +96,17 @@ export function AppointmentDrawer({
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
-                  {onEdit &&
-                    (active.status === 'PENDING' || active.status === 'CONFIRMED') && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => onEdit(active)}
-                        aria-label="Editar agendamento"
-                      >
-                        <Pencil aria-hidden="true" />
-                      </Button>
-                    )}
+                  {onEdit && (active.status === 'PENDING' || active.status === 'CONFIRMED') && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => onEdit(active)}
+                      aria-label="Editar agendamento"
+                    >
+                      <Pencil aria-hidden="true" />
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="ghost"
@@ -183,10 +178,7 @@ export function AppointmentDrawer({
                 )}
 
                 {/* Pagamento */}
-                <AppointmentPaymentSection
-                  appointment={active}
-                  onUpdated={handlePaymentUpdated}
-                />
+                <AppointmentPaymentSection appointment={active} onUpdated={handlePaymentUpdated} />
 
                 {/* Prontuário */}
                 <AppointmentClinicalSection appointment={active} onClose={onClose} />

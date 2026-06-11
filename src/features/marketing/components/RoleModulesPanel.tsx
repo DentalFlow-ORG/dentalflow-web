@@ -25,10 +25,7 @@ export function RoleModulesPanel({
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
               O que você acessa
             </p>
-            <h2
-              id="modules-heading"
-              className="mt-2 text-xl font-semibold text-slate-900"
-            >
+            <h2 id="modules-heading" className="mt-2 text-xl font-semibold text-slate-900">
               Módulos disponíveis para{' '}
               <span className="text-primary">{roleLabel.toLowerCase()}</span>
             </h2>
@@ -56,10 +53,7 @@ export function RoleModulesPanel({
                       )}
                     >
                       <ModuleIcon
-                        className={cn(
-                          'h-5 w-5',
-                          isEmerald ? 'text-emerald-700' : 'text-primary',
-                        )}
+                        className={cn('h-5 w-5', isEmerald ? 'text-emerald-700' : 'text-primary')}
                         aria-hidden="true"
                       />
                     </div>

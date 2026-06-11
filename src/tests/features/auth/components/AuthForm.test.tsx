@@ -1,7 +1,7 @@
-import { fireEvent } from '@testing-library/react'
-import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 import { AuthForm } from '@/features/auth/components/AuthForm'
 import { mockNavigate } from '@/test-utils/mocks/router'
+import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
+import { fireEvent } from '@testing-library/react'
 
 let mockApiUrl = 'http://localhost:3000'
 
@@ -217,16 +217,12 @@ describe('AuthForm', () => {
   describe('forgot password link', () => {
     it('shows "Esqueci minha senha" link in login mode', () => {
       renderWithProviders(<AuthForm mode="login" />)
-      expect(
-        screen.getByRole('link', { name: 'Esqueci minha senha' }),
-      ).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Esqueci minha senha' })).toBeInTheDocument()
     })
 
     it('does not show "Esqueci minha senha" link in register mode', () => {
       renderWithProviders(<AuthForm mode="register" />)
-      expect(
-        screen.queryByRole('link', { name: 'Esqueci minha senha' }),
-      ).not.toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: 'Esqueci minha senha' })).not.toBeInTheDocument()
     })
   })
 
@@ -260,9 +256,7 @@ describe('AuthForm', () => {
       await user.click(screen.getByRole('button', { name: /Entrar com Google/i }))
 
       expect(assignSpy).not.toHaveBeenCalled()
-      expect(mockShowAlert).toHaveBeenCalledWith(
-        expect.objectContaining({ tone: 'warning' }),
-      )
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'warning' }))
     })
   })
 })

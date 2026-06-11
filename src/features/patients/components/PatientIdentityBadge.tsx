@@ -41,9 +41,7 @@ export function PatientIdentityBadge({
       <PatientAvatar name={name} avatarUrl={avatarUrl} size={size} />
 
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-foreground">
-          {name || 'Paciente'}
-        </p>
+        <p className="truncate text-sm font-semibold text-foreground">{name || 'Paciente'}</p>
 
         {hasContact && (
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">

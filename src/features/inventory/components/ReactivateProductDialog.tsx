@@ -68,9 +68,7 @@ export function ReactivateProductDialog({
               Cancelar
             </Button>
             <Button type="button" onClick={onConfirm} disabled={isReactivating}>
-              {isReactivating && (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              )}
+              {isReactivating && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
               {isReactivating ? 'Reativando...' : 'Reativar produto'}
             </Button>
           </div>

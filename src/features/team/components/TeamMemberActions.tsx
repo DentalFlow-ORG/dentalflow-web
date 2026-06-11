@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { KeyRound, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -74,7 +74,7 @@ export function TeamMemberActions({
             <KeyRound className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             Alterar senha
           </button>
-          <div className="mx-1 my-0.5 h-px bg-border" role="separator" />
+          <hr className="mx-1 my-0.5 border-border" />
           <button
             type="button"
             className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 focus:bg-destructive/10 focus:outline-none dark:hover:bg-destructive/35 dark:focus:bg-destructive/35"

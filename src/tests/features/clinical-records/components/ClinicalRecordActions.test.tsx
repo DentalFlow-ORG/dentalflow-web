@@ -1,9 +1,12 @@
-import type { ReactNode } from 'react'
-import { within } from '@testing-library/react'
 import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
+import { within } from '@testing-library/react'
+import type { ReactNode } from 'react'
 
 import { ClinicalRecordActions } from '@/features/clinical-records/components/ClinicalRecordActions'
-import type { ClinicalRecord, ClinicalRecordStatus } from '@/features/clinical-records/types/clinical-record.types'
+import type {
+  ClinicalRecord,
+  ClinicalRecordStatus,
+} from '@/features/clinical-records/types/clinical-record.types'
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
 
@@ -34,8 +37,14 @@ vi.mock('@/components/common/ConfirmDialog', () => ({
     open ? (
       <div role="dialog" aria-label={title}>
         {description && <p>{String(description)}</p>}
-        <button type="button" onClick={onConfirm}>{confirmLabel}</button>
-        {cancelLabel && <button type="button" onClick={onCancel}>{cancelLabel}</button>}
+        <button type="button" onClick={onConfirm}>
+          {confirmLabel}
+        </button>
+        {cancelLabel && (
+          <button type="button" onClick={onCancel}>
+            {cancelLabel}
+          </button>
+        )}
       </div>
     ) : null,
 }))
@@ -80,10 +89,7 @@ function makeRecord(status: ClinicalRecordStatus = 'DRAFT'): ClinicalRecord {
 
 type Props = Parameters<typeof ClinicalRecordActions>[0]
 
-function makeProps(
-  status: ClinicalRecordStatus = 'DRAFT',
-  overrides: Partial<Props> = {},
-): Props {
+function makeProps(status: ClinicalRecordStatus = 'DRAFT', overrides: Partial<Props> = {}): Props {
   return {
     record: makeRecord(status),
     isSaving: false,

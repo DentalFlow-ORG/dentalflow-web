@@ -53,7 +53,15 @@ const incomeTransaction: FinancialTransaction = {
   createdByUserId: 'user-1',
   createdAt: '2026-06-10T10:00:00Z',
   updatedAt: '2026-06-10T10:00:00Z',
-  category: { id: 'cat-1', clinicId: 'clinic-1', name: 'Serviços', type: 'INCOME', isDefault: true, createdAt: '', updatedAt: '' },
+  category: {
+    id: 'cat-1',
+    clinicId: 'clinic-1',
+    name: 'Serviços',
+    type: 'INCOME',
+    isDefault: true,
+    createdAt: '',
+    updatedAt: '',
+  },
 }
 
 const expenseTransaction: FinancialTransaction = {
@@ -69,7 +77,15 @@ const expenseTransaction: FinancialTransaction = {
   createdByUserId: 'user-1',
   createdAt: '2026-06-15T10:00:00Z',
   updatedAt: '2026-06-15T10:00:00Z',
-  category: { id: 'cat-2', clinicId: 'clinic-1', name: 'Materiais', type: 'EXPENSE', isDefault: false, createdAt: '', updatedAt: '' },
+  category: {
+    id: 'cat-2',
+    clinicId: 'clinic-1',
+    name: 'Materiais',
+    type: 'EXPENSE',
+    isDefault: false,
+    createdAt: '',
+    updatedAt: '',
+  },
 }
 
 const canceledTransaction: FinancialTransaction = {
@@ -181,9 +197,9 @@ describe('TransactionsTable', () => {
   it('delete button is disabled when transaction status is CANCELED', () => {
     renderTable([canceledTransaction])
     const deleteButtons = screen.getAllByRole('button', { name: 'Cancelar lançamento' })
-    deleteButtons.forEach((btn) => {
+    for (const btn of deleteButtons) {
       expect(btn).toBeDisabled()
-    })
+    }
   })
 
   // ── AI classify ───────────────────────────────────────────────────────────
@@ -224,7 +240,8 @@ describe('TransactionsTable', () => {
     renderTable([], {
       emptyState: {
         title: 'Nenhum recebível pendente no período selecionado',
-        description: 'Todas as entradas do período estão pagas ou não há lançamentos pendentes para cobrar.',
+        description:
+          'Todas as entradas do período estão pagas ou não há lançamentos pendentes para cobrar.',
         actionLabel: 'Limpar filtros',
         onAction: vi.fn(),
       },
@@ -237,7 +254,8 @@ describe('TransactionsTable', () => {
     renderTable([], {
       emptyState: {
         title: 'Nenhum recebível pendente no período selecionado',
-        description: 'Todas as entradas do período estão pagas ou não há lançamentos pendentes para cobrar.',
+        description:
+          'Todas as entradas do período estão pagas ou não há lançamentos pendentes para cobrar.',
       },
     })
     const descriptions = screen.getAllByText(
@@ -267,7 +285,9 @@ describe('TransactionsTable', () => {
         title: 'Nenhum recebível pendente no período selecionado',
       },
     })
-    expect(screen.queryByText('Nenhum recebível pendente no período selecionado')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Nenhum recebível pendente no período selecionado'),
+    ).not.toBeInTheDocument()
   })
 
   it('does not render generic empty state when emptyState prop is provided', () => {

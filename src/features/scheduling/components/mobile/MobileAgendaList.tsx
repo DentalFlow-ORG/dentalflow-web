@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
 import { CalendarDays, Plus } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { cn } from '@/lib/utils'
 
 import type { Appointment } from '../../types/scheduling.types'
 import {
@@ -150,11 +150,7 @@ export function MobileAgendaList({
         </div>
 
         {isLoading ? (
-          <div
-            role="status"
-            aria-label="Carregando consultas..."
-            className="space-y-2"
-          >
+          <div role="status" aria-label="Carregando consultas..." className="space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}

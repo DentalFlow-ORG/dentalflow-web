@@ -28,8 +28,7 @@ const OPTIONS: TypeOption[] = [
     role: 'ASSISTANT',
     icon: ClipboardList,
     title: 'Assistente',
-    description:
-      'Membro da equipe para suporte operacional, recepção e gestão de agendamentos.',
+    description: 'Membro da equipe para suporte operacional, recepção e gestão de agendamentos.',
   },
 ]
 
@@ -55,9 +54,7 @@ export function MemberTypeSelector({ value, onChange }: MemberTypeSelectorProps)
             <div
               className={cn(
                 'mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
-                selected
-                  ? 'bg-primary text-white'
-                  : 'bg-muted text-muted-foreground',
+                selected ? 'bg-primary text-white' : 'bg-muted text-muted-foreground',
               )}
             >
               <Icon className="h-5 w-5" aria-hidden="true" />

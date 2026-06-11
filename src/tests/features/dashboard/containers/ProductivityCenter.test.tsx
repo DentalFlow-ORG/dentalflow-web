@@ -11,10 +11,9 @@ vi.mock('@tanstack/react-router', async () => {
 })
 
 // Prevent the chart component from rendering (uses recharts/canvas)
-vi.mock(
-  '@/features/dashboard/components/TodayAppointmentsChart',
-  () => ({ TodayAppointmentsChart: () => null }),
-)
+vi.mock('@/features/dashboard/components/TodayAppointmentsChart', () => ({
+  TodayAppointmentsChart: () => null,
+}))
 
 const mockUseProductivitySummary = vi.fn()
 vi.mock('@/features/dashboard/hooks/useProductivitySummary', () => ({
@@ -202,7 +201,9 @@ describe('ProductivityCenter — sections', () => {
       error: null,
     })
     render(<ProductivityCenter />)
-    expect(screen.queryByRole('heading', { name: /cancelamentos recentes/i })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: /cancelamentos recentes/i }),
+    ).not.toBeInTheDocument()
   })
 
   it('renders RecentCanceledPanel when cancellations exist', () => {

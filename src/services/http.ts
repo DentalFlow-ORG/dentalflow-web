@@ -2,10 +2,7 @@ import { env } from '@/config/env'
 import { notifySessionExpired } from '@/features/auth/utils/auth-events'
 import { clearSession } from '@/features/auth/utils/session-storage'
 
-import {
-  getStatusFallbackMessage,
-  translateApiErrorMessage,
-} from './api-error-messages'
+import { getStatusFallbackMessage, translateApiErrorMessage } from './api-error-messages'
 
 type ApiRequestOptions = RequestInit & {
   accessToken?: string | null
@@ -54,7 +51,14 @@ export async function apiRequest<TResponse>(
     throw new Error('VITE_API_URL não está configurada.')
   }
 
-  const { accessToken, headers, signal: externalSignal, _skipRefresh, timeoutMs, ...requestOptions } = options
+  const {
+    accessToken,
+    headers,
+    signal: externalSignal,
+    _skipRefresh,
+    timeoutMs,
+    ...requestOptions
+  } = options
 
   const controller = new AbortController()
   const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs ?? REQUEST_TIMEOUT_MS)
@@ -80,11 +84,7 @@ export async function apiRequest<TResponse>(
         if (!window.location.pathname.startsWith('/app/assinatura')) {
           setTimeout(() => window.location.replace('/app/assinatura'), 0)
         }
-        throw new ApiError(
-          'Escolha um plano para continuar usando o DentalFlow.',
-          402,
-          body,
-        )
+        throw new ApiError('Escolha um plano para continuar usando o DentalFlow.', 402, body)
       }
 
       if (response.status === 401 && !_skipRefresh && refreshConfig) {
@@ -166,11 +166,7 @@ async function parseSuccessResponse<TResponse>(response: Response): Promise<TRes
   try {
     return JSON.parse(text) as TResponse
   } catch {
-    throw new ApiError(
-      'A resposta do servidor veio em um formato inválido.',
-      response.status,
-      text,
-    )
+    throw new ApiError('A resposta do servidor veio em um formato inválido.', response.status, text)
   }
 }
 

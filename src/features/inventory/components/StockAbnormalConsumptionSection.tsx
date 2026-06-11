@@ -1,5 +1,5 @@
-import { Activity, AlertTriangle, CheckCircle2, Lock, RefreshCw } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { Activity, AlertTriangle, CheckCircle2, Lock, RefreshCw } from 'lucide-react'
 
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
@@ -7,7 +7,11 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import { useStockAbnormalConsumption } from '../hooks/useStockAbnormalConsumption'
-import type { AbnormalConsumptionItem, AnomalySeverity, AnomalyType } from '../types/inventory.types'
+import type {
+  AbnormalConsumptionItem,
+  AnomalySeverity,
+  AnomalyType,
+} from '../types/inventory.types'
 import { InventorySummaryChip } from './InventorySummaryChip'
 import { StockAbnormalConsumptionCopilotCard } from './StockAbnormalConsumptionCopilotCard'
 
@@ -131,12 +135,13 @@ function EmptyState({ recentDays }: { recentDays: number }) {
   return (
     <div className="flex flex-col items-center gap-3 py-8 text-center">
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/30">
-        <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+        <CheckCircle2
+          className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+          aria-hidden="true"
+        />
       </div>
       <div>
-        <p className="text-sm font-medium text-foreground">
-          Nenhuma variação incomum detectada.
-        </p>
+        <p className="text-sm font-medium text-foreground">Nenhuma variação incomum detectada.</p>
         <p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">
           O consumo dos últimos {recentDays} dias está dentro dos padrões históricos.
         </p>
@@ -194,7 +199,6 @@ export function StockAbnormalConsumptionSection() {
         </div>
       ) : (
         <div className="mt-5 space-y-5">
-
           {/* Summary mini-grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <InventorySummaryChip

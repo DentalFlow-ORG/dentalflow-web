@@ -1,5 +1,5 @@
-import { apiRequest } from '@/services/http'
 import { getAccessToken } from '@/features/auth/utils/session-storage'
+import { apiRequest } from '@/services/http'
 
 import type {
   CreateMemberDto,
@@ -45,10 +45,7 @@ export function updateClinicMember(memberId: string, dto: UpdateMemberDto) {
   })
 }
 
-export function updateClinicMemberPassword(
-  memberId: string,
-  dto: UpdateMemberPasswordDto,
-) {
+export function updateClinicMemberPassword(memberId: string, dto: UpdateMemberPasswordDto) {
   return apiRequest<void>(`/users/clinic/members/${memberId}/password`, {
     method: 'PATCH',
     accessToken: getAccessToken(),
@@ -78,19 +75,12 @@ export function createService(profileId: string, dto: CreateServiceDto) {
   })
 }
 
-export function updateService(
-  profileId: string,
-  serviceId: string,
-  dto: UpdateServiceDto,
-) {
-  return apiRequest<ServiceItem>(
-    `/profiles/${profileId}/services/${serviceId}`,
-    {
-      method: 'PATCH',
-      accessToken: getAccessToken(),
-      body: JSON.stringify(dto),
-    },
-  )
+export function updateService(profileId: string, serviceId: string, dto: UpdateServiceDto) {
+  return apiRequest<ServiceItem>(`/profiles/${profileId}/services/${serviceId}`, {
+    method: 'PATCH',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
+  })
 }
 
 export function deleteService(profileId: string, serviceId: string) {

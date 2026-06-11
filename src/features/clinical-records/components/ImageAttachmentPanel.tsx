@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { Camera, Image, Trash2, Upload, X, ZoomIn } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -16,7 +16,6 @@ import {
 import type { ClinicalRecordAttachment } from '../types/clinical-record.types'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-// All unchanged from the original implementation.
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_OUTPUT_DIMENSION = 1200
@@ -91,17 +90,25 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
       })
       .catch(() => {
         if (isCurrent)
-          showAlert({ title: 'Erro', description: 'Não foi possível carregar as imagens.', tone: 'error' })
+          showAlert({
+            title: 'Erro',
+            description: 'Não foi possível carregar as imagens.',
+            tone: 'error',
+          })
       })
       .finally(() => {
         if (isCurrent) setIsLoading(false)
       })
 
-    return () => { isCurrent = false }
+    return () => {
+      isCurrent = false
+    }
   }, [recordId, showAlert])
 
   // compressImage — unchanged from original implementation
-  const compressImage = (file: File): Promise<{ dataBase64: string; thumbnailBase64: string; sizeBytes: number }> =>
+  const compressImage = (
+    file: File,
+  ): Promise<{ dataBase64: string; thumbnailBase64: string; sizeBytes: number }> =>
     new Promise((resolve, reject) => {
       const img = new window.Image()
       const objectUrl = URL.createObjectURL(file)
@@ -110,7 +117,11 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
         const canvas = document.createElement('canvas')
         const thumb = document.createElement('canvas')
 
-        const ratio = Math.min(MAX_OUTPUT_DIMENSION / img.width, MAX_OUTPUT_DIMENSION / img.height, 1)
+        const ratio = Math.min(
+          MAX_OUTPUT_DIMENSION / img.width,
+          MAX_OUTPUT_DIMENSION / img.height,
+          1,
+        )
         canvas.width = Math.round(img.width * ratio)
         canvas.height = Math.round(img.height * ratio)
         const ctx = canvas.getContext('2d')
@@ -120,7 +131,11 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
         }
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
-        const tRatio = Math.min(MAX_THUMBNAIL_DIMENSION / img.width, MAX_THUMBNAIL_DIMENSION / img.height, 1)
+        const tRatio = Math.min(
+          MAX_THUMBNAIL_DIMENSION / img.width,
+          MAX_THUMBNAIL_DIMENSION / img.height,
+          1,
+        )
         thumb.width = Math.round(img.width * tRatio)
         thumb.height = Math.round(img.height * tRatio)
         const tCtx = thumb.getContext('2d')
@@ -143,8 +158,6 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
       img.src = objectUrl
     })
 
-  // handleFileSelect — shared by both the file-picker and camera inputs.
-  // Validation, compression, and API call logic are unchanged.
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) {
@@ -153,12 +166,20 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
     }
 
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      showAlert({ title: 'Formato inválido', description: 'Envie apenas imagens JPEG, PNG ou WebP.', tone: 'error' })
+      showAlert({
+        title: 'Formato inválido',
+        description: 'Envie apenas imagens JPEG, PNG ou WebP.',
+        tone: 'error',
+      })
       e.currentTarget.value = ''
       return
     }
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      showAlert({ title: 'Imagem muito grande', description: 'O tamanho máximo permitido é 5 MB.', tone: 'error' })
+      showAlert({
+        title: 'Imagem muito grande',
+        description: 'O tamanho máximo permitido é 5 MB.',
+        tone: 'error',
+      })
       e.currentTarget.value = ''
       return
     }
@@ -175,9 +196,17 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
         thumbnailBase64,
       })
       setAttachments((prev) => [...prev, created])
-      showAlert({ title: 'Imagem adicionada.', description: 'A imagem foi salva no prontuário.', tone: 'success' })
+      showAlert({
+        title: 'Imagem adicionada.',
+        description: 'A imagem foi salva no prontuário.',
+        tone: 'success',
+      })
     } catch {
-      showAlert({ title: 'Erro ao enviar', description: 'Não foi possível salvar a imagem. Tente novamente.', tone: 'error' })
+      showAlert({
+        title: 'Erro ao enviar',
+        description: 'Não foi possível salvar a imagem. Tente novamente.',
+        tone: 'error',
+      })
     } finally {
       setIsUploading(false)
       // Reset both inputs to allow re-selecting the same file
@@ -186,12 +215,15 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
     }
   }
 
-  // handleRemove — unchanged API call and alert behavior
   const handleRemove = async (attachmentId: string) => {
     try {
       await removeAttachment(recordId, attachmentId)
       setAttachments((prev) => prev.filter((a) => a.id !== attachmentId))
-      showAlert({ title: 'Imagem removida.', description: 'A imagem foi removida do prontuário.', tone: 'info' })
+      showAlert({
+        title: 'Imagem removida.',
+        description: 'A imagem foi removida do prontuário.',
+        tone: 'info',
+      })
     } catch {
       showAlert({ title: 'Erro', description: 'Não foi possível remover a imagem.', tone: 'error' })
     }
@@ -455,13 +487,15 @@ function AttachmentCard({
   const src = attachment.thumbnailBase64
     ? `data:${attachment.mimeType ?? 'image/jpeg'};base64,${attachment.thumbnailBase64}`
     : attachment.dataBase64
-    ? `data:${attachment.mimeType ?? 'image/jpeg'};base64,${attachment.dataBase64}`
-    : null
+      ? `data:${attachment.mimeType ?? 'image/jpeg'};base64,${attachment.dataBase64}`
+      : null
 
   const meta = [
     formatDateBR(attachment.createdAt.slice(0, 10)),
     formatFileSize(attachment.sizeBytes),
-  ].filter(Boolean).join(' · ')
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
@@ -503,9 +537,7 @@ function AttachmentCard({
         </p>
 
         {/* Date and size */}
-        {meta && (
-          <p className="text-[11px] text-muted-foreground/60">{meta}</p>
-        )}
+        {meta && <p className="text-[11px] text-muted-foreground/60">{meta}</p>}
 
         {/* Caption */}
         <div>

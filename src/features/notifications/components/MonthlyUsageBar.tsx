@@ -1,5 +1,5 @@
-import { Link } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
+import { Link } from '@tanstack/react-router'
 import type { NotificationQuota } from '../types/notifications.types'
 
 type MonthlyUsageBarProps = {
@@ -34,14 +34,11 @@ export function MonthlyUsageBar({ quota, showUpgradeCta = true, className }: Mon
         <div
           className={cn(
             'h-full rounded-full transition-all duration-500',
-            isExhausted
-              ? 'bg-red-500'
-              : isNearLimit
-                ? 'bg-orange-500'
-                : 'bg-primary',
+            isExhausted ? 'bg-red-500' : isNearLimit ? 'bg-orange-500' : 'bg-primary',
           )}
           style={{ width: `${pct}%` }}
           role="progressbar"
+          tabIndex={-1}
           aria-valuenow={used}
           aria-valuemin={0}
           aria-valuemax={limit}

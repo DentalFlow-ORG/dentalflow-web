@@ -1,6 +1,6 @@
 import { getAccessToken } from '@/features/auth/utils/session-storage'
-import { apiRequest } from '@/services/http'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { apiRequest } from '@/services/http'
 import type {
   AppointmentsReportFilters,
   FinanceReportFilters,

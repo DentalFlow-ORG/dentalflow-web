@@ -1,5 +1,5 @@
-import { ArrowRight } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { ArrowRight } from 'lucide-react'
 
 import { roleContents } from '../data/public-content'
 
@@ -15,23 +15,42 @@ const CARD_CLASS =
 
 function RoleLink({ path, children }: { path: string; children: React.ReactNode }) {
   if (path === '/para-gestores')
-    return <Link to="/para-gestores" className={CARD_CLASS}>{children}</Link>
+    return (
+      <Link to="/para-gestores" className={CARD_CLASS}>
+        {children}
+      </Link>
+    )
   if (path === '/para-clinicas-em-abertura')
-    return <Link to="/para-clinicas-em-abertura" className={CARD_CLASS}>{children}</Link>
+    return (
+      <Link to="/para-clinicas-em-abertura" className={CARD_CLASS}>
+        {children}
+      </Link>
+    )
   if (path === '/para-dentistas')
-    return <Link to="/para-dentistas" className={CARD_CLASS}>{children}</Link>
-  return <Link to="/para-secretarias" className={CARD_CLASS}>{children}</Link>
+    return (
+      <Link to="/para-dentistas" className={CARD_CLASS}>
+        {children}
+      </Link>
+    )
+  return (
+    <Link to="/para-secretarias" className={CARD_CLASS}>
+      {children}
+    </Link>
+  )
 }
 
 export function RoleSwitcher({ currentPath }: RoleSwitcherProps) {
-  const cards = ROLE_KEYS
-    .map((key) => roleContents[key])
-    .filter((content) => content.path !== currentPath)
+  const cards = ROLE_KEYS.map((key) => roleContents[key]).filter(
+    (content) => content.path !== currentPath,
+  )
 
   if (cards.length === 0) return null
 
   return (
-    <section className="border-t border-slate-100 bg-white py-12" aria-labelledby="role-switcher-heading">
+    <section
+      className="border-t border-slate-100 bg-white py-12"
+      aria-labelledby="role-switcher-heading"
+    >
       <div className="mx-auto max-w-5xl px-6 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
           Outros perfis

@@ -4,8 +4,8 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
 
 import { listPatients } from '../services/patients.service'
-import { setCachedPatientAvatar } from './usePatientAvatar'
 import type { PatientSummary } from '../types/patients.types'
+import { setCachedPatientAvatar } from './usePatientAvatar'
 
 type FetchState = { patients: PatientSummary[]; isLoading: boolean; error: string | null }
 type FetchAction =
@@ -15,15 +15,22 @@ type FetchAction =
 
 function fetchReducer(state: FetchState, action: FetchAction): FetchState {
   switch (action.type) {
-    case 'loading': return { ...state, isLoading: true, error: null }
-    case 'success': return { patients: action.patients, isLoading: false, error: null }
-    case 'error': return { ...state, isLoading: false, error: action.message }
+    case 'loading':
+      return { ...state, isLoading: true, error: null }
+    case 'success':
+      return { patients: action.patients, isLoading: false, error: null }
+    case 'error':
+      return { ...state, isLoading: false, error: action.message }
   }
 }
 
 export function usePatientsPage() {
   const { showAlert } = useGlobalAlerts()
-  const [fetchState, dispatch] = useReducer(fetchReducer, { patients: [], isLoading: true, error: null })
+  const [fetchState, dispatch] = useReducer(fetchReducer, {
+    patients: [],
+    isLoading: true,
+    error: null,
+  })
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [dateFrom, setDateFrom] = useState('')
@@ -48,9 +55,7 @@ export function usePatientsPage() {
         })
         .catch((requestError) => {
           const message =
-            requestError instanceof ApiError
-              ? requestError.message
-              : 'Erro ao carregar pacientes.'
+            requestError instanceof ApiError ? requestError.message : 'Erro ao carregar pacientes.'
           dispatch({ type: 'error', message })
           showAlert({ title: 'Erro ao carregar pacientes', description: message, tone: 'error' })
         })

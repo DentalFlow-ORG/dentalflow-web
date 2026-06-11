@@ -74,9 +74,7 @@ const categories: FinancialCategory[] = [
   },
 ]
 
-function renderForm(
-  overrides: Partial<Parameters<typeof TransactionForm>[0]> = {},
-) {
+function renderForm(overrides: Partial<Parameters<typeof TransactionForm>[0]> = {}) {
   const props = {
     form: defaultForm,
     categories,
@@ -184,7 +182,9 @@ describe('TransactionForm', () => {
 
   it('calls onChange with (description, value) when description input changes', () => {
     const { onChange } = renderForm()
-    fireEvent.change(screen.getByLabelText('Descrição'), { target: { value: 'Consulta ortopédica' } })
+    fireEvent.change(screen.getByLabelText('Descrição'), {
+      target: { value: 'Consulta ortopédica' },
+    })
     expect(onChange).toHaveBeenCalledWith('description', 'Consulta ortopédica')
   })
 

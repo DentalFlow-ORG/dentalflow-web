@@ -5,8 +5,8 @@ import {
   LegalList,
   LegalPageHeader,
   LegalSection,
-  LegalTable,
   LegalTOC,
+  LegalTable,
   legalInlineLinkClass,
 } from '@/features/legal/components/LegalSection'
 
@@ -36,9 +36,7 @@ describe('LegalPageHeader', () => {
 
   it('renders the title as an h1 heading', () => {
     render(<LegalPageHeader {...props} />)
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Termos de Uso' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Termos de Uso' })).toBeInTheDocument()
   })
 
   it('renders the description', () => {
@@ -62,9 +60,7 @@ describe('LegalPageHeader', () => {
 describe('LegalSection', () => {
   it('renders the heading as h2', () => {
     render(<LegalSection title="Responsabilidades">conteúdo</LegalSection>)
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'Responsabilidades' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Responsabilidades' })).toBeInTheDocument()
   })
 
   it('renders children content', () => {
@@ -103,9 +99,9 @@ describe('LegalList', () => {
 
   it('renders all provided items', () => {
     render(<LegalList items={items} />)
-    items.forEach((item) => {
+    for (const item of items) {
       expect(screen.getByText(item)).toBeInTheDocument()
-    })
+    }
   })
 })
 
@@ -120,16 +116,16 @@ describe('LegalTable', () => {
 
   it('renders all header cells', () => {
     render(<LegalTable headers={headers} rows={rows} />)
-    headers.forEach((h) => {
+    for (const h of headers) {
       expect(screen.getByRole('columnheader', { name: h })).toBeInTheDocument()
-    })
+    }
   })
 
   it('renders all row cells', () => {
     render(<LegalTable headers={headers} rows={rows} />)
-    rows.flat().forEach((cell) => {
+    for (const cell of rows.flat()) {
       expect(screen.getByText(cell)).toBeInTheDocument()
-    })
+    }
   })
 
   it('wraps the table in a div for horizontal overflow', () => {
@@ -149,17 +145,15 @@ describe('LegalTOC', () => {
 
   it('renders a nav landmark with aria-label="Índice do documento"', () => {
     render(<LegalTOC entries={entries} />)
-    expect(
-      screen.getByRole('navigation', { name: 'Índice do documento' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Índice do documento' })).toBeInTheDocument()
   })
 
   it('renders each entry as an anchor with the correct href', () => {
     render(<LegalTOC entries={entries} />)
-    entries.forEach(({ id, label }) => {
+    for (const { id, label } of entries) {
       const link = screen.getByRole('link', { name: label })
       expect(link).toHaveAttribute('href', `#${id}`)
-    })
+    }
   })
 })
 
@@ -184,8 +178,6 @@ describe('LegalContactBlock', () => {
 
   it('renders the default message when none is provided', () => {
     render(<LegalContactBlock email="contato@exemplo.com" />)
-    expect(
-      screen.getByText(/Se tiver dúvidas sobre este documento/i),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Se tiver dúvidas sobre este documento/i)).toBeInTheDocument()
   })
 })

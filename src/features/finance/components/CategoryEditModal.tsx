@@ -95,7 +95,13 @@ export function CategoryEditModal({
             </FormField>
 
             <div className="flex gap-3 pt-1">
-              <Button type="button" variant="outline" className="flex-1" onClick={onClose} disabled={isSubmitting}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
                 Cancelar
               </Button>
               <Button type="submit" className="flex-1" disabled={isSubmitting}>

@@ -8,12 +8,24 @@ const withProfile = makeAppointment({
 })
 
 const withService = makeAppointment({
-  service: { id: 's1', name: 'Limpeza dental', durationMinutes: 60, priceFrom: null, priceTo: null },
+  service: {
+    id: 's1',
+    name: 'Limpeza dental',
+    durationMinutes: 60,
+    priceFrom: null,
+    priceTo: null,
+  },
 })
 
 const withBoth = makeAppointment({
   profile: { id: 'p1', displayName: 'Dr. Silva', userId: null },
-  service: { id: 's1', name: 'Limpeza dental', durationMinutes: 60, priceFrom: null, priceTo: null },
+  service: {
+    id: 's1',
+    name: 'Limpeza dental',
+    durationMinutes: 60,
+    priceFrom: null,
+    priceTo: null,
+  },
 })
 
 // ── Basic rendering ───────────────────────────────────────────────────────────
@@ -47,7 +59,12 @@ describe('MobileAppointmentCard — basic content', () => {
   })
 
   it('renders the status badge', () => {
-    render(<MobileAppointmentCard appointment={makeAppointment({ status: 'CONFIRMED' })} onClick={vi.fn()} />)
+    render(
+      <MobileAppointmentCard
+        appointment={makeAppointment({ status: 'CONFIRMED' })}
+        onClick={vi.fn()}
+      />,
+    )
     expect(screen.getByText('Confirmado')).toBeInTheDocument()
   })
 })
@@ -68,7 +85,12 @@ describe('MobileAppointmentCard — accessible label', () => {
   })
 
   it('has an aria-label containing the status label', () => {
-    render(<MobileAppointmentCard appointment={makeAppointment({ status: 'PENDING' })} onClick={vi.fn()} />)
+    render(
+      <MobileAppointmentCard
+        appointment={makeAppointment({ status: 'PENDING' })}
+        onClick={vi.fn()}
+      />,
+    )
     const btn = screen.getByRole('button')
     expect(btn.getAttribute('aria-label')).toContain('Pendente')
   })

@@ -117,7 +117,14 @@ export function computeInitialImageTransform(params: {
   scale?: number
   offset?: Point
 }): ImageTransform {
-  const { naturalW, naturalH, rotation, cropSize, scale: requestedScale, offset = { x: 0, y: 0 } } = params
+  const {
+    naturalW,
+    naturalH,
+    rotation,
+    cropSize,
+    scale: requestedScale,
+    offset = { x: 0, y: 0 },
+  } = params
   const naturalWidth = safeDimension(naturalW)
   const naturalHeight = safeDimension(naturalH)
   const rotated = computeRotatedDimensions(naturalWidth, naturalHeight, rotation)
@@ -188,15 +195,7 @@ export function computeCropExportTransform(params: {
   cropSize: number
   outputSize: number
 }): CropExportTransform {
-  const {
-    naturalW,
-    naturalH,
-    rotation,
-    scale,
-    offset,
-    cropSize,
-    outputSize,
-  } = params
+  const { naturalW, naturalH, rotation, scale, offset, cropSize, outputSize } = params
   const canvasScale = outputSize / cropSize
 
   return {

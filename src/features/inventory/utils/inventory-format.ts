@@ -42,19 +42,12 @@ export function getMovementTypeLabel(type: string): string {
   return labels[type] ?? type
 }
 
-export function formatMovementQuantity(
-  type: string,
-  quantity: number,
-  unit: string,
-): string {
+export function formatMovementQuantity(type: string, quantity: number, unit: string): string {
   const sign = type === 'IN' ? '+' : type === 'OUT' || type === 'LOSS' ? '-' : ''
   return `${sign}${formatQuantity(quantity, unit)}`
 }
 
-export function formatQuantityTransition(
-  previousQuantity: number,
-  newQuantity: number,
-): string {
+export function formatQuantityTransition(previousQuantity: number, newQuantity: number): string {
   return `${previousQuantity} → ${newQuantity}`
 }
 
@@ -69,7 +62,9 @@ export function formatInventoryTimestamp(iso: string | null | undefined): string
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date(iso)).replace(', ', ' às ')
+    })
+      .format(new Date(iso))
+      .replace(', ', ' às ')
   } catch {
     return iso
   }

@@ -1,13 +1,8 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react'
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { setupAuthRefresh } from '@/services/http'
 
+import { clearBillingStatusCache } from '@/features/billing/services/billing-status-cache'
 import {
   completeProfile as completeProfileRequest,
   getCurrentUser,
@@ -16,7 +11,7 @@ import {
   refresh,
   register as registerRequest,
 } from '../services/auth.service'
-import { clearBillingStatusCache } from '@/features/billing/services/billing-status-cache'
+import type { AuthUser, CompleteProfilePayload, LoginPayload, RegisterPayload } from '../types'
 import {
   clearSession,
   hasStoredSession,
@@ -24,12 +19,6 @@ import {
   setTokens,
   updateStoredUser,
 } from '../utils/session-storage'
-import type {
-  AuthUser,
-  CompleteProfilePayload,
-  LoginPayload,
-  RegisterPayload,
-} from '../types'
 import { AuthContext, type AuthContextValue } from './auth-context'
 
 type AuthProviderProps = {

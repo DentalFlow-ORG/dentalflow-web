@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { CheckCircle, Lock, Printer, RotateCcw, XCircle } from 'lucide-react'
+import { useState } from 'react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { Button } from '@/components/ui/button'
@@ -40,12 +40,7 @@ export function ClinicalRecordActions({
     <>
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         {/* Print — always available */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onPrint}
-          className="w-full sm:w-auto"
-        >
+        <Button variant="outline" size="sm" onClick={onPrint} className="w-full sm:w-auto">
           <Printer className="h-4 w-4" />
           Imprimir prontuário
         </Button>
@@ -79,12 +74,7 @@ export function ClinicalRecordActions({
 
         {/* Complete — DRAFT only */}
         {isDraft && (
-          <Button
-            size="sm"
-            onClick={onComplete}
-            disabled={isSaving}
-            className="w-full sm:w-auto"
-          >
+          <Button size="sm" onClick={onComplete} disabled={isSaving} className="w-full sm:w-auto">
             <CheckCircle className="h-4 w-4" />
             Concluir atendimento
           </Button>
@@ -118,7 +108,6 @@ export function ClinicalRecordActions({
             Cancelar prontuário
           </Button>
         )}
-
       </div>
 
       {/* ── Lock confirmation ────────────────────────────────────────────────── */}

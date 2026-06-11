@@ -1,9 +1,9 @@
+import type { ServiceInvoiceStatus } from '@/features/fiscal/types/fiscal.types'
 import {
   canCancelInvoice,
   canSimulateInvoice,
   getInvoiceActionLabel,
 } from '@/features/fiscal/utils/invoice-actions'
-import type { ServiceInvoiceStatus } from '@/features/fiscal/types/fiscal.types'
 
 // ── canCancelInvoice ───────────────────────────────────────────────────────────
 

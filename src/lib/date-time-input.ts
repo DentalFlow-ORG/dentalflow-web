@@ -33,18 +33,11 @@ export function maskDateInput(value: string) {
   const monthDigits = digits.slice(2, 4)
   const yearDigits = digits.slice(4, 8)
 
-  const month =
-    monthDigits.length === 2 ? clamp(Number(monthDigits), 1, 12) : monthDigits
-  const year =
-    yearDigits.length === 4
-      ? clamp(Number(yearDigits), MIN_YEAR, MAX_YEAR)
-      : yearDigits
+  const month = monthDigits.length === 2 ? clamp(Number(monthDigits), 1, 12) : monthDigits
+  const year = yearDigits.length === 4 ? clamp(Number(yearDigits), MIN_YEAR, MAX_YEAR) : yearDigits
   const maxDay =
-    typeof month === 'number'
-      ? getDaysInMonth(typeof year === 'number' ? year : 2000, month)
-      : 31
-  const day =
-    dayDigits.length === 2 ? clamp(Number(dayDigits), 1, maxDay) : dayDigits
+    typeof month === 'number' ? getDaysInMonth(typeof year === 'number' ? year : 2000, month) : 31
+  const day = dayDigits.length === 2 ? clamp(Number(dayDigits), 1, maxDay) : dayDigits
 
   const parts = [
     formatInputPart(day, dayDigits.length),
@@ -91,12 +84,8 @@ export function maskTimeInput(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 4)
   const hourDigits = digits.slice(0, 2)
   const minuteDigits = digits.slice(2, 4)
-  const hour =
-    hourDigits.length === 2 ? clamp(Number(hourDigits), 0, 23) : hourDigits
-  const minute =
-    minuteDigits.length === 2
-      ? clamp(Number(minuteDigits), 0, 59)
-      : minuteDigits
+  const hour = hourDigits.length === 2 ? clamp(Number(hourDigits), 0, 23) : hourDigits
+  const minute = minuteDigits.length === 2 ? clamp(Number(minuteDigits), 0, 59) : minuteDigits
   const parts = [
     formatInputPart(hour, hourDigits.length),
     formatInputPart(minute, minuteDigits.length),

@@ -237,7 +237,12 @@ describe('FinanceFiltersBar', () => {
   })
 
   it('clicking "Limpar filtros" calls onChange for type, status, and categoryId with undefined', () => {
-    const { onChange } = renderBar({ ...baseFilters, type: 'INCOME', status: 'PENDING', categoryId: 'cat-1' })
+    const { onChange } = renderBar({
+      ...baseFilters,
+      type: 'INCOME',
+      status: 'PENDING',
+      categoryId: 'cat-1',
+    })
     fireEvent.click(screen.getByRole('button', { name: /Limpar filtros/ }))
     expect(onChange).toHaveBeenCalledWith('type', undefined)
     expect(onChange).toHaveBeenCalledWith('status', undefined)

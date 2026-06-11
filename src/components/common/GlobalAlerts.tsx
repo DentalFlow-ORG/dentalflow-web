@@ -1,27 +1,15 @@
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  X,
-  XCircle,
-  type LucideIcon,
-} from 'lucide-react'
-import {
-  useCallback,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react'
+import { AlertTriangle, CheckCircle2, Info, type LucideIcon, X, XCircle } from 'lucide-react'
+import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import {
-  GlobalAlertsContext,
   type AlertInput,
   type AlertItem,
   type AlertTone,
+  GlobalAlertsContext,
 } from './global-alerts-context'
 
 const toneStyles: Record<
@@ -58,27 +46,17 @@ export function GlobalAlertsProvider({ children }: GlobalAlertsProviderProps) {
   const [alerts, setAlerts] = useState<AlertItem[]>([])
 
   const dismissAlert = useCallback((id: string) => {
-    setAlerts((currentAlerts) =>
-      currentAlerts.filter((alert) => alert.id !== id),
-    )
+    setAlerts((currentAlerts) => currentAlerts.filter((alert) => alert.id !== id))
   }, [])
 
   const showAlert = useCallback(
-    ({
-      title,
-      description,
-      tone = 'info',
-      durationMs = 5000,
-    }: AlertInput) => {
+    ({ title, description, tone = 'info', durationMs = 5000 }: AlertInput) => {
       const id =
         typeof crypto !== 'undefined' && 'randomUUID' in crypto
           ? crypto.randomUUID()
           : `${Date.now()}-${Math.random()}`
 
-      setAlerts((currentAlerts) => [
-        ...currentAlerts,
-        { id, title, description, tone, durationMs },
-      ])
+      setAlerts((currentAlerts) => [...currentAlerts, { id, title, description, tone, durationMs }])
 
       if (durationMs > 0) {
         window.setTimeout(() => dismissAlert(id), durationMs)
@@ -89,10 +67,7 @@ export function GlobalAlertsProvider({ children }: GlobalAlertsProviderProps) {
     [dismissAlert],
   )
 
-  const value = useMemo(
-    () => ({ showAlert, dismissAlert }),
-    [dismissAlert, showAlert],
-  )
+  const value = useMemo(() => ({ showAlert, dismissAlert }), [dismissAlert, showAlert])
 
   const alertsContainer = (
     <div className="pointer-events-none fixed right-4 top-4 z-60 flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3 sm:right-6 sm:top-6">
@@ -113,9 +88,7 @@ export function GlobalAlertsProvider({ children }: GlobalAlertsProviderProps) {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold">{alert.title}</p>
               {alert.description && (
-                <p className="mt-1 text-sm leading-5 opacity-80">
-                  {alert.description}
-                </p>
+                <p className="mt-1 text-sm leading-5 opacity-80">{alert.description}</p>
               )}
             </div>
             <Button

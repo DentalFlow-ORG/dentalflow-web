@@ -2,32 +2,32 @@ import { RefreshCw } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { ListPageShell } from '@/components/common/ListPageShell'
-import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { PanelCard } from '@/components/common/PanelCard'
+import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
 import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
-import { useExpenseClassifier } from '../hooks/useExpenseClassifier'
-import { useFinancePage } from '../hooks/useFinancePage'
-import { useMonthlyFinanceDiagnosis } from '../hooks/useMonthlyFinanceDiagnosis'
-import { useProcedureMargins } from '../hooks/useProcedureMargins'
 import { CategoriesPanel } from '../components/CategoriesPanel'
 import { CategoryCreateForm } from '../components/CategoryCreateForm'
 import { CategoryEditModal } from '../components/CategoryEditModal'
 import { FinanceFiltersBar } from '../components/FinanceFiltersBar'
 import { FinancialAnalysisPanel } from '../components/FinancialAnalysisPanel'
-import { MonthlyFinanceDiagnosisCard } from '../components/MonthlyFinanceDiagnosisCard'
-import { ProcedureMarginsSection } from '../components/ProcedureMarginsSection'
-import { FixedExpenseForm } from '../components/FixedExpenseForm'
 import { FixedExpenseEditModal } from '../components/FixedExpenseEditModal'
+import { FixedExpenseForm } from '../components/FixedExpenseForm'
 import { FixedExpensesList } from '../components/FixedExpensesList'
 import { IncomeExpensesChart } from '../components/IncomeExpensesChart'
 import { KpiGrid } from '../components/KpiGrid'
+import { MonthlyFinanceDiagnosisCard } from '../components/MonthlyFinanceDiagnosisCard'
+import { ProcedureMarginsSection } from '../components/ProcedureMarginsSection'
 import { Ranking } from '../components/Ranking'
 import { TransactionEditModal } from '../components/TransactionEditModal'
 import { TransactionForm } from '../components/TransactionForm'
 import { TransactionsTable } from '../components/TransactionsTable'
+import { useExpenseClassifier } from '../hooks/useExpenseClassifier'
+import { useFinancePage } from '../hooks/useFinancePage'
+import { useMonthlyFinanceDiagnosis } from '../hooks/useMonthlyFinanceDiagnosis'
+import { useProcedureMargins } from '../hooks/useProcedureMargins'
 
 export function FinancePageContainer() {
   const {
@@ -106,8 +106,14 @@ export function FinancePageContainer() {
     setTransactionsPageSize,
   } = useFinancePage()
 
-  const { getState: getClassifierState, handleClassify, handleApply: handleApplyCategory, handleDismiss: handleDismissClassify } = useExpenseClassifier(load)
-  const { state: diagnosisState, handleGenerate: handleGenerateDiagnosis } = useMonthlyFinanceDiagnosis()
+  const {
+    getState: getClassifierState,
+    handleClassify,
+    handleApply: handleApplyCategory,
+    handleDismiss: handleDismissClassify,
+  } = useExpenseClassifier(load)
+  const { state: diagnosisState, handleGenerate: handleGenerateDiagnosis } =
+    useMonthlyFinanceDiagnosis()
   const { state: marginsState, load: loadMargins } = useProcedureMargins()
 
   const pendingReceivablesEmptyState =
@@ -160,7 +166,9 @@ export function FinancePageContainer() {
                 setFilter('status', 'PENDING')
                 if (typeof document !== 'undefined') {
                   requestAnimationFrame(() => {
-                    document.getElementById('finance-transactions')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    document
+                      .getElementById('finance-transactions')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                   })
                 }
               }}
@@ -179,9 +187,7 @@ export function FinancePageContainer() {
               <PanelCard>
                 <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-base font-semibold text-foreground">
-                      Entradas x saídas
-                    </h2>
+                    <h2 className="text-base font-semibold text-foreground">Entradas x saídas</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Evolução financeira no período selecionado.
                     </p>
@@ -194,9 +200,7 @@ export function FinancePageContainer() {
               </PanelCard>
 
               <PanelCard>
-                <h2 className="text-base font-semibold text-foreground">
-                  Composição financeira
-                </h2>
+                <h2 className="text-base font-semibold text-foreground">Composição financeira</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Veja onde a receita se concentra e quais categorias mais pesam no resultado.
                 </p>
@@ -335,9 +339,7 @@ export function FinancePageContainer() {
       <TransactionEditModal
         transaction={editingTransaction}
         form={editForm}
-        categories={
-          editForm.type === 'INCOME' ? incomeCategories : expenseCategories
-        }
+        categories={editForm.type === 'INCOME' ? incomeCategories : expenseCategories}
         error={editError}
         isSubmitting={isUpdating}
         onChange={setEditField}
@@ -359,6 +361,3 @@ export function FinancePageContainer() {
     </AppPage>
   )
 }
-
-
-

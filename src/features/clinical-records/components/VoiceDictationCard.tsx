@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   AlertCircle,
   CheckCircle2,
@@ -9,21 +8,25 @@ import {
   Sparkles,
   Square,
 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { Button } from '@/components/ui/button'
 import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
+import { cn } from '@/lib/utils'
 
 import { dictateClinicalRecord } from '../services/clinical-dictation.service'
-import type { ClinicalDictationFieldKey, DictationOdontogramSuggestion } from '../types/clinical-dictation.types'
+import type {
+  ClinicalDictationFieldKey,
+  DictationOdontogramSuggestion,
+} from '../types/clinical-dictation.types'
+import type { FieldApplyMode } from '../utils/apply-clinical-dictation-fields'
 import { getClinicalDictationErrorMessage } from '../utils/clinical-dictation-error'
+import { mergeDictationField } from '../utils/clinical-dictation-field-merge'
 import { formatDictationFieldText } from '../utils/format-dictation-field-text'
 import { ODONTOGRAM_CONDITION_LABELS } from '../utils/odontogram-status-utils'
 import { parseDictationOdontogram } from '../utils/parse-dictation-odontogram'
 import type { OdontogramSuggestion } from '../utils/parse-dictation-odontogram'
-import type { FieldApplyMode } from '../utils/apply-clinical-dictation-fields'
-import { mergeDictationField } from '../utils/clinical-dictation-field-merge'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -52,22 +55,22 @@ const PROCESSING_STEPS = [
 type ProcessingStep = 0 | 1 | 2 | 3
 
 const DICTATION_FIELD_LABELS: Record<ClinicalDictationFieldKey, string> = {
-  chiefComplaint:      'Queixa principal',
-  anamnesis:           'Anamnese',
-  clinicalEvolution:   'Evolução clínica',
-  diagnosis:           'Diagnóstico',
+  chiefComplaint: 'Queixa principal',
+  anamnesis: 'Anamnese',
+  clinicalEvolution: 'Evolução clínica',
+  diagnosis: 'Diagnóstico',
   proceduresPerformed: 'Procedimentos realizados',
-  treatmentPlan:       'Plano de tratamento',
-  prescription:        'Prescrição',
-  recommendations:     'Recomendações',
-  privateNotes:        'Notas privadas',
+  treatmentPlan: 'Plano de tratamento',
+  prescription: 'Prescrição',
+  recommendations: 'Recomendações',
+  privateNotes: 'Notas privadas',
 }
 
 // Human-readable labels for each apply mode, shown on the per-field mode buttons.
 const APPLY_MODE_LABELS: Record<FieldApplyMode, string> = {
-  append:  'Adicionar ao final',
+  append: 'Adicionar ao final',
   replace: 'Substituir tudo',
-  edit:    'Editar antes de aplicar',
+  edit: 'Editar antes de aplicar',
 }
 
 // ── Audio helpers ─────────────────────────────────────────────────────────────
@@ -95,7 +98,9 @@ function getSupportedMimeType(): string {
 }
 
 function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60).toString().padStart(2, '0')
+  const m = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, '0')
   const s = (seconds % 60).toString().padStart(2, '0')
   return `${m}:${s}`
 }
@@ -197,8 +202,8 @@ function LockedState() {
         <div>
           <p className="text-sm font-semibold text-foreground">Ditado por voz</p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Grave a consulta e a IA organiza o conteúdo nos campos do prontuário
-            automaticamente. Exclusivo do plano Premium.
+            Grave a consulta e a IA organiza o conteúdo nos campos do prontuário automaticamente.
+            Exclusivo do plano Premium.
           </p>
         </div>
         <Button size="sm" variant="outline" asChild className="mt-0.5 text-xs">
@@ -214,7 +219,13 @@ function LockedState() {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onApplyFields, onApplyOdontogram }: Props) {
+export function VoiceDictationCard({
+  recordId,
+  readOnly,
+  currentFieldValues,
+  onApplyFields,
+  onApplyOdontogram,
+}: Props) {
   const { showAlert } = useGlobalAlerts()
 
   // Plan gate — lock for starter/professional; unlock for premium or null (admin/cache miss).
@@ -222,14 +233,18 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
   const planKey = getCachedBillingStatus()?.planKey
   const isLocked = planKey === 'starter' || planKey === 'professional'
 
-  const [state, setState]                   = useState<DictationState>('idle')
+  const [state, setState] = useState<DictationState>('idle')
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [transcript, setTranscript]         = useState<string | null>(null)
+  const [transcript, setTranscript] = useState<string | null>(null)
   const [transcriptExpanded, setTranscriptExpanded] = useState(false)
-  const [suggestedFields, setSuggestedFields] = useState<Partial<Record<ClinicalDictationFieldKey, string>>>({})
+  const [suggestedFields, setSuggestedFields] = useState<
+    Partial<Record<ClinicalDictationFieldKey, string>>
+  >({})
   // Which fields the dentist has selected for application (all selected by default).
-  const [selectedFieldKeys, setSelectedFieldKeys] = useState<Set<ClinicalDictationFieldKey>>(new Set())
-  const [errorMessage, setErrorMessage]     = useState<string | null>(null)
+  const [selectedFieldKeys, setSelectedFieldKeys] = useState<Set<ClinicalDictationFieldKey>>(
+    new Set(),
+  )
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   // Which simulated processing step is currently shown (advances through lifecycle).
   const [processingStep, setProcessingStep] = useState<ProcessingStep>(0)
   // Dev-only: captured after base64 conversion so the debug panel can show
@@ -243,7 +258,9 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
     blockedLocally: boolean
   } | null>(null)
   // Editable copy of suggestedFields — initialized on success, updated by the dentist.
-  const [editableFields, setEditableFields] = useState<Partial<Record<ClinicalDictationFieldKey, string>>>({})
+  const [editableFields, setEditableFields] = useState<
+    Partial<Record<ClinicalDictationFieldKey, string>>
+  >({})
   // Odontogram marking suggestions parsed from the transcript on success.
   const [odontogramSuggestions, setOdontogramSuggestions] = useState<OdontogramSuggestion[]>([])
   // Editable note per odontogram suggestion, keyed by tooth number.
@@ -254,30 +271,32 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
   const [applyWarning, setApplyWarning] = useState<string | null>(null)
   // Per-field apply mode: 'append' (default, safe) or 'replace'.
   // Initialized for each suggested field when the success state is reached.
-  const [fieldModes, setFieldModes] = useState<Partial<Record<ClinicalDictationFieldKey, FieldApplyMode>>>({})
+  const [fieldModes, setFieldModes] = useState<
+    Partial<Record<ClinicalDictationFieldKey, FieldApplyMode>>
+  >({})
 
-  const mediaRecorderRef      = useRef<MediaRecorder | null>(null)
-  const chunksRef             = useRef<Blob[]>([])
-  const timerRef              = useRef<ReturnType<typeof setInterval> | null>(null)
-  const streamRef             = useRef<MediaStream | null>(null)
-  const startTimeRef          = useRef<number>(0)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const startTimeRef = useRef<number>(0)
   // Mirrors the elapsed seconds state without a stale closure — used by the
   // auto-stop logic so it can read the current count from a setInterval
   // callback without depending on the state updater form.
-  const elapsedRef            = useRef(0)
+  const elapsedRef = useRef(0)
   // Tracks whether the component is still mounted. Set to false before any
   // cleanup so that onstop-triggered processAudio() calls are ignored after
   // unmount, preventing state updates and stray API calls.
-  const isMountedRef          = useRef(true)
+  const isMountedRef = useRef(true)
   // Fired 5 s after stopRecording() if onstop never arrives (browser bug/hang).
-  const stopFallbackTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const stopFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Prevents onstop and the fallback timer from both processing the same stop.
-  const hasProcessedStopRef   = useRef(false)
+  const hasProcessedStopRef = useRef(false)
   // Fired 45 s after processAudio starts if the API call never settles.
-  const processingTimeoutRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Set to true when the processing phase is aborted (by timeout or reset) so
   // a still-running processAudio does not overwrite state afterwards.
-  const processingAbortedRef  = useRef(false)
+  const processingAbortedRef = useRef(false)
   // Advances processingStep to 3 after ~6 s of API wait (simulates the
   // transcription→classification handoff without any server-side events).
   const processingStepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -483,7 +502,7 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
             : parseDictationOdontogram(result.transcript)
         setOdontogramSuggestions(oSuggestions)
         setEditableOdontogramNotes(
-          Object.fromEntries(oSuggestions.map((s) => [s.toothNumber, s.note]))
+          Object.fromEntries(oSuggestions.map((s) => [s.toothNumber, s.note])),
         )
         setSelectedOdontogramTeeth(new Set(oSuggestions.map((s) => s.toothNumber)))
         setState('success')
@@ -763,7 +782,8 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
   const fieldEntries = Object.entries(suggestedFields) as [ClinicalDictationFieldKey, string][]
   const hasFields = fieldEntries.length > 0
   const hasAnySuggestions = hasFields || odontogramSuggestions.length > 0
-  const canApply = selectedFieldKeys.size > 0 || (!!onApplyOdontogram && selectedOdontogramTeeth.size > 0)
+  const canApply =
+    selectedFieldKeys.size > 0 || (!!onApplyOdontogram && selectedOdontogramTeeth.size > 0)
   const transcriptIsLong = (transcript?.length ?? 0) > TRANSCRIPT_COLLAPSE_THRESHOLD
 
   // Conflict detection: fields that have a dictation suggestion AND already have
@@ -807,11 +827,7 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
           <p className="max-w-50 text-xs leading-relaxed text-muted-foreground">
             Grave a consulta e a IA organiza o conteúdo nos campos corretos do prontuário.
           </p>
-          <Button
-            type="button"
-            className="min-h-11 w-full"
-            onClick={() => void startRecording()}
-          >
+          <Button type="button" className="min-h-11 w-full" onClick={() => void startRecording()}>
             <Mic className="h-4 w-4" aria-hidden="true" />
             Gravar consulta
           </Button>
@@ -823,7 +839,10 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
         <div className="flex flex-col items-center gap-4 py-2 text-center">
           {/* Animated pulse ring */}
           <div className="relative flex items-center justify-center">
-            <span className="absolute h-16 w-16 animate-ping rounded-full bg-red-500/15" aria-hidden="true" />
+            <span
+              className="absolute h-16 w-16 animate-ping rounded-full bg-red-500/15"
+              aria-hidden="true"
+            />
             <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-red-50 ring-1 ring-red-200 dark:bg-red-950/30 dark:ring-red-800/50">
               <Mic className="h-6 w-6 text-red-500 dark:text-red-400" aria-hidden="true" />
             </div>
@@ -831,7 +850,10 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
 
           <div>
             <div className="flex items-center justify-center gap-1.5">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" aria-hidden="true" />
+              <span
+                className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500"
+                aria-hidden="true"
+              />
               <span className="text-sm font-semibold text-foreground">Gravando</span>
             </div>
             <span
@@ -862,11 +884,13 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
 
       {/* ── Processing ── */}
       {!readOnly && state === 'processing' && (
-        <div className="flex flex-col items-center gap-3 py-4 text-center" role="status" aria-atomic="true">
+        <div
+          className="flex flex-col items-center gap-3 py-4 text-center"
+          role="status"
+          aria-atomic="true"
+        >
           <Loader2 className="h-7 w-7 animate-spin text-primary" aria-hidden="true" />
-          <p className="text-sm font-medium text-foreground">
-            {PROCESSING_STEPS[processingStep]}
-          </p>
+          <p className="text-sm font-medium text-foreground">{PROCESSING_STEPS[processingStep]}</p>
           {/* Progress dots — one per step, filled up to the current step */}
           <div className="flex items-center gap-1.5" aria-hidden="true">
             {PROCESSING_STEPS.map((_, i) => (
@@ -938,7 +962,8 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
                       Campos sugeridos
                     </p>
                     <span className="text-[11px] tabular-nums text-muted-foreground">
-                      {selectedFieldKeys.size}/{fieldEntries.length} selecionado{selectedFieldKeys.size !== 1 ? 's' : ''}
+                      {selectedFieldKeys.size}/{fieldEntries.length} selecionado
+                      {selectedFieldKeys.size !== 1 ? 's' : ''}
                     </span>
                   </div>
 
@@ -955,12 +980,16 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
                         aria-hidden="true"
                       />
                       <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-300">
-                        Alguns campos já possuem informações preenchidas. Revise antes de aplicar para evitar sobrescrever dados importantes.
+                        Alguns campos já possuem informações preenchidas. Revise antes de aplicar
+                        para evitar sobrescrever dados importantes.
                       </p>
                     </div>
                   )}
 
-                  <ul className="space-y-2" aria-label="Selecione os campos a aplicar ao prontuário">
+                  <ul
+                    className="space-y-2"
+                    aria-label="Selecione os campos a aplicar ao prontuário"
+                  >
                     {fieldEntries.map(([key]) => {
                       const isSelected = selectedFieldKeys.has(key)
                       const hasExisting = conflictingKeys.has(key)
@@ -1144,12 +1173,7 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
                   <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                   Aplicar campos selecionados
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11 w-full"
-                  onClick={reset}
-                >
+                <Button type="button" variant="outline" className="min-h-11 w-full" onClick={reset}>
                   <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                   Gravar novamente
                 </Button>
@@ -1173,11 +1197,7 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
                 </p>
               </div>
               <div className="flex flex-col gap-2">
-                <Button
-                  type="button"
-                  className="min-h-11 w-full"
-                  onClick={reset}
-                >
+                <Button type="button" className="min-h-11 w-full" onClick={reset}>
                   <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                   Gravar novamente
                 </Button>
@@ -1200,7 +1220,10 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
         <div className="space-y-3">
           {/* role="alert" causes screen readers to announce the message immediately
               when the component transitions into the error state. */}
-          <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 dark:border-red-800/50 dark:bg-red-950/20">
+          <div
+            role="alert"
+            className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 dark:border-red-800/50 dark:bg-red-950/20"
+          >
             <AlertCircle
               className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400"
               aria-hidden="true"
@@ -1209,12 +1232,7 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
               {errorMessage ?? 'Não foi possível processar o ditado.'}
             </p>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11 w-full"
-            onClick={reset}
-          >
+          <Button type="button" variant="outline" className="min-h-11 w-full" onClick={reset}>
             Tentar novamente
           </Button>
         </div>
@@ -1233,9 +1251,8 @@ export function VoiceDictationCard({ recordId, readOnly, currentFieldValues, onA
           </p>
           <p>MIME: {debugInfo.mimeType || '(browser default)'}</p>
           <p>
-            Payload base64:{' '}
-            ~{Math.round(debugInfo.base64Chars / 1_024)} KB
-            {' '}({debugInfo.base64Chars.toLocaleString()} chars)
+            Payload base64: ~{Math.round(debugInfo.base64Chars / 1_024)} KB (
+            {debugInfo.base64Chars.toLocaleString()} chars)
           </p>
           <p>Duração gravada: {debugInfo.durationSeconds.toFixed(1)} s</p>
           {debugInfo.blockedLocally && (

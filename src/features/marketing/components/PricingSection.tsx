@@ -1,6 +1,6 @@
-import { Fragment, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Fragment, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { getPlanCardFeatures } from '@/features/marketing/config/features'
@@ -10,10 +10,10 @@ import {
 } from '@/features/marketing/config/marketing-pricing.constants'
 import { cn } from '@/lib/utils'
 
-import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import { landingPlans } from '../data/landing-content'
+import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import { AnnualAvailabilityNote } from './AnnualAvailabilityNote'
-import { BillingPeriodToggle, type BillingPeriod } from './BillingPeriodToggle'
+import { type BillingPeriod, BillingPeriodToggle } from './BillingPeriodToggle'
 import { PlanFeatureRow } from './PlanFeatureRow'
 
 export function PricingSection() {
@@ -42,7 +42,6 @@ export function PricingSection() {
       </div>
 
       <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
-
         {/* ── Section header ────────────────────────────────────────── */}
         <div
           className={cn(
@@ -58,8 +57,7 @@ export function PricingSection() {
             id="pricing-heading"
             className="mt-5 text-3xl font-semibold leading-tight text-white sm:text-4xl"
           >
-            O plano certo para{' '}
-            <span className="text-emerald-400">transformar sua clínica</span>
+            O plano certo para <span className="text-emerald-400">transformar sua clínica</span>
           </h2>
 
           <p className="mt-4 text-base leading-7 text-slate-400">
@@ -75,11 +73,7 @@ export function PricingSection() {
           )}
           style={{ transitionDelay: isVisible ? '150ms' : '0ms' }}
         >
-          <BillingPeriodToggle
-            value={billingPeriod}
-            onChange={setBillingPeriod}
-            variant="dark"
-          />
+          <BillingPeriodToggle value={billingPeriod} onChange={setBillingPeriod} variant="dark" />
           <AnnualAvailabilityNote visible={billingPeriod === 'annual'} variant="dark" />
         </div>
 
@@ -228,19 +222,13 @@ function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
               </span>
               <span className="text-sm text-slate-500">/mês</span>
             </div>
-            <p className="mt-1 text-xs text-slate-400">
-              Depois {plan.normalMonthly}/mês
-            </p>
+            <p className="mt-1 text-xs text-slate-400">Depois {plan.normalMonthly}/mês</p>
           </>
         )}
       </div>
 
       {/* Features */}
-      <ul
-        className="mt-6 flex-1 space-y-2.5"
-        aria-label={`Funcionalidades do plano ${plan.name}`}
-        role="list"
-      >
+      <ul className="mt-6 flex-1 space-y-2.5" aria-label={`Funcionalidades do plano ${plan.name}`}>
         {sectionLabel && (
           <li className="pb-0.5 pt-0.5">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">

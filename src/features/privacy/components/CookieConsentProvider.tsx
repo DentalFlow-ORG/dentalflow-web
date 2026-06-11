@@ -1,16 +1,16 @@
-import { useState, useCallback, useMemo, type ReactNode } from 'react'
+import { type ReactNode, useCallback, useMemo, useState } from 'react'
 
+import { logCookieConsent } from '../services/privacy.service'
 import type { CookieConsent } from '../types/cookie-consent.types'
 import {
+  COOKIE_POLICY_VERSION,
+  buildConsent,
   loadConsent,
   saveConsent,
-  buildConsent,
-  COOKIE_POLICY_VERSION,
 } from '../utils/cookie-consent-storage'
-import { logCookieConsent } from '../services/privacy.service'
 
-import { CookieConsentContext } from './CookieConsentContext'
 import { CookieBanner } from './CookieBanner'
+import { CookieConsentContext } from './CookieConsentContext'
 import { CookiePreferencesModal } from './CookiePreferencesModal'
 
 type Props = { children: ReactNode }
@@ -64,7 +64,17 @@ export function CookieConsentProvider({ children }: Props) {
       openPreferences,
       closePreferences,
     }),
-    [consent, hasConsented, isBannerVisible, isPreferencesOpen, acceptAll, rejectOptional, savePreferences, openPreferences, closePreferences],
+    [
+      consent,
+      hasConsented,
+      isBannerVisible,
+      isPreferencesOpen,
+      acceptAll,
+      rejectOptional,
+      savePreferences,
+      openPreferences,
+      closePreferences,
+    ],
   )
 
   return (

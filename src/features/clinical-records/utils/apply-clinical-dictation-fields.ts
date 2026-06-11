@@ -41,10 +41,13 @@ const SECTION_PRIORITY: ReadonlyArray<{
   keys: readonly ClinicalDictationFieldKey[]
   section: DictationTargetSection
 }> = [
-  { keys: ['clinicalEvolution'],                                                section: 'evolucao'   },
-  { keys: ['anamnesis'],                                                         section: 'anamnese'   },
-  { keys: ['diagnosis'],                                                         section: 'diagnostico'},
-  { keys: ['proceduresPerformed', 'treatmentPlan', 'prescription', 'recommendations'], section: 'plano' },
+  { keys: ['clinicalEvolution'], section: 'evolucao' },
+  { keys: ['anamnesis'], section: 'anamnese' },
+  { keys: ['diagnosis'], section: 'diagnostico' },
+  {
+    keys: ['proceduresPerformed', 'treatmentPlan', 'prescription', 'recommendations'],
+    section: 'plano',
+  },
 ]
 
 // ── Helper ────────────────────────────────────────────────────────────────────

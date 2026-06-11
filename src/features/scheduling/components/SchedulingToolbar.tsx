@@ -1,10 +1,10 @@
 import { Link2Off, Loader2, Plus, RefreshCw } from 'lucide-react'
 
-import { ListToolbar, type FilterDef } from '@/components/common/ListToolbar'
+import { type FilterDef, ListToolbar } from '@/components/common/ListToolbar'
 import { Button } from '@/components/ui/button'
 
-import type { GoogleCalendarStatus } from '../types/calendar-integration.types'
 import type { AppointmentsView } from '../hooks/useAppointmentsPage'
+import type { GoogleCalendarStatus } from '../types/calendar-integration.types'
 import { ViewToggle } from './shared/ViewToggle'
 
 type SchedulingToolbarProps = {
@@ -172,9 +172,21 @@ function GoogleCalendarIcon({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       {/* Calendar body */}
-      <rect x="1.5" y="2.5" width="13" height="12" rx="1.5" fill="white" stroke="#DADCE0" strokeWidth="0.75" />
+      <rect
+        x="1.5"
+        y="2.5"
+        width="13"
+        height="12"
+        rx="1.5"
+        fill="white"
+        stroke="#DADCE0"
+        strokeWidth="0.75"
+      />
       {/* Blue header bar */}
-      <path d="M1.5 4C1.5 3.17 2.17 2.5 3 2.5H13C13.83 2.5 14.5 3.17 14.5 4V5.5H1.5V4Z" fill="#4285F4" />
+      <path
+        d="M1.5 4C1.5 3.17 2.17 2.5 3 2.5H13C13.83 2.5 14.5 3.17 14.5 4V5.5H1.5V4Z"
+        fill="#4285F4"
+      />
       {/* Calendar hooks */}
       <rect x="4.5" y="1" width="1.25" height="3" rx="0.625" fill="#1A73E8" />
       <rect x="10.25" y="1" width="1.25" height="3" rx="0.625" fill="#1A73E8" />

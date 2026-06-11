@@ -51,15 +51,14 @@ export function MacbookIntroSection() {
         {/* Main headline */}
         <h2 className="mx-auto mt-6 max-w-[19rem] break-words text-2xl font-semibold leading-tight tracking-tight text-white sm:max-w-4xl sm:text-4xl lg:text-5xl">
           Veja sua clínica
-          <br className="sm:hidden" /> organizada em uma{' '}
-          <br className="sm:hidden" />
+          <br className="sm:hidden" /> organizada em uma <br className="sm:hidden" />
           <span className="text-cyan-300">plataforma moderna</span>
         </h2>
 
         {/* Subtitle — increased from text-lg to text-xl */}
         <p className="mx-auto mt-6 max-w-[19rem] break-words text-base leading-8 text-blue-200 sm:max-w-2xl sm:text-xl">
-          Agenda, pacientes, financeiro, estoque, relatórios e comunicação em um só fluxo —
-          sem planilhas, sem papel, sem sistema desatualizado.
+          Agenda, pacientes, financeiro, estoque, relatórios e comunicação em um só fluxo — sem
+          planilhas, sem papel, sem sistema desatualizado.
         </p>
 
         {/* Feature highlights — increased from text-xs/text-[11px] */}

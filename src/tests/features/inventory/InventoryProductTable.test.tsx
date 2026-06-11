@@ -186,9 +186,7 @@ describe('InventoryProductTable', () => {
     const user = userEvent.setup()
     render(<InventoryProductTable {...defaultProps({ products: [product], onMove })} />)
 
-    await user.click(
-      screen.getByRole('button', { name: `Movimentar estoque de ${product.name}` }),
-    )
+    await user.click(screen.getByRole('button', { name: `Movimentar estoque de ${product.name}` }))
 
     expect(onMove).toHaveBeenCalledWith(product)
   })
@@ -201,9 +199,7 @@ describe('InventoryProductTable', () => {
     const user = userEvent.setup()
     render(<InventoryProductTable {...defaultProps({ products: [product], onDeactivate })} />)
 
-    await user.click(
-      screen.getByRole('button', { name: `Desativar produto ${product.name}` }),
-    )
+    await user.click(screen.getByRole('button', { name: `Desativar produto ${product.name}` }))
 
     expect(onDeactivate).toHaveBeenCalledWith(product)
   })
@@ -216,9 +212,7 @@ describe('InventoryProductTable', () => {
     const user = userEvent.setup()
     render(<InventoryProductTable {...defaultProps({ products: [product], onReactivate })} />)
 
-    await user.click(
-      screen.getByRole('button', { name: `Reativar produto ${product.name}` }),
-    )
+    await user.click(screen.getByRole('button', { name: `Reativar produto ${product.name}` }))
 
     expect(onReactivate).toHaveBeenCalledWith(product)
   })
@@ -257,9 +251,7 @@ describe('InventoryProductTable', () => {
     const user = userEvent.setup()
     render(<InventoryProductTable {...defaultProps({ products: [product], onQuickMove })} />)
 
-    await user.click(
-      screen.getByRole('button', { name: `Adicionar 1 unidade de ${product.name}` }),
-    )
+    await user.click(screen.getByRole('button', { name: `Adicionar 1 unidade de ${product.name}` }))
 
     expect(onQuickMove).toHaveBeenCalledWith(product, 'in')
   })
@@ -272,9 +264,7 @@ describe('InventoryProductTable', () => {
     const user = userEvent.setup()
     render(<InventoryProductTable {...defaultProps({ products: [product], onQuickMove })} />)
 
-    await user.click(
-      screen.getByRole('button', { name: `Remover 1 unidade de ${product.name}` }),
-    )
+    await user.click(screen.getByRole('button', { name: `Remover 1 unidade de ${product.name}` }))
 
     expect(onQuickMove).toHaveBeenCalledWith(product, 'out')
   })
@@ -293,9 +283,7 @@ describe('InventoryProductTable', () => {
   it('shows a loading spinner instead of quantity when product is in quickMovingIds', () => {
     const product = buildProduct()
     const quickMovingIds = new Set([product.id])
-    render(
-      <InventoryProductTable {...defaultProps({ products: [product], quickMovingIds })} />,
-    )
+    render(<InventoryProductTable {...defaultProps({ products: [product], quickMovingIds })} />)
 
     const table = screen.getByRole('table')
     expect(table.querySelector('.animate-spin')).toBeInTheDocument()

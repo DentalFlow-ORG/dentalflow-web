@@ -12,10 +12,7 @@ export function RoleWorkflow({ workflow, roleLabel }: RoleWorkflowProps) {
     <section className="bg-slate-50 py-14 lg:py-16" aria-labelledby="workflow-heading">
       <div className="mx-auto max-w-5xl px-6 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Na prática</p>
-        <h2
-          id="workflow-heading"
-          className="mt-2 text-xl font-semibold text-slate-900"
-        >
+        <h2 id="workflow-heading" className="mt-2 text-xl font-semibold text-slate-900">
           Um dia com o DentalFlow para{' '}
           <span className="text-primary">{roleLabel.toLowerCase()}</span>
         </h2>

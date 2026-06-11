@@ -42,7 +42,11 @@ const defaultCategory: FinancialCategory = {
 function renderPanel(categories: FinancialCategory[] = []) {
   const onEdit = vi.fn()
   const onDelete = vi.fn()
-  return { onEdit, onDelete, ...render(<CategoriesPanel categories={categories} onEdit={onEdit} onDelete={onDelete} />) }
+  return {
+    onEdit,
+    onDelete,
+    ...render(<CategoriesPanel categories={categories} onEdit={onEdit} onDelete={onDelete} />),
+  }
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -95,7 +99,9 @@ describe('CategoriesPanel', () => {
 
   it('delete button is disabled for default categories', () => {
     renderPanel([defaultCategory])
-    const deleteBtn = screen.getByRole('button', { name: /Categorias padrão não podem ser removidas/i })
+    const deleteBtn = screen.getByRole('button', {
+      name: /Categorias padrão não podem ser removidas/i,
+    })
     expect(deleteBtn).toBeDisabled()
   })
 

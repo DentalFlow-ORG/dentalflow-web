@@ -78,11 +78,7 @@ export function ExpenseClassifyAction({
 
   // Error (non-blocking)
   if (error && !result) {
-    return (
-      <p className="mt-1 text-[11px] text-red-600 dark:text-red-400">
-        {error}
-      </p>
-    )
+    return <p className="mt-1 text-[11px] text-red-600 dark:text-red-400">{error}</p>
   }
 
   // Result
@@ -90,9 +86,7 @@ export function ExpenseClassifyAction({
     if (result.source === 'NO_MATCH' || !result.suggestedCategoryId) {
       return (
         <div className="mt-1 flex items-center gap-1.5">
-          <p className="text-[11px] text-muted-foreground">
-            Nenhuma categoria identificada.
-          </p>
+          <p className="text-[11px] text-muted-foreground">Nenhuma categoria identificada.</p>
           <button
             type="button"
             onClick={() => onDismiss(transactionId)}
@@ -109,10 +103,12 @@ export function ExpenseClassifyAction({
     return (
       <div className="mt-1.5 space-y-1">
         <div className="flex flex-wrap items-center gap-1.5">
-          <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+          <CheckCircle2
+            className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400"
+            aria-hidden="true"
+          />
           <span className="text-[11px] font-medium text-foreground">
-            Sugestão:{' '}
-            <span className="text-primary">{result.suggestedCategoryName}</span>
+            Sugestão: <span className="text-primary">{result.suggestedCategoryName}</span>
           </span>
           <ConfidenceBadge confidence={result.confidence} />
           <span className="text-[10px] text-muted-foreground/60">
@@ -130,9 +126,7 @@ export function ExpenseClassifyAction({
             disabled={isApplying}
             onClick={() => onApply(transactionId, categoryId)}
           >
-            {isApplying ? (
-              <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
-            ) : null}
+            {isApplying ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : null}
             Aplicar
           </Button>
           <Button

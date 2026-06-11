@@ -72,10 +72,10 @@ describe('HomeKpiCard — loading state', () => {
 describe('HomeKpiCard — tones', () => {
   it('accepts all valid tones without error', () => {
     const tones = ['neutral', 'primary', 'success', 'warning', 'danger', 'info'] as const
-    tones.forEach((tone) => {
+    for (const tone of tones) {
       const { unmount } = render(<HomeKpiCard label="Test" value="0" tone={tone} />)
       expect(screen.getByText('Test')).toBeInTheDocument()
       unmount()
-    })
+    }
   })
 })

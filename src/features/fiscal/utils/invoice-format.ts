@@ -1,5 +1,5 @@
-import { formatCurrencyBR } from '@/lib/number-formatters'
 import { centsToMoneyInput, parseMoneyInputToCents } from '@/lib/money-input'
+import { formatCurrencyBR } from '@/lib/number-formatters'
 
 export function formatCents(cents: number): string {
   return formatCurrencyBR(cents / 100) ?? 'R$ 0,00'

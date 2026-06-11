@@ -1,10 +1,10 @@
 import { Loader2 } from 'lucide-react'
 import { Dialog } from 'radix-ui'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import { FormField } from '@/components/common/FormField'
-import { PasswordInput } from '@/components/common/PasswordInput'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { PasswordInput } from '@/components/common/PasswordInput'
 import {
   UserEmailField,
   UserNameFields,
@@ -20,9 +20,9 @@ import {
 } from '@/components/ui/select'
 import { isValidPersonName, isValidPhoneBR, onlyDigits } from '@/lib/field-formatters'
 
+import { USER_FORM_ROLE_OPTIONS } from '../constants/admin-display'
 import { createAdminUser, listAdminClinics, updateAdminUser } from '../services/admin-users.service'
 import type { AdminClinic, AdminUser, UserRole } from '../types/admin.types'
-import { USER_FORM_ROLE_OPTIONS } from '../constants/admin-display'
 
 type Props = {
   open: boolean
@@ -177,10 +177,7 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
           onInteractOutside={onClose}
         >
           <div className="border-b border-border px-6 py-5">
-            <Dialog.Title
-              id="user-form-title"
-              className="text-base font-semibold text-foreground"
-            >
+            <Dialog.Title id="user-form-title" className="text-base font-semibold text-foreground">
               {isEditMode ? 'Editar usuário' : 'Novo usuário'}
             </Dialog.Title>
             <Dialog.Description className="mt-0.5 text-sm text-muted-foreground">
@@ -202,10 +199,7 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
                   onLastNameChange={(value) => set('lastName', value)}
                 />
 
-                <UserEmailField
-                  email={form.email}
-                  onEmailChange={(value) => set('email', value)}
-                />
+                <UserEmailField email={form.email} onEmailChange={(value) => set('email', value)} />
 
                 {!isEditMode && (
                   <FormField
@@ -287,10 +281,7 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
 
                 {isEditMode && (
                   <FormField label="Status da conta" htmlFor="isActive">
-                    <Select
-                      value={form.isActive}
-                      onValueChange={(v) => set('isActive', v)}
-                    >
+                    <Select value={form.isActive} onValueChange={(v) => set('isActive', v)}>
                       <SelectTrigger id="isActive">
                         <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
@@ -305,21 +296,12 @@ export function UserFormModal({ open, initialData, onClose, onSuccess }: Props) 
             </div>
 
             <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isSubmitting}
-              >
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                 Cancelar
               </Button>
               <Button type="submit" form="user-form" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isSubmitting
-                  ? 'Salvando...'
-                  : isEditMode
-                    ? 'Salvar alterações'
-                    : 'Criar usuário'}
+                {isSubmitting ? 'Salvando...' : isEditMode ? 'Salvar alterações' : 'Criar usuário'}
               </Button>
             </div>
           </form>

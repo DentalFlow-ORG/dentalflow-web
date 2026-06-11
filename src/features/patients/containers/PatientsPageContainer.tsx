@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import {
   AlertCircle,
   BarChart3,
@@ -11,8 +11,8 @@ import {
   Users2,
   X,
 } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
 import { Dialog } from 'radix-ui'
+import { useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { PatientAvatarWidget } from '../components/PatientAvatarWidget'
@@ -23,8 +23,8 @@ import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
-import { PanelCard } from '@/components/common/PanelCard'
 import { Pagination } from '@/components/common/Pagination'
+import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
@@ -41,8 +41,8 @@ import { HomeSection } from '@/features/home/components/HomeSection'
 
 import { AppointmentStatusBadge } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
 import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
-import { cn } from '@/lib/utils'
 import { formatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
+import { cn } from '@/lib/utils'
 
 import { usePatientHistory } from '../hooks/usePatientHistory'
 import { usePatientsPage } from '../hooks/usePatientsPage'
@@ -55,20 +55,11 @@ const formatTime = (t: string | null | undefined) => safeFormatTimeBR(t)
 
 function PatientKpiRow({ patients }: { patients: PatientSummary[] }) {
   const totalPatients = patients.length
-  const totalAppointments = patients.reduce(
-    (sum, p) => sum + p.totalAppointments,
-    0,
-  )
-  const totalCompleted = patients.reduce(
-    (sum, p) => sum + p.completedAppointments,
-    0,
-  )
+  const totalAppointments = patients.reduce((sum, p) => sum + p.totalAppointments, 0)
+  const totalCompleted = patients.reduce((sum, p) => sum + p.completedAppointments, 0)
   const completionRate =
-    totalAppointments > 0
-      ? `${((totalCompleted / totalAppointments) * 100).toFixed(1)}%`
-      : '0.0%'
-  const avgPerPatient =
-    totalPatients > 0 ? (totalAppointments / totalPatients).toFixed(1) : '0.0'
+    totalAppointments > 0 ? `${((totalCompleted / totalAppointments) * 100).toFixed(1)}%` : '0.0%'
+  const avgPerPatient = totalPatients > 0 ? (totalAppointments / totalPatients).toFixed(1) : '0.0'
 
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -151,7 +142,6 @@ function PanelStat({
   )
 }
 
-
 // ── Mobile card ───────────────────────────────────────────────────────────────
 
 function PatientMobileCard({
@@ -232,7 +222,7 @@ function PatientDetailPanel({
   const canSchedule = user?.role === 'OWNER' || user?.role === 'ASSISTANT'
   const { appointments, isLoading } = usePatientHistory(patient)
   const { records: clinicalRecords, isLoading: isLoadingTimeline } = usePatientClinicalTimeline(
-    canViewClinicalTimeline ? patient?.identifier ?? null : null,
+    canViewClinicalTimeline ? (patient?.identifier ?? null) : null,
   )
 
   const identifier = patient?.patientEmail ?? patient?.patientName ?? null
@@ -307,10 +297,7 @@ function PatientDetailPanel({
           {/* ── Stats strip ── */}
           {patient && (
             <div className="grid grid-cols-2 divide-x divide-y divide-border border-b border-border bg-muted/60 sm:grid-cols-4 sm:divide-y-0">
-              <PanelStat
-                value={String(patient.totalAppointments)}
-                label="Total"
-              />
+              <PanelStat value={String(patient.totalAppointments)} label="Total" />
               <PanelStat
                 value={String(patient.completedAppointments)}
                 label="Concluídas"
@@ -320,9 +307,7 @@ function PatientDetailPanel({
                 value={String(patient.canceledAppointments)}
                 label="Canceladas"
                 valueClassName={
-                  patient.canceledAppointments > 0
-                    ? 'text-red-600 dark:text-red-400'
-                    : undefined
+                  patient.canceledAppointments > 0 ? 'text-red-600 dark:text-red-400' : undefined
                 }
               />
               <PanelStat
@@ -377,10 +362,12 @@ function PatientDetailPanel({
             aria-label="Informações do paciente"
             className="flex border-b border-border"
           >
-            {([
-              { id: 'consultas', label: 'Consultas' },
-              { id: 'prontuarios', label: 'Prontuários' },
-            ] as { id: PanelTab; label: string }[]).map((tab) => (
+            {(
+              [
+                { id: 'consultas', label: 'Consultas' },
+                { id: 'prontuarios', label: 'Prontuários' },
+              ] as { id: PanelTab; label: string }[]
+            ).map((tab) => (
               <button
                 key={tab.id}
                 id={`tab-patient-${tab.id}`}
@@ -459,8 +446,8 @@ function PatientDetailPanel({
                       Informações clínicas restritas
                     </p>
                     <p className="mt-1.5 text-sm text-muted-foreground">
-                      O acesso a prontuários é exclusivo para proprietários e dentistas. O
-                      histórico administrativo de consultas está disponível na aba anterior.
+                      O acesso a prontuários é exclusivo para proprietários e dentistas. O histórico
+                      administrativo de consultas está disponível na aba anterior.
                     </p>
                   </div>
                 )}
@@ -477,7 +464,7 @@ function PatientDetailPanel({
 
 function PatientSkeletonRow() {
   return (
-    <tr aria-hidden="true">
+    <tr>
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
@@ -625,8 +612,14 @@ export function PatientsPageContainer() {
                 <HomeEmptyState
                   compact
                   icon={Users2}
-                  title={hasFilters ? 'Nenhum resultado para sua busca' : 'Nenhum paciente encontrado.'}
-                  description={hasFilters ? 'Tente ajustar os filtros ou pesquisar por outro contato.' : undefined}
+                  title={
+                    hasFilters ? 'Nenhum resultado para sua busca' : 'Nenhum paciente encontrado.'
+                  }
+                  description={
+                    hasFilters
+                      ? 'Tente ajustar os filtros ou pesquisar por outro contato.'
+                      : undefined
+                  }
                 />
               ) : (
                 paginatedPatients.map((patient) => (
@@ -644,9 +637,15 @@ export function PatientsPageContainer() {
               <table className="w-full text-sm" aria-label="Lista de pacientes">
                 <thead>
                   <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    <th scope="col" className="px-4 py-3">Paciente</th>
-                    <th scope="col" className="px-4 py-3 text-center">Consultas</th>
-                    <th scope="col" className="hidden px-4 py-3 md:table-cell">Última visita</th>
+                    <th scope="col" className="px-4 py-3">
+                      Paciente
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-center">
+                      Consultas
+                    </th>
+                    <th scope="col" className="hidden px-4 py-3 md:table-cell">
+                      Última visita
+                    </th>
                     <th scope="col" className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -659,8 +658,16 @@ export function PatientsPageContainer() {
                         <HomeEmptyState
                           compact
                           icon={Users2}
-                          title={hasFilters ? 'Nenhum resultado para sua busca' : 'Nenhum paciente encontrado.'}
-                          description={hasFilters ? 'Tente ajustar os filtros ou pesquisar por outro contato.' : undefined}
+                          title={
+                            hasFilters
+                              ? 'Nenhum resultado para sua busca'
+                              : 'Nenhum paciente encontrado.'
+                          }
+                          description={
+                            hasFilters
+                              ? 'Tente ajustar os filtros ou pesquisar por outro contato.'
+                              : undefined
+                          }
                         />
                       </td>
                     </tr>
@@ -706,7 +713,10 @@ export function PatientsPageContainer() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <RefreshCw className="ml-auto h-4 w-4 rotate-0 scale-0 text-muted-foreground opacity-0 group-hover:opacity-100" aria-hidden="true" />
+                          <RefreshCw
+                            className="ml-auto h-4 w-4 rotate-0 scale-0 text-muted-foreground opacity-0 group-hover:opacity-100"
+                            aria-hidden="true"
+                          />
                         </td>
                       </tr>
                     ))
@@ -750,10 +760,7 @@ export function PatientsPageContainer() {
         </>
       )}
 
-      <PatientDetailPanel
-        patient={selectedPatient}
-        onClose={() => setSelectedPatient(null)}
-      />
+      <PatientDetailPanel patient={selectedPatient} onClose={() => setSelectedPatient(null)} />
     </AppPage>
   )
 }

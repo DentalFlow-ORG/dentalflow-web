@@ -35,10 +35,7 @@ type HomeQuickActionCardProps = LinkCardProps | ButtonCardProps
 // ── Tone maps ─────────────────────────────────────────────────────────────────
 
 const TONE_BASE: Record<HomeQuickActionCardTone, string> = {
-  neutral: [
-    'border-border bg-card',
-    'hover:border-primary/40 hover:bg-accent',
-  ].join(' '),
+  neutral: ['border-border bg-card', 'hover:border-primary/40 hover:bg-accent'].join(' '),
   primary: [
     'border-primary/20 bg-primary/5 dark:border-primary/25 dark:bg-primary/10',
     'hover:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/15',
@@ -57,14 +54,14 @@ const TONE_ICON_BG: Record<HomeQuickActionCardTone, string> = {
   neutral: 'bg-muted text-muted-foreground',
   primary: 'bg-primary/10 text-primary dark:bg-primary/15',
   warning: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
-  danger:  'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
+  danger: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
 }
 
 const TONE_BADGE: Record<HomeQuickActionCardTone, string> = {
   neutral: 'bg-muted text-muted-foreground',
   primary: 'bg-primary/10 text-primary',
   warning: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-  danger:  'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+  danger: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
 }
 
 // ── Shared card content ───────────────────────────────────────────────────────
@@ -92,7 +89,9 @@ function CardContent({
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="whitespace-normal break-words text-sm font-semibold leading-snug text-foreground">{title}</p>
+          <p className="whitespace-normal break-words text-sm font-semibold leading-snug text-foreground">
+            {title}
+          </p>
           {badge !== undefined && badge !== null && String(badge) !== '' && (
             <span
               className={cn(
@@ -105,25 +104,20 @@ function CardContent({
           )}
         </div>
         {description && (
-          <p className="mt-0.5 line-clamp-2 break-words text-xs leading-snug text-muted-foreground">{description}</p>
+          <p className="mt-0.5 line-clamp-2 break-words text-xs leading-snug text-muted-foreground">
+            {description}
+          </p>
         )}
       </div>
 
-      <ChevronRight
-        className="h-4 w-4 shrink-0 text-muted-foreground/50"
-        aria-hidden="true"
-      />
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50" aria-hidden="true" />
     </>
   )
 }
 
 // ── Shared class builder ──────────────────────────────────────────────────────
 
-function cardClasses(
-  tone: HomeQuickActionCardTone,
-  disabled: boolean,
-  className?: string,
-) {
+function cardClasses(tone: HomeQuickActionCardTone, disabled: boolean, className?: string) {
   return cn(
     'flex min-w-0 w-full max-w-full items-center gap-3 overflow-hidden rounded-xl border p-4 text-left shadow-sm',
     'transition-colors duration-150',

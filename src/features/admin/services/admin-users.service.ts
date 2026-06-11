@@ -18,10 +18,10 @@ export function listAdminClinics() {
 }
 
 export function listAdminUsers(page = 1, limit = 20) {
-  return apiRequest<AdminUsersResponse>(
-    `/admin/users?page=${page}&limit=${limit}`,
-    { method: 'GET', accessToken: getAccessToken() },
-  )
+  return apiRequest<AdminUsersResponse>(`/admin/users?page=${page}&limit=${limit}`, {
+    method: 'GET',
+    accessToken: getAccessToken(),
+  })
 }
 
 export function getAdminUser(userId: string) {
@@ -47,10 +47,7 @@ export function updateAdminUser(userId: string, dto: UpdateAdminUserDto) {
   })
 }
 
-export function updateAdminUserPassword(
-  userId: string,
-  dto: UpdateAdminPasswordDto,
-) {
+export function updateAdminUserPassword(userId: string, dto: UpdateAdminPasswordDto) {
   return apiRequest<void>(`/admin/users/${userId}/password`, {
     method: 'PATCH',
     accessToken: getAccessToken(),

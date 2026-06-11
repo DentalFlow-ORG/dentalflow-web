@@ -67,10 +67,13 @@ export function DeactivateProductDialog({
             <Button type="button" variant="outline" onClick={onCancel} disabled={isDeactivating}>
               Cancelar
             </Button>
-            <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeactivating}>
-              {isDeactivating && (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              )}
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={onConfirm}
+              disabled={isDeactivating}
+            >
+              {isDeactivating && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
               {isDeactivating ? 'Desativando...' : 'Desativar produto'}
             </Button>
           </div>

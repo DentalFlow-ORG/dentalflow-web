@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
-import type { AttentionReason } from '../types/attention.types'
 import { REASON_LABEL } from '../constants/attention-display'
+import type { AttentionReason } from '../types/attention.types'
 
 // ── Tone map ──────────────────────────────────────────────────────────────────
 //

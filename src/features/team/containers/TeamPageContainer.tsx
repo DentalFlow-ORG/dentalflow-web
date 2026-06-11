@@ -1,10 +1,5 @@
-import {
-  ClipboardList,
-  Plus,
-  Stethoscope,
-  Users,
-} from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { ClipboardList, Plus, Stethoscope, Users } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { FilteredEmptyState } from '@/components/common/FilteredEmptyState'
@@ -33,10 +28,7 @@ export type TeamKpis = {
   isAtLimit: boolean
 }
 
-export function computeTeamKpis(
-  members: MemberListItem[],
-  usage: UserLimitUsage,
-): TeamKpis {
+export function computeTeamKpis(members: MemberListItem[], usage: UserLimitUsage): TeamKpis {
   return {
     usageValue: usage.limit > 0 ? `${usage.used}/${usage.limit}` : String(usage.used),
     dentistCount: members.filter((m) => m.role === 'DENTIST').length,

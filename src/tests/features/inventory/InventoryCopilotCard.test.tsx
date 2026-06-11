@@ -10,7 +10,9 @@ import type { InventoryCopilotCardProps } from '@/features/inventory/components/
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function buildResult(overrides: Partial<InventoryCopilotCardProps['result'] & object> = {}): NonNullable<InventoryCopilotCardProps['result']> {
+function buildResult(
+  overrides: Partial<InventoryCopilotCardProps['result'] & object> = {},
+): NonNullable<InventoryCopilotCardProps['result']> {
   return {
     summary: 'Análise do estoque concluída.',
     highlights: ['Produto A com estoque baixo.'],
@@ -21,7 +23,9 @@ function buildResult(overrides: Partial<InventoryCopilotCardProps['result'] & ob
   }
 }
 
-function defaultProps(overrides: Partial<InventoryCopilotCardProps> = {}): InventoryCopilotCardProps {
+function defaultProps(
+  overrides: Partial<InventoryCopilotCardProps> = {},
+): InventoryCopilotCardProps {
   return {
     title: 'Copiloto de teste',
     description: 'Descrição do copiloto.',

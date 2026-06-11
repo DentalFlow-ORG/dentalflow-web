@@ -29,12 +29,7 @@ const SIZE_CLASSES: Record<PatientAvatarSize, string> = {
  * initials circle but does not handle upload, crop, or edit interactions.
  * For interactive upload/replace functionality use `PatientAvatarWidget`.
  */
-export function PatientAvatar({
-  name,
-  avatarUrl,
-  size = 'md',
-  className,
-}: PatientAvatarProps) {
+export function PatientAvatar({ name, avatarUrl, size = 'md', className }: PatientAvatarProps) {
   const sizeClass = SIZE_CLASSES[size]
   const initials = getAvatarInitials(name)
   const label = name?.trim() || 'Paciente'

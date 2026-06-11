@@ -4,19 +4,11 @@ import {
   CreditCard,
   Info,
   Layers3,
-  RefreshCw,
   ReceiptText,
+  RefreshCw,
 } from 'lucide-react'
 import type { ElementType } from 'react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { useTheme } from '@/features/theme/useTheme'
 
@@ -39,6 +31,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+import {
+  FINANCE_STATUS_LABEL,
+  FINANCE_STATUS_OPTIONS,
+  FINANCE_STATUS_TONE,
+} from '../constants/finance-display'
 import { useAdminFinancePage } from '../hooks/useAdminFinancePage'
 import type {
   AdminFinancePlan,
@@ -49,8 +46,12 @@ import type {
   StripeEventFilters,
   SubscriptionFilters,
 } from '../types/admin-finance.types'
-import { FINANCE_STATUS_LABEL, FINANCE_STATUS_TONE, FINANCE_STATUS_OPTIONS } from '../constants/finance-display'
-import { formatCurrencyFromCents, formatDate, formatInterval, getSubscriptionAmount } from '../utils/admin-finance-format'
+import {
+  formatCurrencyFromCents,
+  formatDate,
+  formatInterval,
+  getSubscriptionAmount,
+} from '../utils/admin-finance-format'
 
 const ALL_VALUE = 'all'
 
@@ -126,10 +127,7 @@ export function AdminFinancePageContainer() {
                 value={String(summary.kpis.pastDueSubscriptions)}
                 label="Pagamentos pendentes"
               />
-              <MetricCard
-                value={String(summary.kpis.totalPlans)}
-                label="Planos cadastrados"
-              />
+              <MetricCard value={String(summary.kpis.totalPlans)} label="Planos cadastrados" />
               <MetricCard
                 value={String(summary.kpis.stripeEventsFailed)}
                 label="Eventos Stripe com erro"
@@ -191,9 +189,7 @@ export function AdminFinancePageContainer() {
               filters={subscriptionFilters}
               planOptions={planOptions}
               onFilterChange={setSubscriptionFilter}
-              onPageChange={(page) =>
-                setSubscriptionFilters((current) => ({ ...current, page }))
-              }
+              onPageChange={(page) => setSubscriptionFilters((current) => ({ ...current, page }))}
               onPageSizeChange={(limit) =>
                 setSubscriptionFilters((current) => ({ ...current, page: 1, limit }))
               }
@@ -233,11 +229,7 @@ function ExplainedMetricCard({
       <p className="text-2xl font-semibold text-foreground">{value}</p>
       <p className="mt-2 flex items-center gap-1.5 text-sm leading-6 text-muted-foreground">
         {label}
-        <Info
-          className="h-3.5 w-3.5 text-muted-foreground"
-          aria-label={explanation}
-          role="img"
-        >
+        <Info className="h-3.5 w-3.5 text-muted-foreground" aria-label={explanation} role="img">
           <title>{explanation}</title>
         </Info>
       </p>
@@ -254,7 +246,14 @@ type AdminChartTooltipProps = {
   dataLabel: string
 }
 
-function AdminChartTooltip({ active, payload, label, isDark, valueFormatter, dataLabel }: AdminChartTooltipProps) {
+function AdminChartTooltip({
+  active,
+  payload,
+  label,
+  isDark,
+  valueFormatter,
+  dataLabel,
+}: AdminChartTooltipProps) {
   if (!active || !payload?.length) return null
 
   const bgColor = isDark ? '#0f172a' : '#ffffff'
@@ -323,7 +322,8 @@ function FinanceChart({
               role="img"
             >
               <title>
-                MRR significa receita recorrente mensal. Os valores são calculados no backend a partir dos itens sincronizados do Stripe.
+                MRR significa receita recorrente mensal. Os valores são calculados no backend a
+                partir dos itens sincronizados do Stripe.
               </title>
             </Info>
           )}
@@ -338,7 +338,12 @@ function FinanceChart({
           <ResponsiveContainer width="100%" height={288}>
             <BarChart data={visibleData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid stroke={gridColor} strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: tickColor, fontSize: 12 }} tickLine={false} axisLine={false} />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: tickColor, fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+              />
               <YAxis
                 tick={{ fill: tickColor, fontSize: 12 }}
                 tickLine={false}
@@ -419,9 +424,7 @@ function PriceBreakdownSection({
                     <td className="px-4 py-3 text-muted-foreground">
                       {formatInterval(row.billingInterval)}
                     </td>
-                    <td className="px-4 py-3 text-right text-foreground">
-                      {row.subscriberCount}
-                    </td>
+                    <td className="px-4 py-3 text-right text-foreground">{row.subscriberCount}</td>
                     <td className="px-4 py-3 text-right font-semibold text-foreground">
                       {formatCurrencyFromCents(row.estimatedMrr, row.currency || defaultCurrency)}
                     </td>
@@ -834,8 +837,12 @@ function StripeEventsSection({
                         {event.processed ? 'Processado' : 'Pendente'}
                       </StatusBadge>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDate(event.receivedAt)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDate(event.processedAt)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {formatDate(event.receivedAt)}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {formatDate(event.processedAt)}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {event.errorMessage ? (
                         <span className="inline-flex items-center gap-1.5 text-red-600">

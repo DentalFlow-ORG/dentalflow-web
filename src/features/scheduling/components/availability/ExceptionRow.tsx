@@ -53,7 +53,10 @@ export function ExceptionRow({
             <>
               <span className="font-medium text-foreground">Horário especial</span>
               {exception.startTime && exception.endTime && (
-                <> · {formatWallTime(exception.startTime)} – {formatWallTime(exception.endTime)}</>
+                <>
+                  {' '}
+                  · {formatWallTime(exception.startTime)} – {formatWallTime(exception.endTime)}
+                </>
               )}
             </>
           )}

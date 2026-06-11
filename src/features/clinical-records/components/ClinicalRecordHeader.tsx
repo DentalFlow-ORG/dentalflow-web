@@ -1,13 +1,13 @@
 import { Calendar, Clock, Stethoscope, Tag } from 'lucide-react'
 
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { PatientAvatarWidget } from '@/features/patients/components/PatientAvatarWidget'
+import { usePatientAvatar } from '@/features/patients/hooks/usePatientAvatar'
 import { formatDateBR } from '@/lib/date-time-formatters'
 import { formatPhoneBR } from '@/lib/field-formatters'
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
-import { usePatientAvatar } from '@/features/patients/hooks/usePatientAvatar'
-import { PatientAvatarWidget } from '@/features/patients/components/PatientAvatarWidget'
 
-import { ClinicalRecordStatusBadge } from './ClinicalRecordStatusBadge'
 import type { ClinicalRecord } from '../types/clinical-record.types'
+import { ClinicalRecordStatusBadge } from './ClinicalRecordStatusBadge'
 
 type Props = {
   record: ClinicalRecord
@@ -52,7 +52,9 @@ export function ClinicalRecordHeader({ record, readOnly = false }: Props) {
             avatarUrl={avatarUrl}
             isSaving={isSaving}
             onUpload={readOnly ? undefined : handleAvatarChange}
-            onError={(msg) => showAlert({ title: 'Foto inválida', description: msg, tone: 'error' })}
+            onError={(msg) =>
+              showAlert({ title: 'Foto inválida', description: msg, tone: 'error' })
+            }
             size="lg"
           />
 
@@ -60,9 +62,7 @@ export function ClinicalRecordHeader({ record, readOnly = false }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">
               Prontuário digital
             </p>
-            <h1 className="mt-1 text-xl font-semibold text-foreground">
-              {record.patientName}
-            </h1>
+            <h1 className="mt-1 text-xl font-semibold text-foreground">{record.patientName}</h1>
             {record.patientEmail && (
               <p className="mt-0.5 text-sm text-muted-foreground">{record.patientEmail}</p>
             )}
@@ -107,14 +107,16 @@ export function ClinicalRecordHeader({ record, readOnly = false }: Props) {
           <span className="font-medium text-muted-foreground">
             {record.createdByUser.firstName} {record.createdByUser.lastName}
           </span>
-          {' em '}{formatDateBR(record.createdAt.slice(0, 10))}
+          {' em '}
+          {formatDateBR(record.createdAt.slice(0, 10))}
           {record.updatedByUser && (
             <>
               {' · '}Atualizado por{' '}
               <span className="font-medium text-muted-foreground">
                 {record.updatedByUser.firstName} {record.updatedByUser.lastName}
               </span>
-              {' em '}{formatDateBR(record.updatedAt.slice(0, 10))}
+              {' em '}
+              {formatDateBR(record.updatedAt.slice(0, 10))}
             </>
           )}
         </p>

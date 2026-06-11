@@ -48,11 +48,17 @@ export function ExceptionEditModal({
           aria-labelledby="exception-edit-title"
           className="fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={(e) => {
-            if (isSaving || isDeleting) { e.preventDefault(); return }
+            if (isSaving || isDeleting) {
+              e.preventDefault()
+              return
+            }
             onClose()
           }}
           onInteractOutside={(e) => {
-            if (isSaving || isDeleting) { e.preventDefault(); return }
+            if (isSaving || isDeleting) {
+              e.preventDefault()
+              return
+            }
             onClose()
           }}
         >

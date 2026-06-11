@@ -173,10 +173,18 @@ export function AdminClinicsPageContainer() {
                 <table className="w-full text-sm" aria-label="Clínicas da plataforma">
                   <thead>
                     <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      <th scope="col" className="px-4 py-3">Clínica</th>
-                      <th scope="col" className="px-4 py-3">Status</th>
-                      <th scope="col" className="hidden px-4 py-3 lg:table-cell">Criada em</th>
-                      <th scope="col" className="px-4 py-3 text-right">Ações</th>
+                      <th scope="col" className="px-4 py-3">
+                        Clínica
+                      </th>
+                      <th scope="col" className="px-4 py-3">
+                        Status
+                      </th>
+                      <th scope="col" className="hidden px-4 py-3 lg:table-cell">
+                        Criada em
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-right">
+                        Ações
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">

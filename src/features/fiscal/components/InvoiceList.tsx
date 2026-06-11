@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button'
 
 import { INVOICE_STATUS_LABEL, INVOICE_STATUS_TONE } from '../constants/invoice-status'
 import type { ClinicFiscalProfile, ServiceInvoice } from '../types/fiscal.types'
-import { canCancelInvoice, canSimulateInvoice, getInvoiceActionLabel } from '../utils/invoice-actions'
+import {
+  canCancelInvoice,
+  canSimulateInvoice,
+  getInvoiceActionLabel,
+} from '../utils/invoice-actions'
 import { formatCents, formatInvoiceDate } from '../utils/invoice-format'
 
 type Props = {
@@ -159,13 +163,27 @@ export function InvoiceList({
               <table className="w-full min-w-230 text-sm" aria-label="Notas fiscais">
                 <thead>
                   <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    <th scope="col" className="px-4 py-3">Cliente</th>
-                    <th scope="col" className="px-4 py-3">Serviço</th>
-                    <th scope="col" className="px-4 py-3 text-right">Valor</th>
-                    <th scope="col" className="px-4 py-3">Status</th>
-                    <th scope="col" className="px-4 py-3">Competência</th>
-                    <th scope="col" className="px-4 py-3">Criada em</th>
-                    <th scope="col" className="px-4 py-3 text-right">Ações</th>
+                    <th scope="col" className="px-4 py-3">
+                      Cliente
+                    </th>
+                    <th scope="col" className="px-4 py-3">
+                      Serviço
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right">
+                      Valor
+                    </th>
+                    <th scope="col" className="px-4 py-3">
+                      Status
+                    </th>
+                    <th scope="col" className="px-4 py-3">
+                      Competência
+                    </th>
+                    <th scope="col" className="px-4 py-3">
+                      Criada em
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right">
+                      Ações
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border bg-card">

@@ -1,6 +1,6 @@
+import { PasswordInput } from '@/components/common/PasswordInput'
 import type { LucideIcon } from 'lucide-react'
 import type { HTMLInputTypeAttribute } from 'react'
-import { PasswordInput } from '@/components/common/PasswordInput'
 
 type AuthTextFieldProps = {
   label: string

@@ -7,7 +7,10 @@ import {
   reaisToCents,
 } from '@/features/scheduling/utils/appointment-form-utils'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
-import { makeAvailability, makeAvailabilityException } from '@/test-utils/factories/availability.factory'
+import {
+  makeAvailability,
+  makeAvailabilityException,
+} from '@/test-utils/factories/availability.factory'
 
 // ── reaisToCents ──────────────────────────────────────────────────────────────
 
@@ -19,7 +22,8 @@ describe('reaisToCents', () => {
   it('parses the minimum non-zero value', () => expect(reaisToCents('0,01')).toBe(1))
   it('strips a currency prefix (e.g. "R$ ")', () => expect(reaisToCents('R$ 12,50')).toBe(1250))
   it('returns undefined for an empty string', () => expect(reaisToCents('')).toBeUndefined())
-  it('returns undefined for a non-numeric string', () => expect(reaisToCents('abc')).toBeUndefined())
+  it('returns undefined for a non-numeric string', () =>
+    expect(reaisToCents('abc')).toBeUndefined())
 })
 
 // ── centsToReais ──────────────────────────────────────────────────────────────
@@ -102,8 +106,12 @@ describe('isDateAvailable', () => {
 // explicit UTC timestamps. Brazil = UTC-3, so Brazil HH:mm = UTC (HH+3):mm.
 
 describe('getCurrentTimeInputValue', () => {
-  beforeEach(() => { vi.useFakeTimers() })
-  afterEach(() => { vi.useRealTimers() })
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
   it('returns the Brazil wall-clock time as HH:mm', () => {
     // 17:05 UTC = 14:05 Brazil
@@ -131,8 +139,12 @@ describe('getCurrentTimeInputValue', () => {
 // All system-time fixtures use explicit UTC timestamps for timezone stability.
 
 describe('hasAppointmentTimePassed', () => {
-  beforeEach(() => { vi.useFakeTimers() })
-  afterEach(() => { vi.useRealTimers() })
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
   it('returns true when the appointment date is before today', () => {
     // 12:00 UTC = 09:00 Brazil May 27 — appointment was on May 26
@@ -171,6 +183,7 @@ describe('getInitials', () => {
   it('returns initials from two-word name', () => expect(getInitials('Ana Lima')).toBe('AL'))
   it('returns single initial for one-word name', () => expect(getInitials('João')).toBe('J'))
   it('returns empty string for blank input', () => expect(getInitials('  ')).toBe(''))
-  it('uses only the first two words of a longer name', () => expect(getInitials('Pedro Henrique Silva')).toBe('PH'))
+  it('uses only the first two words of a longer name', () =>
+    expect(getInitials('Pedro Henrique Silva')).toBe('PH'))
   it('uppercases lowercase input', () => expect(getInitials('ana lima')).toBe('AL'))
 })

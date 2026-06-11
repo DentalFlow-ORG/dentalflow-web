@@ -7,13 +7,13 @@ import { LoadingCard } from '@/components/common/LoadingCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { AppointmentDrawer } from '@/features/scheduling/components/appointments/AppointmentDrawer'
 import { AppointmentStatusBadge } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
 import { listProfiles } from '@/features/scheduling/services/profiles.service'
 import { listAppointments } from '@/features/scheduling/services/scheduling.service'
 import type { Appointment } from '@/features/scheduling/types/scheduling.types'
 import { formatAppointmentDateLong, formatWallTime } from '@/features/scheduling/utils/time'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 import { HomeActionGrid } from '@/features/home/components/HomeActionGrid'
 import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
@@ -58,17 +58,13 @@ export function DentistHomePageContainer() {
 
   // All today's appointments sorted by startTime — used in "Agenda do dia"
   const allTodaySorted = useMemo(
-    () =>
-      [...appointments].sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')),
+    () => [...appointments].sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')),
     [appointments],
   )
 
   // Next upcoming appointment (first PENDING or CONFIRMED by startTime)
   const nextAppointment = useMemo(
-    () =>
-      allTodaySorted.find(
-        (a) => a.status === 'PENDING' || a.status === 'CONFIRMED',
-      ) ?? null,
+    () => allTodaySorted.find((a) => a.status === 'PENDING' || a.status === 'CONFIRMED') ?? null,
     [allTodaySorted],
   )
 
@@ -95,8 +91,8 @@ export function DentistHomePageContainer() {
         <InlineFeedback tone="warning">
           <p className="font-semibold">Perfil clínico não encontrado</p>
           <p className="mt-1 text-sm">
-            Seu usuário não está vinculado a um perfil profissional nesta clínica.
-            Solicite ao responsável que faça a vinculação.
+            Seu usuário não está vinculado a um perfil profissional nesta clínica. Solicite ao
+            responsável que faça a vinculação.
           </p>
         </InlineFeedback>
       ) : (
@@ -208,16 +204,8 @@ export function DentistHomePageContainer() {
 
           {/* Quick access — valid DENTIST routes only */}
           <HomeActionGrid columns={2}>
-            <HomeQuickActionCard
-              title="Minha agenda"
-              icon={CalendarDays}
-              to="/app/agenda"
-            />
-            <HomeQuickActionCard
-              title="Prontuários"
-              icon={ClipboardList}
-              to="/app/prontuario"
-            />
+            <HomeQuickActionCard title="Minha agenda" icon={CalendarDays} to="/app/agenda" />
+            <HomeQuickActionCard title="Prontuários" icon={ClipboardList} to="/app/prontuario" />
           </HomeActionGrid>
         </>
       )}
@@ -254,9 +242,7 @@ function NextAppointmentCard({
           <p className="text-2xl font-bold tabular-nums text-foreground">
             {startTime}
             {endTime && (
-              <span className="ml-1 text-base font-normal text-muted-foreground">
-                – {endTime}
-              </span>
+              <span className="ml-1 text-base font-normal text-muted-foreground">– {endTime}</span>
             )}
           </p>
           <p className="mt-1.5 truncate text-lg font-semibold text-foreground">

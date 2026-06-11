@@ -1,13 +1,9 @@
-import { useState } from 'react'
-import { Bell, Loader2, MessageCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/common/BackButton'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
-import { ApiError } from '@/services/http'
-import { cn } from '@/lib/utils'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -15,11 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import { ApiError } from '@/services/http'
+import { Bell, Loader2, MessageCircle } from 'lucide-react'
+import { useState } from 'react'
 
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { MonthlyUsageBar } from '../components/MonthlyUsageBar'
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
 import { useNotificationQuota } from '../hooks/useNotificationQuota'
-import { MonthlyUsageBar } from '../components/MonthlyUsageBar'
 
 const REMINDER_HOURS_OPTIONS = [2, 4, 12, 24, 48] as const
 
@@ -101,7 +101,8 @@ export function NotificationSettingsPage() {
 
       {user?.role === 'ASSISTANT' && (
         <InlineFeedback tone="info">
-          Você pode ajustar preferências operacionais de comunicação, mas configurações administrativas da clínica continuam restritas ao proprietário.
+          Você pode ajustar preferências operacionais de comunicação, mas configurações
+          administrativas da clínica continuam restritas ao proprietário.
         </InlineFeedback>
       )}
 
@@ -161,17 +162,20 @@ export function NotificationSettingsPage() {
 
           {whatsappEnabled && !isRealProvider && (
             <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-              Fase 0 — simulação. Nenhuma mensagem real é enviada. O envio real será habilitado em uma fase futura.
+              Fase 0 — simulação. Nenhuma mensagem real é enviada. O envio real será habilitado em
+              uma fase futura.
             </div>
           )}
           {whatsappEnabled && isRealProvider && providerConfigured && (
             <div className="rounded-md bg-green-50 px-3 py-2 text-xs text-green-800 dark:bg-green-900/20 dark:text-green-300">
-              Provedor real ativo. Mensagens são enviadas via Meta WhatsApp Business Cloud API. Templates devem estar aprovados no Meta Business Manager.
+              Provedor real ativo. Mensagens são enviadas via Meta WhatsApp Business Cloud API.
+              Templates devem estar aprovados no Meta Business Manager.
             </div>
           )}
           {isRealProvider && !providerConfigured && (
             <div className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-900/20 dark:text-red-300">
-              WhatsApp Cloud API selecionado, mas as credenciais obrigatórias não estão configuradas.
+              WhatsApp Cloud API selecionado, mas as credenciais obrigatórias não estão
+              configuradas.
             </div>
           )}
         </div>
@@ -180,7 +184,11 @@ export function NotificationSettingsPage() {
       {/* Usage */}
       <SectionCard title="Uso mensal">
         {quotaLoading ? (
-          <div role="status" aria-live="polite" className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 text-sm text-muted-foreground"
+          >
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
             Carregando uso...
           </div>
@@ -246,8 +254,8 @@ export function NotificationSettingsPage() {
       <div className="flex items-start gap-2 rounded-lg bg-muted/50 px-4 py-3 text-xs text-muted-foreground">
         <Bell className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span>
-          Mensagens WhatsApp nunca incluem diagnósticos, prontuários ou detalhes clínicos.
-          O consentimento do paciente é sempre verificado antes do envio.
+          Mensagens WhatsApp nunca incluem diagnósticos, prontuários ou detalhes clínicos. O
+          consentimento do paciente é sempre verificado antes do envio.
         </span>
       </div>
     </AppPage>

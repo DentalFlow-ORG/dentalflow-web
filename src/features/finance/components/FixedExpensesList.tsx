@@ -5,8 +5,8 @@ import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import type { FixedExpense } from '../types/finance.types'
 import { RECURRENCE_LABEL } from '../constants/finance-display'
+import type { FixedExpense } from '../types/finance.types'
 import { formatCurrency } from '../utils/finance-format'
 
 export function FixedExpensesList({
@@ -49,7 +49,12 @@ export function FixedExpensesList({
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className={cn('font-semibold', expense.isActive ? 'text-foreground' : 'text-muted-foreground/50')}>
+                  <p
+                    className={cn(
+                      'font-semibold',
+                      expense.isActive ? 'text-foreground' : 'text-muted-foreground/50',
+                    )}
+                  >
                     {expense.description}
                   </p>
                   <StatusBadge tone={expense.isActive ? 'success' : 'muted'}>
@@ -57,12 +62,17 @@ export function FixedExpensesList({
                   </StatusBadge>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {expense.category?.name ?? 'Sem categoria'} · {RECURRENCE_LABEL[expense.recurrence]} ·
-                  dia {expense.dueDay}
+                  {expense.category?.name ?? 'Sem categoria'} ·{' '}
+                  {RECURRENCE_LABEL[expense.recurrence]} · dia {expense.dueDay}
                 </p>
               </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end">
-                <span className={cn('font-semibold', expense.isActive ? 'text-red-700' : 'text-muted-foreground/50')}>
+              <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end">
+                <span
+                  className={cn(
+                    'font-semibold',
+                    expense.isActive ? 'text-red-700' : 'text-muted-foreground/50',
+                  )}
+                >
                   {formatCurrency(expense.amount)}
                 </span>
                 <button

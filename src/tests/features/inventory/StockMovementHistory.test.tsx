@@ -16,8 +16,8 @@ vi.mock('@/features/inventory/services/inventory.service', () => ({
   updateStockCategory: vi.fn(),
 }))
 
-import { listProductStockMovements } from '@/features/inventory/services/inventory.service'
 import { StockMovementHistory } from '@/features/inventory/components/StockMovementHistory'
+import { listProductStockMovements } from '@/features/inventory/services/inventory.service'
 import type { StockMovement, StockProduct } from '@/features/inventory/types/inventory.types'
 
 const mockList = vi.mocked(listProductStockMovements)
@@ -192,9 +192,7 @@ describe('StockMovementHistory', () => {
 
   it('re-fetches when refreshKey changes', async () => {
     mockResolved([])
-    const { rerender } = render(
-      <StockMovementHistory product={buildProduct()} refreshKey={0} />,
-    )
+    const { rerender } = render(<StockMovementHistory product={buildProduct()} refreshKey={0} />)
     await screen.findByText(/Nenhuma movimentação/i)
 
     rerender(<StockMovementHistory product={buildProduct()} refreshKey={1} />)

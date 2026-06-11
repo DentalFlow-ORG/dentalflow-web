@@ -9,14 +9,11 @@ export const STATUS_OPTIONS = [
 ]
 
 export const SEARCH_FN = (appointment: Appointment, query: string) =>
-  `${appointment.patientName} ${appointment.patientEmail ?? ''} ${
-    appointment.patientPhone ?? ''
-  }`
+  `${appointment.patientName} ${appointment.patientEmail ?? ''} ${appointment.patientPhone ?? ''}`
     .toLowerCase()
     .includes(query)
 
 export const FILTER_FNS = {
   status: (appointment: Appointment, value: string) => appointment.status === value,
-  profileId: (appointment: Appointment, value: string) =>
-    appointment.profileId === value,
+  profileId: (appointment: Appointment, value: string) => appointment.profileId === value,
 }

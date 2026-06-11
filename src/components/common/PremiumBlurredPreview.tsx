@@ -1,13 +1,8 @@
-import { Lock, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { Lock, Sparkles } from 'lucide-react'
 
-const FAKE_SECTIONS = [
-  { w: 'w-3/4' },
-  { w: 'w-full' },
-  { w: 'w-5/6' },
-  { w: 'w-2/3' },
-]
+const FAKE_SECTIONS = [{ w: 'w-3/4' }, { w: 'w-full' }, { w: 'w-5/6' }, { w: 'w-2/3' }]
 
 function SkeletonCard({ w }: { w: string }) {
   return (
@@ -25,8 +20,8 @@ export function PremiumBlurredPreview({ blockedReason }: { blockedReason: string
       {/* Blurred skeleton grid */}
       <div className="pointer-events-none select-none blur-sm" aria-hidden="true">
         <div className="grid gap-3 sm:grid-cols-2">
-          {FAKE_SECTIONS.map((s, i) => (
-            <SkeletonCard key={i} w={s.w} />
+          {FAKE_SECTIONS.map((s) => (
+            <SkeletonCard key={s.w} w={s.w} />
           ))}
         </div>
       </div>
@@ -39,7 +34,8 @@ export function PremiumBlurredPreview({ blockedReason }: { blockedReason: string
         <div>
           <p className="text-sm font-semibold text-foreground">Recurso Premium</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {blockedReason ?? 'O assistente de IA está disponível nos planos Professional e Premium.'}
+            {blockedReason ??
+              'O assistente de IA está disponível nos planos Professional e Premium.'}
           </p>
         </div>
         <Button size="sm" asChild>

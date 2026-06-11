@@ -1,14 +1,14 @@
+import { Link } from '@tanstack/react-router'
 import { ArrowRight, ChevronDown, HelpCircle, Mail } from 'lucide-react'
 import { useId, useState } from 'react'
-import { Link } from '@tanstack/react-router'
 
 import { Button } from '@/components/ui/button'
 import { companyInfo } from '@/config/company'
 import { cn } from '@/lib/utils'
 
 import { PublicLayout } from '../components/PublicLayout'
-import { usePageMeta } from '../hooks/usePageMeta'
 import { faqItems } from '../data/public-content'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 // ── Group definitions (index-based — avoids coupling to question text) ─────────
 
@@ -51,9 +51,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         <ChevronDown
           className={cn(
             'mt-0.5 h-4 w-4 shrink-0 transition-all duration-200',
-            open
-              ? 'rotate-180 text-primary'
-              : 'text-slate-400 group-hover:text-slate-500',
+            open ? 'rotate-180 text-primary' : 'text-slate-400 group-hover:text-slate-500',
           )}
           aria-hidden="true"
         />
@@ -97,7 +95,8 @@ export function FaqPage() {
             Tire suas dúvidas
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-slate-500">
-            Respostas diretas sobre planos, funcionalidades, dados e segurança. Se não encontrar o que procura, nossa equipe está disponível.
+            Respostas diretas sobre planos, funcionalidades, dados e segurança. Se não encontrar o
+            que procura, nossa equipe está disponível.
           </p>
         </div>
       </section>

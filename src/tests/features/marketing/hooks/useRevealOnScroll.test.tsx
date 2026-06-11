@@ -1,4 +1,4 @@
-import { render, renderHook, screen, act } from '@/test-utils/render-utils'
+import { act, render, renderHook, screen } from '@/test-utils/render-utils'
 
 import { useRevealOnScroll } from '@/features/marketing/hooks/useRevealOnScroll'
 
@@ -13,7 +13,9 @@ const mockDisconnect = vi.fn()
 const mockObserve = vi.fn()
 
 function fire(isIntersecting: boolean) {
-  act(() => { capturedCallback?.([{ isIntersecting }]) })
+  act(() => {
+    capturedCallback?.([{ isIntersecting }])
+  })
 }
 
 // ── Test component — gives the hook a real DOM node to observe ────────────────
@@ -34,12 +36,18 @@ beforeEach(() => {
   capturedOptions = null
   mockDisconnect.mockClear()
   mockObserve.mockClear()
-  vi.stubGlobal('IntersectionObserver', vi.fn(function (cb: IOCallback, opts: IntersectionObserverInit) {
-    capturedCallback = cb
-    capturedOptions = opts
-    return { observe: mockObserve, disconnect: mockDisconnect }
-  }))
-  vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })))
+  vi.stubGlobal(
+    'IntersectionObserver',
+    vi.fn(function mockIO(cb: IOCallback, opts: IntersectionObserverInit) {
+      capturedCallback = cb
+      capturedOptions = opts
+      return { observe: mockObserve, disconnect: mockDisconnect }
+    }),
+  )
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn(() => ({ matches: false })),
+  )
 })
 
 afterEach(() => {
@@ -102,13 +110,19 @@ describe('useRevealOnScroll — IntersectionObserver', () => {
 
 describe('useRevealOnScroll — prefers-reduced-motion', () => {
   it('sets isVisible=true immediately without creating an observer', () => {
-    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })))
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => ({ matches: true })),
+    )
     render(<TestBox />)
     expect(isBoxVisible()).toBe(true)
   })
 
   it('does not create IntersectionObserver when reduced-motion is active', () => {
-    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })))
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => ({ matches: true })),
+    )
     render(<TestBox />)
     expect(IntersectionObserver).not.toHaveBeenCalled()
   })

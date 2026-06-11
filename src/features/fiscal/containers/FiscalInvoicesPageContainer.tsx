@@ -5,28 +5,24 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
-import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { PanelCard } from '@/components/common/PanelCard'
+import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
-import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 import { AppointmentInvoicePickerModal } from '../components/AppointmentInvoicePickerModal'
 import { FiscalInvoiceFiltersBar } from '../components/FiscalInvoiceFiltersBar'
-import { FiscalSummaryKpiGrid } from '../components/FiscalSummaryKpiGrid'
-import { InvoiceList } from '../components/InvoiceList'
 import { FiscalProfileForm } from '../components/FiscalProfileForm'
+import { FiscalSummaryKpiGrid } from '../components/FiscalSummaryKpiGrid'
 import { InvoiceDetails } from '../components/InvoiceDetails'
 import { InvoiceForm } from '../components/InvoiceForm'
+import { InvoiceList } from '../components/InvoiceList'
 import { useFiscalInvoicesPage } from '../hooks/useFiscalInvoicesPage'
 import { getAppointmentInvoiceDraft } from '../services/fiscal.service'
-import type {
-  FiscalProfilePayload,
-  InvoicePayload,
-  ServiceInvoice,
-} from '../types/fiscal.types'
+import type { FiscalProfilePayload, InvoicePayload, ServiceInvoice } from '../types/fiscal.types'
 
 type ActiveWorkspace = 'profile' | 'form' | 'details' | 'none'
 
@@ -309,7 +305,10 @@ export function FiscalInvoicesPageContainer() {
                 <Button
                   variant="outline"
                   disabled={isLoadingDraft}
-                  onClick={() => { setDraftLoadError(null); setIsPickerOpen(true) }}
+                  onClick={() => {
+                    setDraftLoadError(null)
+                    setIsPickerOpen(true)
+                  }}
                 >
                   {isLoadingDraft ? (
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -318,7 +317,12 @@ export function FiscalInvoicesPageContainer() {
                   )}
                   Gerar a partir de consulta
                 </Button>
-                <Button onClick={() => { setAppointmentWarnings(null); openInvoiceForm() }}>
+                <Button
+                  onClick={() => {
+                    setAppointmentWarnings(null)
+                    openInvoiceForm()
+                  }}
+                >
                   <FileText className="h-4 w-4" aria-hidden="true" />
                   Criar nota fiscal
                 </Button>
@@ -387,9 +391,7 @@ export function FiscalInvoicesPageContainer() {
             </InlineFeedback>
           )}
 
-          {draftLoadError && (
-            <InlineFeedback tone="error">{draftLoadError}</InlineFeedback>
-          )}
+          {draftLoadError && <InlineFeedback tone="error">{draftLoadError}</InlineFeedback>}
 
           {isWorkspaceOpen && (
             <div
@@ -442,10 +444,12 @@ export function FiscalInvoicesPageContainer() {
                   {appointmentWarnings?.hasExistingInvoice && (
                     <div role="alert">
                       <InlineFeedback tone="warning">
-                        <p className="font-semibold">Já existe uma nota vinculada a esta consulta</p>
+                        <p className="font-semibold">
+                          Já existe uma nota vinculada a esta consulta
+                        </p>
                         <p className="mt-1 leading-6">
-                          Salvar irá criar uma nova nota separada. A nota existente não será alterada.
-                          Certifique-se de que uma duplicidade é intencional.
+                          Salvar irá criar uma nova nota separada. A nota existente não será
+                          alterada. Certifique-se de que uma duplicidade é intencional.
                         </p>
                       </InlineFeedback>
                     </div>
@@ -491,10 +495,16 @@ export function FiscalInvoicesPageContainer() {
             totalPages={totalPages}
             total={total}
             limit={filters.limit}
-            onViewDetails={(invoice) => { void openInvoiceDetails(invoice) }}
+            onViewDetails={(invoice) => {
+              void openInvoiceDetails(invoice)
+            }}
             onEdit={openInvoiceForm}
-            onMarkReady={(invoice) => { void markReady(invoice).catch(() => undefined) }}
-            onSimulate={(invoice) => { void simulateIssue(invoice).catch(() => undefined) }}
+            onMarkReady={(invoice) => {
+              void markReady(invoice).catch(() => undefined)
+            }}
+            onSimulate={(invoice) => {
+              void simulateIssue(invoice).catch(() => undefined)
+            }}
             onCancel={setCancelTarget}
             onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
             onPageSizeChange={(limit) => setFilters((current) => ({ ...current, page: 1, limit }))}
@@ -510,7 +520,10 @@ export function FiscalInvoicesPageContainer() {
         cancelLabel="Voltar"
         confirmDisabled={cancelReason.trim().length === 0}
         isConfirming={isCancelling}
-        onCancel={() => { setCancelTarget(null); setCancelReason('') }}
+        onCancel={() => {
+          setCancelTarget(null)
+          setCancelReason('')
+        }}
         onConfirm={confirmCancel}
       >
         <div className="space-y-1">

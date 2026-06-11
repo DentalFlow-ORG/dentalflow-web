@@ -113,9 +113,9 @@ describe('ClinicalStickyBar — DRAFT actions', () => {
         onComplete={noop}
       />,
     )
-    screen.getAllByRole('button').forEach((btn) => {
+    for (const btn of screen.getAllByRole('button')) {
       expect(btn).toBeDisabled()
-    })
+    }
   })
 })
 

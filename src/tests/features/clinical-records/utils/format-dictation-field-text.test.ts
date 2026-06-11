@@ -1,7 +1,6 @@
 import { formatDictationFieldText } from '@/features/clinical-records/utils/format-dictation-field-text'
 
 describe('formatDictationFieldText', () => {
-
   // ── Whitespace trimming ──────────────────────────────────────────────────────
 
   it('trims leading whitespace', () => {

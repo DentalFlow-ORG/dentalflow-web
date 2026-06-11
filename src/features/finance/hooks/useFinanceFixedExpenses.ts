@@ -81,11 +81,7 @@ export function useFinanceFixedExpenses(reload: () => void, filters: FinanceFilt
     event.preventDefault()
     setFixedExpenseError(null)
 
-    if (
-      !fixedExpenseForm.categoryId ||
-      !fixedExpenseForm.amount ||
-      !fixedExpenseForm.description
-    ) {
+    if (!fixedExpenseForm.categoryId || !fixedExpenseForm.amount || !fixedExpenseForm.description) {
       setFixedExpenseError('Categoria, valor e descricao sao obrigatorios.')
       return
     }

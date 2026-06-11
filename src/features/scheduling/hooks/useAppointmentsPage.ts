@@ -3,27 +3,24 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FilterDef } from '@/components/common/ListToolbar'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useListFilter } from '@/hooks/useListFilter'
 import { listProfiles } from '../services/profiles.service'
 import type { ProfileListItem } from '../types/profile.types'
-import { useListFilter } from '@/hooks/useListFilter'
 
-import {
-  listAppointments,
-  listAvailability,
-} from '../services/scheduling.service'
-import type { Appointment, Availability } from '../types/scheduling.types'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { FILTER_FNS, SEARCH_FN, STATUS_OPTIONS } from '../constants/appointment-filters'
 import {
   createGoogleCalendarConnectUrl,
   disconnectGoogleCalendar,
   getGoogleCalendarStatus,
   syncGoogleCalendar,
 } from '../services/calendar-integrations.service'
+import { listAppointments, listAvailability } from '../services/scheduling.service'
 import type { GoogleCalendarStatus } from '../types/calendar-integration.types'
-import { brazilTodayIso } from '@/lib/brazil-timezone'
+import type { Appointment, Availability } from '../types/scheduling.types'
 import { getBrazilWeekStart } from '../utils/time'
 import { useAppointmentCancel } from './useAppointmentCancel'
 import { useAppointmentStatusChange } from './useAppointmentStatusChange'
-import { FILTER_FNS, SEARCH_FN, STATUS_OPTIONS } from '../constants/appointment-filters'
 
 export type AppointmentsView = 'calendar' | 'table'
 
@@ -55,9 +52,7 @@ export function useAppointmentsPage() {
   const [isCalendarActionLoading, setIsCalendarActionLoading] = useState(false)
 
   const filterDefs = useMemo<FilterDef[]>(() => {
-    const defs: FilterDef[] = [
-      { key: 'status', label: 'Status', options: STATUS_OPTIONS },
-    ]
+    const defs: FilterDef[] = [{ key: 'status', label: 'Status', options: STATUS_OPTIONS }]
 
     if (profiles.length > 1) {
       defs.push({
@@ -98,8 +93,7 @@ export function useAppointmentsPage() {
         setGoogleCalendar(calendarStatus)
       })
       .catch((err) => {
-        const message =
-          err instanceof Error ? err.message : 'Erro ao carregar agendamentos.'
+        const message = err instanceof Error ? err.message : 'Erro ao carregar agendamentos.'
         setError(message)
         showAlert({
           title: 'Erro ao carregar agendamentos',
@@ -122,15 +116,16 @@ export function useAppointmentsPage() {
         tone: 'success',
       })
       if (canManageGoogleCalendar) {
-        getGoogleCalendarStatus().then(setGoogleCalendar).catch(() => {})
+        getGoogleCalendarStatus()
+          .then(setGoogleCalendar)
+          .catch(() => {})
       }
     }
 
     if (googleResult === 'error') {
       showAlert({
         title: 'Erro ao conectar Google Agenda',
-        description:
-          params.get('message') ?? 'Não foi possível conectar o Google Agenda.',
+        description: params.get('message') ?? 'Não foi possível conectar o Google Agenda.',
         tone: 'error',
       })
     }

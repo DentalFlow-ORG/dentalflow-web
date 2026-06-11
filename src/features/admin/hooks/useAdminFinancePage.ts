@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 
@@ -22,6 +22,8 @@ const EVENTS_PAGE_SIZE = 10
 
 export function useAdminFinancePage() {
   const { showAlert } = useGlobalAlerts()
+  const showAlertRef = useRef(showAlert)
+  showAlertRef.current = showAlert
   const [summary, setSummary] = useState<AdminFinanceSummary | null>(null)
   const [plans, setPlans] = useState<AdminFinancePlan[]>([])
   const [subscriptions, setSubscriptions] = useState<AdminFinanceSubscription[]>([])
@@ -38,6 +40,10 @@ export function useAdminFinancePage() {
     page: 1,
     limit: EVENTS_PAGE_SIZE,
   })
+
+  const initialFiltersRef = useRef({ subscriptions: subscriptionFilters, events: eventFilters })
+  const isFirstSubscriptionRender = useRef(true)
+  const isFirstEventRender = useRef(true)
 
   const subscriptionsTotalPages = Math.max(
     1,
@@ -87,14 +93,26 @@ export function useAdminFinancePage() {
   useEffect(() => {
     let isMounted = true
 
-    loadAdminFinanceData(subscriptionFilters, eventFilters)
+    loadAdminFinanceData(initialFiltersRef.current.subscriptions, initialFiltersRef.current.events)
       .then((responses) => {
         if (!isMounted) return
-        applyInitialData(responses)
+        setSummary(responses[0])
+        setPlans(responses[1])
+        setSubscriptions(responses[2].data)
+        setSubscriptionsTotal(responses[2].total)
+        setEvents(responses[3].data)
+        setEventsTotal(responses[3].total)
       })
       .catch((error) => {
         if (!isMounted) return
-        handleLoadError(error)
+        const message =
+          error instanceof Error ? error.message : 'Não foi possível carregar os dados financeiros.'
+        setLoadError(message)
+        showAlertRef.current({
+          title: 'Erro ao carregar gestão financeira',
+          description: message,
+          tone: 'error',
+        })
       })
       .finally(() => {
         if (isMounted) setIsLoading(false)
@@ -103,10 +121,13 @@ export function useAdminFinancePage() {
     return () => {
       isMounted = false
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
-    if (isLoading) return
+    if (isFirstSubscriptionRender.current) {
+      isFirstSubscriptionRender.current = false
+      return
+    }
 
     listAdminFinanceSubscriptions(subscriptionFilters)
       .then((response) => {
@@ -114,17 +135,20 @@ export function useAdminFinancePage() {
         setSubscriptionsTotal(response.total)
       })
       .catch((err) => {
-        showAlert({
+        showAlertRef.current({
           title: 'Erro ao carregar assinaturas',
           description:
             err instanceof Error ? err.message : 'Não foi possível carregar assinaturas.',
           tone: 'error',
         })
       })
-  }, [subscriptionFilters]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [subscriptionFilters])
 
   useEffect(() => {
-    if (isLoading) return
+    if (isFirstEventRender.current) {
+      isFirstEventRender.current = false
+      return
+    }
 
     listAdminFinanceStripeEvents(eventFilters)
       .then((response) => {
@@ -132,14 +156,14 @@ export function useAdminFinancePage() {
         setEventsTotal(response.total)
       })
       .catch((err) => {
-        showAlert({
+        showAlertRef.current({
           title: 'Erro ao carregar eventos Stripe',
           description:
             err instanceof Error ? err.message : 'Não foi possível carregar eventos Stripe.',
           tone: 'error',
         })
       })
-  }, [eventFilters]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [eventFilters])
 
   function setSubscriptionFilter<K extends keyof SubscriptionFilters>(
     field: K,

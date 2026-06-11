@@ -27,11 +27,7 @@ const COLS_CLASS: Record<HomeActionGridColumns, string> = {
  * viewports. Always use this wrapper instead of repeating the grid classes
  * inline to keep action grids visually consistent across dashboards.
  */
-export function HomeActionGrid({
-  children,
-  columns = 4,
-  className,
-}: HomeActionGridProps) {
+export function HomeActionGrid({ children, columns = 4, className }: HomeActionGridProps) {
   return (
     <div className={cn('grid min-w-0 w-full gap-3', COLS_CLASS[columns], className)}>
       {children}

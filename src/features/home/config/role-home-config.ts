@@ -70,39 +70,34 @@ export const ROLE_HOME_LABELS = {
  * - hidden      Not visible and not accessible (route denied or nav hidden).
  * - future      Planned but not yet implemented in the frontend.
  */
-export type RoleFeatureAccess =
-  | 'editable'
-  | 'read-only'
-  | 'plan-gated'
-  | 'hidden'
-  | 'future'
+export type RoleFeatureAccess = 'editable' | 'read-only' | 'plan-gated' | 'hidden' | 'future'
 
 /**
  * High-level features tracked in the dashboard/home matrix.
  * Add new entries as features are built; remove 'future' entries when shipped.
  */
 export type HomeFeature =
-  | 'home'               // The role's own dashboard/home page
-  | 'clinicAgenda'       // Clinic-wide appointments (/app/agendamentos)
-  | 'myAgenda'           // Dentist's own schedule (/app/agenda)
+  | 'home' // The role's own dashboard/home page
+  | 'clinicAgenda' // Clinic-wide appointments (/app/agendamentos)
+  | 'myAgenda' // Dentist's own schedule (/app/agenda)
   | 'createAppointment'
   | 'editAppointment'
   | 'cancelAppointment'
-  | 'statusTransitions'  // Appointment status changes (full vs. limited set)
-  | 'paymentUpdate'      // Recording/editing appointment payments
-  | 'whatsappActions'    // WhatsApp notifications / contact buttons
-  | 'clinicalRecords'    // Prontuários (/app/prontuario)
-  | 'patients'           // Patient list (/app/pacientes)
-  | 'finance'            // Financial overview (/app/financeiro)
-  | 'stock'              // Inventory (/app/estoque)
-  | 'team'               // Team profiles (/app/equipe)
-  | 'googleCalendar'     // Google Calendar integration
-  | 'availability'       // Professional schedule availability
-  | 'subscription'       // Billing / subscription management (/app/assinatura)
-  | 'reports'            // Reports (/app/relatorios)
-  | 'settings'           // Clinic settings (/app/configuracoes)
-  | 'fiscalInvoices'     // Fiscal invoices (/app/notas-fiscais)
-  | 'adminPanel'         // Platform administration (/app/admin)
+  | 'statusTransitions' // Appointment status changes (full vs. limited set)
+  | 'paymentUpdate' // Recording/editing appointment payments
+  | 'whatsappActions' // WhatsApp notifications / contact buttons
+  | 'clinicalRecords' // Prontuários (/app/prontuario)
+  | 'patients' // Patient list (/app/pacientes)
+  | 'finance' // Financial overview (/app/financeiro)
+  | 'stock' // Inventory (/app/estoque)
+  | 'team' // Team profiles (/app/equipe)
+  | 'googleCalendar' // Google Calendar integration
+  | 'availability' // Professional schedule availability
+  | 'subscription' // Billing / subscription management (/app/assinatura)
+  | 'reports' // Reports (/app/relatorios)
+  | 'settings' // Clinic settings (/app/configuracoes)
+  | 'fiscalInvoices' // Fiscal invoices (/app/notas-fiscais)
+  | 'adminPanel' // Platform administration (/app/admin)
 
 type RoleMatrix = Record<AuthUserRole, Record<HomeFeature, RoleFeatureAccess>>
 
@@ -156,22 +151,22 @@ export const ROLE_FEATURE_MATRIX: RoleMatrix = {
     statusTransitions: 'editable',
     paymentUpdate: 'editable',
     whatsappActions: 'editable',
-    clinicalRecords: 'hidden',    // route denied: allowedRoles=['OWNER','DENTIST']
+    clinicalRecords: 'hidden', // route denied: allowedRoles=['OWNER','DENTIST']
     patients: 'editable',
-    finance: 'hidden',            // route denied: allowedRoles=['OWNER']
+    finance: 'hidden', // route denied: allowedRoles=['OWNER']
     stock: 'plan-gated',
-    team: 'hidden',               // route denied: allowedRoles=['OWNER']
+    team: 'hidden', // route denied: allowedRoles=['OWNER']
     googleCalendar: 'hidden',
     availability: 'hidden',
     subscription: 'read-only',
     reports: 'plan-gated',
-    settings: 'hidden',           // notification sub-route only (partial access)
+    settings: 'hidden', // notification sub-route only (partial access)
     fiscalInvoices: 'plan-gated',
     adminPanel: 'hidden',
   },
 
   DENTIST: {
-    home: 'read-only',            // own-day view, no business controls
+    home: 'read-only', // own-day view, no business controls
     clinicAgenda: 'hidden',
     myAgenda: 'editable',
     createAppointment: 'hidden',
@@ -184,9 +179,9 @@ export const ROLE_FEATURE_MATRIX: RoleMatrix = {
     patients: 'hidden',
     finance: 'hidden',
     stock: 'hidden',
-    team: 'read-only',            // can view own profile via /app/equipe/$profileId
+    team: 'read-only', // can view own profile via /app/equipe/$profileId
     googleCalendar: 'future',
-    availability: 'editable',    // via agenda tab
+    availability: 'editable', // via agenda tab
     subscription: 'read-only',
     reports: 'hidden',
     settings: 'hidden',
@@ -195,7 +190,7 @@ export const ROLE_FEATURE_MATRIX: RoleMatrix = {
   },
 
   ADMIN: {
-    home: 'editable',             // admin panel — no clinic operational data
+    home: 'editable', // admin panel — no clinic operational data
     clinicAgenda: 'hidden',
     myAgenda: 'hidden',
     createAppointment: 'hidden',
@@ -211,7 +206,7 @@ export const ROLE_FEATURE_MATRIX: RoleMatrix = {
     team: 'hidden',
     googleCalendar: 'hidden',
     availability: 'hidden',
-    subscription: 'hidden',       // ADMIN has no clinic subscription
+    subscription: 'hidden', // ADMIN has no clinic subscription
     reports: 'hidden',
     settings: 'hidden',
     fiscalInvoices: 'hidden',
@@ -259,9 +254,6 @@ export function getRoleHomeLabel(role: AuthUserRole): string {
  * Returns the intended access level for a given role + feature combination.
  * For dashboard/home rendering guidance only — enforce access via route guards.
  */
-export function getRoleFeatureAccess(
-  role: AuthUserRole,
-  feature: HomeFeature,
-): RoleFeatureAccess {
+export function getRoleFeatureAccess(role: AuthUserRole, feature: HomeFeature): RoleFeatureAccess {
   return ROLE_FEATURE_MATRIX[role][feature]
 }

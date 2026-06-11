@@ -1,14 +1,7 @@
-import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { Calendar } from 'lucide-react'
-import {
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Sector,
-  Tooltip,
-} from 'recharts'
+import { useMemo, useState } from 'react'
+import { Cell, Pie, PieChart, ResponsiveContainer, Sector, Tooltip } from 'recharts'
 import type { PieSectorDataItem } from 'recharts/types/polar/Pie'
 
 import { PanelCard } from '@/components/common/PanelCard'
@@ -27,11 +20,11 @@ type StatusRow = {
 }
 
 const STATUS_CONFIG = [
-  { key: 'CONFIRMED', label: 'Confirmadas',    color: '#10B981', darkColor: '#00E676' },
-  { key: 'PENDING',   label: 'Aguardando',     color: '#F59E0B', darkColor: '#FFB020' },
-  { key: 'COMPLETED', label: 'Realizadas',     color: '#6366F1', darkColor: '#38BDF8' },
-  { key: 'CANCELED',  label: 'Canceladas',     color: '#F43F5E', darkColor: '#FF4D6D' },
-  { key: 'NO_SHOW',   label: 'Não compareceu', color: '#94A3B8', darkColor: '#67E8F9' },
+  { key: 'CONFIRMED', label: 'Confirmadas', color: '#10B981', darkColor: '#00E676' },
+  { key: 'PENDING', label: 'Aguardando', color: '#F59E0B', darkColor: '#FFB020' },
+  { key: 'COMPLETED', label: 'Realizadas', color: '#6366F1', darkColor: '#38BDF8' },
+  { key: 'CANCELED', label: 'Canceladas', color: '#F43F5E', darkColor: '#FF4D6D' },
+  { key: 'NO_SHOW', label: 'Não compareceu', color: '#94A3B8', darkColor: '#67E8F9' },
 ] as const
 
 type Props = {
@@ -41,7 +34,7 @@ type Props = {
 function fmtPct(count: number, total: number): string {
   if (total === 0 || count === 0) return '0%'
   const val = (count / total) * 100
-  return val.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%'
+  return `${val.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
 }
 
 type TooltipPayloadEntry = {
@@ -63,27 +56,25 @@ function CustomTooltip({
   return (
     <div className="rounded-xl border border-border bg-background px-4 py-3 shadow-xl">
       <div className="flex items-center gap-2 mb-1.5">
-        <span
-          className="h-2.5 w-2.5 shrink-0 rounded-full"
-          style={{ backgroundColor: row.fill }}
-        />
+        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: row.fill }} />
         <span className="text-sm font-semibold text-foreground">{row.label}</span>
       </div>
       <p className="text-sm text-muted-foreground">
         {row.count} {row.count === 1 ? 'consulta' : 'consultas'}
       </p>
-      <p className="text-xs font-medium text-muted-foreground/70 mt-0.5">
-        {pct} do total
-      </p>
+      <p className="text-xs font-medium text-muted-foreground/70 mt-0.5">{pct} do total</p>
     </div>
   )
 }
 
 function ActiveSector(props: PieSectorDataItem) {
   const {
-    cx = 0, cy = 0,
-    innerRadius = 0, outerRadius = 0,
-    startAngle = 0, endAngle = 0,
+    cx = 0,
+    cy = 0,
+    innerRadius = 0,
+    outerRadius = 0,
+    startAngle = 0,
+    endAngle = 0,
     fill,
   } = props
   return (
@@ -106,7 +97,9 @@ export function TodayAppointmentsChart({ today }: Props) {
 
   // True on devices that support hover (mouse/trackpad). Computed once — stable.
   const isHoverDevice = useMemo(
-    () => typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches,
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(hover: hover) and (pointer: fine)').matches,
     [],
   )
 
@@ -128,7 +121,7 @@ export function TodayAppointmentsChart({ today }: Props) {
   const total = today.appointmentsTotal
   const pieRows = rows.filter((r) => r.count > 0)
 
-  const sliceColor = (row: StatusRow) => isDark ? row.darkColor : row.color
+  const sliceColor = (row: StatusRow) => (isDark ? row.darkColor : row.color)
 
   if (total === 0) {
     return (
@@ -155,9 +148,7 @@ export function TodayAppointmentsChart({ today }: Props) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-foreground">Consultas de hoje</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Distribuição por status da agenda
-          </p>
+          <p className="mt-0.5 text-sm text-muted-foreground">Distribuição por status da agenda</p>
         </div>
         <Button variant="outline" size="sm" className="shrink-0" asChild>
           <Link to="/app/agendamentos">Ver agenda</Link>
@@ -166,7 +157,6 @@ export function TodayAppointmentsChart({ today }: Props) {
 
       {/* Chart + legend */}
       <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-5">
-
         {/* Donut — select-none + onMouseDown preventDefault remove the desktop
             focus/selection rectangle. onTouchStart preventDefault blocks all touch
             events from reaching Recharts so mobile taps on the chart do nothing. */}
@@ -197,9 +187,7 @@ export function TodayAppointmentsChart({ today }: Props) {
                   <Cell
                     key={row.key}
                     fill={sliceColor(row)}
-                    opacity={
-                      activeIndex === null || activeIndex === pieRows.indexOf(row) ? 1 : 0.4
-                    }
+                    opacity={activeIndex === null || activeIndex === pieRows.indexOf(row) ? 1 : 0.4}
                     style={{ cursor: 'default', outline: 'none' }}
                   />
                 ))}
@@ -224,9 +212,7 @@ export function TodayAppointmentsChart({ today }: Props) {
             <span className="text-4xl font-bold tabular-nums text-foreground leading-none">
               {total}
             </span>
-            <span className="mt-1.5 text-xs font-medium text-muted-foreground">
-              Consultas hoje
-            </span>
+            <span className="mt-1.5 text-xs font-medium text-muted-foreground">Consultas hoje</span>
           </div>
         </div>
 
@@ -280,9 +266,7 @@ export function TodayAppointmentsChart({ today }: Props) {
                   <span
                     className="h-7 w-1 shrink-0 rounded-full transition-colors"
                     style={{
-                      backgroundColor: active
-                        ? color
-                        : isDark ? '#334155' : '#e2e8f0',
+                      backgroundColor: active ? color : isDark ? '#334155' : '#e2e8f0',
                     }}
                     aria-hidden="true"
                   />

@@ -55,18 +55,12 @@ export function formatDateBR(value: string | null | undefined) {
   return `${match[3]}/${match[2]}/${match[1]}`
 }
 
-export function safeFormatDateBR(
-  value: DateInputValue,
-  fallback = 'Data não informada',
-) {
+export function safeFormatDateBR(value: DateInputValue, fallback = 'Data não informada') {
   const inputValue = formatDateInputValue(value)
   return inputValue ? formatDateBR(inputValue) : fallback
 }
 
-export function safeFormatTimeBR(
-  value: DateInputValue,
-  fallback = 'Hora não informada',
-) {
+export function safeFormatTimeBR(value: DateInputValue, fallback = 'Hora não informada') {
   const inputValue = formatTimeInputValue(value)
   return inputValue || fallback
 }
@@ -144,11 +138,7 @@ export function isToday(date: Date) {
   // calendar is correct even when the browser/server runs in UTC.
   const todayStr = brazilTodayIso()
   const [ty, tm, td] = todayStr.split('-').map(Number)
-  return (
-    date.getFullYear() === ty &&
-    date.getMonth() === tm - 1 &&
-    date.getDate() === td
-  )
+  return date.getFullYear() === ty && date.getMonth() === tm - 1 && date.getDate() === td
 }
 
 /**
@@ -163,7 +153,7 @@ export function brazilCurrentTimeHHmm(now = new Date()): string {
     minute: '2-digit',
     hour12: false,
   }).formatToParts(now)
-  const hours   = parts.find((p) => p.type === 'hour')!.value
+  const hours = parts.find((p) => p.type === 'hour')!.value
   const minutes = parts.find((p) => p.type === 'minute')!.value
   // hour12:false can produce '24' for midnight in some engines — normalise it
   const h = String(Number(hours) % 24).padStart(2, '0')

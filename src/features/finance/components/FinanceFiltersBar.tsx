@@ -59,7 +59,10 @@ export function FinanceFiltersBar({
           />
         </FormField>
         <FormField label="Agrupar" htmlFor="financeGroupBy">
-          <Select value={filters.groupBy} onValueChange={(value) => onChange('groupBy', value as never)}>
+          <Select
+            value={filters.groupBy}
+            onValueChange={(value) => onChange('groupBy', value as never)}
+          >
             <SelectTrigger id="financeGroupBy">
               <SelectValue />
             </SelectTrigger>
@@ -111,9 +114,7 @@ export function FinanceFiltersBar({
         <FormField label="Categoria" htmlFor="financeCategory">
           <Select
             value={filters.categoryId ?? 'all'}
-            onValueChange={(value) =>
-              onChange('categoryId', value === 'all' ? undefined : value)
-            }
+            onValueChange={(value) => onChange('categoryId', value === 'all' ? undefined : value)}
           >
             <SelectTrigger id="financeCategory">
               <SelectValue />

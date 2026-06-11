@@ -30,9 +30,7 @@ describe('PatientIdentityBadge — contact info', () => {
   })
 
   it('renders both email and phone when both provided', () => {
-    render(
-      <PatientIdentityBadge name="Ana" email="ana@email.com" phone="(11) 99999-0000" />,
-    )
+    render(<PatientIdentityBadge name="Ana" email="ana@email.com" phone="(11) 99999-0000" />)
     expect(screen.getByText('ana@email.com')).toBeInTheDocument()
     expect(screen.getByText('(11) 99999-0000')).toBeInTheDocument()
   })
@@ -49,15 +47,18 @@ describe('PatientIdentityBadge — contact info', () => {
   })
 
   it('renders no contact section when both email and phone are null', () => {
-    const { container } = render(
-      <PatientIdentityBadge name="Ana" email={null} phone={null} />,
-    )
+    const { container } = render(<PatientIdentityBadge name="Ana" email={null} phone={null} />)
     expect(container.querySelector('[aria-hidden="true"].h-3')).toBeNull()
   })
 
   it('hides contact section when showContact is false', () => {
     render(
-      <PatientIdentityBadge name="Ana" email="ana@email.com" phone="(11) 99999-0000" showContact={false} />,
+      <PatientIdentityBadge
+        name="Ana"
+        email="ana@email.com"
+        phone="(11) 99999-0000"
+        showContact={false}
+      />,
     )
     expect(screen.queryByText('ana@email.com')).not.toBeInTheDocument()
     expect(screen.queryByText('(11) 99999-0000')).not.toBeInTheDocument()

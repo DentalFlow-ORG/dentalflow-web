@@ -3,8 +3,8 @@ import { useState } from 'react'
 import { ApiError } from '@/services/http'
 
 import {
-  fetchProcedureMargins,
   type ProcedureMarginsQuery,
+  fetchProcedureMargins,
 } from '../services/finance-analytics.service'
 import type { ProcedureMarginsResponse } from '../types/finance.types'
 
@@ -35,10 +35,7 @@ export function useProcedureMargins() {
       }
       setState((prev) => ({
         ...prev,
-        error:
-          err instanceof Error
-            ? err.message
-            : 'Erro ao carregar margens por procedimento.',
+        error: err instanceof Error ? err.message : 'Erro ao carregar margens por procedimento.',
         isLoading: false,
       }))
     }

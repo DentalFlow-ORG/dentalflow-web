@@ -5,17 +5,17 @@ import { ApiError } from '@/services/http'
 
 import { getPatientsAttention } from '../services/attention.service'
 import { batchGetPatientAvatars } from '../services/patients.service'
-import {
-  getCachedPatientAvatar,
-  getMissingPatientAvatarIdentifiers,
-  setCachedPatientAvatar,
-} from './usePatientAvatar'
 import type {
   AttentionPriority,
   AttentionReason,
   AttentionResponse,
   PatientAttentionItem,
 } from '../types/attention.types'
+import {
+  getCachedPatientAvatar,
+  getMissingPatientAvatarIdentifiers,
+  setCachedPatientAvatar,
+} from './usePatientAvatar'
 
 type FetchState = {
   data: AttentionResponse | null
@@ -30,9 +30,12 @@ type FetchAction =
 
 function fetchReducer(state: FetchState, action: FetchAction): FetchState {
   switch (action.type) {
-    case 'loading': return { ...state, isLoading: true, error: null }
-    case 'success': return { data: action.data, isLoading: false, error: null }
-    case 'error': return { ...state, isLoading: false, error: action.message }
+    case 'loading':
+      return { ...state, isLoading: true, error: null }
+    case 'success':
+      return { data: action.data, isLoading: false, error: null }
+    case 'error':
+      return { ...state, isLoading: false, error: action.message }
   }
 }
 
@@ -42,7 +45,11 @@ export type WhatsAppFilter = 'ALL' | 'HAS_CONSENT'
 
 export function usePatientsAttention() {
   const { showAlert } = useGlobalAlerts()
-  const [fetchState, dispatch] = useReducer(fetchReducer, { data: null, isLoading: true, error: null })
+  const [fetchState, dispatch] = useReducer(fetchReducer, {
+    data: null,
+    isLoading: true,
+    error: null,
+  })
   const [avatarsByIdentifier, setAvatarsByIdentifier] = useState<Record<string, string | null>>({})
   const [search, setSearch] = useState('')
   const [reasonFilter, setReasonFilter] = useState<AttentionReasonFilter>('ALL')
@@ -82,13 +89,17 @@ export function usePatientsAttention() {
       })
       .catch((err) => {
         const message =
-          err instanceof ApiError ? err.message : 'Erro ao carregar pacientes que precisam de atenção.'
+          err instanceof ApiError
+            ? err.message
+            : 'Erro ao carregar pacientes que precisam de atenção.'
         dispatch({ type: 'error', message })
         showAlert({ title: 'Erro ao carregar atenção', description: message, tone: 'error' })
       })
   }, [showAlert])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   const filteredItems = useMemo<PatientAttentionItem[]>(() => {
     const items = fetchState.data?.items ?? []

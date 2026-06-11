@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
+import type { ReactNode } from 'react'
 
-import { SiteFooter } from '@/components/layout/SiteFooter'
 import { BrandLink } from '@/components/brand/BrandLink'
+import { SiteFooter } from '@/components/layout/SiteFooter'
 import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
 
 type LegalPageShellProps = {
@@ -20,7 +20,10 @@ export function LegalPageShell({ children }: LegalPageShellProps) {
       >
         Ir ao conteúdo principal
       </a>
-      <header aria-label="Cabeçalho" className="border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-xl">
+      <header
+        aria-label="Cabeçalho"
+        className="border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur-xl"
+      >
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between gap-6 px-6 lg:px-8">
           <BrandLink />
           <Link
@@ -36,7 +39,9 @@ export function LegalPageShell({ children }: LegalPageShellProps) {
         </div>
       </header>
 
-      <main id="main-content" className="mx-auto max-w-4xl px-6 py-14 lg:px-8 lg:py-20">{children}</main>
+      <main id="main-content" className="mx-auto max-w-4xl px-6 py-14 lg:px-8 lg:py-20">
+        {children}
+      </main>
 
       <SiteFooter />
     </div>

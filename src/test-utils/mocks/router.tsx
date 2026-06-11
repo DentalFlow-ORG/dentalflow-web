@@ -23,12 +23,16 @@ export const resetRouterMocks = (): void => {
 
 export function createRouterMock() {
   return {
-    Link: ({ children, to, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { children: ReactNode; to: string }) => (
-      <a href={String(to)} {...props}>{children}</a>
+    Link: ({
+      children,
+      to,
+      ...props
+    }: AnchorHTMLAttributes<HTMLAnchorElement> & { children: ReactNode; to: string }) => (
+      <a href={String(to)} {...props}>
+        {children}
+      </a>
     ),
-    Navigate: ({ to }: { to: string }) => (
-      <div data-testid="navigate" data-to={String(to)} />
-    ),
+    Navigate: ({ to }: { to: string }) => <div data-testid="navigate" data-to={String(to)} />,
     useNavigate: () => mockNavigate,
     useLocation: () => ({ pathname: _state.pathname }),
     useRouterState: ({

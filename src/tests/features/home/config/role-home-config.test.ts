@@ -1,12 +1,12 @@
-import {
-  ROLE_HOME_ROUTES,
-  ROLE_HOME_LABELS,
-  getRoleHomeRoute,
-  getRoleHomeLabel,
-  getRoleFeatureAccess,
-  type HomeFeature,
-} from '@/features/home/config/role-home-config'
 import type { AuthUserRole } from '@/features/auth/types'
+import {
+  type HomeFeature,
+  ROLE_HOME_LABELS,
+  ROLE_HOME_ROUTES,
+  getRoleFeatureAccess,
+  getRoleHomeLabel,
+  getRoleHomeRoute,
+} from '@/features/home/config/role-home-config'
 
 // ── ROLE_HOME_ROUTES ──────────────────────────────────────────────────────────
 
@@ -33,10 +33,10 @@ describe('ROLE_HOME_ROUTES — correct home route per role', () => {
 
   it('has an entry for every AuthUserRole', () => {
     const roles: AuthUserRole[] = ['ADMIN', 'OWNER', 'ASSISTANT', 'DENTIST', 'PATIENT']
-    roles.forEach((role) => {
+    for (const role of roles) {
       expect(ROLE_HOME_ROUTES[role]).toBeDefined()
       expect(typeof ROLE_HOME_ROUTES[role]).toBe('string')
-    })
+    }
   })
 })
 
@@ -69,10 +69,10 @@ describe('ROLE_HOME_ROUTES — redirect compatibility guard', () => {
 describe('ROLE_HOME_LABELS', () => {
   it('has a non-empty label for every role', () => {
     const roles: AuthUserRole[] = ['ADMIN', 'OWNER', 'ASSISTANT', 'DENTIST', 'PATIENT']
-    roles.forEach((role) => {
+    for (const role of roles) {
       expect(typeof ROLE_HOME_LABELS[role]).toBe('string')
       expect(ROLE_HOME_LABELS[role].length).toBeGreaterThan(0)
-    })
+    }
   })
 })
 
@@ -105,10 +105,10 @@ describe('getRoleHomeRoute', () => {
 describe('getRoleHomeLabel', () => {
   it('returns a non-empty string for every role', () => {
     const roles: AuthUserRole[] = ['ADMIN', 'OWNER', 'ASSISTANT', 'DENTIST', 'PATIENT']
-    roles.forEach((role) => {
+    for (const role of roles) {
       expect(typeof getRoleHomeLabel(role)).toBe('string')
       expect(getRoleHomeLabel(role).length).toBeGreaterThan(0)
-    })
+    }
   })
 })
 
@@ -272,23 +272,38 @@ describe('Feature matrix — PATIENT', () => {
 
 describe('ROLE_FEATURE_MATRIX — completeness', () => {
   const allFeatures: HomeFeature[] = [
-    'home', 'clinicAgenda', 'myAgenda', 'createAppointment', 'editAppointment',
-    'cancelAppointment', 'statusTransitions', 'paymentUpdate', 'whatsappActions',
-    'clinicalRecords', 'patients', 'finance', 'stock', 'team',
-    'googleCalendar', 'availability', 'subscription', 'reports', 'settings',
-    'fiscalInvoices', 'adminPanel',
+    'home',
+    'clinicAgenda',
+    'myAgenda',
+    'createAppointment',
+    'editAppointment',
+    'cancelAppointment',
+    'statusTransitions',
+    'paymentUpdate',
+    'whatsappActions',
+    'clinicalRecords',
+    'patients',
+    'finance',
+    'stock',
+    'team',
+    'googleCalendar',
+    'availability',
+    'subscription',
+    'reports',
+    'settings',
+    'fiscalInvoices',
+    'adminPanel',
   ]
   const allRoles: AuthUserRole[] = ['ADMIN', 'OWNER', 'ASSISTANT', 'DENTIST', 'PATIENT']
 
   it('has an entry for every role+feature combination', () => {
-    allRoles.forEach((role) => {
-      allFeatures.forEach((feature) => {
+    for (const role of allRoles) {
+      for (const feature of allFeatures) {
         const access = getRoleFeatureAccess(role, feature)
-        expect(
-          access,
-          `${role}.${feature} should have an access value`,
-        ).toMatch(/^(editable|read-only|plan-gated|hidden|future)$/)
-      })
-    })
+        expect(access, `${role}.${feature} should have an access value`).toMatch(
+          /^(editable|read-only|plan-gated|hidden|future)$/,
+        )
+      }
+    }
   })
 })

@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import {
   Activity,
-  ArrowLeft,
   AlertCircle,
+  ArrowLeft,
   CheckCircle2,
   ClipboardList,
   EyeOff,
@@ -13,15 +12,15 @@ import {
   Microscope,
   Smile,
 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
-import { AppPage } from '@/components/layout/AppPage'
 import { EmptyState } from '@/components/common/EmptyState'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
 
-import { VoiceDictationCard } from '../components/VoiceDictationCard'
 import { ClinicalRecordActions } from '../components/ClinicalRecordActions'
 import { ClinicalRecordHeader } from '../components/ClinicalRecordHeader'
 import { ClinicalSection } from '../components/ClinicalSection'
@@ -31,22 +30,24 @@ import { ClinicalTemplateSelectorPanel } from '../components/ClinicalTemplateSel
 import { ImageAttachmentPanel } from '../components/ImageAttachmentPanel'
 import { OdontogramSection } from '../components/OdontogramSection'
 import { PatientHistoryPanel } from '../components/PatientHistoryPanel'
+import { VoiceDictationCard } from '../components/VoiceDictationCard'
 import { useClinicalRecord } from '../hooks/useClinicalRecord'
-import {
-  useClinicalRecordAutosave,
-  type AutosaveStatus,
-} from '../hooks/useClinicalRecordAutosave'
-import { useUnsavedChangesGuard } from '../hooks/useUnsavedChangesGuard'
+import { type AutosaveStatus, useClinicalRecordAutosave } from '../hooks/useClinicalRecordAutosave'
 import { useClinicalTemplates } from '../hooks/useClinicalTemplates'
+import { useUnsavedChangesGuard } from '../hooks/useUnsavedChangesGuard'
 import { getOdontogram, upsertOdontogram } from '../services/clinical-records.service'
-import type { ClinicalTemplate, OdontogramData, UpdateClinicalRecordDto } from '../types/clinical-record.types'
 import type { ClinicalDictationFieldKey } from '../types/clinical-dictation.types'
-import type { OdontogramSuggestion } from '../utils/parse-dictation-odontogram'
+import type {
+  ClinicalTemplate,
+  OdontogramData,
+  UpdateClinicalRecordDto,
+} from '../types/clinical-record.types'
+import { type FieldApplyMode, applyDictationFields } from '../utils/apply-clinical-dictation-fields'
 import {
   isClinicalRecordEditable,
   isClinicalRecordReadOnly,
 } from '../utils/clinical-record-status-rules'
-import { applyDictationFields, type FieldApplyMode } from '../utils/apply-clinical-dictation-fields'
+import type { OdontogramSuggestion } from '../utils/parse-dictation-odontogram'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -67,22 +68,22 @@ type SectionExpanded = Record<SectionId, boolean>
 
 // Default expansion for a DRAFT record: show the two most-used sections open.
 const DRAFT_DEFAULTS: SectionExpanded = {
-  evolucao:        true,
-  anamnese:        false,
-  diagnostico:     false,
-  plano:           false,
-  odontograma:     true,
-  imagens:         false,
+  evolucao: true,
+  anamnese: false,
+  diagnostico: false,
+  plano: false,
+  odontograma: true,
+  imagens: false,
   'notas-privadas': false,
 }
 
 // Template category → section to open when template is applied.
 const TEMPLATE_SECTION_MAP: Partial<Record<string, SectionId>> = {
-  ANAMNESIS:      'anamnese',
-  EVOLUTION:      'evolucao',
-  PRESCRIPTION:   'plano',
+  ANAMNESIS: 'anamnese',
+  EVOLUTION: 'evolucao',
+  PRESCRIPTION: 'plano',
   RECOMMENDATION: 'plano',
-  PROCEDURE:      'plano',
+  PROCEDURE: 'plano',
 }
 
 // ── Container ──────────────────────────────────────────────────────────────────
@@ -90,8 +91,18 @@ const TEMPLATE_SECTION_MAP: Partial<Record<string, SectionId>> = {
 export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const navigate = useNavigate()
   const { showAlert } = useGlobalAlerts()
-  const { record, isLoading, isSaving, error, save, saveQuiet, saveAndComplete, lock, cancel, restore } =
-    useClinicalRecord(recordId)
+  const {
+    record,
+    isLoading,
+    isSaving,
+    error,
+    save,
+    saveQuiet,
+    saveAndComplete,
+    lock,
+    cancel,
+    restore,
+  } = useClinicalRecord(recordId)
   const { templates } = useClinicalTemplates()
 
   // Anti-spam guard — prevents flooding the user with repeated odontogram save
@@ -133,12 +144,16 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
       .then((data) => {
         if (isCurrent && data) setOdontogramData(data.data)
       })
-      .catch(() => { /* odontogram is optional — ignore load errors */ })
+      .catch(() => {
+        /* odontogram is optional — ignore load errors */
+      })
       .finally(() => {
         if (isCurrent) setOdontogramLoaded(true)
       })
 
-    return () => { isCurrent = false }
+    return () => {
+      isCurrent = false
+    }
   }, [record, odontogramLoaded])
 
   // For non-DRAFT records: auto-expand sections that have content so the
@@ -149,12 +164,17 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
     if (record.status !== 'DRAFT') {
       setSectionExpanded({
-        evolucao:        !!record.clinicalEvolution,
-        anamnese:        !!record.anamnesis,
-        diagnostico:     !!record.diagnosis,
-        plano:           !!(record.proceduresPerformed || record.treatmentPlan || record.prescription || record.recommendations),
-        odontograma:     true,
-        imagens:         false, // unknown until attachments load
+        evolucao: !!record.clinicalEvolution,
+        anamnese: !!record.anamnesis,
+        diagnostico: !!record.diagnosis,
+        plano: !!(
+          record.proceduresPerformed ||
+          record.treatmentPlan ||
+          record.prescription ||
+          record.recommendations
+        ),
+        odontograma: true,
+        imagens: false, // unknown until attachments load
         'notas-privadas': !!record.privateNotes,
       })
     }
@@ -213,42 +233,64 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
   const readOnlyNotice: { tone: 'info' | 'warning'; text: string } | null =
     record.status === 'LOCKED'
-      ? { tone: 'info',    text: 'Prontuário bloqueado permanentemente — este registro não pode mais ser editado.' }
+      ? {
+          tone: 'info',
+          text: 'Prontuário bloqueado permanentemente — este registro não pode mais ser editado.',
+        }
       : record.status === 'CANCELED'
-      ? { tone: 'warning', text: 'Prontuário cancelado. Use "Restaurar prontuário" para reativar a edição.' }
-      : record.status === 'COMPLETED'
-      ? { tone: 'info',    text: 'Prontuário concluído e em modo somente leitura. Para reabrir, cancele e restaure o registro.' }
-      : null
+        ? {
+            tone: 'warning',
+            text: 'Prontuário cancelado. Use "Restaurar prontuário" para reativar a edição.',
+          }
+        : record.status === 'COMPLETED'
+          ? {
+              tone: 'info',
+              text: 'Prontuário concluído e em modo somente leitura. Para reabrir, cancele e restaure o registro.',
+            }
+          : null
 
   // Draft-or-server field value reader.
   const field = (key: keyof UpdateClinicalRecordDto) =>
-    (draft[key] as string | undefined) ?? (record[key as keyof typeof record] as string | null) ?? ''
+    (draft[key] as string | undefined) ??
+    (record[key as keyof typeof record] as string | null) ??
+    ''
 
   const setField = (key: keyof UpdateClinicalRecordDto) => (value: string) =>
     setDraft((prev) => ({ ...prev, [key]: value }))
 
-  const hasContent = (key: keyof UpdateClinicalRecordDto): boolean =>
-    field(key).trim().length > 0
+  const hasContent = (key: keyof UpdateClinicalRecordDto): boolean => field(key).trim().length > 0
 
   // ── Section expand helpers ───────────────────────────────────────────────────
 
   const toggleSection = (id: SectionId) =>
     setSectionExpanded((prev) => ({ ...prev, [id]: !prev[id] }))
 
-  const openSection = (id: SectionId) =>
-    setSectionExpanded((prev) => ({ ...prev, [id]: true }))
+  const openSection = (id: SectionId) => setSectionExpanded((prev) => ({ ...prev, [id]: true }))
 
   // Whether a section has any filled content — drives the dot indicator.
   const sectionHasContent = (id: SectionId): boolean => {
     switch (id) {
-      case 'evolucao':        return hasContent('clinicalEvolution')
-      case 'anamnese':        return hasContent('anamnesis')
-      case 'diagnostico':     return hasContent('diagnosis')
-      case 'plano':           return hasContent('proceduresPerformed') || hasContent('treatmentPlan') || hasContent('prescription') || hasContent('recommendations')
-      case 'odontograma':     return Object.keys(odontogramData.teeth).length > 0
-      case 'imagens':         return false // not tracked locally; API-driven
-      case 'notas-privadas':  return hasContent('privateNotes')
-      default:                return false
+      case 'evolucao':
+        return hasContent('clinicalEvolution')
+      case 'anamnese':
+        return hasContent('anamnesis')
+      case 'diagnostico':
+        return hasContent('diagnosis')
+      case 'plano':
+        return (
+          hasContent('proceduresPerformed') ||
+          hasContent('treatmentPlan') ||
+          hasContent('prescription') ||
+          hasContent('recommendations')
+        )
+      case 'odontograma':
+        return Object.keys(odontogramData.teeth).length > 0
+      case 'imagens':
+        return false // not tracked locally; API-driven
+      case 'notas-privadas':
+        return hasContent('privateNotes')
+      default:
+        return false
     }
   }
 
@@ -258,11 +300,11 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     if (!canEditClinicalContent) return
 
     const fieldMap: Record<string, keyof UpdateClinicalRecordDto> = {
-      ANAMNESIS:      'anamnesis',
-      EVOLUTION:      'clinicalEvolution',
-      PRESCRIPTION:   'prescription',
+      ANAMNESIS: 'anamnesis',
+      EVOLUTION: 'clinicalEvolution',
+      PRESCRIPTION: 'prescription',
       RECOMMENDATION: 'recommendations',
-      PROCEDURE:      'proceduresPerformed',
+      PROCEDURE: 'proceduresPerformed',
     }
     const targetField = fieldMap[template.category]
     if (!targetField) return
@@ -302,7 +344,9 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
           tone: 'warning',
         })
         if (odontogramAlertResetRef.current) clearTimeout(odontogramAlertResetRef.current)
-        odontogramAlertResetRef.current = setTimeout(() => { odontogramAlertShownRef.current = false }, 10_000)
+        odontogramAlertResetRef.current = setTimeout(() => {
+          odontogramAlertShownRef.current = false
+        }, 10_000)
       }
     })
   }
@@ -368,10 +412,10 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   }
 
   const handleComplete = () => saveAndComplete(draft)
-  const handleLock     = () => lock()
-  const handleCancel   = () => cancel()
-  const handleRestore  = () => restore()
-  const handlePrint    = () =>
+  const handleLock = () => lock()
+  const handleCancel = () => cancel()
+  const handleRestore = () => restore()
+  const handlePrint = () =>
     navigate({
       to: '/app/prontuario/$clinicalRecordId/imprimir',
       params: { clinicalRecordId: recordId },
@@ -408,9 +452,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
         {/* ── Read-only notice ─────────────────────────────────────────────── */}
         {readOnlyNotice && (
-          <InlineFeedback tone={readOnlyNotice.tone}>
-            {readOnlyNotice.text}
-          </InlineFeedback>
+          <InlineFeedback tone={readOnlyNotice.tone}>{readOnlyNotice.text}</InlineFeedback>
         )}
 
         {/* ── Full action bar ──────────────────────────────────────────────── */}
@@ -440,10 +482,8 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
          * visible on 13-inch laptops and common tablet/desktop breakpoints.
          */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-4">
-
           {/* ── Main editor — 3 cols on lg ────────────────────────────────── */}
           <div className="space-y-4 lg:col-span-3">
-
             {/* Chief complaint — always visible, intentionally not collapsible.
                 It is the single most important field and must be prominent.  */}
             <div className="rounded-xl border border-border bg-card p-5">
@@ -601,11 +641,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
               onToggle={() => toggleSection('imagens')}
             >
               {/* showTitle={false}: ClinicalSection header already says "Imagens e anexos" */}
-              <ImageAttachmentPanel
-                recordId={recordId}
-                readOnly={isReadOnly}
-                showTitle={false}
-              />
+              <ImageAttachmentPanel recordId={recordId} readOnly={isReadOnly} showTitle={false} />
             </ClinicalSection>
 
             {/* ── Notas privadas ───────────────────────────────────────────── */}
@@ -650,15 +686,15 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
                   onApplyFields={handleApplyDictationFields}
                   onApplyOdontogram={handleApplyDictationOdontogram}
                   currentFieldValues={{
-                    chiefComplaint:      field('chiefComplaint'),
-                    anamnesis:           field('anamnesis'),
-                    clinicalEvolution:   field('clinicalEvolution'),
-                    diagnosis:           field('diagnosis'),
+                    chiefComplaint: field('chiefComplaint'),
+                    anamnesis: field('anamnesis'),
+                    clinicalEvolution: field('clinicalEvolution'),
+                    diagnosis: field('diagnosis'),
                     proceduresPerformed: field('proceduresPerformed'),
-                    treatmentPlan:       field('treatmentPlan'),
-                    prescription:        field('prescription'),
-                    recommendations:     field('recommendations'),
-                    privateNotes:        field('privateNotes'),
+                    treatmentPlan: field('treatmentPlan'),
+                    prescription: field('prescription'),
+                    recommendations: field('recommendations'),
+                    privateNotes: field('privateNotes'),
                   }}
                 />
               </>
@@ -667,10 +703,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         </div>
 
         {/* ── Patient history ──────────────────────────────────────────────── */}
-        <PatientHistoryPanel
-          currentRecordId={record.id}
-          identifier={identifier}
-        />
+        <PatientHistoryPanel currentRecordId={record.id} identifier={identifier} />
       </AppPage>
     </div>
   )
@@ -683,11 +716,7 @@ function AutosaveIndicator({ status }: { status: AutosaveStatus }) {
   if (status === 'idle') return null
 
   return (
-    <div
-      className="flex items-center gap-1.5 text-xs"
-      aria-live="polite"
-      aria-atomic="true"
-    >
+    <div className="flex items-center gap-1.5 text-xs" aria-live="polite" aria-atomic="true">
       {status === 'pending' && (
         <span className="text-muted-foreground">Aguardando para salvar...</span>
       )}

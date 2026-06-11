@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { getFinanceSummary } from '@/features/finance/services/finance.service'
 import type { FinanceSummary } from '@/features/finance/types/finance.types'
 import { listAppointments } from '@/features/scheduling/services/scheduling.service'
 import type { Appointment } from '@/features/scheduling/types/scheduling.types'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 export function useDashboardPage() {
   const { user } = useAuth()
@@ -37,7 +37,7 @@ export function useDashboardPage() {
         setError('Não foi possível carregar os dados do dia. Tente recarregar a página.')
       })
       .finally(() => setIsLoading(false))
-  }, [today, user?.role]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [today, user?.role])
 
   const statusCounts = useMemo(() => {
     const confirmed = appointments.filter((a) => a.status === 'CONFIRMED').length

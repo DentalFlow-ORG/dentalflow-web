@@ -60,7 +60,11 @@ export function usePatientAvatar(identifier: string | null | undefined) {
     }
     // Serve from cache when available — skip the network call entirely.
     if (avatarCache.has(identifier)) {
-      setState({ avatarUrl: avatarCache.get(identifier) ?? null, isLoading: false, isSaving: false })
+      setState({
+        avatarUrl: avatarCache.get(identifier) ?? null,
+        isLoading: false,
+        isSaving: false,
+      })
       return
     }
     let active = true
@@ -76,7 +80,9 @@ export function usePatientAvatar(identifier: string | null | undefined) {
         // Not cached on failure so the next mount can retry.
         if (active) setState({ avatarUrl: null, isLoading: false, isSaving: false })
       })
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [identifier])
 
   const update = useCallback(

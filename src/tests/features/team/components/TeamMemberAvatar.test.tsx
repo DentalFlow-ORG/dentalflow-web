@@ -97,9 +97,7 @@ describe('TeamMemberAvatar — role coloring', () => {
   })
 
   it('applies muted color for unknown role', () => {
-    const { container } = render(
-      <TeamMemberAvatar firstName="X" role="UNKNOWN_ROLE" />,
-    )
+    const { container } = render(<TeamMemberAvatar firstName="X" role="UNKNOWN_ROLE" />)
     expect(container.firstElementChild?.className).toContain('text-muted-foreground')
   })
 

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
-import { TeamMemberAvatar } from './TeamMemberAvatar'
 import type { MemberListItem } from '../types/team.types'
+import { TeamMemberAvatar } from './TeamMemberAvatar'
 
 type TeamMemberIdentitySize = 'sm' | 'md' | 'lg'
 

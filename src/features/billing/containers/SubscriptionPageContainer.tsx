@@ -8,26 +8,20 @@ import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 
+import type { CommercialPlanKey } from '@/features/marketing/config/features'
 import { BillingIntervalToggle } from '../components/BillingIntervalToggle'
 import { CurrentSubscriptionCard } from '../components/CurrentSubscriptionCard'
 import { LaunchOfferBanner } from '../components/LaunchOfferBanner'
 import { PlanValueSection } from '../components/PlanValueSection'
 import { PricingCard } from '../components/PricingCard'
 import { SubscriptionHero } from '../components/SubscriptionHero'
+import { REASSURANCE_ITEMS, getComparisonFeatures } from '../constants/subscription-display'
 import {
   intervalAvailableForPlan,
   normalizeBillingInterval,
   useSubscriptionPage,
 } from '../hooks/useSubscriptionPage'
-import {
-  getPlanCtaState,
-  type PlanCtaState,
-} from '../utils/billing-cta-utils'
-import type { CommercialPlanKey } from '@/features/marketing/config/features'
-import {
-  getComparisonFeatures,
-  REASSURANCE_ITEMS,
-} from '../constants/subscription-display'
+import { type PlanCtaState, getPlanCtaState } from '../utils/billing-cta-utils'
 
 export function SubscriptionPageContainer() {
   const { user } = useAuth()
@@ -81,7 +75,8 @@ export function SubscriptionPageContainer() {
       {billingStatus?.accessAllowed === false && (
         <InlineFeedback tone="warning">
           {canManageBilling
-            ? (billingStatus.message || 'Sua assinatura precisa ser regularizada para continuar usando o DentalFlow.')
+            ? billingStatus.message ||
+              'Sua assinatura precisa ser regularizada para continuar usando o DentalFlow.'
             : 'O acesso ao DentalFlow está suspenso. Entre em contato com o proprietário da clínica para regularizar a assinatura e restaurar o acesso.'}
         </InlineFeedback>
       )}

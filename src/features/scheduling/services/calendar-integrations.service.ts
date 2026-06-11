@@ -15,13 +15,10 @@ export function getGoogleCalendarStatus() {
 }
 
 export function createGoogleCalendarConnectUrl() {
-  return apiRequest<GoogleCalendarConnectResponse>(
-    '/calendar-integrations/google/connect',
-    {
-      method: 'POST',
-      accessToken: getAccessToken(),
-    },
-  )
+  return apiRequest<GoogleCalendarConnectResponse>('/calendar-integrations/google/connect', {
+    method: 'POST',
+    accessToken: getAccessToken(),
+  })
 }
 
 export function disconnectGoogleCalendar() {

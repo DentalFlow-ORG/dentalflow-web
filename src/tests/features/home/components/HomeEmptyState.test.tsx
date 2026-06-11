@@ -29,9 +29,7 @@ describe('HomeEmptyState — full mode (default)', () => {
   })
 
   it('renders the icon when provided', () => {
-    const { container } = render(
-      <HomeEmptyState title="Sem consultas" icon={CalendarDays} />,
-    )
+    const { container } = render(<HomeEmptyState title="Sem consultas" icon={CalendarDays} />)
     expect(container.querySelector('[aria-hidden="true"]')).toBeTruthy()
   })
 
@@ -61,20 +59,12 @@ describe('HomeEmptyState — compact mode', () => {
   })
 
   it('renders the description in compact mode', () => {
-    render(
-      <HomeEmptyState
-        title="Sem alertas"
-        description="Estoque normalizado"
-        compact
-      />,
-    )
+    render(<HomeEmptyState title="Sem alertas" description="Estoque normalizado" compact />)
     expect(screen.getByText('Estoque normalizado')).toBeInTheDocument()
   })
 
   it('renders the icon in compact mode', () => {
-    const { container } = render(
-      <HomeEmptyState title="Sem dados" icon={CalendarDays} compact />,
-    )
+    const { container } = render(<HomeEmptyState title="Sem dados" icon={CalendarDays} compact />)
     expect(container.querySelector('[aria-hidden="true"]')).toBeTruthy()
   })
 

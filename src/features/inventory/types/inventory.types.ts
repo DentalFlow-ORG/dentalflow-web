@@ -9,12 +9,7 @@ export const STOCK_PRODUCT_STATUSES = [
 
 export type StockProductStatus = (typeof STOCK_PRODUCT_STATUSES)[number]
 
-export const STOCK_MOVEMENT_TYPES = [
-  'IN',
-  'OUT',
-  'ADJUSTMENT',
-  'LOSS',
-] as const
+export const STOCK_MOVEMENT_TYPES = ['IN', 'OUT', 'ADJUSTMENT', 'LOSS'] as const
 
 export type StockMovementType = (typeof STOCK_MOVEMENT_TYPES)[number]
 

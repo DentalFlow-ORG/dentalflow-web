@@ -3,11 +3,7 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 
-const TRUST_SIGNALS = [
-  '7 dias grátis',
-  'Sem cartão de crédito',
-  'Cancele quando quiser',
-] as const
+const TRUST_SIGNALS = ['7 dias grátis', 'Sem cartão de crédito', 'Cancele quando quiser'] as const
 
 export function TrialCtaSection() {
   return (
@@ -17,13 +13,17 @@ export function TrialCtaSection() {
           Sua clínica mais organizada começa hoje.
         </h2>
         <p className="mt-4 text-lg leading-7 text-blue-200">
-          Comece com 7 dias grátis e veja como uma plataforma moderna pode simplificar a rotina da sua clínica — sem compromisso, sem cartão, sem burocracia.
+          Comece com 7 dias grátis e veja como uma plataforma moderna pode simplificar a rotina da
+          sua clínica — sem compromisso, sem cartão, sem burocracia.
         </p>
 
         {/* 3 micro trust signals */}
         <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
           {TRUST_SIGNALS.map((signal) => (
-            <span key={signal} className="flex items-center gap-1.5 text-sm font-medium text-blue-100">
+            <span
+              key={signal}
+              className="flex items-center gap-1.5 text-sm font-medium text-blue-100"
+            >
               <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" aria-hidden="true" />
               {signal}
             </span>

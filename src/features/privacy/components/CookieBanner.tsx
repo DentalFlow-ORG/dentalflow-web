@@ -14,7 +14,6 @@ export function CookieBanner() {
       className="fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4 print:hidden"
     >
       <div className="mx-auto max-w-5xl rounded-2xl border border-slate-200/80 bg-white px-5 py-4 shadow-xl shadow-slate-950/[0.08] sm:flex sm:items-center sm:gap-8 sm:px-6 sm:py-5">
-
         {/* Icon + copy */}
         <div className="flex items-start gap-3.5 sm:min-w-0 sm:flex-1">
           <div
@@ -29,8 +28,7 @@ export function CookieBanner() {
             </p>
             <p className="mt-0.5 text-xs leading-5 text-slate-500">
               Utilizamos cookies essenciais para o funcionamento da plataforma e, com seu
-              consentimento, cookies adicionais para entender o uso e melhorar nossos
-              serviços.{' '}
+              consentimento, cookies adicionais para entender o uso e melhorar nossos serviços.{' '}
               <a
                 href="/politica-de-cookies"
                 className="text-emerald-600 underline underline-offset-2 transition-colors hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"

@@ -70,9 +70,7 @@ describe('FinancialAnalysisPanel', () => {
 
   it('renders the premium title', () => {
     renderPanel()
-    expect(screen.getByTestId('ai-title')).toHaveTextContent(
-      'Análise inteligente do período',
-    )
+    expect(screen.getByTestId('ai-title')).toHaveTextContent('Análise inteligente do período')
   })
 
   it('renders the premium description', () => {

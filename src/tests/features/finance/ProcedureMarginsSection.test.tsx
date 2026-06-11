@@ -119,10 +119,7 @@ const emptySuccessState: ProcedureMarginsState = {
   data: emptyData,
 }
 
-function renderSection(
-  state: ProcedureMarginsState = idleState,
-  onLoad = vi.fn(),
-) {
+function renderSection(state: ProcedureMarginsState = idleState, onLoad = vi.fn()) {
   return { onLoad, ...render(<ProcedureMarginsSection state={state} onLoad={onLoad} />) }
 }
 
@@ -194,9 +191,7 @@ describe('ProcedureMarginsSection', () => {
 
   it('renders plan-blocked message', () => {
     renderSection(planBlockedState)
-    expect(
-      screen.getByText(/Análise por procedimento disponível nos planos/),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Análise por procedimento disponível nos planos/)).toBeInTheDocument()
   })
 
   it('plan-blocked state has a bordered container', () => {

@@ -15,8 +15,8 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }))
 
-import { useStockCopilot } from '@/features/inventory/hooks/useStockCopilot'
 import { StockCopilotCard } from '@/features/inventory/components/StockCopilotCard'
+import { useStockCopilot } from '@/features/inventory/hooks/useStockCopilot'
 
 const mockUseStockCopilot = vi.mocked(useStockCopilot)
 
@@ -152,9 +152,7 @@ describe('StockCopilotCard', () => {
   })
 
   it('shows generating text when no result exists and generation is in progress', () => {
-    mockUseStockCopilot.mockReturnValue(
-      defaultHookState({ result: null, isGenerating: true }),
-    )
+    mockUseStockCopilot.mockReturnValue(defaultHookState({ result: null, isGenerating: true }))
     render(<StockCopilotCard />)
     expect(screen.getByText(/Gerando resumo com IA/i)).toBeInTheDocument()
   })

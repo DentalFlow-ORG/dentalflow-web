@@ -73,23 +73,60 @@ vi.mock('@/features/inventory/hooks/useInventoryPage', () => ({
 }))
 
 vi.mock('@/features/inventory/hooks/useStockPurchaseList', () => ({
-  useStockPurchaseList: () => ({ data: null, isLoading: false, error: null, isPlanBlocked: false, refetch: vi.fn() }),
+  useStockPurchaseList: () => ({
+    data: null,
+    isLoading: false,
+    error: null,
+    isPlanBlocked: false,
+    refetch: vi.fn(),
+  }),
 }))
 
 vi.mock('@/features/inventory/hooks/useStockAbnormalConsumption', () => ({
-  useStockAbnormalConsumption: () => ({ data: null, isLoading: false, error: null, isPlanBlocked: false, refetch: vi.fn() }),
+  useStockAbnormalConsumption: () => ({
+    data: null,
+    isLoading: false,
+    error: null,
+    isPlanBlocked: false,
+    refetch: vi.fn(),
+  }),
 }))
 
 vi.mock('@/features/inventory/hooks/useStockCopilot', () => ({
-  useStockCopilot: () => ({ result: null, isLoadingInitial: false, isGenerating: false, error: null, isPlanBlocked: false, isQuotaExceeded: false, quotaMessage: null, handleGenerate: vi.fn() }),
+  useStockCopilot: () => ({
+    result: null,
+    isLoadingInitial: false,
+    isGenerating: false,
+    error: null,
+    isPlanBlocked: false,
+    isQuotaExceeded: false,
+    quotaMessage: null,
+    handleGenerate: vi.fn(),
+  }),
 }))
 
 vi.mock('@/features/inventory/hooks/useAbnormalConsumptionCopilot', () => ({
-  useAbnormalConsumptionCopilot: () => ({ result: null, isLoadingInitial: false, isGenerating: false, error: null, isPlanBlocked: false, isQuotaExceeded: false, quotaMessage: null, handleGenerate: vi.fn() }),
+  useAbnormalConsumptionCopilot: () => ({
+    result: null,
+    isLoadingInitial: false,
+    isGenerating: false,
+    error: null,
+    isPlanBlocked: false,
+    isQuotaExceeded: false,
+    quotaMessage: null,
+    handleGenerate: vi.fn(),
+  }),
 }))
 
 vi.mock('@/features/inventory/hooks/useAiAssistantInventory', () => ({
-  useAiAssistantInventory: () => ({ savedAnalysis: null, quota: null, dataReadiness: null, visibility: undefined, isLoadingInitial: false, handleGenerate: vi.fn() }),
+  useAiAssistantInventory: () => ({
+    savedAnalysis: null,
+    quota: null,
+    dataReadiness: null,
+    visibility: undefined,
+    isLoadingInitial: false,
+    handleGenerate: vi.fn(),
+  }),
 }))
 
 vi.mock('@/features/auth/hooks/useAuth', () => ({
@@ -144,7 +181,8 @@ describe('InventoryPageContainer — section order', () => {
 
     // DOM order: purchase list appears before abnormal consumption
     expect(
-      purchaseListHeading.compareDocumentPosition(abnormalHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
+      purchaseListHeading.compareDocumentPosition(abnormalHeading) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
 
     // DOM order: abnormal consumption appears before AI analysis panel
@@ -163,7 +201,8 @@ describe('InventoryPageContainer — section order', () => {
     const purchaseListHeading = screen.getByText('Lista de compra sugerida')
 
     expect(
-      filtersSearchBox.compareDocumentPosition(purchaseListHeading) & Node.DOCUMENT_POSITION_FOLLOWING,
+      filtersSearchBox.compareDocumentPosition(purchaseListHeading) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
   })
 

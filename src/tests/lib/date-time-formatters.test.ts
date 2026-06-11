@@ -1,4 +1,3 @@
-import { vi } from 'vitest'
 import {
   brazilCurrentTimeHHmm,
   formatDateBR,
@@ -6,6 +5,7 @@ import {
   getBrazilWeekStart,
   isToday,
 } from '@/lib/date-time-formatters'
+import { vi } from 'vitest'
 
 // All fixtures use explicit UTC timestamps for timezone-independent tests.
 // Brazil = UTC-3, so Brazil midnight = UTC 03:00.
@@ -164,37 +164,37 @@ describe('formatDateBR — stable Brazilian display format', () => {
 describe('getBrazilWeekStart', () => {
   it('returns the same Monday for a Monday input (2026-06-01)', () => {
     const result = getBrazilWeekStart('2026-06-01')
-    expect(result.getDay()).toBe(1)        // Monday
+    expect(result.getDay()).toBe(1) // Monday
     expect(result.getFullYear()).toBe(2026)
-    expect(result.getMonth()).toBe(5)      // June (0-indexed)
+    expect(result.getMonth()).toBe(5) // June (0-indexed)
     expect(result.getDate()).toBe(1)
   })
 
   it('returns the preceding Monday for a Wednesday (2026-06-03 → 2026-06-01)', () => {
     const result = getBrazilWeekStart('2026-06-03')
     expect(result.getDay()).toBe(1)
-    expect(result.getMonth()).toBe(5)  // June
+    expect(result.getMonth()).toBe(5) // June
     expect(result.getDate()).toBe(1)
   })
 
   it('returns the preceding Monday for a Sunday (2026-06-07 → 2026-06-01)', () => {
     const result = getBrazilWeekStart('2026-06-07')
     expect(result.getDay()).toBe(1)
-    expect(result.getMonth()).toBe(5)  // June
+    expect(result.getMonth()).toBe(5) // June
     expect(result.getDate()).toBe(1)
   })
 
   it('Sunday at month boundary: 2026-05-31 → Monday 2026-05-25', () => {
     const result = getBrazilWeekStart('2026-05-31')
     expect(result.getDay()).toBe(1)
-    expect(result.getMonth()).toBe(4)   // May (0-indexed)
+    expect(result.getMonth()).toBe(4) // May (0-indexed)
     expect(result.getDate()).toBe(25)
   })
 
   it('crosses month boundary: Wednesday 2026-07-01 → Monday 2026-06-29', () => {
     const result = getBrazilWeekStart('2026-07-01')
     expect(result.getDay()).toBe(1)
-    expect(result.getMonth()).toBe(5)   // June (0-indexed)
+    expect(result.getMonth()).toBe(5) // June (0-indexed)
     expect(result.getDate()).toBe(29)
   })
 
@@ -205,13 +205,13 @@ describe('getBrazilWeekStart', () => {
     // pushed back 6 days to May 25 — wrong for a Brazil user who meant June 1.
     // getBrazilWeekStart uses new Date(y, m-1, d) (local constructor) to prevent this.
     const result = getBrazilWeekStart('2026-06-01')
-    expect(result.getMonth()).toBe(5)   // June, NOT May
-    expect(result.getDate()).toBe(1)    // 1st, NOT 25th
+    expect(result.getMonth()).toBe(5) // June, NOT May
+    expect(result.getDate()).toBe(1) // 1st, NOT 25th
   })
 
   it('throws for an invalid date string', () => {
     expect(() => getBrazilWeekStart('not-a-date')).toThrow()
-    expect(() => getBrazilWeekStart('2026-6-1')).toThrow()   // wrong zero-padding
+    expect(() => getBrazilWeekStart('2026-6-1')).toThrow() // wrong zero-padding
     expect(() => getBrazilWeekStart('')).toThrow()
   })
 })

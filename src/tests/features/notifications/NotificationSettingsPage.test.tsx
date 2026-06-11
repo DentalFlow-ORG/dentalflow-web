@@ -1,8 +1,8 @@
 import { render, screen, userEvent } from '@/test-utils/render-utils'
 
 import { NotificationSettingsPage } from '@/features/notifications/pages/NotificationSettingsPage'
-import { makeOwnerUser, makeAssistantUser } from '@/test-utils/factories/user.factory'
-import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
+import { makeAssistantUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
+import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -150,7 +150,10 @@ describe('NotificationSettingsPage — loading state', () => {
 describe('NotificationSettingsPage — error states', () => {
   it('preferences load error renders visible inline feedback', () => {
     mockUseNotificationPreferences.mockReturnValue(
-      makeDefaultPreferencesHook({ preferences: null, error: 'Não foi possível carregar as preferências.' }),
+      makeDefaultPreferencesHook({
+        preferences: null,
+        error: 'Não foi possível carregar as preferências.',
+      }),
     )
     render(<NotificationSettingsPage />)
     expect(screen.getByText(/não foi possível carregar as preferências/i)).toBeInTheDocument()

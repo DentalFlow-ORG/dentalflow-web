@@ -1,19 +1,19 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import { OdontogramChart } from './odontogram/OdontogramChart'
-import { OdontogramLegend } from './odontogram/OdontogramLegend'
-import { OdontogramToothDetailsPanel } from './odontogram/OdontogramToothDetailsPanel'
 import type { OdontogramData, OdontogramTooth } from '../types/clinical-record.types'
 import {
   ALL_DECIDUOUS,
   ALL_TEETH,
+  type DentitionMode,
   ODONTOGRAM_CONDITION_BUTTON_CLASSES,
   ODONTOGRAM_CONDITION_OPTIONS,
-  type DentitionMode,
 } from '../utils/odontogram-status-utils'
+import { OdontogramChart } from './odontogram/OdontogramChart'
+import { OdontogramLegend } from './odontogram/OdontogramLegend'
+import { OdontogramToothDetailsPanel } from './odontogram/OdontogramToothDetailsPanel'
 
 type Props = {
   data: OdontogramData
@@ -30,6 +30,7 @@ type Props = {
 }
 
 export function OdontogramSection({ data, onChange, readOnly = false, showTitle = true }: Props) {
+  const odontogramNotesId = useId()
   const [selected, setSelected] = useState<number | null>(null)
   const [multiMode, setMultiMode] = useState(false)
   const [multiSelected, setMultiSelected] = useState<Set<number>>(new Set())
@@ -41,8 +42,7 @@ export function OdontogramSection({ data, onChange, readOnly = false, showTitle 
   // The full set of selectable teeth depends on the active dentition mode
   const currentAllTeeth = dentitionMode === 'deciduous' ? ALL_DECIDUOUS : ALL_TEETH
 
-  const getTooth = (number: number): OdontogramTooth =>
-    data.teeth?.[String(number)] ?? {}
+  const getTooth = (number: number): OdontogramTooth => data.teeth?.[String(number)] ?? {}
 
   const setToothCondition = (number: number, condition: string) => {
     if (readOnly) return
@@ -135,9 +135,7 @@ export function OdontogramSection({ data, onChange, readOnly = false, showTitle 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
           <div>
-            {showTitle && (
-              <p className="text-sm font-semibold text-foreground">Odontograma</p>
-            )}
+            {showTitle && <p className="text-sm font-semibold text-foreground">Odontograma</p>}
             <p className={cn('text-xs text-muted-foreground', showTitle && 'mt-0.5')}>
               {readOnly
                 ? 'Este prontuário está finalizado e o odontograma está disponível apenas para consulta.'
@@ -198,10 +196,14 @@ export function OdontogramSection({ data, onChange, readOnly = false, showTitle 
       )}
 
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <label
+          htmlFor={odontogramNotesId}
+          className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+        >
           Observações gerais do odontograma
         </label>
         <textarea
+          id={odontogramNotesId}
           rows={3}
           value={data.notes ?? ''}
           onChange={(event) => onChange({ ...data, notes: event.target.value })}

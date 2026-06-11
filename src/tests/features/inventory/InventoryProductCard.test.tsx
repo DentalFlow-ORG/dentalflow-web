@@ -239,16 +239,18 @@ describe('InventoryProductCard', () => {
     const product = buildProduct({ currentQuantity: 0 })
     render(<InventoryProductCard product={product} {...defaultHandlers()} />)
 
-    expect(
-      screen.getByRole('button', { name: /Estoque insuficiente/i }),
-    ).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Estoque insuficiente/i })).toBeDisabled()
   })
 
   it('shows a spinner for the product being moved', () => {
     const product = buildProduct()
     const quickMovingIds = new Set([product.id])
     const { container } = render(
-      <InventoryProductCard product={product} {...defaultHandlers()} quickMovingIds={quickMovingIds} />,
+      <InventoryProductCard
+        product={product}
+        {...defaultHandlers()}
+        quickMovingIds={quickMovingIds}
+      />,
     )
 
     expect(container.querySelector('.animate-spin')).toBeInTheDocument()

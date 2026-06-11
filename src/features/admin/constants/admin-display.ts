@@ -30,7 +30,12 @@ export const USER_FORM_ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: 'ASSISTANT', label: 'Assistente' },
 ]
 
-export const ADMIN_NAV_CARDS: Array<{ to: string; icon: LucideIcon; label: string; description: string }> = [
+export const ADMIN_NAV_CARDS: Array<{
+  to: string
+  icon: LucideIcon
+  label: string
+  description: string
+}> = [
   {
     to: '/app/admin/clinics',
     icon: Building2,

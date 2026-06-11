@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+import { PublicLayout } from '../components/PublicLayout'
 import { RoleBenefitGrid } from '../components/RoleBenefitGrid'
 import { RoleFinalCta } from '../components/RoleFinalCta'
 import { RoleHeroMockup } from '../components/RoleHeroMockup'
@@ -11,9 +12,8 @@ import { RoleModulesPanel } from '../components/RoleModulesPanel'
 import { RoleSwitcher } from '../components/RoleSwitcher'
 import { RoleTrustStrip } from '../components/RoleTrustStrip'
 import { RoleWorkflow } from '../components/RoleWorkflow'
-import { PublicLayout } from '../components/PublicLayout'
-import { usePageMeta } from '../hooks/usePageMeta'
 import type { RoleContent } from '../data/public-content'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 type RolePageProps = {
   content: RoleContent
@@ -41,7 +41,6 @@ export function RolePage({ content }: RolePageProps) {
       >
         <div className="mx-auto max-w-5xl px-6 lg:px-8">
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-14">
-
             {/* Left: commercial copy */}
             <div className="max-w-xl">
               <div
@@ -51,7 +50,10 @@ export function RolePage({ content }: RolePageProps) {
                 )}
               >
                 <Icon
-                  className={cn('h-6 w-6', isNavy ? 'text-white' : isFresh ? 'text-emerald-700' : 'text-primary')}
+                  className={cn(
+                    'h-6 w-6',
+                    isNavy ? 'text-white' : isFresh ? 'text-emerald-700' : 'text-primary',
+                  )}
                   aria-hidden="true"
                 />
               </div>
@@ -91,11 +93,7 @@ export function RolePage({ content }: RolePageProps) {
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button
-                  size="lg"
-                  variant={isNavy ? 'inverse' : 'outline'}
-                  asChild
-                >
+                <Button size="lg" variant={isNavy ? 'inverse' : 'outline'} asChild>
                   <Link to="/planos">Ver planos</Link>
                 </Button>
               </div>

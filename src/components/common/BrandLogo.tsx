@@ -1,8 +1,8 @@
 import { useRouterState } from '@tanstack/react-router'
 
 import { companyInfo } from '@/config/company'
-import { useTheme } from '@/features/theme/useTheme'
 import { shouldForceLightTheme } from '@/features/theme/force-light-routes'
+import { useTheme } from '@/features/theme/useTheme'
 import { cn } from '@/lib/utils'
 
 type BrandLogoProps = {
@@ -27,9 +27,7 @@ export function BrandLogo({ className, forceDark }: BrandLogoProps) {
 
   const isDark =
     forceDark === true ||
-    (pathname.startsWith('/app') &&
-      !shouldForceLightTheme(pathname) &&
-      ctx.theme === 'dark')
+    (pathname.startsWith('/app') && !shouldForceLightTheme(pathname) && ctx.theme === 'dark')
 
   return (
     <img

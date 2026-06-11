@@ -2,14 +2,14 @@ import { Loader2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
-import { Button } from '@/components/ui/button'
 import { FormField, TextInput, TimeInput } from '@/components/common/FormField'
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import {
   formatDateBR,
   formatDateInputValue,
   formatTimeInputValue,
 } from '@/lib/date-time-formatters'
+import { cn } from '@/lib/utils'
 
 import type { CreateAvailabilityExceptionDto } from '../../types/scheduling.types'
 
@@ -72,12 +72,7 @@ export function ExceptionForm({
         </div>
       ) : (
         <FormField label="Data" htmlFor="exceptionDate">
-          <DatePickerInput
-            id="exceptionDate"
-            name="exceptionDate"
-            required
-            disabled={isLoading}
-          />
+          <DatePickerInput id="exceptionDate" name="exceptionDate" required disabled={isLoading} />
         </FormField>
       )}
 

@@ -41,11 +41,7 @@ export function InvoiceDetails({ invoice, onClose }: Props) {
             <Printer className="h-4 w-4" aria-hidden="true" />
             Imprimir
           </Button>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            aria-label="Fechar detalhes da nota fiscal"
-          >
+          <Button variant="outline" onClick={onClose} aria-label="Fechar detalhes da nota fiscal">
             Fechar
           </Button>
         </div>

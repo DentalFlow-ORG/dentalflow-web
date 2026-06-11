@@ -63,10 +63,7 @@ export function validateReportDateRange(
   return null
 }
 
-export function validateFollowUpDate(
-  date: string | undefined,
-  isCreate: boolean,
-): string | null {
+export function validateFollowUpDate(date: string | undefined, isCreate: boolean): string | null {
   if (!date) return null
 
   if (isCreate && date < todayIso()) {

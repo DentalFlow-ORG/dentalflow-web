@@ -1,4 +1,13 @@
-import { Ban, CheckCircle, Clock, DollarSign, FileText, FlaskConical, Hourglass, XCircle } from 'lucide-react'
+import {
+  Ban,
+  CheckCircle,
+  Clock,
+  DollarSign,
+  FileText,
+  FlaskConical,
+  Hourglass,
+  XCircle,
+} from 'lucide-react'
 
 import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
 

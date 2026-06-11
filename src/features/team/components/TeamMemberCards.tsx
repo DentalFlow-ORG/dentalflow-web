@@ -1,9 +1,9 @@
 import { StatusBadge } from '@/components/common/StatusBadge'
 
+import type { MemberListItem } from '../types/team.types'
 import { TeamMemberActions } from './TeamMemberActions'
 import { TeamMemberIdentity } from './TeamMemberIdentity'
 import { TeamRoleBadge } from './TeamRoleBadge'
-import type { MemberListItem } from '../types/team.types'
 
 type TeamMemberCardsProps = {
   members: MemberListItem[]
@@ -12,12 +12,7 @@ type TeamMemberCardsProps = {
   onDelete: (member: MemberListItem) => void
 }
 
-export function TeamMemberCards({
-  members,
-  onEdit,
-  onPassword,
-  onDelete,
-}: TeamMemberCardsProps) {
+export function TeamMemberCards({ members, onEdit, onPassword, onDelete }: TeamMemberCardsProps) {
   return (
     <div className="space-y-3 md:hidden">
       {members.map((member) => (

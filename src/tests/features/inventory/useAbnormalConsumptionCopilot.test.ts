@@ -13,8 +13,8 @@ vi.mock('@/features/inventory/services/stock-abnormal-consumption.service', () =
 }))
 
 import {
-  getLatestAbnormalConsumptionSummary,
   generateAbnormalConsumptionCopilotSummary,
+  getLatestAbnormalConsumptionSummary,
 } from '@/features/inventory/services/stock-abnormal-consumption.service'
 
 const mockGetLatest = vi.mocked(getLatestAbnormalConsumptionSummary)
@@ -22,7 +22,9 @@ const mockGenerate = vi.mocked(generateAbnormalConsumptionCopilotSummary)
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function buildResult(overrides: Partial<AbnormalConsumptionCopilotResult> = {}): AbnormalConsumptionCopilotResult {
+function buildResult(
+  overrides: Partial<AbnormalConsumptionCopilotResult> = {},
+): AbnormalConsumptionCopilotResult {
   return {
     summary: 'Consumo dentro do padrão na maioria dos produtos.',
     highlights: ['Produto X com pico de saída.'],
@@ -44,7 +46,10 @@ describe('useAbnormalConsumptionCopilot', () => {
   // ── Mount: latest persisted analysis is displayed ─────────────────────────
 
   it('shows a persisted result from any previous date on mount', async () => {
-    const persistedResult = buildResult({ generatedAt: '2026-05-20T09:00:00.000Z', source: 'CACHE' })
+    const persistedResult = buildResult({
+      generatedAt: '2026-05-20T09:00:00.000Z',
+      source: 'CACHE',
+    })
     mockGetLatest.mockResolvedValue(persistedResult)
 
     const { result } = renderHook(() => useAbnormalConsumptionCopilot())
@@ -97,7 +102,11 @@ describe('useAbnormalConsumptionCopilot', () => {
   it('updates result after handleGenerate is called', async () => {
     mockGetLatest.mockResolvedValue(undefined)
 
-    const newResult = buildResult({ source: 'AI', cached: false, generatedAt: new Date().toISOString() })
+    const newResult = buildResult({
+      source: 'AI',
+      cached: false,
+      generatedAt: new Date().toISOString(),
+    })
     mockGenerate.mockResolvedValue(newResult)
 
     const { result } = renderHook(() => useAbnormalConsumptionCopilot())

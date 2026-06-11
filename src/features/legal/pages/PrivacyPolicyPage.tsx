@@ -3,12 +3,12 @@ import { Link } from '@tanstack/react-router'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
+  LegalContactBlock,
+  LegalList,
   LegalPageHeader,
   LegalSection,
-  LegalList,
-  LegalTable,
   LegalTOC,
-  LegalContactBlock,
+  LegalTable,
   legalInlineLinkClass,
 } from '../components/LegalSection'
 
@@ -51,24 +51,25 @@ export function PrivacyPolicyPage() {
 
       <LegalSection id="quem-somos" title="1. Quem Somos">
         <p>
-          {companyInfo.tradeName} ({companyInfo.legalName}{!isPlaceholderCnpj && `, CNPJ ${companyInfo.documentNumber}`}) é uma
-          plataforma SaaS para gestão de clínicas odontológicas. Nosso papel em relação aos
-          dados pessoais depende do contexto:
+          {companyInfo.tradeName} ({companyInfo.legalName}
+          {!isPlaceholderCnpj && `, CNPJ ${companyInfo.documentNumber}`}) é uma plataforma SaaS para
+          gestão de clínicas odontológicas. Nosso papel em relação aos dados pessoais depende do
+          contexto:
         </p>
         <LegalList
           items={[
-            `Atuamos como controlador para dados de contas, faturamento, segurança e analytics da própria plataforma.`,
-            `Atuamos como operador (processador) para dados de pacientes e registros clínicos inseridos pelas clínicas, que são as controladoras desses dados.`,
+            'Atuamos como controlador para dados de contas, faturamento, segurança e analytics da própria plataforma.',
+            'Atuamos como operador (processador) para dados de pacientes e registros clínicos inseridos pelas clínicas, que são as controladoras desses dados.',
           ]}
         />
       </LegalSection>
 
       <LegalSection id="escopo" title="2. Âmbito desta Política">
         <p>
-          Esta política se aplica ao uso da plataforma DentalFlow por clínicas, profissionais
-          de saúde, equipes administrativas e, quando aplicável, pacientes. Abrange todas as
-          funcionalidades disponíveis no sistema, incluindo agendamentos, prontuários
-          digitais, faturamento e integrações.
+          Esta política se aplica ao uso da plataforma DentalFlow por clínicas, profissionais de
+          saúde, equipes administrativas e, quando aplicável, pacientes. Abrange todas as
+          funcionalidades disponíveis no sistema, incluindo agendamentos, prontuários digitais,
+          faturamento e integrações.
         </p>
       </LegalSection>
 
@@ -104,13 +105,33 @@ export function PrivacyPolicyPage() {
           headers={['Finalidade', 'Dados Envolvidos', 'Base Legal (preliminar)']}
           rows={[
             ['Autenticação e controle de acesso', 'E-mail, senha, sessão', 'Execução de contrato'],
-            ['Prestação dos serviços contratados', 'Todos os dados do sistema', 'Execução de contrato'],
-            ['Processamento de pagamento', 'Dados de faturamento (via Stripe)', 'Execução de contrato'],
-            ['Atendimento ao suporte', 'Dados de conta e contexto do problema', 'Execução de contrato'],
-            ['Prontuário e registros clínicos', 'Dados de saúde inseridos pela clínica', 'Tutela da saúde (Art. 11, II, f LGPD)'],
+            [
+              'Prestação dos serviços contratados',
+              'Todos os dados do sistema',
+              'Execução de contrato',
+            ],
+            [
+              'Processamento de pagamento',
+              'Dados de faturamento (via Stripe)',
+              'Execução de contrato',
+            ],
+            [
+              'Atendimento ao suporte',
+              'Dados de conta e contexto do problema',
+              'Execução de contrato',
+            ],
+            [
+              'Prontuário e registros clínicos',
+              'Dados de saúde inseridos pela clínica',
+              'Tutela da saúde (Art. 11, II, f LGPD)',
+            ],
             ['Segurança e prevenção de fraudes', 'Logs, IP, metadados', 'Legítimo interesse'],
             ['Cumprimento de obrigações legais', 'Dados fiscais e financeiros', 'Obrigação legal'],
-            ['Consentimento de cookies e preferências', 'Categorias aceitas, timestamp', 'Consentimento'],
+            [
+              'Consentimento de cookies e preferências',
+              'Categorias aceitas, timestamp',
+              'Consentimento',
+            ],
           ]}
         />
         <p className="text-sm text-amber-700 bg-amber-50 rounded-lg p-3 border border-amber-200">
@@ -120,9 +141,9 @@ export function PrivacyPolicyPage() {
 
       <LegalSection id="dados-sensiveis" title="6. Dados de Saúde — Dados Sensíveis">
         <p>
-          Os prontuários e registros clínicos inseridos pelas clínicas constituem dados
-          sensíveis nos termos do Art. 11 da LGPD. Adotamos medidas técnicas e
-          administrativas especiais para esses dados:
+          Os prontuários e registros clínicos inseridos pelas clínicas constituem dados sensíveis
+          nos termos do Art. 11 da LGPD. Adotamos medidas técnicas e administrativas especiais para
+          esses dados:
         </p>
         <LegalList
           items={[
@@ -134,17 +155,19 @@ export function PrivacyPolicyPage() {
         />
       </LegalSection>
 
-      <LegalSection id="controlador-operador" title="7. Clínica como Controladora e DentalFlow como Operador">
+      <LegalSection
+        id="controlador-operador"
+        title="7. Clínica como Controladora e DentalFlow como Operador"
+      >
         <p>
-          Para dados de pacientes e registros clínicos, a clínica odontológica é a
-          controladora dos dados e DentalFlow atua como operador, processando os dados
-          conforme as instruções da clínica e as condições do contrato de prestação de
-          serviços.
+          Para dados de pacientes e registros clínicos, a clínica odontológica é a controladora dos
+          dados e DentalFlow atua como operador, processando os dados conforme as instruções da
+          clínica e as condições do contrato de prestação de serviços.
         </p>
         <p>
-          O paciente deve exercer seus direitos sobre esses dados primariamente junto à
-          clínica que realiza o atendimento. DentalFlow cooperará com solicitações legítimas
-          conforme obrigações contratuais e legais.
+          O paciente deve exercer seus direitos sobre esses dados primariamente junto à clínica que
+          realiza o atendimento. DentalFlow cooperará com solicitações legítimas conforme obrigações
+          contratuais e legais.
         </p>
       </LegalSection>
 
@@ -162,9 +185,9 @@ export function PrivacyPolicyPage() {
 
       <LegalSection id="stripe" title="9. Pagamentos via Stripe">
         <p>
-          Os dados de cartão de crédito e informações de pagamento são processados
-          exclusivamente pela Stripe, Inc. A DentalFlow não armazena dados completos de
-          cartão. A Stripe é certificada PCI DSS Nível 1. Consulte a{' '}
+          Os dados de cartão de crédito e informações de pagamento são processados exclusivamente
+          pela Stripe, Inc. A DentalFlow não armazena dados completos de cartão. A Stripe é
+          certificada PCI DSS Nível 1. Consulte a{' '}
           <a
             href="https://stripe.com/br/privacy"
             target="_blank"
@@ -179,8 +202,8 @@ export function PrivacyPolicyPage() {
 
       <LegalSection id="google-calendar" title="10. Integração com Google Calendar">
         <p>
-          Quando você conecta sua conta do Google Calendar, eventos de agendamento podem
-          ser sincronizados. Importante:
+          Quando você conecta sua conta do Google Calendar, eventos de agendamento podem ser
+          sincronizados. Importante:
         </p>
         <LegalList
           items={[
@@ -194,10 +217,9 @@ export function PrivacyPolicyPage() {
 
       <LegalSection id="cookies" title="11. Cookies e Tecnologias Similares">
         <p>
-          Utilizamos cookies e tecnologias similares para autenticação, preferências e,
-          com seu consentimento, análise de uso. Você pode gerenciar suas preferências de
-          cookies a qualquer momento clicando em "Preferências de cookies" no rodapé.
-          Consulte nossa{' '}
+          Utilizamos cookies e tecnologias similares para autenticação, preferências e, com seu
+          consentimento, análise de uso. Você pode gerenciar suas preferências de cookies a qualquer
+          momento clicando em "Preferências de cookies" no rodapé. Consulte nossa{' '}
           <Link to="/politica-de-cookies" className={legalInlineLinkClass}>
             Política de Cookies
           </Link>{' '}
@@ -207,8 +229,8 @@ export function PrivacyPolicyPage() {
 
       <LegalSection id="seguranca" title="12. Medidas de Segurança">
         <p>
-          Adotamos medidas técnicas e administrativas razoáveis e proporcionais ao risco
-          para proteger os dados pessoais, incluindo:
+          Adotamos medidas técnicas e administrativas razoáveis e proporcionais ao risco para
+          proteger os dados pessoais, incluindo:
         </p>
         <LegalList
           items={[
@@ -221,9 +243,8 @@ export function PrivacyPolicyPage() {
           ]}
         />
         <p>
-          Nenhum sistema é 100% seguro. Em caso de incidente de segurança com potencial
-          impacto aos titulares, notificaremos a ANPD e os afetados conforme exigido pela
-          LGPD.
+          Nenhum sistema é 100% seguro. Em caso de incidente de segurança com potencial impacto aos
+          titulares, notificaremos a ANPD e os afetados conforme exigido pela LGPD.
         </p>
       </LegalSection>
 
@@ -245,10 +266,10 @@ export function PrivacyPolicyPage() {
 
       <LegalSection id="transferencia" title="14. Transferência Internacional de Dados">
         <p>
-          Alguns de nossos subprocessadores (Stripe, Google) têm operações nos Estados
-          Unidos. Essas transferências são realizadas com base em mecanismos de adequação
-          reconhecidos ou cláusulas contratuais padrão, conforme orientação da ANPD.
-          Esta questão requer validação jurídica específica.
+          Alguns de nossos subprocessadores (Stripe, Google) têm operações nos Estados Unidos. Essas
+          transferências são realizadas com base em mecanismos de adequação reconhecidos ou
+          cláusulas contratuais padrão, conforme orientação da ANPD. Esta questão requer validação
+          jurídica específica.
         </p>
       </LegalSection>
 
@@ -291,9 +312,8 @@ export function PrivacyPolicyPage() {
 
       <LegalSection id="anpd" title="17. Reclamação à ANPD">
         <p>
-          Caso suas solicitações não sejam atendidas de forma satisfatória, você pode
-          registrar reclamação junto à Autoridade Nacional de Proteção de Dados (ANPD),
-          por meio do portal{' '}
+          Caso suas solicitações não sejam atendidas de forma satisfatória, você pode registrar
+          reclamação junto à Autoridade Nacional de Proteção de Dados (ANPD), por meio do portal{' '}
           <a
             href="https://www.gov.br/anpd"
             target="_blank"
@@ -308,9 +328,9 @@ export function PrivacyPolicyPage() {
 
       <LegalSection id="atualizacoes" title="18. Atualizações desta Política">
         <p>
-          Esta política pode ser atualizada periodicamente. Notificaremos sobre mudanças
-          relevantes por e-mail ou aviso no sistema. O uso continuado da plataforma após
-          a notificação implica aceitação das alterações.
+          Esta política pode ser atualizada periodicamente. Notificaremos sobre mudanças relevantes
+          por e-mail ou aviso no sistema. O uso continuado da plataforma após a notificação implica
+          aceitação das alterações.
         </p>
       </LegalSection>
 

@@ -1,7 +1,7 @@
 import { render, screen, userEvent } from '@/test-utils/render-utils'
 
-import { SchedulingToolbar } from '@/features/scheduling/components/SchedulingToolbar'
 import type { FilterDef } from '@/components/common/ListToolbar'
+import { SchedulingToolbar } from '@/features/scheduling/components/SchedulingToolbar'
 
 const baseProps = {
   searchQuery: '',
@@ -24,9 +24,7 @@ beforeEach(() => {
 describe('SchedulingToolbar — search', () => {
   it('renders the search input', () => {
     render(<SchedulingToolbar {...baseProps} />)
-    expect(
-      screen.getByPlaceholderText(/Pesquisar por paciente/i),
-    ).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Pesquisar por paciente/i)).toBeInTheDocument()
   })
 
   it('calls onSearchChange when typing in the search input', async () => {
@@ -65,9 +63,7 @@ describe('SchedulingToolbar — view toggle', () => {
 describe('SchedulingToolbar — new appointment', () => {
   it('renders the "Novo agendamento" button', () => {
     render(<SchedulingToolbar {...baseProps} />)
-    expect(
-      screen.getByRole('button', { name: /Novo agendamento/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Novo agendamento/i })).toBeInTheDocument()
   })
 
   it('calls onNewAppointment when the button is clicked', async () => {
@@ -99,15 +95,8 @@ describe('SchedulingToolbar — filters', () => {
 
 describe('SchedulingToolbar — Google Calendar hidden when no role', () => {
   it('does not render Google Calendar buttons for ASSISTANT (canManageGoogleCalendar=false)', () => {
-    render(
-      <SchedulingToolbar
-        {...baseProps}
-        canManageGoogleCalendar={false}
-      />,
-    )
-    expect(
-      screen.queryByRole('button', { name: /Google Agenda/i }),
-    ).not.toBeInTheDocument()
+    render(<SchedulingToolbar {...baseProps} canManageGoogleCalendar={false} />)
+    expect(screen.queryByRole('button', { name: /Google Agenda/i })).not.toBeInTheDocument()
   })
 
   it('renders connect button for OWNER (canManageGoogleCalendar=true, not connected)', () => {
@@ -115,11 +104,14 @@ describe('SchedulingToolbar — Google Calendar hidden when no role', () => {
       <SchedulingToolbar
         {...baseProps}
         canManageGoogleCalendar={true}
-        googleCalendar={{ connected: false, calendarSummary: null, connectedAt: null, lastSyncedAt: null }}
+        googleCalendar={{
+          connected: false,
+          calendarSummary: null,
+          connectedAt: null,
+          lastSyncedAt: null,
+        }}
       />,
     )
-    expect(
-      screen.getByRole('button', { name: /Conectar Google Agenda/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Conectar Google Agenda/i })).toBeInTheDocument()
   })
 })

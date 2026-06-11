@@ -29,7 +29,7 @@ describe('computeKpiMetrics', () => {
     expect(m.expectedRevenueCents).toBe(0)
   })
 
-  it('counts only today\'s appointments in todayTotal', () => {
+  it("counts only today's appointments in todayTotal", () => {
     const today = makeAppointment({ appointmentDate: DEFAULT_APPT_DATE })
     const other = makeAppointment({ appointmentDate: '2026-05-20' })
     expect(computeKpiMetrics([today, other]).todayTotal).toBe(1)

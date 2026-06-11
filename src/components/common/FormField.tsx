@@ -1,5 +1,5 @@
-import type { ComponentProps, ReactNode } from 'react'
 import { CalendarDays, Clock3 } from 'lucide-react'
+import type { ComponentProps, ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -39,11 +39,7 @@ export function FormField({
       </label>
       {children}
       {error ? (
-        <span
-          id={errorId}
-          role="alert"
-          className="block text-xs leading-5 text-destructive"
-        >
+        <span id={errorId} role="alert" className="block text-xs leading-5 text-destructive">
           {error}
         </span>
       ) : hint ? (

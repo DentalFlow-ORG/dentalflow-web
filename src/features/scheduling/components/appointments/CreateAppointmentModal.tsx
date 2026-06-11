@@ -3,8 +3,8 @@ import { Dialog } from 'radix-ui'
 import { useEffect, useState } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -13,29 +13,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getProfile, listProfiles } from '../../services/profiles.service'
-import type { ProfileListItem, ProfileService } from '../../types/profile.types'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { formatDateInputValue } from '@/lib/date-time-formatters'
-import {
-  getCurrentTimeInputValue,
-  isDateAvailable,
-  reaisToCents,
-} from '../../utils/appointment-form-utils'
 import {
   WHATSAPP_PHONE_REQUIRED_MESSAGE,
   formatPhoneBR,
   isValidWhatsappPhoneBR,
 } from '@/lib/field-formatters'
+import { getProfile, listProfiles } from '../../services/profiles.service'
+import type { ProfileListItem, ProfileService } from '../../types/profile.types'
+import {
+  getCurrentTimeInputValue,
+  isDateAvailable,
+  reaisToCents,
+} from '../../utils/appointment-form-utils'
 
+import { PatientAvatarWidget } from '@/features/patients/components/PatientAvatarWidget'
+import { upsertPatientAvatar } from '@/features/patients/services/patients.service'
 import {
   createAppointment,
   getAvailableSlots,
   listAvailability,
   listAvailabilityExceptions,
 } from '../../services/scheduling.service'
-import { upsertPatientAvatar } from '@/features/patients/services/patients.service'
-import { PatientAvatarWidget } from '@/features/patients/components/PatientAvatarWidget'
 import type {
   Appointment,
   Availability,
@@ -43,8 +43,8 @@ import type {
   AvailabilitySlot,
   CreateAppointmentDto,
 } from '../../types/scheduling.types'
-import { SlotPicker } from './SlotPicker'
 import { AppointmentServiceValueSection } from './AppointmentServiceValueSection'
+import { SlotPicker } from './SlotPicker'
 
 type CreateAppointmentModalProps = {
   open: boolean
@@ -274,10 +274,7 @@ export function CreateAppointmentModal({
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border px-6 py-5">
-            <Dialog.Title
-              id="create-modal-title"
-              className="text-lg font-semibold text-foreground"
-            >
+            <Dialog.Title id="create-modal-title" className="text-lg font-semibold text-foreground">
               Novo agendamento
             </Dialog.Title>
             <Dialog.Description className="sr-only">
@@ -316,9 +313,7 @@ export function CreateAppointmentModal({
               >
                 <SelectTrigger id="profileId">
                   <SelectValue
-                    placeholder={
-                      isLoadingProfiles ? 'Carregando...' : 'Selecione um profissional'
-                    }
+                    placeholder={isLoadingProfiles ? 'Carregando...' : 'Selecione um profissional'}
                   />
                 </SelectTrigger>
                 <SelectContent>
@@ -465,12 +460,7 @@ export function CreateAppointmentModal({
 
           {/* Footer */}
           <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-5 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
               Cancelar
             </Button>
             <Button
@@ -487,4 +477,3 @@ export function CreateAppointmentModal({
     </Dialog.Root>
   )
 }
-

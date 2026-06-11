@@ -1,6 +1,8 @@
-import { useState } from 'react'
 import { CheckCircle2, Info } from 'lucide-react'
+import { useState } from 'react'
 
+import { FormField, TextArea, TextInput } from '@/components/common/FormField'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -9,16 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { FormField, TextInput, TextArea } from '@/components/common/FormField'
-import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LegalPageShell } from '@/features/legal/components/LegalPageShell'
 import { LegalPageHeader, LegalSection } from '@/features/legal/components/LegalSection'
 
 import {
-  createPrivacyRequest,
   type CreatePrivacyRequestPayload,
   type PrivacyRequestType,
   type RequesterType,
+  createPrivacyRequest,
 } from '../services/privacy.service'
 
 type FormState = CreatePrivacyRequestPayload
@@ -59,12 +59,11 @@ function SuccessCard({ requestCode }: { requestCode: string }) {
         Solicitação registrada com sucesso
       </h2>
       <p className="mt-2 text-emerald-700">
-        Código da solicitação:{' '}
-        <strong className="font-mono text-lg">{requestCode}</strong>
+        Código da solicitação: <strong className="font-mono text-lg">{requestCode}</strong>
       </p>
       <p className="mt-4 text-sm text-emerald-600">
-        Entraremos em contato pelo e-mail informado após validação da sua identidade.
-        Guarde o código acima para acompanhamento.
+        Entraremos em contato pelo e-mail informado após validação da sua identidade. Guarde o
+        código acima para acompanhamento.
       </p>
       <a
         href="/direitos-do-titular"
@@ -209,10 +208,9 @@ export function PrivacyRequestFormPage() {
               <div className="flex gap-3">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 <p className="text-sm text-slate-600">
-                  Para proteger seus dados, precisamos verificar sua identidade antes
-                  de processar solicitações de acesso, portabilidade ou exclusão.
-                  Podemos entrar em contato pelo e-mail informado para confirmar a
-                  titularidade dos dados.
+                  Para proteger seus dados, precisamos verificar sua identidade antes de processar
+                  solicitações de acesso, portabilidade ou exclusão. Podemos entrar em contato pelo
+                  e-mail informado para confirmar a titularidade dos dados.
                 </p>
               </div>
             </div>
@@ -226,9 +224,9 @@ export function PrivacyRequestFormPage() {
                 required
               />
               <span className="text-sm text-slate-700">
-                Entendo que a DentalFlow poderá precisar verificar minha identidade
-                antes de responder a esta solicitação, conforme exigido para proteger
-                os dados pessoais dos titulares. <strong>Campo obrigatório.</strong>
+                Entendo que a DentalFlow poderá precisar verificar minha identidade antes de
+                responder a esta solicitação, conforme exigido para proteger os dados pessoais dos
+                titulares. <strong>Campo obrigatório.</strong>
               </span>
             </label>
           </LegalSection>
@@ -244,8 +242,7 @@ export function PrivacyRequestFormPage() {
               {isSubmitting ? 'Enviando...' : 'Enviar solicitação'}
             </Button>
             <p className="text-xs text-slate-400">
-              Ao enviar, seus dados serão usados exclusivamente para responder a esta
-              solicitação.
+              Ao enviar, seus dados serão usados exclusivamente para responder a esta solicitação.
             </p>
           </div>
         </form>

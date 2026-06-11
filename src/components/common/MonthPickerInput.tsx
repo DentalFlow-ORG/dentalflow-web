@@ -8,7 +8,20 @@ import { cn } from '@/lib/utils'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const MONTH_ABBR = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+const MONTH_ABBR = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -24,7 +37,7 @@ function displayToIsoMonth(display: string): string | null {
   const match = display.match(/^(\d{2})\/(\d{4})$/)
   if (!match) return null
   const [, month, year] = match
-  const m = parseInt(month, 10)
+  const m = Number.parseInt(month, 10)
   if (m < 1 || m > 12) return null
   return `${year}-${month}`
 }
@@ -74,10 +87,10 @@ export function MonthPickerInput({
 
   // Year shown in the popover grid
   const [visibleYear, setVisibleYear] = useState<number>(() => {
-    if (/^\d{4}-\d{2}$/.test(value)) return parseInt(value.split('-')[0], 10)
+    if (/^\d{4}-\d{2}$/.test(value)) return Number.parseInt(value.split('-')[0], 10)
     // Fall back to the Brazil year so the popover opens to the correct year
     // when the browser/server is in a different timezone.
-    return parseInt(brazilCurrentIsoMonth().split('-')[0], 10)
+    return Number.parseInt(brazilCurrentIsoMonth().split('-')[0], 10)
   })
 
   // Draft display value — tracks manual typing independently of the controlled value
@@ -90,8 +103,10 @@ export function MonthPickerInput({
   const displayValue =
     displayDraft.sourceValue === value ? displayDraft.displayValue : isoMonthToDisplay(value)
 
-  const selectedYear = /^\d{4}-\d{2}$/.test(value) ? parseInt(value.split('-')[0], 10) : null
-  const selectedMonth = /^\d{4}-\d{2}$/.test(value) ? parseInt(value.split('-')[1], 10) : null
+  const selectedYear = /^\d{4}-\d{2}$/.test(value) ? Number.parseInt(value.split('-')[0], 10) : null
+  const selectedMonth = /^\d{4}-\d{2}$/.test(value)
+    ? Number.parseInt(value.split('-')[1], 10)
+    : null
 
   function commit(nextValue: string) {
     setDisplayDraft({ sourceValue: nextValue, displayValue: isoMonthToDisplay(nextValue) })
@@ -117,7 +132,7 @@ export function MonthPickerInput({
   function handleOpenChange(isOpen: boolean) {
     setOpen(isOpen)
     if (isOpen && /^\d{4}-\d{2}$/.test(value)) {
-      setVisibleYear(parseInt(value.split('-')[0], 10))
+      setVisibleYear(Number.parseInt(value.split('-')[0], 10))
     }
   }
 
@@ -210,12 +225,7 @@ export function MonthPickerInput({
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-border px-3 py-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            onClick={() => commit(currentIsoMonth())}
-          >
+          <Button type="button" variant="ghost" size="xs" onClick={() => commit(currentIsoMonth())}>
             Este mês
           </Button>
           <span className="text-xs font-medium text-muted-foreground">

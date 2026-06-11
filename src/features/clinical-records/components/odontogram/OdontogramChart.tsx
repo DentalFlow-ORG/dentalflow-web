@@ -2,11 +2,11 @@ import { useIsMobile } from '@/hooks/useIsMobile'
 
 import type { OdontogramTooth as OdontogramToothData } from '../../types/clinical-record.types'
 import {
+  type DentitionMode,
   LOWER_DECIDUOUS,
   LOWER_TEETH,
   UPPER_DECIDUOUS,
   UPPER_TEETH,
-  type DentitionMode,
 } from '../../utils/odontogram-status-utils'
 import { OdontogramTooth } from './OdontogramTooth'
 
@@ -47,11 +47,7 @@ export function OdontogramChart({
     // Print always uses permanent dentition regardless of active mode
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-3">
-        <PrintArch
-          getTooth={getTooth}
-          selected={selected}
-          multiSelected={multiSelected ?? null}
-        />
+        <PrintArch getTooth={getTooth} selected={selected} multiSelected={multiSelected ?? null} />
       </div>
     )
   }
@@ -121,10 +117,7 @@ function FullArch({
 
 function FullNumberRow({ teeth }: { teeth: number[] }) {
   return (
-    <div
-      className="grid gap-1.5"
-      style={{ gridTemplateColumns: `repeat(${teeth.length}, 48px)` }}
-    >
+    <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${teeth.length}, 48px)` }}>
       {teeth.map((n) => (
         <div
           key={n}
@@ -161,10 +154,7 @@ function QuadrantArch({
   onSelect,
 }: Omit<QuadrantSectionProps, 'title'>) {
   return (
-    <div
-      className="grid gap-[3px]"
-      style={{ gridTemplateColumns: `repeat(${teeth.length}, 1fr)` }}
-    >
+    <div className="grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${teeth.length}, 1fr)` }}>
       {teeth.map((toothNumber) => (
         <OdontogramTooth
           key={toothNumber}
@@ -184,10 +174,7 @@ function QuadrantArch({
 
 function QuadrantNumberRow({ teeth }: { teeth: number[] }) {
   return (
-    <div
-      className="grid gap-[3px]"
-      style={{ gridTemplateColumns: `repeat(${teeth.length}, 1fr)` }}
-    >
+    <div className="grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${teeth.length}, 1fr)` }}>
       {teeth.map((n) => (
         <div
           key={n}
@@ -229,18 +216,14 @@ function QuadrantSection({
   )
 }
 
-function QuadrantLayout({
-  upperTeeth,
-  lowerTeeth,
-  ...iProps
-}: QuadrantLayoutProps) {
+function QuadrantLayout({ upperTeeth, lowerTeeth, ...iProps }: QuadrantLayoutProps) {
   // Split each arch at the midpoint to get the right and left quadrants
   const halfUpper = upperTeeth.length / 2
   const halfLower = lowerTeeth.length / 2
   const q1 = upperTeeth.slice(0, halfUpper) // upper right
-  const q2 = upperTeeth.slice(halfUpper)    // upper left
+  const q2 = upperTeeth.slice(halfUpper) // upper left
   const q4 = lowerTeeth.slice(0, halfLower) // lower right
-  const q3 = lowerTeeth.slice(halfLower)    // lower left
+  const q3 = lowerTeeth.slice(halfLower) // lower left
 
   return (
     <div className="space-y-4">
@@ -248,16 +231,36 @@ function QuadrantLayout({
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Arcada superior
         </p>
-        <QuadrantSection {...iProps} title="Quadrante 1 — Superior direita" teeth={q1} lower={false} />
-        <QuadrantSection {...iProps} title="Quadrante 2 — Superior esquerda" teeth={q2} lower={false} />
+        <QuadrantSection
+          {...iProps}
+          title="Quadrante 1 — Superior direita"
+          teeth={q1}
+          lower={false}
+        />
+        <QuadrantSection
+          {...iProps}
+          title="Quadrante 2 — Superior esquerda"
+          teeth={q2}
+          lower={false}
+        />
       </div>
       <div className="border-t border-dashed border-border" />
       <div className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Arcada inferior
         </p>
-        <QuadrantSection {...iProps} title="Quadrante 4 — Inferior direita" teeth={q4} lower={true} />
-        <QuadrantSection {...iProps} title="Quadrante 3 — Inferior esquerda" teeth={q3} lower={true} />
+        <QuadrantSection
+          {...iProps}
+          title="Quadrante 4 — Inferior direita"
+          teeth={q4}
+          lower={true}
+        />
+        <QuadrantSection
+          {...iProps}
+          title="Quadrante 3 — Inferior esquerda"
+          teeth={q3}
+          lower={true}
+        />
       </div>
     </div>
   )

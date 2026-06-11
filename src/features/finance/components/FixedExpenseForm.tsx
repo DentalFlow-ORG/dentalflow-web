@@ -2,7 +2,6 @@ import { Loader2, Scale } from 'lucide-react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
-import { formatMoneyInputFromDigits } from '@/lib/money-input'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { formatMoneyInputFromDigits } from '@/lib/money-input'
 
 import type {
   FinancialCategory,
@@ -57,7 +57,10 @@ export function FixedExpenseForm({
             Identificação
           </p>
           <FormField label="Categoria" htmlFor="fixedCategory">
-            <Select value={form.categoryId} onValueChange={(value) => onChange('categoryId', value)}>
+            <Select
+              value={form.categoryId}
+              onValueChange={(value) => onChange('categoryId', value)}
+            >
               <SelectTrigger id="fixedCategory">
                 <SelectValue placeholder="Selecione a categoria" />
               </SelectTrigger>
@@ -92,7 +95,9 @@ export function FixedExpenseForm({
                 inputMode="numeric"
                 placeholder="0,00"
                 value={form.amount}
-                onChange={(event) => onChange('amount', formatMoneyInputFromDigits(event.target.value))}
+                onChange={(event) =>
+                  onChange('amount', formatMoneyInputFromDigits(event.target.value))
+                }
               />
             </FormField>
             <FormField label="Recorrência" htmlFor="fixedRecurrence">

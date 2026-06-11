@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 import { cn } from '@/lib/utils'
 
 type Props = {
@@ -30,17 +32,21 @@ export function ClinicalSectionField({
   className,
   hideLabel = false,
 }: Props) {
+  const fieldId = useId()
+
   return (
     <div className={cn('space-y-1.5', className)}>
       <div className={cn('space-y-0.5', hideLabel && 'sr-only')}>
-        <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <label
+          htmlFor={fieldId}
+          className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+        >
           {label}
         </label>
-        {hint && (
-          <p className="text-[11px] leading-tight text-muted-foreground/70">{hint}</p>
-        )}
+        {hint && <p className="text-[11px] leading-tight text-muted-foreground/70">{hint}</p>}
       </div>
       <textarea
+        id={fieldId}
         rows={rows}
         value={value}
         onChange={(e) => onChange(e.target.value)}

@@ -10,14 +10,10 @@ function cv(values: Record<string, string> = {}): Record<string, string> {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('applyDictationFields', () => {
-
   // ── 1. Single-field application ─────────────────────────────────────────────
 
   it('sets dictated text when the current field is empty', () => {
-    const { draftPatch } = applyDictationFields(
-      { chiefComplaint: 'Dor no dente 36' },
-      cv(),
-    )
+    const { draftPatch } = applyDictationFields({ chiefComplaint: 'Dor no dente 36' }, cv())
     expect(draftPatch.chiefComplaint).toBe('Dor no dente 36')
   })
 
@@ -40,10 +36,7 @@ describe('applyDictationFields', () => {
   })
 
   it('replaces whitespace-only existing content with the dictated value', () => {
-    const { draftPatch } = applyDictationFields(
-      { anamnesis: 'HAS, DM2' },
-      cv({ anamnesis: '   ' }),
-    )
+    const { draftPatch } = applyDictationFields({ anamnesis: 'HAS, DM2' }, cv({ anamnesis: '   ' }))
     expect(draftPatch.anamnesis).toBe('HAS, DM2')
   })
 
@@ -71,10 +64,7 @@ describe('applyDictationFields', () => {
   // ── 4. Empty / invalid values are ignored ───────────────────────────────────
 
   it('does not include empty dictation values in the draft patch', () => {
-    const { draftPatch } = applyDictationFields(
-      { chiefComplaint: '', diagnosis: 'Cárie' },
-      cv(),
-    )
+    const { draftPatch } = applyDictationFields({ chiefComplaint: '', diagnosis: 'Cárie' }, cv())
     expect(draftPatch).not.toHaveProperty('chiefComplaint')
     expect(draftPatch.diagnosis).toBe('Cárie')
   })
@@ -132,9 +122,7 @@ describe('applyDictationFields', () => {
   })
 
   it('opens "plano" when prescription or recommendations are present', () => {
-    expect(
-      applyDictationFields({ prescription: 'Amoxicilina' }, cv()).targetSection,
-    ).toBe('plano')
+    expect(applyDictationFields({ prescription: 'Amoxicilina' }, cv()).targetSection).toBe('plano')
     expect(
       applyDictationFields({ recommendations: 'Retornar em 7 dias' }, cv()).targetSection,
     ).toBe('plano')
@@ -265,18 +253,18 @@ describe('applyDictationFields', () => {
     const { draftPatch } = applyDictationFields(
       {
         clinicalEvolution: 'Conteúdo anterior\n\nIA gerado',
-        anamnesis:         'Texto novo',
-        diagnosis:         'Diagnóstico novo',
+        anamnesis: 'Texto novo',
+        diagnosis: 'Diagnóstico novo',
       },
       cv({
         clinicalEvolution: 'Conteúdo anterior',
-        anamnesis:         'Anamnese anterior',
-        diagnosis:         'Diagnóstico anterior',
+        anamnesis: 'Anamnese anterior',
+        diagnosis: 'Diagnóstico anterior',
       }),
       {
         clinicalEvolution: 'edit',
-        anamnesis:         'append',
-        diagnosis:         'replace',
+        anamnesis: 'append',
+        diagnosis: 'replace',
       },
     )
     expect(draftPatch.clinicalEvolution).toBe('Conteúdo anterior\n\nIA gerado')
@@ -298,10 +286,7 @@ describe('applyDictationFields', () => {
   })
 
   it('produces an empty draftPatch for all-empty input, so no spurious draft dirtying occurs', () => {
-    const { draftPatch } = applyDictationFields(
-      { chiefComplaint: '', clinicalEvolution: '' },
-      cv(),
-    )
+    const { draftPatch } = applyDictationFields({ chiefComplaint: '', clinicalEvolution: '' }, cv())
     expect(Object.keys(draftPatch)).toHaveLength(0)
   })
 })

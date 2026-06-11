@@ -4,11 +4,10 @@ import { EmptyState } from '@/components/common/EmptyState'
 import { FilteredEmptyState } from '@/components/common/FilteredEmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { ListPageShell } from '@/components/common/ListPageShell'
-import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { PanelCard } from '@/components/common/PanelCard'
+import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
-import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import {
   Select,
   SelectContent,
@@ -16,22 +15,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 
-import { useInventoryPage } from '../hooks/useInventoryPage'
-import type { StockProductStatus } from '../types/inventory.types'
-import { STATUS_OPTIONS } from '../constants/inventory-filters'
-import { buildAttentionChips } from '../utils/inventory-chips'
 import { CategoryManagerModal } from '../components/CategoryManagerModal'
 import { DeactivateProductDialog } from '../components/DeactivateProductDialog'
-import { ReactivateProductDialog } from '../components/ReactivateProductDialog'
 import { InventoryAnalysisPanel } from '../components/InventoryAnalysisPanel'
 import { InventoryKpiGrid } from '../components/InventoryKpiGrid'
 import { InventoryProductTable } from '../components/InventoryProductTable'
-import { StockPurchaseListSection } from '../components/StockPurchaseListSection'
-import { StockAbnormalConsumptionSection } from '../components/StockAbnormalConsumptionSection'
 import { ProductDetailsDrawer } from '../components/ProductDetailsDrawer'
 import { ProductFormModal } from '../components/ProductFormModal'
+import { ReactivateProductDialog } from '../components/ReactivateProductDialog'
+import { StockAbnormalConsumptionSection } from '../components/StockAbnormalConsumptionSection'
 import { StockMovementModal } from '../components/StockMovementModal'
+import { StockPurchaseListSection } from '../components/StockPurchaseListSection'
+import { STATUS_OPTIONS } from '../constants/inventory-filters'
+import { useInventoryPage } from '../hooks/useInventoryPage'
+import type { StockProductStatus } from '../types/inventory.types'
+import { buildAttentionChips } from '../utils/inventory-chips'
 
 export function InventoryPageContainer() {
   const {
@@ -129,9 +129,7 @@ export function InventoryPageContainer() {
           <FormField label="Categoria" htmlFor="stockCategory">
             <Select
               value={categoryId ?? 'all'}
-              onValueChange={(value) =>
-                handleCategoryChange(value === 'all' ? undefined : value)
-              }
+              onValueChange={(value) => handleCategoryChange(value === 'all' ? undefined : value)}
             >
               <SelectTrigger id="stockCategory">
                 <SelectValue />
@@ -150,9 +148,7 @@ export function InventoryPageContainer() {
             <Select
               value={status ?? 'all'}
               onValueChange={(value) =>
-                handleStatusChange(
-                  value === 'all' ? undefined : (value as StockProductStatus),
-                )
+                handleStatusChange(value === 'all' ? undefined : (value as StockProductStatus))
               }
             >
               <SelectTrigger id="stockStatus">
@@ -170,40 +166,41 @@ export function InventoryPageContainer() {
           </FormField>
         </div>
         {/* Quick-filter chips — derived from summary, only shown when counts > 0 */}
-        {summary && (() => {
-          const chips = buildAttentionChips(summary)
-          return chips.length > 0 ? (
-            <div
-              className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3"
-              role="group"
-              aria-label="Filtros rápidos por atenção"
-            >
-              <span className="text-xs font-medium text-muted-foreground" aria-hidden="true">
-                Atenção:
-              </span>
-              {chips.map(({ status: s, label, count, base, active }) => {
-                const isActive = status === s
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    aria-pressed={isActive}
-                    aria-label={`Filtrar por ${label}: ${count} produto${count !== 1 ? 's' : ''}`}
-                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 ${isActive ? active : base}`}
-                    onClick={() => handleStatusChange(isActive ? undefined : s)}
-                  >
-                    {label}
-                    <span
-                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${isActive ? 'bg-primary-foreground/25' : 'bg-card/70'}`}
+        {summary &&
+          (() => {
+            const chips = buildAttentionChips(summary)
+            return chips.length > 0 ? (
+              <div
+                className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3"
+                role="group"
+                aria-label="Filtros rápidos por atenção"
+              >
+                <span className="text-xs font-medium text-muted-foreground" aria-hidden="true">
+                  Atenção:
+                </span>
+                {chips.map(({ status: s, label, count, base, active }) => {
+                  const isActive = status === s
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      aria-pressed={isActive}
+                      aria-label={`Filtrar por ${label}: ${count} produto${count !== 1 ? 's' : ''}`}
+                      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 ${isActive ? active : base}`}
+                      onClick={() => handleStatusChange(isActive ? undefined : s)}
                     >
-                      {count}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          ) : null
-        })()}
+                      {label}
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${isActive ? 'bg-primary-foreground/25' : 'bg-card/70'}`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            ) : null
+          })()}
 
         {hasFilters && (
           <div className="mt-3 flex justify-end">

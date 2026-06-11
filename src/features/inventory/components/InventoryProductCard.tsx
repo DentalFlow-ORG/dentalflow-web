@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   AlertTriangle,
   Eye,
@@ -11,6 +10,7 @@ import {
   Power,
   PowerOff,
 } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -45,9 +45,7 @@ export function InventoryProductCard({
   const hasStockWarning = product.status === 'EMPTY' || product.status === 'LOW'
   const hasExpiryWarning = product.status === 'EXPIRED' || product.status === 'EXPIRING'
 
-  const hasMenuActions = !isInactive
-    ? true
-    : !!(onReactivate)
+  const hasMenuActions = !isInactive ? true : !!onReactivate
 
   return (
     <article
@@ -84,9 +82,7 @@ export function InventoryProductCard({
           className={`mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EXPIRED' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800/50 dark:bg-orange-950/30 dark:text-orange-300'}`}
         >
           <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          {product.status === 'EXPIRED'
-            ? 'Validade vencida'
-            : 'Validade próxima do vencimento'}
+          {product.status === 'EXPIRED' ? 'Validade vencida' : 'Validade próxima do vencimento'}
         </div>
       )}
 
@@ -164,7 +160,10 @@ export function InventoryProductCard({
           <span className="min-w-[5rem] text-center text-xs font-semibold tabular-nums text-foreground">
             {quickMovingIds.has(product.id) ? (
               <span className="flex justify-center">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden="true" />
+                <Loader2
+                  className="h-4 w-4 animate-spin text-muted-foreground"
+                  aria-hidden="true"
+                />
               </span>
             ) : (
               formatQuantity(product.currentQuantity, product.unit)
@@ -239,7 +238,7 @@ export function InventoryProductCard({
                   </button>
                   {onDeactivate && (
                     <>
-                      <div className="mx-1 my-0.5 h-px bg-border" role="separator" />
+                      <hr className="mx-1 my-0.5 border-border" />
                       <button
                         type="button"
                         className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-destructive transition-colors hover:bg-destructive/10 focus:bg-destructive/10 focus:outline-none dark:hover:bg-destructive/35 dark:focus:bg-destructive/35"

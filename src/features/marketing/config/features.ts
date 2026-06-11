@@ -121,8 +121,7 @@ export const commercialFeatures: CommercialFeature[] = [
     title: 'Integração com Google Calendar',
     category: 'agenda',
     description: 'Sincronize a agenda da clínica com o Google Calendar.',
-    clientFriendlyExplanation:
-      'Requer conta Google e configuração pelo proprietário da clínica.',
+    clientFriendlyExplanation: 'Requer conta Google e configuração pelo proprietário da clínica.',
     audience: 'public',
     availability: professionalAndPremium,
   },
@@ -236,7 +235,8 @@ export const commercialFeatures: CommercialFeature[] = [
     id: 'whatsapp-notifications',
     title: 'WhatsApp e notificações',
     category: 'communication',
-    description: 'Lembretes, confirmações e avisos operacionais enviados via WhatsApp para os pacientes.',
+    description:
+      'Lembretes, confirmações e avisos operacionais enviados via WhatsApp para os pacientes.',
     clientFriendlyExplanation:
       'Requer conta Business aprovada pela Meta e configuração de templates. Professional inclui até 50 mensagens/mês; Premium inclui até 300. Starter não inclui envio via WhatsApp.',
     audience: 'public',
@@ -303,12 +303,7 @@ const PLAN_CARD_FEATURES: Record<
   { sectionLabel?: string; features: CardFeatureEntry[]; upgradeHints?: string[] }
 > = {
   starter: {
-    features: [
-      'clinic-agenda',
-      'clinical-records',
-      'patients-register',
-      'team-essential',
-    ],
+    features: ['clinic-agenda', 'clinical-records', 'patients-register', 'team-essential'],
     upgradeHints: ['Gestão financeira completa', 'Relatórios gerenciais'],
   },
   professional: {
@@ -350,10 +345,7 @@ export function getFeaturesByCategory() {
   })).filter((group) => group.features.length > 0)
 }
 
-export function getFeatureAvailability(
-  feature: CommercialFeature,
-  plan: CommercialPlanKey,
-) {
+export function getFeatureAvailability(feature: CommercialFeature, plan: CommercialPlanKey) {
   return feature.availability[plan]
 }
 

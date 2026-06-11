@@ -156,7 +156,6 @@ export const ClinicalRecordPrintPage = lazy(() =>
   })),
 )
 
-
 export const InventoryPage = lazy(() =>
   import('@/features/inventory/pages/InventoryPage').then((m) => ({
     default: m.InventoryPage,
@@ -326,7 +325,6 @@ export const InventoryFeaturePage = lazy(() =>
     default: m.InventoryFeaturePage,
   })),
 )
-
 
 export const ReportsFeaturePage = lazy(() =>
   import('@/features/marketing/pages/ReportsFeaturePage').then((m) => ({

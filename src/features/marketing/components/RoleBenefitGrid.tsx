@@ -24,15 +24,9 @@ export function RoleBenefitGrid({
   return (
     <section className="bg-slate-50 py-16 lg:py-20" aria-labelledby="benefits-heading">
       <div className="mx-auto max-w-5xl px-6 lg:px-8">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-          Benefícios
-        </p>
-        <h2
-          id="benefits-heading"
-          className="mt-2 text-xl font-semibold text-slate-900"
-        >
-          Como o DentalFlow ajuda{' '}
-          <span className="text-primary">{roleLabel.toLowerCase()}</span>
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Benefícios</p>
+        <h2 id="benefits-heading" className="mt-2 text-xl font-semibold text-slate-900">
+          Como o DentalFlow ajuda <span className="text-primary">{roleLabel.toLowerCase()}</span>
         </h2>
 
         <div className="mt-8 space-y-4">

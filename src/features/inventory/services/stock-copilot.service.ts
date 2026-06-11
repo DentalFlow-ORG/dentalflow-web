@@ -10,13 +10,10 @@ import type { StockCopilotResult } from '../types/inventory.types'
  * Throws ApiError on plan errors (403).
  */
 export function getLatestCopilotSummary(): Promise<StockCopilotResult | undefined> {
-  return apiRequest<StockCopilotResult | undefined>(
-    '/stock/purchase-list/copilot-summary/latest',
-    {
-      method: 'GET',
-      accessToken: getAccessToken(),
-    },
-  )
+  return apiRequest<StockCopilotResult | undefined>('/stock/purchase-list/copilot-summary/latest', {
+    method: 'GET',
+    accessToken: getAccessToken(),
+  })
 }
 
 /**

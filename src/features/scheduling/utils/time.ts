@@ -7,13 +7,13 @@ import {
   formatDateInputValue,
   formatDateLongBR,
   formatTimeInputValue,
-  safeFormatDateBR,
-  safeFormatTimeBR,
   formatWeekDayHeader,
   formatWeekRangeLabel,
   getBrazilWeekStart,
   getWeekDates,
   isToday,
+  safeFormatDateBR,
+  safeFormatTimeBR,
   wallTimeToMinutes,
 } from '@/lib/date-time-formatters'
 
@@ -43,11 +43,7 @@ export function toDateInputValue(date: Date): string {
 export function isBusinessTime(value: string) {
   const timeValue = formatTimeInputValue(value)
 
-  return Boolean(
-    timeValue &&
-      timeValue >= BUSINESS_START_TIME &&
-      timeValue <= BUSINESS_END_TIME,
-  )
+  return Boolean(timeValue && timeValue >= BUSINESS_START_TIME && timeValue <= BUSINESS_END_TIME)
 }
 
 export {

@@ -1,10 +1,10 @@
-import { renderHook, waitFor } from '@/test-utils/render-utils'
-import { usePatientsAttention } from '@/features/patients/hooks/usePatientsAttention'
 import {
   __resetAvatarCache,
   setCachedPatientAvatar,
 } from '@/features/patients/hooks/usePatientAvatar'
+import { usePatientsAttention } from '@/features/patients/hooks/usePatientsAttention'
 import type { AttentionResponse } from '@/features/patients/types/attention.types'
+import { renderHook, waitFor } from '@/test-utils/render-utils'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 

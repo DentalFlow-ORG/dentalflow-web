@@ -58,7 +58,6 @@ export function ClinicalStickyBar({
       )}
     >
       <div className="flex min-h-12 items-center justify-between gap-3 py-2.5">
-
         {/* ── Patient identity ─────────────────────────────────────── */}
         <div className="flex min-w-0 items-center gap-2.5">
           <div
@@ -93,12 +92,7 @@ export function ClinicalStickyBar({
             {/* Complete — primary action, text always visible on every viewport.
                 min-w keeps the button from becoming a square icon on very
                 narrow screens; the patient name truncates to give it room.  */}
-            <Button
-              size="sm"
-              onClick={onComplete}
-              disabled={isSaving}
-              className="min-w-[5.5rem]"
-            >
+            <Button size="sm" onClick={onComplete} disabled={isSaving} className="min-w-[5.5rem]">
               <CheckCircle className="h-3.5 w-3.5" aria-hidden="true" />
               Concluir
             </Button>
@@ -133,7 +127,9 @@ function CompactAutosaveIndicator({ status }: { status: AutosaveStatus }) {
       {status === 'error' && (
         <>
           <AlertCircle className="h-3 w-3 text-amber-500" aria-hidden="true" />
-          <span className="hidden sm:inline text-amber-600 dark:text-amber-400">Erro ao salvar</span>
+          <span className="hidden sm:inline text-amber-600 dark:text-amber-400">
+            Erro ao salvar
+          </span>
         </>
       )}
     </span>

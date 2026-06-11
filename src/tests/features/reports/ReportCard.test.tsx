@@ -55,7 +55,9 @@ beforeEach(() => {
 describe('ReportCard — title and description', () => {
   it('renders title as h3', () => {
     renderCard()
-    expect(screen.getByRole('heading', { name: 'Relatório financeiro', level: 3 })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Relatório financeiro', level: 3 }),
+    ).toBeInTheDocument()
   })
 
   it('renders description text', () => {
@@ -83,7 +85,9 @@ describe('ReportCard — children', () => {
 
   it('renders without children', () => {
     renderCard()
-    expect(screen.getByRole('heading', { name: 'Relatório financeiro', level: 3 })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Relatório financeiro', level: 3 }),
+    ).toBeInTheDocument()
   })
 })
 
@@ -139,9 +143,7 @@ describe('ReportCard — export button', () => {
     renderCard({ onExport: vi.fn(() => Promise.resolve()) })
     fireEvent.click(screen.getByRole('button', { name: /exportar csv/i }))
     await waitFor(() =>
-      expect(mockShowAlert).toHaveBeenCalledWith(
-        expect.objectContaining({ tone: 'success' }),
-      ),
+      expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'success' })),
     )
   })
 
@@ -197,7 +199,10 @@ describe('ReportCard — loading state', () => {
   it('shows "Gerando..." while export is in progress', async () => {
     let resolve!: () => void
     const onExport = vi.fn(
-      () => new Promise<void>((res) => { resolve = res }),
+      () =>
+        new Promise<void>((res) => {
+          resolve = res
+        }),
     )
     renderCard({ onExport })
     fireEvent.click(screen.getByRole('button', { name: /exportar csv/i }))
@@ -208,7 +213,10 @@ describe('ReportCard — loading state', () => {
   it('disables button while loading', async () => {
     let resolve!: () => void
     const onExport = vi.fn(
-      () => new Promise<void>((res) => { resolve = res }),
+      () =>
+        new Promise<void>((res) => {
+          resolve = res
+        }),
     )
     renderCard({ onExport })
     fireEvent.click(screen.getByRole('button', { name: /exportar csv/i }))
@@ -306,16 +314,16 @@ describe('ReportCard — preview flow', () => {
   it('shows preview panel title after successful preview', async () => {
     renderCard({ onPreview: vi.fn().mockResolvedValue(makePreviewData()) })
     fireEvent.click(screen.getByRole('button', { name: /pré-visualizar relatório/i }))
-    await waitFor(() =>
-      expect(screen.getByText('Prévia do relatório')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByText('Prévia do relatório')).toBeInTheDocument())
   })
 
   it('shows clinic name in preview panel', async () => {
     renderCard({
-      onPreview: vi.fn().mockResolvedValue(
-        makePreviewData({ clinic: { name: 'Clínica Sorriso', document: null } }),
-      ),
+      onPreview: vi
+        .fn()
+        .mockResolvedValue(
+          makePreviewData({ clinic: { name: 'Clínica Sorriso', document: null } }),
+        ),
     })
     fireEvent.click(screen.getByRole('button', { name: /pré-visualizar relatório/i }))
     await waitFor(() => expect(screen.getByText('Clínica Sorriso')).toBeInTheDocument())
@@ -329,9 +337,9 @@ describe('ReportCard — preview flow', () => {
 
   it('shows applied filters in preview panel', async () => {
     renderCard({
-      onPreview: vi.fn().mockResolvedValue(
-        makePreviewData({ filters: [{ label: 'Tipo', value: 'Receita' }] }),
-      ),
+      onPreview: vi
+        .fn()
+        .mockResolvedValue(makePreviewData({ filters: [{ label: 'Tipo', value: 'Receita' }] })),
     })
     fireEvent.click(screen.getByRole('button', { name: /pré-visualizar relatório/i }))
     await waitFor(() => expect(screen.getByText('Receita')).toBeInTheDocument())
@@ -347,9 +355,7 @@ describe('ReportCard — preview flow', () => {
 
   it('shows empty message and hides "Baixar CSV" after zero-record preview', async () => {
     renderCard({
-      onPreview: vi.fn().mockResolvedValue(
-        makePreviewData({ recordCount: 0, empty: true }),
-      ),
+      onPreview: vi.fn().mockResolvedValue(makePreviewData({ recordCount: 0, empty: true })),
     })
     fireEvent.click(screen.getByRole('button', { name: /pré-visualizar relatório/i }))
     await waitFor(() =>
@@ -397,7 +403,10 @@ describe('ReportCard — preview loading state', () => {
   it('shows "Carregando prévia..." while preview is in progress', async () => {
     let resolve!: (v: ReportPreviewResponse) => void
     const onPreview = vi.fn(
-      () => new Promise<ReportPreviewResponse>((res) => { resolve = res }),
+      () =>
+        new Promise<ReportPreviewResponse>((res) => {
+          resolve = res
+        }),
     )
     renderCard({ onPreview })
     fireEvent.click(screen.getByRole('button', { name: /pré-visualizar relatório/i }))
@@ -408,7 +417,10 @@ describe('ReportCard — preview loading state', () => {
   it('disables preview button while previewing', async () => {
     let resolve!: (v: ReportPreviewResponse) => void
     const onPreview = vi.fn(
-      () => new Promise<ReportPreviewResponse>((res) => { resolve = res }),
+      () =>
+        new Promise<ReportPreviewResponse>((res) => {
+          resolve = res
+        }),
     )
     renderCard({ onPreview })
     fireEvent.click(screen.getByRole('button', { name: /pré-visualizar relatório/i }))
@@ -425,9 +437,7 @@ describe('ReportCard — preview error', () => {
     const onPreview = vi.fn().mockRejectedValue(new Error('Falha ao carregar prévia.'))
     renderCard({ onPreview })
     fireEvent.click(screen.getByRole('button', { name: /pré-visualizar relatório/i }))
-    await waitFor(() =>
-      expect(screen.getByText(/falha ao carregar prévia/i)).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByText(/falha ao carregar prévia/i)).toBeInTheDocument())
   })
 
   it('shows "Nova prévia" button after a preview error', async () => {
@@ -445,14 +455,12 @@ describe('ReportCard — preview error', () => {
 describe('ReportCard — truncation warning', () => {
   it('shows truncation warning when isTruncated is true', async () => {
     renderCard({
-      onPreview: vi.fn().mockResolvedValue(
-        makePreviewData({ isTruncated: true, recordCount: 6000 }),
-      ),
+      onPreview: vi
+        .fn()
+        .mockResolvedValue(makePreviewData({ isTruncated: true, recordCount: 6000 })),
     })
     fireEvent.click(screen.getByRole('button', { name: /pré-visualizar relatório/i }))
-    await waitFor(() =>
-      expect(screen.getByText(/mais de 5\.000 registros/i)).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByText(/mais de 5\.000 registros/i)).toBeInTheDocument())
   })
 
   it('does not show truncation warning when isTruncated is false', async () => {

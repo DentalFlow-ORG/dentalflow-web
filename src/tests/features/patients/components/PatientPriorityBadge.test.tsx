@@ -28,17 +28,17 @@ describe('PatientPriorityBadge — labels', () => {
 
 describe('PatientPriorityBadge — completeness', () => {
   it('renders without crashing for every known priority', () => {
-    ALL_PRIORITIES.forEach((priority) => {
+    for (const priority of ALL_PRIORITIES) {
       expect(() => render(<PatientPriorityBadge priority={priority} />)).not.toThrow()
-    })
+    }
   })
 
   it('has visible text for every priority', () => {
-    ALL_PRIORITIES.forEach((priority) => {
+    for (const priority of ALL_PRIORITIES) {
       const { unmount, container } = render(<PatientPriorityBadge priority={priority} />)
       const span = container.querySelector('span')
       expect(span?.textContent?.trim().length).toBeGreaterThan(0)
       unmount()
-    })
+    }
   })
 })

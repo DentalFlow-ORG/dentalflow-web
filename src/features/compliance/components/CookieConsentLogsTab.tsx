@@ -71,23 +71,36 @@ export function CookieConsentLogsTab() {
     setError(null)
     listCookieConsents(filters)
       .then(setResult)
-      .catch((err: Error) => setError(err.message ?? 'Não foi possível carregar os consentimentos.'))
+      .catch((err: Error) =>
+        setError(err.message ?? 'Não foi possível carregar os consentimentos.'),
+      )
       .finally(() => setIsLoading(false))
   }, [filters])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   function setFilter<K extends keyof CookieConsentFilters>(key: K, value: CookieConsentFilters[K]) {
     setFilters((prev) => ({ ...prev, [key]: value, page: key !== 'page' ? 1 : (value as number) }))
   }
 
-  const hasActiveFilters = !!(filters.source || filters.policyVersion || filters.userId || filters.dateFrom || filters.dateTo)
+  const hasActiveFilters = !!(
+    filters.source ||
+    filters.policyVersion ||
+    filters.userId ||
+    filters.dateFrom ||
+    filters.dateTo
+  )
 
   return (
     <div className="space-y-4">
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
-        <Select value={filters.source || '__ALL__'} onValueChange={(v) => setFilter('source', v === '__ALL__' ? '' : v)}>
+        <Select
+          value={filters.source || '__ALL__'}
+          onValueChange={(v) => setFilter('source', v === '__ALL__' ? '' : v)}
+        >
           <SelectTrigger size="sm" className="w-40">
             <SelectValue placeholder="Origem" />
           </SelectTrigger>
@@ -167,7 +180,7 @@ export function CookieConsentLogsTab() {
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                       {log.userId
-                        ? log.userId.slice(0, 8) + '…'
+                        ? `${log.userId.slice(0, 8)}…`
                         : log.anonymousId
                           ? `anon: ${log.anonymousId.slice(0, 8)}…`
                           : '—'}
@@ -175,7 +188,9 @@ export function CookieConsentLogsTab() {
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground/60">
                       {log.ipHash ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground tabular-nums">{formatDate(log.createdAt)}</td>
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
+                      {formatDate(log.createdAt)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

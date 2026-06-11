@@ -23,7 +23,9 @@ export function Ranking({
             <div key={item.label} className="space-y-1">
               <div className="flex items-center justify-between gap-3 text-sm">
                 <span className="truncate font-medium text-foreground">{item.label}</span>
-                <span className="shrink-0 text-muted-foreground">{formatCurrency(item.amount)}</span>
+                <span className="shrink-0 text-muted-foreground">
+                  {formatCurrency(item.amount)}
+                </span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div

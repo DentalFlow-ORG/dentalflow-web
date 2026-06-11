@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
 import { Loader2, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
+import { useEffect, useState } from 'react'
 
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -14,11 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  centsToMoneyInput,
+  formatMoneyInputFromDigits,
+  parseMoneyInputToCents,
+} from '@/lib/money-input'
 import { ApiError } from '@/services/http'
-import { centsToMoneyInput, formatMoneyInputFromDigits, parseMoneyInputToCents } from '@/lib/money-input'
 
-import type { StockCategory, StockProduct } from '../types/inventory.types'
 import { createStockProduct, updateStockProduct } from '../services/inventory.service'
+import type { StockCategory, StockProduct } from '../types/inventory.types'
 import { formatQuantity } from '../utils/inventory-format'
 
 type ProductFormState = {
@@ -110,15 +114,15 @@ export function ProductFormModal({
 
     const parsedPrice = form.purchasePrice ? parseMoneyInputToCents(form.purchasePrice) : undefined
 
-    const parsedQtyValue = parseFloat(form.currentQuantity)
+    const parsedQtyValue = Number.parseFloat(form.currentQuantity)
     const parsedQty =
-      !isEditMode && form.currentQuantity !== '' && !isNaN(parsedQtyValue)
+      !isEditMode && form.currentQuantity !== '' && !Number.isNaN(parsedQtyValue)
         ? parsedQtyValue
         : undefined
 
-    const parsedMinQtyValue = parseFloat(form.minQuantity)
+    const parsedMinQtyValue = Number.parseFloat(form.minQuantity)
     const parsedMinQty =
-      form.minQuantity !== '' && !isNaN(parsedMinQtyValue) ? parsedMinQtyValue : undefined
+      form.minQuantity !== '' && !Number.isNaN(parsedMinQtyValue) ? parsedMinQtyValue : undefined
 
     const unitValue = form.unit.trim() || 'unidade'
 
@@ -204,7 +208,11 @@ export function ProductFormModal({
           </div>
 
           {/* ── Form ── */}
-          <form id="product-form" className="flex flex-1 flex-col overflow-hidden" onSubmit={handleSubmit}>
+          <form
+            id="product-form"
+            className="flex flex-1 flex-col overflow-hidden"
+            onSubmit={handleSubmit}
+          >
             {/* Scrollable body */}
             <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto">
               <div className="space-y-6 px-6 py-5">
@@ -212,7 +220,8 @@ export function ProductFormModal({
 
                 {categories.length === 0 && (
                   <InlineFeedback tone="warning">
-                    Nenhuma categoria disponível. Cadastre uma categoria antes de adicionar produtos.
+                    Nenhuma categoria disponível. Cadastre uma categoria antes de adicionar
+                    produtos.
                   </InlineFeedback>
                 )}
 
@@ -222,17 +231,12 @@ export function ProductFormModal({
                     Identificação
                   </p>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <FormField
-                      label="Nome do produto"
-                      htmlFor="prodName"
-                      className="sm:col-span-2"
-                    >
+                    <FormField label="Nome do produto" htmlFor="prodName" className="sm:col-span-2">
                       <TextInput
                         id="prodName"
                         value={form.name}
                         maxLength={120}
                         required
-                        // eslint-disable-next-line jsx-a11y/no-autofocus
                         autoFocus
                         onChange={(e) => setField('name', e.target.value)}
                       />
@@ -341,7 +345,9 @@ export function ProductFormModal({
                       inputMode="numeric"
                       placeholder="0,00"
                       value={form.purchasePrice}
-                      onChange={(e) => setField('purchasePrice', formatMoneyInputFromDigits(e.target.value))}
+                      onChange={(e) =>
+                        setField('purchasePrice', formatMoneyInputFromDigits(e.target.value))
+                      }
                     />
                   </FormField>
                 </div>
@@ -377,18 +383,11 @@ export function ProductFormModal({
 
             {/* ── Footer ── */}
             <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isSaving}
-              >
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
                 Cancelar
               </Button>
               <Button type="submit" form="product-form" disabled={!canSubmit}>
-                {isSaving && (
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                )}
+                {isSaving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                 {isEditMode ? 'Salvar alterações' : 'Cadastrar produto'}
               </Button>
             </div>

@@ -15,8 +15,6 @@ import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
-import { brazilTodayIso } from '@/lib/brazil-timezone'
-import { cn } from '@/lib/utils'
 import { AppointmentStatusBadge } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
 import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
 import {
@@ -24,6 +22,8 @@ import {
   formatAppointmentDateLong,
   formatWallTime,
 } from '@/features/scheduling/utils/time'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { cn } from '@/lib/utils'
 
 import { HomeActionGrid } from '@/features/home/components/HomeActionGrid'
 import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
@@ -65,10 +65,7 @@ function PriorityBadge({ priority }: { priority: string }) {
   }
   return (
     <span
-      className={cn(
-        'rounded-full px-2 py-0.5 text-xs font-semibold',
-        cls[priority] ?? cls.LOW,
-      )}
+      className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', cls[priority] ?? cls.LOW)}
     >
       {labels[priority] ?? priority}
     </span>
@@ -89,9 +86,7 @@ function PaymentStatusBadge({ status }: { status: string }) {
   const c = config[status]
   if (!c) return null
   return (
-    <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', c.cls)}>
-      {c.label}
-    </span>
+    <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', c.cls)}>{c.label}</span>
   )
 }
 
@@ -116,9 +111,7 @@ function StockStatusBadge({ status }: { status: string }) {
   }
   const c = config[status] ?? { label: status, cls: 'bg-muted text-muted-foreground' }
   return (
-    <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', c.cls)}>
-      {c.label}
-    </span>
+    <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', c.cls)}>{c.label}</span>
   )
 }
 
@@ -154,10 +147,7 @@ function RecommendedActionsPanel({ actions }: { actions: ProductivityAction[] })
               to={action.href as never}
               className="flex items-start gap-3 rounded-lg border border-border bg-muted/30 p-4 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Icon
-                className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
-                aria-hidden="true"
-              />
+              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <div className="min-w-0 flex-1">
                 <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
                   <PriorityBadge priority={action.priority} />
@@ -200,18 +190,11 @@ function TodaySchedulePanel({
       action={<SectionLink to="/app/agendamentos" label="Ver agenda" />}
     >
       {appointments.length === 0 ? (
-        <HomeEmptyState
-          compact
-          icon={Calendar}
-          title="Nenhuma consulta pendente para hoje."
-        />
+        <HomeEmptyState compact icon={Calendar} title="Nenhuma consulta pendente para hoje." />
       ) : (
         <ul className="mt-4 divide-y divide-border">
           {appointments.map((appt) => (
-            <li
-              key={appt.id}
-              className="flex items-center justify-between gap-3 py-3 text-sm"
-            >
+            <li key={appt.id} className="flex items-center justify-between gap-3 py-3 text-sm">
               <div className="min-w-0">
                 <p className="truncate font-medium text-foreground">{appt.patientName}</p>
                 {appt.serviceName && (
@@ -254,18 +237,11 @@ function PendingPaymentsPanel({
       action={<SectionLink to="/app/financeiro" label="Ver financeiro" />}
     >
       {appointments.length === 0 ? (
-        <HomeEmptyState
-          compact
-          icon={CheckCircle2}
-          title="Nenhum pagamento pendente."
-        />
+        <HomeEmptyState compact icon={CheckCircle2} title="Nenhum pagamento pendente." />
       ) : (
         <ul className="mt-4 divide-y divide-border">
           {appointments.map((appt) => (
-            <li
-              key={appt.id}
-              className="flex items-center justify-between gap-3 py-3 text-sm"
-            >
+            <li key={appt.id} className="flex items-center justify-between gap-3 py-3 text-sm">
               <div className="min-w-0">
                 <p className="truncate font-medium text-foreground">{appt.patientName}</p>
                 <p className="text-xs text-muted-foreground">
@@ -350,9 +326,7 @@ function PatientsFollowUpPanel({
               key={i}
               className="flex flex-col gap-0.5 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3"
             >
-              <span className="min-w-0 truncate font-medium text-foreground">
-                {p.patientName}
-              </span>
+              <span className="min-w-0 truncate font-medium text-foreground">{p.patientName}</span>
               {p.lastVisit && (
                 <span className="text-xs text-muted-foreground sm:shrink-0">
                   Última: {formatAppointmentDate(p.lastVisit)}
@@ -388,9 +362,7 @@ function InventoryAlertPanel({
     <HomeSection
       title="Estoque em atenção"
       description={
-        parts.length > 0
-          ? parts.join(' · ')
-          : 'Todos os produtos estão com estoque adequado'
+        parts.length > 0 ? parts.join(' · ') : 'Todos os produtos estão com estoque adequado'
       }
       action={<SectionLink to="/app/estoque" label="Ver estoque" />}
     >
@@ -406,9 +378,7 @@ function InventoryAlertPanel({
               <div className="min-w-0">
                 <p className="truncate font-medium text-foreground">{product.name}</p>
                 {product.categoryName && (
-                  <p className="truncate text-xs text-muted-foreground">
-                    {product.categoryName}
-                  </p>
+                  <p className="truncate text-xs text-muted-foreground">{product.categoryName}</p>
                 )}
               </div>
               <div className="flex items-center gap-2 sm:shrink-0">
@@ -438,16 +408,11 @@ function RecentCanceledPanel({
     >
       <ul className="mt-4 divide-y divide-border">
         {appointments.map((appt) => (
-          <li
-            key={appt.id}
-            className="flex items-center justify-between gap-3 py-3 text-sm"
-          >
+          <li key={appt.id} className="flex items-center justify-between gap-3 py-3 text-sm">
             <div className="min-w-0">
               <p className="truncate font-medium text-foreground">{appt.patientName}</p>
               {appt.cancellationReason && (
-                <p className="truncate text-xs text-muted-foreground">
-                  {appt.cancellationReason}
-                </p>
+                <p className="truncate text-xs text-muted-foreground">{appt.cancellationReason}</p>
               )}
             </div>
             <div className="shrink-0 text-right">
@@ -468,9 +433,7 @@ function RecentCanceledPanel({
 export function ProductivityCenter() {
   const { data, isLoading, error } = useProductivitySummary()
 
-  const stockAlerts = data
-    ? data.inventory.lowStockCount + data.inventory.expiringSoonCount
-    : 0
+  const stockAlerts = data ? data.inventory.lowStockCount + data.inventory.expiringSoonCount : 0
 
   return (
     <AppPage spacing="loose">
@@ -518,9 +481,7 @@ export function ProductivityCenter() {
           <TodayAppointmentsChart today={data.today} />
 
           {/* Priority actions (conditional) */}
-          {data.actions.length > 0 && (
-            <RecommendedActionsPanel actions={data.actions} />
-          )}
+          {data.actions.length > 0 && <RecommendedActionsPanel actions={data.actions} />}
 
           {/* Today schedule + pending payments */}
           <div className="grid min-w-0 gap-5 lg:grid-cols-2">
@@ -564,26 +525,10 @@ export function ProductivityCenter() {
 
           {/* Quick access shortcuts */}
           <HomeActionGrid columns={4}>
-            <HomeQuickActionCard
-              title="Agendamentos"
-              icon={CalendarDays}
-              to="/app/agendamentos"
-            />
-            <HomeQuickActionCard
-              title="Financeiro"
-              icon={Landmark}
-              to="/app/financeiro"
-            />
-            <HomeQuickActionCard
-              title="Pacientes"
-              icon={Users2}
-              to="/app/pacientes"
-            />
-            <HomeQuickActionCard
-              title="Estoque"
-              icon={Package}
-              to="/app/estoque"
-            />
+            <HomeQuickActionCard title="Agendamentos" icon={CalendarDays} to="/app/agendamentos" />
+            <HomeQuickActionCard title="Financeiro" icon={Landmark} to="/app/financeiro" />
+            <HomeQuickActionCard title="Pacientes" icon={Users2} to="/app/pacientes" />
+            <HomeQuickActionCard title="Estoque" icon={Package} to="/app/estoque" />
           </HomeActionGrid>
         </>
       ) : null}

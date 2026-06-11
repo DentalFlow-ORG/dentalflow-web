@@ -21,11 +21,11 @@ import type {
 function buildQuery(params: Record<string, string | number | undefined>) {
   const query = new URLSearchParams()
 
-  Object.entries(params).forEach(([key, value]) => {
+  for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== '') {
       query.set(key, String(value))
     }
-  })
+  }
 
   const queryString = query.toString()
   return queryString ? `?${queryString}` : ''
@@ -143,10 +143,7 @@ export function createStockMovement(payload: CreateStockMovementPayload) {
   })
 }
 
-export function listProductStockMovements(
-  productId: string,
-  query: ListStockMovementsQuery = {},
-) {
+export function listProductStockMovements(productId: string, query: ListStockMovementsQuery = {}) {
   return apiRequest<PaginatedStockMovementsResponse>(
     `/stock/products/${productId}/movements${buildQuery({
       type: query.type,

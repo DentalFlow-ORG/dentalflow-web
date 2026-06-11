@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import { ChevronRight, ClipboardList, Loader2, Plus } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
+import { ChevronRight, ClipboardList, Loader2, Plus } from 'lucide-react'
+import { useState } from 'react'
 
-import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useClinicalRecordByAppointment } from '@/features/clinical-records/hooks/useClinicalRecord'
 import { createClinicalRecord } from '@/features/clinical-records/services/clinical-records.service'
 
@@ -92,7 +92,10 @@ function ClinicalRecordManagerSection({ appointment, onClose }: Props) {
             <p className="font-medium text-foreground">Abrir prontuário</p>
             <p className="text-xs text-muted-foreground">Visualizar ficha clínica do paciente</p>
           </div>
-          <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <ChevronRight
+            className="ml-auto h-4 w-4 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
         </button>
       ) : (
         <button
@@ -116,7 +119,9 @@ function ClinicalRecordManagerSection({ appointment, onClose }: Props) {
             <p className="font-medium text-foreground">
               {isCreating ? 'Criando prontuário...' : 'Criar prontuário'}
             </p>
-            <p className="text-xs text-muted-foreground">Iniciar ficha clínica para este paciente</p>
+            <p className="text-xs text-muted-foreground">
+              Iniciar ficha clínica para este paciente
+            </p>
           </div>
           {!isCreating && (
             <Plus className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />

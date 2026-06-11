@@ -3,10 +3,7 @@ import { Check, CheckCircle2, UserX, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 import type { Appointment, AppointmentStatus } from '../../types/scheduling.types'
-import {
-  getAvailableTransitions,
-  isTerminalStatus,
-} from '../../utils/appointment-state-machine'
+import { getAvailableTransitions, isTerminalStatus } from '../../utils/appointment-state-machine'
 
 type StatusActionMenuProps = {
   appointment: Appointment

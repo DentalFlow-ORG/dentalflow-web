@@ -46,9 +46,7 @@ describe('ExpenseClassifyAction', () => {
 
   it('renders plan-blocked inline notice', () => {
     renderAction(planBlockedState)
-    expect(
-      screen.getByText(/Classificação inteligente disponível nos planos/),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Classificação inteligente disponível nos planos/)).toBeInTheDocument()
   })
 
   // ── Quota exceeded ──────────────────────────────────────────────────────────

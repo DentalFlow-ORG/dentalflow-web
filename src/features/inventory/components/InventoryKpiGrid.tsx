@@ -1,11 +1,4 @@
-import {
-  AlertCircle,
-  Clock,
-  DollarSign,
-  Package,
-  PackageX,
-  TrendingDown,
-} from 'lucide-react'
+import { AlertCircle, Clock, DollarSign, Package, PackageX, TrendingDown } from 'lucide-react'
 
 import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
 

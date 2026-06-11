@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
 import { Loader2, MoveRight, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
+import { useEffect, useState } from 'react'
 
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
@@ -50,11 +50,7 @@ type StockMovementModalProps = {
   onSuccess: () => void
 }
 
-export function StockMovementModal({
-  product,
-  onClose,
-  onSuccess,
-}: StockMovementModalProps) {
+export function StockMovementModal({ product, onClose, onSuccess }: StockMovementModalProps) {
   const { showAlert } = useGlobalAlerts()
   const [form, setForm] = useState<MovementFormState>(EMPTY_FORM)
   const [isSaving, setIsSaving] = useState(false)
@@ -158,7 +154,11 @@ export function StockMovementModal({
           </div>
 
           {/* ── Form ── */}
-          <form id="movement-form" className="flex flex-1 flex-col overflow-hidden" onSubmit={handleSubmit}>
+          <form
+            id="movement-form"
+            className="flex flex-1 flex-col overflow-hidden"
+            onSubmit={handleSubmit}
+          >
             {/* Scrollable body */}
             <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto">
               <div className="space-y-6 px-6 py-5">
@@ -303,12 +303,7 @@ export function StockMovementModal({
 
             {/* ── Footer ── */}
             <div className="flex shrink-0 flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isSaving}
-              >
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
                 Cancelar
               </Button>
               <Button type="submit" form="movement-form" disabled={isSaving}>

@@ -13,8 +13,8 @@ vi.mock('@/features/inventory/services/stock-copilot.service', () => ({
 }))
 
 import {
-  getLatestCopilotSummary,
   generateCopilotSummary,
+  getLatestCopilotSummary,
 } from '@/features/inventory/services/stock-copilot.service'
 
 const mockGetLatestCopilotSummary = vi.mocked(getLatestCopilotSummary)
@@ -103,7 +103,11 @@ describe('useStockCopilot', () => {
   it('updates result after handleGenerate is called', async () => {
     mockGetLatestCopilotSummary.mockResolvedValue(undefined)
 
-    const newResult = buildCopilotResult({ source: 'AI', cached: false, generatedAt: new Date().toISOString() })
+    const newResult = buildCopilotResult({
+      source: 'AI',
+      cached: false,
+      generatedAt: new Date().toISOString(),
+    })
     mockGenerateCopilotSummary.mockResolvedValue(newResult)
 
     const { result } = renderHook(() => useStockCopilot())
@@ -141,9 +145,7 @@ describe('useStockCopilot', () => {
 
   it('sets isQuotaExceeded when generateCopilotSummary throws 429', async () => {
     mockGetLatestCopilotSummary.mockResolvedValue(undefined)
-    mockGenerateCopilotSummary.mockRejectedValue(
-      new ApiError('Limite atingido.', 429, null),
-    )
+    mockGenerateCopilotSummary.mockRejectedValue(new ApiError('Limite atingido.', 429, null))
 
     const { result } = renderHook(() => useStockCopilot())
     await waitFor(() => expect(result.current.isLoadingInitial).toBe(false))

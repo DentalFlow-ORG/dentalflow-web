@@ -1,25 +1,31 @@
-import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ClipboardList, Plus } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
-import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { EmptyState } from '@/components/common/EmptyState'
 import { FilterChipGroup } from '@/components/common/FilterChip'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
+import { AppPage } from '@/components/layout/AppPage'
+import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useListFilter } from '@/hooks/useListFilter'
 import { cn } from '@/lib/utils'
 
 import { ClinicalRecordListItem } from '../components/ClinicalRecordListItem'
+import { STATUS_FILTERS, type StatusFilter } from '../constants/clinical-record-filters'
 import { useClinicalRecords } from '../hooks/useClinicalRecords'
 import type { ClinicalRecord } from '../types/clinical-record.types'
-import { type StatusFilter, STATUS_FILTERS } from '../constants/clinical-record-filters'
 
 // ── Local types ────────────────────────────────────────────────────────────────
 
@@ -146,7 +152,7 @@ export function ClinicalRecordsListContainer() {
   // Professional options derived from the unfiltered list (stable across status changes)
   const professionals = useMemo(() => {
     const map = new Map<string, string>()
-    allRecords.forEach((r) => map.set(r.profile.id, r.profile.displayName))
+    for (const r of allRecords) map.set(r.profile.id, r.profile.displayName)
     return Array.from(map.entries())
       .map(([id, displayName]) => ({ id, displayName }))
       .sort((a, b) => a.displayName.localeCompare(b.displayName, 'pt-BR'))

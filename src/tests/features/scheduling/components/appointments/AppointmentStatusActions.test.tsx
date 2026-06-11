@@ -6,20 +6,17 @@ import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 // ── Terminal statuses ─────────────────────────────────────────────────────────
 
 describe('AppointmentStatusActions — terminal statuses', () => {
-  it.each(['COMPLETED', 'NO_SHOW', 'CANCELED'] as const)(
-    'renders nothing for %s',
-    (status) => {
-      const { container } = render(
-        <AppointmentStatusActions
-          appointment={makeAppointment({ status })}
-          isLoading={false}
-          onStatusChange={vi.fn()}
-          onCancelRequest={vi.fn()}
-        />,
-      )
-      expect(container).toBeEmptyDOMElement()
-    },
-  )
+  it.each(['COMPLETED', 'NO_SHOW', 'CANCELED'] as const)('renders nothing for %s', (status) => {
+    const { container } = render(
+      <AppointmentStatusActions
+        appointment={makeAppointment({ status })}
+        isLoading={false}
+        onStatusChange={vi.fn()}
+        onCancelRequest={vi.fn()}
+      />,
+    )
+    expect(container).toBeEmptyDOMElement()
+  })
 })
 
 // ── PENDING ───────────────────────────────────────────────────────────────────
@@ -170,6 +167,6 @@ describe('AppointmentStatusActions — loading state', () => {
       />,
     )
     const buttons = screen.getAllByRole('button')
-    buttons.forEach((btn) => expect(btn).toBeDisabled())
+    for (const btn of buttons) expect(btn).toBeDisabled()
   })
 })

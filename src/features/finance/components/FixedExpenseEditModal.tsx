@@ -3,7 +3,6 @@ import { Dialog } from 'radix-ui'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
-import { formatMoneyInputFromDigits } from '@/lib/money-input'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { formatMoneyInputFromDigits } from '@/lib/money-input'
 
 import type {
   FinancialCategory,
@@ -36,7 +36,10 @@ export function FixedExpenseEditModal({
   categories: FinancialCategory[]
   error: string | null
   isSubmitting: boolean
-  onChange: <K extends keyof FixedExpenseEditFormState>(field: K, value: FixedExpenseEditFormState[K]) => void
+  onChange: <K extends keyof FixedExpenseEditFormState>(
+    field: K,
+    value: FixedExpenseEditFormState[K],
+  ) => void
   onSubmit: (event: React.FormEvent) => void
   onClose: () => void
 }) {
@@ -73,7 +76,10 @@ export function FixedExpenseEditModal({
                 {error && <InlineFeedback>{error}</InlineFeedback>}
 
                 <FormField label="Categoria" htmlFor="editFeCategory">
-                  <Select value={form.categoryId} onValueChange={(value) => onChange('categoryId', value)}>
+                  <Select
+                    value={form.categoryId}
+                    onValueChange={(value) => onChange('categoryId', value)}
+                  >
                     <SelectTrigger id="editFeCategory">
                       <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
@@ -103,13 +109,17 @@ export function FixedExpenseEditModal({
                       inputMode="numeric"
                       placeholder="0,00"
                       value={form.amount}
-                      onChange={(event) => onChange('amount', formatMoneyInputFromDigits(event.target.value))}
+                      onChange={(event) =>
+                        onChange('amount', formatMoneyInputFromDigits(event.target.value))
+                      }
                     />
                   </FormField>
                   <FormField label="Recorrência" htmlFor="editFeRecurrence">
                     <Select
                       value={form.recurrence}
-                      onValueChange={(value) => onChange('recurrence', value as FixedExpenseRecurrence)}
+                      onValueChange={(value) =>
+                        onChange('recurrence', value as FixedExpenseRecurrence)
+                      }
                     >
                       <SelectTrigger id="editFeRecurrence">
                         <SelectValue />
@@ -155,7 +165,13 @@ export function FixedExpenseEditModal({
 
             <div className="shrink-0 border-t border-border px-6 pb-5 pt-4">
               <div className="flex gap-3">
-                <Button type="button" variant="outline" className="flex-1" onClick={onClose} disabled={isSubmitting}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                >
                   Cancelar
                 </Button>
                 <Button type="submit" className="flex-1" disabled={isSubmitting}>

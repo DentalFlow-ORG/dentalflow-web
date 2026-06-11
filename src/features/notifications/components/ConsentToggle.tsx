@@ -1,5 +1,5 @@
-import { ShieldCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ShieldCheck } from 'lucide-react'
 
 type ConsentToggleProps = {
   checked: boolean
@@ -8,7 +8,12 @@ type ConsentToggleProps = {
   className?: string
 }
 
-export function ConsentToggle({ checked, onChange, disabled = false, className }: ConsentToggleProps) {
+export function ConsentToggle({
+  checked,
+  onChange,
+  disabled = false,
+  className,
+}: ConsentToggleProps) {
   return (
     <label
       className={cn(
@@ -30,8 +35,8 @@ export function ConsentToggle({ checked, onChange, disabled = false, className }
           Autorizo o recebimento de lembretes e confirmações pelo WhatsApp.
         </p>
         <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-          <ShieldCheck className="h-3 w-3 shrink-0" aria-hidden="true" />
-          O paciente pode cancelar a qualquer momento respondendo PARAR.
+          <ShieldCheck className="h-3 w-3 shrink-0" aria-hidden="true" />O paciente pode cancelar a
+          qualquer momento respondendo PARAR.
         </p>
       </div>
     </label>

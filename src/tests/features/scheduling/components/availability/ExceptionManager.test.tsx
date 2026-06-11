@@ -22,7 +22,7 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 }))
 
 vi.mock('@/features/scheduling/services/scheduling.service', () => ({
-  createAvailabilityException: vi.fn(),  // needed by ExceptionManager internally
+  createAvailabilityException: vi.fn(), // needed by ExceptionManager internally
   updateAvailabilityException: vi.fn(),
   deleteAvailabilityException: vi.fn(),
 }))
@@ -377,9 +377,7 @@ describe('ExceptionManager — row delete', () => {
     const row1 = screen.getByTestId('exception-row-exc-future-1')
     await user.click(within(row1).getByRole('button', { name: /remover exceção/i }))
 
-    await waitFor(() =>
-      expect(onExceptionsChange).toHaveBeenCalledWith([FUTURE_2]),
-    )
+    await waitFor(() => expect(onExceptionsChange).toHaveBeenCalledWith([FUTURE_2]))
   })
 })
 
@@ -388,7 +386,10 @@ describe('ExceptionManager — accessibility', () => {
     renderManager([FUTURE_1])
 
     expect(screen.getByRole('button', { name: 'Próximas' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Passadas' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Passadas' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
     expect(screen.getByRole('button', { name: 'Todas' })).toHaveAttribute('aria-pressed', 'false')
   })
 
@@ -399,7 +400,10 @@ describe('ExceptionManager — accessibility', () => {
     await user.click(screen.getByRole('button', { name: 'Passadas' }))
 
     expect(screen.getByRole('button', { name: 'Passadas' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Próximas' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Próximas' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
   })
 
   it('Adicionar button is visible when hideTitle is true', () => {
@@ -415,13 +419,25 @@ describe('ExceptionManager — accessibility', () => {
     await user.click(screen.getByRole('button', { name: /adicionar/i }))
 
     // Default: isDayOff=true → "Folga ocasional" is pressed
-    expect(screen.getByRole('button', { name: /folga ocasional/i })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: /horário especial/i })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /folga ocasional/i })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(screen.getByRole('button', { name: /horário especial/i })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
 
     await user.click(screen.getByRole('button', { name: /horário especial/i }))
 
-    expect(screen.getByRole('button', { name: /folga ocasional/i })).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.getByRole('button', { name: /horário especial/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /folga ocasional/i })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(screen.getByRole('button', { name: /horário especial/i })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
   })
 })
 

@@ -9,8 +9,7 @@ type ActionIconButtonProps = ComponentProps<'button'> & {
 }
 
 const TONE_CLASSES: Record<Tone, string> = {
-  default:
-    'text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-primary/15',
+  default: 'text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-primary/15',
   danger:
     'text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-300 focus:ring-red-500/15',
   success:

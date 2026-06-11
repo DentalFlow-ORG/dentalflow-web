@@ -1,6 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -9,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100]
 
@@ -39,7 +39,12 @@ export function Pagination({
   const to = Math.min(page * pageSize, filteredCount)
 
   return (
-    <div className={cn('flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4', className)}>
+    <div
+      className={cn(
+        'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4',
+        className,
+      )}
+    >
       <div className="flex flex-wrap items-center gap-3">
         {onPageSizeChange && (
           <div className="flex items-center gap-1.5">

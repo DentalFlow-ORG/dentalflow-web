@@ -3,19 +3,14 @@ import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import {
-  addDays,
-  formatDateBR,
-  formatDateInputValue,
-  isToday,
-} from '@/lib/date-time-formatters'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { addDays, formatDateBR, formatDateInputValue, isToday } from '@/lib/date-time-formatters'
 import {
   displayDateToIso,
   isoToDisplayDate,
   maskDateInput,
   parseIsoDateInput,
 } from '@/lib/date-time-input'
-import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 type DatePickerInputProps = {
@@ -58,9 +53,7 @@ export function DatePickerInput({
     displayValue: externalDisplayValue,
   }))
   const displayValue =
-    displayDraft.sourceValue === selectedValue
-      ? displayDraft.displayValue
-      : externalDisplayValue
+    displayDraft.sourceValue === selectedValue ? displayDraft.displayValue : externalDisplayValue
   const [open, setOpen] = useState(false)
   const [visibleMonth, setVisibleMonth] = useState(() => {
     if (selectedDate) return getMonthDate(selectedDate)
@@ -116,15 +109,11 @@ export function DatePickerInput({
   }
 
   function goToPreviousMonth() {
-    setVisibleMonth(
-      new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1),
-    )
+    setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1))
   }
 
   function goToNextMonth() {
-    setVisibleMonth(
-      new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1),
-    )
+    setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1))
   }
 
   function selectToday() {
@@ -146,9 +135,7 @@ export function DatePickerInput({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <div className="relative">
-        {name && (
-          <input type="hidden" name={name} value={selectedValue} />
-        )}
+        {name && <input type="hidden" name={name} value={selectedValue} />}
         <input
           id={id}
           type="text"
@@ -191,9 +178,7 @@ export function DatePickerInput({
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <p className="text-sm font-semibold capitalize text-foreground">
-              {monthLabel}
-            </p>
+            <p className="text-sm font-semibold capitalize text-foreground">{monthLabel}</p>
             <Button
               type="button"
               variant="ghost"
@@ -223,8 +208,7 @@ export function DatePickerInput({
               const isSelected = dayValue === selectedValue
               const isOutsideMonth = day.getMonth() !== visibleMonth.getMonth()
               const isDisabled =
-                isBeforeMinDate(dayValue, minDateValue) ||
-                (disabledDate?.(dayValue) ?? false)
+                isBeforeMinDate(dayValue, minDateValue) || (disabledDate?.(dayValue) ?? false)
 
               return (
                 <button
@@ -236,9 +220,11 @@ export function DatePickerInput({
                     'flex h-9 items-center justify-center rounded-md text-sm font-semibold outline-none transition',
                     'hover:bg-primary/5 hover:text-primary focus:bg-primary/5 focus:text-primary focus:ring-2 focus:ring-primary/20',
                     isOutsideMonth && 'text-muted-foreground/40',
-                    isDisabled && 'cursor-not-allowed text-muted-foreground/40 opacity-40 hover:bg-transparent hover:text-muted-foreground/40',
+                    isDisabled &&
+                      'cursor-not-allowed text-muted-foreground/40 opacity-40 hover:bg-transparent hover:text-muted-foreground/40',
                     isToday(day) && !isSelected && 'bg-muted text-foreground',
-                    isSelected && 'bg-primary text-white shadow-sm shadow-primary/25 hover:bg-primary hover:text-white',
+                    isSelected &&
+                      'bg-primary text-white shadow-sm shadow-primary/25 hover:bg-primary hover:text-white',
                   )}
                 >
                   {day.getDate()}

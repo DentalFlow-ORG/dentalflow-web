@@ -1,12 +1,6 @@
-import { useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import {
-  ArrowRight,
-  BadgeCheck,
-  CheckCircle2,
-  Loader2,
-  Rocket,
-} from 'lucide-react'
+import { ArrowRight, BadgeCheck, CheckCircle2, Loader2, Rocket } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { formatDateBR } from '@/lib/date-time-formatters'
@@ -15,11 +9,11 @@ import { cn } from '@/lib/utils'
 
 import type { PlanCardFeature } from '@/features/marketing/config/features'
 
-import { BillingStatusBadge } from './BillingStatusBadge'
-import { PlanFeatureList } from './PlanFeatureList'
+import { PLAN_ICONS, PLAN_TAGLINES, TRIAL_LABELS } from '../constants/pricing-display'
 import type { BillingInterval, BillingPlan, CurrentBillingStatus } from '../types/billing.types'
 import type { PlanCtaAction, PlanCtaState } from '../utils/billing-cta-utils'
-import { PLAN_ICONS, PLAN_TAGLINES, TRIAL_LABELS } from '../constants/pricing-display'
+import { BillingStatusBadge } from './BillingStatusBadge'
+import { PlanFeatureList } from './PlanFeatureList'
 
 type Props = {
   plan: BillingPlan

@@ -1,4 +1,14 @@
-import { Eye, Loader2, Minus, MoveRight, Package, Pencil, Plus, Power, PowerOff } from 'lucide-react'
+import {
+  Eye,
+  Loader2,
+  Minus,
+  MoveRight,
+  Package,
+  Pencil,
+  Plus,
+  Power,
+  PowerOff,
+} from 'lucide-react'
 
 import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { Pagination } from '@/components/common/Pagination'
@@ -89,21 +99,36 @@ export function InventoryProductTable({
       {/* Desktop table — visible at md and above */}
       <div className="hidden overflow-hidden rounded-lg border border-border md:block">
         <div className="app-scrollbar overflow-x-auto">
-          <table
-            className="w-full min-w-[900px] text-sm"
-            aria-label="Lista de produtos em estoque"
-          >
+          <table className="w-full min-w-[900px] text-sm" aria-label="Lista de produtos em estoque">
             <thead>
               <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <th scope="col" className="px-4 py-3">Produto</th>
-                <th scope="col" className="px-4 py-3">Categoria</th>
-                <th scope="col" className="px-4 py-3">Quantidade</th>
-                <th scope="col" className="px-4 py-3">Mínimo</th>
-                <th scope="col" className="px-4 py-3">Status</th>
-                <th scope="col" className="px-4 py-3">Validade</th>
-                <th scope="col" className="px-4 py-3">Preço de compra</th>
-                <th scope="col" className="px-4 py-3">Fornecedor</th>
-                <th scope="col" className="px-4 py-3">Ações</th>
+                <th scope="col" className="px-4 py-3">
+                  Produto
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Categoria
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Quantidade
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Mínimo
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Status
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Validade
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Preço de compra
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Fornecedor
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border bg-card">
@@ -144,9 +169,7 @@ export function InventoryProductTable({
                                 ? 'Estoque insuficiente para saída rápida de 1 unidade'
                                 : `Remover 1 unidade de ${product.name}`
                             }
-                            disabled={
-                              product.currentQuantity < 1 || quickMovingIds.has(product.id)
-                            }
+                            disabled={product.currentQuantity < 1 || quickMovingIds.has(product.id)}
                             onClick={() => onQuickMove(product, 'out')}
                             className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border text-muted-foreground transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-700/60 dark:hover:bg-red-900/40 dark:hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-primary/15 disabled:pointer-events-none disabled:opacity-30"
                           >

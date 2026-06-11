@@ -25,7 +25,13 @@ describe('HomeQuickActionCard — link variant', () => {
   })
 
   it('renders the description when provided', () => {
-    render(<HomeQuickActionCard title="Agenda" description="Ver consultas do dia" to="/app/agendamentos" />)
+    render(
+      <HomeQuickActionCard
+        title="Agenda"
+        description="Ver consultas do dia"
+        to="/app/agendamentos"
+      />,
+    )
     expect(screen.getByText('Ver consultas do dia')).toBeInTheDocument()
   })
 
@@ -128,12 +134,10 @@ describe('HomeQuickActionCard — title wrapping', () => {
 describe('HomeQuickActionCard — tones', () => {
   it('accepts all valid tones without error', () => {
     const tones = ['neutral', 'primary', 'warning', 'danger'] as const
-    tones.forEach((tone) => {
-      const { unmount } = render(
-        <HomeQuickActionCard title="Test" to="/app" tone={tone} />,
-      )
+    for (const tone of tones) {
+      const { unmount } = render(<HomeQuickActionCard title="Test" to="/app" tone={tone} />)
       expect(screen.getByText('Test')).toBeInTheDocument()
       unmount()
-    })
+    }
   })
 })

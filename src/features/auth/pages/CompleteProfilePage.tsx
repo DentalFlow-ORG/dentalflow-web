@@ -1,14 +1,14 @@
 import { Link, Navigate, useNavigate } from '@tanstack/react-router'
 import { ArrowRight, Building2, Loader2, UserRound } from 'lucide-react'
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { type FormEvent, useEffect, useId, useState } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
+import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
 import { isValidPersonName } from '@/lib/field-formatters'
 import { ApiError } from '@/services/http'
-import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
 
 import { AuthTextField } from '../components/AuthTextField'
 import { useAuth } from '../hooks/useAuth'
@@ -108,8 +108,8 @@ export function CompleteProfilePage() {
             Complete seu acesso DentalFlow
           </h1>
           <p className="mt-4 text-sm leading-7 text-white/75">
-            O Google confirmou seu e-mail. Falta vincular os dados mínimos exigidos
-            pelo cadastro da clínica antes de liberar o app.
+            O Google confirmou seu e-mail. Falta vincular os dados mínimos exigidos pelo cadastro da
+            clínica antes de liberar o app.
           </p>
         </aside>
 
@@ -176,7 +176,11 @@ export function CompleteProfilePage() {
             </div>
           </div>
 
-          {error && <div className="mt-5"><InlineFeedback>{error}</InlineFeedback></div>}
+          {error && (
+            <div className="mt-5">
+              <InlineFeedback>{error}</InlineFeedback>
+            </div>
+          )}
 
           <Button type="submit" size="xl" className="mt-6 w-full" disabled={isSubmitting}>
             {isSubmitting ? (

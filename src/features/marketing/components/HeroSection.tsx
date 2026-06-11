@@ -24,14 +24,10 @@ const STATUS_CONFIG = {
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-white pt-20">
-
       <div className="relative mx-auto grid min-h-[calc(100svh-5rem)] w-full max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[1fr_1fr] lg:items-center lg:px-8 lg:py-20">
-
         {/* ── Left: commercial copy ── */}
         <div className="max-w-xl">
-          <Eyebrow icon={CalendarDays}>
-            Gestão moderna para clínicas odontológicas
-          </Eyebrow>
+          <Eyebrow icon={CalendarDays}>Gestão moderna para clínicas odontológicas</Eyebrow>
 
           <h1 className="mt-6 text-4xl font-semibold leading-[1.1] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.25rem]">
             O software odontológico que sua clínica vai{' '}
@@ -39,7 +35,8 @@ export function HeroSection() {
           </h1>
 
           <p className="mt-5 text-lg leading-8 text-slate-600">
-            Centralize agenda, pacientes, financeiro, estoque, leads, relatórios e IA em uma plataforma segura, simples e feita para a rotina real da clínica.
+            Centralize agenda, pacientes, financeiro, estoque, leads, relatórios e IA em uma
+            plataforma segura, simples e feita para a rotina real da clínica.
           </p>
 
           {/* Trial badge */}
@@ -64,9 +61,7 @@ export function HeroSection() {
               </Link>
             </Button>
             <Button variant="outline" size="xl" asChild>
-              <Link to="/funcionalidades">
-                Ver funcionalidades
-              </Link>
+              <Link to="/funcionalidades">Ver funcionalidades</Link>
             </Button>
           </div>
 
@@ -77,15 +72,19 @@ export function HeroSection() {
             aria-label="Destaques da plataforma"
           >
             <span className="flex items-center gap-1.5" role="listitem">
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
-              9 módulos integrados
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />9
+              módulos integrados
             </span>
-            <span className="hidden text-slate-300 sm:inline" aria-hidden="true">·</span>
+            <span className="hidden text-slate-300 sm:inline" aria-hidden="true">
+              ·
+            </span>
             <span className="flex items-center gap-1.5" role="listitem">
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
-              4 perfis de acesso
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />4
+              perfis de acesso
             </span>
-            <span className="hidden text-slate-300 sm:inline" aria-hidden="true">·</span>
+            <span className="hidden text-slate-300 sm:inline" aria-hidden="true">
+              ·
+            </span>
             <span className="flex items-center gap-1.5" role="listitem">
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
               100% web, sem instalação
@@ -126,7 +125,6 @@ export function HeroSection() {
 
           {/* Main dashboard card */}
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/10">
-
             {/* Dashboard header — navy */}
             <div className="border-b border-slate-800 bg-slate-900 px-5 py-3.5">
               <div className="flex items-center justify-between">
@@ -137,7 +135,10 @@ export function HeroSection() {
                   <p className="mt-0.5 text-sm font-semibold text-white">Painel da clínica</p>
                 </div>
                 <div className="flex items-center gap-1.5 rounded-full bg-slate-800 px-2.5 py-1">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" aria-hidden="true" />
+                  <span
+                    className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400"
+                    aria-hidden="true"
+                  />
                   <span className="text-[11px] font-medium text-slate-400">Ao vivo</span>
                 </div>
               </div>
@@ -150,15 +151,21 @@ export function HeroSection() {
               aria-label="Resumo do dia"
             >
               <div className="px-4 py-3 text-center">
-                <p className="text-2xl font-bold text-slate-900" aria-label="12 consultas hoje">12</p>
+                <p className="text-2xl font-bold text-slate-900" aria-label="12 consultas hoje">
+                  12
+                </p>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500">Consultas hoje</p>
               </div>
               <div className="px-4 py-3 text-center">
-                <p className="text-2xl font-bold text-emerald-600" aria-label="8 confirmadas">8</p>
+                <p className="text-2xl font-bold text-emerald-600" aria-label="8 confirmadas">
+                  8
+                </p>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500">Confirmadas</p>
               </div>
               <div className="px-4 py-3 text-center">
-                <p className="text-2xl font-bold text-amber-500" aria-label="4 aguardando">4</p>
+                <p className="text-2xl font-bold text-amber-500" aria-label="4 aguardando">
+                  4
+                </p>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500">Aguardando</p>
               </div>
             </div>
@@ -178,14 +185,26 @@ export function HeroSection() {
                 return (
                   <div key={appt.patient} className="flex items-center gap-3 px-5 py-3">
                     <div className="flex w-12 shrink-0 items-center gap-1.5">
-                      <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', config.dot)} aria-hidden="true" />
-                      <span className="text-[11px] font-semibold tabular-nums text-slate-500">{appt.time}</span>
+                      <span
+                        className={cn('h-1.5 w-1.5 shrink-0 rounded-full', config.dot)}
+                        aria-hidden="true"
+                      />
+                      <span className="text-[11px] font-semibold tabular-nums text-slate-500">
+                        {appt.time}
+                      </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-800">{appt.patient}</p>
+                      <p className="truncate text-sm font-semibold text-slate-800">
+                        {appt.patient}
+                      </p>
                       <p className="truncate text-xs text-slate-400">{appt.procedure}</p>
                     </div>
-                    <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold', config.badge)}>
+                    <span
+                      className={cn(
+                        'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                        config.badge,
+                      )}
+                    >
                       {config.label}
                     </span>
                   </div>
@@ -199,17 +218,19 @@ export function HeroSection() {
                 <p className="text-[11px] font-medium text-slate-500">Equipe disponível</p>
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-1.5" aria-hidden="true">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white">C</div>
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white ring-2 ring-white">P</div>
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white">
+                      C
+                    </div>
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white ring-2 ring-white">
+                      P
+                    </div>
                   </div>
                   <span className="text-[11px] font-medium text-slate-600">2 dentistas</span>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
-
       </div>
     </section>
   )

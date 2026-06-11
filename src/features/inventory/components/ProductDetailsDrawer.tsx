@@ -229,10 +229,7 @@ export function ProductDetailsDrawer({
 
                 {/* Movimentações recentes */}
                 <DrawerSection title="Movimentações recentes">
-                  <StockMovementHistory
-                    product={product}
-                    refreshKey={movementHistoryRefreshKey}
-                  />
+                  <StockMovementHistory product={product} refreshKey={movementHistoryRefreshKey} />
                 </DrawerSection>
               </div>
             </>
@@ -272,9 +269,7 @@ function DrawerRow({
   return (
     <div className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
       <span className="shrink-0 text-muted-foreground">{label}</span>
-      <span className="min-w-0 break-words text-right font-medium text-foreground">
-        {children}
-      </span>
+      <span className="min-w-0 break-words text-right font-medium text-foreground">{children}</span>
     </div>
   )
 }

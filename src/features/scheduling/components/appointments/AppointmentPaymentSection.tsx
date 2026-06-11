@@ -1,6 +1,9 @@
-import { useState } from 'react'
 import { Ban, CheckCircle2, Clock } from 'lucide-react'
+import { useState } from 'react'
 
+import { DatePickerInput } from '@/components/common/DatePickerInput'
+import { FormField, TextArea, TextInput } from '@/components/common/FormField'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -9,12 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DatePickerInput } from '@/components/common/DatePickerInput'
-import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { formatDateBR, formatDateInputValue } from '@/lib/date-time-formatters'
 
+import { PAYMENT_METHOD_LABELS } from '../../constants/appointment-display'
 import { updateAppointmentPayment } from '../../services/scheduling.service'
 import type {
   Appointment,
@@ -23,9 +24,8 @@ import type {
   UpdateAppointmentPaymentDto,
 } from '../../types/scheduling.types'
 import { centsToReais, reaisToCents } from '../../utils/appointment-form-utils'
-import { PAYMENT_METHOD_LABELS } from '../../constants/appointment-display'
+import { AppointmentDetailsRow, AppointmentDetailsSection } from './AppointmentDetailsSection'
 import { AppointmentPaymentBadge } from './AppointmentPaymentBadge'
-import { AppointmentDetailsSection, AppointmentDetailsRow } from './AppointmentDetailsSection'
 
 type AppointmentPaymentSectionProps = {
   appointment: Appointment
@@ -98,8 +98,8 @@ function PaymentEditForm({
   const [method, setMethod] = useState<AppointmentPaymentMethod | ''>(
     appointment.paymentMethod ?? '',
   )
-  const [paymentDate, setPaymentDate] = useState(
-    () => formatDateInputValue(appointment.paymentDate),
+  const [paymentDate, setPaymentDate] = useState(() =>
+    formatDateInputValue(appointment.paymentDate),
   )
   const [notes, setNotes] = useState(appointment.paymentNotes ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -189,7 +189,10 @@ function PaymentEditForm({
           </FormField>
 
           {/* Paid */}
-          <FormField label={requiresPaid ? 'Valor pago (R$)' : 'Valor pago (R$)'} optional={!requiresPaid}>
+          <FormField
+            label={requiresPaid ? 'Valor pago (R$)' : 'Valor pago (R$)'}
+            optional={!requiresPaid}
+          >
             <TextInput
               placeholder="Ex: 250,00"
               value={paid}
@@ -204,13 +207,13 @@ function PaymentEditForm({
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
-                {(Object.entries(PAYMENT_METHOD_LABELS) as [AppointmentPaymentMethod, string][]).map(
-                  ([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ),
-                )}
+                {(
+                  Object.entries(PAYMENT_METHOD_LABELS) as [AppointmentPaymentMethod, string][]
+                ).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </FormField>

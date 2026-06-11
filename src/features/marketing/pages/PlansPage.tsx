@@ -1,4 +1,3 @@
-import { Fragment, useId, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   ArrowRight,
@@ -9,12 +8,13 @@ import {
   Server,
   Shield,
 } from 'lucide-react'
+import { Fragment, useId, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
   COMMERCIAL_PLAN_LABELS,
-  PLAN_ORDER,
   type CommercialPlanKey,
+  PLAN_ORDER,
   getFeatureAvailability,
   getFeaturesByCategory,
   getPlanCardFeatures,
@@ -25,15 +25,15 @@ import {
 } from '@/features/marketing/config/marketing-pricing.constants'
 import { cn } from '@/lib/utils'
 
+import { AnnualAvailabilityNote } from '../components/AnnualAvailabilityNote'
+import { AvailabilityIndicator } from '../components/AvailabilityIndicator'
+import { type BillingPeriod, BillingPeriodToggle } from '../components/BillingPeriodToggle'
+import { PlanFeatureRow } from '../components/PlanFeatureRow'
 import { PublicLayout } from '../components/PublicLayout'
-import { usePageMeta } from '../hooks/usePageMeta'
-import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import { landingPlans } from '../data/landing-content'
 import { faqItems } from '../data/public-content'
-import { AvailabilityIndicator } from '../components/AvailabilityIndicator'
-import { AnnualAvailabilityNote } from '../components/AnnualAvailabilityNote'
-import { BillingPeriodToggle, type BillingPeriod } from '../components/BillingPeriodToggle'
-import { PlanFeatureRow } from '../components/PlanFeatureRow'
+import { usePageMeta } from '../hooks/usePageMeta'
+import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 
 // ── Plan-card content ──────────────────────────────────────────────────────────
 
@@ -94,7 +94,6 @@ export function PlansPage() {
 
   return (
     <PublicLayout darkHero>
-
       {/* ── SECTION 1: Dark Premium Hero ──────────────────────────────────── */}
       <section
         ref={heroRef}
@@ -110,7 +109,6 @@ export function PlansPage() {
 
         <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2">
-
             {/* Left: copy */}
             <div
               className={cn(
@@ -126,8 +124,7 @@ export function PlansPage() {
                 id="plans-hero-heading"
                 className="mt-5 text-4xl font-bold leading-tight text-white sm:text-5xl"
               >
-                Planos feitos para{' '}
-                <span className="text-emerald-400">impulsionar resultados</span>{' '}
+                Planos feitos para <span className="text-emerald-400">impulsionar resultados</span>{' '}
                 na sua clínica
               </h1>
 
@@ -145,7 +142,10 @@ export function PlansPage() {
               <div className="mt-7 flex flex-wrap gap-5">
                 {PRICING_TRUST_ITEMS.slice(0, 3).map((item) => (
                   <span key={item} className="flex items-center gap-1.5 text-sm text-slate-400">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden="true" />
+                    <CheckCircle2
+                      className="h-4 w-4 shrink-0 text-emerald-500"
+                      aria-hidden="true"
+                    />
                     {item}
                   </span>
                 ))}
@@ -182,7 +182,6 @@ export function PlansPage() {
 
       {/* ── Lift wrapper: white content rises over dark hero ──────────────── */}
       <div className="relative -mt-24 lg:-mt-32">
-
         {/* ── SECTION 2: Pricing Cards ──────────────────────────────────────── */}
         <section
           className="rounded-t-[2rem] bg-white px-4 pb-12 pt-14 sm:px-6 lg:px-8"
@@ -200,10 +199,7 @@ export function PlansPage() {
               />
               <AnnualAvailabilityNote visible={billingPeriod === 'annual'} />
             </div>
-            <div
-              ref={pricingRef}
-              className="grid gap-6 md:grid-cols-3 lg:items-start"
-            >
+            <div ref={pricingRef} className="grid gap-6 md:grid-cols-3 lg:items-start">
               {landingPlans.map((plan, index) => (
                 <PlanCard
                   key={plan.key}
@@ -227,10 +223,7 @@ export function PlansPage() {
                     {item}
                   </span>
                   {i < PRICING_TRUST_ITEMS.length - 1 && (
-                    <span
-                      className="hidden h-3.5 w-px bg-slate-200 lg:block"
-                      aria-hidden="true"
-                    />
+                    <span className="hidden h-3.5 w-px bg-slate-200 lg:block" aria-hidden="true" />
                   )}
                 </Fragment>
               ))}
@@ -245,10 +238,7 @@ export function PlansPage() {
               <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold uppercase tracking-widest text-slate-500">
                 Comparativo
               </span>
-              <h2
-                id="comparison-heading"
-                className="mt-4 text-3xl font-bold text-slate-900"
-              >
+              <h2 id="comparison-heading" className="mt-4 text-3xl font-bold text-slate-900">
                 Compare todos os recursos
               </h2>
               <p className="mt-3 text-base text-slate-500">
@@ -397,8 +387,8 @@ export function PlansPage() {
                   homologado (em desenvolvimento).
                 </p>
                 <p>
-                  Notificações via WhatsApp requerem conta Business aprovada pela Meta e configuração
-                  de templates.
+                  Notificações via WhatsApp requerem conta Business aprovada pela Meta e
+                  configuração de templates.
                 </p>
                 <p>
                   Recursos marcados "Em breve" representam evolução planejada e não garantem entrega
@@ -422,10 +412,7 @@ export function PlansPage() {
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {SECURITY_ITEMS.map(({ Icon, title, description }) => (
-                <div
-                  key={title}
-                  className="rounded-2xl border border-slate-100 bg-slate-50 p-6"
-                >
+                <div key={title} className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100">
                     <Icon className="h-5 w-5 text-emerald-600" aria-hidden="true" />
                   </div>
@@ -491,12 +478,8 @@ export function PlansPage() {
             <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-400">
               7 dias grátis · Sem cartão de crédito
             </span>
-            <h2
-              id="final-cta-heading"
-              className="mt-5 text-4xl font-bold text-white sm:text-5xl"
-            >
-              Transforme sua clínica{' '}
-              <span className="text-emerald-400">hoje mesmo</span>
+            <h2 id="final-cta-heading" className="mt-5 text-4xl font-bold text-white sm:text-5xl">
+              Transforme sua clínica <span className="text-emerald-400">hoje mesmo</span>
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-400">
               Organize sua clínica antes que a rotina fique mais complexa. Comece agora e aproveite
@@ -522,7 +505,6 @@ export function PlansPage() {
             </p>
           </div>
         </section>
-
       </div>
     </PublicLayout>
   )
@@ -539,7 +521,9 @@ type PlanCardProps = {
 
 function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
   const PlanIcon = MARKETING_PLAN_ICONS[plan.key]
-  const { sectionLabel, features, upgradeHints } = getPlanCardFeatures(plan.key as CommercialPlanKey)
+  const { sectionLabel, features, upgradeHints } = getPlanCardFeatures(
+    plan.key as CommercialPlanKey,
+  )
   const isAnnual = billingPeriod === 'annual'
 
   return (
@@ -620,9 +604,7 @@ function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
               </span>
               <span className="text-sm text-slate-400">/mês</span>
             </div>
-            <p className="mt-1 text-xs text-slate-400">
-              Depois {plan.normalMonthly}/mês
-            </p>
+            <p className="mt-1 text-xs text-slate-400">Depois {plan.normalMonthly}/mês</p>
           </>
         )}
       </div>
@@ -651,11 +633,7 @@ function PlanCard({ plan, index, isVisible, billingPeriod }: PlanCardProps) {
       </div>
 
       {/* Feature list */}
-      <ul
-        className="mt-6 flex-1 space-y-2"
-        role="list"
-        aria-label={`Recursos do plano ${plan.name}`}
-      >
+      <ul className="mt-6 flex-1 space-y-2" aria-label={`Recursos do plano ${plan.name}`}>
         {sectionLabel && (
           <li className="pb-0.5 pt-0.5">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -739,7 +717,6 @@ function FaqItem({ question, answer, isOpen, onToggle }: FaqItemProps) {
     </div>
   )
 }
-
 
 // ── DashboardMockup ────────────────────────────────────────────────────────────
 
