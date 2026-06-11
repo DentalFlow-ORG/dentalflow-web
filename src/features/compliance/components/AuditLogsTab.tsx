@@ -2,7 +2,6 @@ import { ClipboardList } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
-import { EmptyState } from '@/components/common/EmptyState'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { Pagination } from '@/components/common/Pagination'
 import { Button } from '@/components/ui/button'
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
 
 import { COMMON_ACTIONS, INITIAL_FILTERS } from '../constants/audit-log-config'
 import { listAuditLogs } from '../services/compliance.service'
@@ -135,7 +135,8 @@ export function AuditLogsTab() {
         onRetry={() => setRetryKey((key) => key + 1)}
         isEmpty={!isLoading && !error && (result?.data.length ?? 0) === 0}
         emptyState={
-          <EmptyState
+          <HomeEmptyState
+            compact
             icon={ClipboardList}
             title="Nenhum evento encontrado"
             description="Não há eventos de auditoria para os filtros selecionados."
@@ -213,7 +214,7 @@ export function AuditLogsTab() {
           </div>
         </div>
 
-        {result && result.totalPages > 1 && (
+        {result && (
           <Pagination
             page={result.page}
             totalPages={result.totalPages}

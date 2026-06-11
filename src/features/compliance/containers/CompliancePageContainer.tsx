@@ -2,7 +2,7 @@ import { ClipboardList, Cookie, ShieldAlert } from 'lucide-react'
 import { useState } from 'react'
 
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import { cn } from '@/lib/utils'
 
 import { AuditLogsTab } from '../components/AuditLogsTab'
@@ -36,8 +36,8 @@ export function CompliancePageContainer() {
   const [activeTab, setActiveTab] = useState<Tab>('requests')
 
   return (
-    <AppPage spacing="normal">
-      <AppPageHeader
+    <AppPage spacing="loose">
+      <HomeDashboardHeader
         eyebrow="Administração"
         title="Compliance"
         description="Gestão de conformidade LGPD — solicitações de titulares, auditoria de acessos e consentimentos."

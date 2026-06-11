@@ -1,7 +1,6 @@
 import { ShieldAlert } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { EmptyState } from '@/components/common/EmptyState'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { Pagination } from '@/components/common/Pagination'
 import { StatusBadge } from '@/components/common/StatusBadge'
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
 
 import {
   REQUESTER_TYPE_LABEL,
@@ -123,7 +123,8 @@ export function PrivacyRequestsTab() {
         onRetry={load}
         isEmpty={!isLoading && !error && (result?.data.length ?? 0) === 0}
         emptyState={
-          <EmptyState
+          <HomeEmptyState
+            compact
             icon={ShieldAlert}
             title="Nenhuma solicitação encontrada"
             description="Não há solicitações de privacidade para os filtros selecionados."
@@ -196,7 +197,7 @@ export function PrivacyRequestsTab() {
           </div>
         </div>
 
-        {result && result.totalPages > 1 && (
+        {result && (
           <Pagination
             page={result.page}
             totalPages={result.totalPages}
