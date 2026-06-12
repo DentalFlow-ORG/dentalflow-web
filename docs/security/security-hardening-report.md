@@ -201,4 +201,73 @@ app.useGlobalPipes(new ValidationPipe({
 
 ---
 
-*Documento gerado em: 2026-05-15*
+## 5. Auditoria full-stack — 2026-06-12 (verificada no código)
+
+Auditoria completa de frontend (`dentalflow-web`) e backend (`dentalflow-api`)
+lendo o código diretamente. Os itens 🟡/🔴 das seções 1–3 foram confirmados.
+**Nenhuma falha Crítica ou Alta encontrada.** Resumo do que foi verificado e
+do que foi alterado nesta passagem.
+
+### 5.1 Controles verificados como corretos (backend)
+
+| Área | Resultado | Referência |
+|------|-----------|-----------|
+| Helmet (CSP `default-src 'none'`, frameguard deny, noSniff, HSTS em prod, hidePoweredBy) | ✅ | `src/main.ts` |
+| CORS allowlist explícita, sem `*`, `credentials: true` | ✅ | `src/main.ts`, `src/config/validate-env.ts` |
+| Rate limiting global (`@nestjs/throttler` 120/60s) + por rota (login 10/min, register 5/min, forgot-password 3/min) + limiter por identidade | ✅ | `src/app.module.ts`, `auth.controller.ts`, `auth/login-identity-rate-limiter.service.ts` |
+| ValidationPipe global (`whitelist`, `forbidNonWhitelisted`, `transform`) | ✅ | `src/main.ts` |
+| Exception filter sanitiza erros/stack/Prisma e redige Bearer/refresh/senha/api-key | ✅ | `src/common/filters/global-exception.filter.ts` |
+| bcrypt rounds = 12; senha min 8 / max 72 + complexidade; nunca retornada | ✅ | `auth.service.ts`, `common/validators/password-policy.ts` |
+| JWT access 15m; refresh 7d hasheado (SHA-256); rotação com detecção de reuso → revoga sessões; `tokenVersion` no JWT | ✅ | `auth.service.ts`, `auth/jwt.strategy.ts` |
+| `JWT_SECRET` obrigatório (lança se ausente); env validado com fail-fast; nenhum secret commitado | ✅ | `config/auth.config.ts`, `config/validate-env.ts` |
+| Tokens Google OAuth criptografados em repouso (AES-256-GCM, IV+tag) | ✅ | `calendar-integrations/calendar-integrations.service.ts` |
+| Isolamento multi-tenant: queries escopadas por `clinicId` via helpers `assert*`; lock advisory contra double-booking; paginação com teto 100 | ✅ | `appointments`, `fiscal`, `profiles`, `clinical-records` services |
+| Stripe webhook: verificação de assinatura (raw body), idempotência (`StripeEvent` PK), `clinicId` vindo do metadata | ✅ | `billing/webhook.service.ts`, `billing/webhook.controller.ts` |
+| Audit log: IP hasheado, sem tokens/senhas; rotas de leitura ADMIN-only | ✅ | `audit-log/audit-log.service.ts`, `audit-log.controller.ts` |
+| Índices de auditoria/agendamento e FK Google Calendar | ✅ | `prisma/schema.prisma` |
+
+### 5.2 Controles verificados como corretos (frontend)
+
+- Access token apenas em memória; `localStorage` guarda só a flag `activeSession` (não sensível); refresh token nunca acessível ao JS. `src/features/auth/utils/session-storage.ts`
+- Refresh single-flight; logout chama o backend e limpa sessão + cache de billing + estado. `src/services/http.ts`, `src/features/auth/providers/AuthProvider.tsx`
+- Route guards são apenas UX (backend é autoritativo); billing falha-aberto no cliente e é reforçado por request. `src/features/auth/components/ProtectedAppRoute.tsx`
+- Sem `dangerouslySetInnerHTML`/`innerHTML`/markdown-HTML; única escrita de HTML (`print-invoice.ts`) escapa todos os dados; saídas de IA renderizadas como texto.
+- Todos os `target="_blank"` usam `rel="noopener noreferrer"`. Apenas 2 `console` (avisos de config, sem dados). Apenas `VITE_API_URL`/`VITE_BILLING_PROMOTION_ENDS_AT` expostos (públicos).
+
+### 5.3 Correções aplicadas nesta passagem
+
+1. **Cabeçalhos de segurança no frontend (Vercel)** — `vercel.json` passou a enviar
+   CSP, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`,
+   `Permissions-Policy` e HSTS em todas as rotas. Antes só havia o rewrite de SPA.
+   - **CSP — dependência importante:** `connect-src` inclui o origin da API
+     (`https://dentalflow-api.onrender.com`). **Se o domínio da API mudar
+     (`VITE_API_URL`), atualize `connect-src` em `vercel.json`** ou as chamadas
+     serão bloqueadas. `microphone=(self)` é mantido para o ditado clínico.
+   - Teste de regressão: `src/tests/security/security-headers.test.ts`.
+
+2. **Cookie de refresh cross-site + CSRF (backend)** — o SPA (Vercel) e a API
+   (Render) ficam em domínios registráveis distintos (cross-site). O cookie de
+   refresh passou a usar **`SameSite=None; Secure` em produção** (Lax em dev
+   localhost) para ser enviado em fetches cross-site; como `None` remove a
+   proteção CSRF do SameSite, `/auth/refresh` e `/auth/logout` agora validam o
+   header **`Origin`** contra a allowlist. **Não troque para `SameSite=Strict`** —
+   quebraria o refresh silencioso nessa topologia. `auth.controller.ts`,
+   `common/utils/origin-allowlist.ts`.
+
+3. **Linkagem de paciente em nota fiscal (backend)** — `assertLinksBelongToClinic`
+   passou a validar que `patientId` referencia um usuário `role: PATIENT` ativo
+   (espelhando `AppointmentsService.assertPatientUser`), impedindo vincular um
+   usuário arbitrário (owner de outra clínica, admin) à nota. `fiscal.service.ts`.
+
+### 5.4 Itens reportados e aceitos (sem alteração)
+
+- **Quota de IA (TOCTOU):** verificação count-then-allow pode estourar a quota
+  marginalmente sob concorrência; impacto/custo baixo. Aceito.
+- **`StripeEvent.rawPayload`:** payload Stripe completo é persistido (tabela
+  ADMIN-only, útil para replay/auditoria). Aceito.
+- **Callback OAuth reflete mensagem em query param:** apenas strings internas
+  fixas, URL-encoded, renderizadas como texto pelo frontend — sem XSS. Aceito.
+
+---
+
+*Documento gerado em: 2026-05-15 · Atualizado em: 2026-06-12*
