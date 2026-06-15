@@ -51,16 +51,32 @@ export function LandingHero() {
           </StaggerItem>
 
           <StaggerItem>
-            <div className="mt-7 inline-flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-emerald-400/25 bg-emerald-400/[0.07] px-4 py-2.5 text-sm font-semibold text-emerald-200">
-              <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+            <div className="mt-7 flex flex-col items-start gap-2.5">
+              {/* Primary highlight — always a single, compact line */}
+              <span className="inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-emerald-400/25 bg-emerald-400/[0.08] px-3.5 py-1.5 text-sm font-semibold text-emerald-100">
+                <span className="relative flex h-2 w-2 shrink-0" aria-hidden="true">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                </span>
+                7 dias de teste grátis
               </span>
-              <span>7 dias de teste grátis</span>
-              <span className="hidden h-4 w-px bg-emerald-400/30 sm:block" aria-hidden="true" />
-              <span>Sem cartão de crédito</span>
-              <span className="hidden h-4 w-px bg-emerald-400/30 sm:block" aria-hidden="true" />
-              <span>Cancele quando quiser</span>
+              {/* Secondary reassurances — wrap cleanly as whole units */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-slate-400">
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <CheckCircle2
+                    className="h-3.5 w-3.5 shrink-0 text-emerald-400/80"
+                    aria-hidden="true"
+                  />
+                  Sem cartão de crédito
+                </span>
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <CheckCircle2
+                    className="h-3.5 w-3.5 shrink-0 text-emerald-400/80"
+                    aria-hidden="true"
+                  />
+                  Cancele quando quiser
+                </span>
+              </div>
             </div>
           </StaggerItem>
 
@@ -110,7 +126,7 @@ export function LandingHero() {
             aria-hidden="true"
             style={{
               background:
-                'radial-gradient(ellipse 65% 55% at 50% 45%, rgba(56,189,248,0.16), transparent 70%)',
+                'radial-gradient(ellipse 72% 62% at 50% 45%, rgba(56,189,248,0.10), transparent 72%)',
             }}
           />
           <img

@@ -2,13 +2,14 @@ import { cn } from '@/lib/utils'
 
 type AuroraBackdropProps = {
   className?: string
-  /** Render a faint engineering grid behind the glow. */
+  /** Render the subtle square grid texture. */
   withGrid?: boolean
 }
 
-// Calm, premium atmosphere: two soft, low-opacity glows (cyan + blue only — no
-// loud green) and a barely-there masked grid. Each glow animates `transform`
-// only (cheap) and the drift is gated behind `prefers-reduced-motion` in CSS.
+// Unified dark-section backdrop: a subtle square/grid texture for premium depth
+// plus a single, soft, evenly-spread cyan glow. No drifting blobs and no corner
+// color bands — the same calm, continuous rhythm is shared across every dark
+// section so transitions feel smooth and cohesive rather than "pasted on".
 export function AuroraBackdrop({ className, withGrid = true }: AuroraBackdropProps) {
   return (
     <div
@@ -17,28 +18,22 @@ export function AuroraBackdrop({ className, withGrid = true }: AuroraBackdropPro
     >
       {withGrid && (
         <div
-          className="absolute inset-0 opacity-[0.025]"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
               'linear-gradient(to right, #94a3b8 1px, transparent 1px), linear-gradient(to bottom, #94a3b8 1px, transparent 1px)',
-            backgroundSize: '72px 72px',
-            maskImage: 'radial-gradient(ellipse 75% 70% at 50% 30%, #000 30%, transparent 100%)',
+            backgroundSize: '60px 60px',
+            maskImage: 'radial-gradient(ellipse 95% 85% at 50% 28%, #000 55%, transparent 100%)',
+            WebkitMaskImage:
+              'radial-gradient(ellipse 95% 85% at 50% 28%, #000 55%, transparent 100%)',
           }}
         />
       )}
-      {/* Soft cyan glow, upper area */}
+      {/* Single soft cyan glow — calm and even, no drift, no harsh band */}
       <div
-        className="df-aurora-drift absolute left-[16%] top-[-22%] h-[55%] w-[68%] rounded-full"
+        className="absolute left-1/2 top-[-10%] h-[75%] w-[120%] -translate-x-1/2 rounded-[100%] blur-3xl"
         style={{
-          background: 'radial-gradient(circle at 50% 50%, rgba(56,189,248,0.10), transparent 70%)',
-        }}
-      />
-      {/* Soft blue glow, lower area */}
-      <div
-        className="df-aurora-drift absolute left-[12%] bottom-[-26%] h-[58%] w-[76%] rounded-full"
-        style={{
-          background: 'radial-gradient(circle at 50% 50%, rgba(37,99,235,0.10), transparent 72%)',
-          animationDelay: '-9s',
+          background: 'radial-gradient(ellipse at center, rgba(56,189,248,0.07), transparent 70%)',
         }}
       />
     </div>

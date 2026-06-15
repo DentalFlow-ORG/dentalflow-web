@@ -161,7 +161,7 @@ Accent: `#6366F1`
 
 ## Package Manager
 
-Use `pnpm` exclusively. Do not run `pnpm install`, `pnpm add`, or `pnpm remove` without explicit user approval.
+This project uses **Bun**. Use `bun` for all package management and script execution. Do not run `bun install`, `bun add`, or `bun remove` without explicit user approval. Do not use `pnpm`, `npm`, or `yarn`.
 
 ## Implementation Checklist
 
@@ -173,13 +173,14 @@ Before implementing:
 4. Avoid duplication.
 5. Follow the current design system.
 6. Keep changes scoped to the requested feature.
-7. Validate TypeScript and tests with the full three-step sequence:
+7. Validate TypeScript and tests with the full sequence:
    ```
-   pnpm exec tsc --noEmit
-   pnpm test --run
-   pnpm run build
+   bun run typecheck
+   bun run test
+   bun run build
+   bun run check
    ```
-   `pnpm run build` (`tsc -b`) is the authoritative gate — it catches strict errors that `tsc --noEmit` misses.
+   `bun run build` (`tsc -b && vite build`) is the authoritative gate — it catches strict errors that `tsc --noEmit` misses.
 
 ## Role
 

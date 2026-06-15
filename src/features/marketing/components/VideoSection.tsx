@@ -19,25 +19,6 @@ export function VideoSection() {
       className="relative overflow-hidden bg-white py-18 lg:py-22"
       aria-labelledby="landing-video-title"
     >
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        {/* Top-right ambient — radial gradient, no blur filter */}
-        <div
-          className="absolute right-0 top-0 h-full w-1/2"
-          style={{
-            backgroundImage:
-              'radial-gradient(ellipse 75% 50% at 100% 20%, rgba(30,58,138,0.08) 0%, transparent 65%)',
-          }}
-        />
-        {/* Bottom-left ambient */}
-        <div
-          className="absolute bottom-0 left-0 h-full w-1/2"
-          style={{
-            backgroundImage:
-              'radial-gradient(ellipse 75% 50% at 0% 85%, rgba(37,99,235,0.07) 0%, transparent 65%)',
-          }}
-        />
-      </div>
-
       <div className="relative mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:px-8">
         <div
           className={cn(

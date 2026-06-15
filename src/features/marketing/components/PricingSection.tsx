@@ -15,6 +15,7 @@ import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import { AnnualAvailabilityNote } from './AnnualAvailabilityNote'
 import { type BillingPeriod, BillingPeriodToggle } from './BillingPeriodToggle'
 import { PlanFeatureRow } from './PlanFeatureRow'
+import { AuroraBackdrop } from './landing/AuroraBackdrop'
 
 export function PricingSection() {
   const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.1)
@@ -27,19 +28,7 @@ export function PricingSection() {
       className="relative overflow-hidden bg-slate-950 py-24 lg:py-32"
       aria-labelledby="pricing-heading"
     >
-      {/* Single, subtle ambient glow — calm and premium, no waves */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 flex justify-center"
-        aria-hidden="true"
-      >
-        <div
-          className="h-[360px] w-[900px] max-w-[130%] rounded-[100%] blur-2xl"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, rgba(56,189,248,0.08), transparent 70%)',
-          }}
-        />
-      </div>
+      <AuroraBackdrop />
 
       <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
         {/* ── Section header ────────────────────────────────────────── */}

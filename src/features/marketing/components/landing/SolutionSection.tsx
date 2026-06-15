@@ -36,7 +36,7 @@ const HIGHLIGHTS = [
 
 function OrbitPoster() {
   return (
-    <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-[40rem]">
+    <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-[42rem]">
       <div
         className="absolute left-1/2 top-1/2 h-[42%] w-[42%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
         style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.18), transparent 70%)' }}
@@ -88,7 +88,7 @@ export function SolutionSection() {
               className="h-px w-full"
               style={{
                 background:
-                  'linear-gradient(to right, transparent, rgba(56,189,248,0.45), rgba(96,165,250,0.45), transparent)',
+                  'linear-gradient(to right, transparent, rgba(56,189,248,0.4), rgba(125,211,252,0.4), transparent)',
               }}
             />
             <div
