@@ -1,4 +1,4 @@
-import { ClipboardList, Cookie, ShieldAlert } from 'lucide-react'
+import { ClipboardList, Cookie, type LucideIcon, ShieldAlert } from 'lucide-react'
 import { useState } from 'react'
 
 import { AppPage } from '@/components/layout/AppPage'
@@ -11,7 +11,7 @@ import { PrivacyRequestsTab } from '../components/PrivacyRequestsTab'
 
 type Tab = 'requests' | 'audit' | 'cookies'
 
-const TABS: { id: Tab; label: string; icon: React.ElementType; description: string }[] = [
+const TABS: { id: Tab; label: string; icon: LucideIcon; description: string }[] = [
   {
     id: 'requests',
     label: 'Solicitações LGPD',

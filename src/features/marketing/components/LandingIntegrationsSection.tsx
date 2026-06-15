@@ -78,7 +78,7 @@ export function LandingIntegrationsSection() {
 
   return (
     <section id="integracoes" className="relative overflow-hidden bg-slate-950 py-20 lg:py-24">
-      <AuroraBackdrop />
+      <AuroraBackdrop withGrid={false} />
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         {/* Section header */}

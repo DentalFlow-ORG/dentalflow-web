@@ -12,6 +12,7 @@ import {
   Home,
   Landmark,
   LogOut,
+  type LucideIcon,
   Moon,
   MoreHorizontal,
   Package,
@@ -43,7 +44,7 @@ type AppShellProps = {
 type NavItem = {
   label: string
   to: string
-  icon: React.ElementType
+  icon: LucideIcon
   roles?: AuthUserRole[]
   exact?: boolean
   minPlan?: 'professional' | 'premium'

@@ -10,7 +10,7 @@ import {
   TrendingUp,
   XCircle,
 } from 'lucide-react'
-import type { ElementType } from 'react'
+import type { LucideIcon } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { useTheme } from '@/features/theme/useTheme'
@@ -884,7 +884,7 @@ function SectionHeader({
   title,
   description,
 }: {
-  icon: ElementType
+  icon: LucideIcon
   title: string
   description: string
 }) {

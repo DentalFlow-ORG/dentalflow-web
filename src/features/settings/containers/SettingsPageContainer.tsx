@@ -13,6 +13,7 @@ import {
   KeyRound,
   Landmark,
   Loader2,
+  type LucideIcon,
   Package,
   Receipt,
   RefreshCw,
@@ -71,7 +72,7 @@ function LinkRow({
   description,
   to,
 }: {
-  icon: React.ElementType
+  icon: LucideIcon
   label: string
   description: string
   to: string
@@ -685,7 +686,7 @@ function TrustCard({
   title,
   description,
 }: {
-  icon: React.ElementType
+  icon: LucideIcon
   title: string
   description: string
 }) {

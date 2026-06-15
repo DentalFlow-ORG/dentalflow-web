@@ -28,7 +28,7 @@ export function PricingSection() {
       className="relative overflow-hidden bg-slate-950 py-24 lg:py-32"
       aria-labelledby="pricing-heading"
     >
-      <AuroraBackdrop />
+      <AuroraBackdrop withGrid={false} />
 
       <div className="relative mx-auto max-w-6xl px-6 lg:px-8">
         {/* ── Section header ────────────────────────────────────────── */}

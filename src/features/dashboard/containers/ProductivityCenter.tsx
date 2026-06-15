@@ -7,6 +7,7 @@ import {
   ChevronRight,
   DollarSign,
   Landmark,
+  type LucideIcon,
   Package,
   Users2,
 } from 'lucide-react'
@@ -128,7 +129,7 @@ function SectionLink({ to, label }: { to: string; label: string }) {
 // ── Section panels ────────────────────────────────────────────────────────────
 
 function RecommendedActionsPanel({ actions }: { actions: ProductivityAction[] }) {
-  const actionIcon: Record<string, React.ElementType> = {
+  const actionIcon: Record<string, LucideIcon> = {
     TODAY_SCHEDULE: CalendarDays,
     PENDING_PAYMENT: DollarSign,
     LOW_STOCK: Package,

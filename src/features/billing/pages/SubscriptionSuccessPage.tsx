@@ -9,6 +9,7 @@ import {
   CreditCard,
   Loader2,
   Lock,
+  type LucideIcon,
   Package,
   RefreshCw,
   Rocket,
@@ -50,7 +51,7 @@ const RETRY_INTERVAL_MS = 2500
 //   /app               → DashboardPage (OWNER, ASSISTANT)
 
 type OnboardingStep = {
-  icon: React.ElementType
+  icon: LucideIcon
   iconBg: string
   iconText: string
   label: string
@@ -641,7 +642,7 @@ function StatusPill({
 function SubscriptionSummary({ status }: { status: CurrentBillingStatus }) {
   const renewalDate = status.status === 'trialing' ? status.trialEndsAt : status.currentPeriodEnd
 
-  const rows: { icon: React.ElementType; label: string; value: string }[] = [
+  const rows: { icon: LucideIcon; label: string; value: string }[] = [
     { icon: Package, label: 'Plano', value: status.planName ?? 'Não definido' },
     { icon: RefreshCw, label: 'Ciclo', value: formatBillingInterval(status.billingInterval) },
     { icon: CheckCircle2, label: 'Status', value: getStatusLabel(status.status) },

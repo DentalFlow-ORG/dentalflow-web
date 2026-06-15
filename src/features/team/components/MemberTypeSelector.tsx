@@ -1,4 +1,4 @@
-import { ClipboardList, Stethoscope } from 'lucide-react'
+import { ClipboardList, type LucideIcon, Stethoscope } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -11,7 +11,7 @@ type MemberTypeSelectorProps = {
 
 type TypeOption = {
   role: MemberRole
-  icon: React.ElementType
+  icon: LucideIcon
   title: string
   description: string
 }
