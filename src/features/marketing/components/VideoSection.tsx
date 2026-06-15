@@ -33,7 +33,7 @@ export function VideoSection() {
           className="absolute bottom-0 left-0 h-full w-1/2"
           style={{
             backgroundImage:
-              'radial-gradient(ellipse 75% 50% at 0% 85%, rgba(16,185,129,0.08) 0%, transparent 65%)',
+              'radial-gradient(ellipse 75% 50% at 0% 85%, rgba(37,99,235,0.07) 0%, transparent 65%)',
           }}
         />
       </div>

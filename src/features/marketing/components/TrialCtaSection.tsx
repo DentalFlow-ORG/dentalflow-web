@@ -3,12 +3,30 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 
+import { MagneticButton } from './landing/MagneticButton'
+import { Reveal } from './landing/Reveal'
+
 const TRUST_SIGNALS = ['7 dias grátis', 'Sem cartão de crédito', 'Cancele quando quiser'] as const
 
 export function TrialCtaSection() {
   return (
-    <section className="bg-[linear-gradient(180deg,#0f3b73_0%,#082f5f_100%)] py-24">
-      <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
+    <section className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#0f3b73_0%,#082f5f_100%)] py-24">
+      {/* Atmospheric glows */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div
+          className="df-aurora-drift absolute -left-[10%] top-[-20%] h-[70%] w-[60%] rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.10), transparent 70%)' }}
+        />
+        <div
+          className="df-aurora-drift absolute -right-[10%] bottom-[-25%] h-[75%] w-[60%] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(147,197,253,0.10), transparent 70%)',
+            animationDelay: '-9s',
+          }}
+        />
+      </div>
+
+      <Reveal className="relative mx-auto max-w-3xl px-6 text-center lg:px-8">
         <h2 className="text-3xl font-semibold leading-tight text-white sm:text-4xl">
           Sua clínica mais organizada começa hoje.
         </h2>
@@ -32,16 +50,18 @@ export function TrialCtaSection() {
 
         {/* CTAs */}
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button
-            size="xl"
-            className="bg-white text-slate-900 hover:bg-white/90 focus-visible:ring-white"
-            asChild
-          >
-            <Link to="/acessar" search={{ mode: 'register' }}>
-              Iniciar teste grátis
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <MagneticButton>
+            <Button
+              size="xl"
+              className="bg-white text-slate-900 hover:bg-white/90 focus-visible:ring-white"
+              asChild
+            >
+              <Link to="/acessar" search={{ mode: 'register' }}>
+                Iniciar teste grátis
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+          </MagneticButton>
           <Button variant="inverse" size="xl" asChild>
             <a href="#planos">Ver planos</a>
           </Button>
@@ -59,7 +79,7 @@ export function TrialCtaSection() {
           </span>
           47 clínicas iniciaram o teste esta semana
         </p>
-      </div>
+      </Reveal>
     </section>
   )
 }

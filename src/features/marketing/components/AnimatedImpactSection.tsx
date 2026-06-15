@@ -143,13 +143,8 @@ function ImpactCard({ metric, index }: { metric: ImpactMetric; index: number }) 
       )}
       style={{ transitionDelay: isVisible ? `${Math.min(index * 60, 300)}ms` : '0ms' }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </div>
-        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-          Ilustrativo
-        </span>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <Icon className="h-5 w-5" aria-hidden="true" />
       </div>
 
       {/* Dominant animated number */}

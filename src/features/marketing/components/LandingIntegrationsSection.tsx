@@ -91,7 +91,7 @@ export function LandingIntegrationsSection() {
           className="absolute bottom-0 left-0 h-full w-2/3"
           style={{
             backgroundImage:
-              'radial-gradient(ellipse 70% 55% at 0% 100%, rgba(52,211,153,0.08) 0%, transparent 65%)',
+              'radial-gradient(ellipse 70% 55% at 0% 100%, rgba(37,99,235,0.08) 0%, transparent 65%)',
           }}
         />
       </div>

@@ -357,6 +357,69 @@
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  /* Landing hero / Flow Orbit motion. All gated so reduced-motion users get a
+     fully static composition (no spin, no drift, no traveling pulses). */
+  @keyframes df-orbit-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes df-orbit-spin-rev {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes df-aurora-drift {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(6%, -4%) scale(1.06);
+    }
+    66% {
+      transform: translate(-5%, 5%) scale(0.97);
+    }
+  }
+
+  @keyframes df-flow-dash {
+    from {
+      stroke-dashoffset: 0;
+    }
+    to {
+      stroke-dashoffset: -19;
+    }
+  }
+
+  .df-orbit-spin {
+    animation: df-orbit-spin 50s linear infinite;
+    will-change: transform;
+  }
+
+  .df-orbit-spin-rev {
+    animation: df-orbit-spin-rev 50s linear infinite;
+    will-change: transform;
+  }
+
+  .df-aurora-drift {
+    animation: df-aurora-drift 18s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .df-flow-dash {
+    animation: df-flow-dash 3s linear infinite;
+  }
+}
+
 /* ── Animated underline link: linha animada da esquerda para a direita no hover ── */
 @utility df-animated-link {
   position: relative;

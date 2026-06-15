@@ -1,16 +1,19 @@
+import { LazyMotion, domAnimation } from 'motion/react'
 import { useEffect } from 'react'
 
 import { AnimatedImpactSection } from '../components/AnimatedImpactSection'
 import { DataMigrationSection } from '../components/DataMigrationSection'
-import { HeroSection } from '../components/HeroSection'
 import { LandingIntegrationsSection } from '../components/LandingIntegrationsSection'
-import { MacbookIntroSection } from '../components/MacbookIntroSection'
 import { PricingSection } from '../components/PricingSection'
 import { ProductCarouselSection } from '../components/ProductCarouselSection'
 import { PublicLayout } from '../components/PublicLayout'
 import { SectionDivider } from '../components/SectionDivider'
 import { TrialCtaSection } from '../components/TrialCtaSection'
 import { VideoSection } from '../components/VideoSection'
+import { LandingHero } from '../components/landing/LandingHero'
+import { ModulesSection } from '../components/landing/ModulesSection'
+import { ProblemSection } from '../components/landing/ProblemSection'
+import { SolutionSection } from '../components/landing/SolutionSection'
 import { usePageMeta } from '../hooks/usePageMeta'
 
 export function LandingPage() {
@@ -30,32 +33,43 @@ export function LandingPage() {
     return () => window.clearTimeout(timeout)
   }, [])
 
+  // `LazyMotion` + `domAnimation` loads only the animation features the landing
+  // page needs, keeping the motion runtime small. All `m.*` components on the
+  // page resolve their features through this provider.
   return (
     <PublicLayout darkHero bgClassName="min-h-screen bg-white text-slate-950">
-      <MacbookIntroSection />
+      <LazyMotion features={domAnimation} strict>
+        <LandingHero />
 
-      <SectionDivider variant="dark-to-light" />
+        <SectionDivider variant="dark-to-light" />
+        <ProblemSection />
 
-      <HeroSection />
+        <SectionDivider variant="light-to-dark" />
+        <SolutionSection />
 
-      <ProductCarouselSection />
-      <SectionDivider variant="light-to-dark" />
-      <LandingIntegrationsSection />
+        <SectionDivider variant="dark-to-light" />
+        <ModulesSection />
 
-      <SectionDivider variant="dark-to-gray" />
-      <AnimatedImpactSection />
+        <ProductCarouselSection />
 
-      <SectionDivider variant="gray-to-light" />
-      <DataMigrationSection />
+        <SectionDivider variant="light-to-dark" />
+        <LandingIntegrationsSection />
 
-      <SectionDivider variant="light-to-dark" />
-      <PricingSection />
+        <SectionDivider variant="dark-to-gray" />
+        <AnimatedImpactSection />
 
-      <SectionDivider variant="dark-to-light" />
-      <VideoSection />
+        <SectionDivider variant="gray-to-light" />
+        <DataMigrationSection />
 
-      <SectionDivider variant="light-to-blue" />
-      <TrialCtaSection />
+        <SectionDivider variant="light-to-dark" />
+        <PricingSection />
+
+        <SectionDivider variant="dark-to-light" />
+        <VideoSection />
+
+        <SectionDivider variant="light-to-blue" />
+        <TrialCtaSection />
+      </LazyMotion>
     </PublicLayout>
   )
 }
