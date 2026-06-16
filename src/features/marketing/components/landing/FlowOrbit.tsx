@@ -10,8 +10,7 @@ import {
   Users,
   UsersRound,
 } from 'lucide-react'
-import { m, useMotionValue, useSpring, useTransform } from 'motion/react'
-import { type PointerEvent, Suspense, lazy, useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 
 import { useRevealOnScroll } from '../../hooks/useRevealOnScroll'
 import { usePrefersReducedMotion } from '../../lib/motion'
@@ -20,8 +19,6 @@ import { usePrefersReducedMotion } from '../../lib/motion'
 // motion-enabled path, and only once the orbit scrolls into view.
 const FlowOrbitScene = lazy(() => import('./FlowOrbitScene'))
 
-const PARALLAX_PX = 12
-const PARALLAX_SPRING = { stiffness: 120, damping: 20, mass: 0.6 }
 const ORBIT_RADIUS = 34
 
 type Satellite = { label: string; Icon: LucideIcon; x: number; y: number }
@@ -75,45 +72,22 @@ function OrbitPoster() {
   )
 }
 
-/** Crisp flat orbit (SVG + HTML). Static satellite positions — no rotation, so
- *  nothing teleports or clips. Subtle ambient motion (dashed ring + light-path
- *  dashes) is CSS-gated by prefers-reduced-motion; pointer parallax adds depth. */
+/**
+ * Crisp flat orbit (SVG + HTML) for mobile / touch / reduced-motion.
+ *
+ * Satellites are static (no rotation → nothing teleports, tilts, or clips) and
+ * the labels stay crisp. Every light-path carries the same continuously-flowing
+ * `df-flow-dash` so all eight modules feed the core from every side; negative
+ * animation delays phase-offset them so all are already flowing at mount, and
+ * the dash offset is a whole multiple of the dash period so the loop is
+ * seamless (no visible reset). No pointer parallax here — this fallback targets
+ * touch devices, where a scroll-driven parallax would jump. All motion is CSS
+ * gated by `prefers-reduced-motion` (fully static when reduced).
+ */
 function StaticOrbit() {
-  const reduced = usePrefersReducedMotion()
-  const pointerX = useMotionValue(0)
-  const pointerY = useMotionValue(0)
-  const translateX = useSpring(
-    useTransform(pointerX, [-0.5, 0.5], [-PARALLAX_PX, PARALLAX_PX]),
-    PARALLAX_SPRING,
-  )
-  const translateY = useSpring(
-    useTransform(pointerY, [-0.5, 0.5], [-PARALLAX_PX, PARALLAX_PX]),
-    PARALLAX_SPRING,
-  )
-
-  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
-    if (reduced) return
-    const rect = event.currentTarget.getBoundingClientRect()
-    pointerX.set((event.clientX - rect.left) / rect.width - 0.5)
-    pointerY.set((event.clientY - rect.top) / rect.height - 0.5)
-  }
-
-  function resetPointer() {
-    pointerX.set(0)
-    pointerY.set(0)
-  }
-
   return (
-    <div
-      aria-hidden="true"
-      className="relative mx-auto aspect-square w-full max-w-[42rem]"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={resetPointer}
-    >
-      <m.div
-        className="relative h-full w-full"
-        style={reduced ? undefined : { x: translateX, y: translateY }}
-      >
+    <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-[42rem]">
+      <div className="relative h-full w-full">
         <div
           className="absolute left-1/2 top-1/2 h-[44%] w-[44%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
           style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.20), transparent 70%)' }}
@@ -167,7 +141,7 @@ function StaticOrbit() {
                 strokeLinecap="round"
                 strokeDasharray="1.5 9"
                 className="df-flow-dash"
-                style={{ animationDelay: `${index * 0.35}s` }}
+                style={{ animationDelay: `-${index * 0.375}s` }}
               />
             </g>
           ))}
@@ -224,7 +198,7 @@ function StaticOrbit() {
             </div>
           </div>
         </div>
-      </m.div>
+      </div>
     </div>
   )
 }
