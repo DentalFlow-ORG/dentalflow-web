@@ -16,7 +16,9 @@
     "check:biome": "biome check .",
     "check:write": "biome check --write .",
     "check:unused": "node scripts/check-unused-files.cjs",
-    "check": "bun run check:biome && bun run check:unused"
+    "check": "bun run check:biome && bun run check:unused",
+    "knip": "knip",
+    "knip:production": "knip --production"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
@@ -51,6 +53,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "4.1.7",
     "jsdom": "^29.1.1",
+    "knip": "^6.17.1",
     "tailwindcss": "^4.2.2",
     "typescript": "~6.0.2",
     "vite": "^8.0.4",
