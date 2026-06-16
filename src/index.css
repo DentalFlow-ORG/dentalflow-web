@@ -382,8 +382,9 @@
     from {
       stroke-dashoffset: 0;
     }
+    /* -21 = 2 × the "1.5 9" dash period (10.5) → loops seamlessly, no snap */
     to {
-      stroke-dashoffset: -0.24;
+      stroke-dashoffset: -21;
     }
   }
 
@@ -399,11 +400,6 @@
 
   .df-flow-dash {
     animation: df-flow-dash 3s linear infinite;
-  }
-
-  .df-flow-dash-glow {
-    opacity: 0.72;
-    filter: drop-shadow(0 0 3px rgba(56, 189, 248, 0.42));
   }
 }
 
