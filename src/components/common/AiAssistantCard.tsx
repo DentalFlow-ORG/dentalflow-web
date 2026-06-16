@@ -12,32 +12,11 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import type { AiQuotaInfo } from '@/lib/ai-types'
+import type { AiAnalysisResult, AiAnalysisSection, AiQuotaInfo, AiVisibility } from '@/lib/ai-types'
 import { cn } from '@/lib/utils'
 import { ApiError } from '@/services/http'
 import { AiUsageBadge } from './AiUsageBadge'
 import { PremiumBlurredPreview } from './PremiumBlurredPreview'
-
-export type AiVisibility = 'FULL' | 'TEASER' | 'LOCKED' | 'INSUFFICIENT_DATA'
-
-export type AiSection = {
-  title: string
-  content: string
-  tone: 'positive' | 'warning' | 'danger' | 'neutral'
-}
-
-export type AiAnalysisResult = {
-  sections: AiSection[]
-  disclaimer: string
-  generatedAt: string
-  model: string
-  /** YYYY-MM-DD — only present for FINANCE analyses */
-  periodStart?: string | null
-  /** YYYY-MM-DD — only present for FINANCE analyses */
-  periodEnd?: string | null
-}
-
-export type { AiQuotaInfo }
 
 type AiAssistantCardProps = {
   type: 'finance' | 'inventory'
@@ -69,7 +48,7 @@ type AiAssistantCardProps = {
 
 type State = 'idle' | 'loading' | 'success' | 'error'
 
-function getToneConfig(tone: AiSection['tone']) {
+function getToneConfig(tone: AiAnalysisSection['tone']) {
   switch (tone) {
     case 'positive':
       return {
@@ -98,7 +77,7 @@ function getToneConfig(tone: AiSection['tone']) {
   }
 }
 
-function SectionCard({ section }: { section: AiSection }) {
+function SectionCard({ section }: { section: AiAnalysisSection }) {
   const { card, icon, Icon } = getToneConfig(section.tone)
   return (
     <div className={cn('rounded-lg border p-4', card)}>
