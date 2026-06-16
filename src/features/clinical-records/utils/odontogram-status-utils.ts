@@ -39,7 +39,7 @@ export const ODONTOGRAM_CONDITION_OPTIONS = [
   { value: 'watch', label: 'Monitorar' },
 ] as const
 
-export type OdontogramCondition = (typeof ODONTOGRAM_CONDITION_OPTIONS)[number]['value']
+type OdontogramCondition = (typeof ODONTOGRAM_CONDITION_OPTIONS)[number]['value']
 export type ToothKind = 'incisor' | 'canine' | 'premolar' | 'molar'
 
 export const ODONTOGRAM_CONDITION_LABELS = ODONTOGRAM_CONDITION_OPTIONS.reduce<
@@ -115,7 +115,7 @@ export const ODONTOGRAM_TOOTH_TOKENS: Record<
   watch: { fill: '#fefce8', stroke: '#facc15', text: 'text-yellow-800', dot: 'bg-yellow-500' },
 }
 
-export const DEFAULT_TOOTH_TOKENS = {
+const DEFAULT_TOOTH_TOKENS = {
   fill: '#ffffff',
   stroke: '#cbd5e1',
   text: 'text-slate-700',

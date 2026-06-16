@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react'
 /** Expressive ease-out used for entrances (overshoot-free, decelerates softly). */
 export const EASE_OUT = [0.22, 1, 0.36, 1] as const
 /** Symmetric ease used for continuous / looping motion. */
-export const EASE_IN_OUT = [0.65, 0, 0.35, 1] as const
+const EASE_IN_OUT = [0.65, 0, 0.35, 1] as const
 
 export const DURATION = {
   fast: 0.4,
@@ -21,20 +21,20 @@ export const DURATION = {
   slow: 0.9,
 } as const
 
-export const revealTransition: Transition = { duration: DURATION.base, ease: EASE_OUT }
+const revealTransition: Transition = { duration: DURATION.base, ease: EASE_OUT }
 
 /** Fade + rise. The default entrance for headings, copy and standalone blocks. */
-export const fadeUp: Variants = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: revealTransition },
 }
 
-export const fadeIn: Variants = {
+const fadeIn: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: revealTransition },
 }
 
-export const scaleIn: Variants = {
+const scaleIn: Variants = {
   hidden: { opacity: 0, scale: 0.96 },
   show: { opacity: 1, scale: 1, transition: revealTransition },
 }

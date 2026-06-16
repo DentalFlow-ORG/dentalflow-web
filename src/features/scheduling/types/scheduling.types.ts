@@ -18,13 +18,13 @@ export type AppointmentPaymentMethod =
 
 export type CanceledBy = 'CLINIC' | 'PATIENT' | 'SYSTEM'
 
-export type AppointmentProfile = {
+type AppointmentProfile = {
   id: string
   displayName: string
   userId: string | null
 }
 
-export type AppointmentService = {
+type AppointmentService = {
   id: string
   name: string
   durationMinutes: number | null
@@ -32,7 +32,7 @@ export type AppointmentService = {
   priceTo: string | null
 }
 
-export type AppointmentPatient = {
+type AppointmentPatient = {
   id: string
   firstName: string
   lastName: string

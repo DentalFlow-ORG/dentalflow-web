@@ -60,16 +60,6 @@ export function formatUf(value: string) {
     .toUpperCase()
 }
 
-export function formatSlug(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60)
-}
-
 export function formatDecimalInput(value: string) {
   return value.replace(/[^\d,.]/g, '').replace(/([,.].*)[,.]/g, '$1')
 }
@@ -86,8 +76,4 @@ export const WHATSAPP_PHONE_REQUIRED_MESSAGE = 'Informe um telefone com WhatsApp
 
 export function isValidPersonName(value: string): boolean {
   return /^[\p{L}\s.'-]+$/u.test(value.trim())
-}
-
-export function normalizeEmail(value: string | null | undefined) {
-  return value?.trim().toLowerCase() ?? ''
 }

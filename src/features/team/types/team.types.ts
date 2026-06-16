@@ -1,48 +1,5 @@
 export type MemberRole = 'DENTIST' | 'ASSISTANT'
 
-export type ServiceItem = {
-  id: string
-  profileId: string
-  clinicId: string
-  name: string
-  description: string | null
-  priceFrom: number | null
-  priceTo: number | null
-  durationMinutes: number | null
-  isPriceDisplayed: boolean
-  isActive: boolean
-  displayOrder: number
-  estimatedDirectCostCents: number | null
-  createdAt: string
-  updatedAt: string
-}
-
-export type CreateServiceDto = {
-  name: string
-  description?: string
-  priceFrom?: number
-  priceTo?: number
-  durationMinutes?: number
-  isActive?: boolean
-  estimatedDirectCostCents?: number
-}
-
-export type UpdateServiceDto = {
-  name?: string
-  description?: string | null
-  priceFrom?: number | null
-  priceTo?: number | null
-  durationMinutes?: number | null
-  isActive?: boolean
-  estimatedDirectCostCents?: number | null
-}
-
-export type Specialty = {
-  id: string
-  name: string
-  slug: string
-}
-
 export type CreateMemberDto = {
   firstName: string
   lastName: string
@@ -71,7 +28,7 @@ export type UpdateMemberPasswordDto = {
   password: string
 }
 
-export type MemberProfile = {
+type MemberProfile = {
   id: string
   userId: string | null
   slug: string
@@ -107,26 +64,4 @@ export type UserLimitUsage = {
 export type TeamMembersResponse = {
   members: MemberListItem[]
   usage: UserLimitUsage
-}
-
-export type ProfileSpecialtyItem = {
-  specialty: {
-    id: string
-    name: string
-    slug: string
-  }
-}
-
-export type ProfileDetail = {
-  id: string
-  userId: string | null
-  slug: string
-  displayName: string
-  bio: string | null
-  crmNumber: string | null
-  crmState: string | null
-  phone: string | null
-  isPublished: boolean
-  profileSpecialties: ProfileSpecialtyItem[]
-  services: ServiceItem[]
 }

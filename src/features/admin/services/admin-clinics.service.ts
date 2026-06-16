@@ -26,13 +26,6 @@ export async function listAdminClinicsPage(page = 1, limit = 20) {
   return response
 }
 
-export function getAdminClinic(clinicId: string) {
-  return apiRequest<AdminClinic>(`/admin/clinics/${clinicId}`, {
-    method: 'GET',
-    accessToken: getAccessToken(),
-  })
-}
-
 export function createAdminClinic(dto: CreateAdminClinicDto) {
   return withAdminClinicsCrudMessage(
     apiRequest<AdminClinic>('/admin/clinics', {

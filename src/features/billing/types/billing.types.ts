@@ -1,4 +1,4 @@
-export type SubscriptionStatus =
+type SubscriptionStatus =
   | 'TRIALING'
   | 'ACTIVE'
   | 'PAST_DUE'

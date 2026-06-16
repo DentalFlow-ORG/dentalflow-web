@@ -20,11 +20,6 @@ export function getAccessToken() {
   return accessToken
 }
 
-export function getStoredUser() {
-  removeLegacyPersistentSession()
-  return currentUser
-}
-
 export function setSession(accessToken: string, user: AuthUser) {
   window.localStorage.setItem(ACTIVE_SESSION_KEY, '1')
   setTokens(accessToken)

@@ -6,7 +6,7 @@ import {
   commercialFeatures,
 } from '@/features/marketing/config/features'
 
-export const COMPARISON_FEATURE_IDS = [
+const COMPARISON_FEATURE_IDS = [
   'clinic-agenda',
   'clinical-records',
   'patients-register',

@@ -79,12 +79,6 @@ export function isValidCpfOrCnpj(value: string): boolean {
   return false
 }
 
-export function formatCpfOrCnpj(value: string): string {
-  const d = normalizeDigits(value)
-  if (d.length <= 11) return formatCPF(d)
-  return formatCNPJ(d)
-}
-
 // ── CEP ───────────────────────────────────────────────────────────────────────
 
 export function isValidCEP(value: string): boolean {

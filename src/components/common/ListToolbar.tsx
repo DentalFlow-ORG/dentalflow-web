@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
-export type FilterOption = {
+type FilterOption = {
   value: string
   label: string
 }

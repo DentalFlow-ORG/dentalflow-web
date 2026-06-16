@@ -17,7 +17,7 @@ export type FieldApplyMode = 'append' | 'replace' | 'edit'
  * The subset of editor section IDs that dictation fields can target.
  * Maps to the SectionId union used by ClinicalRecordEditorContainer.
  */
-export type DictationTargetSection = 'evolucao' | 'anamnese' | 'diagnostico' | 'plano'
+type DictationTargetSection = 'evolucao' | 'anamnese' | 'diagnostico' | 'plano'
 
 export type ApplyDictationResult = {
   /**

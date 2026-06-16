@@ -48,6 +48,3 @@ export function AttentionReasonBadge({ reason, className }: AttentionReasonBadge
     </span>
   )
 }
-
-/** Portuguese label for every supported attention reason. Re-exported for convenience. */
-export { REASON_LABEL as ATTENTION_REASON_LABEL }

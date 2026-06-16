@@ -40,12 +40,6 @@ export function toDateInputValue(date: Date): string {
   return formatDateInputValue(date)
 }
 
-export function isBusinessTime(value: string) {
-  const timeValue = formatTimeInputValue(value)
-
-  return Boolean(timeValue && timeValue >= BUSINESS_START_TIME && timeValue <= BUSINESS_END_TIME)
-}
-
 export {
   addDays,
   formatWeekDayHeader,

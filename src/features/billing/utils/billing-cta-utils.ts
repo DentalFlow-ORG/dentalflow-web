@@ -7,7 +7,7 @@ export type PlanCtaAction =
   | 'current_plan'
   | 'reactivate'
 
-export type PlanCtaButtonState = {
+type PlanCtaButtonState = {
   label: string
   helperText: string
   actionType: PlanCtaAction

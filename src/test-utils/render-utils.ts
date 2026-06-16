@@ -10,7 +10,6 @@ export function renderWithProviders(ui: ReactElement, options?: Omit<RenderOptio
 
 export {
   act,
-  cleanup,
   fireEvent,
   render,
   renderHook,

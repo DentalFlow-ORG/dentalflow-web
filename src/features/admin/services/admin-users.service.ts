@@ -24,13 +24,6 @@ export function listAdminUsers(page = 1, limit = 20) {
   })
 }
 
-export function getAdminUser(userId: string) {
-  return apiRequest<AdminUser>(`/admin/users/${userId}`, {
-    method: 'GET',
-    accessToken: getAccessToken(),
-  })
-}
-
 export function createAdminUser(dto: CreateAdminUserDto) {
   return apiRequest<AdminUser>('/admin/users', {
     method: 'POST',

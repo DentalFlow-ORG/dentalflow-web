@@ -27,13 +27,6 @@ export function listAppointments(date?: string) {
   })
 }
 
-export function getAppointment(id: string) {
-  return apiRequest<Appointment>(`/appointments/${id}`, {
-    method: 'GET',
-    accessToken: getAccessToken(),
-  })
-}
-
 export function createAppointment(dto: CreateAppointmentDto) {
   return apiRequest<Appointment>('/appointments', {
     method: 'POST',

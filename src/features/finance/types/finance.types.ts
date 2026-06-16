@@ -1,12 +1,12 @@
 export type FinancialTransactionType = 'INCOME' | 'EXPENSE'
-export type FinancialTransactionSource =
+type FinancialTransactionSource =
   | 'MANUAL'
   | 'SERVICE_PAYMENT'
   | 'FIXED_EXPENSE'
   | 'ADJUSTMENT'
 export type FinancialTransactionStatus = 'PENDING' | 'PAID' | 'CANCELED'
 export type FixedExpenseRecurrence = 'MONTHLY' | 'WEEKLY' | 'YEARLY'
-export type FinanceGroupBy = 'day' | 'week' | 'month'
+type FinanceGroupBy = 'day' | 'week' | 'month'
 
 export type FinancialCategory = {
   id: string
@@ -198,7 +198,7 @@ export type CategoryFormState = {
 
 // ── Expense classification ────────────────────────────────────────────────────
 
-export type ClassificationSource = 'RULE' | 'AI' | 'CACHE' | 'NO_MATCH'
+type ClassificationSource = 'RULE' | 'AI' | 'CACHE' | 'NO_MATCH'
 
 export type ExpenseClassificationResult = {
   transactionId: string
@@ -215,33 +215,33 @@ export type ExpenseClassificationResult = {
 
 export type DiagnosisFinancialHealth = 'HEALTHY' | 'WARNING' | 'CRITICAL'
 
-export type DiagnosisAlertType =
+type DiagnosisAlertType =
   | 'LOW_MARGIN'
   | 'HIGH_EXPENSE_CATEGORY'
   | 'UNCATEGORIZED_EXPENSES'
   | 'NEGATIVE_RESULT'
   | 'LOW_DATA'
 
-export type DiagnosisAlert = {
+type DiagnosisAlert = {
   type: DiagnosisAlertType
   severity: 'HIGH' | 'MEDIUM' | 'LOW'
   message: string
 }
 
-export type TopExpenseCategory = {
+type TopExpenseCategory = {
   categoryName: string
   amountCents: number
   percentageOfExpenses: number
 }
 
-export type WeeklyCashflow = {
+type WeeklyCashflow = {
   weekLabel: string
   incomeCents: number
   expenseCents: number
   netCents: number
 }
 
-export type DiagnosisFinanceSnapshot = {
+type DiagnosisFinanceSnapshot = {
   month: string
   revenueCents: number
   expenseCents: number

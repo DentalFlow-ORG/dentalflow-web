@@ -26,18 +26,18 @@ export interface InvoicesReportFilters {
 
 // ── Preview types ──────────────────────────────────────────────────────────
 
-export interface ReportPreviewFilter {
+interface ReportPreviewFilter {
   label: string
   value: string
 }
 
-export interface ReportPreviewPeriod {
+interface ReportPreviewPeriod {
   startDate: string | null
   endDate: string | null
   label: string
 }
 
-export type ReportPreviewReportType = 'finance' | 'appointments' | 'inventory' | 'invoices'
+type ReportPreviewReportType = 'finance' | 'appointments' | 'inventory' | 'invoices'
 
 export interface ReportPreviewResponse {
   reportType: ReportPreviewReportType

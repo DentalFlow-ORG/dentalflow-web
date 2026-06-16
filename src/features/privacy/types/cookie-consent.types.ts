@@ -1,4 +1,4 @@
-export type CookieCategory = 'necessary' | 'preferences' | 'analytics' | 'marketing'
+type CookieCategory = 'necessary' | 'preferences' | 'analytics' | 'marketing'
 
 export type CookieConsent = {
   version: string

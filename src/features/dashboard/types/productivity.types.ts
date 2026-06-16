@@ -1,4 +1,4 @@
-export type ProductivityActionPriority = 'HIGH' | 'MEDIUM' | 'LOW'
+type ProductivityActionPriority = 'HIGH' | 'MEDIUM' | 'LOW'
 
 export type ProductivityAction = {
   type: string

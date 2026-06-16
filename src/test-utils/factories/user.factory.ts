@@ -1,6 +1,6 @@
 import type { AuthUser } from '@/features/auth/types'
 
-export function makeAuthUser(overrides?: Partial<AuthUser>): AuthUser {
+function makeAuthUser(overrides?: Partial<AuthUser>): AuthUser {
   return {
     id: 'user-1',
     clinicId: 'clinic-1',

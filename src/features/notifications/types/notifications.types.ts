@@ -1,5 +1,5 @@
-export type NotificationChannel = 'WHATSAPP' | 'SMS' | 'EMAIL'
-export type NotificationScope = 'UTILITY' | 'MARKETING'
+type NotificationChannel = 'WHATSAPP' | 'SMS' | 'EMAIL'
+type NotificationScope = 'UTILITY' | 'MARKETING'
 export type NotificationStatus =
   | 'PENDING'
   | 'SENT'
@@ -8,8 +8,8 @@ export type NotificationStatus =
   | 'CONFIRMED'
   | 'FAILED'
   | 'OPTED_OUT'
-export type NotificationTemplateCategory = 'UTILITY' | 'MARKETING' | 'SERVICE'
-export type ConsentSource = 'MANUAL' | 'FORM' | 'IMPORT'
+type NotificationTemplateCategory = 'UTILITY' | 'MARKETING' | 'SERVICE'
+type ConsentSource = 'MANUAL' | 'FORM' | 'IMPORT'
 
 export type NotificationTemplate = {
   id: string
@@ -36,7 +36,7 @@ export type NotificationConsent = {
   updatedAt: string
 }
 
-export type NotificationProviderType = 'local' | 'whatsapp_cloud'
+type NotificationProviderType = 'local' | 'whatsapp_cloud'
 
 export type NotificationPreference = {
   clinicId: string

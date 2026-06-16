@@ -1,11 +1,11 @@
-export type FiscalDocumentType = 'CPF' | 'CNPJ'
-export type FiscalTaxRegime =
+type FiscalDocumentType = 'CPF' | 'CNPJ'
+type FiscalTaxRegime =
   | 'SIMPLES_NACIONAL'
   | 'LUCRO_PRESUMIDO'
   | 'LUCRO_REAL'
   | 'MEI'
   | 'OUTRO'
-export type FiscalProvider = 'LOCAL' | 'FOCUS_NFE' | 'NFE_IO' | 'PLUGNOTAS' | 'OTHER'
+type FiscalProvider = 'LOCAL' | 'FOCUS_NFE' | 'NFE_IO' | 'PLUGNOTAS' | 'OTHER'
 export type FiscalProviderMode = 'LOCAL' | 'SANDBOX' | 'PRODUCTION'
 export type ServiceInvoiceStatus =
   | 'DRAFT'

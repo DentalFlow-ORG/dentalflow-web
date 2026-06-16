@@ -20,7 +20,7 @@ const FILTER_FNS = {
   },
 }
 
-export function formatClinicDate(iso?: string) {
+function formatClinicDate(iso?: string) {
   if (!iso) return '—'
   return new Intl.DateTimeFormat('pt-BR', {
     timeZone: 'America/Sao_Paulo',

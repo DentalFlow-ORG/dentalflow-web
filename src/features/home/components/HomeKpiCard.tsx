@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
-export type HomeKpiCardTone = 'neutral' | 'primary' | 'success' | 'warning' | 'danger' | 'info'
+type HomeKpiCardTone = 'neutral' | 'primary' | 'success' | 'warning' | 'danger' | 'info'
 
 type HomeKpiCardProps = {
   /** Metric label (e.g. "Consultas hoje"). */

@@ -15,7 +15,7 @@ import type {
   TransactionFormState,
 } from '../types/finance.types'
 
-export const emptyTransactionForm: TransactionFormState = {
+const emptyTransactionForm: TransactionFormState = {
   type: 'INCOME',
   categoryId: '',
   amount: '',

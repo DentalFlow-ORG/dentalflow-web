@@ -88,7 +88,7 @@ export function wallTimeToMinutes(value: string) {
   return hours * 60 + minutes
 }
 
-export function getWeekStart(date: Date) {
+function getWeekStart(date: Date) {
   const weekStart = new Date(date)
   weekStart.setHours(0, 0, 0, 0)
 

@@ -25,7 +25,7 @@ export const STATUS_LABELS: Record<AppointmentStatus, string> = {
   NO_SHOW: 'Não compareceu',
 }
 
-export const PAYMENT_STATUS_LABELS: Record<AppointmentPaymentStatus, string> = {
+const PAYMENT_STATUS_LABELS: Record<AppointmentPaymentStatus, string> = {
   PAYMENT_PENDING: 'Pagamento pendente',
   PAID: 'Pago',
   PARTIALLY_PAID: 'Pago parcialmente',

@@ -1,6 +1,6 @@
 export type CommercialPlanKey = 'starter' | 'professional' | 'premium'
 export type PlanFeatureAvailability = 'included' | 'not_included' | 'soon'
-export type CommercialFeatureAudience = 'public' | 'admin' | 'internal'
+type CommercialFeatureAudience = 'public' | 'admin' | 'internal'
 
 export type CommercialFeatureCategory =
   | 'agenda'
@@ -37,7 +37,7 @@ export const COMMERCIAL_PLAN_LABELS: Record<CommercialPlanKey, string> = {
 
 export const PLAN_ORDER: CommercialPlanKey[] = ['starter', 'professional', 'premium']
 
-export const FEATURE_CATEGORY_LABELS: Record<CommercialFeatureCategory, string> = {
+const FEATURE_CATEGORY_LABELS: Record<CommercialFeatureCategory, string> = {
   agenda: 'Agenda e atendimento',
   patients: 'Pacientes e prontuários',
   finance: 'Gestão financeira',
@@ -50,7 +50,7 @@ export const FEATURE_CATEGORY_LABELS: Record<CommercialFeatureCategory, string> 
   support: 'Suporte e operação',
 }
 
-export const FEATURE_CATEGORY_ORDER: CommercialFeatureCategory[] = [
+const FEATURE_CATEGORY_ORDER: CommercialFeatureCategory[] = [
   'agenda',
   'patients',
   'finance',
@@ -332,7 +332,7 @@ const PLAN_CARD_FEATURES: Record<
 
 // ── Public utilities ───────────────────────────────────────────────────────────
 
-export function getPublicCommercialFeatures() {
+function getPublicCommercialFeatures() {
   return commercialFeatures.filter((feature) => feature.audience === 'public')
 }
 

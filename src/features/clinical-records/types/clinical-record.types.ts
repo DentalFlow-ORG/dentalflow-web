@@ -7,13 +7,13 @@ export type ClinicalTemplateCategory =
   | 'PROCEDURE'
   | 'OTHER'
 
-export type ClinicalRecordProfile = {
+type ClinicalRecordProfile = {
   id: string
   displayName: string
   userId: string | null
 }
 
-export type ClinicalRecordAppointment = {
+type ClinicalRecordAppointment = {
   id: string
   appointmentDate: string
   startTime: string
@@ -22,7 +22,7 @@ export type ClinicalRecordAppointment = {
   service: { id: string; name: string } | null
 }
 
-export type ClinicalRecordUser = {
+type ClinicalRecordUser = {
   id: string
   firstName: string
   lastName: string

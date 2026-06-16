@@ -99,8 +99,6 @@ export const companyInfo = {
 // ── Aliases de conveniência para versões (importação direta) ─────────────────
 // Use estas constantes quando precisar apenas da versão, sem importar o objeto completo.
 
-export const PRIVACY_POLICY_VERSION = companyInfo.privacyPolicyVersion
-export const TERMS_VERSION = companyInfo.termsVersion
 export const COOKIE_POLICY_VERSION = companyInfo.cookiePolicyVersion
 
 // ── Status de pré-lançamento ──────────────────────────────────────────────────

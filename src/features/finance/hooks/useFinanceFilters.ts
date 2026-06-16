@@ -6,7 +6,7 @@ import type { FinanceFilters } from '../types/finance.types'
 
 const currentPeriod = brazilCurrentMonthRange()
 
-export const initialFinanceFilters: FinanceFilters = {
+const initialFinanceFilters: FinanceFilters = {
   from: currentPeriod.from,
   to: currentPeriod.to,
   groupBy: 'day',

@@ -15,7 +15,7 @@ export const REASON_LABEL: Record<AttentionReason, string> = {
   RECENT_NO_SHOW: 'Falta recente',
 }
 
-export const REASON_TONE: Record<AttentionReason, BadgeTone> = {
+const REASON_TONE: Record<AttentionReason, BadgeTone> = {
   INACTIVE: 'muted',
   NO_UPCOMING_APPOINTMENT: 'warning',
   PENDING_PAYMENT: 'muted',
@@ -29,7 +29,7 @@ export const PRIORITY_LABEL: Record<AttentionPriority, string> = {
   LOW: 'Baixa',
 }
 
-export const PRIORITY_TONE: Record<AttentionPriority, BadgeTone> = {
+const PRIORITY_TONE: Record<AttentionPriority, BadgeTone> = {
   HIGH: 'muted',
   MEDIUM: 'warning',
   LOW: 'muted',

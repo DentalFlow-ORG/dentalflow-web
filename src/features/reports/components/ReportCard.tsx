@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import type { ReportPreviewResponse } from '../types/reports.types'
 import { ReportPreviewPanel } from './ReportPreviewPanel'
 
-export type ReportCardTone = 'neutral' | 'primary' | 'info' | 'warning' | 'success'
+type ReportCardTone = 'neutral' | 'primary' | 'info' | 'warning' | 'success'
 
 const TONE_BORDER_TOP: Record<ReportCardTone, string> = {
   neutral: '',

@@ -116,7 +116,7 @@ type RoleMatrix = Record<AuthUserRole, Record<HomeFeature, RoleFeatureAccess>>
  *   PATIENT.*: the patient portal is not implemented; all entries are 'future'
  *     or 'hidden' to document intent without enabling accidental access.
  */
-export const ROLE_FEATURE_MATRIX: RoleMatrix = {
+const ROLE_FEATURE_MATRIX: RoleMatrix = {
   OWNER: {
     home: 'editable',
     clinicAgenda: 'editable',

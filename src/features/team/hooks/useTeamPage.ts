@@ -9,7 +9,7 @@ import type { MemberListItem, UserLimitUsage } from '../types/team.types'
 
 const PAGE_SIZE = 10
 
-export const TEAM_ROLE_LABEL: Record<string, string> = {
+const TEAM_ROLE_LABEL: Record<string, string> = {
   DENTIST: 'Profissional',
   ASSISTANT: 'Assistente',
 }

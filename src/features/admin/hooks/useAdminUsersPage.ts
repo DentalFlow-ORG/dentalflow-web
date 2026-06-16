@@ -9,7 +9,7 @@ import type { AdminUser } from '../types/admin.types'
 
 const DEFAULT_PAGE_SIZE = 10
 
-export function formatUserDate(iso: string) {
+function formatUserDate(iso: string) {
   return new Intl.DateTimeFormat('pt-BR', {
     timeZone: 'America/Sao_Paulo',
     day: '2-digit',
