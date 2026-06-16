@@ -388,6 +388,15 @@
     }
   }
 
+  @keyframes df-flow-dash-unit {
+    from {
+      stroke-dashoffset: 0;
+    }
+    to {
+      stroke-dashoffset: -0.618;
+    }
+  }
+
   .df-orbit-spin {
     animation: df-orbit-spin 50s linear infinite;
     will-change: transform;
@@ -400,6 +409,10 @@
 
   .df-flow-dash {
     animation: df-flow-dash 3s linear infinite;
+  }
+
+  .df-flow-dash-unit {
+    animation: df-flow-dash-unit 3s linear infinite;
   }
 }
 

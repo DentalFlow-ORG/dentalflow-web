@@ -34,8 +34,6 @@ const SATELLITES: Satellite[] = [
   { label: 'Prontuário', Icon: ClipboardList, x: 26, y: 26 },
 ]
 
-const EXTRA_MOBILE_TRACE_INDEXES = new Set([1, 3, 5, 7])
-
 /**
  * Render the lightweight static orbit (instead of WebGL) when motion is reduced
  * or on small / touch devices — keeps mobile fast and avoids loading three.js.
@@ -139,26 +137,13 @@ function StaticOrbit() {
                 x2={50}
                 y2={50}
                 stroke="url(#df-flow-grad)"
+                pathLength={1}
                 strokeWidth="0.5"
                 strokeLinecap="round"
-                strokeDasharray="1.5 9"
-                className="df-flow-dash"
+                strokeDasharray="0.044 0.265"
+                className="df-flow-dash-unit"
                 style={{ animationDelay: `-${index * 0.375}s` }}
               />
-              {EXTRA_MOBILE_TRACE_INDEXES.has(index) ? (
-                <line
-                  x1={satellite.x}
-                  y1={satellite.y}
-                  x2={50}
-                  y2={50}
-                  stroke="url(#df-flow-grad)"
-                  strokeWidth="0.5"
-                  strokeLinecap="round"
-                  strokeDasharray="1.5 9"
-                  className="df-flow-dash"
-                  style={{ animationDelay: `-${1.5 + index * 0.375}s` }}
-                />
-              ) : null}
             </g>
           ))}
         </svg>

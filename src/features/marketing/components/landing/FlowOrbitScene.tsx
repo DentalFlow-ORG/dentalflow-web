@@ -133,6 +133,7 @@ function OrbitNode({
 function OrbitContent() {
   const ringRef = useRef<THREE.Group>(null)
   const progress = useRef(0)
+  const elapsed = useRef(0)
   const glow = useGlowTexture()
 
   useEffect(() => {
@@ -154,9 +155,10 @@ function OrbitContent() {
   }, [])
 
   useFrame((state, delta) => {
+    elapsed.current += delta
     if (ringRef.current) ringRef.current.rotation.y += delta * 0.12
     // Gentle camera drift + pointer parallax — keeps the composition feeling 3D.
-    const time = state.clock.elapsedTime
+    const time = elapsed.current
     const targetX = state.pointer.x * 0.7 + Math.sin(time * 0.18) * 0.25
     const targetY = 1.35 + state.pointer.y * 0.35 + Math.cos(time * 0.15) * 0.18
     state.camera.position.x += (targetX - state.camera.position.x) * 0.04
