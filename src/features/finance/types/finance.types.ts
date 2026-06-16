@@ -1,9 +1,5 @@
 export type FinancialTransactionType = 'INCOME' | 'EXPENSE'
-type FinancialTransactionSource =
-  | 'MANUAL'
-  | 'SERVICE_PAYMENT'
-  | 'FIXED_EXPENSE'
-  | 'ADJUSTMENT'
+type FinancialTransactionSource = 'MANUAL' | 'SERVICE_PAYMENT' | 'FIXED_EXPENSE' | 'ADJUSTMENT'
 export type FinancialTransactionStatus = 'PENDING' | 'PAID' | 'CANCELED'
 export type FixedExpenseRecurrence = 'MONTHLY' | 'WEEKLY' | 'YEARLY'
 type FinanceGroupBy = 'day' | 'week' | 'month'

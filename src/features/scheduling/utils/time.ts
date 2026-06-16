@@ -6,7 +6,6 @@ import {
   addDays,
   formatDateInputValue,
   formatDateLongBR,
-  formatTimeInputValue,
   formatWeekDayHeader,
   formatWeekRangeLabel,
   getBrazilWeekStart,

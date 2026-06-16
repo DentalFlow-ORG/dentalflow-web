@@ -50,7 +50,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         })
         .then((currentUser) => {
           setUser(currentUser)
-          updateStoredUser(currentUser)
+          updateStoredUser()
         })
         .catch(() => {
           clearSession()
@@ -66,19 +66,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = useCallback(async (payload: LoginPayload) => {
     const response = await loginRequest(payload)
-    setSession(response.accessToken, response.user)
+    setSession(response.accessToken)
     setUser(response.user)
   }, [])
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const response = await registerRequest(payload)
-    setSession(response.accessToken, response.user)
+    setSession(response.accessToken)
     setUser(response.user)
   }, [])
 
   const completeProfile = useCallback(async (payload: CompleteProfilePayload) => {
     const response = await completeProfileRequest(payload)
-    setSession(response.accessToken, response.user)
+    setSession(response.accessToken)
     setUser(response.user)
   }, [])
 

@@ -120,7 +120,7 @@ function TeaserContent({
   disclaimer,
   generatedAt,
 }: {
-  sections: AiSection[]
+  sections: AiAnalysisSection[]
   disclaimer: string
   generatedAt: string
 }) {

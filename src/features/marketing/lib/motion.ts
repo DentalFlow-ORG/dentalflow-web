@@ -1,4 +1,4 @@
-import type { Transition, Variants } from 'motion/react'
+import type { Variants } from 'motion/react'
 import { useEffect, useState } from 'react'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -12,32 +12,12 @@ import { useEffect, useState } from 'react'
 
 /** Expressive ease-out used for entrances (overshoot-free, decelerates softly). */
 export const EASE_OUT = [0.22, 1, 0.36, 1] as const
-/** Symmetric ease used for continuous / looping motion. */
-const EASE_IN_OUT = [0.65, 0, 0.35, 1] as const
 
 export const DURATION = {
   fast: 0.4,
   base: 0.6,
   slow: 0.9,
 } as const
-
-const revealTransition: Transition = { duration: DURATION.base, ease: EASE_OUT }
-
-/** Fade + rise. The default entrance for headings, copy and standalone blocks. */
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: revealTransition },
-}
-
-const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: revealTransition },
-}
-
-const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.96 },
-  show: { opacity: 1, scale: 1, transition: revealTransition },
-}
 
 /** Container variants that cascade their children's `show` state. */
 export function staggerContainer(stagger = 0.08, delayChildren = 0): Variants {

@@ -1,8 +1,4 @@
-import type {
-  AppointmentPaymentMethod,
-  AppointmentPaymentStatus,
-  AppointmentStatus,
-} from '../types/scheduling.types'
+import type { AppointmentPaymentMethod, AppointmentStatus } from '../types/scheduling.types'
 
 export const PAYMENT_METHOD_LABELS: Record<AppointmentPaymentMethod, string> = {
   CASH: 'Dinheiro',
@@ -23,14 +19,6 @@ export const STATUS_LABELS: Record<AppointmentStatus, string> = {
   CANCELED: 'Cancelado',
   COMPLETED: 'Concluído',
   NO_SHOW: 'Não compareceu',
-}
-
-const PAYMENT_STATUS_LABELS: Record<AppointmentPaymentStatus, string> = {
-  PAYMENT_PENDING: 'Pagamento pendente',
-  PAID: 'Pago',
-  PARTIALLY_PAID: 'Pago parcialmente',
-  REFUNDED: 'Reembolsado',
-  CANCELED: 'Cancelado',
 }
 
 // Calendar card colors — intentionally different from badge colors.

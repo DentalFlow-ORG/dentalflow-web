@@ -39,7 +39,6 @@ export const ODONTOGRAM_CONDITION_OPTIONS = [
   { value: 'watch', label: 'Monitorar' },
 ] as const
 
-type OdontogramCondition = (typeof ODONTOGRAM_CONDITION_OPTIONS)[number]['value']
 export type ToothKind = 'incisor' | 'canine' | 'premolar' | 'molar'
 
 export const ODONTOGRAM_CONDITION_LABELS = ODONTOGRAM_CONDITION_OPTIONS.reduce<

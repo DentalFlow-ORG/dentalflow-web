@@ -1,10 +1,5 @@
 type FiscalDocumentType = 'CPF' | 'CNPJ'
-type FiscalTaxRegime =
-  | 'SIMPLES_NACIONAL'
-  | 'LUCRO_PRESUMIDO'
-  | 'LUCRO_REAL'
-  | 'MEI'
-  | 'OUTRO'
+type FiscalTaxRegime = 'SIMPLES_NACIONAL' | 'LUCRO_PRESUMIDO' | 'LUCRO_REAL' | 'MEI' | 'OUTRO'
 type FiscalProvider = 'LOCAL' | 'FOCUS_NFE' | 'NFE_IO' | 'PLUGNOTAS' | 'OTHER'
 export type FiscalProviderMode = 'LOCAL' | 'SANDBOX' | 'PRODUCTION'
 export type ServiceInvoiceStatus =
