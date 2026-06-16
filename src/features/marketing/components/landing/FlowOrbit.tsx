@@ -20,6 +20,9 @@ import { usePrefersReducedMotion } from '../../lib/motion'
 const FlowOrbitScene = lazy(() => import('./FlowOrbitScene'))
 
 const ORBIT_RADIUS = 34
+const CORE_RADIUS = 20
+const MODULE_INSET = 4.5
+const CORE_INSET = 3.5
 
 type Satellite = { label: string; Icon: LucideIcon; x: number; y: number }
 
@@ -40,7 +43,7 @@ const SATELLITES: Satellite[] = [
  */
 function useStaticOrbit(): boolean {
   const reduced = usePrefersReducedMotion()
-  const [smallOrCoarse, setSmallOrCoarse] = useState(false)
+  const [smallOrCoarse, setSmallOrCoarse] = useState(true)
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
@@ -52,6 +55,22 @@ function useStaticOrbit(): boolean {
   }, [])
 
   return reduced || smallOrCoarse
+}
+
+function getConnectorPath(satellite: Satellite) {
+  const dx = 50 - satellite.x
+  const dy = 50 - satellite.y
+  const length = Math.hypot(dx, dy)
+  if (length === 0) return ''
+
+  const unitX = dx / length
+  const unitY = dy / length
+  const startX = satellite.x + unitX * MODULE_INSET
+  const startY = satellite.y + unitY * MODULE_INSET
+  const endX = 50 - unitX * (CORE_RADIUS - CORE_INSET)
+  const endY = 50 - unitY * (CORE_RADIUS - CORE_INSET)
+
+  return `M ${startX.toFixed(2)} ${startY.toFixed(2)} L ${endX.toFixed(2)} ${endY.toFixed(2)}`
 }
 
 /** Static, zero-CLS placeholder shown before the WebGL scene mounts. */
@@ -76,11 +95,10 @@ function OrbitPoster() {
  * Crisp flat orbit (SVG + HTML) for mobile / touch / reduced-motion.
  *
  * Satellites are static (no rotation → nothing teleports, tilts, or clips) and
- * the labels stay crisp. Every light-path carries the same continuously-flowing
- * `df-flow-dash` so all eight modules feed the core from every side; negative
- * animation delays phase-offset them so all are already flowing at mount, and
- * the dash offset is a whole multiple of the dash period so the loop is
- * seamless (no visible reset). No pointer parallax here — this fallback targets
+ * the labels stay crisp. Each module owns one normalized path toward the core:
+ * the visible connector plus two phase-offset inward traces. Normalized
+ * pathLength values avoid the old issue where a shared dash pattern only looked
+ * active on some directions. No pointer parallax here - this fallback targets
  * touch devices, where a scroll-driven parallax would jump. All motion is CSS
  * gated by `prefers-reduced-motion` (fully static when reduced).
  */
@@ -100,10 +118,21 @@ function StaticOrbit() {
           aria-hidden="true"
         >
           <defs>
-            <linearGradient id="df-flow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgba(125,211,252,0.9)" />
-              <stop offset="100%" stopColor="rgba(56,189,248,0.5)" />
-            </linearGradient>
+            {SATELLITES.map((satellite, index) => (
+              <linearGradient
+                key={satellite.label}
+                id={`df-flow-grad-${index}`}
+                gradientUnits="userSpaceOnUse"
+                x1={satellite.x}
+                y1={satellite.y}
+                x2="50"
+                y2="50"
+              >
+                <stop offset="0%" stopColor="rgba(56,189,248,0.18)" />
+                <stop offset="58%" stopColor="rgba(125,211,252,0.72)" />
+                <stop offset="100%" stopColor="rgba(34,211,238,0.95)" />
+              </linearGradient>
+            ))}
           </defs>
           <circle
             cx="50"
@@ -121,30 +150,43 @@ function StaticOrbit() {
             stroke="rgba(56,189,248,0.10)"
             strokeWidth="0.3"
           />
-          {SATELLITES.map((satellite, index) => (
-            <g key={satellite.label}>
-              <line
-                x1={satellite.x}
-                y1={satellite.y}
-                x2={50}
-                y2={50}
-                stroke="rgba(148,163,184,0.10)"
-                strokeWidth="0.3"
-              />
-              <line
-                x1={satellite.x}
-                y1={satellite.y}
-                x2={50}
-                y2={50}
-                stroke="url(#df-flow-grad)"
-                strokeWidth="0.5"
-                strokeLinecap="round"
-                strokeDasharray="1.5 9"
-                className="df-flow-dash"
-                style={{ animationDelay: `-${index * 0.375}s` }}
-              />
-            </g>
-          ))}
+          {SATELLITES.map((satellite, index) => {
+            const path = getConnectorPath(satellite)
+            return (
+              <g key={satellite.label}>
+                <path
+                  d={path}
+                  pathLength={1}
+                  fill="none"
+                  stroke="rgba(148,163,184,0.16)"
+                  strokeWidth="0.34"
+                  strokeLinecap="round"
+                />
+                <path
+                  d={path}
+                  pathLength={1}
+                  fill="none"
+                  stroke={`url(#df-flow-grad-${index})`}
+                  strokeWidth="1.25"
+                  strokeLinecap="round"
+                  strokeDasharray="0.055 0.185"
+                  className="df-flow-dash df-flow-dash-glow"
+                  style={{ animationDelay: `-${index * 0.34}s` }}
+                />
+                <path
+                  d={path}
+                  pathLength={1}
+                  fill="none"
+                  stroke={`url(#df-flow-grad-${index})`}
+                  strokeWidth="0.52"
+                  strokeLinecap="round"
+                  strokeDasharray="0.038 0.202"
+                  className="df-flow-dash"
+                  style={{ animationDelay: `-${1.5 + index * 0.34}s` }}
+                />
+              </g>
+            )
+          })}
         </svg>
 
         <svg
