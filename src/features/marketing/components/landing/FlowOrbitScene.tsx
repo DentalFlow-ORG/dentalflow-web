@@ -216,6 +216,10 @@ function OrbitContent() {
 export default function FlowOrbitScene() {
   return (
     <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-[42rem]">
+      {/* THREE.Clock deprecation warning ("Please use THREE.Timer") is emitted by
+          @react-three/fiber's internal store, not by app code. App code uses only
+          the `delta` argument from `useFrame`. Resolves when R3F ships a stable
+          Timer-based release — do not change FlowOrbitScene lifecycle to silence it. */}
       <Canvas
         dpr={[1, 1.8]}
         camera={{ position: [0, 1.35, 6], fov: 45 }}
