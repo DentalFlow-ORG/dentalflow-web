@@ -1,73 +1,111 @@
-import { Html, Line, Sparkles } from '@react-three/drei'
+import { Html, Sparkles } from '@react-three/drei'
 import { Canvas, type ThreeEvent, useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 
 import { DENTAL_WORKFLOWS } from '../../data/dental-arch'
 
-// ── Arch geometry ─────────────────────────────────────────────────────────────
+// ── Arch layout ───────────────────────────────────────────────────────────────
+// A flat, front-facing ∩ "smile" arch: teeth spread across X (so none occlude or
+// bunch), the centre sits highest, the ends curve down, with only a gentle Z
+// recession for depth. Placed by even arc-length so spacing stays consistent.
 const COUNT = DENTAL_WORKFLOWS.length
-const RX = 3.3 // arch half-width
-const RZ = 2.35 // arch depth (front teeth sit closest to the camera)
-const THETA_MAX = (78 * Math.PI) / 180
+const ARCH_W = 3.45 // horizontal half-spread
+const ARCH_H = 1.0 // vertical rise of the smile
+const Z_DEPTH = 0.55 // how far the ends recede from the camera
+const Y_OFFSET = 0.42 // re-centres the arch vertically
+const THETA_MAX = (60 * Math.PI) / 180
 const GLOBAL = 0.82 // global tooth size factor
-const LOOK_AT = new THREE.Vector3(0, 0.05, 1.3)
-const ENAMEL = '#eaf4fb'
+const LOOK_AT = new THREE.Vector3(0, 0.2, -0.1)
+const ENAMEL = '#eef5fb'
 
 type ToothPlacement = {
   position: THREE.Vector3
+  rotation: [number, number, number]
   scale: [number, number, number]
 }
 
-// Teeth fan out along an ellipse: incisors (center) are taller and narrower,
-// molars (ends) are wider and shorter — a clean, premium read of a dental arch.
-const PLACEMENTS: ToothPlacement[] = DENTAL_WORKFLOWS.map((_, index) => {
-  const t = COUNT === 1 ? 0 : (index / (COUNT - 1)) * 2 - 1 // -1 … 1
-  const theta = t * THETA_MAX
-  const m = Math.abs(t)
+function archPoint(theta: number) {
   return {
-    position: new THREE.Vector3(Math.sin(theta) * RX, 0, Math.cos(theta) * RZ),
-    scale: [GLOBAL * (0.92 + m * 0.46), GLOBAL * (1.12 - m * 0.34), GLOBAL * (0.92 + m * 0.46)],
+    x: Math.sin(theta) * ARCH_W,
+    y: Math.cos(theta) * ARCH_H - Y_OFFSET,
+    z: -(1 - Math.cos(theta)) * Z_DEPTH,
   }
-})
+}
 
-// A subtle connecting arc beneath the teeth — samples the same ellipse densely.
-const ARCH_LINE_POINTS = Array.from({ length: 60 }, (_, i) => {
-  const t = (i / 59) * 2 - 1
-  const theta = t * THETA_MAX
-  return new THREE.Vector3(Math.sin(theta) * RX, -0.62, Math.cos(theta) * RZ)
-})
+// Even arc-length placement so molars at the ends don't bunch together.
+const PLACEMENTS: ToothPlacement[] = (() => {
+  const SAMPLES = 240
+  const pts = Array.from({ length: SAMPLES + 1 }, (_, i) => {
+    const theta = (-1 + (2 * i) / SAMPLES) * THETA_MAX
+    return { theta, ...archPoint(theta) }
+  })
+  const cum = [0]
+  for (let i = 1; i <= SAMPLES; i++) {
+    const a = pts[i - 1]
+    const b = pts[i]
+    cum.push(cum[i - 1] + Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z))
+  }
+  const total = cum[SAMPLES]
+
+  return DENTAL_WORKFLOWS.map((_, k) => {
+    const target = (COUNT === 1 ? 0.5 : k / (COUNT - 1)) * total
+    let i = 1
+    while (i < SAMPLES && cum[i] < target) i++
+    const segT = (target - cum[i - 1]) / (cum[i] - cum[i - 1] || 1)
+    const a = pts[i - 1]
+    const b = pts[i]
+    const theta = a.theta + (b.theta - a.theta) * segT
+    const m = Math.abs(theta) / THETA_MAX
+    return {
+      position: new THREE.Vector3(
+        a.x + (b.x - a.x) * segT,
+        a.y + (b.y - a.y) * segT,
+        a.z + (b.z - a.z) * segT,
+      ),
+      // Slight backward lean + a gentle outward fan following the smile tangent.
+      rotation: [-0.12, 0, -theta * 0.4],
+      // Molars (ends) wider and a touch shorter; incisors (centre) narrower/taller.
+      scale: [GLOBAL * (0.82 + m * 0.32), GLOBAL * (1.05 - m * 0.16), GLOBAL],
+    }
+  })
+})()
 
 /**
- * Build one stylized tooth: a smooth profile (tapered root → cervical neck →
- * bulging enamel crown → rounded top) revolved into a solid. Radially symmetric,
- * so it reads as a premium tooth object from every arch angle and never needs
- * facing math. Shared across all nine teeth and scaled per position.
+ * Build one stylized tooth: an extruded, bevelled silhouette — a rounded enamel
+ * crown that narrows at the cervical neck and splits into two short roots. Reads
+ * clearly as a tooth (not a pin/peg), stays premium and sculptural via the
+ * bevel + depth. Shared across all nine teeth and scaled per position.
  */
 function buildToothGeometry() {
-  const profile = new THREE.SplineCurve([
-    new THREE.Vector2(0.015, -0.66), // root tip
-    new THREE.Vector2(0.11, -0.46),
-    new THREE.Vector2(0.165, -0.24),
-    new THREE.Vector2(0.18, -0.04), // cervical neck (waist)
-    new THREE.Vector2(0.3, 0.16),
-    new THREE.Vector2(0.335, 0.3), // crown bulge
-    new THREE.Vector2(0.3, 0.46),
-    new THREE.Vector2(0.17, 0.6),
-    new THREE.Vector2(0.015, 0.66), // crown top
-  ]).getPoints(48)
+  const shape = new THREE.Shape()
+  shape.moveTo(0, 0.58)
+  shape.bezierCurveTo(0.26, 0.6, 0.4, 0.54, 0.4, 0.4) // rounded crown shoulder (right)
+  shape.bezierCurveTo(0.4, 0.18, 0.31, 0.1, 0.27, -0.05) // narrow to cervical neck
+  shape.bezierCurveTo(0.25, -0.28, 0.24, -0.48, 0.17, -0.54) // right root
+  shape.bezierCurveTo(0.11, -0.59, 0.06, -0.4, 0, -0.3) // notch between roots
+  shape.bezierCurveTo(-0.06, -0.4, -0.11, -0.59, -0.17, -0.54) // left root (mirror)
+  shape.bezierCurveTo(-0.24, -0.48, -0.25, -0.28, -0.27, -0.05)
+  shape.bezierCurveTo(-0.31, 0.1, -0.4, 0.18, -0.4, 0.4)
+  shape.bezierCurveTo(-0.4, 0.54, -0.26, 0.6, 0, 0.58)
 
-  const geometry = new THREE.LatheGeometry(profile, 56)
-  geometry.computeVertexNormals()
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: 0.32,
+    bevelEnabled: true,
+    bevelThickness: 0.08,
+    bevelSize: 0.08,
+    bevelSegments: 5,
+    curveSegments: 20,
+  })
   geometry.center()
+  geometry.computeVertexNormals()
   return geometry
 }
 
-// ── One tooth: mesh + hover/select lift + emissive flow wave ──────────────────
+// ── One tooth: visible mesh + forgiving hit target + hover/select lift ────────
 function Tooth({
   geometry,
-  position,
-  scale,
+  placement,
   accent,
   index,
   isActive,
@@ -76,8 +114,7 @@ function Tooth({
   onSelect,
 }: {
   geometry: THREE.BufferGeometry
-  position: THREE.Vector3
-  scale: [number, number, number]
+  placement: ToothPlacement
   accent: string
   index: number
   isActive: boolean
@@ -85,58 +122,64 @@ function Tooth({
   onClear: () => void
   onSelect: (index: number) => void
 }) {
-  const mesh = useRef<THREE.Mesh>(null)
+  const visible = useRef<THREE.Mesh>(null)
   const lift = useRef(0)
   const elapsed = useRef(0)
-  const baseY = position.y
-  const [sx, sy, sz] = scale
+  const { scale } = placement
 
   useFrame((_, delta) => {
     elapsed.current += delta
-    lift.current += ((isActive ? 1 : 0) - lift.current) * Math.min(1, delta * 9)
+    // Calm, slightly slow ease toward the active state.
+    lift.current += ((isActive ? 1 : 0) - lift.current) * Math.min(1, delta * 6)
 
-    const node = mesh.current
+    const node = visible.current
     if (!node) return
-    node.position.y = baseY + lift.current * 0.38
-    const k = 1 + lift.current * 0.12
-    node.scale.set(sx * k, sy * k, sz * k)
+    node.position.y = lift.current * 0.18
+    const k = 1 + lift.current * 0.08
+    node.scale.set(scale[0] * k, scale[1] * k, scale[2] * k)
 
     const mat = node.material as THREE.MeshStandardMaterial
-    // Gentle light-flow wave travels across the arch (phase-offset per tooth).
-    const wave = (Math.sin(elapsed.current * 1.5 - index * 0.55) * 0.5 + 0.5) * 0.22
-    mat.emissiveIntensity = 0.14 + wave + lift.current * 1.05
+    // Very gentle, slow light-flow wave across the arch (phase-offset per tooth).
+    const wave = (Math.sin(elapsed.current * 0.55 - index * 0.5) * 0.5 + 0.5) * 0.12
+    mat.emissiveIntensity = 0.12 + wave + lift.current * 0.95
   })
 
   return (
-    <mesh
-      ref={mesh}
-      geometry={geometry}
-      position={position}
-      scale={scale}
-      onPointerOver={(event: ThreeEvent<PointerEvent>) => {
-        event.stopPropagation()
-        onActivate(index)
-        document.body.style.cursor = 'pointer'
-      }}
-      onPointerOut={(event: ThreeEvent<PointerEvent>) => {
-        event.stopPropagation()
-        onClear()
-        document.body.style.cursor = ''
-      }}
-      onClick={(event: ThreeEvent<MouseEvent>) => {
-        event.stopPropagation()
-        onSelect(index)
-      }}
-    >
-      <meshStandardMaterial
-        color={ENAMEL}
-        roughness={0.3}
-        metalness={0.05}
-        emissive={accent}
-        emissiveIntensity={0.14}
-        toneMapped={false}
-      />
-    </mesh>
+    <group position={placement.position} rotation={placement.rotation}>
+      <mesh ref={visible} geometry={geometry} scale={scale}>
+        <meshStandardMaterial
+          color={ENAMEL}
+          roughness={0.34}
+          metalness={0.04}
+          emissive={accent}
+          emissiveIntensity={0.12}
+          toneMapped={false}
+        />
+      </mesh>
+
+      {/* Forgiving, invisible hit target — larger than the tooth so back teeth
+          and near-misses still select reliably. */}
+      <mesh
+        scale={[scale[0] * 1.18, scale[1] * 1.06, 1.6]}
+        onPointerOver={(event: ThreeEvent<PointerEvent>) => {
+          event.stopPropagation()
+          onActivate(index)
+          document.body.style.cursor = 'pointer'
+        }}
+        onPointerOut={(event: ThreeEvent<PointerEvent>) => {
+          event.stopPropagation()
+          onClear()
+          document.body.style.cursor = ''
+        }}
+        onClick={(event: ThreeEvent<MouseEvent>) => {
+          event.stopPropagation()
+          onSelect(index)
+        }}
+      >
+        <boxGeometry args={[0.95, 1.3, 0.6]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+    </group>
   )
 }
 
@@ -156,11 +199,10 @@ function ArchContents({
 
   const toothGeometry = useMemo(buildToothGeometry, [])
   const labelPosition = useMemo(
-    () => PLACEMENTS[activeIndex].position.clone().setY(1.0),
+    () => PLACEMENTS[activeIndex].position.clone().add(new THREE.Vector3(0, 0.92, 0.25)),
     [activeIndex],
   )
 
-  // Dispose the shared geometry and reset the cursor when the scene unmounts.
   useEffect(() => {
     return () => {
       toothGeometry.dispose()
@@ -171,37 +213,37 @@ function ArchContents({
   useFrame((state, delta) => {
     elapsed.current += delta
     const time = elapsed.current
-    const targetX = state.pointer.x * 1.1 + Math.sin(time * 0.16) * 0.4
-    const targetY = 2.5 + state.pointer.y * 0.5 + Math.cos(time * 0.13) * 0.25
-    state.camera.position.x += (targetX - state.camera.position.x) * 0.04
-    state.camera.position.y += (targetY - state.camera.position.y) * 0.04
+    // Calm parallax that nearly freezes while a tooth is hovered, so the target
+    // never drifts out from under the pointer.
+    const damp = hovered !== null ? 0.12 : 1
+    const targetX = (state.pointer.x * 0.32 + Math.sin(time * 0.05) * 0.1) * damp
+    const targetY = 0.55 + (state.pointer.y * 0.14 + Math.cos(time * 0.045) * 0.06) * damp
+    state.camera.position.x += (targetX - state.camera.position.x) * 0.022
+    state.camera.position.y += (targetY - state.camera.position.y) * 0.022
     state.camera.lookAt(LOOK_AT)
   })
 
   return (
     <>
-      <ambientLight intensity={0.7} />
-      <directionalLight position={[3, 6, 5]} intensity={1.5} />
-      <directionalLight position={[-4, 2, -3]} intensity={0.8} color="#7dd3fc" />
-      <pointLight position={[0, 1.5, 4]} intensity={18} color="#bae6fd" distance={14} />
+      <ambientLight intensity={0.75} />
+      <directionalLight position={[2.5, 5, 6]} intensity={1.45} />
+      <directionalLight position={[-4, 1.5, 2]} intensity={0.7} color="#7dd3fc" />
+      <pointLight position={[0, 1.2, 4]} intensity={16} color="#bae6fd" distance={16} />
 
       <Sparkles
-        count={36}
-        scale={[10, 4, 6]}
-        size={2.2}
-        speed={0.3}
-        opacity={0.4}
+        count={28}
+        scale={[11, 4, 4]}
+        size={2}
+        speed={0.18}
+        opacity={0.35}
         color="#7dd3fc"
       />
-
-      <Line points={ARCH_LINE_POINTS} color="#38bdf8" lineWidth={1} transparent opacity={0.22} />
 
       {DENTAL_WORKFLOWS.map((workflow, index) => (
         <Tooth
           key={workflow.key}
           geometry={toothGeometry}
-          position={PLACEMENTS[index].position}
-          scale={PLACEMENTS[index].scale}
+          placement={PLACEMENTS[index]}
           accent={workflow.accent}
           index={index}
           isActive={index === activeIndex}
@@ -224,11 +266,13 @@ function ArchContents({
 /**
  * Interactive WebGL dental arch (Three.js / React Three Fiber + drei).
  *
- * Nine stylized teeth fan along an arch; each maps to a clinic workflow. Hover
- * or click lifts and lights a tooth, a soft wave flows across the arch, the
- * camera drifts with a gentle pointer parallax, and the active tooth's label is
- * a crisp drei `<Html>` overlay (never blurred). Selection is owned by the
- * parent section so the accessible chip selector and the 3D arch stay in sync.
+ * Nine stylized, extruded teeth sit in a flat front-facing smile arch; each maps
+ * to a clinic workflow. Hover or click gently lifts and lights a tooth, a slow
+ * wave drifts across the arch, and the camera holds an unobtrusive parallax that
+ * calms further while a tooth is hovered. Each tooth carries an oversized
+ * invisible hit mesh so every tooth — including the molars at the ends — is easy
+ * to click. The active tooth's label is a crisp drei `<Html>` overlay. Selection
+ * is owned by the parent section so the chip selector and arch stay in sync.
  *
  * Lazily imported and mounted only on pointer-fine, non-reduced-motion desktops;
  * mobile / reduced-motion render the static SVG arch instead. R3F disposes GL
@@ -247,7 +291,7 @@ export default function DentalArchScene({
   return (
     <Canvas
       dpr={[1, 1.8]}
-      camera={{ position: [0, 2.5, 7.8], fov: 42 }}
+      camera={{ position: [0, 0.55, 7.4], fov: 38 }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       style={{ overflow: 'visible' }}
     >

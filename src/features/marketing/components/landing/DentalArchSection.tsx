@@ -21,19 +21,27 @@ export function DentalArchSection() {
   const active = DENTAL_WORKFLOWS[selected]
   const ActiveIcon = active.icon
 
-  // Smooth crossfade/slide when the selection changes; instant under reduced
-  // motion. `initial={false}` on AnimatePresence skips the first-mount entrance.
-  const card = reduced
-    ? {
-        initial: false as const,
-        animate: { opacity: 1, transition: { duration: 0 } },
-        exit: { opacity: 0, transition: { duration: 0 } },
-      }
-    : {
-        initial: { opacity: 0, y: 14 },
-        animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: EASE_OUT } },
-        exit: { opacity: 0, y: -10, transition: { duration: 0.22, ease: 'easeIn' as const } },
-      }
+  // Smooth crossfade when the selection changes: the card fades while its lines
+  // (title → description → benefit) stagger in; instant under reduced motion.
+  // `initial={false}` on AnimatePresence skips the first-mount entrance.
+  const containerV = {
+    initial: { opacity: 0 },
+    animate: {
+      opacity: 1,
+      transition: {
+        duration: reduced ? 0 : 0.32,
+        ease: EASE_OUT,
+        when: 'beforeChildren' as const,
+        staggerChildren: reduced ? 0 : 0.07,
+        delayChildren: reduced ? 0 : 0.05,
+      },
+    },
+    exit: { opacity: 0, transition: { duration: reduced ? 0 : 0.28, ease: 'easeInOut' as const } },
+  }
+  const itemV = {
+    initial: { opacity: 0, y: reduced ? 0 : 8 },
+    animate: { opacity: 1, y: 0, transition: { duration: reduced ? 0 : 0.4, ease: EASE_OUT } },
+  }
 
   return (
     <section
@@ -74,10 +82,11 @@ export function DentalArchSection() {
               <m.div
                 key={active.key}
                 style={{ gridArea: '1 / 1' }}
-                initial={card.initial}
-                animate={card.animate}
-                exit={card.exit}
-                className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.045] p-5 backdrop-blur-sm sm:p-6"
+                variants={containerV}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="relative min-h-[11rem] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.045] p-5 backdrop-blur-sm sm:min-h-[9.5rem] sm:p-6"
               >
                 {/* Soft accent wash keyed to the active module */}
                 <span
@@ -89,16 +98,22 @@ export function DentalArchSection() {
                 />
 
                 <div className="relative flex items-start gap-4">
-                  <div
+                  <m.div
+                    variants={itemV}
                     className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
                     style={{ backgroundColor: `${active.accent}1f`, color: active.accent }}
                   >
                     <ActiveIcon className="h-6 w-6" aria-hidden="true" />
-                  </div>
+                  </m.div>
                   <div className="min-w-0">
-                    <h3 className="text-lg font-semibold text-white">{active.label}</h3>
-                    <p className="mt-1.5 text-sm leading-6 text-slate-300">{active.description}</p>
-                    <span
+                    <m.h3 variants={itemV} className="text-lg font-semibold text-white">
+                      {active.label}
+                    </m.h3>
+                    <m.p variants={itemV} className="mt-1.5 text-sm leading-6 text-slate-300">
+                      {active.description}
+                    </m.p>
+                    <m.span
+                      variants={itemV}
                       className="mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
                       style={{
                         backgroundColor: `${active.accent}1a`,
@@ -112,7 +127,7 @@ export function DentalArchSection() {
                         aria-hidden="true"
                       />
                       {active.benefit}
-                    </span>
+                    </m.span>
                   </div>
                 </div>
               </m.div>
