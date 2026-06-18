@@ -7,6 +7,7 @@ type SectionDividerVariant =
   | 'gray-to-dark'
   | 'light-to-blue'
   | 'gray-to-light'
+  | 'light-to-gray'
 
 type Config = {
   above: string
@@ -61,6 +62,14 @@ const CONFIGS: Record<SectionDividerVariant, Config> = {
   'gray-to-light': {
     above: 'bg-slate-50',
     below: 'bg-white',
+    lineGradient: 'transparent, rgba(148,163,184,0.35), transparent',
+    shimmerColor: 'rgba(148,163,184,0.5)',
+    nodeColor: 'rgba(148,163,184,0.6)',
+    nodeGlow: '0 0 5px 2px rgba(148,163,184,0.25)',
+  },
+  'light-to-gray': {
+    above: 'bg-white',
+    below: 'bg-slate-50',
     lineGradient: 'transparent, rgba(148,163,184,0.35), transparent',
     shimmerColor: 'rgba(148,163,184,0.5)',
     nodeColor: 'rgba(148,163,184,0.6)',

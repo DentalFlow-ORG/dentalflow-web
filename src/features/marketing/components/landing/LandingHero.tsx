@@ -30,23 +30,23 @@ export function LandingHero() {
           <StaggerItem>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 text-sm font-semibold text-cyan-200 backdrop-blur-sm">
               <CalendarDays className="h-4 w-4" aria-hidden="true" />
-              Gestão moderna para clínicas odontológicas
+              Feito para clínicas odontológicas
             </span>
           </StaggerItem>
 
           <StaggerItem>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.07] tracking-tight sm:text-5xl lg:text-[3.4rem]">
-              O software odontológico que sua clínica vai{' '}
+              O sistema odontológico que transforma sua clínica em uma{' '}
               <span className="bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-                querer usar todos os dias.
+                operação previsível.
               </span>
             </h1>
           </StaggerItem>
 
           <StaggerItem>
             <p className="mt-6 max-w-lg text-lg leading-8 text-slate-300">
-              Centralize agenda, pacientes, financeiro, estoque, leads, relatórios e IA em uma
-              plataforma segura, simples e feita para a rotina real da clínica.
+              Centralize agenda, pacientes, prontuários, financeiro, estoque, equipe e indicadores
+              em uma única plataforma feita para a rotina real da odontologia.
             </p>
           </StaggerItem>
 
@@ -129,15 +129,38 @@ export function LandingHero() {
                 'radial-gradient(ellipse 72% 62% at 50% 45%, rgba(56,189,248,0.10), transparent 72%)',
             }}
           />
+
+          {/* Subtle dental "smile" arc motif behind the product */}
+          <svg
+            className="pointer-events-none absolute -bottom-2 left-1/2 -z-10 h-44 w-[120%] -translate-x-1/2 opacity-40"
+            viewBox="0 0 400 120"
+            fill="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="hero-smile" x1="0" y1="0" x2="400" y2="0">
+                <stop offset="0%" stopColor="rgba(56,189,248,0)" />
+                <stop offset="50%" stopColor="rgba(125,211,252,0.8)" />
+                <stop offset="100%" stopColor="rgba(56,189,248,0)" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M16 34 Q200 132 384 34"
+              stroke="url(#hero-smile)"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+
           <img
             src="/Macbook-Marketing DentalFlow.png"
-            alt="DentalFlow em um MacBook — visão geral da plataforma de gestão odontológica"
+            alt="Painel financeiro do DentalFlow exibido em um MacBook — dashboard real da plataforma de gestão odontológica"
             className="relative z-10 w-full max-w-2xl object-contain drop-shadow-2xl lg:max-w-none"
             loading="eager"
             decoding="async"
           />
 
-          {/* Single, safely-positioned floating "live" card */}
+          {/* Floating "live" card — next appointment */}
           <div
             className="df-float absolute bottom-2 left-0 z-20 hidden rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 shadow-2xl shadow-cyan-500/10 backdrop-blur-md sm:block"
             style={{ animationDelay: '-1.5s' }}
@@ -147,7 +170,22 @@ export function LandingHero() {
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
               <p className="text-[11px] font-medium text-slate-400">Próxima consulta</p>
             </div>
-            <p className="mt-1 text-sm font-semibold text-white">Ana Rodrigues · 09:00</p>
+            <p className="mt-1 text-sm font-semibold text-white">
+              Ana Rodrigues · 09:00 · Profilaxia
+            </p>
+          </div>
+
+          {/* Floating card — confirmation cue (desktop only, kept clear of the frame) */}
+          <div
+            className="df-float absolute right-0 top-4 z-20 hidden rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 shadow-2xl shadow-emerald-500/10 backdrop-blur-md lg:block"
+            style={{ animationDelay: '-3s' }}
+            aria-hidden="true"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+              <p className="text-[11px] font-medium text-slate-400">Consulta confirmada</p>
+            </div>
+            <p className="mt-1 text-sm font-semibold text-white">Lembrete via WhatsApp</p>
           </div>
         </div>
       </div>

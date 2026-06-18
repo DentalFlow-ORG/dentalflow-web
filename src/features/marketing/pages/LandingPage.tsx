@@ -5,14 +5,15 @@ import { AnimatedImpactSection } from '../components/AnimatedImpactSection'
 import { DataMigrationSection } from '../components/DataMigrationSection'
 import { LandingIntegrationsSection } from '../components/LandingIntegrationsSection'
 import { PricingSection } from '../components/PricingSection'
-import { ProductCarouselSection } from '../components/ProductCarouselSection'
 import { PublicLayout } from '../components/PublicLayout'
 import { SectionDivider } from '../components/SectionDivider'
 import { TrialCtaSection } from '../components/TrialCtaSection'
 import { VideoSection } from '../components/VideoSection'
+import { DentalArchSection } from '../components/landing/DentalArchSection'
 import { LandingHero } from '../components/landing/LandingHero'
 import { ModulesSection } from '../components/landing/ModulesSection'
 import { ProblemSection } from '../components/landing/ProblemSection'
+import { ProductShowcaseSection } from '../components/landing/ProductShowcaseSection'
 import { SolutionSection } from '../components/landing/SolutionSection'
 import { usePageMeta } from '../hooks/usePageMeta'
 
@@ -44,21 +45,28 @@ export function LandingPage() {
         <SectionDivider variant="dark-to-light" />
         <ProblemSection />
 
+        {/* Dental-identity centerpiece: interactive arch of clinic workflows */}
         <SectionDivider variant="light-to-dark" />
-        <SolutionSection />
+        <DentalArchSection />
 
         <SectionDivider variant="dark-to-light" />
         <ModulesSection />
 
-        <ProductCarouselSection />
+        {/* Honest, code-rendered product proof */}
+        <SectionDivider variant="light-to-gray" />
+        <ProductShowcaseSection />
 
-        <SectionDivider variant="light-to-dark" />
+        <SectionDivider variant="gray-to-dark" />
         <LandingIntegrationsSection />
 
         <SectionDivider variant="dark-to-gray" />
         <AnimatedImpactSection />
 
-        <SectionDivider variant="gray-to-light" />
+        {/* "Everything connected" system overview right before the plans */}
+        <SectionDivider variant="gray-to-dark" />
+        <SolutionSection />
+
+        <SectionDivider variant="dark-to-light" />
         <DataMigrationSection />
 
         <SectionDivider variant="light-to-dark" />

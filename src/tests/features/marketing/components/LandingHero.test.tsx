@@ -22,7 +22,7 @@ describe('LandingHero', () => {
   it('renders a single primary h1 heading', () => {
     renderHero()
     const heading = screen.getByRole('heading', { level: 1 })
-    expect(heading).toHaveTextContent(/querer usar todos os dias/i)
+    expect(heading).toHaveTextContent(/operação previsível/i)
   })
 
   it('renders the MacBook product proof image', () => {
