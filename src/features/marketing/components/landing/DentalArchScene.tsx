@@ -1,4 +1,4 @@
-import { Html, Line, RoundedBox, Sparkles } from '@react-three/drei'
+import { Html, Line, Sparkles } from '@react-three/drei'
 import { Canvas, type ThreeEvent, useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
@@ -7,16 +7,16 @@ import { DENTAL_WORKFLOWS } from '../../data/dental-arch'
 
 // ── Arch geometry ─────────────────────────────────────────────────────────────
 const COUNT = DENTAL_WORKFLOWS.length
-const RX = 3.25 // arch half-width
-const RZ = 2.15 // arch depth (front teeth sit closest to the camera)
+const RX = 3.3 // arch half-width
+const RZ = 2.35 // arch depth (front teeth sit closest to the camera)
 const THETA_MAX = (78 * Math.PI) / 180
-const LOOK_AT = new THREE.Vector3(0, 0.1, 1.25)
+const GLOBAL = 0.82 // global tooth size factor
+const LOOK_AT = new THREE.Vector3(0, 0.05, 1.3)
 const ENAMEL = '#eaf4fb'
 
 type ToothPlacement = {
   position: THREE.Vector3
-  rotationY: number
-  size: [number, number, number]
+  scale: [number, number, number]
 }
 
 // Teeth fan out along an ellipse: incisors (center) are taller and narrower,
@@ -27,8 +27,7 @@ const PLACEMENTS: ToothPlacement[] = DENTAL_WORKFLOWS.map((_, index) => {
   const m = Math.abs(t)
   return {
     position: new THREE.Vector3(Math.sin(theta) * RX, 0, Math.cos(theta) * RZ),
-    rotationY: -theta,
-    size: [0.56 + m * 0.3, 1.06 - m * 0.44, 0.5 + m * 0.18],
+    scale: [GLOBAL * (0.92 + m * 0.46), GLOBAL * (1.12 - m * 0.34), GLOBAL * (0.92 + m * 0.46)],
   }
 })
 
@@ -39,9 +38,36 @@ const ARCH_LINE_POINTS = Array.from({ length: 60 }, (_, i) => {
   return new THREE.Vector3(Math.sin(theta) * RX, -0.62, Math.cos(theta) * RZ)
 })
 
-// ── One tooth: node mesh + hover/select lift + emissive flow wave ─────────────
+/**
+ * Build one stylized tooth: a smooth profile (tapered root → cervical neck →
+ * bulging enamel crown → rounded top) revolved into a solid. Radially symmetric,
+ * so it reads as a premium tooth object from every arch angle and never needs
+ * facing math. Shared across all nine teeth and scaled per position.
+ */
+function buildToothGeometry() {
+  const profile = new THREE.SplineCurve([
+    new THREE.Vector2(0.015, -0.66), // root tip
+    new THREE.Vector2(0.11, -0.46),
+    new THREE.Vector2(0.165, -0.24),
+    new THREE.Vector2(0.18, -0.04), // cervical neck (waist)
+    new THREE.Vector2(0.3, 0.16),
+    new THREE.Vector2(0.335, 0.3), // crown bulge
+    new THREE.Vector2(0.3, 0.46),
+    new THREE.Vector2(0.17, 0.6),
+    new THREE.Vector2(0.015, 0.66), // crown top
+  ]).getPoints(48)
+
+  const geometry = new THREE.LatheGeometry(profile, 56)
+  geometry.computeVertexNormals()
+  geometry.center()
+  return geometry
+}
+
+// ── One tooth: mesh + hover/select lift + emissive flow wave ──────────────────
 function Tooth({
-  placement,
+  geometry,
+  position,
+  scale,
   accent,
   index,
   isActive,
@@ -49,7 +75,9 @@ function Tooth({
   onClear,
   onSelect,
 }: {
-  placement: ToothPlacement
+  geometry: THREE.BufferGeometry
+  position: THREE.Vector3
+  scale: [number, number, number]
   accent: string
   index: number
   isActive: boolean
@@ -60,7 +88,8 @@ function Tooth({
   const mesh = useRef<THREE.Mesh>(null)
   const lift = useRef(0)
   const elapsed = useRef(0)
-  const baseY = placement.position.y
+  const baseY = position.y
+  const [sx, sy, sz] = scale
 
   useFrame((_, delta) => {
     elapsed.current += delta
@@ -69,7 +98,8 @@ function Tooth({
     const node = mesh.current
     if (!node) return
     node.position.y = baseY + lift.current * 0.38
-    node.scale.setScalar(1 + lift.current * 0.12)
+    const k = 1 + lift.current * 0.12
+    node.scale.set(sx * k, sy * k, sz * k)
 
     const mat = node.material as THREE.MeshStandardMaterial
     // Gentle light-flow wave travels across the arch (phase-offset per tooth).
@@ -78,13 +108,11 @@ function Tooth({
   })
 
   return (
-    <RoundedBox
+    <mesh
       ref={mesh}
-      args={placement.size}
-      radius={0.16}
-      smoothness={4}
-      position={placement.position}
-      rotation={[0, placement.rotationY, 0]}
+      geometry={geometry}
+      position={position}
+      scale={scale}
       onPointerOver={(event: ThreeEvent<PointerEvent>) => {
         event.stopPropagation()
         onActivate(index)
@@ -102,13 +130,13 @@ function Tooth({
     >
       <meshStandardMaterial
         color={ENAMEL}
-        roughness={0.32}
+        roughness={0.3}
         metalness={0.05}
         emissive={accent}
         emissiveIntensity={0.14}
         toneMapped={false}
       />
-    </RoundedBox>
+    </mesh>
   )
 }
 
@@ -125,23 +153,26 @@ function ArchContents({
   const activeIndex = hovered ?? selectedIndex
   const active = DENTAL_WORKFLOWS[activeIndex]
   const ActiveIcon = active.icon
+
+  const toothGeometry = useMemo(buildToothGeometry, [])
   const labelPosition = useMemo(
-    () => PLACEMENTS[activeIndex].position.clone().setY(0.95),
+    () => PLACEMENTS[activeIndex].position.clone().setY(1.0),
     [activeIndex],
   )
 
-  // Reset the document cursor if the scene unmounts mid-hover.
+  // Dispose the shared geometry and reset the cursor when the scene unmounts.
   useEffect(() => {
     return () => {
+      toothGeometry.dispose()
       document.body.style.cursor = ''
     }
-  }, [])
+  }, [toothGeometry])
 
   useFrame((state, delta) => {
     elapsed.current += delta
     const time = elapsed.current
     const targetX = state.pointer.x * 1.1 + Math.sin(time * 0.16) * 0.4
-    const targetY = 3.2 + state.pointer.y * 0.5 + Math.cos(time * 0.13) * 0.25
+    const targetY = 2.5 + state.pointer.y * 0.5 + Math.cos(time * 0.13) * 0.25
     state.camera.position.x += (targetX - state.camera.position.x) * 0.04
     state.camera.position.y += (targetY - state.camera.position.y) * 0.04
     state.camera.lookAt(LOOK_AT)
@@ -152,6 +183,7 @@ function ArchContents({
       <ambientLight intensity={0.7} />
       <directionalLight position={[3, 6, 5]} intensity={1.5} />
       <directionalLight position={[-4, 2, -3]} intensity={0.8} color="#7dd3fc" />
+      <pointLight position={[0, 1.5, 4]} intensity={18} color="#bae6fd" distance={14} />
 
       <Sparkles
         count={36}
@@ -167,7 +199,9 @@ function ArchContents({
       {DENTAL_WORKFLOWS.map((workflow, index) => (
         <Tooth
           key={workflow.key}
-          placement={PLACEMENTS[index]}
+          geometry={toothGeometry}
+          position={PLACEMENTS[index].position}
+          scale={PLACEMENTS[index].scale}
           accent={workflow.accent}
           index={index}
           isActive={index === activeIndex}
@@ -190,7 +224,7 @@ function ArchContents({
 /**
  * Interactive WebGL dental arch (Three.js / React Three Fiber + drei).
  *
- * Nine premium "teeth" fan along an arch; each maps to a clinic workflow. Hover
+ * Nine stylized teeth fan along an arch; each maps to a clinic workflow. Hover
  * or click lifts and lights a tooth, a soft wave flows across the arch, the
  * camera drifts with a gentle pointer parallax, and the active tooth's label is
  * a crisp drei `<Html>` overlay (never blurred). Selection is owned by the
@@ -198,7 +232,8 @@ function ArchContents({
  *
  * Lazily imported and mounted only on pointer-fine, non-reduced-motion desktops;
  * mobile / reduced-motion render the static SVG arch instead. R3F disposes GL
- * resources on unmount and the document cursor is restored explicitly.
+ * resources on unmount; the shared geometry and document cursor are disposed
+ * explicitly.
  *
  * Default export so it can be `React.lazy`-loaded.
  */
@@ -212,7 +247,7 @@ export default function DentalArchScene({
   return (
     <Canvas
       dpr={[1, 1.8]}
-      camera={{ position: [0, 3.2, 7.6], fov: 42 }}
+      camera={{ position: [0, 2.5, 7.8], fov: 42 }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       style={{ overflow: 'visible' }}
     >

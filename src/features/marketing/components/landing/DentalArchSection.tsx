@@ -1,8 +1,11 @@
+import { TrendingUp } from 'lucide-react'
+import { AnimatePresence, m } from 'motion/react'
 import { useState } from 'react'
 
 import { cn } from '@/lib/utils'
 
 import { DENTAL_WORKFLOWS } from '../../data/dental-arch'
+import { EASE_OUT, usePrefersReducedMotion } from '../../lib/motion'
 import { AuroraBackdrop } from './AuroraBackdrop'
 import { DentalArch } from './DentalArch'
 import { Reveal } from './Reveal'
@@ -14,8 +17,23 @@ const DEFAULT_INDEX = Math.max(
 
 export function DentalArchSection() {
   const [selected, setSelected] = useState(DEFAULT_INDEX)
+  const reduced = usePrefersReducedMotion()
   const active = DENTAL_WORKFLOWS[selected]
   const ActiveIcon = active.icon
+
+  // Smooth crossfade/slide when the selection changes; instant under reduced
+  // motion. `initial={false}` on AnimatePresence skips the first-mount entrance.
+  const card = reduced
+    ? {
+        initial: false as const,
+        animate: { opacity: 1, transition: { duration: 0 } },
+        exit: { opacity: 0, transition: { duration: 0 } },
+      }
+    : {
+        initial: { opacity: 0, y: 14 },
+        animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: EASE_OUT } },
+        exit: { opacity: 0, y: -10, transition: { duration: 0.22, ease: 'easeIn' as const } },
+      }
 
   return (
     <section
@@ -49,22 +67,56 @@ export function DentalArchSection() {
           <DentalArch selectedIndex={selected} onSelect={setSelected} />
         </Reveal>
 
-        {/* Detail panel for the selected workflow */}
-        <Reveal className="mx-auto mt-8 max-w-2xl" delay={0.08}>
-          <div
-            className="flex items-start gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm sm:p-6"
-            aria-live="polite"
-          >
-            <div
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-              style={{ backgroundColor: `${active.accent}1f`, color: active.accent }}
-            >
-              <ActiveIcon className="h-6 w-6" aria-hidden="true" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white">{active.label}</h3>
-              <p className="mt-1 text-sm leading-6 text-slate-300">{active.description}</p>
-            </div>
+        {/* Animated explanatory content for the selected module */}
+        <Reveal className="mx-auto mt-8 grid max-w-2xl" delay={0.08}>
+          <div className="grid" aria-live="polite">
+            <AnimatePresence initial={false}>
+              <m.div
+                key={active.key}
+                style={{ gridArea: '1 / 1' }}
+                initial={card.initial}
+                animate={card.animate}
+                exit={card.exit}
+                className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.045] p-5 backdrop-blur-sm sm:p-6"
+              >
+                {/* Soft accent wash keyed to the active module */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -left-10 -top-12 h-32 w-32 rounded-full blur-2xl"
+                  style={{
+                    background: `radial-gradient(circle, ${active.accent}33, transparent 70%)`,
+                  }}
+                />
+
+                <div className="relative flex items-start gap-4">
+                  <div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+                    style={{ backgroundColor: `${active.accent}1f`, color: active.accent }}
+                  >
+                    <ActiveIcon className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-semibold text-white">{active.label}</h3>
+                    <p className="mt-1.5 text-sm leading-6 text-slate-300">{active.description}</p>
+                    <span
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
+                      style={{
+                        backgroundColor: `${active.accent}1a`,
+                        borderColor: `${active.accent}55`,
+                        color: '#e2e8f0',
+                      }}
+                    >
+                      <TrendingUp
+                        className="h-3.5 w-3.5 shrink-0"
+                        style={{ color: active.accent }}
+                        aria-hidden="true"
+                      />
+                      {active.benefit}
+                    </span>
+                  </div>
+                </div>
+              </m.div>
+            </AnimatePresence>
           </div>
         </Reveal>
 

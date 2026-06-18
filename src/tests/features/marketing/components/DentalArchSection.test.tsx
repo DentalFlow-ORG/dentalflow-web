@@ -47,14 +47,19 @@ describe('DentalArchSection', () => {
     }
   })
 
-  it('updates the detail panel when a different workflow is selected', async () => {
+  it('shows the explanatory content (title + benefit) for the default selection', () => {
+    renderSection()
+    expect(screen.getByRole('heading', { level: 3, name: 'Agenda' })).toBeInTheDocument()
+    expect(screen.getByText('Menos falhas, mais ocupação da cadeira.')).toBeInTheDocument()
+  })
+
+  it('updates the explanatory content when a different module is selected', async () => {
     const user = userEvent.setup()
     renderSection()
 
-    // Agenda is selected by default.
-    expect(screen.getByRole('heading', { level: 3, name: 'Agenda' })).toBeInTheDocument()
-
     await user.click(screen.getByRole('button', { name: 'WhatsApp' }))
-    expect(screen.getByRole('heading', { level: 3, name: 'WhatsApp' })).toBeInTheDocument()
+
+    expect(await screen.findByRole('heading', { level: 3, name: 'WhatsApp' })).toBeInTheDocument()
+    expect(await screen.findByText('Mais presença e menos retrabalho.')).toBeInTheDocument()
   })
 })
