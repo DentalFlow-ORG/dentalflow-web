@@ -1,0 +1,2220 @@
+{
+  "metadata": {
+    "generatedAt": "2026-06-18T13:48:00-03:00",
+    "repositoryPath": "C:/Users/yagos/DevelopmentProjects/dentalflow-web",
+    "sourceFilesInspected": [
+      "index.html",
+      "package.json",
+      "src/app/router.tsx",
+      "src/app/route-components.tsx",
+      "src/index.css",
+      "src/config/company.ts",
+      "src/components/brand/BrandLink.tsx",
+      "src/components/common/SectionHeading.tsx",
+      "src/components/layout/SiteFooter.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/button-variants.ts",
+      "src/features/marketing/pages/LandingPage.tsx",
+      "src/features/marketing/components/PublicLayout.tsx",
+      "src/features/marketing/components/PublicHeader.tsx",
+      "src/features/marketing/components/SectionDivider.tsx",
+      "src/features/marketing/components/ProductCarouselSection.tsx",
+      "src/features/marketing/components/LandingIntegrationsSection.tsx",
+      "src/features/marketing/components/AnimatedImpactSection.tsx",
+      "src/features/marketing/components/DataMigrationSection.tsx",
+      "src/features/marketing/components/PricingSection.tsx",
+      "src/features/marketing/components/BillingPeriodToggle.tsx",
+      "src/features/marketing/components/AnnualAvailabilityNote.tsx",
+      "src/features/marketing/components/PlanFeatureRow.tsx",
+      "src/features/marketing/components/VideoSection.tsx",
+      "src/features/marketing/components/TrialCtaSection.tsx",
+      "src/features/marketing/components/landing/LandingHero.tsx",
+      "src/features/marketing/components/landing/ProblemSection.tsx",
+      "src/features/marketing/components/landing/SolutionSection.tsx",
+      "src/features/marketing/components/landing/ModulesSection.tsx",
+      "src/features/marketing/components/landing/AuroraBackdrop.tsx",
+      "src/features/marketing/components/landing/Reveal.tsx",
+      "src/features/marketing/components/landing/MagneticButton.tsx",
+      "src/features/marketing/components/landing/FlowOrbit.tsx",
+      "src/features/marketing/components/landing/FlowOrbitScene.tsx",
+      "src/features/marketing/data/landing-content.ts",
+      "src/features/marketing/data/public-content.ts",
+      "src/features/marketing/config/features.ts",
+      "src/features/marketing/config/marketing-pricing.constants.ts",
+      "src/features/marketing/hooks/useDropdownNav.ts",
+      "src/features/marketing/hooks/usePageMeta.ts",
+      "src/features/marketing/hooks/useRevealOnScroll.ts",
+      "src/features/marketing/lib/motion.ts",
+      "src/tests/features/marketing/components/LandingHero.test.tsx",
+      "src/tests/features/marketing/components/ProblemSection.test.tsx",
+      "src/tests/features/marketing/components/SolutionSection.test.tsx",
+      "src/tests/features/marketing/components/ModulesSection.test.tsx",
+      "src/tests/features/marketing/components/PricingSection.test.tsx",
+      "src/tests/features/marketing/components/BillingPeriodToggle.test.tsx",
+      "src/tests/features/marketing/components/AnnualAvailabilityNote.test.tsx",
+      "src/tests/features/marketing/components/PlanFeatureRow.test.tsx",
+      "src/tests/features/marketing/hooks/useDropdownNav.test.ts",
+      "src/tests/features/marketing/hooks/usePageMeta.test.ts",
+      "src/tests/features/marketing/hooks/useRevealOnScroll.test.tsx",
+      "public/Macbook-Marketing DentalFlow.png",
+      "public/carousel.png",
+      "public/carousel1.png",
+      "public/carousel2.png",
+      "public/logo-without-bg.png",
+      "public/favicon.png",
+      "public/brands/integrations/google-calendar.svg",
+      "public/brands/integrations/stripe.svg",
+      "public/brands/integrations/openai.svg",
+      "public/brands/integrations/whatsapp-business.svg",
+      "public/brands/integrations/supabase.svg",
+      "public/brands/integrations/nfse.svg"
+    ],
+    "outputPurpose": "Source-grounded design documentation for design review, conversion analysis, accessibility and SEO review, and possible future refactoring. This file does not change the landing implementation.",
+    "landingRoute": "/",
+    "pageComponent": "LandingPage",
+    "projectStack": [
+      "React 19",
+      "Vite 8",
+      "TypeScript 6",
+      "Tailwind CSS 4",
+      "shadcn/ui primitives",
+      "TanStack Router",
+      "Motion for React",
+      "GSAP",
+      "Three.js",
+      "React Three Fiber",
+      "Drei",
+      "Lucide React"
+    ],
+    "packageManager": "Bun 1.3.9",
+    "inspectionBasis": "Generated from direct source inspection plus direct inspection of the raster assets. It is not based on visual judgment alone. Runtime-computed layout and browser-specific rendering were not measured in a live browser."
+  },
+  "pageOverview": {
+    "productBeingSold": "A browser-based operating platform for dental clinics that centralizes scheduling, patients, clinical records, finance, inventory, leads, reports, notifications, fiscal organization, and management AI.",
+    "targetAudience": [
+      "Dental clinic owners and administrators",
+      "Clinic managers who need operational and financial visibility",
+      "Dentists who need schedules and clinical history",
+      "Reception and secretary teams managing appointments and patients",
+      "New clinics establishing their first operating system",
+      "Existing clinics migrating from paper, spreadsheets, or disconnected software"
+    ],
+    "mainPromise": "Replace fragmented tools and manual routines with one connected, secure, easy-to-use center of command for the clinic's complete patient and operational flow.",
+    "mainCta": {
+      "label": "Iniciar teste grátis",
+      "destination": "/acessar?mode=register",
+      "offer": "7-day free trial without a credit card"
+    },
+    "secondaryCta": {
+      "label": "Ver funcionalidades",
+      "destination": "/funcionalidades"
+    },
+    "overallNarrativeFlow": [
+      "Establish a modern all-in-one promise and show a real dashboard in the hero.",
+      "Make the cost of paper, spreadsheets, manual confirmations, and disconnected systems explicit.",
+      "Present DentalFlow as a connected end-to-end patient journey using Flow Orbit and a six-step process.",
+      "Translate the platform into nine concrete, linked modules.",
+      "Offer visual product/brand proof through a three-slide carousel.",
+      "Build technical trust through named integrations, provider caveats, and security language.",
+      "Quantify the potential operational impact with animated estimates and a disclaimer.",
+      "Reduce switching anxiety through an assisted-migration process.",
+      "Expose three plans, annual/monthly pricing, feature availability, and risk-reduction terms.",
+      "Provide a click-to-play product overview video.",
+      "Repeat the free-trial offer in a focused final conversion block, then close with product, support, and legal navigation."
+    ],
+    "brandTone": [
+      "Premium but operational",
+      "Modern and technology-forward",
+      "Trustworthy and caveat-conscious",
+      "Direct about daily clinic pain",
+      "Growth-oriented without consistently relying on aggressive sales language"
+    ],
+    "perceivedPositioning": "A vertically specialized dental clinic operating system rather than a generic CRM or appointment tool. The dark navy/cyan presentation positions it as a polished management platform, while emerald CTAs communicate action and positive outcomes.",
+    "differentiatorsFromGenericSaas": [
+      "Dental-specific workflow from lead capture and scheduling through clinical records, payment, fiscal organization, and management decisions.",
+      "Explicit role context for managers, dentists, and reception staff in navigation.",
+      "A nine-module system rather than a single-feature scheduler.",
+      "Assisted migration from incumbent clinic systems.",
+      "Honest provider constraints for WhatsApp, NFS-e, AI, and payment infrastructure.",
+      "A conceptual Flow Orbit that visualizes every clinic module feeding one DentalFlow core."
+    ]
+  },
+  "globalDesignSystem": {
+    "colors": [
+      {
+        "name": "Primary navy",
+        "exactValue": "#1e3a8a",
+        "references": ["--primary", "text-primary", "bg-primary", "ring-primary/40"],
+        "usage": "Links, feature icons, eyebrows, carousel controls, and light-section emphasis."
+      },
+      {
+        "name": "Secondary emerald",
+        "exactValue": "#10b981",
+        "references": [
+          "Button variant secondary",
+          "bg-emerald-500",
+          "text-emerald-400",
+          "--chart-3"
+        ],
+        "usage": "Primary trial CTA in the hero, success checks, pricing recommendation, migration success, and live-status dots."
+      },
+      {
+        "name": "Accent indigo",
+        "exactValue": "#6366f1",
+        "references": ["Button variant accent", "--chart-4"],
+        "usage": "Available in the global system but not a dominant landing-page color."
+      },
+      {
+        "name": "Dark canvas",
+        "exactValue": "Tailwind slate-950, visually approximately #020617",
+        "references": ["bg-slate-950", "text-white", "text-slate-300", "border-white/10"],
+        "usage": "Hero, solution, integrations, pricing, and footer."
+      },
+      {
+        "name": "Light canvases",
+        "exactValue": "#ffffff and Tailwind slate-50",
+        "references": ["bg-white", "bg-slate-50", "--background: #f8fafc"],
+        "usage": "Problem, modules, carousel, impact, migration, and video sections."
+      },
+      {
+        "name": "Cyan flow accent",
+        "exactValue": "Tailwind cyan-300/sky-400; Three.js #7dd3fc and #38bdf8",
+        "references": ["text-cyan-300", "from-cyan-300", "rgba(56,189,248,...)"],
+        "usage": "Gradient headlines, Flow Orbit, dark-section eyebrows, grids, glows, and section-divider scans."
+      },
+      {
+        "name": "Final CTA blue",
+        "exactValue": "linear-gradient(180deg, #0f3b73 0%, #082f5f 100%)",
+        "references": ["TrialCtaSection background"],
+        "usage": "Separates the final conversion moment from both white video section and slate footer."
+      }
+    ],
+    "gradients": [
+      "Headline text: from-cyan-300 to-blue-300 in hero and solution.",
+      "Pricing headline: from-cyan-300 to-emerald-300.",
+      "Flow Orbit core: from-cyan-400/25 to-slate-900/55.",
+      "AuroraBackdrop: rgba(56,189,248,0.07) radial glow over dark sections.",
+      "Hero product glow: radial ellipse rgba(56,189,248,0.10) to transparent.",
+      "Final CTA: #0f3b73 to #082f5f vertical gradient.",
+      "Section dividers use variant-specific cyan, slate, or blue horizontal line gradients with animated shimmer."
+    ],
+    "typography": {
+      "fontFamily": "Geist Variable loaded from @fontsource-variable/geist and assigned to --font-sans/--font-heading.",
+      "h1": "text-4xl, sm:text-5xl, lg:text-[3.4rem], font-semibold, leading-[1.07], tracking-tight.",
+      "sectionHeadings": "Usually text-3xl to sm:text-4xl, font-semibold, leading-tight; carousel uses text-2xl to sm:text-3xl.",
+      "eyebrows": "text-xs or text-sm, font-semibold, uppercase, tracking-widest or tracking-[0.18em].",
+      "body": "Usually text-base or text-lg with leading-7/leading-8; supporting card copy uses text-sm leading-6.",
+      "metricNumbers": "text-5xl to sm:text-[3.5rem], font-bold, tabular-nums.",
+      "microcopy": "text-xs/text-sm in slate-400 to slate-600, with emerald/cyan emphasis."
+    },
+    "spacingRhythm": {
+      "sectionPadding": "Most sections use py-20 to py-24 and lg:py-24 to lg:py-32; hero uses min-h-[90svh], pt-28/32, pb-16/24.",
+      "contentWidths": "max-w-5xl, max-w-6xl, or max-w-7xl with px-6 and lg:px-8.",
+      "headingToContent": "Typically mt-12 to mt-14; supporting paragraph starts mt-4 or mt-5.",
+      "gridGaps": "Usually gap-4 to gap-6, expanding through responsive column changes."
+    },
+    "cardStyle": "Rounded-2xl or rounded-3xl, thin slate-200 borders on light surfaces or white/10 borders on dark surfaces, subtle background tint, restrained shadow at rest, and lift/stronger shadow on hover. Pricing cards are taller, dark, equal-height, and the recommended plan adds emerald glow and ring.",
+    "buttonStyle": "Shared Button primitive. Primary app button is dark slate; hero's main trial action uses the emerald secondary variant; dark-background secondary actions use the transparent inverse variant; final CTA uses a white override. Large CTAs are h-14 with rounded-lg and px-7. Focus rings are present, and primary hero/final buttons receive a magnetic pointer wrapper.",
+    "iconStyle": "Lucide outline icons at 16–24px, usually placed in 40–48px rounded containers. Cyan is used on dark surfaces, navy on light surfaces, emerald for positive states, amber for coming-soon, and muted slate for excluded or problem states.",
+    "backgroundStyle": "Alternating white, slate-50, and slate-950 sections. Dark sections share AuroraBackdrop's faint 60px grid and centered cyan radial glow; some dark sections disable the grid for calmer continuity.",
+    "glassmorphismUsage": "Used selectively on the fixed header, hero badge, floating appointment card, Flow Orbit labels/core, integration cards, and pricing surfaces via translucent whites, dark alpha backgrounds, border-white/10, and backdrop-blur.",
+    "shadowsAndGlows": "Light cards use shadow-sm and hover shadow-lg/xl; the hero product uses drop-shadow-2xl; Flow Orbit uses cyan radial and additive glows; integration/pricing cards use dark depth shadows; the Professional plan adds an emerald glow.",
+    "borderAndRingPatterns": "Light sections use border-slate-200; dark sections use border-white/10 or white/15. Focus-visible rings commonly use primary/40, white/40, or emerald-500. Pills use full rounding and translucent borders.",
+    "darkLightAssumptions": "PublicLayout forcibly applies the light theme, but the landing deliberately contains both dark and light authored sections. It does not adapt to user-selected dark mode; this preserves its designed marketing palette.",
+    "visualConsistencyNotes": [
+      "Dark sections share a coherent navy/cyan language through AuroraBackdrop.",
+      "Rounded cards, thin borders, and Lucide icons are consistent across problems, modules, integrations, metrics, migration, pricing, and video benefits.",
+      "The carousel assets use a brighter photographic advertising style that differs materially from the code-rendered SaaS card language.",
+      "SectionDivider provides intentional animated transitions between most background changes, though the modules-to-carousel transition is a direct white-to-white continuation."
+    ]
+  },
+  "sections": [
+    {
+      "id": "public-header",
+      "name": "Fixed Public Header and Navigation",
+      "order": 1,
+      "sourceFiles": [
+        "src/features/marketing/components/PublicLayout.tsx",
+        "src/features/marketing/components/PublicHeader.tsx",
+        "src/features/marketing/hooks/useDropdownNav.ts",
+        "src/components/brand/BrandLink.tsx"
+      ],
+      "componentNames": ["PublicLayout", "PublicHeader", "BrandLink"],
+      "purpose": "Provide persistent product discovery, role-based navigation, plan access, and login/trial conversion from every scroll position.",
+      "targetUserEmotion": "Oriented, confident, and always one click from the next step.",
+      "layoutDescription": "A fixed 64px header with brand at left, two dropdown groups and a Plans link centered on desktop, and login/trial actions at right. Below lg, navigation becomes a menu button and full-width accordion panel.",
+      "backgroundDescription": "Over the initial hero it uses slate-950/70, white/10 border, and backdrop-blur-xl. After about 70px it becomes white/95 with slate border and shadow; at the top of light public pages it can be white/70.",
+      "visualElements": [
+        "DentalFlow brand link",
+        "Chevron dropdown indicators",
+        "Role and feature Lucide icons",
+        "Responsive hamburger/close icon",
+        "Sticky glass header transition"
+      ],
+      "imagesAndMedia": [
+        "BrandLink-owned DentalFlow logo asset; exact asset selection depends on darkMode."
+      ],
+      "copy": {
+        "eyebrow": "",
+        "headline": "",
+        "subheadline": "",
+        "bodyTexts": [
+          "Produto: Para administradores / gestores — Financeiro, relatórios e IA de gestão",
+          "Produto: Para clínicas em abertura — Comece organizado desde o primeiro atendimento",
+          "Produto: Para dentistas — Minha agenda, prontuários e histórico clínico",
+          "Produto: Para secretária / recepção — Agenda, pacientes, confirmações e notificações",
+          "Funcionalidades: Agenda inteligente — Horários, status e Google Calendar",
+          "Funcionalidades: Prontuário eletrônico — Histórico clínico por paciente",
+          "Funcionalidades: Gestão financeira — Entradas, saídas e fluxo de caixa",
+          "Funcionalidades: Pacientes — Cadastro e histórico de pacientes",
+          "Funcionalidades: Relatórios e indicadores — Métricas, metas e desempenho da clínica",
+          "Funcionalidades: IA de gestão — Insights e análises baseadas nos dados"
+        ],
+        "badges": [],
+        "buttons": [
+          "Produto",
+          "Funcionalidades",
+          "Planos",
+          "Entrar → /acessar?mode=login",
+          "Testar grátis → /acessar?mode=register",
+          "Começar teste grátis → /acessar?mode=register on mobile",
+          "Abrir menu/Fechar menu"
+        ],
+        "microcopy": [],
+        "legalOrDisclaimerText": []
+      },
+      "cardsOrItems": [
+        "4 role-oriented product links",
+        "6 feature links",
+        "1 simple Plans link",
+        "2 authentication/conversion actions"
+      ],
+      "animations": [
+        "500ms header color/border/backdrop transition",
+        "200ms chevron rotation",
+        "Animated underline on Plans",
+        "Dropdown/mobile conditional reveal"
+      ],
+      "interactions": [
+        "Click dropdown toggles",
+        "Click outside closes desktop dropdown",
+        "Escape closes dropdown and mobile menu",
+        "Mobile accordion permits multiple expanded groups",
+        "Scroll changes dark/light header state"
+      ],
+      "responsiveBehavior": {
+        "desktop": "Full dropdown navigation at lg and above.",
+        "tabletAndMobile": "Desktop nav hides; a 36px menu control opens a vertically scrollable panel capped at viewport height minus header. Login and trial buttons move into the panel; header-level auth buttons remain visible from sm upward."
+      },
+      "accessibilityNotes": [
+        "Header and both navigation regions have Portuguese aria-labels.",
+        "Dropdown buttons expose aria-expanded and aria-haspopup.",
+        "Mobile control exposes aria-controls and a dynamic label.",
+        "Focus-visible rings are consistently supplied.",
+        "Escape and click-outside behavior are implemented."
+      ],
+      "conversionRole": "Persistent conversion and segmentation. It lets visitors self-select by role or feature while keeping free-trial access constantly visible.",
+      "potentialWeaknesses": [
+        "Desktop dropdowns use role=menu/menuitem but do not implement arrow-key menu navigation or focus movement expected by the strict ARIA menu pattern.",
+        "The fixed header can overlap hash targets because target sections do not declare scroll-margin-top."
+      ],
+      "refactorNotes": [
+        "Dropdown data is static inside PublicHeader and could become typed marketing navigation data if reused elsewhere."
+      ]
+    },
+    {
+      "id": "hero",
+      "name": "Hero — All-in-One Clinic Management",
+      "order": 2,
+      "sourceFiles": [
+        "src/features/marketing/components/landing/LandingHero.tsx",
+        "src/features/marketing/components/landing/AuroraBackdrop.tsx",
+        "src/features/marketing/components/landing/MagneticButton.tsx",
+        "src/config/company.ts"
+      ],
+      "componentNames": [
+        "LandingHero",
+        "AuroraBackdrop",
+        "MagneticButton",
+        "StaggerGroup",
+        "StaggerItem"
+      ],
+      "purpose": "Define the product, audience, differentiation, trial offer, and product proof in the first viewport.",
+      "targetUserEmotion": "Immediate recognition that the platform is modern, complete, low-risk, and built specifically for clinic reality.",
+      "layoutDescription": "A min-90svh dark hero. Content is one column until lg, then a 1fr/1.18fr grid: commercial copy on the left and a large transparent MacBook product render on the right. CTA buttons stack until sm.",
+      "backgroundDescription": "Slate-950 with a faint 60px grid, soft centered cyan aurora, bottom dark fade, and radial cyan glow behind the MacBook.",
+      "visualElements": [
+        "Calendar badge",
+        "Cyan-to-blue gradient headline phrase",
+        "Animated emerald trial-status dot",
+        "Two CTA buttons",
+        "Three checkmarked trust signals",
+        "MacBook dashboard render",
+        "Floating next-appointment glass card"
+      ],
+      "imagesAndMedia": [
+        "/Macbook-Marketing DentalFlow.png — transparent MacBook mockup showing the real dark DentalFlow financial dashboard, including sidebar modules, date/status/category filters, revenue/expense/profit/receivable/fixed-cost KPIs, AI analysis cards, line chart, and financial composition bars."
+      ],
+      "copy": {
+        "eyebrow": "Gestão moderna para clínicas odontológicas",
+        "headline": "O software odontológico que sua clínica vai querer usar todos os dias.",
+        "subheadline": "Centralize agenda, pacientes, financeiro, estoque, leads, relatórios e IA em uma plataforma segura, simples e feita para a rotina real da clínica.",
+        "bodyTexts": [],
+        "badges": ["7 dias de teste grátis"],
+        "buttons": [
+          "Iniciar teste grátis → /acessar?mode=register",
+          "Ver funcionalidades → /funcionalidades"
+        ],
+        "microcopy": [
+          "Sem cartão de crédito",
+          "Cancele quando quiser",
+          "9 módulos integrados",
+          "4 perfis de acesso",
+          "100% web, sem instalação",
+          "Sua clínica no flow, seu crescimento é show!",
+          "Próxima consulta",
+          "Ana Rodrigues · 09:00"
+        ],
+        "legalOrDisclaimerText": []
+      },
+      "cardsOrItems": [
+        "One decorative live appointment card",
+        "Three platform trust signals",
+        "Two offer reassurances"
+      ],
+      "animations": [
+        "Staggered fade-and-rise entrance",
+        "Magnetic primary CTA",
+        "5-second floating appointment card",
+        "Emerald ping/pulse status",
+        "Button and link hover transitions"
+      ],
+      "interactions": [
+        "Primary registration route",
+        "Secondary feature route",
+        "Pointer-follow magnetic drift on primary CTA"
+      ],
+      "responsiveBehavior": {
+        "desktop": "Two-column composition with unrestricted MacBook width and floating appointment card.",
+        "mobile": "Single-column layout; buttons stack; MacBook follows copy; appointment card is hidden below sm; trust text wraps."
+      },
+      "accessibilityNotes": [
+        "Single page h1 is used here.",
+        "MacBook has descriptive Portuguese alt text.",
+        "Decorative glow, icons, and floating appointment card are aria-hidden.",
+        "Trust list has aria-label Destaques da plataforma.",
+        "Reduced motion removes Motion entrances and CSS floating/ping motion through source-level and media-query gates."
+      ],
+      "conversionRole": "Primary acquisition moment: specific product category, broad operational value, concrete product screenshot, low-risk trial, and two clear paths.",
+      "potentialWeaknesses": [
+        "The promise is broad and includes many modules before establishing a single measurable primary outcome.",
+        "The slogan is playful relative to the otherwise premium operational tone.",
+        "The MacBook visual proves financial depth more than the full set of modules named in the headline."
+      ],
+      "refactorNotes": [
+        "Hero trust and trial-offer strings overlap with pricing/final CTA content and are candidates for shared typed content, but no change is required for current behavior."
+      ]
+    },
+    {
+      "id": "problem",
+      "name": "Problem Awareness — Cost of Improvised Operations",
+      "order": 3,
+      "sourceFiles": ["src/features/marketing/components/landing/ProblemSection.tsx"],
+      "componentNames": ["ProblemSection", "Reveal", "StaggerGroup", "StaggerItem"],
+      "purpose": "Make visitors recognize the operational pain and cost of fragmented clinic management.",
+      "targetUserEmotion": "Productive discomfort and recognition, followed by readiness for a better system.",
+      "layoutDescription": "Centered heading followed by a 1/2/3-column grid of six equal-height pain cards and a concluding centered sentence.",
+      "backgroundDescription": "Clean white section separated from the hero by an animated dark-to-light divider.",
+      "visualElements": [
+        "Six muted slate icon tiles",
+        "White bordered cards",
+        "Hover lift and shadow",
+        "Emphasized closing phrase"
+      ],
+      "imagesAndMedia": [],
+      "copy": {
+        "eyebrow": "O dia a dia sem um sistema",
+        "headline": "Gerir a clínica no improviso cobra um preço alto",
+        "subheadline": "Quando agenda, pacientes, dinheiro e estoque vivem em lugares diferentes, a operação trava — e o crescimento da clínica fica em segundo plano.",
+        "bodyTexts": [
+          "Agenda em planilhas e papel — Horários remarcados na correria, encaixes esquecidos e nenhuma visão real do dia.",
+          "Confirmações feitas uma a uma — A recepção gasta horas ligando e mandando mensagem manualmente para cada paciente.",
+          "Financeiro no escuro — Entradas, saídas e inadimplência sem controle — decisões tomadas no achismo.",
+          "Prontuários espalhados — Histórico do paciente perdido entre pastas, cadernos e arquivos de difícil acesso.",
+          "Estoque controlado de memória — Materiais que acabam sem aviso e compras feitas no susto, sem previsibilidade.",
+          "Sistemas que não se conversam — Cada ferramenta de um lado, dados duplicados e retrabalho que ninguém controla.",
+          "O resultado é sempre o mesmo: retrabalho, tempo perdido e decisões no escuro. Existe um jeito melhor."
+        ],
+        "badges": [],
+        "buttons": [],
+        "microcopy": [],
+        "legalOrDisclaimerText": []
+      },
+      "cardsOrItems": [
+        "Agenda em planilhas e papel",
+        "Confirmações feitas uma a uma",
+        "Financeiro no escuro",
+        "Prontuários espalhados",
+        "Estoque controlado de memória",
+        "Sistemas que não se conversam"
+      ],
+      "animations": [
+        "Heading reveal",
+        "0.07-second stagger between cards",
+        "Hover lift, border, and shadow",
+        "Closing-copy reveal"
+      ],
+      "interactions": ["Cards are non-clickable; hover is decorative feedback only."],
+      "responsiveBehavior": {
+        "mobile": "One column.",
+        "smallTablet": "Two columns from sm.",
+        "desktop": "Three columns from lg."
+      },
+      "accessibilityNotes": [
+        "Section is associated with its h2 via aria-labelledby.",
+        "Icons are decorative and aria-hidden.",
+        "Articles provide semantic card grouping.",
+        "Hover transforms are disabled under reduced motion."
+      ],
+      "conversionRole": "Problem-awareness and message matching. It turns common clinic frustrations into a reason to continue toward the solution.",
+      "potentialWeaknesses": [
+        "The pain language is comprehensive but generic to many service businesses; only prontuários and clinic context are distinctly dental."
+      ],
+      "refactorNotes": [
+        "Pain-point content is defined inline and could move to typed data if localization or reuse becomes necessary."
+      ]
+    },
+    {
+      "id": "solution-flow",
+      "name": "Solution — Connected DentalFlow Operating Flow",
+      "order": 4,
+      "sourceFiles": [
+        "src/features/marketing/components/landing/SolutionSection.tsx",
+        "src/features/marketing/components/landing/FlowOrbit.tsx",
+        "src/features/marketing/components/landing/FlowOrbitScene.tsx",
+        "src/features/marketing/components/landing/AuroraBackdrop.tsx"
+      ],
+      "componentNames": [
+        "SolutionSection",
+        "FlowOrbit",
+        "StaticOrbit",
+        "FlowOrbitScene",
+        "OrbitContent",
+        "OrbitNode",
+        "OrbitPoster"
+      ],
+      "purpose": "Explain the unification concept visually and map the patient journey from acquisition through management decisions.",
+      "targetUserEmotion": "Clarity, control, and confidence that every part of the clinic can work as one flow.",
+      "layoutDescription": "Centered heading, a large square conceptual orbit up to 42rem, then a six-step journey shown in 2/3/6 columns, ending with three supporting pills.",
+      "backgroundDescription": "Slate-950 with AuroraBackdrop grid and cyan glow; light-to-dark animated divider above.",
+      "visualElements": [
+        "DentalFlow core",
+        "Eight module satellites",
+        "Inward light traces",
+        "Orbit rings and particles",
+        "Six numbered circular process icons",
+        "Animated horizontal process connector",
+        "Three proof pills"
+      ],
+      "imagesAndMedia": [
+        "Desktop WebGL/Three.js scene generated at runtime",
+        "Mobile/touch/reduced-motion SVG and HTML fallback generated from source",
+        "Zero-layout-shift poster while lazy chunks or viewport trigger are pending"
+      ],
+      "copy": {
+        "eyebrow": "O fluxo DentalFlow",
+        "headline": "Uma única plataforma para o fluxo inteiro da clínica",
+        "subheadline": "Do primeiro contato ao retorno do paciente, cada etapa conversa com a próxima — sem planilhas paralelas, sem sistemas desconectados.",
+        "bodyTexts": [
+          "Captação — Leads e contatos organizados",
+          "Agendamento — Agenda única da equipe",
+          "Confirmação — Lembretes via WhatsApp",
+          "Atendimento — Prontuário e histórico",
+          "Pagamento — Fluxo de caixa no controle",
+          "Decisão — Indicadores em tempo real"
+        ],
+        "badges": [
+          "Tudo conectado em um só lugar",
+          "Dados em tempo real",
+          "Menos cliques, menos retrabalho"
+        ],
+        "buttons": [],
+        "microcopy": [
+          "Agenda",
+          "Pacientes",
+          "Financeiro",
+          "Relatórios",
+          "Estoque",
+          "WhatsApp",
+          "Equipe",
+          "Prontuário",
+          "DentalFlow"
+        ],
+        "legalOrDisclaimerText": []
+      },
+      "cardsOrItems": [
+        "8 orbit modules",
+        "6 numbered patient-journey steps",
+        "3 supporting highlights"
+      ],
+      "animations": [
+        "Lazy entrance reveal",
+        "Desktop WebGL ring rotation",
+        "GSAP inward travelers",
+        "GSAP ring scale entrance",
+        "Drei Sparkles",
+        "Camera drift and pointer parallax",
+        "Mobile CSS orbit ring rotation",
+        "Eight phase-offset SVG dash traces",
+        "4.5-second process-line scan"
+      ],
+      "interactions": [
+        "Fine-pointer movement subtly shifts the desktop camera; the visual is otherwise non-interactive and decorative."
+      ],
+      "responsiveBehavior": {
+        "desktopFinePointer": "Lazy-loads FlowOrbit, then only loads WebGL scene after its wrapper enters the viewport.",
+        "mobileOrCoarsePointer": "Uses the lightweight static SVG/HTML orbit; satellite text labels hide below sm while icons remain.",
+        "reducedMotion": "Uses fallback and CSS animation gates leave it fully static.",
+        "journeyGrid": "2 columns by default, 3 at sm, 6 at lg; connector line appears only at lg."
+      },
+      "accessibilityNotes": [
+        "Entire orbit is aria-hidden because nearby text communicates the meaning.",
+        "Section heading is linked via aria-labelledby.",
+        "Journey icons are aria-hidden while labels remain text.",
+        "Reduced-motion preference is reactive and avoids WebGL entirely."
+      ],
+      "conversionRole": "Core explanatory centerpiece. It makes the all-in-one claim memorable and connects abstract platform breadth to a concrete patient journey.",
+      "potentialWeaknesses": [
+        "The WebGL centerpiece may command more attention than the six-step explanation.",
+        "The orbit is fully decorative, so its eight-module labels are not independently exposed to assistive technology; this is acceptable only because the modules are fully repeated later.",
+        "Three nested lazy/visibility states increase implementation complexity."
+      ],
+      "refactorNotes": [
+        "Desktop and fallback repeat the same eight module definitions in separate files; a shared typed constant could prevent drift.",
+        "Both SolutionSection and FlowOrbit define an OrbitPoster variant."
+      ]
+    },
+    {
+      "id": "modulos",
+      "name": "Nine Integrated Modules",
+      "order": 5,
+      "sourceFiles": ["src/features/marketing/components/landing/ModulesSection.tsx"],
+      "componentNames": ["ModulesSection", "Reveal", "StaggerGroup", "StaggerItem"],
+      "purpose": "Turn the all-in-one concept into nine concrete product capabilities with paths to deeper feature pages.",
+      "targetUserEmotion": "Confidence that the platform is complete and that each major clinic workflow is covered.",
+      "layoutDescription": "Centered heading, responsive 1/2/3-column grid of nine linked cards, and a final text link to the full feature overview.",
+      "backgroundDescription": "White with dark-to-light divider above; same white continues into the carousel below.",
+      "visualElements": [
+        "Navy icon tiles",
+        "Rounded linked cards",
+        "Saber mais animated underline",
+        "Arrow movement on hover"
+      ],
+      "imagesAndMedia": [],
+      "copy": {
+        "eyebrow": "Tudo em um só lugar",
+        "headline": "Nove módulos integrados, um único centro de comando",
+        "subheadline": "Cada módulo resolve uma parte da rotina e conversa com os demais — você opera a clínica inteira sem trocar de sistema.",
+        "bodyTexts": [
+          "Agenda inteligente — Consultas, encaixes e status de cada atendimento em uma visão única da semana.",
+          "Pacientes — Cadastro completo, histórico de relacionamento e contato centralizado.",
+          "Prontuário eletrônico — Evoluções clínicas, modelos reutilizáveis e histórico sempre à mão.",
+          "Gestão financeira — Receitas, despesas, categorias e fluxo de caixa em tempo real.",
+          "Controle de estoque — Produtos, movimentações e reposição sem depender da memória.",
+          "Relatórios e indicadores — Leituras claras da operação para decidir com dados, não com achismo.",
+          "IA de gestão — Apoio para analisar dados de financeiro e estoque registrados no sistema.",
+          "WhatsApp e notificações — Lembretes, confirmações e avisos operacionais enviados aos pacientes.",
+          "Controle fiscal — Organização de dados fiscais, rascunhos e acompanhamento interno de notas."
+        ],
+        "badges": [],
+        "buttons": [
+          "Saber mais on every module card",
+          "Ver todas as funcionalidades → /funcionalidades"
+        ],
+        "microcopy": [],
+        "legalOrDisclaimerText": []
+      },
+      "cardsOrItems": [
+        "Agenda inteligente → /funcionalidades/agenda",
+        "Pacientes → /funcionalidades/pacientes",
+        "Prontuário eletrônico → /funcionalidades/prontuarios",
+        "Gestão financeira → /funcionalidades/financeiro",
+        "Controle de estoque → /funcionalidades/estoque",
+        "Relatórios e indicadores → /funcionalidades/relatorios",
+        "IA de gestão → /funcionalidades/ia",
+        "WhatsApp e notificações → /funcionalidades/whatsapp",
+        "Controle fiscal → /funcionalidades/controle-fiscal"
+      ],
+      "animations": [
+        "Staggered card entrance",
+        "Card lift/shadow",
+        "Icon color inversion",
+        "Arrow translation",
+        "Animated link underline"
+      ],
+      "interactions": [
+        "Every card is a full-card TanStack Router link with focus ring.",
+        "Final overview link routes to the feature index."
+      ],
+      "responsiveBehavior": {
+        "mobile": "One column.",
+        "smallTablet": "Two columns from sm.",
+        "desktop": "Three columns from lg."
+      },
+      "accessibilityNotes": [
+        "Section is associated with its h2.",
+        "Full cards are keyboard-focusable links with visible rings.",
+        "Icons are decorative.",
+        "Hover translation is disabled under reduced motion."
+      ],
+      "conversionRole": "Product explanation and intent routing. It substantiates breadth and lets high-intent visitors investigate the capability that matters most.",
+      "potentialWeaknesses": [
+        "Nine equally weighted cards can make prioritization difficult; the page does not identify which modules drive the strongest business outcome."
+      ],
+      "refactorNotes": [
+        "Module content is inline and mirrors Flow Orbit and navigation concepts; a typed shared source could reduce copy drift if product taxonomy changes."
+      ]
+    },
+    {
+      "id": "product-carousel",
+      "name": "Product in Practice Carousel",
+      "order": 6,
+      "sourceFiles": [
+        "src/features/marketing/components/ProductCarouselSection.tsx",
+        "src/features/marketing/hooks/useRevealOnScroll.ts"
+      ],
+      "componentNames": ["ProductCarouselSection"],
+      "purpose": "Provide visual proof for agenda, finance, and lead-management use cases.",
+      "targetUserEmotion": "Curiosity and confidence that DentalFlow has tangible, polished workflows.",
+      "layoutDescription": "Centered heading over a 4:3 framed carousel. Slides move horizontally; arrows float outside the frame on larger screens and move inside on small screens. Caption, description, and three tab-like dots sit below.",
+      "backgroundDescription": "White, continuing directly from the modules section.",
+      "visualElements": [
+        "Rounded screenshot frame",
+        "Large photographic/graphic slides",
+        "Circular previous/next buttons",
+        "Active navy pill dot",
+        "Dynamic caption area"
+      ],
+      "imagesAndMedia": ["/carousel.png", "/carousel1.png", "/carousel2.png"],
+      "copy": {
+        "eyebrow": "Na prática",
+        "headline": "Como o DentalFlow funciona no dia a dia",
+        "subheadline": "Veja como a plataforma organiza agenda, financeiro e captação de pacientes em clínicas como a sua.",
+        "bodyTexts": [
+          "Agenda visual e inteligente — Visualize toda a semana de consultas, confirme agendamentos e controle o status de cada atendimento em tempo real.",
+          "Controle financeiro completo — Fluxo de caixa, lançamentos de entradas e saídas, e relatórios consolidados por período — tudo em um só painel.",
+          "Captação e gestão de leads — Pipeline de novos contatos, origem dos pacientes e acompanhamento de cada lead até a primeira consulta."
+        ],
+        "badges": [],
+        "buttons": [
+          "Slide anterior",
+          "Próximo slide",
+          "Ir para slide 1: Agenda visual e inteligente",
+          "Ir para slide 2: Controle financeiro completo",
+          "Ir para slide 3: Captação e gestão de leads"
+        ],
+        "microcopy": [],
+        "legalOrDisclaimerText": []
+      },
+      "cardsOrItems": [
+        "Slide 1 source caption: Agenda visual e inteligente",
+        "Slide 2 source caption: Controle financeiro completo",
+        "Slide 3 source caption: Captação e gestão de leads"
+      ],
+      "animations": [
+        "700ms section fade/rise",
+        "500ms horizontal slide transform",
+        "300ms active-dot width transition"
+      ],
+      "interactions": [
+        "Previous and next wrap infinitely",
+        "Direct dot selection",
+        "No autoplay",
+        "aria-live announces slide container changes"
+      ],
+      "responsiveBehavior": {
+        "all": "Frame remains 4:3.",
+        "smallScreens": "Arrow controls move from -left/-right-5 to left/right-2.",
+        "imageCropping": "First square asset uses object-position center 28% and is cropped to 4:3; other assets are native 4:3."
+      },
+      "accessibilityNotes": [
+        "Arrow buttons have explicit labels.",
+        "Dots expose role=tab and aria-selected.",
+        "Inactive slide wrappers are aria-hidden.",
+        "Each image has descriptive alt text in source.",
+        "Tab semantics are incomplete because no tabpanel/aria-controls relationship or roving tab focus is implemented."
+      ],
+      "conversionRole": "Product proof and benefit visualization between feature breadth and technical trust.",
+      "potentialWeaknesses": [
+        "Direct asset inspection shows branded marketing creatives with people, logo, and illustrative KPI cards—not the actual agenda, finance, and leads product screens described by source alt text and captions.",
+        "The visual mismatch weakens evidence credibility and makes the phrase Na prática less literal.",
+        "The first image is eager-loaded despite being below the fold and is approximately 1.87 MB."
+      ],
+      "refactorNotes": [
+        "Slide content is already centralized locally; it could use a shared typed media schema with intrinsic dimensions if future optimization is planned."
+      ]
+    },
+    {
+      "id": "integracoes",
+      "name": "Connected Ecosystem and Integrations",
+      "order": 7,
+      "sourceFiles": [
+        "src/features/marketing/components/LandingIntegrationsSection.tsx",
+        "src/features/marketing/data/public-content.ts",
+        "src/components/common/SectionHeading.tsx"
+      ],
+      "componentNames": [
+        "LandingIntegrationsSection",
+        "IntegrationCard",
+        "SectionHeading",
+        "AuroraBackdrop"
+      ],
+      "purpose": "Build technical trust and show how DentalFlow connects scheduling, billing, AI, messaging, data, and fiscal workflows.",
+      "targetUserEmotion": "Trust that the platform is connected, secure, and candid about dependencies and roadmap status.",
+      "layoutDescription": "Left-aligned heading, three trust chips, then six cards in 1/2/3 columns, followed by a two-column disclaimer bar.",
+      "backgroundDescription": "Slate-950 with a calm cyan radial glow but no grid; light-to-dark divider above.",
+      "visualElements": [
+        "Six branded logos on white tiles",
+        "Translucent glass cards",
+        "Category eyebrow",
+        "Benefit callout with emerald Zap",
+        "Trust chips",
+        "Provider disclaimer bar"
+      ],
+      "imagesAndMedia": [
+        "Google Calendar SVG",
+        "Stripe SVG",
+        "OpenAI SVG",
+        "WhatsApp Business SVG",
+        "Supabase SVG",
+        "Internal NFS-e SVG"
+      ],
+      "copy": {
+        "eyebrow": "Ecossistema conectado",
+        "headline": "Integrações que conectam sua clínica ao fluxo ideal",
+        "subheadline": "Agenda, comunicação, pagamentos, IA, dados e fiscal em um só lugar — cada conexão documentada e com propósito claro.",
+        "bodyTexts": [
+          "Google Calendar — A agenda do DentalFlow sincroniza com o Google Calendar. Horários, confirmações e disponibilidade ficam acessíveis fora do sistema — sem retrabalho de atualização manual. Benefício: Dentistas acompanham seus horários em qualquer dispositivo, sem precisar abrir o sistema.",
+          "Stripe — A cobrança da assinatura do DentalFlow passa pelo Stripe com integração server-side. Nenhum dado sensível de pagamento trafega pelo frontend da clínica. Benefício: Assinaturas da plataforma processadas de forma segura, sem exposição de tokens no frontend.",
+          "OpenAI — O assistente de IA do DentalFlow usa a API da OpenAI para analisar financeiro, estoque e agenda da clínica, gerando insights práticos e alertas contextualizados. Benefício: O gestor recebe análises e alertas baseados nos dados reais da operação, sem precisar interpretar planilhas.",
+          "WhatsApp Cloud API — Notificações de consulta, lembretes e confirmações via WhatsApp. Requer conta Business aprovada pela Meta e configuração de templates. Nosso suporte orienta o processo. Benefício: Lembretes e confirmações enviados automaticamente — sem ligações manuais da recepção.",
+          "Supabase — Banco de dados moderno usado para armazenar as informações da clínica com segurança, organização e escalabilidade. Cada clínica tem seus dados completamente separados das demais. Benefício: Dados de cada clínica isolados, seguros e acessíveis — sem depender de servidores próprios.",
+          "Provedor NFS-e — O módulo fiscal centraliza rascunhos de notas e vincula serviços a consultas. A emissão de NFS-e oficial via provedor homologado está em desenvolvimento. Benefício: Dados fiscais organizados internamente hoje, prontos para emissão oficial quando o provedor estiver disponível."
+        ],
+        "badges": [
+          "Menos operação manual, mais fluxo centralizado",
+          "Cada integração documentada no produto ou roadmap confirmado",
+          "Credenciais e chaves sempre fora do frontend"
+        ],
+        "buttons": [],
+        "microcopy": [
+          "Agenda e disponibilidade",
+          "Assinaturas e cobrança",
+          "IA de gestão",
+          "Comunicação com pacientes",
+          "Infraestrutura de dados",
+          "Fiscal e conformidade"
+        ],
+        "legalOrDisclaimerText": [
+          "Não exibimos integrações sem evidência no produto ou roadmap documentado.",
+          "Pagamentos, mensagens e IA dependem de provedores externos e permissões corretas."
+        ]
+      },
+      "cardsOrItems": [
+        "Google Calendar — status available in data source",
+        "Stripe — status available",
+        "OpenAI — status available",
+        "WhatsApp Cloud API — requires external configuration",
+        "Supabase — status available",
+        "Provedor NFS-e — in development"
+      ],
+      "animations": [
+        "Heading fade/rise",
+        "Per-card viewport reveals with up to 300ms staggered transition delay",
+        "Card hover lift and cyan border",
+        "Trust-chip fade"
+      ],
+      "interactions": ["Cards are informational and non-clickable."],
+      "responsiveBehavior": {
+        "mobile": "One-column cards and disclaimer.",
+        "tablet": "Two columns from sm.",
+        "desktop": "Three columns from lg."
+      },
+      "accessibilityNotes": [
+        "Integration logos have explicit brand alt text.",
+        "Decorative Lucide icons are aria-hidden.",
+        "The section has no aria-labelledby/id linkage even though it contains a visible h2 through SectionHeading."
+      ],
+      "conversionRole": "Trust-building and objection handling. Named providers make the platform concrete; caveats reduce the risk of overpromising.",
+      "potentialWeaknesses": [
+        "Internal statusLabel and where fields exist in data but are not rendered, so users cannot visually distinguish available, configuration-required, and in-development integrations except by reading long descriptions.",
+        "Infrastructure brands such as Supabase may matter more to technical reviewers than clinic owners."
+      ],
+      "refactorNotes": [
+        "Expose a clear visual status badge from existing typed data if product strategy approves; no new data model is needed."
+      ]
+    },
+    {
+      "id": "impacto-operacional",
+      "name": "Animated Operational Impact Estimates",
+      "order": 8,
+      "sourceFiles": [
+        "src/features/marketing/components/AnimatedImpactSection.tsx",
+        "src/features/marketing/hooks/useRevealOnScroll.ts"
+      ],
+      "componentNames": ["AnimatedImpactSection", "ImpactCard", "useCountUp"],
+      "purpose": "Translate centralization into memorable time, task, rework, visibility, and workflow numbers.",
+      "targetUserEmotion": "Urgency about current waste and optimism about reclaiming time and predictability.",
+      "layoutDescription": "Left-aligned heading, six large-number cards in 1/2/3 columns, and a full-width small-print estimate disclaimer.",
+      "backgroundDescription": "Slate-50 with a dark-to-gray animated divider above.",
+      "visualElements": [
+        "Large tabular count-up numbers",
+        "Navy icon tiles",
+        "White metric cards",
+        "Small disclaimer panel"
+      ],
+      "imagesAndMedia": [],
+      "copy": {
+        "eyebrow": "Potencial de economia operacional",
+        "headline": "Quanto tempo sua clínica perde hoje fazendo isso manualmente?",
+        "subheadline": "Cada confirmação por telefone, cada cobrança manual, cada conferência de agenda soma horas que poderiam ser suas. Veja o que a centralização operacional pode representar em números.",
+        "bodyTexts": [
+          "2.847h/ano economizadas em confirmações, registros e cobranças — Tempo estimado ao digitalizar agendamento, follow-up de pacientes e controle financeiro que hoje consomem horas da recepção e da gestão.",
+          "27,4 dias/ano devolvidos para família, pacientes e crescimento — Horas economizadas convertidas em dias que podem voltar para atendimento de qualidade, treinamento ou tempo com quem importa.",
+          "183 tarefas/mês manuais que podem sair do seu dia — Confirmações por telefone, anotações avulsas, conciliações de pagamento e conferências de estoque que um fluxo digital assume.",
+          "42% menos retrabalho com dados centralizados — Erros, duplicações e retrabalho causados por informações espalhadas em papel, planilhas e mensagens que não se comunicam.",
+          "68% mais previsibilidade de gestão — Decisões de equipe, estoque e financeiro tomadas com dados reais em vez de percepção ou relatórios montados manualmente todo mês.",
+          "1 fluxo centralizado para toda a operação da clínica — Agenda, pacientes, financeiro, estoque, leads e IA no mesmo ambiente — sem alternar entre sistemas, abas e anotações desconectadas."
+        ],
+        "badges": [],
+        "buttons": [],
+        "microcopy": [],
+        "legalOrDisclaimerText": [
+          "Estimativas ilustrativas baseadas em rotinas administrativas comuns de clínicas odontológicas. Resultados podem variar conforme volume de atendimentos, equipe e uso da plataforma."
+        ]
+      },
+      "cardsOrItems": [
+        "2.847h/ano",
+        "27,4 dias/ano",
+        "183 tarefas/mês",
+        "42% menos retrabalho",
+        "68% mais previsibilidade",
+        "1 fluxo centralizado"
+      ],
+      "animations": [
+        "2.2-second requestAnimationFrame count-up with cubic ease-out",
+        "Independent card viewport reveals",
+        "Staggered delays up to 300ms",
+        "Card hover lift"
+      ],
+      "interactions": ["Cards are informational and non-clickable."],
+      "responsiveBehavior": {
+        "mobile": "One column.",
+        "tablet": "Two columns from sm.",
+        "desktop": "Three columns from lg.",
+        "reducedMotion": "Counters immediately show final values and reveal transforms are bypassed."
+      },
+      "accessibilityNotes": [
+        "Section has aria-label Potencial de economia operacional.",
+        "Icons are aria-hidden.",
+        "Changing numbers are not marked live, avoiding noisy announcements.",
+        "The large claims are followed by a visible disclaimer."
+      ],
+      "conversionRole": "Quantified benefit and urgency. It attempts to bridge feature breadth to saved time and management outcomes.",
+      "potentialWeaknesses": [
+        "The exact values are not tied to a visible methodology, customer dataset, baseline clinic size, or calculator; the disclaimer only labels them illustrative.",
+        "2,847 hours equals roughly 356 eight-hour workdays, while the adjacent conversion says 27.4 days, making the implied conversion basis unclear and potentially undermining trust."
+      ],
+      "refactorNotes": [
+        "A documented calculation model or interactive estimator would make the data defensible; source values are currently static inline constants."
+      ]
+    },
+    {
+      "id": "migration",
+      "name": "Assisted Data Migration",
+      "order": 9,
+      "sourceFiles": ["src/features/marketing/components/DataMigrationSection.tsx"],
+      "componentNames": ["DataMigrationSection", "Reveal"],
+      "purpose": "Reduce switching cost and fear of losing history when moving from another system.",
+      "targetUserEmotion": "Relief and confidence that adoption does not require starting over.",
+      "layoutDescription": "Centered heading; a horizontal three-card pipeline at lg that stacks vertically below lg; then a four-benefit panel with CTA and a format-dependency footnote.",
+      "backgroundDescription": "White with a gray-to-light divider above; final pipeline card and eyebrow use soft emerald surfaces.",
+      "visualElements": [
+        "Emerald migration pill",
+        "Three step cards",
+        "Directional arrows switching orientation by breakpoint",
+        "Format/data chips",
+        "Four checkmarked benefits",
+        "CTA panel"
+      ],
+      "imagesAndMedia": [],
+      "copy": {
+        "eyebrow": "Migração facilitada",
+        "headline": "Troque de sistema sem recomeçar do zero",
+        "subheadline": "Já usa outro software? Após a contratação, ajudamos sua equipe a trazer os dados do sistema anterior — para você começar com continuidade e sem retrabalho.",
+        "bodyTexts": [
+          "Etapa 1 — Seu sistema atual — O que você já tem hoje: Pacientes, Agenda, Histórico, Serviços.",
+          "Etapa 2 — Exportação dos dados — Em formatos comuns: CSV, XLSX, PDF.",
+          "Etapa 3 — Pronto no DentalFlow — Tudo organizado para usar: Agenda, Pacientes, Financeiro.",
+          "Nossa equipe acompanha a importação dos seus dados para você começar com segurança — sem dor de cabeça e sem perder seu histórico."
+        ],
+        "badges": [
+          "Migração gratuita após a contratação",
+          "Processo assistido pela equipe",
+          "Menos retrabalho para sua clínica",
+          "Mais segurança na transição"
+        ],
+        "buttons": ["Conhecer os planos → #planos"],
+        "microcopy": [],
+        "legalOrDisclaimerText": [
+          "* A migração depende da disponibilidade, qualidade e formato dos dados exportados pelo sistema anterior."
+        ]
+      },
+      "cardsOrItems": [
+        "Seu sistema atual",
+        "Exportação dos dados",
+        "Pronto no DentalFlow",
+        "Four migration benefits"
+      ],
+      "animations": ["Heading, pipeline, and benefit panel reveal with slight delays"],
+      "interactions": ["CTA scrolls to the pricing section through a hash link."],
+      "responsiveBehavior": {
+        "mobileAndTablet": "Vertical step cards with downward arrows; benefits use one or two columns; CTA stacks.",
+        "desktop": "Three horizontal flex cards with right arrows; four benefit columns; explanatory copy and CTA share a row."
+      },
+      "accessibilityNotes": [
+        "Section is associated with h2 through aria-labelledby.",
+        "Directional and supporting icons are decorative.",
+        "Benefits list has an explicit aria-label.",
+        "Footnote is visible text rather than hidden legal copy."
+      ],
+      "conversionRole": "Risk reduction for established clinics. It directly handles the migration objection and moves visitors to plan selection.",
+      "potentialWeaknesses": [
+        "PDF is presented alongside structured formats even though reliable migration from PDF may be limited.",
+        "Scope, duration, supported fields, and data validation responsibilities are not explained.",
+        "The offer says free after contracting but does not state whether all plans qualify."
+      ],
+      "refactorNotes": [
+        "Pipeline and benefits are well-localized static arrays; a typed migration eligibility data model may be useful only if rules become plan-specific."
+      ]
+    },
+    {
+      "id": "planos",
+      "name": "Pricing and Plan Comparison",
+      "order": 10,
+      "sourceFiles": [
+        "src/features/marketing/components/PricingSection.tsx",
+        "src/features/marketing/components/BillingPeriodToggle.tsx",
+        "src/features/marketing/components/AnnualAvailabilityNote.tsx",
+        "src/features/marketing/components/PlanFeatureRow.tsx",
+        "src/features/marketing/data/landing-content.ts",
+        "src/features/marketing/config/features.ts",
+        "src/features/marketing/config/marketing-pricing.constants.ts"
+      ],
+      "componentNames": [
+        "PricingSection",
+        "PlanCard",
+        "BillingPeriodToggle",
+        "AnnualAvailabilityNote",
+        "PlanFeatureRow",
+        "AuroraBackdrop"
+      ],
+      "purpose": "Make package selection concrete, emphasize the recommended plan, and repeat low-risk trial terms.",
+      "targetUserEmotion": "Clarity about price and confidence that there is an appropriate entry point for the clinic's maturity.",
+      "layoutDescription": "Centered heading and annual/monthly radio toggle, three equal-height plan cards in a row from md, a four-item trust bar, and a link to the full comparison.",
+      "backgroundDescription": "Slate-950 with cyan radial glow and no grid; light-to-dark divider above.",
+      "visualElements": [
+        "Annual/monthly segmented control",
+        "Three rounded-3xl plan cards",
+        "Rocket/Gem/Crown icons",
+        "Emerald recommended badge and glow",
+        "Included/coming-soon/excluded feature icons",
+        "Trust bar"
+      ],
+      "imagesAndMedia": [],
+      "copy": {
+        "eyebrow": "Planos e preços",
+        "headline": "Escolha o plano ideal para a sua clínica",
+        "subheadline": "Comece com 7 dias grátis. Sem cartão de crédito e sem fidelidade — cancele quando quiser.",
+        "bodyTexts": [
+          "Starter — Para clínicas começando a se organizar. Mensal: primeiro mês R$ 99,90; depois R$ 129,90/mês. Anual: R$ 108,25/mês; R$ 1.299,00 cobrado anualmente; 2 meses grátis.",
+          "Professional — Controle completo para clínicas ativas. Mensal: primeiro mês R$ 189,90; depois R$ 219,90/mês. Anual: R$ 183,25/mês; R$ 2.199,00 cobrado anualmente; 2 meses grátis.",
+          "Premium — Alta performance, limites ampliados. Mensal: primeiro mês R$ 279,90; depois R$ 299,90/mês. Anual: R$ 249,92/mês; R$ 2.999,00 cobrado anualmente; 2 meses grátis.",
+          "Starter features: Agenda da clínica; Prontuários digitais; Cadastro de pacientes; Equipe essencial. Not included hints: Gestão financeira completa; Relatórios gerenciais.",
+          "Professional: Tudo do Starter, mais: Gestão financeira da clínica; Controle de estoque; Indicadores gerenciais; Integração com Google Calendar; Controle de permissões por função; Assistente IA (1 análise/tipo/mês); WhatsApp e notificações marked Em breve.",
+          "Premium: Tudo do Professional, mais: IA ampliada — 10 análises/tipo/mês; Análises de estoque com IA; Suporte prioritário; WhatsApp e notificações marked Em breve; Registro de ações importantes marked Em breve."
+        ],
+        "badges": [
+          "2 meses grátis",
+          "Recomendado",
+          "Em breve",
+          "7 dias grátis",
+          "Sem cartão de crédito",
+          "Cancele quando quiser",
+          "Suporte na implantação"
+        ],
+        "buttons": [
+          "Mensal",
+          "Anual",
+          "Começar agora → /acessar?mode=register on each plan",
+          "Ver comparativo completo → /planos"
+        ],
+        "microcopy": [
+          "Primeiro mês",
+          "Depois [normal price]/mês",
+          "Plano anual · 2 meses grátis",
+          "[annual total] cobrado anualmente",
+          "Plano anual sujeito à disponibilidade no momento da contratação.",
+          "Quer comparar todas as funcionalidades?"
+        ],
+        "legalOrDisclaimerText": [
+          "Plano anual sujeito à disponibilidade no momento da contratação."
+        ]
+      },
+      "cardsOrItems": [
+        "Starter",
+        "Professional — recommended",
+        "Premium",
+        "Annual/monthly period selector",
+        "Four trust items"
+      ],
+      "animations": [
+        "Section and toggle reveal",
+        "Plan cards rise with 100ms stagger",
+        "Annual note max-height/opacity transition",
+        "Recommended-card emerald glow",
+        "Button hover and focus states"
+      ],
+      "interactions": [
+        "Annual is selected by default.",
+        "Radio-group buttons update all card prices in place.",
+        "Each plan sends the user to registration without encoding the selected plan or billing period in the URL.",
+        "Comparison link routes to /planos."
+      ],
+      "responsiveBehavior": {
+        "mobileAndSmallTablet": "Plan cards stack.",
+        "desktop": "Three columns from md with equal height and bottom-aligned CTAs.",
+        "trustBar": "Wraps as needed."
+      },
+      "accessibilityNotes": [
+        "Section is associated with h2.",
+        "Billing choice is a radiogroup with radio buttons and aria-checked.",
+        "Feature lists have plan-specific aria-labels; each row announces included, not included, or coming soon.",
+        "Annual note uses aria-hidden while collapsed.",
+        "Focus states are visible."
+      ],
+      "conversionRole": "Pricing clarity, package anchoring, risk reduction, and direct registration. Professional receives the strongest visual recommendation.",
+      "potentialWeaknesses": [
+        "The plan CTA does not carry selected plan or billing interval into registration, which can break decision continuity.",
+        "The annual availability caveat is very low-contrast text-slate-600 on slate-950.",
+        "WhatsApp appears in the broader page as an integration and operational benefit but is marked coming soon in Professional and Premium plan features; visitors must reconcile the distinction themselves.",
+        "Starter upgrade heading says No Professional even when upgrade hints are generic, and no direct explanation links to feature limits."
+      ],
+      "refactorNotes": [
+        "Pricing content is already partly typed but split across landing-content, commercial features, and display constants; one typed pricing view model could reduce coordination risk.",
+        "PlanCard could be extracted if shared with the dedicated Plans page, but only after confirming visual and content requirements are identical."
+      ]
+    },
+    {
+      "id": "video",
+      "name": "Click-to-Play Product Overview Video",
+      "order": 11,
+      "sourceFiles": [
+        "src/features/marketing/components/VideoSection.tsx",
+        "src/features/marketing/hooks/useRevealOnScroll.ts"
+      ],
+      "componentNames": ["VideoSection"],
+      "purpose": "Offer a lower-effort product overview for visitors who prefer video to detailed page scanning.",
+      "targetUserEmotion": "Curiosity and reassurance that the platform can be understood quickly.",
+      "layoutDescription": "Single column below lg; at lg a 0.82fr/1.18fr split places copy and three proof rows on the left and a framed 16:9 video on the right.",
+      "backgroundDescription": "White with a dark-to-light divider above.",
+      "visualElements": [
+        "Three bordered benefit rows",
+        "YouTube thumbnail",
+        "Dark hover overlay",
+        "Large circular play control",
+        "Bottom vignette",
+        "Framed video card"
+      ],
+      "imagesAndMedia": [
+        "Remote YouTube max-resolution thumbnail for D7vvikAJGyc",
+        "Privacy-enhanced youtube-nocookie.com iframe created only after user action"
+      ],
+      "copy": {
+        "eyebrow": "Visão geral da plataforma",
+        "headline": "Conheça o DentalFlow em poucos minutos",
+        "subheadline": "Veja como o DentalFlow conecta gestão, automação e clareza operacional para clínicas que querem crescer com mais controle e menos retrabalho.",
+        "bodyTexts": [
+          "Plataforma SaaS para a rotina odontológica",
+          "Controle da clínica sem promessa exagerada",
+          "Agenda, pacientes, financeiro e relatórios em um fluxo"
+        ],
+        "badges": [],
+        "buttons": ["Assistir vídeo do DentalFlow"],
+        "microcopy": [],
+        "legalOrDisclaimerText": []
+      },
+      "cardsOrItems": ["Three benefit rows", "One video frame"],
+      "animations": [
+        "Copy and media fade/rise",
+        "120ms media delay",
+        "Overlay color transition",
+        "Play button scale/shadow on hover"
+      ],
+      "interactions": [
+        "Click replaces thumbnail/button with an autoplaying iframe.",
+        "Iframe allows fullscreen, picture-in-picture, encrypted media, and web share."
+      ],
+      "responsiveBehavior": {
+        "mobileAndTablet": "Copy appears above video.",
+        "desktop": "Two-column layout with larger video share."
+      },
+      "accessibilityNotes": [
+        "Section is associated with h2.",
+        "Play button has an explicit aria-label.",
+        "Thumbnail has alt text.",
+        "Iframe has a title and strict-origin-when-cross-origin referrer policy.",
+        "The thumbnail button is keyboard-operable."
+      ],
+      "conversionRole": "Product education and trust-building before the final CTA.",
+      "potentialWeaknesses": [
+        "The remote thumbnail can create a third-party request before the user chooses to play, depending on browser and consent policy.",
+        "No transcript, duration, captions assurance, or text alternative is presented in the section source.",
+        "If maxresdefault is unavailable, no source-level fallback thumbnail is defined."
+      ],
+      "refactorNotes": [
+        "Video identifiers and URLs could move to typed marketing content/config if additional videos or locales are introduced."
+      ]
+    },
+    {
+      "id": "final-cta",
+      "name": "Final Free-Trial Conversion CTA",
+      "order": 12,
+      "sourceFiles": [
+        "src/features/marketing/components/TrialCtaSection.tsx",
+        "src/features/marketing/components/landing/MagneticButton.tsx"
+      ],
+      "componentNames": ["TrialCtaSection", "MagneticButton", "Reveal"],
+      "purpose": "Convert visitors after the full story with a concise promise, repeated risk reducers, and direct trial action.",
+      "targetUserEmotion": "Low-risk readiness to act now.",
+      "layoutDescription": "Centered max-w-3xl block with headline, supporting copy, three inline trust signals, two CTAs, and a live-looking social-proof status line.",
+      "backgroundDescription": "Dedicated vertical blue gradient from #0f3b73 to #082f5f, introduced by a light-to-blue animated divider.",
+      "visualElements": [
+        "White primary CTA",
+        "Transparent inverse plans CTA",
+        "Three emerald checks",
+        "Pulsing emerald status dot"
+      ],
+      "imagesAndMedia": [],
+      "copy": {
+        "eyebrow": "",
+        "headline": "Sua clínica mais organizada começa hoje.",
+        "subheadline": "Comece com 7 dias grátis e veja como uma plataforma moderna pode simplificar a rotina da sua clínica — sem compromisso, sem cartão, sem burocracia.",
+        "bodyTexts": [],
+        "badges": ["7 dias grátis", "Sem cartão de crédito", "Cancele quando quiser"],
+        "buttons": ["Iniciar teste grátis → /acessar?mode=register", "Ver planos → #planos"],
+        "microcopy": ["47 clínicas iniciaram o teste esta semana"],
+        "legalOrDisclaimerText": []
+      },
+      "cardsOrItems": ["Three trust signals", "One social-proof status"],
+      "animations": ["Section reveal", "Magnetic primary CTA", "Pulsing/pinging status dot"],
+      "interactions": ["Registration route", "Hash scroll back to pricing"],
+      "responsiveBehavior": {
+        "mobile": "CTAs stack and center.",
+        "smallTabletAndUp": "CTAs share a row."
+      },
+      "accessibilityNotes": [
+        "Status line uses role=status and aria-live=polite even though the value is static in source.",
+        "Status dot and icons are aria-hidden.",
+        "Buttons are shared accessible primitives."
+      ],
+      "conversionRole": "Final-conversion-focused close that restates the benefit and removes credit-card, commitment, and cancellation objections.",
+      "potentialWeaknesses": [
+        "The claim 47 clínicas iniciaram o teste esta semana is a hardcoded source string with no visible data source or update mechanism; it can become stale or misleading.",
+        "aria-live is unnecessary for static content and may imply dynamic updates that do not exist.",
+        "The plans CTA scrolls backward rather than offering a different objection-handling route."
+      ],
+      "refactorNotes": [
+        "Trial offer and trust strings repeat hero/pricing data and are candidates for shared content constants.",
+        "Social proof should be data-backed or replaced with a verifiable non-numeric trust statement."
+      ]
+    },
+    {
+      "id": "site-footer",
+      "name": "Product, Support, and Legal Footer",
+      "order": 13,
+      "sourceFiles": [
+        "src/components/layout/SiteFooter.tsx",
+        "src/config/company.ts",
+        "src/features/privacy/components/CookieConsentContext.ts"
+      ],
+      "componentNames": [
+        "SiteFooter",
+        "NavColumn",
+        "FooterNavLink",
+        "FooterHrefLink",
+        "CookiePreferencesButton"
+      ],
+      "purpose": "Close the landing with brand reassurance, deep product navigation, support contact, legal transparency, cookie controls, and copyright.",
+      "targetUserEmotion": "Trust that DentalFlow is a real, supportable, legally considered product.",
+      "layoutDescription": "Brand block and four navigation columns in a responsive grid; copyright and trademark notes in a lower bar. The brand block spans two columns at sm and returns to one at lg.",
+      "backgroundDescription": "Slate-950 with white/10 top and internal borders, continuing the premium dark language.",
+      "visualElements": [
+        "Inverted DentalFlow logo",
+        "Chevron link markers",
+        "Mail icon",
+        "YouTube social icon",
+        "Five-column desktop grid"
+      ],
+      "imagesAndMedia": [
+        "/logo-without-bg.png rendered 36x36 and inverted with CSS",
+        "Inline YouTube SVG icon"
+      ],
+      "copy": {
+        "eyebrow": "",
+        "headline": "DentalFlow",
+        "subheadline": "Plataforma de gestão odontológica para organizar agenda, pacientes, equipe e finanças em um só lugar.",
+        "bodyTexts": [
+          "Produto: Funcionalidades; Planos; Para gestores; Para clínicas em abertura; Para dentistas; Para secretárias.",
+          "Recursos: Agenda inteligente; Prontuário eletrônico; Gestão financeira; Relatórios e indicadores; IA de gestão; Integrações.",
+          "Suporte: FAQ; contato@dentalflow.com.br.",
+          "Legal: Termos de uso; Política de privacidade; Direitos do titular; Segurança; Tratamento de dados; Encarregado / DPO; Política de cookies."
+        ],
+        "badges": [],
+        "buttons": ["DentalFlow no YouTube", "Política de cookies opens preferences dialog"],
+        "microcopy": [
+          "© 2026 DentalFlow Tecnologia LTDA. Todos os direitos reservados.",
+          "DentalFlow e marcas relacionadas pertencem aos seus respectivos titulares."
+        ],
+        "legalOrDisclaimerText": [
+          "DentalFlow e marcas relacionadas pertencem aos seus respectivos titulares."
+        ]
+      },
+      "cardsOrItems": [
+        "Brand summary",
+        "Product column",
+        "Resources column",
+        "Support column",
+        "Legal column",
+        "Copyright bar"
+      ],
+      "animations": ["Chevron translate/color on hover", "YouTube border/background/color hover"],
+      "interactions": [
+        "Internal TanStack Router links",
+        "mailto support link",
+        "External YouTube link in a new tab",
+        "Cookie preference dialog trigger"
+      ],
+      "responsiveBehavior": {
+        "mobile": "Single-column grid.",
+        "smallTablet": "Two columns with brand spanning two.",
+        "desktop": "Five columns with a wider brand column."
+      },
+      "accessibilityNotes": [
+        "Footer has aria-label Rodapé do site.",
+        "Social link has explicit DentalFlow no YouTube label.",
+        "External link uses noopener noreferrer.",
+        "Cookie button exposes aria-haspopup=dialog.",
+        "Focus rings are visible."
+      ],
+      "conversionRole": "Trust, information scent, and secondary conversion support for visitors who need legal, support, role, or feature details before acting.",
+      "potentialWeaknesses": [
+        "The public company config still identifies legal document, address, phone, and named DPO as pending, though those pending fields are not displayed in this footer.",
+        "Only YouTube is configured; other social channels are absent by design."
+      ],
+      "refactorNotes": [
+        "Footer navigation is already structured as local data; it could share route labels with PublicHeader only if ownership and copy remain intentionally aligned."
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "filePath": "public/Macbook-Marketing DentalFlow.png",
+      "dimensions": "1448x1086",
+      "fileSizeBytes": 1208280,
+      "whereItAppears": "Hero right column",
+      "altText": "DentalFlow em um MacBook — visão geral da plataforma de gestão odontológica",
+      "visualDescription": "Transparent MacBook mockup containing a dark DentalFlow financial dashboard. Visible UI includes a left navigation for agenda, patients, records, leads, team, inventory, finance, invoices and reports; filter controls; revenue, expenses, profit, margin, receivables and fixed-cost KPIs; AI analysis summaries; a multi-series line chart; and category composition bars.",
+      "pageRole": "Primary product proof and premium hero anchor.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=eager, decoding=async",
+      "responsiveBehavior": "w-full, max-w-2xl until lg, then lg:max-w-none; maintains object-contain.",
+      "qualityConcerns": [
+        "1.21 MB is material for an eager hero asset.",
+        "The detailed UI text will be difficult to read at small viewport sizes."
+      ]
+    },
+    {
+      "filePath": "public/carousel.png",
+      "dimensions": "1254x1254",
+      "fileSizeBytes": 1870277,
+      "whereItAppears": "Product carousel slide 1",
+      "altText": "DentalFlow — agenda da semana com status de cada consulta",
+      "visualDescription": "Square branded marketing creative reading Gestão completa com DentalFlow. It shows a suited male clinic manager at a laptop, DentalFlow logo, and illustrative white KPI cards for financial summary, appointments, business vision, indicators and control. It does not visibly show the agenda-week product interface described by the alt text.",
+      "pageRole": "Intended agenda/product proof; visually functions as brand/management-benefit advertising.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=eager because it is first carousel slide",
+      "responsiveBehavior": "Cropped from square to 4:3 with object-cover and object-position center 28%.",
+      "qualityConcerns": [
+        "Approximately 1.87 MB and eager below the fold.",
+        "Source alt/caption does not match inspected visual content.",
+        "Crop can omit lower creative content."
+      ]
+    },
+    {
+      "filePath": "public/carousel1.png",
+      "dimensions": "1448x1086",
+      "fileSizeBytes": 1970363,
+      "whereItAppears": "Product carousel slide 2",
+      "altText": "DentalFlow — painel financeiro com entradas e saídas da clínica",
+      "visualDescription": "Landscape branded marketing creative reading Sua clínica. Em qualquer lugar. A qualquer hora. It shows a smiling suited man using a phone, plus illustrative summary cards for appointments, revenue, new patients, insights and alerts. It does not visibly show the finance panel described by the alt text.",
+      "pageRole": "Intended finance product proof; visually communicates mobile access and management freedom.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=lazy",
+      "responsiveBehavior": "Native 4:3, object-cover, centered.",
+      "qualityConcerns": [
+        "Approximately 1.97 MB.",
+        "Source alt/caption does not match inspected visual content."
+      ]
+    },
+    {
+      "filePath": "public/carousel2.png",
+      "dimensions": "1448x1086",
+      "fileSizeBytes": 1714494,
+      "whereItAppears": "Product carousel slide 3",
+      "altText": "DentalFlow — módulo de leads e captação de novos pacientes",
+      "visualDescription": "Landscape branded marketing creative reading Agendamentos que fluem. Sorrisos que crescem. It shows a clinic professional in scrubs holding a tablet and a bottom feature band for smart scheduling, automatic reminders, patient management and insights. It does not visibly show a leads pipeline.",
+      "pageRole": "Intended leads product proof; visually communicates scheduling and clinic organization.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=lazy",
+      "responsiveBehavior": "Native 4:3, object-cover, centered.",
+      "qualityConcerns": [
+        "Approximately 1.71 MB.",
+        "Source alt/caption does not match inspected visual content."
+      ]
+    },
+    {
+      "filePath": "public/logo-without-bg.png",
+      "dimensions": "3919x3919",
+      "fileSizeBytes": 3563170,
+      "whereItAppears": "Site footer and potentially BrandLink depending on its implementation",
+      "altText": "DentalFlow in footer via companyInfo.tradeName",
+      "visualDescription": "High-resolution transparent DentalFlow tooth/orbit brand mark.",
+      "pageRole": "Brand identity.",
+      "decorativeOrContentBearing": "Content-bearing brand mark",
+      "loadingStrategy": "No explicit loading attribute in footer",
+      "responsiveBehavior": "Rendered as 36x36 with object-contain and brightness/invert filter in footer.",
+      "qualityConcerns": [
+        "3919px square and 3.56 MB is significantly oversized for a 36px footer rendering."
+      ]
+    },
+    {
+      "filePath": "public/favicon.png",
+      "dimensions": "3919x3919",
+      "fileSizeBytes": 4223873,
+      "whereItAppears": "Browser favicon and apple-touch-icon through index.html",
+      "altText": "Not applicable",
+      "visualDescription": "DentalFlow favicon/brand image.",
+      "pageRole": "Browser and device-level brand identity.",
+      "decorativeOrContentBearing": "Brand metadata",
+      "loadingStrategy": "Linked in document head",
+      "responsiveBehavior": "Browser-managed",
+      "qualityConcerns": [
+        "4.22 MB and 3919px square is excessive for favicon delivery; dedicated small favicon and touch sizes would be more efficient."
+      ]
+    },
+    {
+      "filePath": "public/brands/integrations/google-calendar.svg",
+      "dimensions": "Vector",
+      "fileSizeBytes": 786,
+      "whereItAppears": "Google Calendar integration card",
+      "altText": "Logo do Google Calendar",
+      "visualDescription": "Google Calendar brand logo.",
+      "pageRole": "Integration recognition and trust.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=lazy",
+      "responsiveBehavior": "Rendered 28x28 in a 44x44 white tile.",
+      "qualityConcerns": []
+    },
+    {
+      "filePath": "public/brands/integrations/stripe.svg",
+      "dimensions": "Vector",
+      "fileSizeBytes": 603,
+      "whereItAppears": "Stripe integration card",
+      "altText": "Logo da Stripe",
+      "visualDescription": "Stripe brand logo.",
+      "pageRole": "Billing infrastructure recognition.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=lazy",
+      "responsiveBehavior": "Rendered 28x28.",
+      "qualityConcerns": []
+    },
+    {
+      "filePath": "public/brands/integrations/openai.svg",
+      "dimensions": "Vector",
+      "fileSizeBytes": 2954,
+      "whereItAppears": "OpenAI integration card",
+      "altText": "Logo da OpenAI",
+      "visualDescription": "OpenAI brand mark.",
+      "pageRole": "AI provider recognition.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=lazy",
+      "responsiveBehavior": "Rendered 28x28.",
+      "qualityConcerns": []
+    },
+    {
+      "filePath": "public/brands/integrations/whatsapp-business.svg",
+      "dimensions": "Vector",
+      "fileSizeBytes": 1231,
+      "whereItAppears": "WhatsApp Cloud API integration card",
+      "altText": "Logo do WhatsApp",
+      "visualDescription": "WhatsApp brand mark.",
+      "pageRole": "Patient communication provider recognition.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=lazy",
+      "responsiveBehavior": "Rendered 28x28.",
+      "qualityConcerns": []
+    },
+    {
+      "filePath": "public/brands/integrations/supabase.svg",
+      "dimensions": "Vector",
+      "fileSizeBytes": 325,
+      "whereItAppears": "Supabase integration card",
+      "altText": "Logo do Supabase",
+      "visualDescription": "Supabase lightning-shaped brand mark.",
+      "pageRole": "Data infrastructure recognition.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=lazy",
+      "responsiveBehavior": "Rendered 28x28.",
+      "qualityConcerns": []
+    },
+    {
+      "filePath": "public/brands/integrations/nfse.svg",
+      "dimensions": "Vector",
+      "fileSizeBytes": 643,
+      "whereItAppears": "NFS-e provider integration card",
+      "altText": "Ícone vetorial de NFS-e",
+      "visualDescription": "Internal vector symbol representing electronic service invoices.",
+      "pageRole": "Fiscal roadmap recognition.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=lazy",
+      "responsiveBehavior": "Rendered 28x28.",
+      "qualityConcerns": [
+        "Represents a generic future provider rather than a named homologated integration; description correctly marks development status."
+      ]
+    },
+    {
+      "filePath": "https://img.youtube.com/vi/D7vvikAJGyc/maxresdefault.jpg",
+      "dimensions": "Remote; not determinable from repository source",
+      "fileSizeBytes": "Not determinable from repository source",
+      "whereItAppears": "Video section before playback",
+      "altText": "Miniatura do vídeo DentalFlow",
+      "visualDescription": "YouTube-hosted maximum-resolution thumbnail; precise current image content cannot be determined from local source.",
+      "pageRole": "Video poster and play target.",
+      "decorativeOrContentBearing": "Content-bearing",
+      "loadingStrategy": "loading=lazy",
+      "responsiveBehavior": "object-cover inside a 16:9 frame.",
+      "qualityConcerns": ["External dependency and no local fallback."]
+    },
+    {
+      "filePath": "Runtime-generated Flow Orbit WebGL and SVG visuals",
+      "dimensions": "Responsive square, max width 42rem; WebGL DPR clamped to 1–1.8",
+      "fileSizeBytes": "Generated in code; library chunk size is build-dependent",
+      "whereItAppears": "Solution section",
+      "altText": "None; aria-hidden decorative visualization",
+      "visualDescription": "Eight module satellites around a glowing DentalFlow core, with connector lines and inward-moving cyan light. Desktop adds 3D rotation, particles, camera drift, and HTML labels; fallback uses SVG rings, lines, and HTML pills.",
+      "pageRole": "Conceptual visual explanation of integrated flow.",
+      "decorativeOrContentBearing": "Decorative; meaning is repeated in adjacent text and later modules.",
+      "loadingStrategy": "Nested lazy loading and viewport-gated WebGL; static fallback on mobile, coarse pointers, and reduced motion.",
+      "responsiveBehavior": "WebGL only for non-reduced, pointer-fine viewports above 767px; labels hide below sm in fallback.",
+      "qualityConcerns": [
+        "Desktop requires Three.js/R3F/Drei/GSAP chunk, though it is carefully deferred."
+      ]
+    }
+  ],
+  "animationsAndInteractions": [
+    {
+      "name": "Motion reveal",
+      "componentOrFile": "Reveal.tsx and useRevealOnScroll.ts",
+      "libraryUsed": "Motion for React plus IntersectionObserver",
+      "trigger": "Element intersects viewport once",
+      "visualResult": "Opacity 0→1 and y offset→0 with 0.6s ease-out",
+      "performanceConsiderations": "Observer disconnects after first reveal; LazyMotion domAnimation limits Motion features.",
+      "cleanupOrReducedMotion": "Observer cleanup; reduced motion immediately exposes content and disables initial animation.",
+      "meaning": "Decorative emphasis"
+    },
+    {
+      "name": "Staggered groups",
+      "componentOrFile": "Reveal.tsx",
+      "libraryUsed": "Motion for React",
+      "trigger": "Group intersects viewport",
+      "visualResult": "Children fade/rise in sequence, normally 0.06–0.09s apart",
+      "performanceConsiderations": "Declarative transforms and opacity.",
+      "cleanupOrReducedMotion": "Group starts visible under reduced motion.",
+      "meaning": "Decorative hierarchy"
+    },
+    {
+      "name": "Magnetic CTA",
+      "componentOrFile": "MagneticButton.tsx",
+      "libraryUsed": "Motion values and springs",
+      "trigger": "Pointer movement over hero/final CTA",
+      "visualResult": "Wrapper drifts toward pointer at strength 0.35 and springs to center on leave",
+      "performanceConsiderations": "Continuous pointer updates only while hovered.",
+      "cleanupOrReducedMotion": "No transform under reduced motion.",
+      "meaning": "Decorative tactile affordance"
+    },
+    {
+      "name": "Hero appointment float",
+      "componentOrFile": "LandingHero.tsx and index.css df-float",
+      "libraryUsed": "CSS keyframes",
+      "trigger": "Continuous when motion is allowed",
+      "visualResult": "Card moves up 10px and rotates 3 degrees over 5 seconds",
+      "performanceConsiderations": "Transform-only with will-change.",
+      "cleanupOrReducedMotion": "Keyframes exist only under no-preference media query; card hidden below sm.",
+      "meaning": "Decorative live-product cue"
+    },
+    {
+      "name": "Pulse and ping indicators",
+      "componentOrFile": "LandingHero.tsx and TrialCtaSection.tsx",
+      "libraryUsed": "Tailwind CSS animation utilities",
+      "trigger": "Continuous",
+      "visualResult": "Emerald dots pulse and emit a ring",
+      "performanceConsiderations": "Small elements only.",
+      "cleanupOrReducedMotion": "Tailwind utility behavior should be verified against reduced-motion expectations; unlike custom keyframes, no explicit motion-reduce class appears on these dots.",
+      "meaning": "Signals availability/live activity"
+    },
+    {
+      "name": "Animated section-divider scan",
+      "componentOrFile": "SectionDivider.tsx and index.css df-line-scan",
+      "libraryUsed": "CSS keyframes",
+      "trigger": "Continuous when motion is allowed",
+      "visualResult": "Bright line travels horizontally across a one-pixel gradient separator",
+      "performanceConsiderations": "Thin transform/opacity layer.",
+      "cleanupOrReducedMotion": "Keyframe is defined only under no-preference.",
+      "meaning": "Decorative continuity"
+    },
+    {
+      "name": "Solution journey scan",
+      "componentOrFile": "SolutionSection.tsx",
+      "libraryUsed": "CSS df-line-scan",
+      "trigger": "Continuous on lg",
+      "visualResult": "White highlight travels across the six-step connector line every 4.5 seconds",
+      "performanceConsiderations": "Hidden below lg.",
+      "cleanupOrReducedMotion": "Keyframe unavailable under reduced motion.",
+      "meaning": "Reinforces sequential flow"
+    },
+    {
+      "name": "Desktop Flow Orbit",
+      "componentOrFile": "FlowOrbitScene.tsx",
+      "libraryUsed": "Three.js, React Three Fiber, Drei, GSAP",
+      "trigger": "Desktop fine-pointer, no reduced motion, and orbit enters viewport",
+      "visualResult": "3D module ring rotates; eight glowing travelers move inward; particles shimmer; camera drifts and follows pointer; ring scales in",
+      "performanceConsiderations": "Heavy libraries are nested-lazy, viewport-gated, DPR capped at 1.8, high-performance WebGL requested.",
+      "cleanupOrReducedMotion": "GSAP tweens killed, generated texture disposed, R3F disposes GL resources; not loaded under reduced motion/mobile/coarse pointer.",
+      "meaning": "Decorative conceptual product architecture"
+    },
+    {
+      "name": "Static Flow Orbit fallback",
+      "componentOrFile": "FlowOrbit.tsx and index.css",
+      "libraryUsed": "SVG, HTML, CSS keyframes",
+      "trigger": "Mobile ≤767px, coarse pointer, or reduced motion",
+      "visualResult": "Eight fixed satellites connect to core; phase-offset dashed light moves inward; dotted orbit rotates slowly",
+      "performanceConsiderations": "No WebGL or Three.js chunk on fallback path.",
+      "cleanupOrReducedMotion": "All custom fallback motion is inside no-preference CSS media query; reduced-motion rendering is fully static.",
+      "meaning": "Decorative equivalent of desktop architecture"
+    },
+    {
+      "name": "Product carousel",
+      "componentOrFile": "ProductCarouselSection.tsx",
+      "libraryUsed": "React state and CSS transitions",
+      "trigger": "Arrow or dot click",
+      "visualResult": "Slide row translates by 100% over 500ms; active dot widens",
+      "performanceConsiderations": "All three images exist in DOM; only later images are lazy.",
+      "cleanupOrReducedMotion": "Section reveal handles reduced motion, but slide transform itself lacks motion-reduce override.",
+      "meaning": "Meaningful content navigation"
+    },
+    {
+      "name": "Impact count-up",
+      "componentOrFile": "AnimatedImpactSection.tsx useCountUp",
+      "libraryUsed": "requestAnimationFrame",
+      "trigger": "Each card intersects viewport",
+      "visualResult": "Number eases from zero to target over 2200ms",
+      "performanceConsiderations": "Six independent RAF loops begin as cards become visible and stop at completion.",
+      "cleanupOrReducedMotion": "RAF canceled on cleanup; final value shown immediately for reduced motion.",
+      "meaning": "Meaningful numeric emphasis"
+    },
+    {
+      "name": "Card hover language",
+      "componentOrFile": "Problem, Modules, Integrations, Impact, Video",
+      "libraryUsed": "Tailwind CSS transitions",
+      "trigger": "Hover/focus where applicable",
+      "visualResult": "Cards lift, border tint changes, shadow deepens, icon colors invert, arrows move",
+      "performanceConsiderations": "Mostly transform, color, and shadow.",
+      "cleanupOrReducedMotion": "Major lifts in problem/modules/integrations/impact are explicitly motion-reduced; confirm every shadow/color transition in live QA.",
+      "meaning": "Affordance and polish"
+    },
+    {
+      "name": "Header state transition",
+      "componentOrFile": "PublicLayout.tsx and PublicHeader.tsx",
+      "libraryUsed": "React scroll listener and CSS transitions",
+      "trigger": "Window scroll; thresholds 16px and 70px",
+      "visualResult": "Header shifts from dark translucent hero state to light solid/shadowed state",
+      "performanceConsiderations": "Passive listener but updates React state on every scroll event without requestAnimationFrame throttling.",
+      "cleanupOrReducedMotion": "Listener removed on unmount; visual transition has no motion-reduce override.",
+      "meaning": "Meaningful contrast adaptation"
+    },
+    {
+      "name": "Annual pricing note",
+      "componentOrFile": "AnnualAvailabilityNote.tsx",
+      "libraryUsed": "CSS transition",
+      "trigger": "Billing period changes",
+      "visualResult": "Availability note expands/collapses through max-height and opacity over 300ms",
+      "performanceConsiderations": "Very small DOM change.",
+      "cleanupOrReducedMotion": "No explicit motion-reduce override.",
+      "meaning": "Meaningful pricing caveat"
+    },
+    {
+      "name": "Video activation",
+      "componentOrFile": "VideoSection.tsx",
+      "libraryUsed": "React state and CSS hover transitions",
+      "trigger": "Click or keyboard activation",
+      "visualResult": "Thumbnail/play overlay is replaced by autoplaying YouTube nocookie iframe",
+      "performanceConsiderations": "Defers iframe until intent; remote thumbnail loads lazily.",
+      "cleanupOrReducedMotion": "No looping section animation beyond reveal; iframe lifecycle ends on unmount.",
+      "meaning": "Meaningful media interaction"
+    }
+  ],
+  "responsiveBehavior": {
+    "desktop": [
+      "Max content widths 5xl–7xl with px-8 at lg.",
+      "Hero uses two columns at lg.",
+      "Header shows dropdown navigation at lg.",
+      "Problem/modules/impact/integrations use three-column grids at lg.",
+      "Solution journey uses six columns and a horizontal animated connector.",
+      "Flow Orbit uses lazy WebGL only for fine pointers above 767px.",
+      "Migration pipeline becomes horizontal at lg.",
+      "Video becomes a two-column 0.82/1.18 composition.",
+      "Footer becomes five columns."
+    ],
+    "laptop": [
+      "Layouts retain desktop structure at lg, but dense hero and Flow Orbit visuals share reduced horizontal space.",
+      "The 42rem maximum Flow Orbit and max-w-7xl containers cap visual expansion.",
+      "WebGL DPR is capped at 1.8 to control rendering cost."
+    ],
+    "tablet": [
+      "At sm, most grids become two columns; the journey becomes three columns.",
+      "Pricing remains stacked until md, then becomes three columns.",
+      "Header remains mobile-style until lg.",
+      "Hero remains one column until lg even on many tablets.",
+      "Coarse-pointer tablets receive the SVG/HTML Flow Orbit regardless of width."
+    ],
+    "mobile390And430": [
+      "Hero copy and MacBook stack; CTA buttons are full flow-column until sm; floating appointment card is hidden.",
+      "Problem, module, integration, impact, and pricing cards are one column.",
+      "Flow Orbit uses static fallback; module text labels inside satellites are hidden below sm, leaving icons.",
+      "Solution journey is two columns.",
+      "Carousel arrows move inside the media frame.",
+      "Migration uses vertical arrows and stacked cards.",
+      "Video copy appears above media.",
+      "Final CTA buttons stack.",
+      "Header menu becomes a scrollable accordion panel.",
+      "Most sections keep 24px horizontal padding through px-6, leaving approximately 342–382px content width."
+    ],
+    "touchOrCoarsePointer": [
+      "Forces StaticOrbit and prevents Three.js/GSAP/WebGL download and pointer parallax.",
+      "MagneticButton still listens to pointer events but touch movement is not a primary interaction; reduced-motion logic is separate.",
+      "All primary actions remain standard links/buttons."
+    ],
+    "reducedMotion": [
+      "useRevealOnScroll resolves visible immediately.",
+      "Reveal and StaggerGroup skip initial animation.",
+      "Magnetic CTAs do not move.",
+      "Flow Orbit chooses the static fallback, and its custom CSS movement is gated off.",
+      "Count-up shows final values immediately.",
+      "Custom df-float and df-line-scan keyframes are not defined.",
+      "Some general Tailwind animate-ping/pulse and non-custom transitions lack explicit motion-reduce classes and should be verified in browser."
+    ],
+    "imagesVisibilityAndLoading": [
+      "Hero image always renders and is eager.",
+      "Hero floating card hides below sm.",
+      "Carousel first image is eager; slides 2–3 lazy, though all remain in the DOM.",
+      "Integration logos and video thumbnail are lazy.",
+      "No srcset/sizes or alternate mobile raster files are provided."
+    ],
+    "ctaStacking": "Hero and final CTA groups stack below sm; migration CTA stacks below sm; pricing CTAs remain full-width within stacked cards.",
+    "pricingStacking": "One column below md, three equal-height columns from md.",
+    "flowOrbitSwitch": "useStaticOrbit matches (max-width: 767px), (pointer: coarse), or prefers-reduced-motion. Only the remaining desktop path can load FlowOrbitScene after intersection."
+  },
+  "accessibilityAndSeo": {
+    "headingHierarchy": [
+      "One h1 in LandingHero.",
+      "Each major content section uses h2.",
+      "Cards generally use h3.",
+      "AnimatedImpactSection uses aria-label rather than aria-labelledby; integrations relies on SectionHeading without a section linkage.",
+      "Footer column headings use h3."
+    ],
+    "semanticSections": "Hero and each major block use section; repeated content cards use article in problem, integrations, impact, and pricing; header, main, nav, and footer landmarks are present.",
+    "ariaLabels": [
+      "Skip link targets #main-content.",
+      "Header navigation and mobile menu are labelled.",
+      "Dropdown/menu expanded state is exposed.",
+      "Carousel controls and dot navigation are labelled.",
+      "Pricing radio group and feature availability are labelled.",
+      "Migration benefits and hero trust list are labelled.",
+      "Video play control and iframe are labelled.",
+      "Footer, YouTube, and cookie dialog trigger are labelled."
+    ],
+    "decorativeLayers": "Aurora, section dividers, glows, most Lucide icons, orbit, and floating hero card are aria-hidden. Flow Orbit's concept is repeated in visible text.",
+    "imageAltText": "Hero, carousel slides, integration logos, footer brand, and video thumbnail have alt text. Direct inspection found carousel alt text does not match actual creative content.",
+    "focusStates": "Shared buttons and most navigation/card links use focus-visible borders/rings. The skip link becomes fixed and visible on focus.",
+    "keyboardNavigationConcerns": [
+      "Dropdowns adopt ARIA menu roles without implementing arrow-key focus management.",
+      "Carousel tabs do not implement complete tab/tabpanel relationships or roving tabindex.",
+      "Hash navigation may land headings under the fixed header.",
+      "No keyboard control is needed for Flow Orbit because it is decorative."
+    ],
+    "reducedMotionBehavior": "Strong overall: reveal, magnetic, count-up, custom flow animations, and WebGL are gated. Remaining Tailwind pulse/ping and some CSS transitions deserve a live preference check.",
+    "seoTitle": "DentalFlow | Sistema para clínicas odontológicas",
+    "seoDescription": "Centralize agenda, pacientes, financeiro, estoque, leads e IA em uma plataforma moderna para clínicas odontológicas. 7 dias grátis.",
+    "metadataImplementation": "usePageMeta sets document.title and creates/updates meta[name=description] in a client-side effect.",
+    "crawlableContent": "All substantive copy is rendered as normal React text; lazy Flow Orbit is decorative. The SPA relies on client rendering unless external prerendering exists outside inspected source.",
+    "seoRisks": [
+      "index.html declares lang=en while landing content is Portuguese.",
+      "No canonical, Open Graph, Twitter Card, structured data, or page-specific social image metadata is visible in inspected source.",
+      "Title and description are applied after client hydration rather than present in initial index.html.",
+      "Default index.html title is dentalflow-web before the effect runs.",
+      "No explicit FAQ structured data appears on this landing route."
+    ],
+    "accessibilityRisks": [
+      "Carousel media descriptions are inaccurate relative to the actual files.",
+      "Annual availability note uses very low-contrast slate-600 on slate-950.",
+      "Static role=status social proof is unnecessarily live.",
+      "Video section exposes no transcript/caption information."
+    ]
+  },
+  "conversionStrategy": {
+    "firstImpression": "Strong category clarity, polished product visual, immediate free-trial offer, and explicit no-card/no-commitment terms. The h1 emphasizes desirability rather than a quantified business outcome.",
+    "trustSignals": [
+      "Real product dashboard in a MacBook",
+      "9 modules, 4 profiles, browser-based access",
+      "Named infrastructure and integration providers",
+      "Security language and server-side payment claim",
+      "Visible caveats for external providers and NFS-e",
+      "Assisted migration",
+      "Transparent monthly/annual pricing",
+      "Cancellation and no-card trial",
+      "Support, legal, privacy, DPO, and cookie links"
+    ],
+    "problemAwareness": "Six cards accurately capture common fragmented-operation pain, then transition directly into an all-in-one solution.",
+    "productProof": "The hero dashboard is credible and detailed. The later carousel intends to add proof, but inspected assets are promotional creatives rather than the actual screens described, weakening this stage.",
+    "benefitExplanation": "The flow section explains integration conceptually; module cards explain capabilities; impact cards attempt to quantify outcomes. The strongest benefit is reduced retrabalho and centralized control, repeated consistently.",
+    "pricingClarity": "Three plans and exact monthly/annual values are visible, with inclusions and coming-soon states. Annual is default and the recommended Professional plan is easy to identify. The selected plan is not carried into registration.",
+    "riskReduction": [
+      "7-day free trial",
+      "No credit card",
+      "Cancel any time/no fidelity",
+      "Assisted migration",
+      "Provider and roadmap caveats",
+      "Annual availability note",
+      "Legal/support footer"
+    ],
+    "finalCta": "Concise and visually distinct, but its hardcoded weekly clinic count creates avoidable credibility risk unless externally verified.",
+    "audienceAdequacy": "The page explains enough breadth for a clinic owner to recognize operational fit and price. It is less specific about implementation timeline, onboarding workload, migration scope, support SLAs, and evidence behind outcome claims.",
+    "ctaClarity": "Primary trial CTA is consistent in hero, pricing, header, and final block. Secondary routes vary appropriately across features, plans, and video. Repetition is high but not inherently confusing because labels remain stable.",
+    "abstractOrDistractingAreas": [
+      "Flow Orbit is visually sophisticated and may distract from the plain six-step value story.",
+      "Impact numbers look precise despite being illustrative.",
+      "Carousel creatives introduce a different advertising style and do not prove the named product workflows.",
+      "Infrastructure-level integration copy may be too technical for some clinic owners."
+    ],
+    "conversionStrengths": [
+      "Clear vertical specialization",
+      "Strong low-risk trial framing",
+      "Broad objection coverage",
+      "Concrete plan prices",
+      "Role-based navigation",
+      "Migration reassurance",
+      "Honest external dependency language"
+    ],
+    "conversionGaps": [
+      "No customer testimonial, named clinic, case study, review score, or verifiable adoption proof",
+      "No methodology for exact impact estimates",
+      "No plan continuity into registration",
+      "No concise onboarding timeline",
+      "No clearly visible current-vs-roadmap status badge on integration cards",
+      "No live product walkthrough beyond a third-party video"
+    ]
+  },
+  "technicalImplementation": {
+    "mainComposition": "router indexRoute maps / to a route-lazy LandingPage. LandingPage applies metadata and delayed hash scrolling, wraps content in PublicLayout and LazyMotion(domAnimation), composes 11 content sections, inserts eight SectionDivider transitions, and receives PublicHeader/SiteFooter from PublicLayout.",
+    "componentHierarchy": [
+      "LandingPage",
+      "PublicLayout",
+      "PublicHeader",
+      "main",
+      "LazyMotion",
+      "LandingHero",
+      "ProblemSection",
+      "SolutionSection → lazy FlowOrbit → conditional lazy FlowOrbitScene",
+      "ModulesSection",
+      "ProductCarouselSection",
+      "LandingIntegrationsSection",
+      "AnimatedImpactSection",
+      "DataMigrationSection",
+      "PricingSection → BillingPeriodToggle/AnnualAvailabilityNote/PlanCard/PlanFeatureRow",
+      "VideoSection",
+      "TrialCtaSection",
+      "SiteFooter"
+    ],
+    "dataSources": [
+      "landing-content.ts supplies plan names, prices, savings, and recommendation.",
+      "features.ts supplies typed commercial feature availability and plan-card selections.",
+      "marketing-pricing.constants.ts supplies plan icons and trust labels.",
+      "public-content.ts supplies integration descriptions, benefits, brand assets, sources, locations, and status metadata.",
+      "company.ts supplies brand name, slogan, support email, social links, and legal name.",
+      "Several section-specific arrays remain inline in component files."
+    ],
+    "landingDependencies": [
+      "@tanstack/react-router",
+      "motion/react",
+      "lucide-react",
+      "gsap",
+      "three",
+      "@react-three/fiber",
+      "@react-three/drei",
+      "class-variance-authority",
+      "tailwindcss",
+      "@fontsource-variable/geist"
+    ],
+    "lazyLoadedChunks": [
+      "LandingPage is route-lazy through src/app/route-components.tsx.",
+      "SolutionSection lazy-loads FlowOrbit below the fold.",
+      "FlowOrbit conditionally lazy-loads FlowOrbitScene only for motion-enabled fine-pointer desktop after intersection.",
+      "YouTube iframe is deferred until click but its thumbnail is a remote image."
+    ],
+    "webglAndThree": "FlowOrbitScene uses Canvas, useFrame, Drei Html/Line/Sparkles, generated CanvasTexture glow, additive SpriteMaterial, eight sphere nodes, connector lines, HTML labels, rotating group, camera interpolation, and pointer input. DPR is [1,1.8], antialias/alpha enabled, and high-performance requested.",
+    "gsap": "GSAP animates a mutable progress ref from 0 to 1 over 5 seconds infinitely for inward light travelers and scales the module ring from 0.82 to 1 over 1.3 seconds on mount. Both tweens are killed on cleanup.",
+    "motion": "LazyMotion with domAnimation powers Reveal, StaggerGroup, StaggerItem, and MagneticButton. Shared durations and easing live in lib/motion.ts.",
+    "cssKeyframes": [
+      "df-float",
+      "df-line-scan",
+      "df-orbit-spin",
+      "df-orbit-spin-rev",
+      "df-flow-dash",
+      "df-flow-dash-unit"
+    ],
+    "otherInteractions": [
+      "IntersectionObserver reveals",
+      "requestAnimationFrame count-ups",
+      "React-state carousel",
+      "React-state pricing toggle",
+      "scroll-driven header state",
+      "click-to-mount video iframe",
+      "hash scroll retry after 250ms"
+    ],
+    "testingFilesRelatedToLanding": [
+      "LandingHero.test.tsx",
+      "ProblemSection.test.tsx",
+      "SolutionSection.test.tsx",
+      "ModulesSection.test.tsx",
+      "PricingSection.test.tsx",
+      "BillingPeriodToggle.test.tsx",
+      "AnnualAvailabilityNote.test.tsx",
+      "PlanFeatureRow.test.tsx",
+      "useDropdownNav.test.ts",
+      "usePageMeta.test.ts",
+      "useRevealOnScroll.test.tsx"
+    ],
+    "testingCoverageNotes": "Core hero/problem/solution/modules/pricing primitives have focused tests. No dedicated tests were found for the full LandingPage composition, FlowOrbit/FlowOrbitScene, ProductCarouselSection, LandingIntegrationsSection, AnimatedImpactSection, DataMigrationSection, VideoSection, TrialCtaSection, PublicHeader/PublicLayout in the marketing test directory, or landing-specific footer behavior.",
+    "buildAndPerformanceNotes": [
+      "Heavy WebGL dependencies are carefully split from the initial landing route and excluded on mobile/touch/reduced motion.",
+      "The audited production build emitted FlowOrbitScene at 982.80 kB minified / 271.45 kB gzip and produced Vite's >500 kB chunk warning; LandingPage itself was 132.60 kB / 41.17 kB gzip and the lightweight FlowOrbit wrapper was 5.66 kB / 2.12 kB gzip.",
+      "LazyMotion domAnimation avoids loading the full Motion feature set.",
+      "Large raster files remain a major transfer concern and have no srcset/sizes.",
+      "The hero image and first below-fold carousel image are eager.",
+      "Every scroll event updates PublicLayout state even when boolean thresholds do not change.",
+      "Six count-up animations use independent RAF loops but terminate after 2.2 seconds.",
+      "The video iframe is deferred until explicit intent."
+    ],
+    "packageManagerAssumption": "The repository declares packageManager bun@1.3.9 and all requested quality commands use Bun. No dependency installation is needed or authorized for this documentation task."
+  },
+  "possibleIssues": [
+    {
+      "severity": "high",
+      "area": "Performance / WebGL chunk",
+      "description": "The desktop Flow Orbit scene is an unusually large lazy chunk and triggers the production chunk-size warning.",
+      "evidence": "The audited bun run build emitted FlowOrbitScene at 982.80 kB minified and 271.45 kB gzip; Vite warned about chunks larger than 500 kB.",
+      "suggestedFix": "Profile whether Three.js, R3F, Drei, and GSAP all materially improve conversion; if retained, investigate narrower imports, dependency chunking, an idle preload after core content, or a lighter canvas/SVG desktop treatment."
+    },
+    {
+      "severity": "high",
+      "area": "Conversion credibility / carousel",
+      "description": "Carousel assets do not depict the product screens described by their alt text, captions, and section promise.",
+      "evidence": "Direct inspection: carousel.png is a Gestão completa promotional manager creative; carousel1.png promotes access anywhere; carousel2.png promotes scheduling with a staff photo. Source describes agenda week, finance panel, and leads module respectively.",
+      "suggestedFix": "In a future design/content task, either replace them with real matching product screenshots or rewrite captions and alt text to accurately describe the existing creatives."
+    },
+    {
+      "severity": "high",
+      "area": "Conversion credibility / impact claims",
+      "description": "Exact operational impact figures appear precise without a visible methodology, and the hours-to-days relationship is unclear.",
+      "evidence": "AnimatedImpactSection hardcodes 2,847h/year and 27.4 days/year as adjacent metrics; a general illustrative-results disclaimer is the only source qualification.",
+      "suggestedFix": "Document the assumptions and conversion basis, use a transparent calculator/range, or replace exact values with defensible qualitative benefits."
+    },
+    {
+      "severity": "medium",
+      "area": "Trust / social proof",
+      "description": "The final CTA presents a weekly adoption number as live social proof even though it is static and unsourced.",
+      "evidence": "TrialCtaSection hardcodes 47 clínicas iniciaram o teste esta semana and wraps it in role=status aria-live=polite; there is no service, prop, date, or update logic.",
+      "suggestedFix": "Connect it to verified data with a freshness policy, or replace it with a non-numeric, verifiable trust statement and remove the live-region semantics."
+    },
+    {
+      "severity": "high",
+      "area": "Performance / raster assets",
+      "description": "Landing raster assets are substantially oversized for their rendered roles.",
+      "evidence": "MacBook image is 1.21 MB; carousel files are 1.71–1.97 MB; footer logo is 3.56 MB at 3919x3919 rendered 36px; favicon is 4.22 MB at 3919x3919.",
+      "suggestedFix": "Generate correctly sized AVIF/WebP variants, add srcset/sizes, create dedicated favicon/touch-icon sizes, and retain PNG only where alpha/compatibility requires it."
+    },
+    {
+      "severity": "medium",
+      "area": "Performance / loading strategy",
+      "description": "The first carousel image is eagerly loaded despite the carousel appearing after four large content sections.",
+      "evidence": "ProductCarouselSection assigns loading=eager to slide index 0; public/carousel.png is approximately 1.87 MB.",
+      "suggestedFix": "Use lazy loading or an intersection-driven preload, and set intrinsic dimensions to preserve layout."
+    },
+    {
+      "severity": "high",
+      "area": "SEO / document language",
+      "description": "The document language is English while the page is Portuguese.",
+      "evidence": "index.html contains html lang=en; all landing copy and metadata are pt-BR Portuguese.",
+      "suggestedFix": "Set the root language to pt-BR in a separate SEO task after confirming all public routes use Portuguese."
+    },
+    {
+      "severity": "medium",
+      "area": "SEO / social metadata",
+      "description": "Landing metadata is limited to a client-side title and description.",
+      "evidence": "usePageMeta only changes document.title and meta[name=description]; no canonical, Open Graph, Twitter, JSON-LD, or initial route-specific metadata was found.",
+      "suggestedFix": "Add route-aware head management or prerendered metadata, including canonical and social cards, when SEO architecture is scheduled."
+    },
+    {
+      "severity": "medium",
+      "area": "Accessibility / carousel",
+      "description": "Carousel tab semantics are incomplete.",
+      "evidence": "Dots use role=tab/aria-selected, but slides are not tabpanels, dots lack aria-controls, and inactive dots remain in normal tab order.",
+      "suggestedFix": "Either implement the WAI-ARIA tabs pattern fully or use simpler labelled buttons without tab roles."
+    },
+    {
+      "severity": "medium",
+      "area": "Accessibility / navigation",
+      "description": "Desktop dropdowns use menu roles without complete menu keyboard behavior.",
+      "evidence": "PublicHeader applies role=menu and role=menuitem; useDropdownNav supports Escape and click-outside but not arrow/Home/End navigation or focus placement.",
+      "suggestedFix": "Implement the complete menu-button keyboard pattern or use disclosure navigation semantics without menu roles."
+    },
+    {
+      "severity": "medium",
+      "area": "Pricing / continuity",
+      "description": "Selected plan and billing period are lost when the visitor clicks a plan CTA.",
+      "evidence": "Every PlanCard links only to /acessar?mode=register regardless of plan.key and billingPeriod.",
+      "suggestedFix": "If supported by the acquisition flow, encode plan/period in validated search params or persist the selection through a documented registration handoff."
+    },
+    {
+      "severity": "medium",
+      "area": "Pricing / readability",
+      "description": "The annual availability caveat may have insufficient contrast.",
+      "evidence": "AnnualAvailabilityNote dark variant uses text-slate-600 within a slate-950 pricing section.",
+      "suggestedFix": "Verify WCAG contrast in browser and use a lighter token such as slate-400 if needed."
+    },
+    {
+      "severity": "medium",
+      "area": "Messaging consistency",
+      "description": "WhatsApp is presented as an integration and automation benefit while plan rows mark it Em breve.",
+      "evidence": "Integration description says infrastructure exists and requires configuration; hero/problem/flow mention confirmations; Professional and Premium feature availability is soon.",
+      "suggestedFix": "Clarify present capability versus planned self-service/plan availability in visible status badges and consistent copy."
+    },
+    {
+      "severity": "medium",
+      "area": "Accessibility / video",
+      "description": "No transcript, caption status, or equivalent detailed text alternative is presented for the product video.",
+      "evidence": "VideoSection provides iframe title and three summary bullets but no transcript/captions link or duration metadata.",
+      "suggestedFix": "Publish a transcript and confirm captions, then link it adjacent to the play control."
+    },
+    {
+      "severity": "low",
+      "area": "Motion accessibility",
+      "description": "Some continuous Tailwind utility animations and transitions are not explicitly reduced-motion gated.",
+      "evidence": "Hero and final CTA use animate-ping/animate-pulse directly; carousel slide transition, header transition, and annual-note transition lack motion-reduce overrides.",
+      "suggestedFix": "Verify Tailwind's generated behavior under reduced motion and add motion-reduce classes where continuous or spatial movement remains."
+    },
+    {
+      "severity": "low",
+      "area": "Navigation / hash targets",
+      "description": "Fixed header may obscure headings after hash navigation.",
+      "evidence": "PublicHeader is fixed; LandingPage and CTA use hash scrolling; #planos and other targets do not show scroll-mt classes.",
+      "suggestedFix": "Add a shared scroll-margin token to public hash-target sections in a future scoped UX fix."
+    },
+    {
+      "severity": "low",
+      "area": "Performance / scroll handling",
+      "description": "Header scroll tracking causes a React state update for every scroll event.",
+      "evidence": "PublicLayout's passive handler directly calls setScrollY(window.scrollY), while rendering only needs two boolean thresholds.",
+      "suggestedFix": "Track threshold state only or use requestAnimationFrame throttling if profiling shows unnecessary render work."
+    },
+    {
+      "severity": "low",
+      "area": "Testing",
+      "description": "Several conversion-critical landing sections and the full composition lack dedicated tests.",
+      "evidence": "No focused landing tests were found for carousel, integrations, impact, migration, video, final CTA, Flow Orbit, or LandingPage composition.",
+      "suggestedFix": "Add behavior-focused tests for meaningful interactions and copy/status contracts, avoiding visual class snapshots."
+    }
+  ],
+  "refactorOpportunities": [
+    {
+      "area": "Landing content schema",
+      "opportunity": "Create a typed landing content model for repeated trial terms, trust signals, CTAs, and section copy.",
+      "whyItMatters": "Hero, pricing, header, and final CTA repeat closely related strings that can drift.",
+      "risk": "low",
+      "suggestedApproach": "Move only stable content into feature data/constants while leaving layout and interaction in components.",
+      "filesLikelyAffected": [
+        "LandingHero.tsx",
+        "PricingSection.tsx",
+        "TrialCtaSection.tsx",
+        "PublicHeader.tsx",
+        "landing-content.ts"
+      ]
+    },
+    {
+      "area": "Product taxonomy",
+      "opportunity": "Share a typed module definition across Flow Orbit, ModulesSection, and possibly navigation.",
+      "whyItMatters": "The same module concepts are independently named in multiple files, and desktop/fallback orbit data is duplicated.",
+      "risk": "medium",
+      "suggestedApproach": "Define stable IDs, labels, icons, and optional routes once, then let each presentation select the fields it needs.",
+      "filesLikelyAffected": [
+        "FlowOrbit.tsx",
+        "FlowOrbitScene.tsx",
+        "ModulesSection.tsx",
+        "PublicHeader.tsx"
+      ]
+    },
+    {
+      "area": "Flow Orbit",
+      "opportunity": "Consolidate duplicate poster and module definitions while retaining separate desktop and fallback renderers.",
+      "whyItMatters": "Reduces drift without coupling WebGL implementation to responsive fallback markup.",
+      "risk": "medium",
+      "suggestedApproach": "Extract data and a shared poster component; keep the lazy boundary and static/WebGL components separate.",
+      "filesLikelyAffected": ["SolutionSection.tsx", "FlowOrbit.tsx", "FlowOrbitScene.tsx"]
+    },
+    {
+      "area": "Section primitives",
+      "opportunity": "Evaluate a shared LandingSection wrapper and section-header primitive.",
+      "whyItMatters": "Max-width, px-6/lg:px-8, vertical rhythm, eyebrow, h2, and description patterns recur throughout the page.",
+      "risk": "medium",
+      "suggestedApproach": "Extract only after documenting variants for centered/left, dark/light, width, and aria linkage; avoid forcing unique hero/pricing layouts into one abstraction.",
+      "filesLikelyAffected": [
+        "ProblemSection.tsx",
+        "ModulesSection.tsx",
+        "AnimatedImpactSection.tsx",
+        "DataMigrationSection.tsx",
+        "VideoSection.tsx"
+      ]
+    },
+    {
+      "area": "CTA groups",
+      "opportunity": "Introduce a shared marketing CTA group or shared trial-offer model.",
+      "whyItMatters": "Hero and final CTA use nearly identical primary/secondary patterns and MagneticButton behavior.",
+      "risk": "low",
+      "suggestedApproach": "Share data and wrapper behavior while preserving section-specific button variants and destinations.",
+      "filesLikelyAffected": ["LandingHero.tsx", "TrialCtaSection.tsx", "MagneticButton.tsx"]
+    },
+    {
+      "area": "Pricing view model",
+      "opportunity": "Consolidate plan prices, feature availability, display labels, and plan-card projections into one typed source.",
+      "whyItMatters": "Current pricing truth is split across three files, increasing coordination cost and mismatch risk.",
+      "risk": "high",
+      "suggestedApproach": "First define invariants and tests for monthly, annual, availability, and public/admin audiences; migrate incrementally without changing billing logic.",
+      "filesLikelyAffected": [
+        "landing-content.ts",
+        "features.ts",
+        "marketing-pricing.constants.ts",
+        "PricingSection.tsx",
+        "PlansPage.tsx"
+      ]
+    },
+    {
+      "area": "Integration status presentation",
+      "opportunity": "Render existing statusLabel and where metadata or simplify unused fields.",
+      "whyItMatters": "Visible availability is critical to avoiding confusion between live, configuration-required, and roadmap integrations.",
+      "risk": "low",
+      "suggestedApproach": "Add a typed status badge and concise location detail after product/content approval.",
+      "filesLikelyAffected": ["LandingIntegrationsSection.tsx", "public-content.ts"]
+    },
+    {
+      "area": "Asset pipeline",
+      "opportunity": "Create responsive optimized variants and accurate media metadata.",
+      "whyItMatters": "Current assets dominate likely page transfer and some descriptions do not match visuals.",
+      "risk": "low",
+      "suggestedApproach": "Export WebP/AVIF at measured breakpoints, retain fallbacks, add intrinsic dimensions/srcset/sizes, and validate alt/caption against each file.",
+      "filesLikelyAffected": [
+        "public/",
+        "LandingHero.tsx",
+        "ProductCarouselSection.tsx",
+        "SiteFooter.tsx",
+        "index.html"
+      ]
+    },
+    {
+      "area": "Animation orchestration",
+      "opportunity": "Standardize reveal transitions now split between Motion components and manual Tailwind class toggles.",
+      "whyItMatters": "A single motion policy would make timing and reduced-motion compliance easier to audit.",
+      "risk": "medium",
+      "suggestedApproach": "Keep WebGL/GSAP specialized, but migrate simple section/card reveals to one helper after visual regression coverage exists.",
+      "filesLikelyAffected": [
+        "Reveal.tsx",
+        "useRevealOnScroll.ts",
+        "AnimatedImpactSection.tsx",
+        "LandingIntegrationsSection.tsx",
+        "ProductCarouselSection.tsx",
+        "PricingSection.tsx",
+        "VideoSection.tsx"
+      ]
+    },
+    {
+      "area": "SEO architecture",
+      "opportunity": "Adopt route-aware initial metadata and structured marketing SEO.",
+      "whyItMatters": "Client-effect-only title/description omits social/canonical metadata and may weaken crawler previews.",
+      "risk": "medium",
+      "suggestedApproach": "Choose a TanStack Router-compatible head/prerender strategy; add pt-BR language, canonical, OG/Twitter, and Organization/SoftwareApplication schema with verified claims.",
+      "filesLikelyAffected": ["index.html", "router.tsx", "usePageMeta.ts", "LandingPage.tsx"]
+    },
+    {
+      "area": "Landing tests",
+      "opportunity": "Add a page composition contract and focused tests for conversion interactions.",
+      "whyItMatters": "Pricing is covered, but carousel, video, final CTA, integration statuses, and responsive orbit selection can regress without targeted checks.",
+      "risk": "low",
+      "suggestedApproach": "Test semantic copy, destinations, state changes, reduced-motion branch, and lazy fallback behavior; do not assert long Tailwind strings.",
+      "filesLikelyAffected": ["src/tests/features/marketing/"]
+    }
+  ],
+  "reviewQuestions": [
+    "Is the hero's desirability-led promise clearer and more compelling than a direct business-outcome promise for clinic owners?",
+    "Does the financial dashboard in the MacBook communicate the breadth named in the hero, or does it over-position DentalFlow as finance-first?",
+    "Does Flow Orbit help visitors understand integration, or does its technical spectacle distract from the six-step journey?",
+    "Should the carousel use real product screens to fulfill the Na prática promise, or should the section and alt text be reframed around the existing campaign creatives?",
+    "Are the six problem cards specific enough to dental operations to differentiate DentalFlow from generic clinic software?",
+    "Which of the nine modules should be visually prioritized based on the strongest purchase driver?",
+    "Are infrastructure providers such as Supabase meaningful trust signals for clinic owners, or should customer-facing outcomes receive more emphasis?",
+    "Are integration availability/configuration/roadmap states clear enough without visible status badges?",
+    "Can the exact operational impact figures be defended with a transparent methodology, especially the relationship between 2,847 hours and 27.4 days?",
+    "Is the migration promise persuasive enough without scope, timeline, supported-field, and plan-eligibility details?",
+    "Is pricing easy to compare on mobile, and are the Starter exclusions and coming-soon items understood without opening the full comparison?",
+    "Should the selected plan and billing period persist into registration to reduce conversion friction?",
+    "Does the page adequately distinguish currently available WhatsApp capabilities from plan features marked Em breve?",
+    "Is the product video accessible and useful without a visible duration, transcript, or caption statement?",
+    "Is repeating the free-trial CTA in the fixed header, hero, three pricing cards, and final CTA appropriately persistent or excessive?",
+    "Is the hardcoded 47-clinic weekly social-proof claim verifiable and current enough to retain?",
+    "Does the playful slogan fit the premium, trustworthy business positioning established elsewhere?",
+    "Which section could be removed or simplified with the least loss of conversion information?",
+    "Which missing proof element would have the highest impact: customer testimonial, case study, review score, onboarding timeline, or live demo?",
+    "Are claims about security, data isolation, AI, migration, and provider availability precise enough for legal and product review?",
+    "Does the alternating dark/light rhythm aid scanning, or does it make the long page feel visually complex for a dental clinic owner?",
+    "Should the final CTA offer a human-assisted demo/contact path for buyers not ready for self-service registration?"
+  ]
+}
