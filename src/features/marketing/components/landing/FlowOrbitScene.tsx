@@ -137,21 +137,21 @@ function OrbitContent() {
   const glow = useGlowTexture()
 
   useEffect(() => {
-    // GSAP drives the seamless inward light-trace flow (linear, infinite loop).
-    const flow = gsap.to(progress, { current: 1, duration: 5, ease: 'none', repeat: -1 })
-    // GSAP premium entrance: the ring scales up once, when the scene mounts in view.
-    let entrance: gsap.core.Tween | undefined
-    if (ringRef.current) {
-      entrance = gsap.fromTo(
-        ringRef.current.scale,
-        { x: 0.82, y: 0.82, z: 0.82 },
-        { x: 1, y: 1, z: 1, duration: 1.3, ease: 'power3.out' },
-      )
-    }
-    return () => {
-      flow.kill()
-      entrance?.kill()
-    }
+    // gsap.context() scopes all tweens so ctx.revert() kills them atomically on
+    // cleanup — correct React+GSAP lifecycle pattern.
+    const ctx = gsap.context(() => {
+      // Seamless inward light-trace flow (linear, infinite loop).
+      gsap.to(progress, { current: 1, duration: 5, ease: 'none', repeat: -1 })
+      // Ring entrance: scales up once when the scene mounts in view.
+      if (ringRef.current) {
+        gsap.fromTo(
+          ringRef.current.scale,
+          { x: 0.82, y: 0.82, z: 0.82 },
+          { x: 1, y: 1, z: 1, duration: 1.3, ease: 'power3.out' },
+        )
+      }
+    })
+    return () => ctx.revert()
   }, [])
 
   useFrame((state, delta) => {
