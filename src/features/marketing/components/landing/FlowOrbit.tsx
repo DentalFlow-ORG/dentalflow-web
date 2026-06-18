@@ -57,7 +57,7 @@ function useStaticOrbit(): boolean {
 /** Static, zero-CLS placeholder shown before the WebGL scene mounts. */
 function OrbitPoster() {
   return (
-    <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-[42rem]">
+    <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-2xl">
       <div
         className="absolute left-1/2 top-1/2 h-[42%] w-[42%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
         style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.18), transparent 70%)' }}
@@ -86,7 +86,7 @@ function OrbitPoster() {
  */
 function StaticOrbit() {
   return (
-    <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-[42rem]">
+    <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-2xl">
       <div className="relative h-full w-full">
         <div
           className="absolute left-1/2 top-1/2 h-[44%] w-[44%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
@@ -100,7 +100,14 @@ function StaticOrbit() {
           aria-hidden="true"
         >
           <defs>
-            <linearGradient id="df-flow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient
+              id="df-flow-grad"
+              x1="0"
+              y1="0"
+              x2="100"
+              y2="100"
+              gradientUnits="userSpaceOnUse"
+            >
               <stop offset="0%" stopColor="rgba(125,211,252,0.9)" />
               <stop offset="100%" stopColor="rgba(56,189,248,0.5)" />
             </linearGradient>
@@ -180,7 +187,7 @@ function StaticOrbit() {
               }}
             >
               <div className="flex items-center gap-2 rounded-full border border-white/10 bg-slate-800/90 px-2.5 py-1.5 shadow-[0_6px_18px_-8px_rgba(0,0,0,0.85)] sm:px-3.5 sm:py-2">
-                <Icon className="h-4 w-4 shrink-0 text-cyan-300 sm:h-[18px] sm:w-[18px]" />
+                <Icon className="h-4 w-4 shrink-0 text-cyan-300 sm:h-4.5 sm:w-4.5" />
                 <span className="hidden whitespace-nowrap text-xs font-medium text-slate-100 sm:inline">
                   {satellite.label}
                 </span>
@@ -190,7 +197,7 @@ function StaticOrbit() {
         })}
 
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <div className="flex h-28 w-28 items-center justify-center rounded-full border border-white/15 bg-gradient-to-br from-cyan-400/25 to-slate-900/55 shadow-[0_18px_55px_-18px_rgba(56,189,248,0.6)] sm:h-32 sm:w-32">
+          <div className="flex h-28 w-28 items-center justify-center rounded-full border border-white/15 bg-linear-to-br from-cyan-400/25 to-slate-900/55 shadow-[0_18px_55px_-18px_rgba(56,189,248,0.6)] sm:h-32 sm:w-32">
             <div className="flex flex-col items-center">
               <Activity className="h-8 w-8 text-cyan-200 sm:h-9 sm:w-9" />
               <span className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white/90 sm:text-[11px]">
