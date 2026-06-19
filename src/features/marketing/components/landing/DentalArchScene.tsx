@@ -1,39 +1,48 @@
-import { Html, Sparkles } from '@react-three/drei'
+import { Html, Sparkles, useGLTF } from '@react-three/drei'
 import { Canvas, type ThreeEvent, useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 
 import { DENTAL_WORKFLOWS } from '../../data/dental-arch'
 
+const MODEL_URL = '/base.glb'
+
 // ── Arch layout ───────────────────────────────────────────────────────────────
-// A flat, front-facing ∩ "smile" arch: teeth spread across X (so none occlude or
-// bunch), the centre sits highest, the ends curve down, with only a gentle Z
-// recession for depth. Placed by even arc-length so spacing stays consistent.
+// A true curved dental arch (horseshoe): the central incisors sit forward, the
+// molars wrap back around the curve. Viewed from a slightly elevated, top-down
+// camera so the arc reads as a real arcade and no tooth hides behind another.
 const COUNT = DENTAL_WORKFLOWS.length
-const ARCH_W = 3.45 // horizontal half-spread
-const ARCH_H = 1.0 // vertical rise of the smile
-const Z_DEPTH = 0.55 // how far the ends recede from the camera
-const Y_OFFSET = 0.42 // re-centres the arch vertically
-const THETA_MAX = (60 * Math.PI) / 180
-const GLOBAL = 0.82 // global tooth size factor
-const LOOK_AT = new THREE.Vector3(0, 0.2, -0.1)
+const RX = 3.05 // arch half-width
+const RZ = 1.95 // arch depth (front teeth sit closest to the camera)
+const THETA_MAX = (74 * Math.PI) / 180
+const LEAN = 0.34 // each tooth reclines outward within the arch
+const LOOK_AT = new THREE.Vector3(0, -0.12, 0.5)
 const ENAMEL = '#eef5fb'
 
-type ToothPlacement = {
-  position: THREE.Vector3
-  rotation: [number, number, number]
-  scale: [number, number, number]
+// GLB tooth normalization (model is ~1.9 tall, base at y=0, centred on x/z).
+const MODEL_HEIGHT = 1.899
+const NORM_SCALE = 0.52
+
+type ToothVariantKey = 'incisor' | 'canine' | 'molar'
+
+// One tooth model, scaled per arch position for incisor / canine / molar feel.
+const VARIANT_SCALE: Record<ToothVariantKey, [number, number, number]> = {
+  incisor: [0.82, 1.08, 0.82],
+  canine: [0.92, 1.0, 0.92],
+  molar: [1.2, 0.9, 1.2],
 }
 
 function archPoint(theta: number) {
-  return {
-    x: Math.sin(theta) * ARCH_W,
-    y: Math.cos(theta) * ARCH_H - Y_OFFSET,
-    z: -(1 - Math.cos(theta)) * Z_DEPTH,
-  }
+  return { x: Math.sin(theta) * RX, y: 0, z: Math.cos(theta) * RZ }
 }
 
-// Even arc-length placement so molars at the ends don't bunch together.
+type ToothPlacement = {
+  position: THREE.Vector3
+  yaw: number
+  variant: ToothVariantKey
+}
+
+// Even arc-length placement so molars at the ends never bunch together.
 const PLACEMENTS: ToothPlacement[] = (() => {
   const SAMPLES = 240
   const pts = Array.from({ length: SAMPLES + 1 }, (_, i) => {
@@ -56,53 +65,20 @@ const PLACEMENTS: ToothPlacement[] = (() => {
     const a = pts[i - 1]
     const b = pts[i]
     const theta = a.theta + (b.theta - a.theta) * segT
-    const m = Math.abs(theta) / THETA_MAX
+    const absT = Math.abs(theta) / THETA_MAX
     return {
       position: new THREE.Vector3(
         a.x + (b.x - a.x) * segT,
         a.y + (b.y - a.y) * segT,
         a.z + (b.z - a.z) * segT,
       ),
-      // Slight backward lean + a gentle outward fan following the smile tangent.
-      rotation: [-0.12, 0, -theta * 0.4],
-      // Molars (ends) wider and a touch shorter; incisors (centre) narrower/taller.
-      scale: [GLOBAL * (0.82 + m * 0.32), GLOBAL * (1.05 - m * 0.16), GLOBAL],
+      yaw: theta, // turn each tooth to follow the curve (faces outward)
+      variant: absT < 0.3 ? 'incisor' : absT < 0.62 ? 'canine' : 'molar',
     }
   })
 })()
 
-/**
- * Build one stylized tooth: an extruded, bevelled silhouette — a rounded enamel
- * crown that narrows at the cervical neck and splits into two short roots. Reads
- * clearly as a tooth (not a pin/peg), stays premium and sculptural via the
- * bevel + depth. Shared across all nine teeth and scaled per position.
- */
-function buildToothGeometry() {
-  const shape = new THREE.Shape()
-  shape.moveTo(0, 0.58)
-  shape.bezierCurveTo(0.26, 0.6, 0.4, 0.54, 0.4, 0.4) // rounded crown shoulder (right)
-  shape.bezierCurveTo(0.4, 0.18, 0.31, 0.1, 0.27, -0.05) // narrow to cervical neck
-  shape.bezierCurveTo(0.25, -0.28, 0.24, -0.48, 0.17, -0.54) // right root
-  shape.bezierCurveTo(0.11, -0.59, 0.06, -0.4, 0, -0.3) // notch between roots
-  shape.bezierCurveTo(-0.06, -0.4, -0.11, -0.59, -0.17, -0.54) // left root (mirror)
-  shape.bezierCurveTo(-0.24, -0.48, -0.25, -0.28, -0.27, -0.05)
-  shape.bezierCurveTo(-0.31, 0.1, -0.4, 0.18, -0.4, 0.4)
-  shape.bezierCurveTo(-0.4, 0.54, -0.26, 0.6, 0, 0.58)
-
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    depth: 0.32,
-    bevelEnabled: true,
-    bevelThickness: 0.08,
-    bevelSize: 0.08,
-    bevelSegments: 5,
-    curveSegments: 20,
-  })
-  geometry.center()
-  geometry.computeVertexNormals()
-  return geometry
-}
-
-// ── One tooth: visible mesh + forgiving hit target + hover/select lift ────────
+// ── One tooth: GLB mesh (premium enamel material) + forgiving hit target ──────
 function Tooth({
   geometry,
   placement,
@@ -122,10 +98,28 @@ function Tooth({
   onClear: () => void
   onSelect: (index: number) => void
 }) {
-  const visible = useRef<THREE.Mesh>(null)
+  const visible = useRef<THREE.Group>(null)
   const lift = useRef(0)
   const elapsed = useRef(0)
-  const { scale } = placement
+  const [vx, vy, vz] = VARIANT_SCALE[placement.variant]
+  const meshScale: [number, number, number] = [NORM_SCALE * vx, NORM_SCALE * vy, NORM_SCALE * vz]
+  const meshOffsetY = -(MODEL_HEIGHT / 2) * NORM_SCALE * vy
+
+  // Premium enamel material (the GLB ships a flat grey one — we override it so
+  // the active tooth glows in its module accent).
+  const material = useMemo(() => {
+    return new THREE.MeshStandardMaterial({
+      color: ENAMEL,
+      roughness: 0.32,
+      metalness: 0.04,
+      emissive: new THREE.Color(accent),
+      emissiveIntensity: 0.12,
+      side: THREE.DoubleSide,
+      toneMapped: false,
+    })
+  }, [accent])
+
+  useEffect(() => () => material.dispose(), [material])
 
   useFrame((_, delta) => {
     elapsed.current += delta
@@ -133,52 +127,50 @@ function Tooth({
     lift.current += ((isActive ? 1 : 0) - lift.current) * Math.min(1, delta * 6)
 
     const node = visible.current
-    if (!node) return
-    node.position.y = lift.current * 0.18
-    const k = 1 + lift.current * 0.08
-    node.scale.set(scale[0] * k, scale[1] * k, scale[2] * k)
-
-    const mat = node.material as THREE.MeshStandardMaterial
+    if (node) {
+      node.position.y = lift.current * 0.18
+      node.scale.setScalar(1 + lift.current * 0.07)
+    }
     // Very gentle, slow light-flow wave across the arch (phase-offset per tooth).
     const wave = (Math.sin(elapsed.current * 0.55 - index * 0.5) * 0.5 + 0.5) * 0.12
-    mat.emissiveIntensity = 0.12 + wave + lift.current * 0.95
+    material.emissiveIntensity = 0.12 + wave + lift.current * 0.95
   })
 
   return (
-    <group position={placement.position} rotation={placement.rotation}>
-      <mesh ref={visible} geometry={geometry} scale={scale}>
-        <meshStandardMaterial
-          color={ENAMEL}
-          roughness={0.34}
-          metalness={0.04}
-          emissive={accent}
-          emissiveIntensity={0.12}
-          toneMapped={false}
-        />
-      </mesh>
+    <group position={placement.position} rotation={[0, placement.yaw, 0]}>
+      <group rotation={[LEAN, 0, 0]}>
+        <group ref={visible}>
+          <mesh
+            geometry={geometry}
+            material={material}
+            scale={meshScale}
+            position={[0, meshOffsetY, 0]}
+          />
+        </group>
 
-      {/* Forgiving, invisible hit target — larger than the tooth so back teeth
-          and near-misses still select reliably. */}
-      <mesh
-        scale={[scale[0] * 1.18, scale[1] * 1.06, 1.6]}
-        onPointerOver={(event: ThreeEvent<PointerEvent>) => {
-          event.stopPropagation()
-          onActivate(index)
-          document.body.style.cursor = 'pointer'
-        }}
-        onPointerOut={(event: ThreeEvent<PointerEvent>) => {
-          event.stopPropagation()
-          onClear()
-          document.body.style.cursor = ''
-        }}
-        onClick={(event: ThreeEvent<MouseEvent>) => {
-          event.stopPropagation()
-          onSelect(index)
-        }}
-      >
-        <boxGeometry args={[0.95, 1.3, 0.6]} />
-        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-      </mesh>
+        {/* Forgiving, invisible hit target — larger than the tooth so back/side
+            teeth and near-misses still select reliably. */}
+        <mesh
+          position={[0, -0.05, 0]}
+          onPointerOver={(event: ThreeEvent<PointerEvent>) => {
+            event.stopPropagation()
+            onActivate(index)
+            document.body.style.cursor = 'pointer'
+          }}
+          onPointerOut={(event: ThreeEvent<PointerEvent>) => {
+            event.stopPropagation()
+            onClear()
+            document.body.style.cursor = ''
+          }}
+          onClick={(event: ThreeEvent<MouseEvent>) => {
+            event.stopPropagation()
+            onSelect(index)
+          }}
+        >
+          <boxGeometry args={[1.05, 1.6, 1.05]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+      </group>
     </group>
   )
 }
@@ -197,18 +189,20 @@ function ArchContents({
   const active = DENTAL_WORKFLOWS[activeIndex]
   const ActiveIcon = active.icon
 
-  const toothGeometry = useMemo(buildToothGeometry, [])
+  // Suspends until the GLB is fetched; drei caches and disposes the geometry.
+  const { nodes } = useGLTF(MODEL_URL)
+  const toothGeometry = (nodes.model as THREE.Mesh).geometry
+
   const labelPosition = useMemo(
-    () => PLACEMENTS[activeIndex].position.clone().add(new THREE.Vector3(0, 0.92, 0.25)),
+    () => PLACEMENTS[activeIndex].position.clone().add(new THREE.Vector3(0, 1.05, 0.15)),
     [activeIndex],
   )
 
   useEffect(() => {
     return () => {
-      toothGeometry.dispose()
       document.body.style.cursor = ''
     }
-  }, [toothGeometry])
+  }, [])
 
   useFrame((state, delta) => {
     elapsed.current += delta
@@ -216,8 +210,8 @@ function ArchContents({
     // Calm parallax that nearly freezes while a tooth is hovered, so the target
     // never drifts out from under the pointer.
     const damp = hovered !== null ? 0.12 : 1
-    const targetX = (state.pointer.x * 0.32 + Math.sin(time * 0.05) * 0.1) * damp
-    const targetY = 0.55 + (state.pointer.y * 0.14 + Math.cos(time * 0.045) * 0.06) * damp
+    const targetX = (state.pointer.x * 0.34 + Math.sin(time * 0.05) * 0.1) * damp
+    const targetY = 2.65 + (state.pointer.y * 0.18 + Math.cos(time * 0.045) * 0.07) * damp
     state.camera.position.x += (targetX - state.camera.position.x) * 0.022
     state.camera.position.y += (targetY - state.camera.position.y) * 0.022
     state.camera.lookAt(LOOK_AT)
@@ -225,17 +219,17 @@ function ArchContents({
 
   return (
     <>
-      <ambientLight intensity={0.75} />
-      <directionalLight position={[2.5, 5, 6]} intensity={1.45} />
-      <directionalLight position={[-4, 1.5, 2]} intensity={0.7} color="#7dd3fc" />
-      <pointLight position={[0, 1.2, 4]} intensity={16} color="#bae6fd" distance={16} />
+      <ambientLight intensity={0.72} />
+      <directionalLight position={[2.5, 6, 5]} intensity={1.5} />
+      <directionalLight position={[-4, 2.5, 2]} intensity={0.7} color="#7dd3fc" />
+      <pointLight position={[0, 3, 4]} intensity={18} color="#bae6fd" distance={18} />
 
       <Sparkles
-        count={28}
-        scale={[11, 4, 4]}
+        count={26}
+        scale={[11, 4, 5]}
         size={2}
-        speed={0.18}
-        opacity={0.35}
+        speed={0.16}
+        opacity={0.32}
         color="#7dd3fc"
       />
 
@@ -266,18 +260,21 @@ function ArchContents({
 /**
  * Interactive WebGL dental arch (Three.js / React Three Fiber + drei).
  *
- * Nine stylized, extruded teeth sit in a flat front-facing smile arch; each maps
- * to a clinic workflow. Hover or click gently lifts and lights a tooth, a slow
- * wave drifts across the arch, and the camera holds an unobtrusive parallax that
- * calms further while a tooth is hovered. Each tooth carries an oversized
- * invisible hit mesh so every tooth — including the molars at the ends — is easy
- * to click. The active tooth's label is a crisp drei `<Html>` overlay. Selection
+ * Nine instances of a real tooth GLB model (`/base.glb`) are seated in a true
+ * curved horseshoe arch, each turned to follow the curve, reclined outward and
+ * scaled per position (incisor / canine / molar), and viewed from a slightly
+ * top-down camera so the arcade reads clearly. The GLB ships a flat grey
+ * material, so each tooth gets a premium enamel material that glows in its
+ * module accent on hover/selection. A slow wave drifts across the arch; the
+ * camera holds an unobtrusive parallax that calms further while a tooth is
+ * hovered. Every tooth carries an oversized invisible hit mesh so it stays easy
+ * to click. The active tooth's label is a crisp drei `<Html>` overlay; selection
  * is owned by the parent section so the chip selector and arch stay in sync.
  *
  * Lazily imported and mounted only on pointer-fine, non-reduced-motion desktops;
- * mobile / reduced-motion render the static SVG arch instead. R3F disposes GL
- * resources on unmount; the shared geometry and document cursor are disposed
- * explicitly.
+ * the GLB is fetched on demand (never in the hero, never on mobile). R3F disposes
+ * GL resources on unmount, drei manages the cached GLB geometry, and the
+ * per-tooth materials and document cursor are disposed explicitly.
  *
  * Default export so it can be `React.lazy`-loaded.
  */
@@ -291,7 +288,7 @@ export default function DentalArchScene({
   return (
     <Canvas
       dpr={[1, 1.8]}
-      camera={{ position: [0, 0.55, 7.4], fov: 38 }}
+      camera={{ position: [0, 2.65, 6.6], fov: 40 }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       style={{ overflow: 'visible' }}
     >
@@ -299,3 +296,5 @@ export default function DentalArchScene({
     </Canvas>
   )
 }
+
+useGLTF.preload(MODEL_URL)

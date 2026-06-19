@@ -58,14 +58,20 @@ function useStaticArch(): boolean {
 
 /**
  * Crisp flat dental arch (SVG + HTML) for mobile / touch / reduced-motion and
- * as the zero-CLS poster while the WebGL chunk loads. Decorative (`aria-hidden`)
- * — the selectable chips in the section are the accessible control; this arch
- * only reflects the current selection by highlighting its node.
+ * as the zero-CLS poster while the WebGL chunk loads. The arch line and glow are
+ * decorative, but each tooth node is a real, tappable, keyboard-focusable button
+ * (≥44px) that selects its module — so on touch devices the icons themselves are
+ * interactive, in sync with the chip selector and explanatory content.
  */
-function StaticArch({ selectedIndex }: { selectedIndex: number }) {
+function StaticArch({ selectedIndex, onSelect }: DentalArchProps) {
   return (
-    <div aria-hidden="true" className="relative mx-auto aspect-[16/10] w-full max-w-3xl">
+    <div
+      className="relative mx-auto aspect-[16/10] w-full max-w-3xl"
+      role="group"
+      aria-label="Arcada de módulos do DentalFlow"
+    >
       <div
+        aria-hidden="true"
         className="absolute left-1/2 top-[12%] h-[55%] w-[80%] -translate-x-1/2 rounded-[100%] blur-3xl"
         style={{
           background: 'radial-gradient(ellipse at center, rgba(56,189,248,0.18), transparent 70%)',
@@ -107,38 +113,39 @@ function StaticArch({ selectedIndex }: { selectedIndex: number }) {
         const Icon = workflow.icon
         const isSelected = index === selectedIndex
         return (
-          <div
+          <button
             key={workflow.key}
-            className="absolute -translate-x-1/2 -translate-y-1/2"
+            type="button"
+            aria-pressed={isSelected}
+            aria-label={`Selecionar módulo ${workflow.label}`}
+            onClick={() => onSelect(index)}
+            className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             style={{ left: `${(cx / VIEW_W) * 100}%`, top: `${(cy / VIEW_H) * 100}%` }}
           >
-            <div
-              className="flex flex-col items-center gap-1.5"
-              style={{ transform: isSelected ? 'scale(1.06)' : undefined }}
+            <span
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border bg-slate-900/85 shadow-[0_10px_26px_-12px_rgba(0,0,0,0.85)] transition-all sm:h-12 sm:w-12"
+              style={
+                isSelected
+                  ? {
+                      borderColor: workflow.accent,
+                      boxShadow: `0 0 22px -4px ${workflow.accent}`,
+                      transform: 'scale(1.08)',
+                    }
+                  : { borderColor: 'rgba(255,255,255,0.1)' }
+              }
             >
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border bg-slate-900/85 shadow-[0_10px_26px_-12px_rgba(0,0,0,0.85)] transition-colors sm:h-11 sm:w-11"
-                style={
-                  isSelected
-                    ? {
-                        borderColor: workflow.accent,
-                        boxShadow: `0 0 22px -4px ${workflow.accent}`,
-                      }
-                    : { borderColor: 'rgba(255,255,255,0.1)' }
-                }
-              >
-                <Icon
-                  className="h-5 w-5"
-                  style={{ color: isSelected ? workflow.accent : '#7dd3fc' }}
-                />
-              </div>
-              {isSelected && (
-                <span className="whitespace-nowrap text-[11px] font-semibold text-slate-100">
-                  {workflow.label}
-                </span>
-              )}
-            </div>
-          </div>
+              <Icon
+                className="h-5 w-5"
+                style={{ color: isSelected ? workflow.accent : '#7dd3fc' }}
+                aria-hidden="true"
+              />
+            </span>
+            {isSelected && (
+              <span className="whitespace-nowrap text-[11px] font-semibold text-slate-100">
+                {workflow.label}
+              </span>
+            )}
+          </button>
         )
       })}
     </div>
@@ -156,16 +163,16 @@ export function DentalArch({ selectedIndex, onSelect }: DentalArchProps) {
   const isStatic = useStaticArch()
   const { ref, isVisible } = useRevealOnScroll<HTMLDivElement>(0.05)
 
-  if (isStatic) return <StaticArch selectedIndex={selectedIndex} />
+  if (isStatic) return <StaticArch selectedIndex={selectedIndex} onSelect={onSelect} />
 
   return (
     <div ref={ref} className="relative mx-auto aspect-[16/10] w-full max-w-3xl">
       {isVisible ? (
-        <Suspense fallback={<StaticArch selectedIndex={selectedIndex} />}>
+        <Suspense fallback={<StaticArch selectedIndex={selectedIndex} onSelect={onSelect} />}>
           <DentalArchScene selectedIndex={selectedIndex} onSelect={onSelect} />
         </Suspense>
       ) : (
-        <StaticArch selectedIndex={selectedIndex} />
+        <StaticArch selectedIndex={selectedIndex} onSelect={onSelect} />
       )}
     </div>
   )
