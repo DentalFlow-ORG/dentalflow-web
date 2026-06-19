@@ -53,14 +53,15 @@ export function LandingPage() {
         <SectionDivider variant="dark-to-light" />
         <ModulesSection />
 
-        {/* Honest, code-rendered product proof */}
-        <SectionDivider variant="light-to-gray" />
-        <ProductShowcaseSection />
-
         {/* Platform image gallery — visual proof/brand storytelling */}
-        <SectionDivider variant="gray-to-dark" />
+        <SectionDivider variant="light-to-dark" />
         <LandingImageCarouselSection />
 
+        {/* Honest, code-rendered product proof */}
+        <SectionDivider variant="dark-to-gray" />
+        <ProductShowcaseSection />
+
+        <SectionDivider variant="gray-to-dark" />
         <LandingIntegrationsSection />
 
         <SectionDivider variant="dark-to-gray" />
