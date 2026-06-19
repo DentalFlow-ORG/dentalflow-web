@@ -1,3 +1,4 @@
+import type { Appointment, Availability, AvailabilityException } from '../types/scheduling.types'
 import {
   BUSINESS_END_TIME,
   BUSINESS_START_TIME,
@@ -6,7 +7,6 @@ import {
   toDateInputValue,
   wallTimeToMinutes,
 } from './time'
-import type { Appointment, Availability, AvailabilityException } from '../types/scheduling.types'
 
 export const SLOT_MINUTES = 30
 export const SLOT_HEIGHT_PX = 80
@@ -37,8 +37,20 @@ export function isSlotInsideWorkingRanges(slot: number, workingRanges: WorkingRa
 export function computeDayLayout(appointments: Appointment[]): PositionedAppointment[] {
   if (appointments.length === 0) return []
 
-  return appointments.map((appt) => {
-    const concurrent = appointments.filter(
+  // Sort deterministically so column assignments are stable regardless of input order.
+  // Primary: start time ascending.
+  // Secondary: longer duration first (anchor wide appointments to lower columns).
+  // Tertiary: id ascending as a final stable tiebreaker.
+  const sorted = [...appointments].sort((a, b) => {
+    const startCmp = (a.startTime ?? '').localeCompare(b.startTime ?? '')
+    if (startCmp !== 0) return startCmp
+    const durCmp = (b.durationMinutes ?? 0) - (a.durationMinutes ?? 0)
+    if (durCmp !== 0) return durCmp
+    return a.id.localeCompare(b.id)
+  })
+
+  return sorted.map((appt) => {
+    const concurrent = sorted.filter(
       (other) =>
         (appt.startTime ?? '') < (other.endTime ?? '') &&
         (other.startTime ?? '') < (appt.endTime ?? ''),

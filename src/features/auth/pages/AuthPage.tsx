@@ -1,11 +1,11 @@
+import { useCookieConsent } from '@/features/privacy/components/CookieConsentContext'
+import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
+import { cn } from '@/lib/utils'
 import { AuthForm } from '../components/AuthForm'
 import { AuthHeader } from '../components/AuthHeader'
 import { AuthInfoPanel } from '../components/AuthInfoPanel'
 import { AuthModeTabs } from '../components/AuthModeTabs'
 import type { AuthMode } from '../types'
-import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
-import { useCookieConsent } from '@/features/privacy/components/CookieConsentContext'
-import { cn } from '@/lib/utils'
 
 type AuthPageProps = {
   mode: AuthMode
@@ -16,10 +16,12 @@ export function AuthPage({ mode, googleAuthStatus }: AuthPageProps) {
   useForceLightTheme()
   const { isBannerVisible } = useCookieConsent()
   return (
-    <section className={cn(
-      'relative min-h-screen overflow-x-hidden bg-slate-50 px-4 pt-6 sm:px-6 sm:pt-8 lg:px-8',
-      isBannerVisible ? 'pb-64 sm:pb-28' : 'pb-10 sm:pb-16',
-    )}>
+    <section
+      className={cn(
+        'relative min-h-screen overflow-x-hidden bg-slate-50 px-4 pt-6 sm:px-6 sm:pt-8 lg:px-8',
+        isBannerVisible ? 'pb-64 sm:pb-28' : 'pb-10 sm:pb-16',
+      )}
+    >
       {/* Decoration layer — always behind all content */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-blue-100/70 blur-3xl" />

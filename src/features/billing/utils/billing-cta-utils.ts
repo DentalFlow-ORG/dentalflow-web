@@ -1,8 +1,4 @@
-import type {
-  BillingInterval,
-  BillingPlan,
-  CurrentBillingStatus,
-} from '../types/billing.types'
+import type { BillingInterval, BillingPlan, CurrentBillingStatus } from '../types/billing.types'
 
 export type PlanCtaAction =
   | 'start_trial'
@@ -11,7 +7,7 @@ export type PlanCtaAction =
   | 'current_plan'
   | 'reactivate'
 
-export type PlanCtaButtonState = {
+type PlanCtaButtonState = {
   label: string
   helperText: string
   actionType: PlanCtaAction
@@ -87,9 +83,7 @@ export function getPlanCtaState({
     return {
       primary: {
         label:
-          currentSubscription.status === 'canceled'
-            ? 'Reativar assinatura'
-            : 'Assinar novamente',
+          currentSubscription.status === 'canceled' ? 'Reativar assinatura' : 'Assinar novamente',
         helperText: 'Escolha um plano para recuperar o acesso.',
         actionType: 'reactivate',
         disabled: disabledBase,
@@ -111,11 +105,9 @@ export function getPlanCtaState({
   }
 
   const samePlan = currentSubscription.planKey === plan.slug
-  const currentInterval =
-    currentSubscription.billingInterval === 'annual' ? 'YEARLY' : 'MONTHLY'
+  const currentInterval = currentSubscription.billingInterval === 'annual' ? 'YEARLY' : 'MONTHLY'
   const changingInterval = samePlan && currentInterval !== selectedInterval
-  const isUpgrade =
-    currentPlanDisplayOrder != null && plan.displayOrder > currentPlanDisplayOrder
+  const isUpgrade = currentPlanDisplayOrder != null && plan.displayOrder > currentPlanDisplayOrder
 
   return {
     primary: {

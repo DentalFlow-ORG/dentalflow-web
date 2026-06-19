@@ -9,12 +9,10 @@ export function CrashScreen() {
         <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
       </div>
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">
-          Algo deu errado
-        </h1>
+        <h1 className="text-2xl font-semibold text-foreground">Algo deu errado</h1>
         <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-          Ocorreu um erro inesperado na aplicação. Tente recarregar a página. Se
-          o problema persistir, entre em contato com o suporte.
+          Ocorreu um erro inesperado na aplicação. Tente recarregar a página. Se o problema
+          persistir, entre em contato com o suporte.
         </p>
       </div>
       <Button onClick={() => window.location.reload()}>

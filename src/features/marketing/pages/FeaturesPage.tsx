@@ -20,8 +20,6 @@ import { cn } from '@/lib/utils'
 
 import { AvailabilityIndicator } from '../components/AvailabilityIndicator'
 import { PublicLayout } from '../components/PublicLayout'
-import { usePageMeta } from '../hooks/usePageMeta'
-import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 import {
   COMMERCIAL_PLAN_LABELS,
   type CommercialFeatureCategory,
@@ -29,6 +27,8 @@ import {
   getFeatureAvailability,
   getFeaturesByCategory,
 } from '../config/features'
+import { usePageMeta } from '../hooks/usePageMeta'
+import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 
 // ── Navigation data ────────────────────────────────────────────────────────────
 
@@ -169,13 +169,12 @@ export function FeaturesPage() {
               id="features-heading"
               className="mt-5 text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl"
             >
-              Toda a gestão da sua clínica{' '}
-              <span className="text-emerald-400">em um só lugar</span>
+              Toda a gestão da sua clínica <span className="text-emerald-400">em um só lugar</span>
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-              Do agendamento ao financeiro, do prontuário à inteligência artificial —
-              DentalFlow cobre todas as áreas da sua operação.
+              Do agendamento ao financeiro, do prontuário à inteligência artificial — DentalFlow
+              cobre todas as áreas da sua operação.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -202,9 +201,11 @@ export function FeaturesPage() {
 
       {/* ── Lift wrapper ─────────────────────────────────────────────────────── */}
       <div className="-mt-16 rounded-t-[2rem] bg-white lg:-mt-24">
-
         {/* ── Main feature modules ─────────────────────────────────────────── */}
-        <section className="mx-auto max-w-6xl px-6 pt-14 lg:px-8 lg:pt-20" aria-label="Módulos principais">
+        <section
+          className="mx-auto max-w-6xl px-6 pt-14 lg:px-8 lg:pt-20"
+          aria-label="Módulos principais"
+        >
           <div className="mb-10">
             <h2 className="text-2xl font-semibold text-slate-900 sm:text-3xl">
               Módulos principais
@@ -227,7 +228,9 @@ export function FeaturesPage() {
                     <Icon className="h-5 w-5 text-emerald-600" aria-hidden="true" />
                   </div>
                   <h3 className="mt-4 text-base font-semibold text-slate-900">{module.label}</h3>
-                  <p className="mt-1.5 flex-1 text-sm leading-6 text-slate-500">{module.description}</p>
+                  <p className="mt-1.5 flex-1 text-sm leading-6 text-slate-500">
+                    {module.description}
+                  </p>
                   <span className="mt-4 flex items-center gap-1 text-xs font-semibold text-emerald-600 transition-colors group-hover:text-emerald-700">
                     Saiba mais
                     <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -239,7 +242,10 @@ export function FeaturesPage() {
         </section>
 
         {/* ── Additional modules ───────────────────────────────────────────── */}
-        <section className="mx-auto max-w-6xl px-6 pb-16 pt-12 lg:px-8 lg:pt-16" aria-label="Módulos adicionais">
+        <section
+          className="mx-auto max-w-6xl px-6 pb-16 pt-12 lg:px-8 lg:pt-16"
+          aria-label="Módulos adicionais"
+        >
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-slate-900 sm:text-2xl">
               Funcionalidades adicionais
@@ -262,7 +268,9 @@ export function FeaturesPage() {
                     <Icon className="h-4 w-4 text-slate-600" aria-hidden="true" />
                   </div>
                   <h3 className="mt-3 text-sm font-semibold text-slate-800">{module.label}</h3>
-                  <p className="mt-1 flex-1 text-xs leading-5 text-slate-500">{module.description}</p>
+                  <p className="mt-1 flex-1 text-xs leading-5 text-slate-500">
+                    {module.description}
+                  </p>
                   <span className="mt-3 flex items-center gap-1 text-xs font-medium text-slate-500 transition-colors group-hover:text-slate-700">
                     Ver detalhes
                     <ChevronRight className="h-3 w-3" aria-hidden="true" />
@@ -451,8 +459,8 @@ export function FeaturesPage() {
                   como funcionalidade comercial da clínica.
                 </p>
                 <p>
-                  Controle interno de notas organiza dados fiscais, rascunhos e acompanhamento.
-                  Não promete emissão fiscal automática ou real sem provedor e configuração adequados.
+                  Controle interno de notas organiza dados fiscais, rascunhos e acompanhamento. Não
+                  promete emissão fiscal automática ou real sem provedor e configuração adequados.
                 </p>
                 <p>
                   Assistente IA apoia análises baseadas nos dados registrados no sistema. Ele não
@@ -505,9 +513,7 @@ export function FeaturesPage() {
             </div>
           </div>
         </section>
-
       </div>
     </PublicLayout>
   )
 }
-

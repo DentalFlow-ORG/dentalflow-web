@@ -1,19 +1,12 @@
-import {
-  AlertCircle,
-  CalendarDays,
-  ExternalLink,
-  Loader2,
-  X,
-  type LucideIcon,
-} from 'lucide-react'
+import { AlertCircle, CalendarDays, ExternalLink, Loader2, type LucideIcon, X } from 'lucide-react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
 import { formatDateBR } from '@/lib/date-time-formatters'
 
-import { BillingStatusBadge } from './BillingStatusBadge'
 import type { CurrentBillingStatus } from '../types/billing.types'
+import { BillingStatusBadge } from './BillingStatusBadge'
 
 type Props = {
   billingStatus: CurrentBillingStatus | null

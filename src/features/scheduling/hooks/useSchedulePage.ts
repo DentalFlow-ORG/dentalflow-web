@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { listProfiles } from '../services/profiles.service'
 import type { ProfileListItem } from '../types/profile.types'
 
@@ -16,16 +17,13 @@ import type {
   Availability,
   AvailabilityException,
 } from '../types/scheduling.types'
-import { getWeekStart } from '../utils/time'
+import { getBrazilWeekStart } from '../utils/time'
 import { useAppointmentStatusChange } from './useAppointmentStatusChange'
 
 export type ScheduleTab = 'agenda' | 'disponibilidade' | 'excecoes'
 export type ScheduleView = 'calendar' | 'table'
 
-export const DENTIST_ALLOWED_TRANSITIONS: AppointmentStatus[] = [
-  'COMPLETED',
-  'NO_SHOW',
-]
+export const DENTIST_ALLOWED_TRANSITIONS: AppointmentStatus[] = ['COMPLETED', 'NO_SHOW']
 
 export function useSchedulePage() {
   const { user } = useAuth()
@@ -39,17 +37,14 @@ export function useSchedulePage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<ScheduleTab>('agenda')
   const [view, setView] = useState<ScheduleView>('calendar')
-  const [weekStart, setWeekStart] = useState(getWeekStart(new Date()))
+  const [weekStart, setWeekStart] = useState(() => getBrazilWeekStart(brazilTodayIso()))
   const [drawerAppointment, setDrawerAppointment] = useState<Appointment | null>(null)
   const [isActionLoading, setIsActionLoading] = useState(false)
 
   useEffect(() => {
     async function load() {
       try {
-        const [profiles, appts] = await Promise.all([
-          listProfiles(),
-          listAppointments(),
-        ])
+        const [profiles, appts] = await Promise.all([listProfiles(), listAppointments()])
         const mine = profiles.find((profile) => profile.userId === user?.id) ?? null
         setOwnProfile(mine)
         setAppointments(mine ? appts.filter((appt) => appt.profileId === mine.id) : [])

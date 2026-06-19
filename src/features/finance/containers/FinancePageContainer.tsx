@@ -2,32 +2,32 @@ import { RefreshCw } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { ListPageShell } from '@/components/common/ListPageShell'
-import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { PanelCard } from '@/components/common/PanelCard'
+import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
-import { useExpenseClassifier } from '../hooks/useExpenseClassifier'
-import { useFinancePage } from '../hooks/useFinancePage'
-import { useMonthlyFinanceDiagnosis } from '../hooks/useMonthlyFinanceDiagnosis'
-import { useProcedureMargins } from '../hooks/useProcedureMargins'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import { CategoriesPanel } from '../components/CategoriesPanel'
 import { CategoryCreateForm } from '../components/CategoryCreateForm'
 import { CategoryEditModal } from '../components/CategoryEditModal'
 import { FinanceFiltersBar } from '../components/FinanceFiltersBar'
 import { FinancialAnalysisPanel } from '../components/FinancialAnalysisPanel'
-import { MonthlyFinanceDiagnosisCard } from '../components/MonthlyFinanceDiagnosisCard'
-import { ProcedureMarginsSection } from '../components/ProcedureMarginsSection'
-import { FixedExpenseForm } from '../components/FixedExpenseForm'
 import { FixedExpenseEditModal } from '../components/FixedExpenseEditModal'
+import { FixedExpenseForm } from '../components/FixedExpenseForm'
 import { FixedExpensesList } from '../components/FixedExpensesList'
 import { IncomeExpensesChart } from '../components/IncomeExpensesChart'
 import { KpiGrid } from '../components/KpiGrid'
+import { MonthlyFinanceDiagnosisCard } from '../components/MonthlyFinanceDiagnosisCard'
+import { ProcedureMarginsSection } from '../components/ProcedureMarginsSection'
 import { Ranking } from '../components/Ranking'
 import { TransactionEditModal } from '../components/TransactionEditModal'
 import { TransactionForm } from '../components/TransactionForm'
 import { TransactionsTable } from '../components/TransactionsTable'
+import { useExpenseClassifier } from '../hooks/useExpenseClassifier'
+import { useFinancePage } from '../hooks/useFinancePage'
+import { useMonthlyFinanceDiagnosis } from '../hooks/useMonthlyFinanceDiagnosis'
+import { useProcedureMargins } from '../hooks/useProcedureMargins'
 
 export function FinancePageContainer() {
   const {
@@ -106,19 +106,40 @@ export function FinancePageContainer() {
     setTransactionsPageSize,
   } = useFinancePage()
 
-  const { getState: getClassifierState, handleClassify, handleApply: handleApplyCategory, handleDismiss: handleDismissClassify } = useExpenseClassifier(load)
-  const { state: diagnosisState, handleGenerate: handleGenerateDiagnosis } = useMonthlyFinanceDiagnosis()
+  const {
+    getState: getClassifierState,
+    handleClassify,
+    handleApply: handleApplyCategory,
+    handleDismiss: handleDismissClassify,
+  } = useExpenseClassifier(load)
+  const { state: diagnosisState, handleGenerate: handleGenerateDiagnosis } =
+    useMonthlyFinanceDiagnosis()
   const { state: marginsState, load: loadMargins } = useProcedureMargins()
+
+  const pendingReceivablesEmptyState =
+    filters.type === 'INCOME' && filters.status === 'PENDING'
+      ? {
+          title: 'Nenhum recebível pendente no período selecionado',
+          description:
+            'Todas as entradas do período estão pagas ou não há lançamentos pendentes para cobrar.',
+          actionLabel: 'Limpar filtros',
+          onAction: () => {
+            setFilter('type', undefined)
+            setFilter('status', undefined)
+            setFilter('categoryId', undefined)
+          },
+        }
+      : undefined
 
   if (planBlocked) return <PlanUpgradeNotice title="Gestão financeira" />
 
   return (
     <AppPage>
-      <AppPageHeader
-        eyebrow="Gestão financeira"
-        title="Financeiro da clínica"
-        description="Acompanhe entradas, saídas, despesas fixas e desempenho financeiro por período."
-        action={
+      <HomeDashboardHeader
+        eyebrow="Gestão"
+        title="Financeiro"
+        description="Acompanhe receita, despesas, recebíveis e oportunidades para aumentar o faturamento da clínica."
+        actions={
           <Button variant="outline" onClick={load}>
             <RefreshCw className="h-4 w-4" aria-hidden="true" />
             Atualizar
@@ -137,7 +158,21 @@ export function FinancePageContainer() {
       >
         {summary && (
           <>
-            <KpiGrid summary={summary} />
+            <KpiGrid
+              summary={summary}
+              previousSummary={previousSummary}
+              onPendingReceivablesClick={() => {
+                setFilter('type', 'INCOME')
+                setFilter('status', 'PENDING')
+                if (typeof document !== 'undefined') {
+                  requestAnimationFrame(() => {
+                    document
+                      .getElementById('finance-transactions')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  })
+                }
+              }}
+            />
 
             <FinancialAnalysisPanel summary={summary} previousSummary={previousSummary} />
 
@@ -152,9 +187,7 @@ export function FinancePageContainer() {
               <PanelCard>
                 <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-base font-semibold text-foreground">
-                      Entradas x saídas
-                    </h2>
+                    <h2 className="text-base font-semibold text-foreground">Entradas x saídas</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Evolução financeira no período selecionado.
                     </p>
@@ -167,9 +200,10 @@ export function FinancePageContainer() {
               </PanelCard>
 
               <PanelCard>
-                <h2 className="text-base font-semibold text-foreground">
-                  Composição financeira
-                </h2>
+                <h2 className="text-base font-semibold text-foreground">Composição financeira</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Veja onde a receita se concentra e quais categorias mais pesam no resultado.
+                </p>
                 <div className="mt-5 space-y-6">
                   <Ranking
                     title="Despesas por categoria"
@@ -191,7 +225,7 @@ export function FinancePageContainer() {
               </PanelCard>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div id="finance-transactions" className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <TransactionsTable
                 transactions={transactions}
                 isLoading={isLoadingTransactions}
@@ -206,6 +240,7 @@ export function FinancePageContainer() {
                 onClassify={handleClassify}
                 onApplyCategory={handleApplyCategory}
                 onDismissClassify={handleDismissClassify}
+                emptyState={pendingReceivablesEmptyState}
               />
               <TransactionForm
                 form={transactionForm}
@@ -304,9 +339,7 @@ export function FinancePageContainer() {
       <TransactionEditModal
         transaction={editingTransaction}
         form={editForm}
-        categories={
-          editForm.type === 'INCOME' ? incomeCategories : expenseCategories
-        }
+        categories={editForm.type === 'INCOME' ? incomeCategories : expenseCategories}
         error={editError}
         isSubmitting={isUpdating}
         onChange={setEditField}
@@ -328,6 +361,3 @@ export function FinancePageContainer() {
     </AppPage>
   )
 }
-
-
-

@@ -1,10 +1,13 @@
-import type { ReactNode } from 'react'
-import { renderWithProviders, screen, waitFor } from '@/test-utils/render-utils'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
-import { makeOwnerUser, makeDentistUser, makeAdminUser } from '@/test-utils/factories/user.factory'
-import { makeAccessGrantedBillingStatus, makeAccessDeniedBillingStatus } from '@/test-utils/factories/billing.factory'
+import {
+  makeAccessDeniedBillingStatus,
+  makeAccessGrantedBillingStatus,
+} from '@/test-utils/factories/billing.factory'
+import { makeAdminUser, makeDentistUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
+import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 import { setMockPathname } from '@/test-utils/mocks/router'
-import { setMockAuthState, resetAuthMocks } from '@/test-utils/mocks/auth'
+import { renderWithProviders, screen, waitFor } from '@/test-utils/render-utils'
+import type { ReactNode } from 'react'
 
 const mockGetCachedBillingStatus = vi.fn()
 const mockGetCurrentBillingStatus = vi.fn()
@@ -94,10 +97,7 @@ describe('ProtectedAppRoute', () => {
         <div>Protected Content</div>
       </ProtectedAppRoute>,
     )
-    expect(screen.getByTestId('navigate')).toHaveAttribute(
-      'data-to',
-      '/acessar/completar-perfil',
-    )
+    expect(screen.getByTestId('navigate')).toHaveAttribute('data-to', '/acessar/completar-perfil')
   })
 
   it('redirects an OWNER to /app when the route requires DENTIST role', () => {
@@ -178,9 +178,7 @@ describe('ProtectedAppRoute', () => {
         <div>Billing Content</div>
       </ProtectedAppRoute>,
     )
-    await waitFor(() =>
-      expect(screen.getByTestId('subscription-shell')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByTestId('subscription-shell')).toBeInTheDocument())
     expect(screen.getByText('Billing Content')).toBeInTheDocument()
   })
 
@@ -191,9 +189,7 @@ describe('ProtectedAppRoute', () => {
         <div>Protected Content</div>
       </ProtectedAppRoute>,
     )
-    await waitFor(() =>
-      expect(screen.getByTestId('app-shell')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByTestId('app-shell')).toBeInTheDocument())
     expect(screen.getByText('Protected Content')).toBeInTheDocument()
   })
 })

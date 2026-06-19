@@ -1,6 +1,6 @@
-import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
 import { setMockSearch } from '@/test-utils/mocks/router'
+import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 
 vi.mock('@tanstack/react-router', async () => {
   const m = await import('@/test-utils/mocks/router')
@@ -59,9 +59,7 @@ describe('ResetPasswordPage', () => {
     await user.type(screen.getByLabelText('Nova senha'), 'NewStr0ng@Pass!')
     await user.click(screen.getByRole('button', { name: /Redefinir senha/i }))
 
-    expect(
-      await screen.findByRole('heading', { name: 'Senha redefinida' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Senha redefinida' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Redefinir senha/i })).not.toBeInTheDocument()
   })
 
@@ -73,9 +71,7 @@ describe('ResetPasswordPage', () => {
     await user.type(screen.getByLabelText('Nova senha'), 'NewStr0ng@Pass!')
     await user.click(screen.getByRole('button', { name: /Redefinir senha/i }))
 
-    expect(
-      await screen.findByText('Token expirado ou inválido.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Token expirado ou inválido.')).toBeInTheDocument()
   })
 
   describe('PasswordRequirements', () => {

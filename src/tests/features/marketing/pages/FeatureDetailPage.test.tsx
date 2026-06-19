@@ -5,8 +5,8 @@ import { render, screen } from '@/test-utils/render-utils'
 import { featureDetailContents } from '@/features/marketing/data/public-content'
 import { FeatureDetailPage } from '@/features/marketing/pages/FeatureDetailPage'
 
-const agenda = featureDetailContents['agenda']
-const pacientes = featureDetailContents['pacientes']
+const agenda = featureDetailContents.agenda
+const pacientes = featureDetailContents.pacientes
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: ReactNode; to: string }) => (
@@ -75,9 +75,7 @@ describe('FeatureDetailPage — problem / solution', () => {
 describe('FeatureDetailPage — benefits', () => {
   it('renders the "Principais benefícios" heading', () => {
     render(<FeatureDetailPage content={agenda} />)
-    expect(
-      screen.getByRole('heading', { name: 'Principais benefícios' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Principais benefícios' })).toBeInTheDocument()
   })
 
   it('renders each benefit from content.benefits', () => {
@@ -93,9 +91,7 @@ describe('FeatureDetailPage — benefits', () => {
 describe('FeatureDetailPage — workflow', () => {
   it('renders "Como funciona na prática" heading', () => {
     render(<FeatureDetailPage content={agenda} />)
-    expect(
-      screen.getByRole('heading', { name: 'Como funciona na prática' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Como funciona na prática' })).toBeInTheDocument()
   })
 
   it('renders all workflow step titles', () => {
@@ -151,7 +147,7 @@ describe('FeatureDetailPage — related features', () => {
     render(<FeatureDetailPage content={agenda} />)
     expect(screen.getByText('Prontuário eletrônico')).toBeInTheDocument()
     expect(screen.getByText('Gestão financeira')).toBeInTheDocument()
-    expect(screen.getByText('Pacientes e leads')).toBeInTheDocument()
+    expect(screen.getByText('Pacientes')).toBeInTheDocument()
   })
 
   it('does not include the current feature label in the related section', () => {

@@ -1,9 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/react'
 import { CookieConsentProvider } from '@/features/privacy/components/CookieConsentProvider'
 import {
   COOKIE_CONSENT_KEY,
   COOKIE_POLICY_VERSION,
 } from '@/features/privacy/utils/cookie-consent-storage'
+import { fireEvent, render, screen } from '@testing-library/react'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -30,14 +30,22 @@ function getFirstButton(name: string) {
   return screen.getAllByRole('button', { name })[0]
 }
 
-function makeStoredConsent(overrides: Partial<{
-  version: string
-  source: 'banner' | 'preferences'
-  preferences: boolean
-  analytics: boolean
-  marketing: boolean
-}> = {}) {
-  const { version = COOKIE_POLICY_VERSION, source = 'banner', preferences = false, analytics = false, marketing = false } = overrides
+function makeStoredConsent(
+  overrides: Partial<{
+    version: string
+    source: 'banner' | 'preferences'
+    preferences: boolean
+    analytics: boolean
+    marketing: boolean
+  }> = {},
+) {
+  const {
+    version = COOKIE_POLICY_VERSION,
+    source = 'banner',
+    preferences = false,
+    analytics = false,
+    marketing = false,
+  } = overrides
   return JSON.stringify({
     version,
     timestamp: new Date().toISOString(),

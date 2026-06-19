@@ -1,4 +1,4 @@
-import { CheckCircle2, Loader2, Lock, Sparkles, X } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Loader2, Lock, Sparkles, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -69,19 +69,16 @@ export function ExpenseClassifyAction({
   // Quota exceeded
   if (isQuotaExceeded) {
     return (
-      <p className="mt-1 text-[11px] text-amber-600 dark:text-amber-400">
+      <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2 text-[11px] text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-400">
+        <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
         Você atingiu o limite de classificações inteligentes deste mês.
-      </p>
+      </div>
     )
   }
 
   // Error (non-blocking)
   if (error && !result) {
-    return (
-      <p className="mt-1 text-[11px] text-red-600 dark:text-red-400">
-        {error}
-      </p>
-    )
+    return <p className="mt-1 text-[11px] text-red-600 dark:text-red-400">{error}</p>
   }
 
   // Result
@@ -89,9 +86,7 @@ export function ExpenseClassifyAction({
     if (result.source === 'NO_MATCH' || !result.suggestedCategoryId) {
       return (
         <div className="mt-1 flex items-center gap-1.5">
-          <p className="text-[11px] text-muted-foreground">
-            Nenhuma categoria identificada.
-          </p>
+          <p className="text-[11px] text-muted-foreground">Nenhuma categoria identificada.</p>
           <button
             type="button"
             onClick={() => onDismiss(transactionId)}
@@ -108,10 +103,12 @@ export function ExpenseClassifyAction({
     return (
       <div className="mt-1.5 space-y-1">
         <div className="flex flex-wrap items-center gap-1.5">
-          <CheckCircle2 className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+          <CheckCircle2
+            className="h-3 w-3 shrink-0 text-emerald-600 dark:text-emerald-400"
+            aria-hidden="true"
+          />
           <span className="text-[11px] font-medium text-foreground">
-            Sugestão:{' '}
-            <span className="text-primary">{result.suggestedCategoryName}</span>
+            Sugestão: <span className="text-primary">{result.suggestedCategoryName}</span>
           </span>
           <ConfidenceBadge confidence={result.confidence} />
           <span className="text-[10px] text-muted-foreground/60">
@@ -129,9 +126,7 @@ export function ExpenseClassifyAction({
             disabled={isApplying}
             onClick={() => onApply(transactionId, categoryId)}
           >
-            {isApplying ? (
-              <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
-            ) : null}
+            {isApplying ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : null}
             Aplicar
           </Button>
           <Button

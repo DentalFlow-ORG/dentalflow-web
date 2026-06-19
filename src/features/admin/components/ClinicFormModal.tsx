@@ -13,10 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-import {
-  createAdminClinic,
-  updateAdminClinic,
-} from '../services/admin-clinics.service'
+import { createAdminClinic, updateAdminClinic } from '../services/admin-clinics.service'
 import type { AdminClinic } from '../types/admin.types'
 
 type ClinicFormModalProps = {
@@ -43,12 +40,7 @@ function buildInitialForm(clinic: AdminClinic): FormState {
   }
 }
 
-export function ClinicFormModal({
-  open,
-  initialData,
-  onClose,
-  onSuccess,
-}: ClinicFormModalProps) {
+export function ClinicFormModal({ open, initialData, onClose, onSuccess }: ClinicFormModalProps) {
   const isEditMode = Boolean(initialData)
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [error, setError] = useState<string | null>(null)
@@ -79,9 +71,7 @@ export function ClinicFormModal({
       const result = isEditMode
         ? await updateAdminClinic(initialData!.id, {
             name,
-            ...(initialData!.isActive !== undefined
-              ? { isActive: form.isActive === 'true' }
-              : {}),
+            ...(initialData!.isActive !== undefined ? { isActive: form.isActive === 'true' } : {}),
           })
         : await createAdminClinic({ name })
 
@@ -134,10 +124,7 @@ export function ClinicFormModal({
 
               {isEditMode && initialData?.isActive !== undefined && (
                 <FormField label="Status" htmlFor="clinicIsActive">
-                  <Select
-                    value={form.isActive}
-                    onValueChange={(value) => set('isActive', value)}
-                  >
+                  <Select value={form.isActive} onValueChange={(value) => set('isActive', value)}>
                     <SelectTrigger id="clinicIsActive">
                       <SelectValue placeholder="Selecione o status" />
                     </SelectTrigger>
@@ -151,21 +138,12 @@ export function ClinicFormModal({
             </div>
 
             <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isSubmitting}
-              >
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                 Cancelar
               </Button>
               <Button type="submit" form="clinic-form" disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isSubmitting
-                  ? 'Salvando...'
-                  : isEditMode
-                    ? 'Salvar alterações'
-                    : 'Criar clínica'}
+                {isSubmitting ? 'Salvando...' : isEditMode ? 'Salvar alterações' : 'Criar clínica'}
               </Button>
             </div>
           </form>

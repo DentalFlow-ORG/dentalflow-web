@@ -36,37 +36,49 @@ export function CategoryCreateForm({
         </div>
         <div>
           <h2 className="text-base font-semibold text-foreground">Nova categoria</h2>
-          <p className="text-sm text-muted-foreground">Crie categorias personalizadas para a clínica.</p>
+          <p className="text-sm text-muted-foreground">
+            Crie categorias personalizadas para a clínica.
+          </p>
         </div>
       </div>
-      <form className="space-y-4" onSubmit={onSubmit}>
+      <form className="space-y-5" onSubmit={onSubmit}>
         {error && <InlineFeedback>{error}</InlineFeedback>}
-        <FormField label="Tipo" htmlFor="catType">
-          <Select
-            value={form.type}
-            onValueChange={(value) => onChange('type', value as FinancialTransactionType)}
-          >
-            <SelectTrigger id="catType">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="INCOME">Entrada</SelectItem>
-              <SelectItem value="EXPENSE">Saída</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
-        <FormField label="Nome" htmlFor="catName">
-          <TextInput
-            id="catName"
-            value={form.name}
-            maxLength={80}
-            placeholder="Ex.: Marketing, Equipamentos..."
-            onChange={(event) => onChange('name', event.target.value)}
-          />
-        </FormField>
-        <FormField label="Cor" htmlFor="catColor">
-          <ColorPicker value={form.color} onChange={(color) => onChange('color', color)} />
-        </FormField>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField label="Tipo" htmlFor="catType">
+            <Select
+              value={form.type}
+              onValueChange={(value) => onChange('type', value as FinancialTransactionType)}
+            >
+              <SelectTrigger id="catType">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="INCOME">Entrada</SelectItem>
+                <SelectItem value="EXPENSE">Saída</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+          <FormField label="Nome" htmlFor="catName">
+            <TextInput
+              id="catName"
+              value={form.name}
+              maxLength={80}
+              placeholder="Ex.: Marketing, Equipamentos..."
+              onChange={(event) => onChange('name', event.target.value)}
+            />
+          </FormField>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Identificação visual
+          </p>
+          <FormField label="Cor" htmlFor="catColor">
+            <ColorPicker value={form.color} onChange={(color) => onChange('color', color)} />
+          </FormField>
+        </div>
+
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
           Criar categoria

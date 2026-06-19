@@ -1,18 +1,15 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor, act } from '@/test-utils/render-utils'
-import type { Appointment } from '@/features/scheduling/types/scheduling.types'
 import { AppointmentPaymentSection } from '@/features/scheduling/components/appointments/AppointmentPaymentSection'
 import { updateAppointmentPayment } from '@/features/scheduling/services/scheduling.service'
+import type { Appointment } from '@/features/scheduling/types/scheduling.types'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 import {
-  setMockAuthState,
-  resetAuthMocks,
-} from '@/test-utils/mocks/auth'
-import {
-  makeOwnerUser,
   makeAssistantUser,
   makeDentistUser,
+  makeOwnerUser,
 } from '@/test-utils/factories/user.factory'
+import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
+import { act, fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockShowAlert = vi.fn()
 
@@ -215,7 +212,10 @@ describe('loading state', () => {
   it('disables submit buttons while the service call is pending and re-enables after resolve', async () => {
     let resolve!: (appt: Appointment) => void
     vi.mocked(updateAppointmentPayment).mockImplementation(
-      () => new Promise<Appointment>((r) => { resolve = r }),
+      () =>
+        new Promise<Appointment>((r) => {
+          resolve = r
+        }),
     )
     setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
     render(
@@ -257,8 +257,6 @@ describe('conditional buttons', () => {
         onUpdated={vi.fn()}
       />,
     )
-    expect(
-      screen.queryByRole('button', { name: /Marcar como pendente/i }),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Marcar como pendente/i })).not.toBeInTheDocument()
   })
 })

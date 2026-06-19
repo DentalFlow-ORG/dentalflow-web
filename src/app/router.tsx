@@ -1,8 +1,4 @@
-import {
-  createRoute,
-  createRootRoute,
-  createRouter,
-} from '@tanstack/react-router'
+import { createRootRoute, createRoute, createRouter, redirect } from '@tanstack/react-router'
 
 import { RootRoute } from '@/app/RootRoute'
 import {
@@ -12,16 +8,14 @@ import {
   AdminUsersPage,
   AgendaFeaturePage,
   AiFeaturePage,
-  ClinicalRecordsFeaturePage,
-  CompliancePage,
   AppointmentsPage,
   AuthRoutePage,
-  CompleteProfilePage,
-  ForgotPasswordPage,
-  ResetPasswordPage,
   ClinicalRecordEditorPage,
   ClinicalRecordPrintPage,
+  ClinicalRecordsFeaturePage,
   ClinicalRecordsPage,
+  CompleteProfilePage,
+  CompliancePage,
   CookiePolicyPage,
   DashboardPage,
   DataProcessingPage,
@@ -29,39 +23,38 @@ import {
   DentistHomePage,
   DpoContactPage,
   FaqPage,
-  FinancePage,
-  FinanceFeaturePage,
   FeaturesPage,
+  FinanceFeaturePage,
+  FinancePage,
+  FiscalFeaturePage,
   FiscalInvoicesPage,
+  FiscalProfilePage,
   ForDentistPage,
   ForManagerPage,
   ForNewClinicPage,
   ForSecretaryPage,
+  ForgotPasswordPage,
   IntegrationsPage,
+  InventoryFeaturePage,
   InventoryPage,
   LandingPage,
-  FiscalFeaturePage,
-  FiscalProfilePage,
-  InventoryFeaturePage,
-  LeadsFeaturePage,
-  LeadsPage,
   NotificationSettingsPage,
   OAuthSuccessPage,
   PatientsAttentionPage,
   PatientsFeaturePage,
-  PlansPage,
-  ReportsFeaturePage,
-  ReportsPage,
-  SettingsPage,
   PatientsPage,
+  PlansPage,
   PrivacyPolicyPage,
   PrivacyRequestFormPage,
+  ReportsFeaturePage,
+  ReportsPage,
+  ResetPasswordPage,
   SchedulePage,
   SecurityPage,
+  SettingsPage,
   SubscriptionCancelPage,
   SubscriptionPage,
   SubscriptionSuccessPage,
-  TeamMemberProfilePage,
   TeamPage,
   TermsOfUsePage,
   WhatsappFeaturePage,
@@ -188,16 +181,6 @@ const teamRoute = createRoute({
   component: () => (
     <ProtectedAppRoute allowedRoles={['OWNER']}>
       <TeamPage />
-    </ProtectedAppRoute>
-  ),
-})
-
-const teamMemberProfileRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/app/equipe/$profileId',
-  component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER', 'DENTIST']}>
-      <TeamMemberProfilePage />
     </ProtectedAppRoute>
   ),
 })
@@ -345,14 +328,13 @@ const patientsAttentionRoute = createRoute({
   ),
 })
 
-const leadsRoute = createRoute({
+// Redirect old /app/leads bookmarks to the patient attention queue
+const leadsRedirectRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/leads',
-  component: () => (
-    <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
-      <LeadsPage />
-    </ProtectedAppRoute>
-  ),
+  beforeLoad: () => {
+    throw redirect({ to: '/app/pacientes/atencao' })
+  },
 })
 
 const reportsRoute = createRoute({
@@ -540,12 +522,6 @@ const inventoryFeatureRoute = createRoute({
   component: InventoryFeaturePage,
 })
 
-const leadsFeatureRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/funcionalidades/leads',
-  component: LeadsFeaturePage,
-})
-
 const reportsFeatureRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/funcionalidades/relatorios',
@@ -571,12 +547,11 @@ const routeTree = rootRoute.addChildren([
   appointmentsRoute,
   scheduleRoute,
   teamRoute,
-  teamMemberProfileRoute,
   financeRoute,
   fiscalInvoicesRoute,
   patientsRoute,
   patientsAttentionRoute,
-  leadsRoute,
+  leadsRedirectRoute,
   reportsRoute,
   subscriptionRoute,
   subscriptionSuccessRoute,
@@ -615,7 +590,6 @@ const routeTree = rootRoute.addChildren([
   patientsFeatureRoute,
   clinicalRecordsFeatureRoute,
   inventoryFeatureRoute,
-  leadsFeatureRoute,
   reportsFeatureRoute,
   fiscalFeatureRoute,
 ])

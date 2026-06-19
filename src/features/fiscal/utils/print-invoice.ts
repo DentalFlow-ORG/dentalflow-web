@@ -1,3 +1,4 @@
+import { ENVIRONMENT_LABELS } from '../constants/invoice-environment'
 import { INVOICE_STATUS_LABEL } from '../constants/invoice-status'
 import type { ServiceInvoice } from '../types/fiscal.types'
 import { formatCents, formatInvoiceDate } from './invoice-format'
@@ -47,7 +48,7 @@ export function printInvoice(invoice: ServiceInvoice): void {
   <div class="header">
     <div>
       <h1>Nota Fiscal de Serviço</h1>
-      <p>Documento sem validade fiscal · Modo: Local/Simulação</p>
+      <p>Documento sem validade fiscal · Modo: ${ENVIRONMENT_LABELS[invoice.environment]}</p>
     </div>
     <div>
       <span class="badge">${escapeHtml(INVOICE_STATUS_LABEL[invoice.status])}</span>

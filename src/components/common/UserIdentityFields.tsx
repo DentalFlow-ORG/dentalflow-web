@@ -80,16 +80,21 @@ export function UserPhoneField({
   phone,
   onPhoneChange,
   fieldPrefix = '',
-}: Pick<UserIdentityFieldsProps, 'phone' | 'onPhoneChange' | 'fieldPrefix'>) {
+  phoneError,
+}: Pick<UserIdentityFieldsProps, 'phone' | 'onPhoneChange' | 'fieldPrefix'> & {
+  phoneError?: string | null
+}) {
+  const fieldId = `${fieldPrefix}phone`
   return (
-    <FormField label="Telefone" htmlFor={`${fieldPrefix}phone`} optional>
+    <FormField label="Telefone" htmlFor={fieldId} optional error={phoneError}>
       <TextInput
-        id={`${fieldPrefix}phone`}
+        id={fieldId}
         type="tel"
         maxLength={15}
         value={formatPhoneBR(phone)}
         placeholder="(11) 99999-9999"
         onChange={(event) => onPhoneChange(formatPhoneBR(event.target.value))}
+        aria-invalid={Boolean(phoneError)}
       />
     </FormField>
   )

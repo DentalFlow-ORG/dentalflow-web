@@ -59,7 +59,14 @@ describe('login', () => {
 describe('register', () => {
   it('calls POST /auth/register with serialized payload', async () => {
     mockApiRequest.mockResolvedValue({ user: {}, accessToken: 'x' })
-    await register({ email: 'a@b.com', password: 'secret', firstName: 'Ana', lastName: 'Silva', clinicName: 'Clínica', acceptedTerms: true })
+    await register({
+      email: 'a@b.com',
+      password: 'secret',
+      firstName: 'Ana',
+      lastName: 'Silva',
+      clinicName: 'Clínica',
+      acceptedTerms: true,
+    })
 
     const [path, options] = mockApiRequest.mock.calls[0]
     expect(path).toBe('/auth/register')
@@ -69,7 +76,14 @@ describe('register', () => {
 
   it('sets _skipRefresh: true', async () => {
     mockApiRequest.mockResolvedValue({ user: {}, accessToken: 'x' })
-    await register({ email: 'a@b.com', password: 'secret', firstName: 'Ana', lastName: 'Silva', clinicName: 'Clínica', acceptedTerms: true })
+    await register({
+      email: 'a@b.com',
+      password: 'secret',
+      firstName: 'Ana',
+      lastName: 'Silva',
+      clinicName: 'Clínica',
+      acceptedTerms: true,
+    })
 
     const [, options] = mockApiRequest.mock.calls[0]
     expect(options._skipRefresh).toBe(true)
@@ -163,13 +177,23 @@ describe('completeProfile', () => {
   it('calls POST /auth/complete-profile with serialized payload and accessToken', async () => {
     mockGetAccessToken.mockReturnValue('tok-cp')
     mockApiRequest.mockResolvedValue({ user: {}, accessToken: 'x' })
-    await completeProfile({ firstName: 'Ana', lastName: 'Silva', clinicName: 'Clínica', acceptedTerms: true })
+    await completeProfile({
+      firstName: 'Ana',
+      lastName: 'Silva',
+      clinicName: 'Clínica',
+      acceptedTerms: true,
+    })
 
     const [path, options] = mockApiRequest.mock.calls[0]
     expect(path).toBe('/auth/complete-profile')
     expect(options.method).toBe('POST')
     expect(options.accessToken).toBe('tok-cp')
-    expect(JSON.parse(options.body)).toEqual({ firstName: 'Ana', lastName: 'Silva', clinicName: 'Clínica', acceptedTerms: true })
+    expect(JSON.parse(options.body)).toEqual({
+      firstName: 'Ana',
+      lastName: 'Silva',
+      clinicName: 'Clínica',
+      acceptedTerms: true,
+    })
   })
 })
 
@@ -178,7 +202,9 @@ describe('completeProfile', () => {
 describe('refresh', () => {
   it('concurrent calls share one pending promise — apiRequest called exactly once', async () => {
     let resolve!: (v: unknown) => void
-    const deferred = new Promise((r) => { resolve = r })
+    const deferred = new Promise((r) => {
+      resolve = r
+    })
     mockApiRequest.mockReturnValue(deferred)
 
     const p1 = refresh()

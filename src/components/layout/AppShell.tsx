@@ -1,8 +1,7 @@
-import { useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { Collapsible } from 'radix-ui'
 import {
   BarChart3,
+  Bell,
   Building2,
   CalendarDays,
   ChevronDown,
@@ -13,18 +12,20 @@ import {
   Home,
   Landmark,
   LogOut,
+  type LucideIcon,
   Moon,
   MoreHorizontal,
-  Settings,
   Package,
+  Settings,
   ShieldCheck,
   Sun,
-  TrendingUp,
   Users,
   Users2,
   X,
   Zap,
 } from 'lucide-react'
+import { Collapsible } from 'radix-ui'
+import { type ReactNode, useState } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
 import { Button } from '@/components/ui/button'
@@ -43,7 +44,7 @@ type AppShellProps = {
 type NavItem = {
   label: string
   to: string
-  icon: React.ElementType
+  icon: LucideIcon
   roles?: AuthUserRole[]
   exact?: boolean
   minPlan?: 'professional' | 'premium'
@@ -70,10 +71,14 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Clínica',
     roles: ['OWNER', 'ASSISTANT'],
     items: [
-      { label: 'Agenda', to: '/app/agendamentos', icon: CalendarDays, roles: ['OWNER', 'ASSISTANT'] },
+      {
+        label: 'Agenda',
+        to: '/app/agendamentos',
+        icon: CalendarDays,
+        roles: ['OWNER', 'ASSISTANT'],
+      },
       { label: 'Pacientes', to: '/app/pacientes', icon: Users2, roles: ['OWNER', 'ASSISTANT'] },
       { label: 'Prontuários', to: '/app/prontuario', icon: ClipboardList, roles: ['OWNER'] },
-      { label: 'Leads', to: '/app/leads', icon: TrendingUp, roles: ['OWNER', 'ASSISTANT'] },
     ],
   },
   {
@@ -81,10 +86,34 @@ const NAV_GROUPS: NavGroup[] = [
     roles: ['OWNER', 'ASSISTANT'],
     items: [
       { label: 'Equipe', to: '/app/equipe', icon: Users, roles: ['OWNER'] },
-      { label: 'Estoque', to: '/app/estoque', icon: Package, roles: ['OWNER', 'ASSISTANT'], minPlan: 'professional' },
-      { label: 'Financeiro', to: '/app/financeiro', icon: Landmark, roles: ['OWNER'], minPlan: 'professional' },
-      { label: 'Notas fiscais', to: '/app/notas-fiscais', icon: FileText, roles: ['OWNER', 'ASSISTANT'], minPlan: 'professional' },
-      { label: 'Relatórios', to: '/app/relatorios', icon: FileDown, roles: ['OWNER', 'ASSISTANT'], minPlan: 'professional' },
+      {
+        label: 'Estoque',
+        to: '/app/estoque',
+        icon: Package,
+        roles: ['OWNER', 'ASSISTANT'],
+        minPlan: 'professional',
+      },
+      {
+        label: 'Financeiro',
+        to: '/app/financeiro',
+        icon: Landmark,
+        roles: ['OWNER'],
+        minPlan: 'professional',
+      },
+      {
+        label: 'Notas fiscais',
+        to: '/app/notas-fiscais',
+        icon: FileText,
+        roles: ['OWNER', 'ASSISTANT'],
+        minPlan: 'professional',
+      },
+      {
+        label: 'Relatórios',
+        to: '/app/relatorios',
+        icon: FileDown,
+        roles: ['OWNER', 'ASSISTANT'],
+        minPlan: 'professional',
+      },
     ],
   },
   {
@@ -108,6 +137,12 @@ const NAV_GROUPS: NavGroup[] = [
 // ─── Footer items (pinned to bottom of desktop sidebar) ──────────────────────
 const FOOTER_ITEMS: NavItem[] = [
   { label: 'Configurações', to: '/app/configuracoes', icon: Settings, roles: ['OWNER'] },
+  {
+    label: 'Notificações',
+    to: '/app/configuracoes/notificacoes',
+    icon: Bell,
+    roles: ['ASSISTANT'],
+  },
 ]
 
 // ─── Legacy flat list (used for mobile nav primary/secondary split) ───────────
@@ -128,7 +163,10 @@ const STORAGE_KEY = 'dentalflow.sidebar.groups'
 
 const PLAN_ORDER: Record<string, number> = { starter: 0, professional: 1, premium: 2 }
 
-function isPlanSufficient(planKey: string | null | undefined, minPlan: 'professional' | 'premium'): boolean {
+function isPlanSufficient(
+  planKey: string | null | undefined,
+  minPlan: 'professional' | 'premium',
+): boolean {
   const current = PLAN_ORDER[planKey ?? ''] ?? -1
   return current >= PLAN_ORDER[minPlan]
 }
@@ -187,8 +225,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
       ? location.pathname === item.to
       : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
 
-  const isGroupActive = (group: NavGroup) =>
-    group.items.some((item) => isActive(item))
+  const isGroupActive = (group: NavGroup) => group.items.some((item) => isActive(item))
 
   function isGroupOpen(groupLabel: string, group: NavGroup): boolean {
     if (groupLabel in openGroups) return openGroups[groupLabel]
@@ -209,16 +246,16 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
 
   const planKey = billingStatus?.planKey ?? null
 
-  const visibleGroups = NAV_GROUPS.filter(
-    (group) => user?.role && group.roles.includes(user.role),
-  ).map((group) => ({
-    ...group,
-    items: group.items.filter(({ roles, minPlan }) => {
-      if (roles && !(user?.role && roles.includes(user.role))) return false
-      if (minPlan && user?.role !== 'ADMIN' && !isPlanSufficient(planKey, minPlan)) return false
-      return true
-    }),
-  })).filter((group) => group.items.length > 0)
+  const visibleGroups = NAV_GROUPS.filter((group) => user?.role && group.roles.includes(user.role))
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(({ roles, minPlan }) => {
+        if (roles && !(user?.role && roles.includes(user.role))) return false
+        if (minPlan && user?.role !== 'ADMIN' && !isPlanSufficient(planKey, minPlan)) return false
+        return true
+      }),
+    }))
+    .filter((group) => group.items.length > 0)
 
   const visibleFooterItems = FOOTER_ITEMS.filter(
     ({ roles }) => !roles || (user?.role && roles.includes(user.role)),
@@ -287,9 +324,7 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
                       <span
                         className={cn(
                           'text-[11px] font-semibold uppercase tracking-wider',
-                          hasActive
-                            ? 'text-sidebar-primary'
-                            : 'text-sidebar-foreground/50',
+                          hasActive ? 'text-sidebar-primary' : 'text-sidebar-foreground/50',
                         )}
                       >
                         {group.label}
@@ -398,7 +433,10 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
 
       {/* ── Mobile More Sheet ──────────────────────────────────────────────── */}
       {moreOpen && (
-        <div className="fixed inset-0 z-30 lg:hidden print:hidden" onClick={() => setMoreOpen(false)}>
+        <div
+          className="fixed inset-0 z-30 lg:hidden print:hidden"
+          onClick={() => setMoreOpen(false)}
+        >
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
           <div
             className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-border bg-card pb-[calc(env(safe-area-inset-bottom)+4rem)]"
@@ -460,7 +498,9 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
               <ThemeToggle />
               <Button variant="outline" size="sm" aria-label="Sair" onClick={handleLogout}>
                 <LogOut className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline" aria-hidden="true">Sair</span>
+                <span className="hidden sm:inline" aria-hidden="true">
+                  Sair
+                </span>
               </Button>
             </div>
           </div>
@@ -472,9 +512,12 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
           </div>
         )}
 
-        <main className="px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
+        <main className="min-w-0 overflow-x-hidden px-4 py-6 pb-8 sm:px-6 sm:py-8 lg:pb-8 lg:px-8">
           {children}
-          <div className="h-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden print:hidden" aria-hidden="true" />
+          <div
+            className="h-[calc(5rem+env(safe-area-inset-bottom))] lg:hidden print:hidden"
+            aria-hidden="true"
+          />
         </main>
       </div>
     </div>
@@ -491,7 +534,10 @@ function TrialBanner({ trialEndsAt }: { trialEndsAt: string }) {
     <div className="border-b border-orange-200 bg-orange-50 px-4 py-2 dark:border-orange-800/30 dark:bg-orange-950/30 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-orange-800 dark:text-orange-200">
-          <Zap className="h-4 w-4 shrink-0 text-orange-500 dark:text-orange-400" aria-hidden="true" />
+          <Zap
+            className="h-4 w-4 shrink-0 text-orange-500 dark:text-orange-400"
+            aria-hidden="true"
+          />
           <span>
             Teste grátis ativo
             {daysRemaining > 0

@@ -22,11 +22,7 @@ export function RoleFinalCta({ finalCta }: RoleFinalCtaProps) {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          <Button
-            size="lg"
-            variant="inverse"
-            asChild
-          >
+          <Button size="lg" variant="inverse" asChild>
             {finalCta.secondaryCtaTo === '/funcionalidades' ? (
               <Link to="/funcionalidades">{finalCta.secondaryCtaLabel}</Link>
             ) : (
@@ -34,9 +30,7 @@ export function RoleFinalCta({ finalCta }: RoleFinalCtaProps) {
             )}
           </Button>
         </div>
-        <p className="mt-4 text-xs text-blue-300">
-          Sem cartão de crédito · Cancele quando quiser
-        </p>
+        <p className="mt-4 text-xs text-blue-300">Sem cartão de crédito · Cancele quando quiser</p>
       </div>
     </section>
   )

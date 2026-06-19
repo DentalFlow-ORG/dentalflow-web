@@ -17,7 +17,11 @@ export function FinanceInsight({
       <div
         className={cn(
           'mt-1 text-base font-semibold',
-          value >= 0 ? 'text-foreground' : 'text-red-700 dark:text-red-400',
+          value > 0
+            ? 'text-emerald-700 dark:text-emerald-400'
+            : value < 0
+              ? 'text-red-700 dark:text-red-400'
+              : 'text-foreground',
         )}
       >
         {formatCurrency(value)}

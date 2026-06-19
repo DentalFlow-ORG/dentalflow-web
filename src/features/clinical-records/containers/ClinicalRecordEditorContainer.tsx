@@ -1,36 +1,53 @@
-import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { AlertCircle, ArrowLeft, CheckCircle2, ClipboardList, Loader2 } from 'lucide-react'
+import {
+  Activity,
+  AlertCircle,
+  ArrowLeft,
+  CheckCircle2,
+  ClipboardList,
+  EyeOff,
+  FileText,
+  Images,
+  Loader2,
+  Microscope,
+  Smile,
+} from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
-import { AppPage } from '@/components/layout/AppPage'
 import { EmptyState } from '@/components/common/EmptyState'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
-import { ClinicalAiAssistantCard } from '../components/ClinicalAiAssistantCard'
 import { ClinicalRecordActions } from '../components/ClinicalRecordActions'
 import { ClinicalRecordHeader } from '../components/ClinicalRecordHeader'
+import { ClinicalSection } from '../components/ClinicalSection'
 import { ClinicalSectionField } from '../components/ClinicalSectionField'
+import { ClinicalStickyBar } from '../components/ClinicalStickyBar'
 import { ClinicalTemplateSelectorPanel } from '../components/ClinicalTemplateSelectorPanel'
 import { ImageAttachmentPanel } from '../components/ImageAttachmentPanel'
 import { OdontogramSection } from '../components/OdontogramSection'
 import { PatientHistoryPanel } from '../components/PatientHistoryPanel'
+import { VoiceDictationCard } from '../components/VoiceDictationCard'
 import { useClinicalRecord } from '../hooks/useClinicalRecord'
-import {
-  useClinicalRecordAutosave,
-  type AutosaveStatus,
-} from '../hooks/useClinicalRecordAutosave'
-import { useUnsavedChangesGuard } from '../hooks/useUnsavedChangesGuard'
+import { type AutosaveStatus, useClinicalRecordAutosave } from '../hooks/useClinicalRecordAutosave'
 import { useClinicalTemplates } from '../hooks/useClinicalTemplates'
+import { useUnsavedChangesGuard } from '../hooks/useUnsavedChangesGuard'
 import { getOdontogram, upsertOdontogram } from '../services/clinical-records.service'
-import type { ClinicalTemplate, OdontogramData, UpdateClinicalRecordDto } from '../types/clinical-record.types'
+import type { ClinicalDictationFieldKey } from '../types/clinical-dictation.types'
+import type {
+  ClinicalTemplate,
+  OdontogramData,
+  UpdateClinicalRecordDto,
+} from '../types/clinical-record.types'
+import { type FieldApplyMode, applyDictationFields } from '../utils/apply-clinical-dictation-fields'
 import {
   isClinicalRecordEditable,
   isClinicalRecordReadOnly,
 } from '../utils/clinical-record-status-rules'
+import type { OdontogramSuggestion } from '../utils/parse-dictation-odontogram'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -38,45 +55,72 @@ type Props = {
   recordId: string
 }
 
-// Six logical groups replace the previous nine flat tabs:
-//   evolucao   — Evolução clínica (primary consultation narrative)
-//   anamnese   — Anamnese (patient history)
-//   diagnostico — Diagnóstico
-//   plano      — Plano clínico (procedures + treatment plan + prescription + recommendations)
-//   odontograma — Odontogram
-//   imagens    — Images and attachments
-type Tab = 'evolucao' | 'anamnese' | 'diagnostico' | 'plano' | 'odontograma' | 'imagens'
+type SectionId =
+  | 'evolucao'
+  | 'anamnese'
+  | 'diagnostico'
+  | 'plano'
+  | 'odontograma'
+  | 'imagens'
+  | 'notas-privadas'
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'evolucao', label: 'Evolução clínica' },
-  { id: 'anamnese', label: 'Anamnese' },
-  { id: 'diagnostico', label: 'Diagnóstico' },
-  { id: 'plano', label: 'Plano clínico' },
-  { id: 'odontograma', label: 'Odontograma' },
-  { id: 'imagens', label: 'Imagens' },
-]
+type SectionExpanded = Record<SectionId, boolean>
+
+// Default expansion for a DRAFT record: show the two most-used sections open.
+const DRAFT_DEFAULTS: SectionExpanded = {
+  evolucao: true,
+  anamnese: false,
+  diagnostico: false,
+  plano: false,
+  odontograma: true,
+  imagens: false,
+  'notas-privadas': false,
+}
+
+// Template category → section to open when template is applied.
+const TEMPLATE_SECTION_MAP: Partial<Record<string, SectionId>> = {
+  ANAMNESIS: 'anamnese',
+  EVOLUTION: 'evolucao',
+  PRESCRIPTION: 'plano',
+  RECOMMENDATION: 'plano',
+  PROCEDURE: 'plano',
+}
 
 // ── Container ──────────────────────────────────────────────────────────────────
 
 export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const navigate = useNavigate()
   const { showAlert } = useGlobalAlerts()
-  const { record, isLoading, isSaving, error, save, saveQuiet, saveAndComplete, lock, cancel, restore } =
-    useClinicalRecord(recordId)
+  const {
+    record,
+    isLoading,
+    isSaving,
+    error,
+    save,
+    saveQuiet,
+    saveAndComplete,
+    lock,
+    cancel,
+    restore,
+  } = useClinicalRecord(recordId)
   const { templates } = useClinicalTemplates()
+
   // Anti-spam guard — prevents flooding the user with repeated odontogram save
-  // warnings when conditions change rapidly (e.g. multi-select). Resets after
-  // 10 seconds so persistent connectivity issues are still eventually surfaced.
+  // warnings when conditions change rapidly (e.g. multi-select). Resets after 10 s.
   const odontogramAlertShownRef = useRef(false)
   const odontogramAlertResetRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const [activeTab, setActiveTab] = useState<Tab>('evolucao')
   const [draft, setDraft] = useState<UpdateClinicalRecordDto>({})
   const [odontogramData, setOdontogramData] = useState<OdontogramData>({ teeth: {} })
   const [odontogramLoaded, setOdontogramLoaded] = useState(false)
 
+  // Section expand/collapse — initialized with DRAFT defaults.
+  // A one-shot effect below adjusts these once the record loads for non-DRAFT records
+  // so that only sections with content are open.
+  const [sectionExpanded, setSectionExpanded] = useState<SectionExpanded>(DRAFT_DEFAULTS)
+  const sectionInitRef = useRef(false)
+
   // Autosave wiring — only fires for DRAFT records with pending changes.
-  // canAutosave is derived from record?.status so the hook is called unconditionally.
   const { autosaveStatus, cancelPendingAutosave } = useClinicalRecordAutosave({
     draft,
     setDraft,
@@ -86,11 +130,11 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   })
 
   // Navigation guard — warns before leaving when there are unsaved draft changes.
-  // Inactive when draft is empty, record is null/loading, or status is not DRAFT.
   useUnsavedChangesGuard({
     isDirty: record?.status === 'DRAFT' && Object.keys(draft).length > 0,
   })
 
+  // Load the patient-level odontogram once the record is available.
   useEffect(() => {
     if (!record || odontogramLoaded) return
     const identifier = record.patientEmail ?? record.patientName
@@ -100,15 +144,43 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
       .then((data) => {
         if (isCurrent && data) setOdontogramData(data.data)
       })
-      .catch(() => { /* odontogram is optional — ignore load errors */ })
+      .catch(() => {
+        /* odontogram is optional — ignore load errors */
+      })
       .finally(() => {
         if (isCurrent) setOdontogramLoaded(true)
       })
 
-    return () => { isCurrent = false }
+    return () => {
+      isCurrent = false
+    }
   }, [record, odontogramLoaded])
 
-  // Clear the odontogram alert reset timer on unmount to avoid stale state writes.
+  // For non-DRAFT records: auto-expand sections that have content so the
+  // reviewer immediately sees what was documented without extra interaction.
+  useEffect(() => {
+    if (!record || sectionInitRef.current) return
+    sectionInitRef.current = true
+
+    if (record.status !== 'DRAFT') {
+      setSectionExpanded({
+        evolucao: !!record.clinicalEvolution,
+        anamnese: !!record.anamnesis,
+        diagnostico: !!record.diagnosis,
+        plano: !!(
+          record.proceduresPerformed ||
+          record.treatmentPlan ||
+          record.prescription ||
+          record.recommendations
+        ),
+        odontograma: true,
+        imagens: false, // unknown until attachments load
+        'notas-privadas': !!record.privateNotes,
+      })
+    }
+  }, [record])
+
+  // Clear the odontogram alert reset timer on unmount.
   useEffect(() => {
     return () => {
       if (odontogramAlertResetRef.current) clearTimeout(odontogramAlertResetRef.current)
@@ -159,43 +231,66 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const isReadOnly = isClinicalRecordReadOnly(record.status)
   const identifier = record.patientEmail ?? record.patientName
 
-  // Per-status contextual read-only notice — tone and text differ per state.
-  // LOCKED: permanent, no restore path exists.
-  // CANCELED: prompts the user to restore (restore returns to DRAFT).
-  // COMPLETED: informs and describes the path back (cancel → restore).
   const readOnlyNotice: { tone: 'info' | 'warning'; text: string } | null =
     record.status === 'LOCKED'
-      ? { tone: 'info', text: 'Prontuário bloqueado permanentemente — este registro não pode mais ser editado.' }
+      ? {
+          tone: 'info',
+          text: 'Prontuário bloqueado permanentemente — este registro não pode mais ser editado.',
+        }
       : record.status === 'CANCELED'
-      ? { tone: 'warning', text: 'Prontuário cancelado. Use "Restaurar prontuário" para reativar a edição.' }
-      : record.status === 'COMPLETED'
-      ? { tone: 'info', text: 'Prontuário concluído e em modo somente leitura. Para reabrir, cancele e restaure o registro.' }
-      : null
+        ? {
+            tone: 'warning',
+            text: 'Prontuário cancelado. Use "Restaurar prontuário" para reativar a edição.',
+          }
+        : record.status === 'COMPLETED'
+          ? {
+              tone: 'info',
+              text: 'Prontuário concluído e em modo somente leitura. Para reabrir, cancele e restaure o registro.',
+            }
+          : null
 
+  // Draft-or-server field value reader.
   const field = (key: keyof UpdateClinicalRecordDto) =>
-    (draft[key] as string | undefined) ?? (record[key as keyof typeof record] as string | null) ?? ''
+    (draft[key] as string | undefined) ??
+    (record[key as keyof typeof record] as string | null) ??
+    ''
 
   const setField = (key: keyof UpdateClinicalRecordDto) => (value: string) =>
     setDraft((prev) => ({ ...prev, [key]: value }))
 
-  // Content-dot indicator helpers — pure checks over existing state, no API calls.
-  const hasContent = (key: keyof UpdateClinicalRecordDto): boolean =>
-    field(key).trim().length > 0
+  const hasContent = (key: keyof UpdateClinicalRecordDto): boolean => field(key).trim().length > 0
 
-  const tabHasContent = (tabId: Tab): boolean => {
-    switch (tabId) {
-      case 'evolucao':    return hasContent('clinicalEvolution')
-      case 'anamnese':    return hasContent('anamnesis')
-      case 'diagnostico': return hasContent('diagnosis')
-      case 'plano':       return (
-        hasContent('proceduresPerformed') ||
-        hasContent('treatmentPlan') ||
-        hasContent('prescription') ||
-        hasContent('recommendations')
-      )
-      case 'odontograma': return Object.keys(odontogramData.teeth).length > 0
-      case 'imagens':     return false // requires an API call — not tracked locally
-      default:            return false
+  // ── Section expand helpers ───────────────────────────────────────────────────
+
+  const toggleSection = (id: SectionId) =>
+    setSectionExpanded((prev) => ({ ...prev, [id]: !prev[id] }))
+
+  const openSection = (id: SectionId) => setSectionExpanded((prev) => ({ ...prev, [id]: true }))
+
+  // Whether a section has any filled content — drives the dot indicator.
+  const sectionHasContent = (id: SectionId): boolean => {
+    switch (id) {
+      case 'evolucao':
+        return hasContent('clinicalEvolution')
+      case 'anamnese':
+        return hasContent('anamnesis')
+      case 'diagnostico':
+        return hasContent('diagnosis')
+      case 'plano':
+        return (
+          hasContent('proceduresPerformed') ||
+          hasContent('treatmentPlan') ||
+          hasContent('prescription') ||
+          hasContent('recommendations')
+        )
+      case 'odontograma':
+        return Object.keys(odontogramData.teeth).length > 0
+      case 'imagens':
+        return false // not tracked locally; API-driven
+      case 'notas-privadas':
+        return hasContent('privateNotes')
+      default:
+        return false
     }
   }
 
@@ -213,23 +308,17 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     }
     const targetField = fieldMap[template.category]
     if (!targetField) return
+
     const current = field(targetField)
     setField(targetField)(current ? `${current}\n\n${template.content}` : template.content)
-    // Treatment-related categories all navigate to the unified 'plano' tab.
-    setActiveTab(
-      template.category === 'ANAMNESIS'   ? 'anamnese' :
-      template.category === 'EVOLUTION'   ? 'evolucao' :
-      template.category === 'PRESCRIPTION'  ? 'plano' :
-      template.category === 'RECOMMENDATION' ? 'plano' :
-      template.category === 'PROCEDURE'   ? 'plano' : activeTab,
-    )
+
+    // Open the target section so the user sees the inserted text.
+    const targetSection = TEMPLATE_SECTION_MAP[template.category]
+    if (targetSection) openSection(targetSection)
   }
 
   const handleSaveDraft = async () => {
     if (!canEditClinicalContent) return
-
-    // Cancel any pending autosave before the manual save fires — prevents
-    // a redundant API call immediately after the manual save completes.
     cancelPendingAutosave()
     await save(draft)
     if (Object.keys(odontogramData.teeth).length > 0) {
@@ -245,11 +334,8 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
   const handleOdontogramChange = (data: OdontogramData) => {
     if (!canEditClinicalContent) return
-
     setOdontogramData(data)
     upsertOdontogram(identifier, record.patientName, data).catch(() => {
-      // Anti-spam: show the warning at most once per 10 seconds to avoid
-      // flooding the user when teeth conditions change in rapid succession.
       if (!odontogramAlertShownRef.current) {
         odontogramAlertShownRef.current = true
         showAlert({
@@ -258,28 +344,88 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
           tone: 'warning',
         })
         if (odontogramAlertResetRef.current) clearTimeout(odontogramAlertResetRef.current)
-        odontogramAlertResetRef.current = setTimeout(() => { odontogramAlertShownRef.current = false }, 10_000)
+        odontogramAlertResetRef.current = setTimeout(() => {
+          odontogramAlertShownRef.current = false
+        }, 10_000)
       }
     })
+  }
+
+  // Merges dictation suggestions into the draft fields.
+  // Pure logic is delegated to applyDictationFields so it can be tested independently.
+  // Calling setField() enters the normal draft/autosave pipeline — no bypass occurs.
+  const handleApplyDictationFields = (
+    fields: Partial<Record<ClinicalDictationFieldKey, string>>,
+    modes?: Partial<Record<ClinicalDictationFieldKey, FieldApplyMode>>,
+  ) => {
+    if (!canEditClinicalContent) return
+
+    // Snapshot current field values (draft overrides applied on top of record)
+    const currentValues: Record<string, string> = {}
+    for (const key of Object.keys(fields)) {
+      currentValues[key] = field(key as keyof UpdateClinicalRecordDto)
+    }
+
+    const { draftPatch, targetSection } = applyDictationFields(fields, currentValues, modes)
+
+    for (const [key, value] of Object.entries(draftPatch)) {
+      setField(key as keyof UpdateClinicalRecordDto)(value as string)
+    }
+
+    if (targetSection) openSection(targetSection)
+  }
+
+  // Applies odontogram marking suggestions from dictation.
+  // Skips teeth that already have a non-healthy condition and shows a warning.
+  // Uses the existing handleOdontogramChange path so autosave/error behavior is consistent.
+  const handleApplyDictationOdontogram = (suggestions: OdontogramSuggestion[]) => {
+    if (!canEditClinicalContent || suggestions.length === 0) return
+
+    const skipped: string[] = []
+    const newTeeth = { ...odontogramData.teeth }
+
+    for (const suggestion of suggestions) {
+      const existing = odontogramData.teeth[suggestion.toothNumber]
+      if (existing?.condition && existing.condition !== 'healthy') {
+        skipped.push(suggestion.toothNumber)
+        continue
+      }
+      newTeeth[suggestion.toothNumber] = {
+        ...existing,
+        condition: suggestion.condition,
+        notes: suggestion.note || undefined,
+      }
+    }
+
+    if (skipped.length > 0) {
+      showAlert({
+        title: 'Dentes não aplicados',
+        description: `Não aplicado: dente${skipped.length > 1 ? 's' : ''} ${skipped.join(', ')} já ${skipped.length > 1 ? 'possuem' : 'possui'} condição registrada.`,
+        tone: 'warning',
+      })
+    }
+
+    if (skipped.length < suggestions.length) {
+      handleOdontogramChange({ ...odontogramData, teeth: newTeeth })
+      openSection('odontograma')
+    }
   }
 
   const handleComplete = () => saveAndComplete(draft)
   const handleLock = () => lock()
   const handleCancel = () => cancel()
   const handleRestore = () => restore()
-
-  const handlePrint = () => {
-    void navigate({
+  const handlePrint = () =>
+    navigate({
       to: '/app/prontuario/$clinicalRecordId/imprimir',
       params: { clinicalRecordId: recordId },
     })
-  }
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <AppPage>
-      {/* ── Back navigation ───────────────────────────────────────────── */}
+    <div className="space-y-4">
+      {/* ── Back navigation ─────────────────────────────────────────────────── */}
       <Link
         to="/app/prontuario"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -288,257 +434,289 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         Prontuários
       </Link>
 
-      {/* ── Patient header ────────────────────────────────────────────── */}
-      <ClinicalRecordHeader record={record} />
+      {/* ── Patient identity + quick actions bar ────────────────────────────── */}
+      {/* Renders outside AppPage so its breakout margins cancel <main> padding. */}
+      {/* In normal document flow — no sticky positioning — so it never covers   */}
+      {/* the content below it.                                                  */}
+      <ClinicalStickyBar
+        record={record}
+        isSaving={isSaving}
+        autosaveStatus={autosaveStatus}
+        onSaveDraft={handleSaveDraft}
+        onComplete={handleComplete}
+      />
 
-      {/* ── Read-only notice ──────────────────────────────────────────── */}
-      {readOnlyNotice && (
-        <InlineFeedback tone={readOnlyNotice.tone}>
-          {readOnlyNotice.text}
-        </InlineFeedback>
-      )}
+      <AppPage>
+        {/* ── Patient header ───────────────────────────────────────────────── */}
+        <ClinicalRecordHeader record={record} />
 
-      {/* ── Action bar + autosave status ──────────────────────────────── */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <ClinicalRecordActions
-          record={record}
-          isSaving={isSaving}
-          onSaveDraft={handleSaveDraft}
-          onComplete={handleComplete}
-          onLock={handleLock}
-          onCancel={handleCancel}
-          onRestore={handleRestore}
-          onPrint={handlePrint}
-        />
-        {canEditClinicalContent && <AutosaveIndicator status={autosaveStatus} />}
-      </div>
+        {/* ── Read-only notice ─────────────────────────────────────────────── */}
+        {readOnlyNotice && (
+          <InlineFeedback tone={readOnlyNotice.tone}>{readOnlyNotice.text}</InlineFeedback>
+        )}
 
-      {/* ── Main content grid ─────────────────────────────────────────── */}
-      {/*
-       * Single JSX tree for all screen sizes.
-       * Mobile / tablet (< xl): single column — sidebar stacks below main content.
-       * Desktop (xl+): 4-column grid — main spans 3 cols, sidebar 1 col.
-       */}
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-4">
+        {/* ── Full action bar ──────────────────────────────────────────────── */}
+        {/* Contains all status transitions including the destructive ones     */}
+        {/* (Lock, Cancel, Restore) with their confirmation dialogs.           */}
+        {/* The sticky bar above handles Save/Complete for quick access.       */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <ClinicalRecordActions
+            record={record}
+            isSaving={isSaving}
+            onSaveDraft={handleSaveDraft}
+            onComplete={handleComplete}
+            onLock={handleLock}
+            onCancel={handleCancel}
+            onRestore={handleRestore}
+            onPrint={handlePrint}
+          />
+          {canEditClinicalContent && <AutosaveIndicator status={autosaveStatus} />}
+        </div>
 
-        {/* ── Main editor — 3 cols on xl ──────────────────────────────── */}
-        <div className="space-y-4 xl:col-span-3">
-
-          {/* Chief complaint — always visible above the tab panel */}
-          <div className="rounded-xl border border-border bg-card p-5">
-            <ClinicalSectionField
-              label="Queixa principal"
-              value={field('chiefComplaint')}
-              onChange={setField('chiefComplaint')}
-              placeholder="Principal motivo da consulta, em palavras do paciente..."
-              readOnly={isReadOnly}
-              rows={2}
-            />
-          </div>
-
-          {/* ── Tabbed clinical sections ─────────────────────────────── */}
-          {/* 6 tabs (reduced from 9): Evolução · Anamnese · Diagnóstico · Plano clínico · Odontograma · Imagens */}
-          <div className="rounded-xl border border-border bg-card">
-            {/* Tab bar — scrollable on narrow viewports */}
-            <div className="overflow-x-auto border-b border-border">
-              <nav role="tablist" aria-label="Seções do prontuário" className="flex min-w-max">
-                {TABS.map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    role="tab"
-                    id={`tab-${tab.id}`}
-                    aria-selected={activeTab === tab.id}
-                    aria-controls={`tabpanel-${tab.id}`}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      'inline-flex items-center gap-1.5 whitespace-nowrap px-4 py-3 text-sm font-medium transition-colors',
-                      activeTab === tab.id
-                        ? 'border-b-2 border-primary text-primary'
-                        : 'text-muted-foreground hover:text-foreground',
-                    )}
-                  >
-                    {tab.label}
-                    {tabHasContent(tab.id) && (
-                      <span
-                        className={cn(
-                          'inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full',
-                          activeTab === tab.id ? 'bg-primary' : 'bg-muted-foreground/40',
-                        )}
-                        aria-hidden="true"
-                      />
-                    )}
-                  </button>
-                ))}
-              </nav>
+        {/* ── Main content grid ────────────────────────────────────────────── */}
+        {/*
+         * Single JSX tree for all screen sizes.
+         * Mobile / tablet (< lg): single column — sidebar stacks below main.
+         * Desktop (lg+): 4-column grid — main spans 3 cols, sidebar 1 col.
+         * Changed from xl: (1280 px) to lg: (1024 px) so the sidebar is
+         * visible on 13-inch laptops and common tablet/desktop breakpoints.
+         */}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-4">
+          {/* ── Main editor — 3 cols on lg ────────────────────────────────── */}
+          <div className="space-y-4 lg:col-span-3">
+            {/* Chief complaint — always visible, intentionally not collapsible.
+                It is the single most important field and must be prominent.  */}
+            <div className="rounded-xl border border-border bg-card p-5">
+              <ClinicalSectionField
+                label="Queixa principal"
+                value={field('chiefComplaint')}
+                onChange={setField('chiefComplaint')}
+                placeholder="Principal motivo da consulta, em palavras do paciente..."
+                readOnly={isReadOnly}
+                rows={4}
+              />
             </div>
 
-            {/* Active tab panel */}
-            <div
-              role="tabpanel"
-              id={`tabpanel-${activeTab}`}
-              aria-labelledby={`tab-${activeTab}`}
-              className="p-5"
+            {/* ── Evolução clínica ────────────────────────────────────────── */}
+            <ClinicalSection
+              id="evolucao"
+              title="Evolução clínica"
+              icon={Activity}
+              hasContent={sectionHasContent('evolucao')}
+              expanded={sectionExpanded.evolucao}
+              onToggle={() => toggleSection('evolucao')}
             >
-              {/* ── Evolução clínica ───── */}
-              {activeTab === 'evolucao' && (
+              {/* hideLabel: section title already communicates this field's purpose */}
+              <ClinicalSectionField
+                label="Evolução clínica"
+                hideLabel
+                value={field('clinicalEvolution')}
+                onChange={setField('clinicalEvolution')}
+                placeholder="Achados clínicos, evolução do caso, exame intraoral, condição periodontal, achados radiográficos relevantes, resposta do paciente..."
+                readOnly={isReadOnly}
+                rows={8}
+              />
+            </ClinicalSection>
+
+            {/* ── Anamnese ────────────────────────────────────────────────── */}
+            <ClinicalSection
+              id="anamnese"
+              title="Anamnese"
+              icon={FileText}
+              hasContent={sectionHasContent('anamnese')}
+              expanded={sectionExpanded.anamnese}
+              onToggle={() => toggleSection('anamnese')}
+            >
+              {/* hideLabel: section title already communicates this field's purpose */}
+              <ClinicalSectionField
+                label="Anamnese"
+                hideLabel
+                value={field('anamnesis')}
+                onChange={setField('anamnesis')}
+                placeholder="Histórico médico geral, alergias medicamentosas e alimentares, medicamentos em uso (nome e dosagem), condições sistêmicas (diabetes, hipertensão, coagulopatia), hábitos (tabagismo, bruxismo), histórico odontológico relevante..."
+                readOnly={isReadOnly}
+                rows={8}
+              />
+            </ClinicalSection>
+
+            {/* ── Diagnóstico ─────────────────────────────────────────────── */}
+            <ClinicalSection
+              id="diagnostico"
+              title="Diagnóstico"
+              icon={Microscope}
+              hasContent={sectionHasContent('diagnostico')}
+              expanded={sectionExpanded.diagnostico}
+              onToggle={() => toggleSection('diagnostico')}
+            >
+              {/* hideLabel: section title already communicates this field's purpose */}
+              <ClinicalSectionField
+                label="Diagnóstico / Hipótese diagnóstica"
+                hideLabel
+                value={field('diagnosis')}
+                onChange={setField('diagnosis')}
+                placeholder="Diagnóstico clínico ou hipótese diagnóstica, CID correspondente se aplicável, dentes e regiões envolvidos, achados clínicos e radiográficos que embasam o diagnóstico..."
+                readOnly={isReadOnly}
+                rows={6}
+              />
+            </ClinicalSection>
+
+            {/* ── Plano clínico ────────────────────────────────────────────── */}
+            {/* Four sub-fields stacked: procedures, treatment plan,
+                prescription, recommendations. Kept as a single section
+                to reduce cognitive overhead during the consultation.       */}
+            <ClinicalSection
+              id="plano"
+              title="Plano clínico"
+              icon={ClipboardList}
+              hasContent={sectionHasContent('plano')}
+              expanded={sectionExpanded.plano}
+              onToggle={() => toggleSection('plano')}
+            >
+              <div className="space-y-6">
                 <ClinicalSectionField
-                  label="Evolução clínica"
-                  value={field('clinicalEvolution')}
-                  onChange={setField('clinicalEvolution')}
-                  placeholder="Achados clínicos, evolução do caso, exame intraoral, condição periodontal, achados radiográficos relevantes, resposta do paciente..."
+                  label="Procedimentos realizados"
+                  hint="Nesta consulta"
+                  value={field('proceduresPerformed')}
+                  onChange={setField('proceduresPerformed')}
+                  placeholder="Técnica anestésica utilizada, materiais e instrumentos, dentes tratados (numeração), etapas executadas e observações do procedimento..."
                   readOnly={isReadOnly}
-                  rows={8}
+                  rows={5}
                 />
-              )}
-
-              {/* ── Anamnese ──────────── */}
-              {activeTab === 'anamnese' && (
+                <div className="border-t border-border" />
                 <ClinicalSectionField
-                  label="Anamnese"
-                  value={field('anamnesis')}
-                  onChange={setField('anamnesis')}
-                  placeholder="Histórico médico geral, alergias medicamentosas e alimentares, medicamentos em uso (nome e dosagem), condições sistêmicas (diabetes, hipertensão, coagulopatia), hábitos (tabagismo, bruxismo), histórico odontológico relevante..."
+                  label="Plano de tratamento"
+                  hint="Próximas etapas"
+                  value={field('treatmentPlan')}
+                  onChange={setField('treatmentPlan')}
+                  placeholder="Sequência de tratamento proposta: prioridades, fases, estimativa de sessões, necessidade de encaminhamento especializado..."
                   readOnly={isReadOnly}
-                  rows={8}
+                  rows={5}
                 />
-              )}
-
-              {/* ── Diagnóstico ───────── */}
-              {activeTab === 'diagnostico' && (
+                <div className="border-t border-border" />
                 <ClinicalSectionField
-                  label="Diagnóstico / Hipótese diagnóstica"
-                  value={field('diagnosis')}
-                  onChange={setField('diagnosis')}
-                  placeholder="Diagnóstico clínico ou hipótese diagnóstica, CID correspondente se aplicável, dentes e regiões envolvidos, achados clínicos e radiográficos que embasam o diagnóstico..."
+                  label="Prescrição / Medicamentos"
+                  value={field('prescription')}
+                  onChange={setField('prescription')}
+                  placeholder="Ex: Amoxicilina 500mg — 1 cápsula 8/8h por 7 dias com alimento. Dipirona 500mg — 1 comprimido se necessário (máx. 4x/dia, intervalo mínimo 6h)..."
                   readOnly={isReadOnly}
-                  rows={6}
+                  rows={4}
                 />
-              )}
-
-              {/* ── Plano clínico — 4 fields stacked ── */}
-              {activeTab === 'plano' && (
-                <div className="space-y-6">
-                  <ClinicalSectionField
-                    label="Procedimentos realizados"
-                    hint="Nesta consulta"
-                    value={field('proceduresPerformed')}
-                    onChange={setField('proceduresPerformed')}
-                    placeholder="Técnica anestésica utilizada, materiais e instrumentos, dentes tratados (numeração), etapas executadas e observações do procedimento..."
-                    readOnly={isReadOnly}
-                    rows={5}
-                  />
-                  <div className="border-t border-border" />
-                  <ClinicalSectionField
-                    label="Plano de tratamento"
-                    hint="Próximas etapas"
-                    value={field('treatmentPlan')}
-                    onChange={setField('treatmentPlan')}
-                    placeholder="Sequência de tratamento proposta: prioridades, fases, estimativa de sessões, necessidade de encaminhamento especializado..."
-                    readOnly={isReadOnly}
-                    rows={5}
-                  />
-                  <div className="border-t border-border" />
-                  <ClinicalSectionField
-                    label="Prescrição / Medicamentos"
-                    value={field('prescription')}
-                    onChange={setField('prescription')}
-                    placeholder="Ex: Amoxicilina 500mg — 1 cápsula 8/8h por 7 dias com alimento. Dipirona 500mg — 1 comprimido se necessário (máx. 4x/dia, intervalo mínimo 6h)..."
-                    readOnly={isReadOnly}
-                    rows={4}
-                  />
-                  <div className="border-t border-border" />
-                  <ClinicalSectionField
-                    label="Recomendações ao paciente"
-                    value={field('recommendations')}
-                    onChange={setField('recommendations')}
-                    placeholder="Cuidados pós-consulta, higiene oral, restrições alimentares, sinais de alerta para retorno imediato, data do próximo atendimento programado..."
-                    readOnly={isReadOnly}
-                    rows={4}
-                  />
-                </div>
-              )}
-
-              {/* ── Odontograma ───────── */}
-              {activeTab === 'odontograma' && (
-                <OdontogramSection
-                  data={odontogramData}
-                  onChange={handleOdontogramChange}
+                <div className="border-t border-border" />
+                <ClinicalSectionField
+                  label="Recomendações ao paciente"
+                  value={field('recommendations')}
+                  onChange={setField('recommendations')}
+                  placeholder="Cuidados pós-consulta, higiene oral, restrições alimentares, sinais de alerta para retorno imediato, data do próximo atendimento programado..."
                   readOnly={isReadOnly}
+                  rows={4}
                 />
-              )}
+              </div>
+            </ClinicalSection>
 
-              {/* ── Imagens e anexos ─── */}
-              {activeTab === 'imagens' && (
-                <ImageAttachmentPanel
+            {/* ── Odontograma ─────────────────────────────────────────────── */}
+            <ClinicalSection
+              id="odontograma"
+              title="Odontograma"
+              icon={Smile}
+              hasContent={sectionHasContent('odontograma')}
+              expanded={sectionExpanded.odontograma}
+              onToggle={() => toggleSection('odontograma')}
+            >
+              {/* showTitle={false}: ClinicalSection header already says "Odontograma" */}
+              <OdontogramSection
+                data={odontogramData}
+                onChange={handleOdontogramChange}
+                readOnly={isReadOnly}
+                showTitle={false}
+              />
+            </ClinicalSection>
+
+            {/* ── Imagens e anexos ─────────────────────────────────────────── */}
+            <ClinicalSection
+              id="imagens"
+              title="Imagens e anexos"
+              icon={Images}
+              hasContent={sectionHasContent('imagens')}
+              expanded={sectionExpanded.imagens}
+              onToggle={() => toggleSection('imagens')}
+            >
+              {/* showTitle={false}: ClinicalSection header already says "Imagens e anexos" */}
+              <ImageAttachmentPanel recordId={recordId} readOnly={isReadOnly} showTitle={false} />
+            </ClinicalSection>
+
+            {/* ── Notas privadas ───────────────────────────────────────────── */}
+            {/* Only rendered when editing (DRAFT) or when content exists     */}
+            {/* to preserve in read-only view. Amber styling signals it is    */}
+            {/* internal and will not appear in printed documents.            */}
+            {(!isReadOnly || record.privateNotes) && (
+              <ClinicalSection
+                id="notas-privadas"
+                title="Notas privadas (não imprimíveis)"
+                icon={EyeOff}
+                hasContent={sectionHasContent('notas-privadas')}
+                expanded={sectionExpanded['notas-privadas']}
+                onToggle={() => toggleSection('notas-privadas')}
+                className="border-amber-100 bg-amber-50 dark:border-amber-800/30 dark:bg-amber-950/20"
+              >
+                {/* hideLabel: section title already says "Notas privadas" */}
+                <ClinicalSectionField
+                  label="Notas privadas"
+                  hideLabel
+                  value={isReadOnly ? (record.privateNotes ?? '') : field('privateNotes')}
+                  onChange={setField('privateNotes')}
+                  placeholder="Observações internas, contexto do caso, anotações do profissional — não aparecem no documento impresso..."
+                  readOnly={isReadOnly}
+                  rows={3}
+                />
+              </ClinicalSection>
+            )}
+          </div>
+
+          {/* ── Sidebar — 1 col on lg, stacks below main on mobile ─────────── */}
+          <div className="space-y-4">
+            {canEditClinicalContent && (
+              <>
+                <ClinicalTemplateSelectorPanel
+                  templates={templates}
+                  onApply={handleApplyTemplate}
+                />
+                <VoiceDictationCard
                   recordId={recordId}
                   readOnly={isReadOnly}
+                  onApplyFields={handleApplyDictationFields}
+                  onApplyOdontogram={handleApplyDictationOdontogram}
+                  currentFieldValues={{
+                    chiefComplaint: field('chiefComplaint'),
+                    anamnesis: field('anamnesis'),
+                    clinicalEvolution: field('clinicalEvolution'),
+                    diagnosis: field('diagnosis'),
+                    proceduresPerformed: field('proceduresPerformed'),
+                    treatmentPlan: field('treatmentPlan'),
+                    prescription: field('prescription'),
+                    recommendations: field('recommendations'),
+                    privateNotes: field('privateNotes'),
+                  }}
                 />
-              )}
-            </div>
+              </>
+            )}
           </div>
-
-          {/* Private notes — not printed.
-              Editable in DRAFT; shown as read-only when data exists in any other status. */}
-          {!isReadOnly ? (
-            <div className="rounded-xl border border-amber-100 bg-amber-50 p-5 dark:border-amber-800/30 dark:bg-amber-950/20">
-              <ClinicalSectionField
-                label="Notas privadas (não imprimíveis)"
-                value={field('privateNotes')}
-                onChange={setField('privateNotes')}
-                placeholder="Observações internas, contexto do caso, anotações do profissional — não aparecem no documento impresso..."
-                rows={3}
-              />
-            </div>
-          ) : record.privateNotes ? (
-            <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-5 dark:border-amber-800/30 dark:bg-amber-950/10">
-              <ClinicalSectionField
-                label="Notas privadas (não imprimíveis)"
-                value={record.privateNotes}
-                onChange={() => {}}
-                readOnly
-                rows={3}
-              />
-            </div>
-          ) : null}
         </div>
 
-        {/* ── Sidebar — 1 col on xl, stacks below main on mobile ──────── */}
-        <div className="space-y-4">
-          {canEditClinicalContent && (
-            <>
-              <ClinicalTemplateSelectorPanel
-                templates={templates}
-                onApply={handleApplyTemplate}
-              />
-              <ClinicalAiAssistantCard />
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ── Patient history ───────────────────────────────────────────── */}
-      {/* Placed below the main grid so current record editing stays      */}
-      {/* unchanged. Always shown regardless of record status.            */}
-      <PatientHistoryPanel
-        currentRecordId={record.id}
-        identifier={identifier}
-      />
-    </AppPage>
+        {/* ── Patient history ──────────────────────────────────────────────── */}
+        <PatientHistoryPanel currentRecordId={record.id} identifier={identifier} />
+      </AppPage>
+    </div>
   )
 }
 
 // ── AutosaveIndicator ─────────────────────────────────────────────────────────
+// Full-text version shown next to the main action bar.
 
 function AutosaveIndicator({ status }: { status: AutosaveStatus }) {
   if (status === 'idle') return null
 
   return (
-    <div
-      className="flex items-center gap-1.5 text-xs"
-      aria-live="polite"
-      aria-atomic="true"
-    >
+    <div className="flex items-center gap-1.5 text-xs" aria-live="polite" aria-atomic="true">
       {status === 'pending' && (
         <span className="text-muted-foreground">Aguardando para salvar...</span>
       )}

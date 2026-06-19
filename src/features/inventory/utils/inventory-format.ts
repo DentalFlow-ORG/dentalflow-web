@@ -19,9 +19,10 @@ export function formatQuantity(quantity: number, unit: string): string {
   return `${quantity} ${unit}`
 }
 
-// createdAt / updatedAt are real timestamps — display in the user's local timezone
+// createdAt / updatedAt are real timestamps — display in Brazil timezone
 export function formatProductDateTime(isoString: string): string {
   return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -41,18 +42,30 @@ export function getMovementTypeLabel(type: string): string {
   return labels[type] ?? type
 }
 
-export function formatMovementQuantity(
-  type: string,
-  quantity: number,
-  unit: string,
-): string {
+export function formatMovementQuantity(type: string, quantity: number, unit: string): string {
   const sign = type === 'IN' ? '+' : type === 'OUT' || type === 'LOSS' ? '-' : ''
   return `${sign}${formatQuantity(quantity, unit)}`
 }
 
-export function formatQuantityTransition(
-  previousQuantity: number,
-  newQuantity: number,
-): string {
+export function formatQuantityTransition(previousQuantity: number, newQuantity: number): string {
   return `${previousQuantity} → ${newQuantity}`
+}
+
+// generatedAt on copilot results are real timestamps — display in Brazil timezone with "às" separator
+export function formatInventoryTimestamp(iso: string | null | undefined): string {
+  if (!iso) return ''
+  try {
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+      .format(new Date(iso))
+      .replace(', ', ' às ')
+  } catch {
+    return iso
+  }
 }

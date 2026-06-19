@@ -1,7 +1,7 @@
-import { render, screen, waitFor, act, fireEvent } from '@/test-utils/render-utils'
 import { SubscriptionSuccessPage } from '@/features/billing/pages/SubscriptionSuccessPage'
 import { makeBillingStatus } from '@/test-utils/factories/billing.factory'
-import { setMockSearch, resetRouterMocks } from '@/test-utils/mocks/router'
+import { resetRouterMocks, setMockSearch } from '@/test-utils/mocks/router'
+import { act, fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -60,7 +60,11 @@ describe('loading state', () => {
 describe('confirmed state', () => {
   beforeEach(() => {
     mockSyncCheckoutSession.mockResolvedValue(
-      makeBillingStatus({ accessAllowed: true, planName: 'Professional', billingInterval: 'monthly' }),
+      makeBillingStatus({
+        accessAllowed: true,
+        planName: 'Professional',
+        billingInterval: 'monthly',
+      }),
     )
   })
 
@@ -94,9 +98,7 @@ describe('sync error', () => {
     mockSyncCheckoutSession.mockRejectedValue(new Error('Network error'))
     render(<SubscriptionSuccessPage />)
     await waitFor(() =>
-      expect(
-        screen.getByText(/Não foi possível confirmar a assinatura agora/),
-      ).toBeInTheDocument(),
+      expect(screen.getByText(/Não foi possível confirmar a assinatura agora/)).toBeInTheDocument(),
     )
   })
 })
@@ -123,11 +125,15 @@ describe('retry behavior', () => {
     render(<SubscriptionSuccessPage />)
 
     // Flush: effect → runCheck(1) → syncCheckoutSession resolves → state update
-    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
     expect(mockSyncCheckoutSession).toHaveBeenCalledOnce()
 
     // Advance retry timer; advanceTimersByTimeAsync also awaits the async chain
-    await act(async () => { await vi.advanceTimersByTimeAsync(2500) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2500)
+    })
     expect(mockGetCurrentBillingStatus).toHaveBeenCalledOnce()
   })
 
@@ -138,12 +144,16 @@ describe('retry behavior', () => {
     render(<SubscriptionSuccessPage />)
 
     // Attempt 1 — syncCheckoutSession (reconcileCheckout: true)
-    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
     expect(mockSyncCheckoutSession).toHaveBeenCalledOnce()
 
     // Attempts 2–6 — getCurrentBillingStatus via setTimeout retries (5 advances)
     for (let i = 0; i < 5; i++) {
-      await act(async () => { await vi.advanceTimersByTimeAsync(2500) })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2500)
+      })
     }
 
     expect(screen.getByRole('heading', { name: 'Pagamento recebido' })).toBeInTheDocument()
@@ -170,9 +180,13 @@ describe('manual refresh', () => {
     render(<SubscriptionSuccessPage />)
 
     // Exhaust all retries to reach attention state
-    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
     for (let i = 0; i < 5; i++) {
-      await act(async () => { await vi.advanceTimersByTimeAsync(2500) })
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(2500)
+      })
     }
 
     // Reset counts to isolate the manual refresh call
@@ -182,7 +196,9 @@ describe('manual refresh', () => {
     fireEvent.click(screen.getByRole('button', { name: /Verificar novamente/i }))
 
     // handleManualRefresh → refreshStatus({ reconcileCheckout: true }) → syncCheckoutSession
-    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
     expect(mockSyncCheckoutSession).toHaveBeenCalledWith('cs_test_123')
   })
 })
@@ -230,9 +246,7 @@ describe('portal navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: /Gerenciar assinatura/i }))
 
     await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: /Gerenciar assinatura/i }),
-      ).toBeDisabled(),
+      expect(screen.getByRole('button', { name: /Gerenciar assinatura/i })).toBeDisabled(),
     )
   })
 })

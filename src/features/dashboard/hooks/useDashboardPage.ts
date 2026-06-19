@@ -5,18 +5,11 @@ import { getFinanceSummary } from '@/features/finance/services/finance.service'
 import type { FinanceSummary } from '@/features/finance/types/finance.types'
 import { listAppointments } from '@/features/scheduling/services/scheduling.service'
 import type { Appointment } from '@/features/scheduling/types/scheduling.types'
-
-function todayIso(): string {
-  const d = new Date()
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+import { brazilTodayIso } from '@/lib/brazil-timezone'
 
 export function useDashboardPage() {
   const { user } = useAuth()
-  const today = todayIso()
+  const today = brazilTodayIso()
 
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [financeSummary, setFinanceSummary] = useState<FinanceSummary | null>(null)
@@ -44,7 +37,7 @@ export function useDashboardPage() {
         setError('Não foi possível carregar os dados do dia. Tente recarregar a página.')
       })
       .finally(() => setIsLoading(false))
-  }, [today, user?.role]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [today, user?.role])
 
   const statusCounts = useMemo(() => {
     const confirmed = appointments.filter((a) => a.status === 'CONFIRMED').length

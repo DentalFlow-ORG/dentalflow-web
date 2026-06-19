@@ -1,22 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { AppShell } from '@/components/layout/AppShell'
-import {
-  setMockAuthState,
-  resetAuthMocks,
-  mockLogout,
-} from '@/test-utils/mocks/auth'
-import {
-  mockNavigate,
-  resetRouterMocks,
-} from '@/test-utils/mocks/router'
-import {
-  makeOwnerUser,
-  makeDentistUser,
-  makeAssistantUser,
-  makeAdminUser,
-} from '@/test-utils/factories/user.factory'
 import { makeBillingStatus } from '@/test-utils/factories/billing.factory'
+import {
+  makeAdminUser,
+  makeAssistantUser,
+  makeDentistUser,
+  makeOwnerUser,
+} from '@/test-utils/factories/user.factory'
+import { mockLogout, resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
+import { mockNavigate, resetRouterMocks } from '@/test-utils/mocks/router'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 vi.mock('@tanstack/react-router', async () => {
   const routerMock = await import('@/test-utils/mocks/router')
@@ -36,9 +29,7 @@ vi.mock('@/components/brand/BrandLink', () => ({
   BrandLink: () => null,
 }))
 
-function renderShell(
-  billingStatus: ReturnType<typeof makeBillingStatus> | null = null,
-) {
+function renderShell(billingStatus: ReturnType<typeof makeBillingStatus> | null = null) {
   return render(
     <AppShell billingStatus={billingStatus}>
       <div data-testid="shell-child">content</div>
@@ -104,10 +95,6 @@ describe('role-based navigation', () => {
     expect(screen.getAllByRole('link', { name: 'Pacientes' }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: 'Prontuários' }).length).toBeGreaterThan(0)
 
-    // Leads is only in the desktop Clínica group — expand it first
-    fireEvent.click(screen.getByRole('button', { name: 'Clínica' }))
-    expect(screen.getAllByRole('link', { name: 'Leads' }).length).toBeGreaterThan(0)
-
     // Equipe is only in the desktop Gestão group — expand it first
     fireEvent.click(screen.getByRole('button', { name: 'Gestão' }))
     expect(screen.getAllByRole('link', { name: 'Equipe' }).length).toBeGreaterThan(0)
@@ -130,7 +117,6 @@ describe('role-based navigation', () => {
     expect(screen.queryAllByRole('link', { name: 'Agenda' })).toHaveLength(0)
     expect(screen.queryAllByRole('link', { name: 'Equipe' })).toHaveLength(0)
     expect(screen.queryAllByRole('link', { name: 'Estoque' })).toHaveLength(0)
-    expect(screen.queryAllByRole('link', { name: 'Leads' })).toHaveLength(0)
     expect(screen.queryAllByRole('link', { name: 'Configurações' })).toHaveLength(0)
   })
 
@@ -163,10 +149,6 @@ describe('role-based navigation', () => {
     expect(screen.getAllByRole('link', { name: 'Agenda' }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: 'Pacientes' }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: 'Estoque' }).length).toBeGreaterThan(0)
-
-    // Leads is only in the desktop Clínica group — expand it first
-    fireEvent.click(screen.getByRole('button', { name: 'Clínica' }))
-    expect(screen.getAllByRole('link', { name: 'Leads' }).length).toBeGreaterThan(0)
 
     // OWNER-only items not visible to ASSISTANT
     expect(screen.queryAllByRole('link', { name: 'Equipe' })).toHaveLength(0)
@@ -206,9 +188,7 @@ describe('plan-gated navigation', () => {
 describe('TrialBanner', () => {
   it('renders the trial banner when status is trialing and trialEndsAt is set', () => {
     setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
-    renderShell(
-      makeBillingStatus({ status: 'trialing', trialEndsAt: '2099-12-31T00:00:00.000Z' }),
-    )
+    renderShell(makeBillingStatus({ status: 'trialing', trialEndsAt: '2099-12-31T00:00:00.000Z' }))
     expect(screen.getByText(/Teste grátis ativo/)).toBeInTheDocument()
   })
 
@@ -222,6 +202,38 @@ describe('TrialBanner', () => {
     setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
     renderShell(makeBillingStatus({ status: 'trialing', trialEndsAt: null }))
     expect(screen.queryByText(/Teste grátis ativo/)).not.toBeInTheDocument()
+  })
+})
+
+// ─── ASSISTANT Notificações nav item ─────────────────────────────────────────
+
+describe('ASSISTANT Notificações footer nav', () => {
+  it('ASSISTANT sees Notificações link pointing to /app/configuracoes/notificacoes', () => {
+    setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
+    renderShell()
+    const links = screen.getAllByRole('link', { name: 'Notificações' })
+    expect(links.length).toBeGreaterThan(0)
+    for (const link of links) {
+      expect(link).toHaveAttribute('href', '/app/configuracoes/notificacoes')
+    }
+  })
+
+  it('ASSISTANT still does not see Configurações link for /app/configuracoes', () => {
+    setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
+    renderShell()
+    expect(screen.queryAllByRole('link', { name: 'Configurações' })).toHaveLength(0)
+  })
+
+  it('OWNER does not see a separate Notificações footer link', () => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell()
+    expect(screen.queryAllByRole('link', { name: 'Notificações' })).toHaveLength(0)
+  })
+
+  it('DENTIST does not see Notificações footer link', () => {
+    setMockAuthState({ user: makeDentistUser(), isAuthenticated: true })
+    renderShell()
+    expect(screen.queryAllByRole('link', { name: 'Notificações' })).toHaveLength(0)
   })
 })
 
@@ -241,8 +253,8 @@ describe('active route', () => {
 
     // Agenda is in mobile primary nav for OWNER (not active at '/app')
     const agendaLinks = screen.getAllByRole('link', { name: 'Agenda' })
-    agendaLinks.forEach((link) => {
+    for (const link of agendaLinks) {
       expect(link).not.toHaveAttribute('aria-current', 'page')
-    })
+    }
   })
 })

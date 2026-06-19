@@ -10,7 +10,7 @@ import type {
 const BASE = '/clinical-records/templates'
 
 export function listClinicalTemplates() {
-  return apiRequest<ClinicalTemplate[]>(`/clinical-records/templates/list`, {
+  return apiRequest<ClinicalTemplate[]>('/clinical-records/templates/list', {
     method: 'GET',
     accessToken: getAccessToken(),
   })

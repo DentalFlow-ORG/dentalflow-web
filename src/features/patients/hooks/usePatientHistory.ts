@@ -32,8 +32,7 @@ export function usePatientHistory(patient: PatientSummary | null) {
       .catch((error) => {
         if (!isCurrent) return
 
-        const message =
-          error instanceof ApiError ? error.message : 'Erro ao carregar histórico.'
+        const message = error instanceof ApiError ? error.message : 'Erro ao carregar histórico.'
         showAlert({ title: 'Erro', description: message, tone: 'error' })
         setHistory({ identifier, appointments: [] })
       })

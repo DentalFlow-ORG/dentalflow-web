@@ -1,5 +1,5 @@
-import { AlertTriangle, CheckCircle2, Lock, Package, RefreshCw } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { AlertTriangle, CheckCircle2, Lock, Package, RefreshCw } from 'lucide-react'
 
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import { useStockPurchaseList } from '../hooks/useStockPurchaseList'
-import type { PurchasePriority, PurchaseListItem } from '../types/inventory.types'
+import type { PurchaseListItem, PurchasePriority } from '../types/inventory.types'
 import { formatBRLCents } from '../utils/inventory-format'
+import { InventorySummaryChip } from './InventorySummaryChip'
 import { StockCopilotCard } from './StockCopilotCard'
 
 // ── Priority badge ────────────────────────────────────────────────────────────
@@ -22,8 +23,7 @@ const PRIORITY_LABEL: Record<PurchasePriority, string> = {
 const PRIORITY_CLASS: Record<PurchasePriority, string> = {
   CRITICAL:
     'border-red-200 bg-red-100 text-red-700 dark:border-red-800/50 dark:bg-red-950/40 dark:text-red-300',
-  HIGH:
-    'border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-300',
+  HIGH: 'border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/40 dark:text-amber-300',
   MEDIUM:
     'border-blue-200 bg-blue-100 text-blue-700 dark:border-blue-800/50 dark:bg-blue-950/40 dark:text-blue-300',
 }
@@ -38,30 +38,6 @@ function PriorityBadge({ priority }: { priority: PurchasePriority }) {
     >
       {PRIORITY_LABEL[priority]}
     </span>
-  )
-}
-
-// ── Summary mini-grid ─────────────────────────────────────────────────────────
-
-type SummaryChipProps = {
-  label: string
-  value: string
-  tone?: 'neutral' | 'danger' | 'warning' | 'info'
-}
-
-const CHIP_TONE: Record<NonNullable<SummaryChipProps['tone']>, string> = {
-  neutral: 'border-border bg-muted/50 text-foreground',
-  danger:  'border-red-200 bg-red-50 text-red-700 dark:border-red-800/40 dark:bg-red-950/20 dark:text-red-300',
-  warning: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/20 dark:text-amber-300',
-  info:    'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800/40 dark:bg-blue-950/20 dark:text-blue-300',
-}
-
-function SummaryChip({ label, value, tone = 'neutral' }: SummaryChipProps) {
-  return (
-    <div className={cn('rounded-lg border p-4', CHIP_TONE[tone])}>
-      <p className="text-xl font-semibold tabular-nums">{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-    </div>
   )
 }
 
@@ -85,7 +61,9 @@ function PurchaseItemRow({ item }: { item: PurchaseListItem }) {
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
           {item.categoryName && <span>{item.categoryName}</span>}
           {item.categoryName && item.supplier && (
-            <span aria-hidden="true" className="text-border">·</span>
+            <span aria-hidden="true" className="text-border">
+              ·
+            </span>
           )}
           {item.supplier && <span>{item.supplier}</span>}
         </div>
@@ -97,7 +75,9 @@ function PurchaseItemRow({ item }: { item: PurchaseListItem }) {
         <p className="text-muted-foreground">
           <span className="font-medium text-foreground">{item.currentQuantity}</span>
           <span className="mx-1 text-border">/</span>
-          <span>{item.minQuantity} {item.unit ?? 'un.'} mín.</span>
+          <span>
+            {item.minQuantity} {item.unit ?? 'un.'} mín.
+          </span>
         </p>
         <p className="font-medium text-foreground">
           {formatSuggestedQty(item.suggestedPurchaseQuantity, item.unit)}
@@ -152,14 +132,18 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center gap-3 py-8 text-center">
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/30">
-        <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+        <CheckCircle2
+          className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+          aria-hidden="true"
+        />
       </div>
       <div>
         <p className="text-sm font-medium text-foreground">
           Seu estoque está dentro dos níveis mínimos definidos.
         </p>
         <p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">
-          Quando algum produto ficar abaixo do mínimo, ele aparecerá aqui com prioridade e sugestão de compra.
+          Quando algum produto ficar abaixo do mínimo, ele aparecerá aqui com prioridade e sugestão
+          de compra.
         </p>
       </div>
     </div>
@@ -174,9 +158,7 @@ function SectionHeader() {
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <Package className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <h2 className="text-base font-semibold text-foreground">
-            Lista de compra sugerida
-          </h2>
+          <h2 className="text-base font-semibold text-foreground">Lista de compra sugerida</h2>
           <span className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
             Automático
           </span>
@@ -202,6 +184,11 @@ export function StockPurchaseListSection() {
     <PanelCard>
       <SectionHeader />
 
+      {/* Copilot — always visible so the latest analysis persists even when the purchase list is empty */}
+      <div className="mt-4">
+        <StockCopilotCard />
+      </div>
+
       {isPlanBlocked ? (
         <PlanBlockedState />
       ) : error ? (
@@ -212,31 +199,25 @@ export function StockPurchaseListSection() {
         </div>
       ) : (
         <div className="mt-5 space-y-5">
-          {/* Copilot AI summary — never blocks deterministic purchase list */}
-          <StockCopilotCard />
-
           {/* Summary mini-grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            <SummaryChip
-              label="Total de itens"
-              value={String(data.summary.totalItems)}
-            />
-            <SummaryChip
+            <InventorySummaryChip label="Total de itens" value={String(data.summary.totalItems)} />
+            <InventorySummaryChip
               label="Críticos"
               value={String(data.summary.criticalItems)}
               tone={data.summary.criticalItems > 0 ? 'danger' : 'neutral'}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Alta prioridade"
               value={String(data.summary.highPriorityItems)}
               tone={data.summary.highPriorityItems > 0 ? 'warning' : 'neutral'}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Média prioridade"
               value={String(data.summary.mediumPriorityItems)}
               tone={data.summary.mediumPriorityItems > 0 ? 'info' : 'neutral'}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Custo estimado"
               value={
                 data.summary.totalEstimatedCostCents > 0

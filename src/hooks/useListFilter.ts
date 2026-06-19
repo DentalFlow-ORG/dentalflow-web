@@ -18,10 +18,7 @@ const INITIAL_STATE: ListFilterState = {
   page: 1,
 }
 
-export function useListFilter<T>(
-  data: T[],
-  options: UseListFilterOptions<T> = {},
-) {
+export function useListFilter<T>(data: T[], options: UseListFilterOptions<T> = {}) {
   const { searchFn, filterFns, pageSize = 10 } = options
 
   const [state, setState] = useState<ListFilterState>(INITIAL_STATE)

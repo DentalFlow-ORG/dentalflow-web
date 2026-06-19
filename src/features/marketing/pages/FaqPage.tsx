@@ -1,15 +1,14 @@
-import { ArrowRight, ChevronDown, HelpCircle, Mail, MessageCircle } from 'lucide-react'
-import { useId, useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { ArrowRight, ChevronDown, HelpCircle, Mail } from 'lucide-react'
+import { useId, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { companyInfo } from '@/config/company'
 import { cn } from '@/lib/utils'
 
 import { PublicLayout } from '../components/PublicLayout'
-import { usePageMeta } from '../hooks/usePageMeta'
-import { useChatWidgetState } from '../hooks/useChatWidgetState'
 import { faqItems } from '../data/public-content'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 // ── Group definitions (index-based — avoids coupling to question text) ─────────
 
@@ -52,9 +51,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         <ChevronDown
           className={cn(
             'mt-0.5 h-4 w-4 shrink-0 transition-all duration-200',
-            open
-              ? 'rotate-180 text-primary'
-              : 'text-slate-400 group-hover:text-slate-500',
+            open ? 'rotate-180 text-primary' : 'text-slate-400 group-hover:text-slate-500',
           )}
           aria-hidden="true"
         />
@@ -79,7 +76,6 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function FaqPage() {
-  const { chatOpen, toggleChat } = useChatWidgetState()
   usePageMeta(
     'DentalFlow | Perguntas frequentes',
     'Respostas sobre planos, funcionalidades, segurança, LGPD, WhatsApp e muito mais. Tire suas dúvidas sobre o DentalFlow.',
@@ -99,7 +95,8 @@ export function FaqPage() {
             Tire suas dúvidas
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg leading-8 text-slate-500">
-            Respostas diretas sobre planos, funcionalidades, dados e segurança. Se não encontrar o que procura, nossa equipe está disponível.
+            Respostas diretas sobre planos, funcionalidades, dados e segurança. Se não encontrar o
+            que procura, nossa equipe está disponível.
           </p>
         </div>
       </section>
@@ -149,30 +146,6 @@ export function FaqPage() {
                 <p className="mt-0.5 text-sm text-primary">{companyInfo.supportEmail}</p>
               </div>
             </a>
-            <button
-              type="button"
-              onClick={toggleChat}
-              aria-pressed={chatOpen}
-              className="flex w-full items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 text-left transition-all hover:border-primary/25 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1"
-            >
-              <div
-                className={cn(
-                  'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors',
-                  chatOpen ? 'bg-primary' : 'bg-primary/10',
-                )}
-              >
-                <MessageCircle
-                  className={cn('h-5 w-5', chatOpen ? 'text-white' : 'text-primary')}
-                  aria-hidden="true"
-                />
-              </div>
-              <div>
-                <p className="font-semibold text-slate-800">Chat de contato</p>
-                <p className="mt-0.5 text-sm text-slate-500">
-                  {chatOpen ? 'Clique para fechar o chat.' : 'Clique para abrir o chat de contato.'}
-                </p>
-              </div>
-            </button>
           </div>
         </div>
       </section>

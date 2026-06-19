@@ -10,13 +10,7 @@ type Props = {
   onSuccess: () => void
 }
 
-export function UserPasswordModal({
-  open,
-  userId,
-  userName,
-  onClose,
-  onSuccess,
-}: Props) {
+export function UserPasswordModal({ open, userId, userName, onClose, onSuccess }: Props) {
   return (
     <PasswordResetModal
       open={open}

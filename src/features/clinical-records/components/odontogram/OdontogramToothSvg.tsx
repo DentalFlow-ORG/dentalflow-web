@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-import { getToothKind, type ToothKind } from '../../utils/odontogram-status-utils'
+import { type ToothKind, getToothKind } from '../../utils/odontogram-status-utils'
 
 const TOOTH_PATHS: Record<ToothKind, string> = {
   incisor:
@@ -40,7 +40,11 @@ export function OdontogramToothSvg({ toothNumber, fill, stroke, lower = false, c
       />
       {(kind === 'premolar' || kind === 'molar') && (
         <path
-          d={kind === 'molar' ? 'M15 20.4c3.6 2 10.4 2 14 0M16.8 27c2.8 1.5 7.6 1.5 10.4 0' : 'M17 21c2.8 1.6 7.2 1.6 10 0'}
+          d={
+            kind === 'molar'
+              ? 'M15 20.4c3.6 2 10.4 2 14 0M16.8 27c2.8 1.5 7.6 1.5 10.4 0'
+              : 'M17 21c2.8 1.6 7.2 1.6 10 0'
+          }
           fill="none"
           stroke={stroke}
           strokeLinecap="round"

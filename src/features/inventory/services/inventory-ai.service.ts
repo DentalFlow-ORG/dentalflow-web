@@ -1,34 +1,15 @@
 import { getAccessToken } from '@/features/auth/utils/session-storage'
-import type { AiQuotaInfo } from '@/lib/ai-types'
+import type { AiAnalysisResult, AiDataReadiness, AiQuotaInfo, AiVisibility } from '@/lib/ai-types'
 import { apiRequest } from '@/services/http'
 
-export type AiAnalysisSection = {
-  title: string
-  content: string
-  tone: 'positive' | 'warning' | 'danger' | 'neutral'
-}
-
-export type AiAnalysisResult = {
-  sections: AiAnalysisSection[]
-  disclaimer: string
-  generatedAt: string
-  model: string
-}
-
-export type { AiQuotaInfo }
-
-export type DataReadiness = {
-  ready: boolean
-  reason?: string
-}
-
-export type AiVisibility = 'FULL' | 'TEASER' | 'LOCKED' | 'INSUFFICIENT_DATA'
+export type { AiAnalysisResult, AiQuotaInfo, AiVisibility }
+export type { AiDataReadiness as DataReadiness }
 
 type AnalyzeResponse = { data: AiAnalysisResult; quota: AiQuotaInfo }
 type LatestResponse = {
   data: AiAnalysisResult | null
   quota: AiQuotaInfo
-  dataReadiness: DataReadiness
+  dataReadiness: AiDataReadiness
   visibility: AiVisibility
 }
 

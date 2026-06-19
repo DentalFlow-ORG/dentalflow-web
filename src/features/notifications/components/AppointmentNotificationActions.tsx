@@ -1,24 +1,28 @@
-import { useState } from 'react'
-import { ChevronRight, History, Loader2, MessageCircle, Send } from 'lucide-react'
-import { Dialog } from 'radix-ui'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
-import { ApiError } from '@/services/http'
+import { Button } from '@/components/ui/button'
 import { safeFormatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
 import { normalizePhoneBR } from '@/lib/field-formatters'
+import { cn } from '@/lib/utils'
+import { ApiError } from '@/services/http'
+import { ChevronRight, History, Loader2, MessageCircle, Send } from 'lucide-react'
+import { Dialog } from 'radix-ui'
+import { useState } from 'react'
 
-import type { NotificationTemplate } from '../types/notifications.types'
-import { useNotificationQuota } from '../hooks/useNotificationQuota'
 import { useNotificationConsent } from '../hooks/useNotificationConsent'
-import { useNotificationTemplates } from '../hooks/useNotificationTemplates'
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
-import { sendNotification, TEMPLATE_LABELS, TEMPLATES_BY_STATUS } from '../services/notifications.service'
-import { MessageStatusBadge } from './MessageStatusBadge'
+import { useNotificationQuota } from '../hooks/useNotificationQuota'
+import { useNotificationTemplates } from '../hooks/useNotificationTemplates'
+import {
+  TEMPLATES_BY_STATUS,
+  TEMPLATE_LABELS,
+  sendNotification,
+} from '../services/notifications.service'
+import type { NotificationTemplate } from '../types/notifications.types'
+import { ConsentToggle } from './ConsentToggle'
 import { MessageHistoryDrawer } from './MessageHistoryDrawer'
+import { MessageStatusBadge } from './MessageStatusBadge'
 import { TemplatePreviewer } from './TemplatePreviewer'
 import { WhatsAppLockedPreview } from './WhatsAppLockedPreview'
-import { ConsentToggle } from './ConsentToggle'
 
 type AppointmentNotificationActionsProps = {
   appointmentId: string
@@ -69,8 +73,15 @@ function SendDrawer({
   const phone = normalizePhone(patientPhone)
   const { quota, isLoading: quotaLoading } = useNotificationQuota()
   const { preferences } = useNotificationPreferences()
-  const { consent, isLoading: consentLoading, isSaving: consentSaving, grant, revoke } = useNotificationConsent(phone)
-  const isRealProvider = preferences?.providerType === 'whatsapp_cloud' && preferences.providerConfigured
+  const {
+    consent,
+    isLoading: consentLoading,
+    isSaving: consentSaving,
+    grant,
+    revoke,
+  } = useNotificationConsent(phone)
+  const isRealProvider =
+    preferences?.providerType === 'whatsapp_cloud' && preferences.providerConfigured
 
   const hasConsent = !!consent?.granted && !consent.revokedAt
   const quotaExhausted = !quotaLoading && quota !== null && quota.available === 0
@@ -79,7 +90,8 @@ function SendDrawer({
   const formattedTime = safeFormatTimeBR(appointmentTime)
   const hasValidMessageData = canPrepareMessage(formattedDate, formattedTime)
 
-  const canSend = hasConsent && hasValidMessageData && !quotaExhausted && !quotaBlocked && !isSending
+  const canSend =
+    hasConsent && hasValidMessageData && !quotaExhausted && !quotaBlocked && !isSending
 
   const handleSend = async () => {
     if (!template || !canSend) return
@@ -157,9 +169,7 @@ function SendDrawer({
           {/* Body */}
           <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
             {/* Template preview */}
-            {template && (
-              <TemplatePreviewer template={template} previewVars={previewVars} />
-            )}
+            {template && <TemplatePreviewer template={template} previewVars={previewVars} />}
 
             {/* Consent section */}
             <div className="space-y-2">
@@ -184,7 +194,8 @@ function SendDrawer({
             {!quotaLoading && quota && (
               <div className="rounded-lg border border-border bg-card px-3 py-2.5 text-xs text-muted-foreground">
                 <span className="font-medium text-foreground">{quota.used}</span> /{' '}
-                <span className="font-medium text-foreground">{quota.limit}</span> mensagens usadas este mês
+                <span className="font-medium text-foreground">{quota.limit}</span> mensagens usadas
+                este mês
               </div>
             )}
 
@@ -208,11 +219,7 @@ function SendDrawer({
 
           {/* Footer */}
           <div className="border-t border-border bg-card px-4 py-3">
-            <Button
-              className="w-full"
-              onClick={handleSend}
-              disabled={!canSend}
-            >
+            <Button className="w-full" onClick={handleSend} disabled={!canSend}>
               {isSending ? (
                 <>
                   <Loader2 className="animate-spin" />
@@ -281,10 +288,15 @@ export function AppointmentNotificationActions({
                   <MessageCircle className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-foreground">{TEMPLATE_LABELS[tpl.slug] ?? tpl.slug}</p>
+                  <p className="font-medium text-foreground">
+                    {TEMPLATE_LABELS[tpl.slug] ?? tpl.slug}
+                  </p>
                   <p className="text-xs text-muted-foreground">Preparar e enviar mensagem</p>
                 </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <ChevronRight
+                  className="h-4 w-4 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </button>
             ))}
 

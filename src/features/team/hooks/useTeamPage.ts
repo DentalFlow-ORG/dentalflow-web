@@ -9,7 +9,7 @@ import type { MemberListItem, UserLimitUsage } from '../types/team.types'
 
 const PAGE_SIZE = 10
 
-export const TEAM_ROLE_LABEL: Record<string, string> = {
+const TEAM_ROLE_LABEL: Record<string, string> = {
   DENTIST: 'Profissional',
   ASSISTANT: 'Assistente',
 }
@@ -94,8 +94,7 @@ export function useTeamPage() {
         setUsage(fetchedUsage)
       })
       .catch((err) => {
-        const msg =
-          err instanceof Error ? err.message : 'Não foi possível carregar a equipe.'
+        const msg = err instanceof Error ? err.message : 'Não foi possível carregar a equipe.'
         setError(msg)
         showAlert({ title: 'Erro ao carregar equipe', description: msg, tone: 'error' })
       })

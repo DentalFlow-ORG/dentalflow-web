@@ -1,9 +1,10 @@
+import { brazilAddMonths, brazilDaysAgo, brazilTodayIso } from './brazil-timezone'
+
 const MAX_REPORT_MONTHS = 12
 const MAX_FOLLOW_UP_MONTHS = 24
 
 export function todayIso(): string {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return brazilTodayIso()
 }
 
 export function isFutureDate(iso: string): boolean {
@@ -24,19 +25,13 @@ export function rangeExceedsMonths(start: string, end: string, maxMonths: number
 }
 
 export function defaultLast30DaysRange(): { startDate: string; endDate: string } {
-  const today = new Date()
-  const past = new Date(today)
-  past.setDate(past.getDate() - 30)
-  function toIso(d: Date) {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  }
-  return { startDate: toIso(past), endDate: toIso(today) }
+  const endDate = brazilTodayIso()
+  const startDate = brazilDaysAgo(30)
+  return { startDate, endDate }
 }
 
 export function maxFollowUpIso(): string {
-  const d = new Date()
-  d.setMonth(d.getMonth() + MAX_FOLLOW_UP_MONTHS)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return brazilAddMonths(brazilTodayIso(), MAX_FOLLOW_UP_MONTHS)
 }
 
 export type DateRangeValidationOptions = {
@@ -68,10 +63,7 @@ export function validateReportDateRange(
   return null
 }
 
-export function validateFollowUpDate(
-  date: string | undefined,
-  isCreate: boolean,
-): string | null {
+export function validateFollowUpDate(date: string | undefined, isCreate: boolean): string | null {
   if (!date) return null
 
   if (isCreate && date < todayIso()) {

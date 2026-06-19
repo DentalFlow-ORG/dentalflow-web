@@ -51,9 +51,17 @@ export function useClinicalRecord(id: string) {
     try {
       const updated = await updateClinicalRecord(record.id, dto)
       setRecord(updated)
-      showAlert({ title: 'Prontuário salvo.', description: 'Rascunho atualizado com sucesso.', tone: 'success' })
+      showAlert({
+        title: 'Prontuário salvo.',
+        description: 'Rascunho atualizado com sucesso.',
+        tone: 'success',
+      })
     } catch {
-      showAlert({ title: 'Erro ao salvar.', description: 'Não foi possível salvar o prontuário.', tone: 'error' })
+      showAlert({
+        title: 'Erro ao salvar.',
+        description: 'Não foi possível salvar o prontuário.',
+        tone: 'error',
+      })
     } finally {
       setIsSaving(false)
     }
@@ -85,7 +93,11 @@ export function useClinicalRecord(id: string) {
       }
       const updated = await completeClinicalRecord(record.id)
       setRecord(updated)
-      showAlert({ title: 'Atendimento concluído.', description: 'Prontuário marcado como concluído.', tone: 'success' })
+      showAlert({
+        title: 'Atendimento concluído.',
+        description: 'Prontuário marcado como concluído.',
+        tone: 'success',
+      })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Não foi possível concluir o prontuário.'
       showAlert({ title: 'Erro', description: msg, tone: 'error' })
@@ -100,9 +112,17 @@ export function useClinicalRecord(id: string) {
     try {
       const updated = await lockClinicalRecord(record.id)
       setRecord(updated)
-      showAlert({ title: 'Prontuário bloqueado.', description: 'O prontuário não pode mais ser editado.', tone: 'success' })
+      showAlert({
+        title: 'Prontuário bloqueado.',
+        description: 'O prontuário não pode mais ser editado.',
+        tone: 'success',
+      })
     } catch {
-      showAlert({ title: 'Erro', description: 'Não foi possível bloquear o prontuário.', tone: 'error' })
+      showAlert({
+        title: 'Erro',
+        description: 'Não foi possível bloquear o prontuário.',
+        tone: 'error',
+      })
     } finally {
       setIsSaving(false)
     }
@@ -114,9 +134,17 @@ export function useClinicalRecord(id: string) {
     try {
       const updated = await cancelClinicalRecord(record.id)
       setRecord(updated)
-      showAlert({ title: 'Prontuário cancelado.', description: 'O prontuário foi cancelado.', tone: 'info' })
+      showAlert({
+        title: 'Prontuário cancelado.',
+        description: 'O prontuário foi cancelado.',
+        tone: 'info',
+      })
     } catch {
-      showAlert({ title: 'Erro', description: 'Não foi possível cancelar o prontuário.', tone: 'error' })
+      showAlert({
+        title: 'Erro',
+        description: 'Não foi possível cancelar o prontuário.',
+        tone: 'error',
+      })
     } finally {
       setIsSaving(false)
     }
@@ -128,15 +156,34 @@ export function useClinicalRecord(id: string) {
     try {
       const updated = await restoreClinicalRecord(record.id)
       setRecord(updated)
-      showAlert({ title: 'Prontuário restaurado.', description: 'O prontuário foi reativado com sucesso.', tone: 'success' })
+      showAlert({
+        title: 'Prontuário restaurado.',
+        description: 'O prontuário foi reativado com sucesso.',
+        tone: 'success',
+      })
     } catch {
-      showAlert({ title: 'Erro', description: 'Não foi possível restaurar o prontuário.', tone: 'error' })
+      showAlert({
+        title: 'Erro',
+        description: 'Não foi possível restaurar o prontuário.',
+        tone: 'error',
+      })
     } finally {
       setIsSaving(false)
     }
   }
 
-  return { record, isLoading, isSaving, error, save, saveQuiet, saveAndComplete, lock, cancel, restore }
+  return {
+    record,
+    isLoading,
+    isSaving,
+    error,
+    save,
+    saveQuiet,
+    saveAndComplete,
+    lock,
+    cancel,
+    restore,
+  }
 }
 
 type AppointmentRecordState = {
@@ -154,9 +201,12 @@ function appointmentRecordReducer(
   action: AppointmentRecordAction,
 ): AppointmentRecordState {
   switch (action.type) {
-    case 'loading': return { ...state, isLoading: true, error: null }
-    case 'success': return { record: action.record, isLoading: false, error: null }
-    case 'error': return { ...state, isLoading: false, error: 'Não foi possível carregar o prontuário.' }
+    case 'loading':
+      return { ...state, isLoading: true, error: null }
+    case 'success':
+      return { record: action.record, isLoading: false, error: null }
+    case 'error':
+      return { ...state, isLoading: false, error: 'Não foi possível carregar o prontuário.' }
   }
 }
 
@@ -184,7 +234,7 @@ export function useClinicalRecordByAppointment(appointmentId: string) {
     }
   }, [appointmentId])
 
-  useEffect(load, [load])
+  useEffect(() => load(), [load])
 
   return { record: state.record, isLoading: state.isLoading, error: state.error }
 }

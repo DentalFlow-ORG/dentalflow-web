@@ -16,9 +16,12 @@ type Action =
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'loading': return { ...state, isLoading: true, error: null }
-    case 'success': return { records: action.records, isLoading: false, error: null }
-    case 'error': return { ...state, isLoading: false, error: 'Não foi possível carregar os prontuários.' }
+    case 'loading':
+      return { ...state, isLoading: true, error: null }
+    case 'success':
+      return { records: action.records, isLoading: false, error: null }
+    case 'error':
+      return { ...state, isLoading: false, error: 'Não foi possível carregar os prontuários.' }
   }
 }
 
@@ -45,7 +48,7 @@ export function useClinicalRecords(filters: Filters = {}) {
     }
   }, [status, dentistProfileId])
 
-  useEffect(load, [load])
+  useEffect(() => load(), [load])
 
   return { records: state.records, isLoading: state.isLoading, error: state.error, refresh: load }
 }

@@ -1,12 +1,9 @@
-import { useState } from 'react'
-import { Bell, Loader2, MessageCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { BackButton } from '@/components/common/BackButton'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
-import { ApiError } from '@/services/http'
-import { cn } from '@/lib/utils'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -14,10 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import { ApiError } from '@/services/http'
+import { Bell, Loader2, MessageCircle } from 'lucide-react'
+import { useState } from 'react'
 
+import { useAuth } from '@/features/auth/hooks/useAuth'
+import { MonthlyUsageBar } from '../components/MonthlyUsageBar'
 import { useNotificationPreferences } from '../hooks/useNotificationPreferences'
 import { useNotificationQuota } from '../hooks/useNotificationQuota'
-import { MonthlyUsageBar } from '../components/MonthlyUsageBar'
 
 const REMINDER_HOURS_OPTIONS = [2, 4, 12, 24, 48] as const
 
@@ -33,8 +35,9 @@ function SectionCard({ title, children }: { title: string; children: React.React
 }
 
 export function NotificationSettingsPage() {
+  const { user } = useAuth()
   const { showAlert } = useGlobalAlerts()
-  const { preferences, isLoading, isSaving, save } = useNotificationPreferences()
+  const { preferences, isLoading, isSaving, save, error } = useNotificationPreferences()
   const { quota, isLoading: quotaLoading } = useNotificationQuota()
   const [localEnabled, setLocalEnabled] = useState<boolean | null>(null)
   const [localHours, setLocalHours] = useState<number | null>(null)
@@ -76,7 +79,11 @@ export function NotificationSettingsPage() {
   if (isLoading) {
     return (
       <AppPage>
-        <div className="flex items-center justify-center py-16 text-muted-foreground">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-center py-16 text-muted-foreground"
+        >
           <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
         </div>
       </AppPage>
@@ -86,10 +93,20 @@ export function NotificationSettingsPage() {
   return (
     <AppPage>
       <AppPageHeader
+        eyebrow="Comunicação"
         title="Notificações"
-        description="Configure mensagens WhatsApp para seus pacientes."
-        action={<BackButton to="/app/configuracoes" />}
+        description="Configure lembretes automáticos e acompanhe o uso mensal de mensagens da clínica."
+        action={<BackButton to={user?.role === 'OWNER' ? '/app/configuracoes' : '/app'} />}
       />
+
+      {user?.role === 'ASSISTANT' && (
+        <InlineFeedback tone="info">
+          Você pode ajustar preferências operacionais de comunicação, mas configurações
+          administrativas da clínica continuam restritas ao proprietário.
+        </InlineFeedback>
+      )}
+
+      {error && <InlineFeedback tone="error">{error}</InlineFeedback>}
 
       {/* Status card */}
       <SectionCard title="Status do WhatsApp">
@@ -134,7 +151,7 @@ export function NotificationSettingsPage() {
               onClick={() => handleToggleWhatsApp(!whatsappEnabled)}
             >
               {isSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : whatsappEnabled ? (
                 'Desativar'
               ) : (
@@ -145,17 +162,20 @@ export function NotificationSettingsPage() {
 
           {whatsappEnabled && !isRealProvider && (
             <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-              Fase 0 — simulação. Nenhuma mensagem real é enviada. O envio real será habilitado em uma fase futura.
+              Fase 0 — simulação. Nenhuma mensagem real é enviada. O envio real será habilitado em
+              uma fase futura.
             </div>
           )}
           {whatsappEnabled && isRealProvider && providerConfigured && (
             <div className="rounded-md bg-green-50 px-3 py-2 text-xs text-green-800 dark:bg-green-900/20 dark:text-green-300">
-              Provedor real ativo. Mensagens são enviadas via Meta WhatsApp Business Cloud API. Templates devem estar aprovados no Meta Business Manager.
+              Provedor real ativo. Mensagens são enviadas via Meta WhatsApp Business Cloud API.
+              Templates devem estar aprovados no Meta Business Manager.
             </div>
           )}
           {isRealProvider && !providerConfigured && (
             <div className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-900/20 dark:text-red-300">
-              WhatsApp Cloud API selecionado, mas as credenciais obrigatórias não estão configuradas.
+              WhatsApp Cloud API selecionado, mas as credenciais obrigatórias não estão
+              configuradas.
             </div>
           )}
         </div>
@@ -164,8 +184,12 @@ export function NotificationSettingsPage() {
       {/* Usage */}
       <SectionCard title="Uso mensal">
         {quotaLoading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 text-sm text-muted-foreground"
+          >
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
             Carregando uso...
           </div>
         ) : quota ? (
@@ -178,7 +202,7 @@ export function NotificationSettingsPage() {
             )}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">Não foi possível carregar o uso mensal.</p>
+          <InlineFeedback tone="error">Não foi possível carregar o uso mensal.</InlineFeedback>
         )}
       </SectionCard>
 
@@ -198,7 +222,7 @@ export function NotificationSettingsPage() {
               onValueChange={(value) => handleHoursChange(Number(value))}
               disabled={isSaving}
             >
-              <SelectTrigger className="w-28 shrink-0">
+              <SelectTrigger className="w-28 shrink-0" aria-label="Antecedência do lembrete">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="max-h-60 overflow-y-auto">
@@ -230,8 +254,8 @@ export function NotificationSettingsPage() {
       <div className="flex items-start gap-2 rounded-lg bg-muted/50 px-4 py-3 text-xs text-muted-foreground">
         <Bell className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span>
-          Mensagens WhatsApp nunca incluem diagnósticos, prontuários ou detalhes clínicos.
-          O consentimento do paciente é sempre verificado antes do envio.
+          Mensagens WhatsApp nunca incluem diagnósticos, prontuários ou detalhes clínicos. O
+          consentimento do paciente é sempre verificado antes do envio.
         </span>
       </div>
     </AppPage>

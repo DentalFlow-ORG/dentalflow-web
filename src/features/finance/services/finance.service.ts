@@ -6,10 +6,10 @@ import type {
   CreateFinancialTransactionDto,
   CreateFixedExpenseDto,
   FinanceFilters,
+  FinanceSummary,
   FinancialCategory,
   FinancialTransaction,
   FinancialTransactionsResponse,
-  FinanceSummary,
   FixedExpense,
   UpdateFinancialCategoryDto,
   UpdateFinancialTransactionDto,
@@ -19,11 +19,11 @@ import type {
 function buildQuery(params: Record<string, string | number | undefined>) {
   const query = new URLSearchParams()
 
-  Object.entries(params).forEach(([key, value]) => {
+  for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== '') {
       query.set(key, String(value))
     }
-  })
+  }
 
   const queryString = query.toString()
   return queryString ? `?${queryString}` : ''

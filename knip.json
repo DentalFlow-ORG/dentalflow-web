@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["index.html", "src/App.tsx", "src/app/router.tsx", "src/app/route-components.tsx"],
+  "project": ["src/**/*.{ts,tsx,css}", "scripts/**/*.{js,cjs,mjs,ts}", "*.{js,cjs,mjs,ts}"],
+  "includeEntryExports": true
+}

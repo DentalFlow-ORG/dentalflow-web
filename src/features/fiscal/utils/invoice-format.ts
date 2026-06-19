@@ -1,3 +1,4 @@
+import { centsToMoneyInput, parseMoneyInputToCents } from '@/lib/money-input'
 import { formatCurrencyBR } from '@/lib/number-formatters'
 
 export function formatCents(cents: number): string {
@@ -10,11 +11,9 @@ export function formatInvoiceDate(value?: string | null): string {
 }
 
 export function toMoneyInput(cents: number): string {
-  return cents ? String((cents / 100).toFixed(2)) : ''
+  return centsToMoneyInput(cents)
 }
 
 export function fromMoneyInput(value: string): number {
-  const normalized = value.replace(',', '.')
-  const number = Number(normalized)
-  return Number.isFinite(number) ? Math.round(number * 100) : 0
+  return parseMoneyInputToCents(value)
 }

@@ -88,7 +88,7 @@ function formatValue(raw: number, decimalDigits?: number): string {
   if (!decimalDigits) {
     return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(raw)
   }
-  const divisor = Math.pow(10, decimalDigits)
+  const divisor = 10 ** decimalDigits
   return new Intl.NumberFormat('pt-BR', {
     minimumFractionDigits: decimalDigits,
     maximumFractionDigits: decimalDigits,
@@ -116,7 +116,7 @@ function useCountUp(target: number, isActive: boolean): number {
       const elapsed = now - startTime
       const progress = Math.min(elapsed / COUNT_UP_DURATION_MS, 1)
       // Cubic ease-out: fast start, decelerates near the final value
-      const eased = 1 - Math.pow(1 - progress, 3)
+      const eased = 1 - (1 - progress) ** 3
       setValue(Math.round(target * eased))
       if (progress < 1) raf = window.requestAnimationFrame(tick)
     }
@@ -143,13 +143,8 @@ function ImpactCard({ metric, index }: { metric: ImpactMetric; index: number }) 
       )}
       style={{ transitionDelay: isVisible ? `${Math.min(index * 60, 300)}ms` : '0ms' }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </div>
-        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-          Ilustrativo
-        </span>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <Icon className="h-5 w-5" aria-hidden="true" />
       </div>
 
       {/* Dominant animated number */}
@@ -195,8 +190,8 @@ export function AnimatedImpactSection() {
           </h2>
           <p className="mt-5 max-w-xl leading-7 text-slate-600">
             Cada confirmação por telefone, cada cobrança manual, cada conferência de agenda soma
-            horas que poderiam ser suas. Veja o que a centralização operacional pode representar
-            em números.
+            horas que poderiam ser suas. Veja o que a centralização operacional pode representar em
+            números.
           </p>
         </div>
 
@@ -218,8 +213,8 @@ export function AnimatedImpactSection() {
           <ClipboardCheck className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
           <p className="text-xs leading-5 text-slate-500">
             Estimativas ilustrativas baseadas em rotinas administrativas comuns de clínicas
-            odontológicas. Resultados podem variar conforme volume de atendimentos, equipe e uso
-            da plataforma.
+            odontológicas. Resultados podem variar conforme volume de atendimentos, equipe e uso da
+            plataforma.
           </p>
         </div>
       </div>

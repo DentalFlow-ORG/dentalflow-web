@@ -12,8 +12,8 @@ const _authState: AuthMockState = {
   isBootstrapping: false,
 }
 
-export const mockLogin = vi.fn()
-export const mockRegister = vi.fn()
+const mockLogin = vi.fn()
+const mockRegister = vi.fn()
 export const mockCompleteProfile = vi.fn()
 export const mockLogout = vi.fn()
 

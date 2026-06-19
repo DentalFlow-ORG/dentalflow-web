@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { formatMoneyInputFromDigits } from '@/lib/money-input'
 
 import type {
   FinancialCategory,
@@ -35,7 +36,10 @@ export function FixedExpenseEditModal({
   categories: FinancialCategory[]
   error: string | null
   isSubmitting: boolean
-  onChange: <K extends keyof FixedExpenseEditFormState>(field: K, value: FixedExpenseEditFormState[K]) => void
+  onChange: <K extends keyof FixedExpenseEditFormState>(
+    field: K,
+    value: FixedExpenseEditFormState[K],
+  ) => void
   onSubmit: (event: React.FormEvent) => void
   onClose: () => void
 }) {
@@ -45,11 +49,11 @@ export function FixedExpenseEditModal({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
           aria-labelledby="edit-fe-title"
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-lg max-h-[calc(100dvh-2rem)] flex-col -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={onClose}
           onInteractOutside={onClose}
         >
-          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
             <Dialog.Title id="edit-fe-title" className="text-base font-semibold text-foreground">
               Editar despesa fixa
             </Dialog.Title>
@@ -62,99 +66,119 @@ export function FixedExpenseEditModal({
               <X className="h-5 w-5" />
             </button>
           </div>
+          <Dialog.Description className="sr-only">
+            Atualize os dados da despesa fixa recorrente.
+          </Dialog.Description>
 
-          <form className="space-y-4 px-6 py-5" onSubmit={onSubmit}>
-            {error && <InlineFeedback>{error}</InlineFeedback>}
+          <form className="flex min-h-0 flex-col" onSubmit={onSubmit}>
+            <div className="app-scrollbar min-h-0 overflow-y-auto px-6 py-5">
+              <div className="space-y-4">
+                {error && <InlineFeedback>{error}</InlineFeedback>}
 
-            <FormField label="Categoria" htmlFor="editFeCategory">
-              <Select value={form.categoryId} onValueChange={(value) => onChange('categoryId', value)}>
-                <SelectTrigger id="editFeCategory">
-                  <SelectValue placeholder="Selecione a categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
+                <FormField label="Categoria" htmlFor="editFeCategory">
+                  <Select
+                    value={form.categoryId}
+                    onValueChange={(value) => onChange('categoryId', value)}
+                  >
+                    <SelectTrigger id="editFeCategory">
+                      <SelectValue placeholder="Selecione a categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormField>
 
-            <FormField label="Descrição" htmlFor="editFeDescription">
-              <TextInput
-                id="editFeDescription"
-                value={form.description}
-                maxLength={160}
-                onChange={(event) => onChange('description', event.target.value)}
-              />
-            </FormField>
+                <FormField label="Descrição" htmlFor="editFeDescription">
+                  <TextInput
+                    id="editFeDescription"
+                    value={form.description}
+                    maxLength={160}
+                    onChange={(event) => onChange('description', event.target.value)}
+                  />
+                </FormField>
 
-            <div className="grid items-start gap-4 sm:grid-cols-3">
-              <FormField label="Valor" htmlFor="editFeAmount">
-                <TextInput
-                  id="editFeAmount"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  placeholder="0,00"
-                  value={form.amount}
-                  onChange={(event) => onChange('amount', event.target.value)}
-                />
-              </FormField>
-              <FormField label="Recorrência" htmlFor="editFeRecurrence">
-                <Select
-                  value={form.recurrence}
-                  onValueChange={(value) => onChange('recurrence', value as FixedExpenseRecurrence)}
+                <div className="grid items-start gap-4 sm:grid-cols-3">
+                  <FormField label="Valor" htmlFor="editFeAmount">
+                    <TextInput
+                      id="editFeAmount"
+                      inputMode="numeric"
+                      placeholder="0,00"
+                      value={form.amount}
+                      onChange={(event) =>
+                        onChange('amount', formatMoneyInputFromDigits(event.target.value))
+                      }
+                    />
+                  </FormField>
+                  <FormField label="Recorrência" htmlFor="editFeRecurrence">
+                    <Select
+                      value={form.recurrence}
+                      onValueChange={(value) =>
+                        onChange('recurrence', value as FixedExpenseRecurrence)
+                      }
+                    >
+                      <SelectTrigger id="editFeRecurrence">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MONTHLY">Mensal</SelectItem>
+                        <SelectItem value="WEEKLY">Semanal</SelectItem>
+                        <SelectItem value="YEARLY">Anual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                  <FormField label="Dia" htmlFor="editFeDueDay">
+                    <TextInput
+                      id="editFeDueDay"
+                      type="number"
+                      min="1"
+                      max="31"
+                      placeholder="1–31"
+                      value={form.dueDay}
+                      onChange={(event) => onChange('dueDay', event.target.value)}
+                    />
+                  </FormField>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField label="Início" htmlFor="editFeStartDate">
+                    <DatePickerInput
+                      id="editFeStartDate"
+                      value={form.startDate}
+                      onValueChange={(value) => onChange('startDate', value)}
+                    />
+                  </FormField>
+                  <FormField label="Fim" htmlFor="editFeEndDate" optional>
+                    <DatePickerInput
+                      id="editFeEndDate"
+                      value={form.endDate}
+                      onValueChange={(value) => onChange('endDate', value)}
+                    />
+                  </FormField>
+                </div>
+              </div>
+            </div>
+
+            <div className="shrink-0 border-t border-border px-6 pb-5 pt-4">
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={onClose}
+                  disabled={isSubmitting}
                 >
-                  <SelectTrigger id="editFeRecurrence">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MONTHLY">Mensal</SelectItem>
-                    <SelectItem value="WEEKLY">Semanal</SelectItem>
-                    <SelectItem value="YEARLY">Anual</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormField>
-              <FormField label="Dia" htmlFor="editFeDueDay">
-                <TextInput
-                  id="editFeDueDay"
-                  type="number"
-                  min="1"
-                  max="31"
-                  placeholder="1–31"
-                  value={form.dueDay}
-                  onChange={(event) => onChange('dueDay', event.target.value)}
-                />
-              </FormField>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="Início" htmlFor="editFeStartDate">
-                <DatePickerInput
-                  id="editFeStartDate"
-                  value={form.startDate}
-                  onValueChange={(value) => onChange('startDate', value)}
-                />
-              </FormField>
-              <FormField label="Fim" htmlFor="editFeEndDate" optional>
-                <DatePickerInput
-                  id="editFeEndDate"
-                  value={form.endDate}
-                  onValueChange={(value) => onChange('endDate', value)}
-                />
-              </FormField>
-            </div>
-
-            <div className="flex gap-3 pt-1">
-              <Button type="button" variant="outline" className="flex-1" onClick={onClose} disabled={isSubmitting}>
-                Cancelar
-              </Button>
-              <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                Salvar alterações
-              </Button>
+                  Cancelar
+                </Button>
+                <Button type="submit" className="flex-1" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Salvar alterações
+                </Button>
+              </div>
             </div>
           </form>
         </Dialog.Content>

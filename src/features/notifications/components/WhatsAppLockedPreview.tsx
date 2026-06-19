@@ -1,12 +1,15 @@
-import { Lock } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
+import { Link } from '@tanstack/react-router'
+import { Lock } from 'lucide-react'
 
 type WhatsAppLockedPreviewProps = {
   reason?: 'starter_plan' | 'quota_exceeded' | 'no_consent'
 }
 
-const MESSAGES: Record<NonNullable<WhatsAppLockedPreviewProps['reason']>, { title: string; body: string }> = {
+const MESSAGES: Record<
+  NonNullable<WhatsAppLockedPreviewProps['reason']>,
+  { title: string; body: string }
+> = {
   starter_plan: {
     title: 'Recurso não disponível no plano atual',
     body: 'O envio de mensagens WhatsApp está disponível nos planos Professional e Premium.',

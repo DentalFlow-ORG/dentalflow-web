@@ -1,10 +1,10 @@
-import type { ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ChevronRight, Mail } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 import { companyInfo, socialLinks } from '@/config/company'
-import { cn } from '@/lib/utils'
 import { useCookieConsent } from '@/features/privacy/components/CookieConsentContext'
+import { cn } from '@/lib/utils'
 
 // ── Shared link base ──────────────────────────────────────────────────────────
 
@@ -139,10 +139,8 @@ export function SiteFooter() {
   return (
     <footer aria-label="Rodapé do site" className="border-t border-white/10 bg-slate-950">
       <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
-
         {/* Top grid */}
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
-
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2.5">
@@ -155,7 +153,8 @@ export function SiteFooter() {
               <span className="text-base font-semibold text-white">{companyInfo.tradeName}</span>
             </div>
             <p className="mt-5 max-w-[22rem] text-sm leading-6 text-slate-400">
-              Plataforma de gestão odontológica para organizar agenda, pacientes, equipe e finanças em um só lugar.
+              Plataforma de gestão odontológica para organizar agenda, pacientes, equipe e finanças
+              em um só lugar.
             </p>
 
             {socialLinks.youtube && (
@@ -187,7 +186,10 @@ export function SiteFooter() {
                 <FooterHrefLink
                   href={`mailto:${companyInfo.supportEmail}`}
                   icon={
-                    <Mail className="h-3 w-3 shrink-0 text-slate-600 transition-colors group-hover:text-emerald-500" aria-hidden="true" />
+                    <Mail
+                      className="h-3 w-3 shrink-0 text-slate-600 transition-colors group-hover:text-emerald-500"
+                      aria-hidden="true"
+                    />
                   }
                 >
                   {companyInfo.supportEmail}
@@ -215,8 +217,13 @@ export function SiteFooter() {
         {/* Copyright bar */}
         <div className="mt-14 border-t border-white/10 pt-6">
           <div className="flex flex-col gap-2 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-            <p>© {currentYear} {companyInfo.legalName}. Todos os direitos reservados.</p>
-            <p>{companyInfo.tradeName} e marcas relacionadas pertencem aos seus respectivos titulares.</p>
+            <p>
+              © {currentYear} {companyInfo.legalName}. Todos os direitos reservados.
+            </p>
+            <p>
+              {companyInfo.tradeName} e marcas relacionadas pertencem aos seus respectivos
+              titulares.
+            </p>
           </div>
         </div>
       </div>

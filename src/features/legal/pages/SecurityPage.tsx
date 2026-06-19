@@ -1,23 +1,15 @@
-import {
-  Lock,
-  KeyRound,
-  Eye,
-  Server,
-  AlertTriangle,
-  RefreshCw,
-  FileSearch,
-} from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { AlertTriangle, Eye, FileSearch, KeyRound, Lock, RefreshCw, Server } from 'lucide-react'
 
 import { companyInfo } from '@/config/company'
 import { cn } from '@/lib/utils'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
+  LegalContactBlock,
+  LegalList,
   LegalPageHeader,
   LegalSection,
-  LegalList,
-  LegalContactBlock,
   legalInlineLinkClass,
 } from '../components/LegalSection'
 
@@ -27,32 +19,38 @@ const measures = [
   {
     icon: Lock,
     title: 'Comunicações Seguras',
-    description: 'Todas as comunicações entre o navegador e nossos servidores são protegidas por TLS/HTTPS.',
+    description:
+      'Todas as comunicações entre o navegador e nossos servidores são protegidas por TLS/HTTPS.',
   },
   {
     icon: KeyRound,
     title: 'Autenticação Robusta',
-    description: 'JWT com rotação automática de tokens de atualização. Senhas armazenadas com hash bcrypt.',
+    description:
+      'JWT com rotação automática de tokens de atualização. Senhas armazenadas com hash bcrypt.',
   },
   {
     icon: Eye,
     title: 'Controle de Acesso',
-    description: 'RBAC (controle por papel) com isolamento de dados por clínica. Cada usuário acessa apenas o que seu papel permite.',
+    description:
+      'RBAC (controle por papel) com isolamento de dados por clínica. Cada usuário acessa apenas o que seu papel permite.',
   },
   {
     icon: FileSearch,
     title: 'Logs de Auditoria',
-    description: 'Ações sensíveis como acesso a prontuários, alterações de dados e eventos de autenticação são registradas.',
+    description:
+      'Ações sensíveis como acesso a prontuários, alterações de dados e eventos de autenticação são registradas.',
   },
   {
     icon: Server,
     title: 'Infraestrutura',
-    description: 'Dados armazenados em infraestrutura com backups regulares. Acesso interno restrito ao princípio do menor privilégio.',
+    description:
+      'Dados armazenados em infraestrutura com backups regulares. Acesso interno restrito ao princípio do menor privilégio.',
   },
   {
     icon: RefreshCw,
     title: 'Atualizações de Segurança',
-    description: 'Dependências monitoradas e atualizadas regularmente para mitigar vulnerabilidades conhecidas.',
+    description:
+      'Dependências monitoradas e atualizadas regularmente para mitigar vulnerabilidades conhecidas.',
   },
 ]
 
@@ -129,9 +127,9 @@ export function SecurityPage() {
             <div>
               <p className="font-semibold text-amber-900">Nenhum sistema é 100% seguro</p>
               <p className="mt-2 text-amber-800 text-sm leading-6">
-                Adotamos medidas técnicas e administrativas razoáveis e proporcionais ao risco,
-                mas não garantimos segurança absoluta. Em caso de incidente com potencial impacto
-                aos titulares, notificaremos a ANPD e os afetados conforme exigido pela LGPD.
+                Adotamos medidas técnicas e administrativas razoáveis e proporcionais ao risco, mas
+                não garantimos segurança absoluta. Em caso de incidente com potencial impacto aos
+                titulares, notificaremos a ANPD e os afetados conforme exigido pela LGPD.
               </p>
             </div>
           </div>
@@ -139,9 +137,7 @@ export function SecurityPage() {
       </LegalSection>
 
       <LegalSection id="resposta-incidentes" title="Resposta a Incidentes">
-        <p>
-          Mantemos procedimentos internos de resposta a incidentes de segurança que incluem:
-        </p>
+        <p>Mantemos procedimentos internos de resposta a incidentes de segurança que incluem:</p>
         <LegalList
           items={[
             'Identificação e contenção do incidente.',
@@ -155,9 +151,9 @@ export function SecurityPage() {
 
       <LegalSection id="divulgacao-responsavel" title="Divulgação Responsável de Vulnerabilidades">
         <p>
-          Se você identificou uma vulnerabilidade de segurança na plataforma, pedimos que
-          nos comunique de forma responsável antes de qualquer divulgação pública. Entre
-          em contato por e-mail:{' '}
+          Se você identificou uma vulnerabilidade de segurança na plataforma, pedimos que nos
+          comunique de forma responsável antes de qualquer divulgação pública. Entre em contato por
+          e-mail:{' '}
           <a href={`mailto:${companyInfo.securityEmail}`} className={legalInlineLinkClass}>
             {companyInfo.securityEmail}
           </a>
@@ -179,10 +175,7 @@ export function SecurityPage() {
       </LegalSection>
 
       <div className="mt-10">
-        <Link
-          to="/politica-de-privacidade"
-          className={cn('text-sm', legalInlineLinkClass)}
-        >
+        <Link to="/politica-de-privacidade" className={cn('text-sm', legalInlineLinkClass)}>
           Ver também: Política de Privacidade
         </Link>
       </div>

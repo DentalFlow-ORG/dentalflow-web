@@ -1,7 +1,7 @@
 import { ClipboardList } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { EmptyState } from '@/components/common/EmptyState'
+import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { Pagination } from '@/components/common/Pagination'
 import { Button } from '@/components/ui/button'
@@ -12,24 +12,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
 
-import { listAuditLogs } from '../services/compliance.service'
-import type {
-  AuditLogEntry,
-  AuditLogFilters,
-  PaginatedResponse,
-} from '../types/compliance.types'
 import { COMMON_ACTIONS, INITIAL_FILTERS } from '../constants/audit-log-config'
+import { listAuditLogs } from '../services/compliance.service'
+import type { AuditLogEntry, AuditLogFilters, PaginatedResponse } from '../types/compliance.types'
 import { formatDatetimeWithSeconds as formatDate } from '../utils/format-date'
 
 function renderMetadata(metadata: Record<string, unknown> | null): string {
   if (!metadata) return '—'
   const safe = { ...metadata }
   // Strip any field that could accidentally contain a raw token or credential
-  delete safe['token']
-  delete safe['password']
-  delete safe['secret']
-  delete safe['authorization']
+  safe.token = undefined
+  safe.password = undefined
+  safe.secret = undefined
+  safe.authorization = undefined
   const str = JSON.stringify(safe)
   return str.length > 120 ? `${str.slice(0, 120)}…` : str
 }
@@ -43,7 +40,11 @@ type ResolvedState = {
 export function AuditLogsTab() {
   const [filters, setFilters] = useState<AuditLogFilters>(INITIAL_FILTERS)
   const [retryKey, setRetryKey] = useState(0)
-  const [resolved, setResolved] = useState<ResolvedState>({ resolvedKey: '', data: null, error: null })
+  const [resolved, setResolved] = useState<ResolvedState>({
+    resolvedKey: '',
+    data: null,
+    error: null,
+  })
 
   const requestKey = JSON.stringify({ ...filters, retryKey })
   const isLoading = resolved.resolvedKey !== requestKey
@@ -58,47 +59,62 @@ export function AuditLogsTab() {
         if (!cancelled) setResolved({ resolvedKey: key, data, error: null })
       })
       .catch((err: Error) => {
-        if (!cancelled) setResolved({ resolvedKey: key, data: null, error: err.message ?? 'Não foi possível carregar os logs.' })
+        if (!cancelled)
+          setResolved({
+            resolvedKey: key,
+            data: null,
+            error: err.message ?? 'Não foi possível carregar os logs.',
+          })
       })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [filters, retryKey])
 
   function setFilter<K extends keyof AuditLogFilters>(key: K, value: AuditLogFilters[K]) {
     setFilters((prev) => ({ ...prev, [key]: value, page: key !== 'page' ? 1 : (value as number) }))
   }
 
-  const hasActiveFilters = !!(filters.action || filters.actorUserId || filters.clinicId || filters.dateFrom || filters.dateTo)
+  const hasActiveFilters = !!(
+    filters.action ||
+    filters.actorUserId ||
+    filters.clinicId ||
+    filters.dateFrom ||
+    filters.dateTo
+  )
 
   return (
     <div className="space-y-4">
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
-        <Select value={filters.action || '__ALL__'} onValueChange={(v) => setFilter('action', v === '__ALL__' ? '' : v)}>
+        <Select
+          value={filters.action || '__ALL__'}
+          onValueChange={(v) => setFilter('action', v === '__ALL__' ? '' : v)}
+        >
           <SelectTrigger size="sm" className="w-60">
             <SelectValue placeholder="Ação" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__ALL__">Todas as ações</SelectItem>
             {COMMON_ACTIONS.map((a) => (
-              <SelectItem key={a} value={a}>{a}</SelectItem>
+              <SelectItem key={a} value={a}>
+                {a}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <input
-          type="date"
+        <DatePickerInput
+          placeholder="Data inicial"
           value={filters.dateFrom}
-          onChange={(e) => setFilter('dateFrom', e.target.value)}
-          title="De"
-          aria-label="Data inicial"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 dark:scheme-dark"
+          onValueChange={(v) => setFilter('dateFrom', v)}
+          className="w-44"
         />
-        <input
-          type="date"
+        <DatePickerInput
+          placeholder="Data final"
           value={filters.dateTo}
-          onChange={(e) => setFilter('dateTo', e.target.value)}
-          title="Até"
-          aria-label="Data final"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 dark:scheme-dark"
+          onValueChange={(v) => setFilter('dateTo', v)}
+          minValue={filters.dateFrom}
+          className="w-44"
         />
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={() => setFilters(INITIAL_FILTERS)}>
@@ -119,7 +135,8 @@ export function AuditLogsTab() {
         onRetry={() => setRetryKey((key) => key + 1)}
         isEmpty={!isLoading && !error && (result?.data.length ?? 0) === 0}
         emptyState={
-          <EmptyState
+          <HomeEmptyState
+            compact
             icon={ClipboardList}
             title="Nenhum evento encontrado"
             description="Não há eventos de auditoria para os filtros selecionados."
@@ -149,7 +166,7 @@ export function AuditLogsTab() {
                       </span>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                      {log.actorUserId ? log.actorUserId.slice(0, 8) + '…' : '—'}
+                      {log.actorUserId ? `${log.actorUserId.slice(0, 8)}…` : '—'}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {log.entityType ? `${log.entityType}` : '—'}
@@ -167,7 +184,9 @@ export function AuditLogsTab() {
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground/60">
                       {log.ipHash ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground tabular-nums">{formatDate(log.createdAt)}</td>
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
+                      {formatDate(log.createdAt)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -182,16 +201,20 @@ export function AuditLogsTab() {
                   {log.action}
                 </span>
                 {log.actorUserId && (
-                  <p className="font-mono text-xs text-muted-foreground">Usuário: {log.actorUserId.slice(0, 8)}…</p>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    Usuário: {log.actorUserId.slice(0, 8)}…
+                  </p>
                 )}
-                <p className="font-mono text-xs text-muted-foreground/60">{renderMetadata(log.metadata)}</p>
+                <p className="font-mono text-xs text-muted-foreground/60">
+                  {renderMetadata(log.metadata)}
+                </p>
                 <p className="text-xs text-muted-foreground">{formatDate(log.createdAt)}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {result && result.totalPages > 1 && (
+        {result && (
           <Pagination
             page={result.page}
             totalPages={result.totalPages}

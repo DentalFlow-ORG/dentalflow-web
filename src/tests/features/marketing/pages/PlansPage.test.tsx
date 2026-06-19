@@ -20,9 +20,7 @@ vi.mock('@/features/marketing/components/PublicLayout', () => ({
 describe('PlansPage', () => {
   it('renders the hero heading', () => {
     render(<PlansPage />)
-    expect(
-      screen.getByRole('heading', { name: /impulsionar resultados/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /impulsionar resultados/i })).toBeInTheDocument()
   })
 
   it('renders all three plan names in the pricing cards section', () => {
@@ -34,9 +32,7 @@ describe('PlansPage', () => {
 
   it('renders the feature comparison section', () => {
     render(<PlansPage />)
-    expect(
-      screen.getByRole('heading', { name: /Compare todos os recursos/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Compare todos os recursos/i })).toBeInTheDocument()
   })
 
   it('renders at least one FAQ question', () => {

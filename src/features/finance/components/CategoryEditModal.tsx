@@ -59,6 +59,9 @@ export function CategoryEditModal({
               <X className="h-5 w-5" />
             </button>
           </div>
+          <Dialog.Description className="sr-only">
+            Atualize o nome, tipo e cor da categoria financeira.
+          </Dialog.Description>
 
           <form className="space-y-4 px-6 py-5" onSubmit={onSubmit}>
             {error && <InlineFeedback>{error}</InlineFeedback>}
@@ -92,7 +95,13 @@ export function CategoryEditModal({
             </FormField>
 
             <div className="flex gap-3 pt-1">
-              <Button type="button" variant="outline" className="flex-1" onClick={onClose} disabled={isSubmitting}>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
                 Cancelar
               </Button>
               <Button type="submit" className="flex-1" disabled={isSubmitting}>

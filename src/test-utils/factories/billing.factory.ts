@@ -1,4 +1,8 @@
-import type { BillingPlan, BillingPlanCampaign, CurrentBillingStatus } from '@/features/billing/types/billing.types'
+import type {
+  BillingPlan,
+  BillingPlanCampaign,
+  CurrentBillingStatus,
+} from '@/features/billing/types/billing.types'
 
 const DEFAULT_PLAN_CAMPAIGN: BillingPlanCampaign = {
   enabled: false,
@@ -53,10 +57,14 @@ export function makeBillingStatus(overrides?: Partial<CurrentBillingStatus>): Cu
   }
 }
 
-export function makeAccessGrantedBillingStatus(overrides?: Partial<CurrentBillingStatus>): CurrentBillingStatus {
+export function makeAccessGrantedBillingStatus(
+  overrides?: Partial<CurrentBillingStatus>,
+): CurrentBillingStatus {
   return makeBillingStatus({ accessAllowed: true, ...overrides })
 }
 
-export function makeAccessDeniedBillingStatus(overrides?: Partial<CurrentBillingStatus>): CurrentBillingStatus {
+export function makeAccessDeniedBillingStatus(
+  overrides?: Partial<CurrentBillingStatus>,
+): CurrentBillingStatus {
   return makeBillingStatus({ accessAllowed: false, ...overrides })
 }

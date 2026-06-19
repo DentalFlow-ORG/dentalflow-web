@@ -1,8 +1,12 @@
 import { Check, Lock, ShieldCheck } from 'lucide-react'
 
-import { commercialFeatures, type CommercialPlanKey, type PlanCardFeature } from '@/features/marketing/config/features'
+import {
+  type CommercialPlanKey,
+  type PlanCardFeature,
+  commercialFeatures,
+} from '@/features/marketing/config/features'
 
-export const COMPARISON_FEATURE_IDS = [
+const COMPARISON_FEATURE_IDS = [
   'clinic-agenda',
   'clinical-records',
   'patients-register',

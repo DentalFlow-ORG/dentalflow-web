@@ -103,11 +103,33 @@ function findUnusedPublicAssets() {
     .map(({ repoPath }) => repoPath)
 }
 
-const sourceFiles = walk(srcRoot, (file) => sourceExtensions.has(path.extname(file)))
+const testDirs = new Set([
+  path.join(srcRoot, 'tests'),
+  path.join(srcRoot, 'test-utils'),
+])
+
+function isTestFile(file) {
+  if (file.endsWith('.test.ts') || file.endsWith('.test.tsx') || file.endsWith('.spec.ts') || file.endsWith('.spec.tsx')) return true
+  for (const dir of testDirs) {
+    if (file.startsWith(dir + path.sep) || file.startsWith(dir + '/')) return true
+  }
+  return false
+}
+
+const ignoreFile = path.join(root, '.unused-files-ignore')
+const ignoredUnused = fs.existsSync(ignoreFile)
+  ? fs.readFileSync(ignoreFile, 'utf8')
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#'))
+  : []
+const ignoredUnusedSet = new Set(ignoredUnused)
+
+const sourceFiles = walk(srcRoot, (file) => sourceExtensions.has(path.extname(file)) && !isTestFile(file))
 const reachable = findReachableSourceFiles(sourceFiles)
 const unusedSourceFiles = sourceFiles
   .map(toRepoPath)
-  .filter((file) => !reachable.has(file))
+  .filter((file) => !reachable.has(file) && !ignoredUnusedSet.has(file))
 const unusedPublicAssets = findUnusedPublicAssets()
 const unusedFiles = [...unusedSourceFiles, ...unusedPublicAssets].sort()
 

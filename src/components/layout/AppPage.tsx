@@ -10,8 +10,6 @@ type AppPageProps = {
 
 export function AppPage({ children, spacing = 'normal', className }: AppPageProps) {
   return (
-    <div className={cn(spacing === 'loose' ? 'space-y-8' : 'space-y-6', className)}>
-      {children}
-    </div>
+    <div className={cn(spacing === 'loose' ? 'space-y-8' : 'space-y-6', className)}>{children}</div>
   )
 }

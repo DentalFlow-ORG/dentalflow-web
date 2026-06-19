@@ -22,21 +22,31 @@ describe('useDropdownNav — initial state', () => {
 describe('useDropdownNav — toggleDropdown', () => {
   it('opens a dropdown', () => {
     const { result } = renderHook(() => useDropdownNav())
-    act(() => { result.current.toggleDropdown('produto') })
+    act(() => {
+      result.current.toggleDropdown('produto')
+    })
     expect(result.current.openDropdown).toBe('produto')
   })
 
   it('closes the same dropdown when toggled again', () => {
     const { result } = renderHook(() => useDropdownNav())
-    act(() => { result.current.toggleDropdown('produto') })
-    act(() => { result.current.toggleDropdown('produto') })
+    act(() => {
+      result.current.toggleDropdown('produto')
+    })
+    act(() => {
+      result.current.toggleDropdown('produto')
+    })
     expect(result.current.openDropdown).toBeNull()
   })
 
   it('replaces the active dropdown when a different one is toggled', () => {
     const { result } = renderHook(() => useDropdownNav())
-    act(() => { result.current.toggleDropdown('produto') })
-    act(() => { result.current.toggleDropdown('funcionalidades') })
+    act(() => {
+      result.current.toggleDropdown('produto')
+    })
+    act(() => {
+      result.current.toggleDropdown('funcionalidades')
+    })
     expect(result.current.openDropdown).toBe('funcionalidades')
   })
 })
@@ -44,8 +54,12 @@ describe('useDropdownNav — toggleDropdown', () => {
 describe('useDropdownNav — closeDropdown', () => {
   it('sets openDropdown to null', () => {
     const { result } = renderHook(() => useDropdownNav())
-    act(() => { result.current.toggleDropdown('produto') })
-    act(() => { result.current.closeDropdown() })
+    act(() => {
+      result.current.toggleDropdown('produto')
+    })
+    act(() => {
+      result.current.closeDropdown()
+    })
     expect(result.current.openDropdown).toBeNull()
   })
 })
@@ -53,14 +67,20 @@ describe('useDropdownNav — closeDropdown', () => {
 describe('useDropdownNav — toggleMobile', () => {
   it('opens the mobile menu', () => {
     const { result } = renderHook(() => useDropdownNav())
-    act(() => { result.current.toggleMobile() })
+    act(() => {
+      result.current.toggleMobile()
+    })
     expect(result.current.isMobileOpen).toBe(true)
   })
 
   it('closes the mobile menu when toggled again', () => {
     const { result } = renderHook(() => useDropdownNav())
-    act(() => { result.current.toggleMobile() })
-    act(() => { result.current.toggleMobile() })
+    act(() => {
+      result.current.toggleMobile()
+    })
+    act(() => {
+      result.current.toggleMobile()
+    })
     expect(result.current.isMobileOpen).toBe(false)
   })
 })
@@ -68,8 +88,12 @@ describe('useDropdownNav — toggleMobile', () => {
 describe('useDropdownNav — closeMobile', () => {
   it('sets isMobileOpen to false', () => {
     const { result } = renderHook(() => useDropdownNav())
-    act(() => { result.current.toggleMobile() })
-    act(() => { result.current.closeMobile() })
+    act(() => {
+      result.current.toggleMobile()
+    })
+    act(() => {
+      result.current.closeMobile()
+    })
     expect(result.current.isMobileOpen).toBe(false)
   })
 })
@@ -77,21 +101,31 @@ describe('useDropdownNav — closeMobile', () => {
 describe('useDropdownNav — toggleMobileSection', () => {
   it('adds a key to mobileExpanded', () => {
     const { result } = renderHook(() => useDropdownNav())
-    act(() => { result.current.toggleMobileSection('produto') })
+    act(() => {
+      result.current.toggleMobileSection('produto')
+    })
     expect(result.current.mobileExpanded).toEqual(['produto'])
   })
 
   it('removes a key when toggled again', () => {
     const { result } = renderHook(() => useDropdownNav())
-    act(() => { result.current.toggleMobileSection('produto') })
-    act(() => { result.current.toggleMobileSection('produto') })
+    act(() => {
+      result.current.toggleMobileSection('produto')
+    })
+    act(() => {
+      result.current.toggleMobileSection('produto')
+    })
     expect(result.current.mobileExpanded).toEqual([])
   })
 
   it('can expand multiple sections independently', () => {
     const { result } = renderHook(() => useDropdownNav())
-    act(() => { result.current.toggleMobileSection('produto') })
-    act(() => { result.current.toggleMobileSection('funcionalidades') })
+    act(() => {
+      result.current.toggleMobileSection('produto')
+    })
+    act(() => {
+      result.current.toggleMobileSection('funcionalidades')
+    })
     expect(result.current.mobileExpanded).toEqual(
       expect.arrayContaining(['produto', 'funcionalidades']),
     )

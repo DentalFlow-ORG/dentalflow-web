@@ -3,10 +3,7 @@ import { Check, CheckCircle2, UserX, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 import type { Appointment, AppointmentStatus } from '../../types/scheduling.types'
-import {
-  getAvailableTransitions,
-  isTerminalStatus,
-} from '../../utils/appointment-state-machine'
+import { getAvailableTransitions, isTerminalStatus } from '../../utils/appointment-state-machine'
 
 type StatusActionMenuProps = {
   appointment: Appointment
@@ -43,9 +40,9 @@ export function StatusActionMenu({
           variant="secondary"
           disabled={isLoading}
           onClick={() => onStatusChange(id, 'CONFIRMED')}
-          title="Confirmar agendamento"
+          aria-label="Confirmar agendamento"
         >
-          <Check className="h-3 w-3" />
+          <Check className="h-3 w-3" aria-hidden="true" />
           <span className="hidden sm:inline">Confirmar</span>
         </Button>
       )}
@@ -56,9 +53,9 @@ export function StatusActionMenu({
           size="xs"
           disabled={isLoading}
           onClick={() => onStatusChange(id, 'COMPLETED')}
-          title="Concluir consulta"
+          aria-label="Concluir consulta"
         >
-          <CheckCircle2 className="h-3 w-3" />
+          <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
           <span className="hidden sm:inline">Concluir</span>
         </Button>
       )}
@@ -70,10 +67,10 @@ export function StatusActionMenu({
           variant="ghost"
           disabled={isLoading}
           onClick={() => onStatusChange(id, 'NO_SHOW')}
-          title="Não compareceu"
+          aria-label="Não compareceu"
           className="text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/40 dark:hover:text-orange-300"
         >
-          <UserX className="h-3 w-3" />
+          <UserX className="h-3 w-3" aria-hidden="true" />
           <span className="hidden lg:inline">Não veio</span>
         </Button>
       )}
@@ -85,9 +82,9 @@ export function StatusActionMenu({
           variant="destructive"
           disabled={isLoading}
           onClick={() => onCancelRequest(appointment)}
-          title="Cancelar agendamento"
+          aria-label="Cancelar agendamento"
         >
-          <X className="h-3 w-3" />
+          <X className="h-3 w-3" aria-hidden="true" />
           <span className="hidden sm:inline">Cancelar</span>
         </Button>
       )}

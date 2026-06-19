@@ -13,15 +13,20 @@ export function getAbnormalConsumption(): Promise<GetAbnormalConsumptionResponse
   })
 }
 
-export function checkAbnormalConsumptionCopilotCache(): Promise<
+/**
+ * Returns the most-recently persisted abnormal-consumption copilot analysis
+ * from the DB, without checking the current anomaly-list state.
+ * Returns undefined (HTTP 204) when no analysis has been generated yet.
+ * Throws ApiError on plan errors (403).
+ */
+export function getLatestAbnormalConsumptionSummary(): Promise<
   AbnormalConsumptionCopilotResult | undefined
 > {
   return apiRequest<AbnormalConsumptionCopilotResult | undefined>(
-    '/stock/abnormal-consumption/copilot-summary',
+    '/stock/abnormal-consumption/copilot-summary/latest',
     {
-      method: 'POST',
+      method: 'GET',
       accessToken: getAccessToken(),
-      body: JSON.stringify({ forceRefresh: false }),
     },
   )
 }

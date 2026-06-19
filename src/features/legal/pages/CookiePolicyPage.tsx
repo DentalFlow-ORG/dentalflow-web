@@ -1,14 +1,14 @@
-import { Lock, Settings, BarChart2, Megaphone } from 'lucide-react'
+import { BarChart2, Lock, Megaphone, Settings } from 'lucide-react'
 
 import { companyInfo } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
+  LegalContactBlock,
+  LegalList,
   LegalPageHeader,
   LegalSection,
-  LegalList,
   LegalTable,
-  LegalContactBlock,
 } from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
@@ -26,10 +26,9 @@ export function CookiePolicyPage() {
 
       <LegalSection id="o-que-sao" title="1. O que São Cookies">
         <p>
-          Cookies são pequenos arquivos de texto armazenados no seu dispositivo quando
-          você visita um site. Utilizamos cookies e tecnologias similares (como
-          armazenamento local) para garantir o funcionamento da plataforma e melhorar
-          sua experiência.
+          Cookies são pequenos arquivos de texto armazenados no seu dispositivo quando você visita
+          um site. Utilizamos cookies e tecnologias similares (como armazenamento local) para
+          garantir o funcionamento da plataforma e melhorar sua experiência.
         </p>
       </LegalSection>
 
@@ -46,8 +45,8 @@ export function CookiePolicyPage() {
               <h3 className="font-semibold text-slate-900">Cookies Necessários</h3>
             </div>
             <p className="mt-3 text-slate-600">
-              Essenciais para o funcionamento da plataforma. Sem eles, serviços como
-              autenticação e segurança não funcionam. Não podem ser desativados.
+              Essenciais para o funcionamento da plataforma. Sem eles, serviços como autenticação e
+              segurança não funcionam. Não podem ser desativados.
             </p>
             <LegalList
               items={[
@@ -91,8 +90,8 @@ export function CookiePolicyPage() {
               <h3 className="font-semibold text-slate-900">Cookies de Analytics</h3>
             </div>
             <p className="mt-3 text-slate-600">
-              Coletam informações sobre como a plataforma é utilizada para que possamos
-              melhorá-la. Os dados são agregados e não identificam usuários individuais.
+              Coletam informações sobre como a plataforma é utilizada para que possamos melhorá-la.
+              Os dados são agregados e não identificam usuários individuais.
             </p>
             <LegalList
               items={[
@@ -114,8 +113,8 @@ export function CookiePolicyPage() {
               <h3 className="font-semibold text-slate-900">Cookies de Marketing</h3>
             </div>
             <p className="mt-3 text-slate-600">
-              Usados para personalizar comunicações e medir a eficácia de campanhas.
-              Atualmente não utilizados em produção.
+              Usados para personalizar comunicações e medir a eficácia de campanhas. Atualmente não
+              utilizados em produção.
             </p>
           </div>
         </div>
@@ -127,19 +126,43 @@ export function CookiePolicyPage() {
           rows={[
             ['dentalflow_access_token', 'Necessário', 'Autenticação JWT', 'Sessão', 'DentalFlow'],
             ['dentalflow_user', 'Necessário', 'Dados de sessão do usuário', 'Sessão', 'DentalFlow'],
-            ['dentalflow.theme', 'Necessário', 'Preferência de tema claro/escuro', 'Persistente', 'DentalFlow'],
-            [`dentalflow_cookie_consent_v${POLICY_VERSION}`, 'Necessário', 'Registro de consentimento de cookies', 'Persistente (1 ano)', 'DentalFlow'],
-            ['dentalflow_preferences', 'Preferências', 'Configurações de exibição', 'Persistente', 'DentalFlow'],
-            ['_analytics_*', 'Analytics', 'Métricas de uso (quando ativo)', 'Sessão/90 dias', 'DentalFlow/Provedor'],
+            [
+              'dentalflow.theme',
+              'Necessário',
+              'Preferência de tema claro/escuro',
+              'Persistente',
+              'DentalFlow',
+            ],
+            [
+              `dentalflow_cookie_consent_v${POLICY_VERSION}`,
+              'Necessário',
+              'Registro de consentimento de cookies',
+              'Persistente (1 ano)',
+              'DentalFlow',
+            ],
+            [
+              'dentalflow_preferences',
+              'Preferências',
+              'Configurações de exibição',
+              'Persistente',
+              'DentalFlow',
+            ],
+            [
+              '_analytics_*',
+              'Analytics',
+              'Métricas de uso (quando ativo)',
+              'Sessão/90 dias',
+              'DentalFlow/Provedor',
+            ],
           ]}
         />
       </LegalSection>
 
       <LegalSection id="cookies-terceiros" title="4. Cookies de Terceiros">
         <p>
-          Terceiros como Stripe podem definir cookies ao processar pagamentos. Esses
-          cookies são regidos pelas políticas de privacidade de cada provedor.
-          A DentalFlow não controla o comportamento de cookies de terceiros.
+          Terceiros como Stripe podem definir cookies ao processar pagamentos. Esses cookies são
+          regidos pelas políticas de privacidade de cada provedor. A DentalFlow não controla o
+          comportamento de cookies de terceiros.
         </p>
       </LegalSection>
 
@@ -157,21 +180,20 @@ export function CookiePolicyPage() {
 
       <LegalSection id="revogar" title="6. Como Revogar o Consentimento">
         <p>
-          Você pode revogar seu consentimento a qualquer momento clicando em
-          "Preferências de cookies" no rodapé. A revogação não afeta o tratamento
-          realizado anteriormente com base no consentimento dado.
+          Você pode revogar seu consentimento a qualquer momento clicando em "Preferências de
+          cookies" no rodapé. A revogação não afeta o tratamento realizado anteriormente com base no
+          consentimento dado.
         </p>
         <p>
-          Cookies necessários não podem ser desativados, pois são essenciais para a
-          segurança e funcionamento do sistema de autenticação.
+          Cookies necessários não podem ser desativados, pois são essenciais para a segurança e
+          funcionamento do sistema de autenticação.
         </p>
       </LegalSection>
 
       <LegalSection id="atualizacoes" title="7. Atualizações desta Política">
         <p>
-          Esta política pode ser atualizada. Em caso de mudanças relevantes, solicitaremos
-          novo consentimento. A versão atual é{' '}
-          <strong>v{POLICY_VERSION}</strong>.
+          Esta política pode ser atualizada. Em caso de mudanças relevantes, solicitaremos novo
+          consentimento. A versão atual é <strong>v{POLICY_VERSION}</strong>.
         </p>
       </LegalSection>
 

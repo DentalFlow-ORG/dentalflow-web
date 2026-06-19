@@ -1,9 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import { Lock } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
+import { Button } from '@/components/ui/button'
 
 type PlanUpgradeNoticeProps = {
   title?: string

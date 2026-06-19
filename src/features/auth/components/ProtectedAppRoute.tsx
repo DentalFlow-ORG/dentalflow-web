@@ -1,17 +1,19 @@
-import { Loader2 } from 'lucide-react'
 import { Navigate, useRouterState } from '@tanstack/react-router'
-import { Suspense, useEffect, useLayoutEffect, useState, type ReactNode } from 'react'
+import { Loader2 } from 'lucide-react'
+import { type ReactNode, Suspense, useEffect, useLayoutEffect, useState } from 'react'
 
+import { LoadingCard } from '@/components/common/LoadingCard'
 import { AppShell } from '@/components/layout/AppShell'
 import { SubscriptionOnlyShell } from '@/components/layout/SubscriptionOnlyShell'
-import { LoadingCard } from '@/components/common/LoadingCard'
-import { getCurrentBillingStatus } from '@/features/billing/services/billing.service'
 import {
   getCachedBillingStatus,
   setCachedBillingStatus,
 } from '@/features/billing/services/billing-status-cache'
+import { getCurrentBillingStatus } from '@/features/billing/services/billing.service'
 import type { CurrentBillingStatus } from '@/features/billing/types/billing.types'
 import { setBillingAccess } from '@/features/theme/billing-theme-override'
+
+import { getRoleHomeRoute } from '@/features/home/config/role-home-config'
 
 import { useAuth } from '../hooks/useAuth'
 import type { AuthUserRole } from '../types'
@@ -84,12 +86,17 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
     } else {
       setBillingAccess(billingChecked ? (billingStatus?.accessAllowed ?? true) : null)
     }
-    return () => { setBillingAccess(null) }
+    return () => {
+      setBillingAccess(null)
+    }
   }, [needsBillingCheck, isAdmin, billingChecked, billingStatus?.accessAllowed])
 
   if (isBootstrapping) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background" role="status">
+      <div
+        className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background"
+        role="status"
+      >
         <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
         <span className="text-sm font-medium text-muted-foreground">Carregando DentalFlow...</span>
       </div>
@@ -120,7 +127,10 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
   // Billing check in progress — render nothing until we know the access state
   if (!billingChecked) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background" role="status">
+      <div
+        className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background"
+        role="status"
+      >
         <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
         <span className="text-sm font-medium text-muted-foreground">Verificando assinatura...</span>
       </div>
@@ -149,9 +159,9 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
   )
 }
 
-function getDeniedRedirectPath(role: AuthUserRole | undefined) {
-  if (role === 'ADMIN') return '/app/admin'
-  if (role === 'DENTIST') return '/app/inicio'
-  if (role === 'PATIENT') return '/'
-  return '/app'
+function getDeniedRedirectPath(role: AuthUserRole | undefined): string {
+  // Each known role maps to its own home. Undefined role falls back to the
+  // default non-admin home (/app) — same as the previous hardcoded fallback.
+  if (role) return getRoleHomeRoute(role)
+  return getRoleHomeRoute('OWNER')
 }

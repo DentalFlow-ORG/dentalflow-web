@@ -1,11 +1,16 @@
-import { formatDateInputValue, formatTimeInputValue } from '@/lib/date-time-formatters'
+import { brazilTodayIso } from '@/lib/brazil-timezone'
+import {
+  brazilCurrentTimeHHmm,
+  formatDateInputValue,
+  formatTimeInputValue,
+} from '@/lib/date-time-formatters'
 
 import type { Appointment, Availability, AvailabilityException } from '../types/scheduling.types'
 
 export function reaisToCents(value: string): number | undefined {
   const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '')
-  const parsed = parseFloat(normalized)
-  if (isNaN(parsed) || parsed < 0) return undefined
+  const parsed = Number.parseFloat(normalized)
+  if (Number.isNaN(parsed) || parsed < 0) return undefined
   return Math.round(parsed * 100)
 }
 
@@ -15,10 +20,7 @@ export function centsToReais(cents: number | null | undefined): string {
 }
 
 export function getCurrentTimeInputValue(): string {
-  const now = new Date()
-  const hours = String(now.getHours()).padStart(2, '0')
-  const minutes = String(now.getMinutes()).padStart(2, '0')
-  return `${hours}:${minutes}`
+  return brazilCurrentTimeHHmm()
 }
 
 export function isDateAvailable(
@@ -37,7 +39,9 @@ export function isDateAvailable(
 
 export function hasAppointmentTimePassed(appointment: Appointment): boolean {
   const appointmentDate = formatDateInputValue(appointment.appointmentDate)
-  const today = formatDateInputValue(new Date())
+  // Use Brazil calendar date so "today" doesn't advance to the UTC next day
+  // during 00:00–03:00 UTC when Brazil is still on the previous day.
+  const today = brazilTodayIso()
   if (appointmentDate < today) return true
   if (appointmentDate > today) return false
   return formatTimeInputValue(appointment.startTime) < getCurrentTimeInputValue()

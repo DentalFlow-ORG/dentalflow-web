@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 import { Circle } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -26,6 +28,8 @@ export function OdontogramToothDetailsPanel({
   onSetCondition,
   onSetNotes,
 }: Props) {
+  const notesId = useId()
+
   if (!toothNumber || !tooth) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-8 text-center">
@@ -43,7 +47,8 @@ export function OdontogramToothDetailsPanel({
   }
 
   const conditionClasses = tooth.condition
-    ? (ODONTOGRAM_CONDITION_LEGEND_CLASSES[tooth.condition] ?? 'border-border bg-card text-muted-foreground')
+    ? (ODONTOGRAM_CONDITION_LEGEND_CLASSES[tooth.condition] ??
+      'border-border bg-card text-muted-foreground')
     : 'border-border bg-card text-muted-foreground'
 
   return (
@@ -53,16 +58,11 @@ export function OdontogramToothDetailsPanel({
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Dente selecionado
           </p>
-          <h3 className="mt-1 text-lg font-semibold text-foreground">
-            Dente {toothNumber}
-          </h3>
+          <h3 className="mt-1 text-lg font-semibold text-foreground">Dente {toothNumber}</h3>
         </div>
         {/* Condition badge — color matches the tooth condition in the chart */}
         <span
-          className={cn(
-            'rounded-full border px-2.5 py-1 text-xs font-medium',
-            conditionClasses,
-          )}
+          className={cn('rounded-full border px-2.5 py-1 text-xs font-medium', conditionClasses)}
         >
           {getToothConditionLabel(tooth.condition)}
         </span>
@@ -98,10 +98,11 @@ export function OdontogramToothDetailsPanel({
         </div>
       )}
 
-      <label className="mt-4 block text-xs font-semibold text-muted-foreground">
+      <label htmlFor={notesId} className="mt-4 block text-xs font-semibold text-muted-foreground">
         Observações do dente
       </label>
       <textarea
+        id={notesId}
         rows={3}
         readOnly={readOnly}
         placeholder={readOnly ? undefined : 'Observações clínicas específicas deste dente...'}

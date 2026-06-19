@@ -133,14 +133,11 @@ export function updateAttachmentDescription(
   attachmentId: string,
   description: string,
 ) {
-  return apiRequest<ClinicalRecordAttachment>(
-    `${BASE}/${recordId}/attachments/${attachmentId}`,
-    {
-      method: 'PATCH',
-      accessToken: getAccessToken(),
-      body: JSON.stringify({ description }),
-    },
-  )
+  return apiRequest<ClinicalRecordAttachment>(`${BASE}/${recordId}/attachments/${attachmentId}`, {
+    method: 'PATCH',
+    accessToken: getAccessToken(),
+    body: JSON.stringify({ description }),
+  })
 }
 
 export function removeAttachment(recordId: string, attachmentId: string) {
@@ -159,11 +156,7 @@ export function getOdontogram(identifier: string) {
   )
 }
 
-export function upsertOdontogram(
-  identifier: string,
-  patientName: string,
-  data: OdontogramData,
-) {
+export function upsertOdontogram(identifier: string, patientName: string, data: OdontogramData) {
   return apiRequest<OdontogramRecord>(`${BASE}/odontogram`, {
     method: 'POST',
     accessToken: getAccessToken(),

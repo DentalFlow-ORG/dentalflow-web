@@ -7,12 +7,7 @@ type AppPageHeaderProps = {
   action?: ReactNode
 }
 
-export function AppPageHeader({
-  eyebrow,
-  title,
-  description,
-  action,
-}: AppPageHeaderProps) {
+export function AppPageHeader({ eyebrow, title, description, action }: AppPageHeaderProps) {
   return (
     <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
@@ -23,15 +18,11 @@ export function AppPageHeader({
         )}
         <h1 className="mt-2 text-2xl font-semibold text-foreground sm:text-3xl">{title}</h1>
         {description && (
-          <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-            {description}
-          </p>
+          <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">{description}</p>
         )}
       </div>
       {action && (
-        <div className="w-full shrink-0 sm:w-auto [&>*]:w-full sm:[&>*]:w-auto">
-          {action}
-        </div>
+        <div className="w-full shrink-0 sm:w-auto [&>*]:w-full sm:[&>*]:w-auto">{action}</div>
       )}
     </div>
   )

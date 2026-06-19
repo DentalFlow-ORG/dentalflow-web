@@ -16,7 +16,7 @@ export type PrivacyRequestType =
   | 'REVOKE_CONSENT'
   | 'OTHER'
 
-export type RequesterType = 'PATIENT' | 'CLINIC_OWNER' | 'CLINIC_STAFF' | 'OTHER'
+type RequesterType = 'PATIENT' | 'CLINIC_OWNER' | 'CLINIC_STAFF' | 'OTHER'
 
 export type PrivacyRequest = {
   id: string

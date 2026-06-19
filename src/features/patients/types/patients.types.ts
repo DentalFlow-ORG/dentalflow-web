@@ -7,6 +7,7 @@ export interface PatientSummary {
   completedAppointments: number
   canceledAppointments: number
   lastVisit: string | null
+  avatarUrl?: string | null
 }
 
 export interface PatientsListResponse {

@@ -56,8 +56,8 @@ describe('PricingSection', () => {
     render(<PricingSection />)
     const ctaLinks = screen.getAllByRole('link', { name: /Começar agora/i })
     expect(ctaLinks).toHaveLength(3)
-    ctaLinks.forEach((link) => {
+    for (const link of ctaLinks) {
       expect(link).toHaveAttribute('href', '/acessar')
-    })
+    }
   })
 })

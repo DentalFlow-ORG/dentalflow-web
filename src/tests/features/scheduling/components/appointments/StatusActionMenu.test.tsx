@@ -1,7 +1,7 @@
 import { render, screen, userEvent } from '@/test-utils/render-utils'
 
-import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
 import { StatusActionMenu } from '@/features/scheduling/components/appointments/StatusActionMenu'
+import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 
 // ── Fixture ───────────────────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ describe('StatusActionMenu — PENDING', () => {
       />,
     )
     expect(screen.queryByRole('button', { name: /Concluir/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Não veio/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Não compareceu/i })).not.toBeInTheDocument()
   })
 
   it('calls onStatusChange with the appointment id and CONFIRMED when Confirmar is clicked', async () => {
@@ -125,7 +125,7 @@ describe('StatusActionMenu — CONFIRMED (time-sensitive)', () => {
       />,
     )
     expect(screen.getByRole('button', { name: /Concluir/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Não veio/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Não compareceu/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Cancelar/i })).toBeInTheDocument()
   })
 
@@ -140,7 +140,7 @@ describe('StatusActionMenu — CONFIRMED (time-sensitive)', () => {
       />,
     )
     expect(screen.queryByRole('button', { name: /Concluir/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Não veio/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Não compareceu/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Cancelar/i })).toBeInTheDocument()
   })
 })

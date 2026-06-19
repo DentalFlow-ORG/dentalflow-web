@@ -1,5 +1,5 @@
-import { usePageMeta } from '../hooks/usePageMeta'
 import { featureDetailContents } from '../data/public-content'
+import { usePageMeta } from '../hooks/usePageMeta'
 import { FeatureDetailPage } from './FeatureDetailPage'
 
 export function ClinicalRecordsFeaturePage() {

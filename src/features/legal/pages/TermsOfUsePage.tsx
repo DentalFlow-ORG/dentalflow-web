@@ -2,11 +2,11 @@ import { companyInfo, companyStatus } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
+  LegalContactBlock,
+  LegalList,
   LegalPageHeader,
   LegalSection,
-  LegalList,
   LegalTOC,
-  LegalContactBlock,
 } from '../components/LegalSection'
 
 const LAST_UPDATED = companyInfo.legalLastUpdatedDate
@@ -43,18 +43,19 @@ export function TermsOfUsePage() {
 
       <LegalSection id="objeto" title="1. Objeto">
         <p>
-          Estes Termos de Uso regulam o acesso e a utilização da plataforma DentalFlow,
-          operada por {companyInfo.legalName}{!isPlaceholderCnpj && ` (CNPJ ${companyInfo.documentNumber})`}, doravante
-          denominada "DentalFlow". Ao criar uma conta, o usuário declara ter lido,
-          compreendido e concordado com estes termos.
+          Estes Termos de Uso regulam o acesso e a utilização da plataforma DentalFlow, operada por{' '}
+          {companyInfo.legalName}
+          {!isPlaceholderCnpj && ` (CNPJ ${companyInfo.documentNumber})`}, doravante denominada
+          "DentalFlow". Ao criar uma conta, o usuário declara ter lido, compreendido e concordado
+          com estes termos.
         </p>
       </LegalSection>
 
       <LegalSection id="modelo-saas" title="2. Modelo de Assinatura SaaS">
         <p>
-          A DentalFlow é oferecida como serviço por assinatura (SaaS — Software as a
-          Service). O acesso à plataforma está condicionado ao pagamento das mensalidades
-          ou ao período de trial ativo, conforme o plano contratado.
+          A DentalFlow é oferecida como serviço por assinatura (SaaS — Software as a Service). O
+          acesso à plataforma está condicionado ao pagamento das mensalidades ou ao período de trial
+          ativo, conforme o plano contratado.
         </p>
         <LegalList
           items={[
@@ -82,8 +83,8 @@ export function TermsOfUsePage() {
 
       <LegalSection id="responsabilidades-papel" title="4. Responsabilidades por Papel">
         <p>
-          A plataforma utiliza um sistema de controle de acesso por papel. Os limites de
-          acesso de cada papel são:
+          A plataforma utiliza um sistema de controle de acesso por papel. Os limites de acesso de
+          cada papel são:
         </p>
         <LegalList
           items={[
@@ -95,10 +96,13 @@ export function TermsOfUsePage() {
         />
       </LegalSection>
 
-      <LegalSection id="dados-pacientes" title="5. Dados de Pacientes — Responsabilidade da Clínica">
+      <LegalSection
+        id="dados-pacientes"
+        title="5. Dados de Pacientes — Responsabilidade da Clínica"
+      >
         <p>
-          A clínica é a controladora dos dados de seus pacientes nos termos da LGPD.
-          DentalFlow atua como operador (processador) desses dados. O titular da conta:
+          A clínica é a controladora dos dados de seus pacientes nos termos da LGPD. DentalFlow atua
+          como operador (processador) desses dados. O titular da conta:
         </p>
         <LegalList
           items={[
@@ -154,8 +158,8 @@ export function TermsOfUsePage() {
 
       <LegalSection id="disponibilidade" title="9. Disponibilidade e Manutenção">
         <p>
-          A DentalFlow emprega esforços razoáveis para manter a plataforma disponível e
-          funcional. No entanto:
+          A DentalFlow emprega esforços razoáveis para manter a plataforma disponível e funcional.
+          No entanto:
         </p>
         <LegalList
           items={[
@@ -168,8 +172,8 @@ export function TermsOfUsePage() {
 
       <LegalSection id="responsabilidade" title="10. Limitação de Responsabilidade">
         <p>
-          Na extensão permitida pela legislação brasileira (incluindo o Código de Defesa
-          do Consumidor):
+          Na extensão permitida pela legislação brasileira (incluindo o Código de Defesa do
+          Consumidor):
         </p>
         <LegalList
           items={[
@@ -182,38 +186,37 @@ export function TermsOfUsePage() {
 
       <LegalSection id="propriedade-intelectual" title="11. Propriedade Intelectual">
         <p>
-          O código, design, marca, logotipos e conteúdos da plataforma DentalFlow são de
-          propriedade da {companyInfo.legalName} ou de seus licenciadores. O usuário
-          recebe licença limitada, não exclusiva e intransferível para uso da plataforma
-          conforme estes termos. Os dados inseridos pelo usuário permanecem de sua
-          propriedade.
+          O código, design, marca, logotipos e conteúdos da plataforma DentalFlow são de propriedade
+          da {companyInfo.legalName} ou de seus licenciadores. O usuário recebe licença limitada,
+          não exclusiva e intransferível para uso da plataforma conforme estes termos. Os dados
+          inseridos pelo usuário permanecem de sua propriedade.
         </p>
       </LegalSection>
 
       <LegalSection id="rescisao" title="12. Rescisão e Suspensão">
         <p>
           A DentalFlow pode suspender ou encerrar uma conta por violação destes termos,
-          inadimplência, suspeita de uso fraudulento ou por determinação legal, com
-          notificação prévia quando possível. O usuário pode cancelar sua conta a qualquer
-          momento pelo painel de assinatura.
+          inadimplência, suspeita de uso fraudulento ou por determinação legal, com notificação
+          prévia quando possível. O usuário pode cancelar sua conta a qualquer momento pelo painel
+          de assinatura.
         </p>
       </LegalSection>
 
       <LegalSection id="legislacao" title="13. Lei Aplicável e Foro">
         <p>
-          Estes Termos são regidos pela legislação brasileira, incluindo o Código de Defesa
-          do Consumidor (Lei 8.078/1990) e a LGPD (Lei 13.709/2018). Eventuais disputas
-          serão dirimidas pelo foro da comarca de domicílio do usuário, quando for
-          consumidor, ou conforme acordado entre as partes.
+          Estes Termos são regidos pela legislação brasileira, incluindo o Código de Defesa do
+          Consumidor (Lei 8.078/1990) e a LGPD (Lei 13.709/2018). Eventuais disputas serão dirimidas
+          pelo foro da comarca de domicílio do usuário, quando for consumidor, ou conforme acordado
+          entre as partes.
         </p>
       </LegalSection>
 
       <LegalSection id="atualizacoes" title="14. Atualizações dos Termos">
         <p>
           Estes Termos podem ser atualizados. Notificaremos sobre mudanças relevantes com
-          antecedência mínima de 30 dias. O uso continuado após a notificação implica
-          aceitação das alterações. Em caso de discordância, o usuário pode cancelar a
-          conta antes da entrada em vigor das mudanças.
+          antecedência mínima de 30 dias. O uso continuado após a notificação implica aceitação das
+          alterações. Em caso de discordância, o usuário pode cancelar a conta antes da entrada em
+          vigor das mudanças.
         </p>
       </LegalSection>
 

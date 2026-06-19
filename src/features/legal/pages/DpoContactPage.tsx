@@ -1,14 +1,14 @@
-import { Mail, Clock, Shield, FileText } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { Clock, FileText, Mail, Shield } from 'lucide-react'
 
 import { companyInfo, companyStatus } from '@/config/company'
 import { cn } from '@/lib/utils'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
+  LegalList,
   LegalPageHeader,
   LegalSection,
-  LegalList,
   legalInlineLinkClass,
 } from '../components/LegalSection'
 
@@ -34,9 +34,7 @@ export function DpoContactPage() {
           </div>
           <div>
             <p className="font-semibold text-slate-900">Encarregado de Proteção de Dados</p>
-            <p className="mt-1 text-slate-600">
-              {companyInfo.legalName}
-            </p>
+            <p className="mt-1 text-slate-600">{companyInfo.legalName}</p>
             <a
               href={`mailto:${DPO_EMAIL}`}
               className={cn('mt-2 inline-flex items-center gap-2 text-sm', legalInlineLinkClass)}
@@ -50,8 +48,8 @@ export function DpoContactPage() {
 
       <LegalSection id="papel" title="1. Papel do Encarregado">
         <p>
-          Conforme o Art. 41 da LGPD, o encarregado de proteção de dados (também
-          conhecido como DPO — Data Protection Officer) é responsável por:
+          Conforme o Art. 41 da LGPD, o encarregado de proteção de dados (também conhecido como DPO
+          — Data Protection Officer) é responsável por:
         </p>
         <LegalList
           items={[
@@ -131,16 +129,16 @@ export function DpoContactPage() {
           <Clock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
           <p className="text-slate-600">
             Nosso objetivo é responder às solicitações dentro de{' '}
-            <strong>15 (quinze) dias úteis</strong>. Em casos complexos, poderemos
-            informar a extensão do prazo com justificativa.
+            <strong>15 (quinze) dias úteis</strong>. Em casos complexos, poderemos informar a
+            extensão do prazo com justificativa.
           </p>
         </div>
       </LegalSection>
 
       <LegalSection id="anpd" title="5. Autoridade Nacional de Proteção de Dados (ANPD)">
         <p>
-          Se sua solicitação não for atendida de forma satisfatória, você pode entrar
-          em contato com a ANPD pelo portal{' '}
+          Se sua solicitação não for atendida de forma satisfatória, você pode entrar em contato com
+          a ANPD pelo portal{' '}
           <a
             href="https://www.gov.br/anpd"
             target="_blank"

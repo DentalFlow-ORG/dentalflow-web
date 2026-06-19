@@ -1,7 +1,6 @@
 import { Cookie } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { EmptyState } from '@/components/common/EmptyState'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { Pagination } from '@/components/common/Pagination'
 import { StatusBadge } from '@/components/common/StatusBadge'
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
 
 import { listCookieConsents } from '../services/compliance.service'
 import type {
@@ -33,6 +33,7 @@ const INITIAL_FILTERS: CookieConsentFilters = {
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -70,23 +71,36 @@ export function CookieConsentLogsTab() {
     setError(null)
     listCookieConsents(filters)
       .then(setResult)
-      .catch((err: Error) => setError(err.message ?? 'Não foi possível carregar os consentimentos.'))
+      .catch((err: Error) =>
+        setError(err.message ?? 'Não foi possível carregar os consentimentos.'),
+      )
       .finally(() => setIsLoading(false))
   }, [filters])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   function setFilter<K extends keyof CookieConsentFilters>(key: K, value: CookieConsentFilters[K]) {
     setFilters((prev) => ({ ...prev, [key]: value, page: key !== 'page' ? 1 : (value as number) }))
   }
 
-  const hasActiveFilters = !!(filters.source || filters.policyVersion || filters.userId || filters.dateFrom || filters.dateTo)
+  const hasActiveFilters = !!(
+    filters.source ||
+    filters.policyVersion ||
+    filters.userId ||
+    filters.dateFrom ||
+    filters.dateTo
+  )
 
   return (
     <div className="space-y-4">
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
-        <Select value={filters.source || '__ALL__'} onValueChange={(v) => setFilter('source', v === '__ALL__' ? '' : v)}>
+        <Select
+          value={filters.source || '__ALL__'}
+          onValueChange={(v) => setFilter('source', v === '__ALL__' ? '' : v)}
+        >
           <SelectTrigger size="sm" className="w-40">
             <SelectValue placeholder="Origem" />
           </SelectTrigger>
@@ -131,7 +145,8 @@ export function CookieConsentLogsTab() {
         onRetry={load}
         isEmpty={!isLoading && !error && (result?.data.length ?? 0) === 0}
         emptyState={
-          <EmptyState
+          <HomeEmptyState
+            compact
             icon={Cookie}
             title="Nenhum consentimento encontrado"
             description="Não há registros de cookie consent para os filtros selecionados."
@@ -166,7 +181,7 @@ export function CookieConsentLogsTab() {
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                       {log.userId
-                        ? log.userId.slice(0, 8) + '…'
+                        ? `${log.userId.slice(0, 8)}…`
                         : log.anonymousId
                           ? `anon: ${log.anonymousId.slice(0, 8)}…`
                           : '—'}
@@ -174,7 +189,9 @@ export function CookieConsentLogsTab() {
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground/60">
                       {log.ipHash ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground tabular-nums">{formatDate(log.createdAt)}</td>
+                    <td className="px-4 py-3 text-muted-foreground tabular-nums">
+                      {formatDate(log.createdAt)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -198,7 +215,7 @@ export function CookieConsentLogsTab() {
           </div>
         </div>
 
-        {result && result.totalPages > 1 && (
+        {result && (
           <Pagination
             page={result.page}
             totalPages={result.totalPages}

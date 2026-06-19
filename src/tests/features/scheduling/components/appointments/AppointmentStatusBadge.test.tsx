@@ -1,14 +1,17 @@
 import { render, screen } from '@/test-utils/render-utils'
 
+import {
+  AppointmentStatusBadge,
+  STATUS_CONFIG,
+} from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
 import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
-import { AppointmentStatusBadge, STATUS_CONFIG } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
 
 const STATUS_LABELS: [AppointmentStatus, string][] = [
-  ['PENDING',   'Pendente'],
+  ['PENDING', 'Pendente'],
   ['CONFIRMED', 'Confirmado'],
-  ['CANCELED',  'Cancelado'],
+  ['CANCELED', 'Cancelado'],
   ['COMPLETED', 'Concluído'],
-  ['NO_SHOW',   'Não compareceu'],
+  ['NO_SHOW', 'Não compareceu'],
 ]
 
 describe('AppointmentStatusBadge', () => {
@@ -25,8 +28,8 @@ describe('AppointmentStatusBadge', () => {
       'COMPLETED',
       'NO_SHOW',
     ]
-    statuses.forEach((s) => {
+    for (const s of statuses) {
       expect(STATUS_CONFIG).toHaveProperty(s)
-    })
+    }
   })
 })

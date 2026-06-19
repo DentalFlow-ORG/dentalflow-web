@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest'
 import {
   getPlanFeatures,
   intervalAvailableForPlan,
   normalizeBillingInterval,
 } from '@/features/billing/hooks/useSubscriptionPage'
 import { makeBillingPlan } from '@/test-utils/factories/billing.factory'
+import { describe, expect, it } from 'vitest'
 
 // ─── normalizeBillingInterval ─────────────────────────────────────────────────
 
@@ -22,11 +22,15 @@ describe('normalizeBillingInterval', () => {
 
 describe('intervalAvailableForPlan', () => {
   it('returns true for MONTHLY when plan has a monthly price', () => {
-    expect(intervalAvailableForPlan(makeBillingPlan({ hasMonthlyPrice: true }), 'MONTHLY')).toBe(true)
+    expect(intervalAvailableForPlan(makeBillingPlan({ hasMonthlyPrice: true }), 'MONTHLY')).toBe(
+      true,
+    )
   })
 
   it('returns false for MONTHLY when plan lacks a monthly price', () => {
-    expect(intervalAvailableForPlan(makeBillingPlan({ hasMonthlyPrice: false }), 'MONTHLY')).toBe(false)
+    expect(intervalAvailableForPlan(makeBillingPlan({ hasMonthlyPrice: false }), 'MONTHLY')).toBe(
+      false,
+    )
   })
 
   it('returns true for YEARLY when plan has a yearly price', () => {
@@ -34,7 +38,9 @@ describe('intervalAvailableForPlan', () => {
   })
 
   it('returns false for YEARLY when plan lacks a yearly price', () => {
-    expect(intervalAvailableForPlan(makeBillingPlan({ hasYearlyPrice: false }), 'YEARLY')).toBe(false)
+    expect(intervalAvailableForPlan(makeBillingPlan({ hasYearlyPrice: false }), 'YEARLY')).toBe(
+      false,
+    )
   })
 })
 

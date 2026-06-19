@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AiAnalysisResult, AiQuotaInfo, AiVisibility, DataReadiness } from '../services/inventory-ai.service'
-import { analyzeInventoryWithAi, getLatestInventoryAnalysis } from '../services/inventory-ai.service'
+import type {
+  AiAnalysisResult,
+  AiQuotaInfo,
+  AiVisibility,
+  DataReadiness,
+} from '../services/inventory-ai.service'
+import {
+  analyzeInventoryWithAi,
+  getLatestInventoryAnalysis,
+} from '../services/inventory-ai.service'
 
 export function useAiAssistantInventory() {
   const [savedAnalysis, setSavedAnalysis] = useState<AiAnalysisResult | null>(null)

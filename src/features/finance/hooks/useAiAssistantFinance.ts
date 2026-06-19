@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { AiAnalysisResult, AiQuotaInfo, AiVisibility, DataReadiness } from '../services/finance-ai.service'
+import type {
+  AiAnalysisResult,
+  AiQuotaInfo,
+  AiVisibility,
+  DataReadiness,
+} from '../services/finance-ai.service'
 import { analyzeFinanceWithAi, getLatestFinanceAnalysis } from '../services/finance-ai.service'
 
 export function useAiAssistantFinance(from: string, to: string) {

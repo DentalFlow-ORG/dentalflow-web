@@ -20,10 +20,9 @@ describe('usePageMeta', () => {
   })
 
   it('updates title when the argument changes', () => {
-    const { rerender } = renderHook(
-      ({ title }: { title: string }) => usePageMeta(title, 'desc'),
-      { initialProps: { title: 'First Title' } },
-    )
+    const { rerender } = renderHook(({ title }: { title: string }) => usePageMeta(title, 'desc'), {
+      initialProps: { title: 'First Title' },
+    })
     expect(document.title).toBe('First Title')
     rerender({ title: 'Second Title' })
     expect(document.title).toBe('Second Title')
@@ -32,8 +31,8 @@ describe('usePageMeta', () => {
   it('creates the meta tag if it does not already exist', () => {
     document.querySelector('meta[name="description"]')?.remove()
     renderHook(() => usePageMeta('T', 'Created description'))
-    expect(
-      document.querySelector('meta[name="description"]')?.getAttribute('content'),
-    ).toBe('Created description')
+    expect(document.querySelector('meta[name="description"]')?.getAttribute('content')).toBe(
+      'Created description',
+    )
   })
 })

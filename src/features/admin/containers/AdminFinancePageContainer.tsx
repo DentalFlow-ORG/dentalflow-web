@@ -1,35 +1,27 @@
 import {
   AlertTriangle,
   BarChart3,
+  Clock,
   CreditCard,
   Info,
   Layers3,
-  RefreshCw,
   ReceiptText,
+  RefreshCw,
+  TrendingUp,
+  XCircle,
 } from 'lucide-react'
-import type { ElementType } from 'react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import type { LucideIcon } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { useTheme } from '@/features/theme/useTheme'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
-import { EmptyState } from '@/components/common/EmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { ListPageShell } from '@/components/common/ListPageShell'
-import { MetricCard } from '@/components/common/MetricCard'
 import { Pagination } from '@/components/common/Pagination'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { AppPage } from '@/components/layout/AppPage'
-import { AppPageHeader } from '@/components/layout/AppPageHeader'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -38,7 +30,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
+import { HomeEmptyState } from '@/features/home/components/HomeEmptyState'
+import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
+import { HomeSection } from '@/features/home/components/HomeSection'
 
+import {
+  FINANCE_STATUS_LABEL,
+  FINANCE_STATUS_OPTIONS,
+  FINANCE_STATUS_TONE,
+} from '../constants/finance-display'
 import { useAdminFinancePage } from '../hooks/useAdminFinancePage'
 import type {
   AdminFinancePlan,
@@ -49,8 +50,12 @@ import type {
   StripeEventFilters,
   SubscriptionFilters,
 } from '../types/admin-finance.types'
-import { FINANCE_STATUS_LABEL, FINANCE_STATUS_TONE, FINANCE_STATUS_OPTIONS } from '../constants/finance-display'
-import { formatCurrencyFromCents, formatDate, formatInterval, getSubscriptionAmount } from '../utils/admin-finance-format'
+import {
+  formatCurrencyFromCents,
+  formatDate,
+  formatInterval,
+  getSubscriptionAmount,
+} from '../utils/admin-finance-format'
 
 const ALL_VALUE = 'all'
 
@@ -77,12 +82,12 @@ export function AdminFinancePageContainer() {
   } = useAdminFinancePage()
 
   return (
-    <AppPage>
-      <AppPageHeader
+    <AppPage spacing="loose">
+      <HomeDashboardHeader
         eyebrow="Administração"
         title="Gestão financeira"
         description="Acompanhe assinaturas, planos e receita recorrente do SaaS DentalFlow."
-        action={
+        actions={
           <Button variant="outline" onClick={load}>
             <RefreshCw className="h-4 w-4" />
             Atualizar
@@ -99,42 +104,58 @@ export function AdminFinancePageContainer() {
       >
         {summary && (
           <div className="space-y-6">
-            <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCard
-                value={String(summary.kpis.activeSubscriptions)}
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <HomeKpiCard
                 label="Assinaturas ativas"
+                value={String(summary.kpis.activeSubscriptions)}
+                icon={CreditCard}
+                tone="primary"
               />
-              <ExplainedMetricCard
+              <HomeKpiCard
+                label="Receita mensal"
                 value={formatCurrencyFromCents(summary.kpis.estimatedMrr, summary.kpis.currency)}
-                label="Receita recorrente mensal"
-                explanation="MRR calculado no backend com base apenas em assinaturas ativas."
+                icon={TrendingUp}
+                tone="success"
+                description="Calculado no backend"
               />
-              <ExplainedMetricCard
+              <HomeKpiCard
+                label="Receita anual"
                 value={formatCurrencyFromCents(summary.kpis.estimatedArr, summary.kpis.currency)}
-                label="Receita recorrente anual"
-                explanation="ARR calculado no backend com base nos itens e intervalos de cobrança sincronizados do Stripe."
+                icon={BarChart3}
+                tone="info"
+                description="Calculado no backend"
               />
-              <MetricCard
+              <HomeKpiCard
+                label="Em teste"
                 value={String(summary.kpis.trialSubscriptions)}
-                label="Assinaturas em teste"
+                icon={Clock}
+                tone="warning"
               />
-              <MetricCard
+              <HomeKpiCard
+                label="Canceladas"
                 value={String(summary.kpis.canceledSubscriptions)}
-                label="Assinaturas canceladas"
+                icon={XCircle}
+                tone="neutral"
               />
-              <MetricCard
+              <HomeKpiCard
+                label="Pgtos. pendentes"
                 value={String(summary.kpis.pastDueSubscriptions)}
-                label="Pagamentos pendentes"
+                icon={AlertTriangle}
+                tone="danger"
               />
-              <MetricCard
-                value={String(summary.kpis.totalPlans)}
+              <HomeKpiCard
                 label="Planos cadastrados"
+                value={String(summary.kpis.totalPlans)}
+                icon={Layers3}
+                tone="neutral"
               />
-              <MetricCard
+              <HomeKpiCard
+                label="Erros Stripe"
                 value={String(summary.kpis.stripeEventsFailed)}
-                label="Eventos Stripe com erro"
+                icon={AlertTriangle}
+                tone="warning"
               />
-            </section>
+            </div>
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
               <FinanceChart
@@ -191,9 +212,7 @@ export function AdminFinancePageContainer() {
               filters={subscriptionFilters}
               planOptions={planOptions}
               onFilterChange={setSubscriptionFilter}
-              onPageChange={(page) =>
-                setSubscriptionFilters((current) => ({ ...current, page }))
-              }
+              onPageChange={(page) => setSubscriptionFilters((current) => ({ ...current, page }))}
               onPageSizeChange={(limit) =>
                 setSubscriptionFilters((current) => ({ ...current, page: 1, limit }))
               }
@@ -219,32 +238,6 @@ export function AdminFinancePageContainer() {
   )
 }
 
-function ExplainedMetricCard({
-  value,
-  label,
-  explanation,
-}: {
-  value: string
-  label: string
-  explanation: string
-}) {
-  return (
-    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
-      <p className="text-2xl font-semibold text-foreground">{value}</p>
-      <p className="mt-2 flex items-center gap-1.5 text-sm leading-6 text-muted-foreground">
-        {label}
-        <Info
-          className="h-3.5 w-3.5 text-muted-foreground"
-          aria-label={explanation}
-          role="img"
-        >
-          <title>{explanation}</title>
-        </Info>
-      </p>
-    </div>
-  )
-}
-
 type AdminChartTooltipProps = {
   active?: boolean
   payload?: Array<{ value?: number }>
@@ -254,7 +247,14 @@ type AdminChartTooltipProps = {
   dataLabel: string
 }
 
-function AdminChartTooltip({ active, payload, label, isDark, valueFormatter, dataLabel }: AdminChartTooltipProps) {
+function AdminChartTooltip({
+  active,
+  payload,
+  label,
+  isDark,
+  valueFormatter,
+  dataLabel,
+}: AdminChartTooltipProps) {
   if (!active || !payload?.length) return null
 
   const bgColor = isDark ? '#0f172a' : '#ffffff'
@@ -323,7 +323,8 @@ function FinanceChart({
               role="img"
             >
               <title>
-                MRR significa receita recorrente mensal. Os valores são calculados no backend a partir dos itens sincronizados do Stripe.
+                MRR significa receita recorrente mensal. Os valores são calculados no backend a
+                partir dos itens sincronizados do Stripe.
               </title>
             </Info>
           )}
@@ -332,13 +333,23 @@ function FinanceChart({
       </div>
 
       {visibleData.length === 0 ? (
-        <EmptyState icon={BarChart3} title={emptyTitle} description={emptyDescription} />
+        <HomeEmptyState
+          compact
+          icon={BarChart3}
+          title={emptyTitle}
+          description={emptyDescription}
+        />
       ) : (
         <div className="h-72 w-full overflow-hidden">
           <ResponsiveContainer width="100%" height={288}>
             <BarChart data={visibleData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid stroke={gridColor} strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: tickColor, fontSize: 12 }} tickLine={false} axisLine={false} />
+              <XAxis
+                dataKey="label"
+                tick={{ fill: tickColor, fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+              />
               <YAxis
                 tick={{ fill: tickColor, fontSize: 12 }}
                 tickLine={false}
@@ -382,14 +393,13 @@ function PriceBreakdownSection({
   defaultCurrency: string
 }) {
   return (
-    <PanelCard>
-      <SectionHeader
-        icon={Layers3}
-        title="Receita por preço"
-        description="Assinantes e receita recorrente agrupados por preço do Stripe."
-      />
+    <HomeSection
+      title="Receita por preço"
+      description="Assinantes e receita recorrente agrupados por preço do Stripe."
+    >
       {rows.length === 0 ? (
-        <EmptyState
+        <HomeEmptyState
+          compact
           icon={Layers3}
           title="Nenhum dado financeiro encontrado"
           description="A receita por preço será exibida quando houver assinaturas ativas."
@@ -419,9 +429,7 @@ function PriceBreakdownSection({
                     <td className="px-4 py-3 text-muted-foreground">
                       {formatInterval(row.billingInterval)}
                     </td>
-                    <td className="px-4 py-3 text-right text-foreground">
-                      {row.subscriberCount}
-                    </td>
+                    <td className="px-4 py-3 text-right text-foreground">{row.subscriberCount}</td>
                     <td className="px-4 py-3 text-right font-semibold text-foreground">
                       {formatCurrencyFromCents(row.estimatedMrr, row.currency || defaultCurrency)}
                     </td>
@@ -435,7 +443,7 @@ function PriceBreakdownSection({
           </div>
         </div>
       )}
-    </PanelCard>
+    </HomeSection>
   )
 }
 
@@ -454,7 +462,8 @@ function RecentSubscriptionsSection({
     <PanelCard>
       <SectionHeader icon={ReceiptText} title={title} description={description} />
       {subscriptions.length === 0 ? (
-        <EmptyState
+        <HomeEmptyState
+          compact
           icon={ReceiptText}
           title={emptyTitle}
           description="Nenhum dado financeiro encontrado."
@@ -527,12 +536,10 @@ function SubscriptionsSection({
   onPageSizeChange: (limit: number) => void
 }) {
   return (
-    <PanelCard>
-      <SectionHeader
-        icon={CreditCard}
-        title="Assinaturas"
-        description="Clínicas com assinatura vinculada aos planos SaaS."
-      />
+    <HomeSection
+      title="Assinaturas"
+      description="Clínicas com assinatura vinculada aos planos SaaS."
+    >
       <div className="mb-4 grid gap-3 md:grid-cols-5">
         <FormField label="Buscar clínica" htmlFor="subscriptionSearch" className="md:col-span-2">
           <TextInput
@@ -595,92 +602,94 @@ function SubscriptionsSection({
       </div>
 
       {subscriptions.length === 0 ? (
-        <EmptyState
+        <HomeEmptyState
+          compact
           icon={CreditCard}
           title="Nenhuma assinatura encontrada"
           description="As assinaturas das clínicas serão exibidas aqui quando existirem registros."
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-245 text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-3">Clínica</th>
-                  <th className="px-4 py-3">Plano</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Valor</th>
-                  <th className="px-4 py-3">Intervalo</th>
-                  <th className="px-4 py-3">Início</th>
-                  <th className="px-4 py-3">Renovação</th>
-                  <th className="px-4 py-3">Cancelada em</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border bg-card">
-                {subscriptions.map((subscription) => {
-                  const amount = getSubscriptionAmount(subscription)
+        <>
+          <div className="overflow-hidden rounded-lg border border-border">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-245 text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <th className="px-4 py-3">Clínica</th>
+                    <th className="px-4 py-3">Plano</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Valor</th>
+                    <th className="px-4 py-3">Intervalo</th>
+                    <th className="px-4 py-3">Início</th>
+                    <th className="px-4 py-3">Renovação</th>
+                    <th className="px-4 py-3">Cancelada em</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border bg-card">
+                  {subscriptions.map((subscription) => {
+                    const amount = getSubscriptionAmount(subscription)
 
-                  return (
-                    <tr key={subscription.id} className="hover:bg-muted/70">
-                      <td className="px-4 py-3">
-                        <p className="font-semibold text-foreground">{subscription.clinic.name}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {subscription.clinic.email ?? subscription.clinic.id}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3 text-foreground">{subscription.plan.name}</td>
-                      <td className="px-4 py-3">
-                        <StatusBadge tone={FINANCE_STATUS_TONE[subscription.status]}>
-                          {FINANCE_STATUS_LABEL[subscription.status]}
-                        </StatusBadge>
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold text-foreground">
-                        {formatCurrencyFromCents(amount.value, amount.currency)}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {formatInterval(amount.interval)}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {formatDate(subscription.currentPeriodStart ?? subscription.createdAt)}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {formatDate(subscription.currentPeriodEnd)}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {formatDate(subscription.canceledAt)}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={subscription.id} className="hover:bg-muted/70">
+                        <td className="px-4 py-3">
+                          <p className="font-semibold text-foreground">
+                            {subscription.clinic.name}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {subscription.clinic.email ?? subscription.clinic.id}
+                          </p>
+                        </td>
+                        <td className="px-4 py-3 text-foreground">{subscription.plan.name}</td>
+                        <td className="px-4 py-3">
+                          <StatusBadge tone={FINANCE_STATUS_TONE[subscription.status]}>
+                            {FINANCE_STATUS_LABEL[subscription.status]}
+                          </StatusBadge>
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-foreground">
+                          {formatCurrencyFromCents(amount.value, amount.currency)}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {formatInterval(amount.interval)}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {formatDate(subscription.currentPeriodStart ?? subscription.createdAt)}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {formatDate(subscription.currentPeriodEnd)}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {formatDate(subscription.canceledAt)}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="border-t border-border px-4 py-3">
-            <Pagination
-              page={filters.page}
-              totalPages={totalPages}
-              filteredCount={total}
-              pageSize={filters.limit}
-              onPageChange={onPageChange}
-              onPageSizeChange={onPageSizeChange}
-            />
-          </div>
-        </div>
+          <Pagination
+            page={filters.page}
+            totalPages={totalPages}
+            filteredCount={total}
+            pageSize={filters.limit}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+          />
+        </>
       )}
-    </PanelCard>
+    </HomeSection>
   )
 }
 
 function PlansSection({ plans }: { plans: AdminFinancePlan[] }) {
   return (
-    <PanelCard>
-      <SectionHeader
-        icon={Layers3}
-        title="Planos"
-        description="Planos SaaS disponíveis e volume de assinaturas vinculadas."
-      />
+    <HomeSection
+      title="Planos"
+      description="Planos SaaS disponíveis e volume de assinaturas vinculadas."
+    >
       {plans.length === 0 ? (
-        <EmptyState
+        <HomeEmptyState
+          compact
           icon={Layers3}
           title="Nenhum plano cadastrado"
           description="Os planos da plataforma serão exibidos aqui quando forem cadastrados."
@@ -734,7 +743,7 @@ function PlansSection({ plans }: { plans: AdminFinancePlan[] }) {
           </div>
         </div>
       )}
-    </PanelCard>
+    </HomeSection>
   )
 }
 
@@ -759,12 +768,10 @@ function StripeEventsSection({
   onPageSizeChange: (limit: number) => void
 }) {
   return (
-    <PanelCard>
-      <SectionHeader
-        icon={ReceiptText}
-        title="Eventos Stripe"
-        description="Saúde dos eventos recebidos do Stripe e processamento interno."
-      />
+    <HomeSection
+      title="Eventos Stripe"
+      description="Saúde dos eventos recebidos do Stripe e processamento interno."
+    >
       <div className="mb-4 grid gap-3 md:grid-cols-4">
         <FormField label="Tipo do evento" htmlFor="stripeEventType" className="md:col-span-2">
           <TextInput
@@ -804,66 +811,71 @@ function StripeEventsSection({
       </div>
 
       {events.length === 0 ? (
-        <EmptyState
+        <HomeEmptyState
+          compact
           icon={ReceiptText}
           title="Ainda não há eventos do Stripe processados"
           description="Quando webhooks forem recebidos, os eventos aparecerão nesta tabela."
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-205 text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-3">Evento</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Recebido em</th>
-                  <th className="px-4 py-3">Processado em</th>
-                  <th className="px-4 py-3">Erro</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border bg-card">
-                {events.map((event) => (
-                  <tr key={event.id} className="hover:bg-muted/70">
-                    <td className="px-4 py-3">
-                      <p className="font-semibold text-foreground">{event.type}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{event.id}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge tone={event.processed ? 'success' : 'warning'}>
-                        {event.processed ? 'Processado' : 'Pendente'}
-                      </StatusBadge>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDate(event.receivedAt)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{formatDate(event.processedAt)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {event.errorMessage ? (
-                        <span className="inline-flex items-center gap-1.5 text-red-600">
-                          <AlertTriangle className="h-3.5 w-3.5" />
-                          {event.errorMessage}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </td>
+        <>
+          <div className="overflow-hidden rounded-lg border border-border">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-205 text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <th className="px-4 py-3">Evento</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Recebido em</th>
+                    <th className="px-4 py-3">Processado em</th>
+                    <th className="px-4 py-3">Erro</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border bg-card">
+                  {events.map((event) => (
+                    <tr key={event.id} className="hover:bg-muted/70">
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-foreground">{event.type}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{event.id}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge tone={event.processed ? 'success' : 'warning'}>
+                          {event.processed ? 'Processado' : 'Pendente'}
+                        </StatusBadge>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {formatDate(event.receivedAt)}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {formatDate(event.processedAt)}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {event.errorMessage ? (
+                          <span className="inline-flex items-center gap-1.5 text-red-600">
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            {event.errorMessage}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div className="border-t border-border px-4 py-3">
-            <Pagination
-              page={filters.page}
-              totalPages={totalPages}
-              filteredCount={total}
-              pageSize={filters.limit}
-              onPageChange={onPageChange}
-              onPageSizeChange={onPageSizeChange}
-            />
-          </div>
-        </div>
+          <Pagination
+            page={filters.page}
+            totalPages={totalPages}
+            filteredCount={total}
+            pageSize={filters.limit}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+          />
+        </>
       )}
-    </PanelCard>
+    </HomeSection>
   )
 }
 
@@ -872,7 +884,7 @@ function SectionHeader({
   title,
   description,
 }: {
-  icon: ElementType
+  icon: LucideIcon
   title: string
   description: string
 }) {

@@ -1,5 +1,5 @@
-import { apiRequest } from '@/services/http'
 import { getAccessToken } from '@/features/auth/utils/session-storage'
+import { apiRequest } from '@/services/http'
 
 import type { ProfileListItem, ProfileService } from '../types/profile.types'
 

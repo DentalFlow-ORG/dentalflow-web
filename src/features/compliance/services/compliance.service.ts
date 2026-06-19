@@ -24,17 +24,11 @@ function buildParams(filters: Record<string, unknown>): string {
 export function listPrivacyRequests(
   filters: PrivacyRequestFilters,
 ): Promise<PaginatedResponse<PrivacyRequest>> {
-  return apiRequest<PaginatedResponse<PrivacyRequest>>(
-    `/privacy/requests${buildParams(filters)}`,
-  )
+  return apiRequest<PaginatedResponse<PrivacyRequest>>(`/privacy/requests${buildParams(filters)}`)
 }
 
-export function listAuditLogs(
-  filters: AuditLogFilters,
-): Promise<PaginatedResponse<AuditLogEntry>> {
-  return apiRequest<PaginatedResponse<AuditLogEntry>>(
-    `/audit-logs${buildParams(filters)}`,
-  )
+export function listAuditLogs(filters: AuditLogFilters): Promise<PaginatedResponse<AuditLogEntry>> {
+  return apiRequest<PaginatedResponse<AuditLogEntry>>(`/audit-logs${buildParams(filters)}`)
 }
 
 export function listCookieConsents(

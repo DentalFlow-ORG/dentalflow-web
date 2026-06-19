@@ -9,6 +9,7 @@ import {
   CreditCard,
   Loader2,
   Lock,
+  type LucideIcon,
   Package,
   RefreshCw,
   Rocket,
@@ -24,15 +25,12 @@ import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+import { clearBillingStatusCache, setCachedBillingStatus } from '../services/billing-status-cache'
 import {
   createPortalSession,
   getCurrentBillingStatus,
   syncCheckoutSession,
 } from '../services/billing.service'
-import {
-  clearBillingStatusCache,
-  setCachedBillingStatus,
-} from '../services/billing-status-cache'
 import type {
   CurrentBillingStatus,
   NormalizedBillingInterval,
@@ -53,7 +51,7 @@ const RETRY_INTERVAL_MS = 2500
 //   /app               → DashboardPage (OWNER, ASSISTANT)
 
 type OnboardingStep = {
-  icon: React.ElementType
+  icon: LucideIcon
   iconBg: string
   iconText: string
   label: string
@@ -68,7 +66,8 @@ const onboardingSteps: OnboardingStep[] = [
     iconBg: 'bg-blue-50 dark:bg-blue-900/30',
     iconText: 'text-blue-600 dark:text-blue-400',
     label: 'Complete os dados da clínica',
-    description: 'Adicione endereço, telefone, logo e outras informações essenciais da sua clínica.',
+    description:
+      'Adicione endereço, telefone, logo e outras informações essenciais da sua clínica.',
     actionLabel: 'Configurar',
     to: '/app/configuracoes',
   },
@@ -104,7 +103,8 @@ const onboardingSteps: OnboardingStep[] = [
     iconBg: 'bg-amber-50 dark:bg-amber-900/30',
     iconText: 'text-amber-600 dark:text-amber-400',
     label: 'Comece a usar',
-    description: 'Agende consultas e acompanhe resultados com relatórios e indicadores em tempo real.',
+    description:
+      'Agende consultas e acompanhe resultados com relatórios e indicadores em tempo real.',
     actionLabel: 'Explorar',
     to: '/app',
   },
@@ -121,14 +121,62 @@ type ConfettiDot = {
 }
 
 const confettiDots: ConfettiDot[] = [
-  { color: 'bg-emerald-400', dx: '-14px', dy: '-28px', delay: '0.08s', pos: { top: '-4px',  left:  'calc(50% - 4px)' } },
-  { color: 'bg-blue-400',    dx:  '22px', dy: '-18px', delay: '0.18s', pos: { top: '8%',    right: '-6px' } },
-  { color: 'bg-cyan-400',    dx:  '26px', dy:  '14px', delay: '0.04s', pos: { bottom: '18%', right: '-8px' } },
-  { color: 'bg-emerald-500', dx:  '14px', dy:  '28px', delay: '0.13s', pos: { bottom: '-4px', left: 'calc(50% - 4px)' } },
-  { color: 'bg-sky-400',     dx: '-26px', dy:  '14px', delay: '0.22s', pos: { bottom: '18%', left: '-8px' } },
-  { color: 'bg-teal-400',    dx: '-22px', dy: '-18px', delay: '0.09s', pos: { top: '8%',    left: '-6px' } },
-  { color: 'bg-indigo-400',  dx:   '6px', dy: '-30px', delay: '0.16s', pos: { top: '-2px',  right: 'calc(50% - 4px)' } },
-  { color: 'bg-emerald-300', dx:  '-6px', dy:  '30px', delay: '0.05s', pos: { bottom: '-2px', right: 'calc(50% - 4px)' } },
+  {
+    color: 'bg-emerald-400',
+    dx: '-14px',
+    dy: '-28px',
+    delay: '0.08s',
+    pos: { top: '-4px', left: 'calc(50% - 4px)' },
+  },
+  {
+    color: 'bg-blue-400',
+    dx: '22px',
+    dy: '-18px',
+    delay: '0.18s',
+    pos: { top: '8%', right: '-6px' },
+  },
+  {
+    color: 'bg-cyan-400',
+    dx: '26px',
+    dy: '14px',
+    delay: '0.04s',
+    pos: { bottom: '18%', right: '-8px' },
+  },
+  {
+    color: 'bg-emerald-500',
+    dx: '14px',
+    dy: '28px',
+    delay: '0.13s',
+    pos: { bottom: '-4px', left: 'calc(50% - 4px)' },
+  },
+  {
+    color: 'bg-sky-400',
+    dx: '-26px',
+    dy: '14px',
+    delay: '0.22s',
+    pos: { bottom: '18%', left: '-8px' },
+  },
+  {
+    color: 'bg-teal-400',
+    dx: '-22px',
+    dy: '-18px',
+    delay: '0.09s',
+    pos: { top: '8%', left: '-6px' },
+  },
+  {
+    color: 'bg-indigo-400',
+    dx: '6px',
+    dy: '-30px',
+    delay: '0.16s',
+    pos: { top: '-2px', right: 'calc(50% - 4px)' },
+  },
+  {
+    color: 'bg-emerald-300',
+    dx: '-6px',
+    dy: '30px',
+    delay: '0.05s',
+    pos: { bottom: '-2px', right: 'calc(50% - 4px)' },
+  },
 ]
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -305,7 +353,8 @@ export function SubscriptionSuccessPage() {
           {!message && visualState === 'attention' && (
             <div className="w-full max-w-md">
               <InlineFeedback tone="warning">
-                A assinatura ainda aparece como pendente. Isso pode acontecer por atraso no webhook da Stripe. Verifique novamente ou abra o portal de assinatura.
+                A assinatura ainda aparece como pendente. Isso pode acontecer por atraso no webhook
+                da Stripe. Verifique novamente ou abra o portal de assinatura.
               </InlineFeedback>
             </div>
           )}
@@ -347,9 +396,11 @@ export function SubscriptionSuccessPage() {
               onClick={handleOpenPortal}
               disabled={isOpeningPortal}
             >
-              {isOpeningPortal
-                ? <Loader2 className="h-4 w-4 animate-spin sm:h-5 sm:w-5" />
-                : <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />}
+              {isOpeningPortal ? (
+                <Loader2 className="h-4 w-4 animate-spin sm:h-5 sm:w-5" />
+              ) : (
+                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
+              )}
               Gerenciar assinatura
             </Button>
             {!isConfirmed && (
@@ -361,9 +412,11 @@ export function SubscriptionSuccessPage() {
                 onClick={handleManualRefresh}
                 disabled={isChecking}
               >
-                {isChecking
-                  ? <Loader2 className="h-4 w-4 animate-spin sm:h-5 sm:w-5" />
-                  : <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5" />}
+                {isChecking ? (
+                  <Loader2 className="h-4 w-4 animate-spin sm:h-5 sm:w-5" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5" />
+                )}
                 Verificar novamente
               </Button>
             )}
@@ -381,7 +434,6 @@ export function SubscriptionSuccessPage() {
 
       {/* ── Right column ─────────────────────────────────────────────────── */}
       <div className="flex flex-col p-5 sm:p-8 lg:p-8 xl:p-12">
-
         {/* Header: stacks on mobile, side-by-side on sm+ */}
         <div className="shrink-0 pb-5 sm:pb-6 lg:pb-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -393,7 +445,8 @@ export function SubscriptionSuccessPage() {
               <div>
                 <h2 className="text-xl font-bold text-foreground sm:text-2xl">Próximos passos</h2>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  Siga os passos abaixo para configurar sua clínica e aproveitar ao máximo o DentalFlow.
+                  Siga os passos abaixo para configurar sua clínica e aproveitar ao máximo o
+                  DentalFlow.
                 </p>
               </div>
             </div>
@@ -409,7 +462,9 @@ export function SubscriptionSuccessPage() {
                 <Clock3 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 <span>Tempo estimado</span>
               </div>
-              <p className="text-base font-semibold tabular-nums text-foreground sm:mt-0.5">15–20 min</p>
+              <p className="text-base font-semibold tabular-nums text-foreground sm:mt-0.5">
+                15–20 min
+              </p>
             </div>
           </div>
         </div>
@@ -438,23 +493,38 @@ export function SubscriptionSuccessPage() {
             <div className="flex items-center justify-around">
               <div className="flex flex-col items-center gap-1.5">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                  <ShieldCheck
+                    className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"
+                    aria-hidden="true"
+                  />
                 </div>
-                <span className="text-[10px] font-medium text-muted-foreground">Ambiente seguro</span>
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  Ambiente seguro
+                </span>
               </div>
               <div className="h-6 w-px bg-border" aria-hidden="true" />
               <div className="flex flex-col items-center gap-1.5">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                  <Lock className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                  <Lock
+                    className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400"
+                    aria-hidden="true"
+                  />
                 </div>
-                <span className="text-[10px] font-medium text-muted-foreground">Dados protegidos</span>
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  Dados protegidos
+                </span>
               </div>
               <div className="h-6 w-px bg-border" aria-hidden="true" />
               <div className="flex flex-col items-center gap-1.5">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                  <Sparkles
+                    className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400"
+                    aria-hidden="true"
+                  />
                 </div>
-                <span className="text-[10px] font-medium text-muted-foreground">Configuração rápida</span>
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  Configuração rápida
+                </span>
               </div>
             </div>
           </div>
@@ -491,7 +561,10 @@ function SuccessStatusIcon({ state }: { state: 'confirmed' | 'processing' | 'att
         />
         {/* Main circle */}
         <div className="relative flex h-full w-full items-center justify-center rounded-full bg-emerald-100 df-success-pop dark:bg-emerald-900/40">
-          <CheckCircle2 className={cn(iconCls, 'text-emerald-600 dark:text-emerald-400')} aria-hidden="true" />
+          <CheckCircle2
+            className={cn(iconCls, 'text-emerald-600 dark:text-emerald-400')}
+            aria-hidden="true"
+          />
         </div>
         {/* Confetti particles */}
         {confettiDots.map(({ color, dx, dy, delay, pos }, i) => (
@@ -509,7 +582,10 @@ function SuccessStatusIcon({ state }: { state: 'confirmed' | 'processing' | 'att
   if (state === 'processing') {
     return (
       <div
-        className={cn('flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30', containerCls)}
+        className={cn(
+          'flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30',
+          containerCls,
+        )}
         role="img"
         aria-label="Processando confirmação"
       >
@@ -520,11 +596,17 @@ function SuccessStatusIcon({ state }: { state: 'confirmed' | 'processing' | 'att
 
   return (
     <div
-      className={cn('flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30', containerCls)}
+      className={cn(
+        'flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30',
+        containerCls,
+      )}
       role="img"
       aria-label="Atenção: sincronização pendente"
     >
-      <ShieldCheck className={cn(iconCls, 'text-amber-600 dark:text-amber-400')} aria-hidden="true" />
+      <ShieldCheck
+        className={cn(iconCls, 'text-amber-600 dark:text-amber-400')}
+        aria-hidden="true"
+      />
     </div>
   )
 }
@@ -537,9 +619,12 @@ function StatusPill({
   state: 'confirmed' | 'processing' | 'attention'
 }) {
   const tone = {
-    confirmed:  'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-400',
-    processing: 'border-blue-200 bg-blue-50 text-primary dark:border-blue-800/40 dark:bg-blue-900/30',
-    attention:  'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-900/30 dark:text-amber-400',
+    confirmed:
+      'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-900/30 dark:text-emerald-400',
+    processing:
+      'border-blue-200 bg-blue-50 text-primary dark:border-blue-800/40 dark:bg-blue-900/30',
+    attention:
+      'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-900/30 dark:text-amber-400',
   }[state]
 
   return (
@@ -555,14 +640,13 @@ function StatusPill({
 }
 
 function SubscriptionSummary({ status }: { status: CurrentBillingStatus }) {
-  const renewalDate =
-    status.status === 'trialing' ? status.trialEndsAt : status.currentPeriodEnd
+  const renewalDate = status.status === 'trialing' ? status.trialEndsAt : status.currentPeriodEnd
 
-  const rows: { icon: React.ElementType; label: string; value: string }[] = [
-    { icon: Package,      label: 'Plano',             value: status.planName ?? 'Não definido' },
-    { icon: RefreshCw,    label: 'Ciclo',             value: formatBillingInterval(status.billingInterval) },
-    { icon: CheckCircle2, label: 'Status',            value: getStatusLabel(status.status) },
-    { icon: Calendar,     label: 'Próxima renovação', value: formatDate(renewalDate) },
+  const rows: { icon: LucideIcon; label: string; value: string }[] = [
+    { icon: Package, label: 'Plano', value: status.planName ?? 'Não definido' },
+    { icon: RefreshCw, label: 'Ciclo', value: formatBillingInterval(status.billingInterval) },
+    { icon: CheckCircle2, label: 'Status', value: getStatusLabel(status.status) },
+    { icon: Calendar, label: 'Próxima renovação', value: formatDate(renewalDate) },
   ]
 
   return (
@@ -681,14 +765,14 @@ function StepItem({
 
 function getStatusLabel(status: NormalizedBillingStatus): string {
   const labels: Record<NormalizedBillingStatus, string> = {
-    missing:    'Sem assinatura',
-    trialing:   'Teste ativo',
-    active:     'Ativa',
-    past_due:   'Pagamento pendente',
-    canceled:   'Cancelada',
+    missing: 'Sem assinatura',
+    trialing: 'Teste ativo',
+    active: 'Ativa',
+    past_due: 'Pagamento pendente',
+    canceled: 'Cancelada',
     incomplete: 'Incompleta',
-    unpaid:     'Sem pagamento confirmado',
-    paused:     'Pausada',
+    unpaid: 'Sem pagamento confirmado',
+    paused: 'Pausada',
   }
   return labels[status]
 }

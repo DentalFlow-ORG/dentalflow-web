@@ -1,6 +1,9 @@
-import { useState } from 'react'
 import { Ban, CheckCircle2, Clock } from 'lucide-react'
+import { useState } from 'react'
 
+import { DatePickerInput } from '@/components/common/DatePickerInput'
+import { FormField, TextArea, TextInput } from '@/components/common/FormField'
+import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -9,10 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { formatDateBR, formatDateInputValue } from '@/lib/date-time-formatters'
 
+import { PAYMENT_METHOD_LABELS } from '../../constants/appointment-display'
 import { updateAppointmentPayment } from '../../services/scheduling.service'
 import type {
   Appointment,
@@ -21,32 +24,8 @@ import type {
   UpdateAppointmentPaymentDto,
 } from '../../types/scheduling.types'
 import { centsToReais, reaisToCents } from '../../utils/appointment-form-utils'
-import { PAYMENT_METHOD_LABELS } from '../../constants/appointment-display'
+import { AppointmentDetailsRow, AppointmentDetailsSection } from './AppointmentDetailsSection'
 import { AppointmentPaymentBadge } from './AppointmentPaymentBadge'
-
-type DrawerSectionProps = { title: string; children: React.ReactNode }
-
-function DrawerSection({ title, children }: DrawerSectionProps) {
-  return (
-    <div>
-      <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {title}
-      </p>
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="divide-y divide-border">{children}</div>
-      </div>
-    </div>
-  )
-}
-
-function DrawerRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
-      <span className="shrink-0 text-muted-foreground">{label}</span>
-      <span className="text-right font-medium text-foreground">{children}</span>
-    </div>
-  )
-}
 
 type AppointmentPaymentSectionProps = {
   appointment: Appointment
@@ -71,34 +50,34 @@ export function AppointmentPaymentSection({
 
 function PaymentReadOnly({ appointment }: { appointment: Appointment }) {
   return (
-    <DrawerSection title="Pagamento">
-      <DrawerRow label="Status">
+    <AppointmentDetailsSection title="Pagamento">
+      <AppointmentDetailsRow label="Status">
         <AppointmentPaymentBadge status={appointment.paymentStatus} />
-      </DrawerRow>
+      </AppointmentDetailsRow>
       {appointment.estimatedAmountCents != null && (
-        <DrawerRow label="Valor previsto">
+        <AppointmentDetailsRow label="Valor previsto">
           R$ {centsToReais(appointment.estimatedAmountCents)}
-        </DrawerRow>
+        </AppointmentDetailsRow>
       )}
       {appointment.paidAmountCents != null && (
-        <DrawerRow label="Valor pago">
+        <AppointmentDetailsRow label="Valor pago">
           R$ {centsToReais(appointment.paidAmountCents)}
-        </DrawerRow>
+        </AppointmentDetailsRow>
       )}
       {appointment.paymentMethod && (
-        <DrawerRow label="Forma de pagamento">
+        <AppointmentDetailsRow label="Forma de pagamento">
           {PAYMENT_METHOD_LABELS[appointment.paymentMethod]}
-        </DrawerRow>
+        </AppointmentDetailsRow>
       )}
-      {appointment.paymentDate && !isNaN(new Date(appointment.paymentDate).getTime()) && (
-        <DrawerRow label="Data do pagamento">
-          {new Date(appointment.paymentDate).toLocaleDateString('pt-BR')}
-        </DrawerRow>
+      {appointment.paymentDate && (
+        <AppointmentDetailsRow label="Data do pagamento">
+          {formatDateBR(formatDateInputValue(appointment.paymentDate))}
+        </AppointmentDetailsRow>
       )}
       {appointment.paymentNotes && (
-        <DrawerRow label="Observação">{appointment.paymentNotes}</DrawerRow>
+        <AppointmentDetailsRow label="Observação">{appointment.paymentNotes}</AppointmentDetailsRow>
       )}
-    </DrawerSection>
+    </AppointmentDetailsSection>
   )
 }
 
@@ -119,16 +98,9 @@ function PaymentEditForm({
   const [method, setMethod] = useState<AppointmentPaymentMethod | ''>(
     appointment.paymentMethod ?? '',
   )
-  const [paymentDate, setPaymentDate] = useState(() => {
-    if (!appointment.paymentDate) return ''
-    try {
-      const d = new Date(appointment.paymentDate)
-      if (isNaN(d.getTime())) return ''
-      return d.toISOString().slice(0, 10)
-    } catch {
-      return ''
-    }
-  })
+  const [paymentDate, setPaymentDate] = useState(() =>
+    formatDateInputValue(appointment.paymentDate),
+  )
   const [notes, setNotes] = useState(appointment.paymentNotes ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -217,7 +189,10 @@ function PaymentEditForm({
           </FormField>
 
           {/* Paid */}
-          <FormField label={requiresPaid ? 'Valor pago (R$)' : 'Valor pago (R$)'} optional={!requiresPaid}>
+          <FormField
+            label={requiresPaid ? 'Valor pago (R$)' : 'Valor pago (R$)'}
+            optional={!requiresPaid}
+          >
             <TextInput
               placeholder="Ex: 250,00"
               value={paid}
@@ -232,24 +207,23 @@ function PaymentEditForm({
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
-                {(Object.entries(PAYMENT_METHOD_LABELS) as [AppointmentPaymentMethod, string][]).map(
-                  ([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ),
-                )}
+                {(
+                  Object.entries(PAYMENT_METHOD_LABELS) as [AppointmentPaymentMethod, string][]
+                ).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </FormField>
 
           {/* Payment date */}
           <FormField label="Data do pagamento" optional>
-            <TextInput
-              type="date"
-              className="scheme-light dark:scheme-dark"
+            <DatePickerInput
               value={paymentDate}
-              onChange={(e) => setPaymentDate(e.target.value)}
+              onValueChange={setPaymentDate}
+              placeholder="DD/MM/AAAA"
             />
           </FormField>
 

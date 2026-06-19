@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import { PublicLayout } from '../components/PublicLayout'
-import { usePageMeta } from '../hooks/usePageMeta'
 import { integrationCards } from '../data/public-content'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string; label: string }> = {
   available: {
@@ -52,7 +52,8 @@ export function IntegrationsPage() {
             Plataformas e serviços integrados
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-slate-500">
-            O DentalFlow conecta-se a serviços reconhecidos do mercado para entregar uma experiência completa e confiável.
+            O DentalFlow conecta-se a serviços reconhecidos do mercado para entregar uma experiência
+            completa e confiável.
           </p>
         </div>
       </section>
@@ -100,14 +101,15 @@ export function IntegrationsPage() {
                   <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                     {integration.category}
                   </p>
-                  <h2 className="mt-4 text-base font-semibold text-slate-800">{integration.name}</h2>
+                  <h2 className="mt-4 text-base font-semibold text-slate-800">
+                    {integration.name}
+                  </h2>
                   <p className="mt-2 text-sm leading-6 text-slate-500">{integration.description}</p>
 
                   <div className="mt-4 flex items-start gap-2 rounded-lg bg-slate-50 p-3">
                     <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
                     <p className="text-xs leading-5 text-slate-600">
-                      <span className="font-semibold">Benefício:</span>{' '}
-                      {integration.benefit}
+                      <span className="font-semibold">Benefício:</span> {integration.benefit}
                     </p>
                   </div>
                   <p className="mt-3 text-xs leading-5 text-slate-400">{integration.where}</p>
@@ -126,9 +128,10 @@ export function IntegrationsPage() {
             Integrações com responsabilidade
           </h2>
           <p className="mt-3 leading-7 text-slate-500">
-            Todas as conexões do DentalFlow com serviços externos são feitas via API oficial, com autenticação segura e sem exposição de chaves no frontend.
+            Todas as conexões do DentalFlow com serviços externos são feitas via API oficial, com
+            autenticação segura e sem exposição de chaves no frontend.
           </p>
-          <ul className="mx-auto mt-6 max-w-xl space-y-2.5 text-left" role="list">
+          <ul className="mx-auto mt-6 max-w-xl space-y-2.5 text-left">
             {[
               'Integração oficial via API de cada provedor',
               'Conexão server-side, sem exposição de tokens no frontend',
@@ -136,7 +139,10 @@ export function IntegrationsPage() {
               'Não compartilhamos dados entre clínicas',
             ].map((item) => (
               <li key={item} className="flex items-start gap-2.5">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" aria-hidden="true" />
+                <CheckCircle2
+                  className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
+                  aria-hidden="true"
+                />
                 <span className="text-sm text-slate-600">{item}</span>
               </li>
             ))}
@@ -147,12 +153,8 @@ export function IntegrationsPage() {
       {/* CTA */}
       <section className="bg-primary py-14">
         <div className="mx-auto max-w-2xl px-6 text-center lg:px-8">
-          <h2 className="text-2xl font-semibold text-white">
-            Pronto para conectar sua clínica?
-          </h2>
-          <p className="mt-3 text-blue-200">
-            Comece com 7 dias gratuitos. Sem cartão de crédito.
-          </p>
+          <h2 className="text-2xl font-semibold text-white">Pronto para conectar sua clínica?</h2>
+          <p className="mt-3 text-blue-200">Comece com 7 dias gratuitos. Sem cartão de crédito.</p>
           <Button size="lg" variant="secondary" className="mt-6" asChild>
             <Link to="/acessar" search={{ mode: 'register' }}>
               Testar grátis

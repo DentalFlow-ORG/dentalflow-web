@@ -21,6 +21,7 @@ export function FinancialAnalysisPanel({
     dataReadiness && !dataReadiness.ready ? dataReadiness.reason : undefined
 
   useEffect(() => {
+    if (isLoadingInitial) return
     if (!['#ai-analysis', '#finance-ai'].includes(window.location.hash)) return
     window.setTimeout(() => {
       sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -33,8 +34,8 @@ export function FinancialAnalysisPanel({
       <PanelCard>
         <AiAssistantCard
           type="finance"
-          title="Análise do período"
-          description="Recomendações baseadas nos dados reais do período selecionado."
+          title="Análise inteligente do período"
+          description="Receba recomendações práticas para aumentar receita, reduzir custos e priorizar cobranças."
           onGenerate={handleGenerate}
           invalidationKey={`${summary.period.from}|${summary.period.to}`}
           initialResult={savedAnalysis}

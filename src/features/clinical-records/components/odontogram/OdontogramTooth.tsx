@@ -1,10 +1,7 @@
 import { cn } from '@/lib/utils'
 
 import type { OdontogramTooth as OdontogramToothData } from '../../types/clinical-record.types'
-import {
-  getToothConditionLabel,
-  getToothVisualTokens,
-} from '../../utils/odontogram-status-utils'
+import { getToothConditionLabel, getToothVisualTokens } from '../../utils/odontogram-status-utils'
 import { OdontogramToothSvg } from './OdontogramToothSvg'
 
 type Props = {
@@ -46,7 +43,8 @@ export function OdontogramTooth({
         'group relative flex h-[68px] w-[48px] items-center justify-center rounded-lg outline-none transition',
         tokens.text,
         isInteractive && 'cursor-pointer hover:bg-muted hover:shadow-sm',
-        isInteractive && 'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+        isInteractive &&
+          'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
         selected && 'bg-primary/5 ring-2 ring-primary ring-offset-2',
         multiSelected && 'bg-primary/5 ring-2 ring-primary/70 ring-offset-2',
         !isInteractive && 'cursor-default',

@@ -1,12 +1,12 @@
-import { useState } from 'react'
 import { Clock } from 'lucide-react'
+import { useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 
-import { ClinicalTimeline } from './ClinicalTimeline'
 import { usePatientClinicalTimeline } from '../hooks/usePatientClinicalTimeline'
 import type { ClinicalRecord } from '../types/clinical-record.types'
+import { ClinicalTimeline } from './ClinicalTimeline'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -61,9 +61,7 @@ export function PatientHistoryPanel({ currentRecordId, identifier }: Props) {
       )}
 
       {/* Error — non-blocking; editing the current record is unaffected */}
-      {!isLoading && error && (
-        <InlineFeedback tone="warning">{error}</InlineFeedback>
-      )}
+      {!isLoading && error && <InlineFeedback tone="warning">{error}</InlineFeedback>}
 
       {/* Empty state */}
       {!isLoading && !error && historyRecords.length === 0 && (

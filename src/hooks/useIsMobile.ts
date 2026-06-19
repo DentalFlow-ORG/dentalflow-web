@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 
 export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth < 768,
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 768,
   )
 
   useEffect(() => {

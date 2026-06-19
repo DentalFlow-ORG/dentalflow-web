@@ -1,4 +1,7 @@
-import type { Availability, AvailabilityException } from '@/features/scheduling/types/scheduling.types'
+import type {
+  Availability,
+  AvailabilityException,
+} from '@/features/scheduling/types/scheduling.types'
 
 export function makeAvailability(overrides?: Partial<Availability>): Availability {
   return {
@@ -15,7 +18,9 @@ export function makeAvailability(overrides?: Partial<Availability>): Availabilit
   }
 }
 
-export function makeAvailabilityException(overrides?: Partial<AvailabilityException>): AvailabilityException {
+export function makeAvailabilityException(
+  overrides?: Partial<AvailabilityException>,
+): AvailabilityException {
   return {
     id: 'ex1',
     profileId: 'p1',

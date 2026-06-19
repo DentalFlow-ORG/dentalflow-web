@@ -1,4 +1,4 @@
-import { ClipboardList, Stethoscope } from 'lucide-react'
+import { ClipboardList, type LucideIcon, Stethoscope } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -11,7 +11,7 @@ type MemberTypeSelectorProps = {
 
 type TypeOption = {
   role: MemberRole
-  icon: React.ElementType
+  icon: LucideIcon
   title: string
   description: string
 }
@@ -28,8 +28,7 @@ const OPTIONS: TypeOption[] = [
     role: 'ASSISTANT',
     icon: ClipboardList,
     title: 'Assistente',
-    description:
-      'Membro da equipe para suporte operacional, recepção e gestão de agendamentos.',
+    description: 'Membro da equipe para suporte operacional, recepção e gestão de agendamentos.',
   },
 ]
 
@@ -43,34 +42,33 @@ export function MemberTypeSelector({ value, onChange }: MemberTypeSelectorProps)
           <button
             key={opt.role}
             type="button"
+            aria-pressed={selected}
             onClick={() => onChange(opt.role)}
             className={cn(
-              'flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all',
+              'flex min-w-0 items-start gap-4 rounded-xl border-2 p-4 text-left transition-all',
               selected
-                ? 'border-primary bg-blue-50/60 shadow-sm shadow-primary/10'
+                ? 'border-primary bg-blue-50/60 shadow-sm shadow-primary/10 dark:bg-primary/15'
                 : 'border-border bg-card hover:border-primary/40',
             )}
           >
             <div
               className={cn(
                 'mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
-                selected
-                  ? 'bg-primary text-white'
-                  : 'bg-muted text-muted-foreground',
+                selected ? 'bg-primary text-white' : 'bg-muted text-muted-foreground',
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-5 w-5" aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <p
                 className={cn(
-                  'font-semibold',
+                  'break-words font-semibold',
                   selected ? 'text-primary' : 'text-foreground',
                 )}
               >
                 {opt.title}
               </p>
-              <p className="mt-1 text-sm leading-5 text-muted-foreground">
+              <p className="mt-1 break-words text-sm leading-5 text-muted-foreground">
                 {opt.description}
               </p>
             </div>

@@ -1,19 +1,14 @@
 import { Link } from '@tanstack/react-router'
-import {
-  AlertCircle,
-  ArrowRight,
-  CheckCircle2,
-  Users,
-} from 'lucide-react'
+import { AlertCircle, ArrowRight, CheckCircle2, Users } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import { PublicLayout } from '../components/PublicLayout'
-import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
-import type { FeatureDetailContent } from '../data/public-content'
 import { FeatureMockup } from '../components/FeatureMockups'
+import { PublicLayout } from '../components/PublicLayout'
 import { MAIN_FEATURES, ROLE_ROUTES } from '../constants/feature-nav'
+import type { FeatureDetailContent } from '../data/public-content'
+import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -98,7 +93,6 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
 
       {/* ── Lift wrapper: white content rises over dark hero ─────────────── */}
       <div className="relative -mt-16 lg:-mt-24">
-
         {/* ── SECTION 2: Problem / Solution ────────────────────────────────── */}
         <section
           className="rounded-t-[2rem] bg-white px-4 py-16 sm:px-6 lg:px-8"
@@ -106,19 +100,15 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
         >
           <div className="mx-auto max-w-5xl">
             <div className="grid gap-12 lg:grid-cols-2 lg:items-start">
-
               {/* Problem column */}
               <div>
                 <span className="inline-block rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-600">
                   O desafio
                 </span>
-                <h2
-                  id="problem-heading"
-                  className="mt-4 text-2xl font-bold text-slate-900"
-                >
+                <h2 id="problem-heading" className="mt-4 text-2xl font-bold text-slate-900">
                   {content.problemTitle}
                 </h2>
-                <ul className="mt-6 space-y-3" role="list">
+                <ul className="mt-6 space-y-3">
                   {content.problems.map((problem) => (
                     <li key={problem} className="flex items-start gap-3">
                       <span
@@ -152,7 +142,9 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
                         </div>
                         <div>
                           <p className="font-semibold text-slate-800">{item.title}</p>
-                          <p className="mt-1 text-sm leading-6 text-slate-500">{item.description}</p>
+                          <p className="mt-1 text-sm leading-6 text-slate-500">
+                            {item.description}
+                          </p>
                         </div>
                       </div>
                     )
@@ -195,10 +187,7 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
         </section>
 
         {/* ── SECTION 4: Workflow ───────────────────────────────────────────── */}
-        <section
-          className="bg-white px-4 py-16 sm:px-6 lg:px-8"
-          aria-labelledby="workflow-heading"
-        >
+        <section className="bg-white px-4 py-16 sm:px-6 lg:px-8" aria-labelledby="workflow-heading">
           <div className="mx-auto max-w-5xl">
             <div className="mb-10">
               <h2 id="workflow-heading" className="text-2xl font-bold text-slate-900">
@@ -238,10 +227,7 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
         </section>
 
         {/* ── SECTION 5: Roles ──────────────────────────────────────────────── */}
-        <section
-          className="bg-slate-50 px-4 py-14 sm:px-6 lg:px-8"
-          aria-labelledby="roles-heading"
-        >
+        <section className="bg-slate-50 px-4 py-14 sm:px-6 lg:px-8" aria-labelledby="roles-heading">
           <div className="mx-auto max-w-5xl">
             <h2 id="roles-heading" className="text-2xl font-bold text-slate-900">
               Quem usa este módulo
@@ -249,31 +235,32 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {content.roles.map((role) => {
                 const route = ROLE_ROUTES[role.role]
-                const inner = (
-                  <div
-                    className={cn(
-                      'h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm',
-                      route && 'transition-all hover:border-primary/40 hover:shadow-md',
-                    )}
-                  >
+                const cardClass = cn(
+                  'h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm',
+                  route && 'transition-all hover:border-primary/40 hover:shadow-md',
+                )
+                if (route) {
+                  return (
+                    <Link key={role.role} to={route as '/para-secretarias'} className={cardClass}>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10">
+                        <Users className="h-4 w-4 text-primary" aria-hidden="true" />
+                      </div>
+                      <p className="mt-3 text-sm font-bold text-slate-800">{role.role}</p>
+                      <p className="mt-1.5 text-sm leading-6 text-slate-500">{role.value}</p>
+                      <p className="mt-3 text-xs font-semibold text-primary">
+                        Ver visão completa →
+                      </p>
+                    </Link>
+                  )
+                }
+                return (
+                  <div key={role.role} className={cardClass}>
                     <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10">
                       <Users className="h-4 w-4 text-primary" aria-hidden="true" />
                     </div>
                     <p className="mt-3 text-sm font-bold text-slate-800">{role.role}</p>
                     <p className="mt-1.5 text-sm leading-6 text-slate-500">{role.value}</p>
-                    {route && (
-                      <p className="mt-3 text-xs font-semibold text-primary">
-                        Ver visão completa →
-                      </p>
-                    )}
                   </div>
-                )
-                return route ? (
-                  <Link key={role.role} to={route as '/para-secretarias'}>
-                    {inner}
-                  </Link>
-                ) : (
-                  <div key={role.role}>{inner}</div>
                 )
               })}
             </div>
@@ -385,10 +372,7 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
             <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-400">
               7 dias grátis · Sem cartão de crédito
             </span>
-            <h2
-              id="feature-cta-heading"
-              className="mt-5 text-3xl font-bold text-white sm:text-4xl"
-            >
+            <h2 id="feature-cta-heading" className="mt-5 text-3xl font-bold text-white sm:text-4xl">
               Comece a usar {content.title.toLowerCase()} hoje mesmo
             </h2>
             <p className="mt-4 text-lg text-slate-400">
@@ -411,7 +395,6 @@ export function FeatureDetailPage({ content }: FeatureDetailPageProps) {
             </div>
           </div>
         </section>
-
       </div>
     </PublicLayout>
   )

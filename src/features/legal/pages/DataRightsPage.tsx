@@ -1,13 +1,13 @@
 import { Link } from '@tanstack/react-router'
-import { ArrowRight, FileCheck, Eye, Pencil, Trash2, Download, Share2, XCircle } from 'lucide-react'
+import { ArrowRight, Download, Eye, FileCheck, Pencil, Share2, Trash2, XCircle } from 'lucide-react'
 
 import { companyInfo } from '@/config/company'
 
 import { LegalPageShell } from '../components/LegalPageShell'
 import {
+  LegalList,
   LegalPageHeader,
   LegalSection,
-  LegalList,
   legalInlineLinkClass,
 } from '../components/LegalSection'
 
@@ -35,7 +35,8 @@ const rights = [
   {
     icon: Trash2,
     title: 'Eliminação',
-    description: 'Solicitar a anonimização, bloqueio ou eliminação de dados desnecessários, excessivos ou tratados em desconformidade.',
+    description:
+      'Solicitar a anonimização, bloqueio ou eliminação de dados desnecessários, excessivos ou tratados em desconformidade.',
     article: 'Art. 18, IV',
   },
   {
@@ -93,8 +94,8 @@ export function DataRightsPage() {
 
       <LegalSection id="como-solicitar" title="2. Como Solicitar">
         <p>
-          Para exercer seus direitos, preencha o formulário de solicitação. Todas as
-          solicitações são registradas e respondidas dentro de prazo razoável.
+          Para exercer seus direitos, preencha o formulário de solicitação. Todas as solicitações
+          são registradas e respondidas dentro de prazo razoável.
         </p>
         <div className="mt-5">
           <Link
@@ -109,8 +110,8 @@ export function DataRightsPage() {
 
       <LegalSection id="verificacao-identidade" title="3. Verificação de Identidade">
         <p>
-          Para proteger seus dados, precisamos verificar sua identidade antes de
-          atender a solicitações de acesso, portabilidade ou eliminação. Podemos solicitar:
+          Para proteger seus dados, precisamos verificar sua identidade antes de atender a
+          solicitações de acesso, portabilidade ou eliminação. Podemos solicitar:
         </p>
         <LegalList
           items={[
@@ -119,22 +120,20 @@ export function DataRightsPage() {
             'Em casos complexos, podemos solicitar documentação adicional.',
           ]}
         />
-        <p>
-          Não coletaremos mais informações do que o necessário para verificar a identidade.
-        </p>
+        <p>Não coletaremos mais informações do que o necessário para verificar a identidade.</p>
       </LegalSection>
 
       <LegalSection id="prazos" title="4. Prazos de Resposta">
         <p>
-          Nos esforçamos para responder às solicitações dentro de 15 (quinze) dias úteis.
-          Em casos complexos, podemos informar a extensão do prazo com justificativa.
+          Nos esforçamos para responder às solicitações dentro de 15 (quinze) dias úteis. Em casos
+          complexos, podemos informar a extensão do prazo com justificativa.
         </p>
       </LegalSection>
 
       <LegalSection id="limitacoes" title="5. Casos em que Pode Haver Limitações">
         <p>
-          Em algumas situações, pode não ser possível atender integralmente a uma
-          solicitação de eliminação ou portabilidade:
+          Em algumas situações, pode não ser possível atender integralmente a uma solicitação de
+          eliminação ou portabilidade:
         </p>
         <LegalList
           items={[
@@ -144,28 +143,25 @@ export function DataRightsPage() {
             'Obrigações legais: quando houver dever legal de manutenção dos dados.',
           ]}
         />
-        <p>
-          Nesses casos, informaremos o motivo e o prazo previsto de retenção.
-        </p>
+        <p>Nesses casos, informaremos o motivo e o prazo previsto de retenção.</p>
       </LegalSection>
 
       <LegalSection id="dados-pacientes" title="6. Pacientes de Clínicas">
         <p>
-          Se você é paciente de uma clínica que utiliza a DentalFlow, a clínica é a
-          controladora dos seus dados de saúde. Para exercer seus direitos sobre esses
-          dados, recomendamos contatar diretamente a clínica.
+          Se você é paciente de uma clínica que utiliza a DentalFlow, a clínica é a controladora dos
+          seus dados de saúde. Para exercer seus direitos sobre esses dados, recomendamos contatar
+          diretamente a clínica.
         </p>
         <p>
-          A DentalFlow cooperará com solicitações legítimas encaminhadas pela clínica
-          controladora ou diretamente por titulares quando for legalmente possível.
+          A DentalFlow cooperará com solicitações legítimas encaminhadas pela clínica controladora
+          ou diretamente por titulares quando for legalmente possível.
         </p>
       </LegalSection>
 
       <LegalSection id="anpd" title="7. Petição à ANPD">
         <p>
-          Se considerar que seus direitos não foram atendidos de forma satisfatória, você
-          pode registrar reclamação junto à Autoridade Nacional de Proteção de Dados
-          (ANPD) pelo portal{' '}
+          Se considerar que seus direitos não foram atendidos de forma satisfatória, você pode
+          registrar reclamação junto à Autoridade Nacional de Proteção de Dados (ANPD) pelo portal{' '}
           <a
             href="https://www.gov.br/anpd"
             target="_blank"
@@ -180,12 +176,9 @@ export function DataRightsPage() {
 
       <LegalSection id="contato" title="8. Contato">
         <p>
-          Para dúvidas sobre seus direitos ou o tratamento dos seus dados, entre em
-          contato com nosso encarregado:{' '}
-          <a
-            href={`mailto:${companyInfo.dpoEmail}`}
-            className={legalInlineLinkClass}
-          >
+          Para dúvidas sobre seus direitos ou o tratamento dos seus dados, entre em contato com
+          nosso encarregado:{' '}
+          <a href={`mailto:${companyInfo.dpoEmail}`} className={legalInlineLinkClass}>
             {companyInfo.dpoEmail}
           </a>
           .

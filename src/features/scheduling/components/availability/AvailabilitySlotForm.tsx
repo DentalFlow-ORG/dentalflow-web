@@ -1,8 +1,8 @@
 import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
 
-import { Button } from '@/components/ui/button'
 import { FormField, TimeInput } from '@/components/common/FormField'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/select'
 import { formatTimeInputValue } from '@/lib/date-time-formatters'
 
-import type { CreateAvailabilityDto } from '../../types/scheduling.types'
 import { DAY_OPTIONS } from '../../constants/availability-display'
+import type { CreateAvailabilityDto } from '../../types/scheduling.types'
 
 type AvailabilitySlotFormProps = {
   initial?: { dayOfWeek: number; startTime: string; endTime: string }

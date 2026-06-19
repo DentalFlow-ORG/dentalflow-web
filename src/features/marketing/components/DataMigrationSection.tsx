@@ -1,28 +1,31 @@
-import { Fragment } from 'react'
 import { ArrowDown, ArrowRight, CheckCircle2, Monitor, Sparkles, Upload } from 'lucide-react'
+import { Fragment } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
+import { Reveal } from './landing/Reveal'
 
 const PIPELINE_STEPS = [
   {
     icon: Monitor,
-    title: 'Sistema anterior',
-    chips: ['Pacientes', 'Agenda', 'Contatos', 'Histórico', 'Serviços'],
+    title: 'Seu sistema atual',
+    caption: 'O que você já tem hoje',
+    chips: ['Pacientes', 'Agenda', 'Histórico', 'Serviços'],
     accent: false,
   },
   {
     icon: Upload,
-    title: 'Dados exportados',
-    chips: ['CSV', 'XLSX', 'PDF', 'Relatórios'],
+    title: 'Exportação dos dados',
+    caption: 'Em formatos comuns',
+    chips: ['CSV', 'XLSX', 'PDF'],
     accent: false,
   },
   {
     icon: Sparkles,
-    title: 'DentalFlow',
-    chips: ['Agenda', 'Pacientes', 'Gestão', 'Financeiro'],
+    title: 'Pronto no DentalFlow',
+    caption: 'Tudo organizado para usar',
+    chips: ['Agenda', 'Pacientes', 'Financeiro'],
     accent: true,
   },
 ] as const
@@ -35,52 +38,112 @@ const BENEFITS = [
 ] as const
 
 export function DataMigrationSection() {
-  const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.12)
-
   return (
-    <section
-      ref={ref}
-      className="bg-white py-24 lg:py-32"
-      aria-labelledby="migration-heading"
-    >
-      <div
-        className={cn(
-          'mx-auto max-w-6xl px-6 transition-all duration-700 lg:px-8 motion-reduce:translate-y-0 motion-reduce:opacity-100',
-          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',
-        )}
-      >
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+    <section className="bg-white py-24 lg:py-32" aria-labelledby="migration-heading">
+      <div className="mx-auto max-w-6xl px-6 lg:px-8">
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <Reveal className="mx-auto max-w-2xl text-center">
+          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-700">
+            Migração facilitada
+          </span>
+          <h2
+            id="migration-heading"
+            className="mt-5 text-3xl font-semibold leading-tight text-slate-950 sm:text-4xl"
+          >
+            Troque de sistema <span className="text-emerald-600">sem recomeçar do zero</span>
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Já usa outro software? Após a contratação, ajudamos sua equipe a trazer os dados do
+            sistema anterior — para você começar com continuidade e sem retrabalho.
+          </p>
+        </Reveal>
 
-          {/* ── Left: copy ─────────────────────────────────────── */}
-          <div>
-            <span className="inline-block rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-700">
-              Migração Facilitada
-            </span>
+        {/* ── 3-step migration journey ───────────────────────────── */}
+        <Reveal className="mt-14" delay={0.05}>
+          <div className="flex flex-col items-stretch gap-3 lg:flex-row lg:gap-4">
+            {PIPELINE_STEPS.map((step, index) => {
+              const Icon = step.icon
+              const isLast = index === PIPELINE_STEPS.length - 1
+              return (
+                <Fragment key={step.title}>
+                  <div
+                    className={cn(
+                      'flex flex-1 flex-col rounded-2xl border p-6 shadow-sm',
+                      step.accent
+                        ? 'border-emerald-200 bg-emerald-50/50'
+                        : 'border-slate-200 bg-white',
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={cn(
+                          'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl',
+                          step.accent
+                            ? 'bg-emerald-100 text-emerald-600'
+                            : 'bg-slate-100 text-slate-500',
+                        )}
+                        aria-hidden="true"
+                      >
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                          Etapa {index + 1}
+                        </p>
+                        <h3
+                          className={cn(
+                            'text-base font-semibold',
+                            step.accent ? 'text-emerald-800' : 'text-slate-900',
+                          )}
+                        >
+                          {step.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-500">{step.caption}</p>
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {step.chips.map((chip) => (
+                        <span
+                          key={chip}
+                          className={cn(
+                            'rounded-full px-2.5 py-0.5 text-xs font-medium',
+                            step.accent
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-slate-100 text-slate-500',
+                          )}
+                        >
+                          {chip}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
 
-            <h2
-              id="migration-heading"
-              className="mt-5 text-3xl font-semibold leading-tight text-slate-900 sm:text-4xl"
-            >
-              Troque de sistema{' '}
-              <span className="text-emerald-600">sem recomeçar do zero</span>
-            </h2>
+                  {!isLast && (
+                    <div
+                      className="flex items-center justify-center text-slate-300 lg:px-1"
+                      aria-hidden="true"
+                    >
+                      <ArrowDown className="h-5 w-5 lg:hidden" />
+                      <ArrowRight className="hidden h-6 w-6 lg:block" />
+                    </div>
+                  )}
+                </Fragment>
+              )
+            })}
+          </div>
+        </Reveal>
 
-            <p className="mt-5 text-lg leading-8 text-slate-600">
-              Já usa outro software na clínica? Após a contratação do plano, o DentalFlow
-              oferece{' '}
-              <strong className="font-semibold text-slate-800">migração gratuita</strong>{' '}
-              com base nos dados exportados pelo sistema anterior, ajudando sua equipe a
-              começar com mais continuidade, segurança e menos retrabalho.
-            </p>
-
+        {/* ── Benefits + CTA + trust ─────────────────────────────── */}
+        <Reveal className="mt-10" delay={0.1}>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-6 lg:p-8">
             <ul
-              className="mt-8 space-y-3"
+              className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4"
               aria-label="Benefícios da migração assistida"
             >
               {BENEFITS.map((benefit) => (
-                <li key={benefit} className="flex items-center gap-3">
+                <li key={benefit} className="flex items-start gap-2.5">
                   <CheckCircle2
-                    className="h-5 w-5 shrink-0 text-emerald-500"
+                    className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"
                     aria-hidden="true"
                   />
                   <span className="text-sm font-medium text-slate-700">{benefit}</span>
@@ -88,7 +151,11 @@ export function DataMigrationSection() {
               ))}
             </ul>
 
-            <div className="mt-10">
+            <div className="mt-7 flex flex-col items-start gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <p className="max-w-md text-sm leading-6 text-slate-500">
+                Nossa equipe acompanha a importação dos seus dados para você começar com segurança —
+                sem dor de cabeça e sem perder seu histórico.
+              </p>
               <Button size="lg" asChild>
                 <a href="#planos">
                   Conhecer os planos
@@ -96,92 +163,13 @@ export function DataMigrationSection() {
                 </a>
               </Button>
             </div>
-
-            <p className="mt-5 text-xs leading-5 text-slate-400">
-              * A migração depende da disponibilidade, qualidade e formato dos dados
-              exportados pelo sistema anterior.
-            </p>
           </div>
 
-          {/* ── Right: visual migration pipeline ───────────────── */}
-          <div
-            role="img"
-            aria-label="Fluxo de migração: sistema anterior, dados exportados e DentalFlow"
-          >
-            <div className="rounded-2xl border border-slate-100 bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 shadow-sm">
-              <div className="flex flex-col gap-1">
-                {PIPELINE_STEPS.map((step, index) => {
-                  const isLast = index === PIPELINE_STEPS.length - 1
-                  const Icon = step.icon
-
-                  return (
-                    <Fragment key={step.title}>
-                      <div
-                        className={cn(
-                          'rounded-xl p-5 ring-1',
-                          step.accent
-                            ? 'bg-emerald-50/70 ring-2 ring-emerald-200'
-                            : 'bg-white shadow-sm ring-slate-200',
-                        )}
-                      >
-                        <div className="flex items-start gap-4">
-                          <div
-                            className={cn(
-                              'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl',
-                              step.accent ? 'bg-emerald-100' : 'bg-slate-100',
-                            )}
-                            aria-hidden="true"
-                          >
-                            <Icon
-                              className={cn(
-                                'h-6 w-6',
-                                step.accent ? 'text-emerald-600' : 'text-slate-500',
-                              )}
-                            />
-                          </div>
-                          <div className="min-w-0">
-                            <p
-                              className={cn(
-                                'text-base font-semibold',
-                                step.accent ? 'text-emerald-800' : 'text-slate-800',
-                              )}
-                            >
-                              {step.title}
-                            </p>
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {step.chips.map((chip) => (
-                                <span
-                                  key={chip}
-                                  className={cn(
-                                    'rounded-full px-2.5 py-0.5 text-xs font-medium',
-                                    step.accent
-                                      ? 'bg-emerald-100 text-emerald-700'
-                                      : 'bg-slate-100 text-slate-500',
-                                  )}
-                                >
-                                  {chip}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {!isLast && (
-                        <div
-                          className="flex justify-center py-1"
-                          aria-hidden="true"
-                        >
-                          <ArrowDown className="h-5 w-5 text-slate-400" />
-                        </div>
-                      )}
-                    </Fragment>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
+          <p className="mt-4 text-xs leading-5 text-slate-400">
+            * A migração depende da disponibilidade, qualidade e formato dos dados exportados pelo
+            sistema anterior.
+          </p>
+        </Reveal>
       </div>
     </section>
   )

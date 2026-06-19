@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react'
 import {
   AlertTriangle,
   BarChart2,
@@ -10,11 +9,14 @@ import {
   RefreshCw,
   XCircle,
 } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 import { MetricCard } from '@/components/common/MetricCard'
+import { MonthPickerInput } from '@/components/common/MonthPickerInput'
 import { PanelCard } from '@/components/common/PanelCard'
 import { StatusBadge } from '@/components/common/StatusBadge'
 import { Button } from '@/components/ui/button'
+import { brazilCurrentIsoMonth } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 import type { ProcedureMarginsState } from '../hooks/useProcedureMargins'
@@ -26,8 +28,7 @@ import { Ranking } from './Ranking'
 type SortKey = 'revenue' | 'volume' | 'margin' | 'name'
 
 function currentMonth(): string {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  return brazilCurrentIsoMonth()
 }
 
 function centsToDisplay(cents: number): string {
@@ -55,7 +56,11 @@ function InsightCard({ label, name, detail }: { label: string; name: string; det
 
 function MarginsRanking({ items }: { items: ProcedureMarginItem[] }) {
   const sorted = [...items]
-    .sort((a, b) => (b.marginPercent ?? -Infinity) - (a.marginPercent ?? -Infinity))
+    .sort(
+      (a, b) =>
+        (b.marginPercent ?? Number.NEGATIVE_INFINITY) -
+        (a.marginPercent ?? Number.NEGATIVE_INFINITY),
+    )
     .slice(0, 5)
 
   const withMargin = items.filter((i) => i.marginPercent != null)
@@ -85,8 +90,8 @@ function MarginsRanking({ items }: { items: ProcedureMarginItem[] }) {
                     isPositive
                       ? 'text-emerald-700 dark:text-emerald-300'
                       : isNegative
-                      ? 'text-red-700 dark:text-red-300'
-                      : 'text-muted-foreground',
+                        ? 'text-red-700 dark:text-red-300'
+                        : 'text-muted-foreground',
                   )}
                 >
                   {mp != null ? `${mp.toFixed(2).replace('.', ',')}%` : '—'}
@@ -96,7 +101,11 @@ function MarginsRanking({ items }: { items: ProcedureMarginItem[] }) {
                 <div
                   className={cn(
                     'h-full rounded-full',
-                    isPositive ? 'bg-emerald-500' : isNegative ? 'bg-red-500' : 'bg-muted-foreground/30',
+                    isPositive
+                      ? 'bg-emerald-500'
+                      : isNegative
+                        ? 'bg-red-500'
+                        : 'bg-muted-foreground/30',
                   )}
                   style={{ width: `${barWidth}%` }}
                 />
@@ -114,7 +123,9 @@ function ServiceRow({ item }: { item: ProcedureMarginItem }) {
   return (
     <div className="py-4 first:pt-0 last:pb-0">
       <div className="flex items-start justify-between gap-3">
-        <span className="text-sm font-medium text-foreground">{item.serviceName}</span>
+        <span className="min-w-0 truncate text-sm font-medium text-foreground">
+          {item.serviceName}
+        </span>
         <StatusBadge tone={tone} className={cn('shrink-0 gap-1 text-[11px]')}>
           <Icon className="h-3 w-3" aria-hidden="true" />
           {label}
@@ -122,16 +133,13 @@ function ServiceRow({ item }: { item: ProcedureMarginItem }) {
       </div>
       <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground sm:grid-cols-3">
         <span>
-          Agendamentos:{' '}
-          <strong className="text-foreground">{item.totalAppointments}</strong>
+          Agendamentos: <strong className="text-foreground">{item.totalAppointments}</strong>
         </span>
         <span>
-          Concluídos:{' '}
-          <strong className="text-foreground">{item.completedAppointments}</strong>
+          Concluídos: <strong className="text-foreground">{item.completedAppointments}</strong>
         </span>
         <span>
-          Cancel./NS:{' '}
-          <strong className="text-foreground">{item.canceledOrNoShowCount}</strong>
+          Cancel./NS: <strong className="text-foreground">{item.canceledOrNoShowCount}</strong>
         </span>
         <span>
           Receita bruta:{' '}
@@ -146,7 +154,9 @@ function ServiceRow({ item }: { item: ProcedureMarginItem }) {
         <span>
           Custo direto:{' '}
           {item.estimatedDirectCostCents != null ? (
-            <strong className="text-foreground">{centsToDisplay(item.estimatedDirectCostCents)}</strong>
+            <strong className="text-foreground">
+              {centsToDisplay(item.estimatedDirectCostCents)}
+            </strong>
           ) : (
             <em className="not-italic text-muted-foreground/60">Não configurado</em>
           )}
@@ -154,7 +164,13 @@ function ServiceRow({ item }: { item: ProcedureMarginItem }) {
         {item.estimatedProfitCents != null && (
           <span>
             Lucro estimado:{' '}
-            <strong className={item.estimatedProfitCents >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}>
+            <strong
+              className={
+                item.estimatedProfitCents >= 0
+                  ? 'text-emerald-700 dark:text-emerald-300'
+                  : 'text-red-700 dark:text-red-300'
+              }
+            >
               {centsToDisplay(item.estimatedProfitCents)}
             </strong>
           </span>
@@ -162,7 +178,15 @@ function ServiceRow({ item }: { item: ProcedureMarginItem }) {
         {item.marginPercent != null && (
           <span>
             Margem (est.):{' '}
-            <strong className={item.marginPercent >= 30 ? 'text-emerald-700 dark:text-emerald-300' : item.marginPercent >= 15 ? 'text-amber-700 dark:text-amber-300' : 'text-red-700 dark:text-red-300'}>
+            <strong
+              className={
+                item.marginPercent >= 30
+                  ? 'text-emerald-700 dark:text-emerald-300'
+                  : item.marginPercent >= 15
+                    ? 'text-amber-700 dark:text-amber-300'
+                    : 'text-red-700 dark:text-red-300'
+              }
+            >
               {item.marginPercent.toFixed(2).replace('.', ',')}%
             </strong>
           </span>
@@ -194,7 +218,11 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
       case 'volume':
         return copy.sort((a, b) => b.totalAppointments - a.totalAppointments)
       case 'margin':
-        return copy.sort((a, b) => (b.marginPercent ?? -Infinity) - (a.marginPercent ?? -Infinity))
+        return copy.sort(
+          (a, b) =>
+            (b.marginPercent ?? Number.NEGATIVE_INFINITY) -
+            (a.marginPercent ?? Number.NEGATIVE_INFINITY),
+        )
       case 'name':
         return copy.sort((a, b) => a.serviceName.localeCompare(b.serviceName, 'pt-BR'))
       default:
@@ -205,7 +233,9 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
   const topByRevenue = useMemo(
     () =>
       data?.items.length
-        ? data.items.reduce((best, cur) => (cur.grossRevenueCents > best.grossRevenueCents ? cur : best))
+        ? data.items.reduce((best, cur) =>
+            cur.grossRevenueCents > best.grossRevenueCents ? cur : best,
+          )
         : null,
     [data],
   )
@@ -213,7 +243,9 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
   const topByVolume = useMemo(
     () =>
       data?.items.length
-        ? data.items.reduce((best, cur) => (cur.totalAppointments > best.totalAppointments ? cur : best))
+        ? data.items.reduce((best, cur) =>
+            cur.totalAppointments > best.totalAppointments ? cur : best,
+          )
         : null,
     [data],
   )
@@ -232,22 +264,19 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
         <div>
           <div className="flex items-center gap-2">
             <BarChart2 className="h-4 w-4 text-primary" aria-hidden="true" />
-            <h2 className="text-base font-semibold text-foreground">
-              Margem por procedimento
-            </h2>
+            <h2 className="text-base font-semibold text-foreground">Margem por procedimento</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Volume, receita e desempenho por tipo de serviço no período.
+            Compare receita, custo estimado e margem para descobrir quais procedimentos mais
+            aumentam o lucro da clínica.
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <input
-            type="month"
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <MonthPickerInput
             value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            aria-label="Selecionar mês para análise de margens"
+            onValueChange={setSelectedMonth}
+            className="w-full sm:w-40"
           />
           {!data && (
             <Button size="sm" onClick={handleLoad} disabled={isLoading || isPlanBlocked}>
@@ -290,7 +319,11 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
 
       {/* Loading */}
       {isLoading && !data && (
-        <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-3 py-6 text-sm text-muted-foreground"
+        >
           <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
           <span>Calculando margens por procedimento…</span>
         </div>
@@ -301,11 +334,10 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
         <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
           <BarChart2 className="h-8 w-8 text-primary/40" aria-hidden="true" />
           <div>
-            <p className="text-sm font-medium text-foreground">
-              Análise não carregada
-            </p>
+            <p className="text-sm font-medium text-foreground">Análise não carregada</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Selecione um mês e clique em "Carregar análise" para ver o desempenho por procedimento.
+              Selecione um mês e clique em "Carregar análise" para ver o desempenho por
+              procedimento.
             </p>
           </div>
         </div>
@@ -324,7 +356,10 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
           {data.costDataAvailable && !data.limitation && (
             <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3 text-sm text-blue-700 dark:border-blue-800/50 dark:bg-blue-950/20 dark:text-blue-400">
               <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Custo direto configurado. Margens calculadas com base no custo de materiais por procedimento, sem incluir mão de obra.</span>
+              <span>
+                Custo direto configurado. Margens calculadas com base no custo de materiais por
+                procedimento, sem incluir mão de obra.
+              </span>
             </div>
           )}
 
@@ -363,7 +398,13 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
               <MetricCard
                 label="Margem (est.)"
                 value={`${data.totals.marginPercent.toFixed(2).replace('.', ',')}%`}
-                tone={data.totals.marginPercent >= 30 ? 'success' : data.totals.marginPercent >= 15 ? 'warning' : 'danger'}
+                tone={
+                  data.totals.marginPercent >= 30
+                    ? 'success'
+                    : data.totals.marginPercent >= 15
+                      ? 'warning'
+                      : 'danger'
+                }
               />
             )}
           </div>
@@ -415,17 +456,14 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
 
           {/* Service list */}
           {data.items.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
               Nenhum procedimento identificado no período selecionado.
             </p>
           ) : (
             <div className="space-y-3">
               {data.items.length > 1 && (
                 <div className="flex items-center justify-end gap-2">
-                  <label
-                    htmlFor="procedure-sort"
-                    className="text-xs text-muted-foreground"
-                  >
+                  <label htmlFor="procedure-sort" className="text-xs text-muted-foreground">
                     Ordenar por
                   </label>
                   <select
@@ -453,7 +491,7 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between border-t border-border pt-4">
+          <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
               Período: {data.period.from} a {data.period.to}
             </p>

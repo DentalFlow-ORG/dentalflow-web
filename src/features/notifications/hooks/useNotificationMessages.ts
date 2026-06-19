@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { NotificationMessage } from '../types/notifications.types'
 import { listMessages } from '../services/notifications.service'
+import type { NotificationMessage } from '../types/notifications.types'
 
 export function useNotificationMessages(appointmentId?: string) {
   const [messages, setMessages] = useState<NotificationMessage[]>([])
@@ -14,7 +14,9 @@ export function useNotificationMessages(appointmentId?: string) {
         setMessages(res.data)
         setTotal(res.total)
       })
-      .catch(() => {/* silent */})
+      .catch(() => {
+        /* silent */
+      })
       .finally(() => setIsLoading(false))
   }, [appointmentId])
 

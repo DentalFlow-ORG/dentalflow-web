@@ -1,5 +1,5 @@
-import { apiRequest } from '@/services/http'
 import { getAccessToken } from '@/features/auth/utils/session-storage'
+import { apiRequest } from '@/services/http'
 
 import type {
   Appointment,
@@ -22,13 +22,6 @@ import type {
 export function listAppointments(date?: string) {
   const query = date ? `?date=${encodeURIComponent(date)}` : ''
   return apiRequest<Appointment[]>(`/appointments${query}`, {
-    method: 'GET',
-    accessToken: getAccessToken(),
-  })
-}
-
-export function getAppointment(id: string) {
-  return apiRequest<Appointment>(`/appointments/${id}`, {
     method: 'GET',
     accessToken: getAccessToken(),
   })
@@ -66,11 +59,7 @@ export function updateAppointmentPayment(id: string, dto: UpdateAppointmentPayme
   })
 }
 
-export function cancelAppointment(
-  id: string,
-  reason?: string,
-  canceledBy: CanceledBy = 'CLINIC',
-) {
+export function cancelAppointment(id: string, reason?: string, canceledBy: CanceledBy = 'CLINIC') {
   return apiRequest<Appointment>(`/appointments/${id}/cancel`, {
     method: 'POST',
     accessToken: getAccessToken(),
@@ -110,11 +99,7 @@ export function createAvailability(profileId: string, dto: CreateAvailabilityDto
   })
 }
 
-export function updateAvailability(
-  profileId: string,
-  availId: string,
-  dto: UpdateAvailabilityDto,
-) {
+export function updateAvailability(profileId: string, availId: string, dto: UpdateAvailabilityDto) {
   return apiRequest<Availability>(`/profiles/${profileId}/availability/${availId}`, {
     method: 'PATCH',
     accessToken: getAccessToken(),
@@ -132,24 +117,21 @@ export function deleteAvailability(profileId: string, availId: string) {
 // --- Availability Exceptions ---
 
 export function listAvailabilityExceptions(profileId: string) {
-  return apiRequest<AvailabilityException[]>(
-    `/profiles/${profileId}/availability-exceptions`,
-    { method: 'GET', accessToken: getAccessToken() },
-  )
+  return apiRequest<AvailabilityException[]>(`/profiles/${profileId}/availability-exceptions`, {
+    method: 'GET',
+    accessToken: getAccessToken(),
+  })
 }
 
 export function createAvailabilityException(
   profileId: string,
   dto: CreateAvailabilityExceptionDto,
 ) {
-  return apiRequest<AvailabilityException>(
-    `/profiles/${profileId}/availability-exceptions`,
-    {
-      method: 'POST',
-      accessToken: getAccessToken(),
-      body: JSON.stringify(dto),
-    },
-  )
+  return apiRequest<AvailabilityException>(`/profiles/${profileId}/availability-exceptions`, {
+    method: 'POST',
+    accessToken: getAccessToken(),
+    body: JSON.stringify(dto),
+  })
 }
 
 export function updateAvailabilityException(
@@ -168,8 +150,8 @@ export function updateAvailabilityException(
 }
 
 export function deleteAvailabilityException(profileId: string, excId: string) {
-  return apiRequest<void>(
-    `/profiles/${profileId}/availability-exceptions/${excId}`,
-    { method: 'DELETE', accessToken: getAccessToken() },
-  )
+  return apiRequest<void>(`/profiles/${profileId}/availability-exceptions/${excId}`, {
+    method: 'DELETE',
+    accessToken: getAccessToken(),
+  })
 }

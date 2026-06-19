@@ -1,27 +1,3 @@
-export const heroAppointments = [
-  {
-    time: '09:00',
-    patient: 'Ana Rodrigues',
-    procedure: 'Limpeza e avaliação',
-    dentist: 'Dr. Carlos Lima',
-    status: 'confirmed' as const,
-  },
-  {
-    time: '10:30',
-    patient: 'Marcos Pereira',
-    procedure: 'Extração de siso',
-    dentist: 'Dr. Carlos Lima',
-    status: 'waiting' as const,
-  },
-  {
-    time: '11:00',
-    patient: 'Juliana Castro',
-    procedure: 'Clareamento dental',
-    dentist: 'Dra. Paula Souza',
-    status: 'confirmed' as const,
-  },
-] as const
-
 export const landingPlans = [
   {
     key: 'starter' as const,

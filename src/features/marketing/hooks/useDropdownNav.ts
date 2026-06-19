@@ -33,8 +33,7 @@ export function useDropdownNav() {
     }
   }, [])
 
-  const toggleDropdown = (key: string) =>
-    setOpenDropdown((prev) => (prev === key ? null : key))
+  const toggleDropdown = (key: string) => setOpenDropdown((prev) => (prev === key ? null : key))
 
   const closeDropdown = () => setOpenDropdown(null)
 

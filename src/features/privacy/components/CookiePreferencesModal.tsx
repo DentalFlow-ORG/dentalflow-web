@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
 import { Cookie, Lock, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import { useCookieConsent } from './CookieConsentContext'
 import type { CookieConsent } from '../types/cookie-consent.types'
+import { useCookieConsent } from './CookieConsentContext'
 
 type OptionalCategories = Omit<CookieConsent['categories'], 'necessary'>
 
@@ -39,7 +39,9 @@ function CategoryCard({ title, description, required, enabled, onChange }: Categ
             </span>
           )}
         </div>
-        <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-muted-foreground">{description}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-muted-foreground">
+          {description}
+        </p>
       </div>
 
       {/* Toggle switch */}
@@ -111,7 +113,6 @@ export function CookiePreferencesModal() {
 
       {/* Dialog panel */}
       <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl shadow-slate-950/20 dark:bg-popover dark:shadow-black/40 dark:border dark:border-border">
-
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-slate-100 dark:border-border px-6 py-4">
           <div
@@ -139,8 +140,8 @@ export function CookiePreferencesModal() {
         {/* Body */}
         <div className="overflow-y-auto px-6 py-5">
           <p className="text-sm leading-6 text-slate-500 dark:text-muted-foreground">
-            Gerencie como o DentalFlow pode utilizar cookies além dos necessários para
-            o funcionamento da plataforma.{' '}
+            Gerencie como o DentalFlow pode utilizar cookies além dos necessários para o
+            funcionamento da plataforma.{' '}
             <a
               href="/politica-de-cookies"
               className="text-emerald-600 underline underline-offset-2 transition-colors hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
@@ -183,7 +184,10 @@ export function CookiePreferencesModal() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => { rejectOptional(); closePreferences() }}
+            onClick={() => {
+              rejectOptional()
+              closePreferences()
+            }}
             className="text-slate-500 hover:text-slate-700"
           >
             Recusar opcionais
@@ -192,15 +196,15 @@ export function CookiePreferencesModal() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => { acceptAll(); closePreferences() }}
+              onClick={() => {
+                acceptAll()
+                closePreferences()
+              }}
               className="border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900"
             >
               Aceitar todos
             </Button>
-            <Button
-              size="sm"
-              onClick={() => savePreferences(prefs)}
-            >
+            <Button size="sm" onClick={() => savePreferences(prefs)}>
               Salvar preferências
             </Button>
           </div>

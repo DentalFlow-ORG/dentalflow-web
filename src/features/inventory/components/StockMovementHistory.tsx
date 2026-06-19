@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 
@@ -12,24 +12,24 @@ import {
   getMovementTypeLabel,
 } from '../utils/inventory-format'
 
+const MOVEMENT_HISTORY_LIMIT = 8
+
 type StockMovementHistoryProps = {
   product: StockProduct
   refreshKey: number
 }
 
-export function StockMovementHistory({
-  product,
-  refreshKey,
-}: StockMovementHistoryProps) {
+export function StockMovementHistory({ product, refreshKey }: StockMovementHistoryProps) {
   const [movements, setMovements] = useState<StockMovement[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (refreshKey < 0) return // never true; declares refreshKey as a dep
     setIsLoading(true)
     setError(null)
 
-    listProductStockMovements(product.id, { page: 1, limit: 8 })
+    listProductStockMovements(product.id, { page: 1, limit: MOVEMENT_HISTORY_LIMIT })
       .then((response) => setMovements(response.data))
       .catch(() => {
         setError('Não foi possível carregar o histórico de movimentações.')
@@ -88,7 +88,9 @@ export function StockMovementHistory({
                 Por {movement.performedBy.firstName} {movement.performedBy.lastName}
               </p>
             )}
-            {movement.notes && <p className="break-words text-muted-foreground">{movement.notes}</p>}
+            {movement.notes && (
+              <p className="break-words text-muted-foreground">{movement.notes}</p>
+            )}
           </div>
         </article>
       ))}

@@ -1,10 +1,10 @@
 import { cn } from '@/lib/utils'
 
+import type { ClinicalRecordStatus } from '../types/clinical-record.types'
 import {
   CLINICAL_RECORD_STATUS_COLOR,
   CLINICAL_RECORD_STATUS_LABEL,
 } from '../utils/clinical-record-labels'
-import type { ClinicalRecordStatus } from '../types/clinical-record.types'
 
 type Props = {
   status: ClinicalRecordStatus

@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
 import { Camera, Image, Trash2, Upload, X, ZoomIn } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { formatDateBR } from '@/lib/date-time-formatters'
+import { cn } from '@/lib/utils'
 
 import {
   addAttachmentMetadata,
@@ -15,7 +16,6 @@ import {
 import type { ClinicalRecordAttachment } from '../types/clinical-record.types'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-// All unchanged from the original implementation.
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_OUTPUT_DIMENSION = 1200
@@ -23,6 +23,19 @@ const MAX_THUMBNAIL_DIMENSION = 200
 const JPEG_QUALITY = 0.82
 const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB original
 const CAPTION_DEBOUNCE_MS = 800
+
+// ── Mobile detection ──────────────────────────────────────────────────────────
+
+// Returns true when the device is likely a phone or tablet with native camera
+// capture support. We check both the user-agent (coarse) and a touch pointer
+// media query (finer). Desktop browsers degrade capture="environment" to a
+// plain file picker, which is misleading — we hide the camera button there.
+function isMobileDevice(): boolean {
+  if (typeof navigator === 'undefined' || typeof window === 'undefined') return false
+  const ua = navigator.userAgent
+  if (/Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) return true
+  return window.matchMedia('(pointer: coarse) and (hover: none)').matches
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -38,16 +51,28 @@ function formatFileSize(bytes: number | null): string | null {
 type Props = {
   recordId: string
   readOnly?: boolean
+  /**
+   * When false, the inner panel title is omitted.
+   * Use this when the component is already inside a ClinicalSection
+   * whose header communicates the section title, avoiding duplication.
+   * The description text is always rendered regardless of this prop.
+   * Defaults to true for backward compatibility.
+   */
+  showTitle?: boolean
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
+export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = true }: Props) {
   const { showAlert } = useGlobalAlerts()
   // inputRef — regular file picker
   // cameraInputRef — file picker with capture="environment" (opens native camera on mobile)
   const inputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
+
+  // Evaluated once on mount; stable for the component's lifetime because
+  // the device type does not change while the page is open.
+  const isMobile = useMemo(() => isMobileDevice(), [])
 
   const [attachments, setAttachments] = useState<ClinicalRecordAttachment[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -65,17 +90,25 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
       })
       .catch(() => {
         if (isCurrent)
-          showAlert({ title: 'Erro', description: 'Não foi possível carregar as imagens.', tone: 'error' })
+          showAlert({
+            title: 'Erro',
+            description: 'Não foi possível carregar as imagens.',
+            tone: 'error',
+          })
       })
       .finally(() => {
         if (isCurrent) setIsLoading(false)
       })
 
-    return () => { isCurrent = false }
+    return () => {
+      isCurrent = false
+    }
   }, [recordId, showAlert])
 
   // compressImage — unchanged from original implementation
-  const compressImage = (file: File): Promise<{ dataBase64: string; thumbnailBase64: string; sizeBytes: number }> =>
+  const compressImage = (
+    file: File,
+  ): Promise<{ dataBase64: string; thumbnailBase64: string; sizeBytes: number }> =>
     new Promise((resolve, reject) => {
       const img = new window.Image()
       const objectUrl = URL.createObjectURL(file)
@@ -84,7 +117,11 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
         const canvas = document.createElement('canvas')
         const thumb = document.createElement('canvas')
 
-        const ratio = Math.min(MAX_OUTPUT_DIMENSION / img.width, MAX_OUTPUT_DIMENSION / img.height, 1)
+        const ratio = Math.min(
+          MAX_OUTPUT_DIMENSION / img.width,
+          MAX_OUTPUT_DIMENSION / img.height,
+          1,
+        )
         canvas.width = Math.round(img.width * ratio)
         canvas.height = Math.round(img.height * ratio)
         const ctx = canvas.getContext('2d')
@@ -94,7 +131,11 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
         }
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
-        const tRatio = Math.min(MAX_THUMBNAIL_DIMENSION / img.width, MAX_THUMBNAIL_DIMENSION / img.height, 1)
+        const tRatio = Math.min(
+          MAX_THUMBNAIL_DIMENSION / img.width,
+          MAX_THUMBNAIL_DIMENSION / img.height,
+          1,
+        )
         thumb.width = Math.round(img.width * tRatio)
         thumb.height = Math.round(img.height * tRatio)
         const tCtx = thumb.getContext('2d')
@@ -117,8 +158,6 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
       img.src = objectUrl
     })
 
-  // handleFileSelect — shared by both the file-picker and camera inputs.
-  // Validation, compression, and API call logic are unchanged.
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) {
@@ -127,12 +166,20 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
     }
 
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      showAlert({ title: 'Formato inválido', description: 'Envie apenas imagens JPEG, PNG ou WebP.', tone: 'error' })
+      showAlert({
+        title: 'Formato inválido',
+        description: 'Envie apenas imagens JPEG, PNG ou WebP.',
+        tone: 'error',
+      })
       e.currentTarget.value = ''
       return
     }
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-      showAlert({ title: 'Imagem muito grande', description: 'O tamanho máximo permitido é 5 MB.', tone: 'error' })
+      showAlert({
+        title: 'Imagem muito grande',
+        description: 'O tamanho máximo permitido é 5 MB.',
+        tone: 'error',
+      })
       e.currentTarget.value = ''
       return
     }
@@ -149,9 +196,17 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
         thumbnailBase64,
       })
       setAttachments((prev) => [...prev, created])
-      showAlert({ title: 'Imagem adicionada.', description: 'A imagem foi salva no prontuário.', tone: 'success' })
+      showAlert({
+        title: 'Imagem adicionada.',
+        description: 'A imagem foi salva no prontuário.',
+        tone: 'success',
+      })
     } catch {
-      showAlert({ title: 'Erro ao enviar', description: 'Não foi possível salvar a imagem. Tente novamente.', tone: 'error' })
+      showAlert({
+        title: 'Erro ao enviar',
+        description: 'Não foi possível salvar a imagem. Tente novamente.',
+        tone: 'error',
+      })
     } finally {
       setIsUploading(false)
       // Reset both inputs to allow re-selecting the same file
@@ -160,12 +215,15 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
     }
   }
 
-  // handleRemove — unchanged API call and alert behavior
   const handleRemove = async (attachmentId: string) => {
     try {
       await removeAttachment(recordId, attachmentId)
       setAttachments((prev) => prev.filter((a) => a.id !== attachmentId))
-      showAlert({ title: 'Imagem removida.', description: 'A imagem foi removida do prontuário.', tone: 'info' })
+      showAlert({
+        title: 'Imagem removida.',
+        description: 'A imagem foi removida do prontuário.',
+        tone: 'info',
+      })
     } catch {
       showAlert({ title: 'Erro', description: 'Não foi possível remover a imagem.', tone: 'error' })
     }
@@ -193,24 +251,34 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
             onChange={handleFileSelect}
             disabled={isUploading}
           />
-          {/* capture="environment" opens the rear camera on mobile; degrades to file picker on desktop */}
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            capture="environment"
-            className="sr-only"
-            onChange={handleFileSelect}
-            disabled={isUploading}
-          />
+          {/* capture="environment" opens the rear camera on mobile; only rendered on
+              mobile devices where capture is natively supported. On desktop this input
+              would silently degrade to a plain file picker, which is misleading.
+              accept="image/*" is intentionally broader here — camera-captured images
+              may arrive in device-native formats (HEIC, etc.) that would be rejected
+              by specific MIME types. The format validation in handleFileSelect still
+              enforces the allowed types after the file is selected. */}
+          {isMobile && (
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              onChange={handleFileSelect}
+              disabled={isUploading}
+            />
+          )}
         </>
       )}
 
       <div className="space-y-4">
         {/* Section header */}
         <div>
-          <p className="text-sm font-medium text-foreground">Imagens e anexos clínicos</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          {showTitle && (
+            <p className="text-sm font-medium text-foreground">Imagens e anexos clínicos</p>
+          )}
+          <p className={cn('text-xs text-muted-foreground', showTitle && 'mt-0.5')}>
             {readOnly
               ? 'As imagens clínicas estão disponíveis apenas para consulta neste status do prontuário.'
               : 'Radiografias, fotos intraorais e extraorais do atendimento. As imagens são otimizadas antes de salvar.'}
@@ -224,22 +292,26 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
               type="button"
               variant="outline"
               size="sm"
+              title="Selecionar imagem da galeria ou arquivos salvos"
               onClick={() => inputRef.current?.click()}
               disabled={isUploading}
             >
               <Upload className="h-4 w-4" />
               {isUploading ? 'Enviando...' : 'Enviar imagem'}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => cameraInputRef.current?.click()}
-              disabled={isUploading}
-            >
-              <Camera className="h-4 w-4" />
-              Tirar foto
-            </Button>
+            {isMobile && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                title="Abrir câmera do dispositivo"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                <Camera className="h-4 w-4" />
+                Tirar foto
+              </Button>
+            )}
             <span className="text-xs text-muted-foreground/60">JPEG, PNG ou WebP · máx. 5 MB</span>
           </div>
         )}
@@ -264,22 +336,26 @@ export function ImageAttachmentPanel({ recordId, readOnly = false }: Props) {
                   type="button"
                   variant="outline"
                   size="sm"
+                  title="Selecionar imagem da galeria ou arquivos salvos"
                   onClick={() => inputRef.current?.click()}
                   disabled={isUploading}
                 >
                   <Upload className="h-4 w-4" />
                   {isUploading ? 'Enviando...' : 'Enviar imagem'}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => cameraInputRef.current?.click()}
-                  disabled={isUploading}
-                >
-                  <Camera className="h-4 w-4" />
-                  Tirar foto
-                </Button>
+                {isMobile && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    title="Abrir câmera do dispositivo"
+                    onClick={() => cameraInputRef.current?.click()}
+                    disabled={isUploading}
+                  >
+                    <Camera className="h-4 w-4" />
+                    Tirar foto
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -411,16 +487,18 @@ function AttachmentCard({
   const src = attachment.thumbnailBase64
     ? `data:${attachment.mimeType ?? 'image/jpeg'};base64,${attachment.thumbnailBase64}`
     : attachment.dataBase64
-    ? `data:${attachment.mimeType ?? 'image/jpeg'};base64,${attachment.dataBase64}`
-    : null
+      ? `data:${attachment.mimeType ?? 'image/jpeg'};base64,${attachment.dataBase64}`
+      : null
 
   const meta = [
     formatDateBR(attachment.createdAt.slice(0, 10)),
     formatFileSize(attachment.sizeBytes),
-  ].filter(Boolean).join(' · ')
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-card">
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
       {/* Image area — clickable when preview is available */}
       <div className="group relative">
         {src ? (
@@ -459,13 +537,11 @@ function AttachmentCard({
         </p>
 
         {/* Date and size */}
-        {meta && (
-          <p className="text-[11px] text-muted-foreground/60">{meta}</p>
-        )}
+        {meta && <p className="text-[11px] text-muted-foreground/60">{meta}</p>}
 
         {/* Caption */}
         <div>
-          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/50">
+          <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70">
             Legenda
           </p>
           <input

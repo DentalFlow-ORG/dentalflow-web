@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   AlertCircle,
   AlertTriangle,
@@ -10,34 +9,14 @@ import {
   RefreshCw,
   Sparkles,
 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { cn } from '@/lib/utils'
-import type { AiQuotaInfo } from '@/lib/ai-types'
 import { Button } from '@/components/ui/button'
+import type { AiAnalysisResult, AiAnalysisSection, AiQuotaInfo, AiVisibility } from '@/lib/ai-types'
+import { cn } from '@/lib/utils'
 import { ApiError } from '@/services/http'
 import { AiUsageBadge } from './AiUsageBadge'
 import { PremiumBlurredPreview } from './PremiumBlurredPreview'
-
-export type AiVisibility = 'FULL' | 'TEASER' | 'LOCKED' | 'INSUFFICIENT_DATA'
-
-export type AiSection = {
-  title: string
-  content: string
-  tone: 'positive' | 'warning' | 'danger' | 'neutral'
-}
-
-export type AiAnalysisResult = {
-  sections: AiSection[]
-  disclaimer: string
-  generatedAt: string
-  model: string
-  /** YYYY-MM-DD — only present for FINANCE analyses */
-  periodStart?: string | null
-  /** YYYY-MM-DD — only present for FINANCE analyses */
-  periodEnd?: string | null
-}
-
-export type { AiQuotaInfo }
 
 type AiAssistantCardProps = {
   type: 'finance' | 'inventory'
@@ -69,7 +48,7 @@ type AiAssistantCardProps = {
 
 type State = 'idle' | 'loading' | 'success' | 'error'
 
-function getToneConfig(tone: AiSection['tone']) {
+function getToneConfig(tone: AiAnalysisSection['tone']) {
   switch (tone) {
     case 'positive':
       return {
@@ -89,7 +68,6 @@ function getToneConfig(tone: AiSection['tone']) {
         icon: 'text-red-600 dark:text-red-400',
         Icon: AlertCircle,
       }
-    case 'neutral':
     default:
       return {
         card: 'border-border bg-muted',
@@ -99,7 +77,7 @@ function getToneConfig(tone: AiSection['tone']) {
   }
 }
 
-function SectionCard({ section }: { section: AiSection }) {
+function SectionCard({ section }: { section: AiAnalysisSection }) {
   const { card, icon, Icon } = getToneConfig(section.tone)
   return (
     <div className={cn('rounded-lg border p-4', card)}>
@@ -142,7 +120,7 @@ function TeaserContent({
   disclaimer,
   generatedAt,
 }: {
-  sections: AiSection[]
+  sections: AiAnalysisSection[]
   disclaimer: string
   generatedAt: string
 }) {
@@ -219,13 +197,12 @@ export function AiAssistantCard({
   useEffect(() => {
     if (!isLoadingInitial && !hasInitialized.current) {
       hasInitialized.current = true
-      // loose != null is false for both null and undefined
       if (initialResult != null) {
         setResult(initialResult)
         setState('success')
         // Time-based staleness: analysis older than 30 days
         const isTimeStale =
-          (Date.now() - new Date(initialResult.generatedAt).getTime()) > 30 * 24 * 60 * 60 * 1000
+          Date.now() - new Date(initialResult.generatedAt).getTime() > 30 * 24 * 60 * 60 * 1000
         // Period-based staleness: analysis from a different period
         const isPeriodStale =
           invalidationKey !== undefined &&
@@ -254,6 +231,11 @@ export function AiAssistantCard({
     }
   }, [invalidationKey, result])
 
+  // Quota-derived disabled reason takes precedence over caller-provided one
+  const quotaDisabledReason =
+    quota?.allowed && quota.remaining === 0 ? quota.blockedReason : undefined
+  const effectiveDisabledReason = quotaDisabledReason ?? disabledReason
+
   const handleGenerate = useCallback(async () => {
     if (state === 'loading' || effectiveDisabledReason) return
     setState('loading')
@@ -265,20 +247,16 @@ export function AiAssistantCard({
       setState('success')
     } catch (err) {
       const msg =
-        err instanceof ApiError
-          ? err.message
-          : 'Não foi possível gerar a análise. Tente novamente.'
+        err instanceof ApiError ? err.message : 'Não foi possível gerar a análise. Tente novamente.'
       setErrorMessage(msg)
       // Keep previous result if it exists — don't clear on error
       setState('error')
     }
-  }, [state, disabledReason, onGenerate])
+  }, [state, effectiveDisabledReason, onGenerate])
 
   const handleCopy = useCallback(async () => {
     if (!result) return
-    const text = result.sections
-      .map((s) => `${s.title}\n${s.content}`)
-      .join('\n\n')
+    const text = result.sections.map((s) => `${s.title}\n${s.content}`).join('\n\n')
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
@@ -295,11 +273,6 @@ export function AiAssistantCard({
 
   const isLoading = state === 'loading'
   const isSuccess = state === 'success' && result !== null
-
-  // Quota-derived disabled reason takes precedence over caller-provided one
-  const quotaDisabledReason =
-    quota && quota.allowed && quota.remaining === 0 ? quota.blockedReason : undefined
-  const effectiveDisabledReason = quotaDisabledReason ?? disabledReason
 
   // Plan not allowed and no teaser → show blurred premium preview instead of card contents
   const showPremiumWall =
@@ -325,22 +298,12 @@ export function AiAssistantCard({
         </div>
         {isSuccess && !showPremiumWall && !showTeaser && (
           <div className="flex shrink-0 items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              title="Copiar análise"
-              onClick={handleCopy}
-            >
+            <Button variant="ghost" size="sm" title="Copiar análise" onClick={handleCopy}>
               <ClipboardCopy className="h-3.5 w-3.5" />
               {copied ? 'Copiado!' : 'Copiar'}
             </Button>
             {canGenerate && (
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isLoading}
-                onClick={handleGenerate}
-              >
+              <Button variant="outline" size="sm" disabled={isLoading} onClick={handleGenerate}>
                 <RefreshCw className={cn('h-3.5 w-3.5', isLoading && 'animate-spin')} />
                 Atualizar análise
               </Button>
@@ -350,9 +313,7 @@ export function AiAssistantCard({
       </div>
 
       {/* Premium plan wall */}
-      {showPremiumWall && (
-        <PremiumBlurredPreview blockedReason={quota!.blockedReason} />
-      )}
+      {showPremiumWall && <PremiumBlurredPreview blockedReason={quota!.blockedReason} />}
 
       {/* ── States that require isLoadingInitial=false ── */}
 
@@ -367,8 +328,8 @@ export function AiAssistantCard({
       {!isLoadingInitial && !showPremiumWall && (
         <>
           {/* Idle state */}
-          {state === 'idle' && (
-            canGenerate ? (
+          {state === 'idle' &&
+            (canGenerate ? (
               <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-border px-6 py-8 text-center">
                 <Sparkles className="h-8 w-8 text-primary/40" aria-hidden="true" />
                 <div>
@@ -394,11 +355,11 @@ export function AiAssistantCard({
               <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-6 py-6 text-center">
                 <Sparkles className="h-6 w-6 text-primary/30" aria-hidden="true" />
                 <p className="text-sm text-muted-foreground">
-                  Nenhuma análise disponível. O responsável da clínica pode gerar a análise a qualquer momento.
+                  Nenhuma análise disponível. O responsável da clínica pode gerar a análise a
+                  qualquer momento.
                 </p>
               </div>
-            )
-          )}
+            ))}
 
           {/* Loading state (no previous result) */}
           {state === 'loading' && !result && (
@@ -447,9 +408,13 @@ export function AiAssistantCard({
           {state === 'error' && result && (
             <>
               <div className="mb-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 dark:border-amber-800/50 dark:bg-amber-950/20">
-                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                <AlertTriangle
+                  className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400"
+                  aria-hidden="true"
+                />
                 <p className="text-sm text-amber-800 dark:text-amber-300">
-                  Não foi possível atualizar a análise agora. A última análise salva continua sendo exibida.
+                  Não foi possível atualizar a análise agora. A última análise salva continua sendo
+                  exibida.
                 </p>
               </div>
               <div className={gridClass}>
@@ -461,8 +426,12 @@ export function AiAssistantCard({
           )}
 
           {/* Teaser state — first 2 sections visible, rest blurred + upgrade CTA */}
-          {showTeaser && (
-            <TeaserContent sections={result!.sections} disclaimer={result!.disclaimer} generatedAt={result!.generatedAt} />
+          {showTeaser && result && (
+            <TeaserContent
+              sections={result.sections}
+              disclaimer={result.disclaimer}
+              generatedAt={result.generatedAt}
+            />
           )}
 
           {/* Success state (full) */}
@@ -471,7 +440,10 @@ export function AiAssistantCard({
               {/* Stale period banner */}
               {isStalePeriod && (
                 <div className="mb-3 flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 dark:border-blue-800/50 dark:bg-blue-950/20">
-                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                  <Info
+                    className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400"
+                    aria-hidden="true"
+                  />
                   <p className="text-sm text-blue-800 dark:text-blue-300">
                     {result.periodStart && result.periodEnd
                       ? `Esta análise foi gerada para o período ${formatDate(result.periodStart)} – ${formatDate(result.periodEnd)}.${canGenerate ? ' Clique em "Atualizar análise" para gerar para o período atual.' : ' O responsável da clínica pode atualizá-la a qualquer momento.'}`

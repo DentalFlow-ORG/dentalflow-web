@@ -14,7 +14,12 @@ export function AnnualAvailabilityNote({ visible, variant = 'light' }: Props) {
         visible ? 'max-h-8 opacity-100' : 'max-h-0 opacity-0',
       )}
     >
-      <p className={cn('text-center text-xs', variant === 'dark' ? 'text-slate-600' : 'text-slate-400')}>
+      <p
+        className={cn(
+          'text-center text-xs',
+          variant === 'dark' ? 'text-slate-600' : 'text-slate-400',
+        )}
+      >
         Plano anual sujeito à disponibilidade no momento da contratação.
       </p>
     </div>

@@ -1,12 +1,9 @@
-import { AlertTriangle, ShieldCheck } from 'lucide-react'
-import { useState } from 'react'
-import { FormField } from '@/components/common/FormField'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
+import { FormField } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
-import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
 import {
   Select,
   SelectContent,
@@ -15,29 +12,57 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import {
-  defaultLast30DaysRange,
-  validateReportDateRange,
-} from '@/lib/date-range-rules'
+import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
+import { defaultLast30DaysRange, validateReportDateRange } from '@/lib/date-range-rules'
+import { AlertTriangle, ShieldCheck } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ReportCard } from '../components/ReportCard'
+import { ReportFilterChips } from '../components/ReportFilterChips'
 import {
   exportAppointmentsReport,
   exportFinanceReport,
   exportInventoryReport,
   exportInvoicesReport,
-  exportLeadsReport,
+  getAppointmentsReportPreview,
+  getFinanceReportPreview,
+  getInventoryReportPreview,
+  getInvoicesReportPreview,
 } from '../services/reports.service'
 import type {
   AppointmentsReportFilters,
   FinanceReportFilters,
   InventoryReportFilters,
   InvoicesReportFilters,
-  LeadsReportFilters,
 } from '../types/reports.types'
-import { ReportCard } from '../components/ReportCard'
+import {
+  getAppointmentsFilterChips,
+  getFinanceFilterChips,
+  getInventoryFilterChips,
+  getInvoicesFilterChips,
+} from '../utils/report-filter-chips'
 
-function FilterRow({ children }: { children: React.ReactNode }) {
+function FilterRow({
+  children,
+  columns = 3,
+}: {
+  children: React.ReactNode
+  columns?: 3 | 4
+}) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
+    <div
+      className={`grid grid-cols-1 gap-3 sm:grid-cols-2 ${columns === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+function ReportSectionHeader({ label }: { label: string }) {
+  return (
+    <div className="mb-3 flex items-center gap-3">
+      <h2 className="whitespace-nowrap text-sm font-semibold text-foreground">{label}</h2>
+      <div className="h-px flex-1 bg-border" aria-hidden="true" />
+    </div>
   )
 }
 
@@ -50,47 +75,83 @@ export function ReportsPageContainer() {
     return <PlanUpgradeNotice title="Relatórios" />
   }
 
-  const [financeFilters, setFinanceFilters] = useState<FinanceReportFilters>(() => defaultLast30DaysRange())
-  const [apptFilters, setApptFilters] = useState<AppointmentsReportFilters>(() => defaultLast30DaysRange())
-  const [invFilters, setInvFilters] = useState<InventoryReportFilters>({})
-  const [leadsFilters, setLeadsFilters] = useState<LeadsReportFilters>(() => defaultLast30DaysRange())
-  const [invoiceFilters, setInvoiceFilters] = useState<InvoicesReportFilters>(() => defaultLast30DaysRange())
+  const defaultRange = useMemo(() => defaultLast30DaysRange(), [])
 
-  const financeError = validateReportDateRange(financeFilters.startDate, financeFilters.endDate, { allowFuture: false })
-  const apptError = validateReportDateRange(apptFilters.startDate, apptFilters.endDate, { allowFuture: true })
-  const leadsError = validateReportDateRange(leadsFilters.startDate, leadsFilters.endDate, { allowFuture: false })
-  const invoiceError = validateReportDateRange(invoiceFilters.startDate, invoiceFilters.endDate, { allowFuture: false })
+  const [financeFilters, setFinanceFilters] = useState<FinanceReportFilters>(() =>
+    defaultLast30DaysRange(),
+  )
+  const [apptFilters, setApptFilters] = useState<AppointmentsReportFilters>(() =>
+    defaultLast30DaysRange(),
+  )
+  const [invFilters, setInvFilters] = useState<InventoryReportFilters>({})
+  const [invoiceFilters, setInvoiceFilters] = useState<InvoicesReportFilters>(() =>
+    defaultLast30DaysRange(),
+  )
+
+  const financeError = validateReportDateRange(financeFilters.startDate, financeFilters.endDate, {
+    allowFuture: false,
+  })
+  const apptError = validateReportDateRange(apptFilters.startDate, apptFilters.endDate, {
+    allowFuture: true,
+  })
+  const invoiceError = validateReportDateRange(invoiceFilters.startDate, invoiceFilters.endDate, {
+    allowFuture: false,
+  })
+
+  const financeChips = getFinanceFilterChips(financeFilters, defaultRange)
+  const apptChips = getAppointmentsFilterChips(apptFilters, defaultRange)
+  const invChips = getInventoryFilterChips(invFilters)
+  const invoiceChips = getInvoicesFilterChips(invoiceFilters, defaultRange)
+
+  function clearFinanceFilters() {
+    setFinanceFilters(defaultLast30DaysRange())
+  }
+  function clearApptFilters() {
+    setApptFilters(defaultLast30DaysRange())
+  }
+  function clearInvFilters() {
+    setInvFilters({})
+  }
+  function clearInvoiceFilters() {
+    setInvoiceFilters(defaultLast30DaysRange())
+  }
+
+  const reportCount = isOwner ? 4 : 3
 
   return (
     <AppPage spacing="loose">
       <AppPageHeader
+        eyebrow="Dados e exportação"
         title="Relatórios"
-        description="Exporte dados operacionais e financeiros da clínica com segurança."
+        description="Exporte dados financeiros, agendamentos, estoque e notas fiscais para analisar a clínica com segurança fora da plataforma."
       />
 
-      {/* LGPD notice */}
-      <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-        <p className="text-xs text-muted-foreground">
-          Exporte apenas quando necessário e compartilhe os arquivos com segurança. Os
-          relatórios não incluem prontuários clínicos, diagnósticos ou dados sensíveis de
-          saúde.
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground">{reportCount} relatórios disponíveis</p>
 
-      {/* ── Finance report (OWNER only) ── */}
-      {isOwner && (
-        <section>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Financeiro
-          </h2>
+      <InlineFeedback tone="info">
+        <div className="flex items-start gap-2">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>
+            Os relatórios podem conter dados pessoais e financeiros da clínica. Compartilhe os
+            arquivos apenas com pessoas autorizadas e mantenha os dados protegidos conforme a LGPD.
+          </span>
+        </div>
+      </InlineFeedback>
+
+      {/* ── Finance report ── */}
+      <section>
+        <ReportSectionHeader label="Financeiro" />
+        {isOwner ? (
           <ReportCard
             title="Relatório financeiro"
             description="Receitas, despesas e resultado líquido por período."
+            tone="primary"
+            error={financeError}
             onExport={() => exportFinanceReport(financeFilters)}
+            onPreview={() => getFinanceReportPreview(financeFilters)}
             disabled={!!financeError}
           >
-            <FilterRow>
+            <FilterRow columns={4}>
               <FormField label="Data inicial" htmlFor="fin-start">
                 <DatePickerInput
                   id="fin-start"
@@ -151,20 +212,25 @@ export function ReportsPageContainer() {
                 </Select>
               </FormField>
             </FilterRow>
-            {financeError && <InlineFeedback tone="error">{financeError}</InlineFeedback>}
+            <ReportFilterChips chips={financeChips} onClear={clearFinanceFilters} />
           </ReportCard>
-        </section>
-      )}
+        ) : (
+          <InlineFeedback tone="info">
+            O relatório financeiro está disponível apenas para proprietários da clínica.
+          </InlineFeedback>
+        )}
+      </section>
 
       {/* ── Appointments report ── */}
       <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Agendamentos
-        </h2>
+        <ReportSectionHeader label="Agendamentos" />
         <ReportCard
           title="Relatório de agendamentos"
           description="Consultas por período com status e informações de pagamento. Não inclui notas clínicas."
+          tone="info"
+          error={apptError}
           onExport={() => exportAppointmentsReport(apptFilters)}
+          onPreview={() => getAppointmentsReportPreview(apptFilters)}
           disabled={!!apptError}
         >
           <FilterRow>
@@ -172,18 +238,14 @@ export function ReportsPageContainer() {
               <DatePickerInput
                 id="appt-start"
                 value={apptFilters.startDate ?? ''}
-                onValueChange={(v) =>
-                  setApptFilters((f) => ({ ...f, startDate: v || undefined }))
-                }
+                onValueChange={(v) => setApptFilters((f) => ({ ...f, startDate: v || undefined }))}
               />
             </FormField>
             <FormField label="Data final" htmlFor="appt-end">
               <DatePickerInput
                 id="appt-end"
                 value={apptFilters.endDate ?? ''}
-                onValueChange={(v) =>
-                  setApptFilters((f) => ({ ...f, endDate: v || undefined }))
-                }
+                onValueChange={(v) => setApptFilters((f) => ({ ...f, endDate: v || undefined }))}
               />
             </FormField>
             <FormField label="Status" htmlFor="appt-status">
@@ -207,19 +269,19 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
-          {apptError && <InlineFeedback tone="error">{apptError}</InlineFeedback>}
+          <ReportFilterChips chips={apptChips} onClear={clearApptFilters} />
         </ReportCard>
       </section>
 
       {/* ── Inventory report ── */}
       <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Estoque
-        </h2>
+        <ReportSectionHeader label="Estoque" />
         <ReportCard
           title="Relatório de estoque"
           description="Produtos, quantidades, validade e status de criticidade."
+          tone="warning"
           onExport={() => exportInventoryReport(invFilters)}
+          onPreview={() => getInventoryReportPreview(invFilters)}
         >
           <FilterRow>
             <FormField label="Status" htmlFor="inv-status">
@@ -244,98 +306,21 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
-        </ReportCard>
-      </section>
-
-      {/* ── Leads report ── */}
-      <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Leads
-        </h2>
-        <ReportCard
-          title="Relatório de leads"
-          description="Lista de leads com origem, status e informações de contato. Não inclui notas livres por padrão."
-          onExport={() => exportLeadsReport(leadsFilters)}
-          disabled={!!leadsError}
-        >
-          <FilterRow>
-            <FormField label="Data inicial" htmlFor="leads-start">
-              <DatePickerInput
-                id="leads-start"
-                value={leadsFilters.startDate ?? ''}
-                onValueChange={(v) =>
-                  setLeadsFilters((f) => ({ ...f, startDate: v || undefined }))
-                }
-              />
-            </FormField>
-            <FormField label="Data final" htmlFor="leads-end">
-              <DatePickerInput
-                id="leads-end"
-                value={leadsFilters.endDate ?? ''}
-                onValueChange={(v) =>
-                  setLeadsFilters((f) => ({ ...f, endDate: v || undefined }))
-                }
-              />
-            </FormField>
-            <FormField label="Status" htmlFor="leads-status">
-              <Select
-                value={leadsFilters.status ?? 'all'}
-                onValueChange={(v) =>
-                  setLeadsFilters((f) => ({ ...f, status: v === 'all' ? undefined : v }))
-                }
-              >
-                <SelectTrigger id="leads-status">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="NEW">Novo</SelectItem>
-                  <SelectItem value="CONTACTED">Em contato</SelectItem>
-                  <SelectItem value="SCHEDULED">Agendado</SelectItem>
-                  <SelectItem value="CONVERTED">Convertido</SelectItem>
-                  <SelectItem value="LOST">Perdido</SelectItem>
-                  <SelectItem value="ARCHIVED">Arquivado</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-            <FormField label="Origem" htmlFor="leads-source">
-              <Select
-                value={leadsFilters.source ?? 'all'}
-                onValueChange={(v) =>
-                  setLeadsFilters((f) => ({ ...f, source: v === 'all' ? undefined : v }))
-                }
-              >
-                <SelectTrigger id="leads-source">
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as origens</SelectItem>
-                  <SelectItem value="MANUAL">Manual</SelectItem>
-                  <SelectItem value="WEBSITE">Site</SelectItem>
-                  <SelectItem value="WHATSAPP">WhatsApp</SelectItem>
-                  <SelectItem value="INSTAGRAM">Instagram</SelectItem>
-                  <SelectItem value="GOOGLE">Google</SelectItem>
-                  <SelectItem value="REFERRAL">Indicação</SelectItem>
-                  <SelectItem value="IMPORT">Importação</SelectItem>
-                  <SelectItem value="OTHER">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-          </FilterRow>
-          {leadsError && <InlineFeedback tone="error">{leadsError}</InlineFeedback>}
+          <ReportFilterChips chips={invChips} onClear={clearInvFilters} />
         </ReportCard>
       </section>
 
       {/* ── Fiscal invoices report ── */}
       <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Notas fiscais internas
-        </h2>
+        <ReportSectionHeader label="Notas fiscais" />
         <ReportCard
           title="Relatório de notas fiscais"
           description="Registros internos de notas fiscais com status, competência e valor."
           notice="Relatório interno. Não substitui documentos fiscais oficiais emitidos pela prefeitura."
+          tone="neutral"
+          error={invoiceError}
           onExport={() => exportInvoicesReport(invoiceFilters)}
+          onPreview={() => getInvoicesReportPreview(invoiceFilters)}
           disabled={!!invoiceError}
         >
           <FilterRow>
@@ -352,9 +337,7 @@ export function ReportsPageContainer() {
               <DatePickerInput
                 id="inv-end"
                 value={invoiceFilters.endDate ?? ''}
-                onValueChange={(v) =>
-                  setInvoiceFilters((f) => ({ ...f, endDate: v || undefined }))
-                }
+                onValueChange={(v) => setInvoiceFilters((f) => ({ ...f, endDate: v || undefined }))}
               />
             </FormField>
             <FormField label="Status" htmlFor="inv-nf-status">
@@ -379,18 +362,19 @@ export function ReportsPageContainer() {
               </Select>
             </FormField>
           </FilterRow>
-          {invoiceError && <InlineFeedback tone="error">{invoiceError}</InlineFeedback>}
+          <ReportFilterChips chips={invoiceChips} onClear={clearInvoiceFilters} />
         </ReportCard>
       </section>
 
-      {/* Footer notice */}
-      <div className="flex items-start gap-2 text-xs text-muted-foreground">
-        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        <span>
-          Os relatórios exportam no máximo 5.000 registros por vez. Para períodos maiores,
-          aplique filtros de data.
-        </span>
-      </div>
+      <InlineFeedback tone="warning">
+        <div className="flex items-start gap-2">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>
+            Os arquivos exportados respeitam os filtros aplicados e podem conter até 5.000 registros
+            por relatório.
+          </span>
+        </div>
+      </InlineFeedback>
     </AppPage>
   )
 }

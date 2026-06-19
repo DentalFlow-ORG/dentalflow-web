@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react'
-import { renderHook, render, screen, act, fireEvent } from '@/test-utils/render-utils'
 import { GlobalAlertsProvider } from '@/components/common/GlobalAlerts'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { act, fireEvent, render, renderHook, screen } from '@/test-utils/render-utils'
+import type { ReactNode } from 'react'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -14,7 +14,9 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 function ShowAlertButton({ title }: { title: string }) {
   const { showAlert } = useGlobalAlerts()
   return (
-    <button onClick={() => showAlert({ title, durationMs: 0 })}>Show Alert</button>
+    <button type="button" onClick={() => showAlert({ title, durationMs: 0 })}>
+      Show Alert
+    </button>
   )
 }
 

@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
 import { AlertTriangle, CalendarDays, Loader2, Search, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
+import { useCallback, useEffect, useState } from 'react'
 
+import { FormField, TextInput } from '@/components/common/FormField'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -10,8 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { FormField, TextInput } from '@/components/common/FormField'
-import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { cn } from '@/lib/utils'
 
 import { listAppointmentsForInvoice } from '../services/fiscal.service'
@@ -53,13 +53,7 @@ export function AppointmentInvoicePickerModal({
   const [error, setError] = useState<string | null>(null)
   const [pendingSearch, setPendingSearch] = useState('')
 
-  useEffect(() => {
-    if (!open) return
-    void load(filters)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, filters])
-
-  async function load(f: AppointmentsForInvoiceFilters) {
+  const load = useCallback(async (f: AppointmentsForInvoiceFilters) => {
     setIsLoading(true)
     setError(null)
     try {
@@ -71,7 +65,12 @@ export function AppointmentInvoicePickerModal({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    void load(filters)
+  }, [open, filters, load])
 
   function applySearch() {
     setFilters((prev) => ({ ...prev, patient: pendingSearch || undefined, page: 1 }))
@@ -96,7 +95,6 @@ export function AppointmentInvoicePickerModal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0 duration-200" />
         <Dialog.Content
-          aria-describedby={undefined}
           className={cn(
             'fixed inset-x-0 bottom-0 z-50 flex max-h-[90dvh] flex-col rounded-t-2xl bg-background shadow-2xl shadow-black/15',
             'sm:inset-auto sm:left-1/2 sm:top-1/2 sm:max-h-[80dvh] sm:w-full sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl',
@@ -111,11 +109,17 @@ export function AppointmentInvoicePickerModal({
               <Dialog.Title className="text-base font-semibold text-foreground">
                 Gerar nota a partir de consulta
               </Dialog.Title>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <Dialog.Description className="mt-0.5 text-xs text-muted-foreground">
                 Selecione a consulta para preencher automaticamente os dados da nota.
-              </p>
+              </Dialog.Description>
             </div>
-            <Button type="button" variant="ghost" size="icon-sm" onClick={handleClose} aria-label="Fechar">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleClose}
+              aria-label="Fechar"
+            >
               <X />
             </Button>
           </div>
@@ -135,21 +139,28 @@ export function AppointmentInvoicePickerModal({
           <div className="border-b border-border px-5 py-4">
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="sm:col-span-2">
-                <FormField label="Paciente">
+                <FormField label="Paciente" htmlFor="appointmentInvoicePatientSearch">
                   <div className="flex gap-2">
                     <TextInput
+                      id="appointmentInvoicePatientSearch"
                       placeholder="Buscar por nome..."
                       value={pendingSearch}
                       onChange={(e) => setPendingSearch(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && applySearch()}
                     />
-                    <Button type="button" variant="outline" size="icon" onClick={applySearch} aria-label="Buscar">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={applySearch}
+                      aria-label="Buscar"
+                    >
                       <Search className="h-4 w-4" />
                     </Button>
                   </div>
                 </FormField>
               </div>
-              <FormField label="Status de pagamento">
+              <FormField label="Status de pagamento" htmlFor="appointmentInvoicePaymentStatus">
                 <Select
                   value={filters.paymentStatus ?? '__all__'}
                   onValueChange={(v) =>
@@ -159,18 +170,18 @@ export function AppointmentInvoicePickerModal({
                     )
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="appointmentInvoicePaymentStatus" className="w-full">
                     <SelectValue placeholder="Todos" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__all__">Todos</SelectItem>
-                    {(Object.entries(PAYMENT_STATUS_LABELS) as [AppointmentPaymentStatus, string][]).map(
-                      ([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ),
-                    )}
+                    {(
+                      Object.entries(PAYMENT_STATUS_LABELS) as [AppointmentPaymentStatus, string][]
+                    ).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormField>
@@ -180,7 +191,11 @@ export function AppointmentInvoicePickerModal({
           {/* List */}
           <div className="flex-1 overflow-y-auto">
             {isLoading ? (
-              <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground"
+              >
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 Carregando consultas...
               </div>

@@ -106,7 +106,7 @@ antes de `createRoot()`. Ela verifica os seguintes campos em `companyInfo`:
    - `dpoName`: nome completo do Encarregado de Proteção de Dados
    - `phone`: número real de suporte ao cliente
    - `legalName`: confirmar que corresponde exatamente à razão social no CNPJ
-3. Execute `npm run build` — se não lançar erro, os dados estão preenchidos
+3. Execute `bun run build` — se não lançar erro, os dados estão preenchidos
 
 ---
 
@@ -173,7 +173,7 @@ Todos os eventos abaixo são registrados em `AuditLog` sem dados sensíveis:
 | Prioridade | Item |
 |-----------|------|
 | **Bloqueador** | Preencher `documentNumber`, `address`, `dpoName`, `phone` em `company.ts` |
-| **Bloqueador** | Aplicar migração Prisma: `npx prisma migrate deploy` no backend antes do deploy |
+| **Bloqueador** | Aplicar migração Prisma: `bunx prisma migrate deploy` no backend antes do deploy |
 | **Bloqueador** | Revisão jurídica de todas as páginas legais |
 | Alto | Adicionar `"strict": true` ao `tsconfig.app.json` (tratado em bloco técnico separado) |
 | Alto | Adicionar `"noImplicitAny": true` ao `tsconfig.json` do backend |
@@ -202,8 +202,8 @@ Todos os eventos abaixo são registrados em `AuditLog` sem dados sensíveis:
 ## 10. Passos Exatos Antes de Produção
 
 1. **Preencher `src/config/company.ts`** com CNPJ, endereço, telefone e nome do DPO reais
-2. **Executar `npm run build`** — build falhará se qualquer placeholder permanecer
-3. **No backend:** executar `npx prisma migrate deploy` contra o banco de produção
+2. **Executar `bun run build`** — build falhará se qualquer placeholder permanecer
+3. **No backend:** executar `bunx prisma migrate deploy` contra o banco de produção
 4. **Contratar advogado** especializado em LGPD para revisar os textos legais
 5. **Designar o DPO** e configurar o e-mail `privacidade@dentalflow.com.br`
 6. **Executar o checklist de validação manual** em staging (`docs/compliance/manual-validation-checklist.md`)

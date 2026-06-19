@@ -19,8 +19,7 @@ export type GlobalAlertsContextValue = {
   dismissAlert: (id: string) => void
 }
 
-export const GlobalAlertsContext =
-  createContext<GlobalAlertsContextValue | null>(null)
+export const GlobalAlertsContext = createContext<GlobalAlertsContextValue | null>(null)
 
 export function useGlobalAlerts() {
   const context = useContext(GlobalAlertsContext)

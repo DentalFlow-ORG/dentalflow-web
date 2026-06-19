@@ -1,3 +1,5 @@
+import { isValidBrazilianPhone } from '@/lib/validators/br'
+
 export function onlyDigits(value: string) {
   return value.replace(/\D/g, '')
 }
@@ -52,17 +54,10 @@ export function formatCepBR(value: string) {
 }
 
 export function formatUf(value: string) {
-  return value.replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase()
-}
-
-export function formatSlug(value: string) {
   return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60)
+    .replace(/[^a-zA-Z]/g, '')
+    .slice(0, 2)
+    .toUpperCase()
 }
 
 export function formatDecimalInput(value: string) {
@@ -70,21 +65,15 @@ export function formatDecimalInput(value: string) {
 }
 
 export function isValidPhoneBR(value: string): boolean {
-  const digits = onlyDigits(value)
-  return digits.length >= 10 && digits.length <= 11
+  return isValidBrazilianPhone(value)
 }
 
 export function isValidWhatsappPhoneBR(value: string): boolean {
   return isValidPhoneBR(value)
 }
 
-export const WHATSAPP_PHONE_REQUIRED_MESSAGE =
-  'Informe um telefone com WhatsApp válido.'
+export const WHATSAPP_PHONE_REQUIRED_MESSAGE = 'Informe um telefone com WhatsApp válido.'
 
 export function isValidPersonName(value: string): boolean {
   return /^[\p{L}\s.'-]+$/u.test(value.trim())
-}
-
-export function normalizeEmail(value: string | null | undefined) {
-  return value?.trim().toLowerCase() ?? ''
 }

@@ -72,12 +72,6 @@ export const TeamPage = lazy(() =>
   })),
 )
 
-export const TeamMemberProfilePage = lazy(() =>
-  import('@/features/team/pages/TeamMemberProfilePage').then((m) => ({
-    default: m.TeamMemberProfilePage,
-  })),
-)
-
 export const FinancePage = lazy(() =>
   import('@/features/finance/pages/FinancePage').then((m) => ({
     default: m.FinancePage,
@@ -162,7 +156,6 @@ export const ClinicalRecordPrintPage = lazy(() =>
   })),
 )
 
-
 export const InventoryPage = lazy(() =>
   import('@/features/inventory/pages/InventoryPage').then((m) => ({
     default: m.InventoryPage,
@@ -239,12 +232,6 @@ export const FiscalProfilePage = lazy(() =>
 export const PatientsAttentionPage = lazy(() =>
   import('@/features/patients/pages/PatientsAttentionPage').then((m) => ({
     default: m.PatientsAttentionPage,
-  })),
-)
-
-export const LeadsPage = lazy(() =>
-  import('@/features/leads/pages/LeadsPage').then((m) => ({
-    default: m.LeadsPage,
   })),
 )
 
@@ -336,12 +323,6 @@ export const ClinicalRecordsFeaturePage = lazy(() =>
 export const InventoryFeaturePage = lazy(() =>
   import('@/features/marketing/pages/InventoryFeaturePage').then((m) => ({
     default: m.InventoryFeaturePage,
-  })),
-)
-
-export const LeadsFeaturePage = lazy(() =>
-  import('@/features/marketing/pages/LeadsFeaturePage').then((m) => ({
-    default: m.LeadsFeaturePage,
   })),
 )
 

@@ -1,17 +1,22 @@
+import { LazyMotion, domAnimation } from 'motion/react'
 import { useEffect } from 'react'
 
 import { AnimatedImpactSection } from '../components/AnimatedImpactSection'
-import { usePageMeta } from '../hooks/usePageMeta'
 import { DataMigrationSection } from '../components/DataMigrationSection'
-import { HeroSection } from '../components/HeroSection'
 import { LandingIntegrationsSection } from '../components/LandingIntegrationsSection'
-import { MacbookIntroSection } from '../components/MacbookIntroSection'
 import { PricingSection } from '../components/PricingSection'
-import { ProductCarouselSection } from '../components/ProductCarouselSection'
 import { PublicLayout } from '../components/PublicLayout'
 import { SectionDivider } from '../components/SectionDivider'
 import { TrialCtaSection } from '../components/TrialCtaSection'
 import { VideoSection } from '../components/VideoSection'
+import { DentalArchSection } from '../components/landing/DentalArchSection'
+import { LandingHero } from '../components/landing/LandingHero'
+import { LandingImageCarouselSection } from '../components/landing/LandingImageCarouselSection'
+import { ModulesSection } from '../components/landing/ModulesSection'
+import { ProblemSection } from '../components/landing/ProblemSection'
+import { ProductShowcaseSection } from '../components/landing/ProductShowcaseSection'
+import { SolutionSection } from '../components/landing/SolutionSection'
+import { usePageMeta } from '../hooks/usePageMeta'
 
 export function LandingPage() {
   usePageMeta(
@@ -30,32 +35,54 @@ export function LandingPage() {
     return () => window.clearTimeout(timeout)
   }, [])
 
+  // `LazyMotion` + `domAnimation` loads only the animation features the landing
+  // page needs, keeping the motion runtime small. All `m.*` components on the
+  // page resolve their features through this provider.
   return (
     <PublicLayout darkHero bgClassName="min-h-screen bg-white text-slate-950">
-      <MacbookIntroSection />
+      <LazyMotion features={domAnimation} strict>
+        <LandingHero />
 
-      <SectionDivider variant="dark-to-light" />
+        <SectionDivider variant="dark-to-light" />
+        <ProblemSection />
 
-      <HeroSection />
+        {/* Dental-identity centerpiece: interactive arch of clinic workflows */}
+        <SectionDivider variant="light-to-dark" />
+        <DentalArchSection />
 
-      <ProductCarouselSection />
-      <SectionDivider variant="light-to-dark" />
-      <LandingIntegrationsSection />
+        <SectionDivider variant="dark-to-light" />
+        <ModulesSection />
 
-      <SectionDivider variant="dark-to-gray" />
-      <AnimatedImpactSection />
+        {/* Platform image gallery — visual proof/brand storytelling */}
+        <SectionDivider variant="light-to-dark" />
+        <LandingImageCarouselSection />
 
-      <SectionDivider variant="gray-to-light" />
-      <DataMigrationSection />
+        {/* Honest, code-rendered product proof */}
+        <SectionDivider variant="dark-to-gray" />
+        <ProductShowcaseSection />
 
-      <SectionDivider variant="light-to-dark" />
-      <PricingSection />
+        <SectionDivider variant="gray-to-dark" />
+        <LandingIntegrationsSection />
 
-      <SectionDivider variant="dark-to-light" />
-      <VideoSection />
+        <SectionDivider variant="dark-to-gray" />
+        <AnimatedImpactSection />
 
-      <SectionDivider variant="light-to-blue" />
-      <TrialCtaSection />
+        {/* "Everything connected" system overview right before the plans */}
+        <SectionDivider variant="gray-to-dark" />
+        <SolutionSection />
+
+        <SectionDivider variant="dark-to-light" />
+        <DataMigrationSection />
+
+        <SectionDivider variant="light-to-dark" />
+        <PricingSection />
+
+        <SectionDivider variant="dark-to-light" />
+        <VideoSection />
+
+        <SectionDivider variant="light-to-blue" />
+        <TrialCtaSection />
+      </LazyMotion>
     </PublicLayout>
   )
 }

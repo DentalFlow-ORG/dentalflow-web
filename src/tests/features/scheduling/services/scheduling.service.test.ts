@@ -1,30 +1,30 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
-  listAppointments,
-  createAppointment,
-  updateAppointment,
-  updateAppointmentStatus,
-  updateAppointmentPayment,
   cancelAppointment,
-  getAvailableSlots,
-  listAvailability,
+  createAppointment,
   createAvailability,
-  updateAvailability,
-  deleteAvailability,
-  listAvailabilityExceptions,
   createAvailabilityException,
-  updateAvailabilityException,
+  deleteAvailability,
   deleteAvailabilityException,
+  getAvailableSlots,
+  listAppointments,
+  listAvailability,
+  listAvailabilityExceptions,
+  updateAppointment,
+  updateAppointmentPayment,
+  updateAppointmentStatus,
+  updateAvailability,
+  updateAvailabilityException,
 } from '@/features/scheduling/services/scheduling.service'
 import type {
   CreateAppointmentDto,
+  CreateAvailabilityDto,
+  CreateAvailabilityExceptionDto,
   UpdateAppointmentDto,
   UpdateAppointmentPaymentDto,
-  CreateAvailabilityDto,
   UpdateAvailabilityDto,
-  CreateAvailabilityExceptionDto,
   UpdateAvailabilityExceptionDto,
 } from '@/features/scheduling/types/scheduling.types'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockApiRequest = vi.fn()
 const mockGetAccessToken = vi.fn(() => 'tok-test')
@@ -257,7 +257,11 @@ describe('createAvailabilityException', () => {
 
 describe('updateAvailabilityException', () => {
   it('calls PATCH /profiles/{profileId}/availability-exceptions/{excId} with the serialized dto as body', async () => {
-    const dto: UpdateAvailabilityExceptionDto = { isDayOff: false, startTime: '09:00', endTime: '12:00' }
+    const dto: UpdateAvailabilityExceptionDto = {
+      isDayOff: false,
+      startTime: '09:00',
+      endTime: '12:00',
+    }
     await updateAvailabilityException('prof-1', 'ex-1', dto)
     const [path, options] = mockApiRequest.mock.calls[0]
     expect(path).toBe('/profiles/prof-1/availability-exceptions/ex-1')
@@ -284,8 +288,8 @@ describe('error propagation', () => {
   it('rejects with the same error thrown by apiRequest', async () => {
     const error = new Error('Network error')
     mockApiRequest.mockRejectedValue(error)
-    await expect(
-      updateAppointmentStatus('appt-1', { status: 'CONFIRMED' }),
-    ).rejects.toThrow('Network error')
+    await expect(updateAppointmentStatus('appt-1', { status: 'CONFIRMED' })).rejects.toThrow(
+      'Network error',
+    )
   })
 })

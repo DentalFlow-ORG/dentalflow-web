@@ -2,8 +2,8 @@ import { AlertTriangle, Loader2 } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 import { useState } from 'react'
 
-import { Button } from '@/components/ui/button'
 import { FormField, TextArea } from '@/components/common/FormField'
+import { Button } from '@/components/ui/button'
 
 type CancelAppointmentDialogProps = {
   open: boolean
@@ -37,8 +37,6 @@ export function CancelAppointmentDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          aria-labelledby="cancel-dialog-title"
-          aria-describedby="cancel-dialog-desc"
           className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
           onEscapeKeyDown={handleCancel}
           onInteractOutside={handleCancel}
@@ -47,18 +45,11 @@ export function CancelAppointmentDialog({
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 ring-8 ring-red-50">
               <AlertTriangle className="h-7 w-7 text-red-600" />
             </div>
-            <Dialog.Title
-              id="cancel-dialog-title"
-              className="text-center text-xl font-bold text-foreground"
-            >
+            <Dialog.Title className="text-center text-xl font-bold text-foreground">
               Cancelar agendamento
             </Dialog.Title>
-            <Dialog.Description
-              id="cancel-dialog-desc"
-              className="mt-2 text-center text-sm leading-6 text-muted-foreground"
-            >
-              O agendamento de{' '}
-              <span className="font-semibold text-foreground">{patientName}</span>{' '}
+            <Dialog.Description className="mt-2 text-center text-sm leading-6 text-muted-foreground">
+              O agendamento de <span className="font-semibold text-foreground">{patientName}</span>{' '}
               será cancelado.
             </Dialog.Description>
 
@@ -77,12 +68,7 @@ export function CancelAppointmentDialog({
           </div>
 
           <div className="flex flex-col-reverse gap-3 border-t border-red-100 bg-red-50/60 px-8 py-5 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isCanceling}
-            >
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={isCanceling}>
               Voltar
             </Button>
             <Button

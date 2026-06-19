@@ -32,6 +32,8 @@ function getErrorMessage(error: unknown, fallback: string): string {
 
 export function useFiscalInvoicesPage() {
   const { showAlert } = useGlobalAlerts()
+  const showAlertRef = useRef(showAlert)
+  showAlertRef.current = showAlert
   const [profileResponse, setProfileResponse] = useState<FiscalProfileResponse | null>(null)
   const [summary, setSummary] = useState<FiscalSummary | null>(null)
   const [invoices, setInvoices] = useState<ServiceInvoice[]>([])
@@ -43,17 +45,16 @@ export function useFiscalInvoicesPage() {
   const [filters, setFilters] = useState<InvoiceFilters>({ page: 1, limit: PAGE_SIZE })
 
   const isInitialLoad = useRef(true)
+  const initialFiltersRef = useRef(filters)
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(total / filters.limit)),
     [filters.limit, total],
   )
 
-  function applyData([
-    profile,
-    summaryResponse,
-    invoicesResponse,
-  ]: Awaited<ReturnType<typeof loadFiscalData>>) {
+  function applyData([profile, summaryResponse, invoicesResponse]: Awaited<
+    ReturnType<typeof loadFiscalData>
+  >) {
     setProfileResponse(profile)
     setSummary(summaryResponse)
     setInvoices(invoicesResponse.data)
@@ -79,9 +80,13 @@ export function useFiscalInvoicesPage() {
 
   useEffect(() => {
     let isMounted = true
-    loadFiscalData(filters)
+    loadFiscalData(initialFiltersRef.current)
       .then((responses) => {
-        if (isMounted) applyData(responses)
+        if (!isMounted) return
+        setProfileResponse(responses[0])
+        setSummary(responses[1])
+        setInvoices(responses[2].data)
+        setTotal(responses[2].total)
       })
       .catch((error: unknown) => {
         if (!isMounted) return
@@ -91,7 +96,11 @@ export function useFiscalInvoicesPage() {
         }
         const message = getErrorMessage(error, 'Não foi possível carregar as notas fiscais.')
         setLoadError(message)
-        showAlert({ title: 'Erro ao carregar notas fiscais', description: message, tone: 'error' })
+        showAlertRef.current({
+          title: 'Erro ao carregar notas fiscais',
+          description: message,
+          tone: 'error',
+        })
       })
       .finally(() => {
         if (isMounted) setIsLoading(false)
@@ -100,7 +109,6 @@ export function useFiscalInvoicesPage() {
       isMounted = false
     }
     // Runs once on mount; subsequent filter changes are handled by the effect below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

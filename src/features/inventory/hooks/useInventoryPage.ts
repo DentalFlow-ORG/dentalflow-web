@@ -66,8 +66,9 @@ export function useInventoryPage() {
   const initializedRef = useRef(false)
   const [initKey, setInitKey] = useState(0)
 
-  // Initial load: summary + categories + products in parallel
+  // Initial load: summary + categories + products in parallel; initKey increments on retry
   useEffect(() => {
+    if (initKey < 0) return // never true; declares initKey as a dep
     setIsLoading(true)
     setError(null)
     initializedRef.current = false
@@ -115,8 +116,7 @@ export function useInventoryPage() {
         setTotal(result.total)
       })
       .catch((err) => {
-        const message =
-          err instanceof ApiError ? err.message : 'Erro ao filtrar produtos.'
+        const message = err instanceof ApiError ? err.message : 'Erro ao filtrar produtos.'
         showAlert({ title: 'Erro ao filtrar', description: message, tone: 'error' })
       })
       .finally(() => setIsLoadingProducts(false))
@@ -181,8 +181,7 @@ export function useInventoryPage() {
         setTotal(p.total)
       })
       .catch((err) => {
-        const message =
-          err instanceof ApiError ? err.message : 'Erro ao recarregar estoque.'
+        const message = err instanceof ApiError ? err.message : 'Erro ao recarregar estoque.'
         showAlert({ title: 'Erro ao recarregar', description: message, tone: 'error' })
       })
   }, [debouncedSearch, categoryId, status, page, pageSize, showAlert])
@@ -214,8 +213,7 @@ export function useInventoryPage() {
           }
         })
         .catch((err) => {
-          const message =
-            err instanceof ApiError ? err.message : 'Erro ao recarregar categorias.'
+          const message = err instanceof ApiError ? err.message : 'Erro ao recarregar categorias.'
           showAlert({ title: 'Erro ao recarregar', description: message, tone: 'error' })
         })
     },
@@ -260,8 +258,7 @@ export function useInventoryPage() {
       getStockProduct(movingProduct.id)
         .then((product) => setViewingProduct(product))
         .catch((err) => {
-          const message =
-            err instanceof ApiError ? err.message : 'Erro ao recarregar produto.'
+          const message = err instanceof ApiError ? err.message : 'Erro ao recarregar produto.'
           showAlert({ title: 'Erro ao recarregar', description: message, tone: 'error' })
         })
     }

@@ -37,7 +37,9 @@ export function useClinicalTemplates() {
         if (isCurrent) setIsLoading(false)
       })
 
-    return () => { isCurrent = false }
+    return () => {
+      isCurrent = false
+    }
   }
 
   useEffect(load, [])
@@ -47,7 +49,11 @@ export function useClinicalTemplates() {
     try {
       const created = await createClinicalTemplate(dto)
       setTemplates((prev) => [...prev, created])
-      showAlert({ title: 'Modelo criado.', description: 'Modelo clínico salvo com sucesso.', tone: 'success' })
+      showAlert({
+        title: 'Modelo criado.',
+        description: 'Modelo clínico salvo com sucesso.',
+        tone: 'success',
+      })
       return created
     } catch {
       showAlert({ title: 'Erro', description: 'Não foi possível salvar o modelo.', tone: 'error' })
@@ -62,10 +68,18 @@ export function useClinicalTemplates() {
     try {
       const updated = await updateClinicalTemplate(id, dto)
       setTemplates((prev) => prev.map((t) => (t.id === id ? updated : t)))
-      showAlert({ title: 'Modelo atualizado.', description: 'Modelo clínico atualizado com sucesso.', tone: 'success' })
+      showAlert({
+        title: 'Modelo atualizado.',
+        description: 'Modelo clínico atualizado com sucesso.',
+        tone: 'success',
+      })
       return updated
     } catch {
-      showAlert({ title: 'Erro', description: 'Não foi possível atualizar o modelo.', tone: 'error' })
+      showAlert({
+        title: 'Erro',
+        description: 'Não foi possível atualizar o modelo.',
+        tone: 'error',
+      })
       return null
     } finally {
       setIsSaving(false)
@@ -77,7 +91,11 @@ export function useClinicalTemplates() {
     try {
       await deactivateClinicalTemplate(id)
       setTemplates((prev) => prev.filter((t) => t.id !== id))
-      showAlert({ title: 'Modelo removido.', description: 'Modelo clínico desativado.', tone: 'info' })
+      showAlert({
+        title: 'Modelo removido.',
+        description: 'Modelo clínico desativado.',
+        tone: 'info',
+      })
     } catch {
       showAlert({ title: 'Erro', description: 'Não foi possível remover o modelo.', tone: 'error' })
     } finally {

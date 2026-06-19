@@ -18,7 +18,7 @@ let _billingAccess: boolean | null = null
 export function setBillingAccess(allowed: boolean | null): void {
   if (_billingAccess !== allowed) {
     _billingAccess = allowed
-    listeners.forEach((fn) => fn())
+    for (const fn of listeners) fn()
   }
 }
 

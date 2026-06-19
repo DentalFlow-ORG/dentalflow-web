@@ -28,7 +28,7 @@ export function FilterChipGroup<T extends string = string>({
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
             value === opt.value
               ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground',
+              : 'bg-muted text-muted-foreground hover:bg-muted/70 hover:text-foreground dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-700/70 dark:hover:text-slate-100',
           )}
         >
           {opt.label}

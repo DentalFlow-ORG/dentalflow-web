@@ -2,9 +2,9 @@ import type { Appointment } from '@/features/scheduling/types/scheduling.types'
 
 // These defaults match the time-guard test fixtures in the scheduling tests:
 //   appointmentDate '2026-05-26' + startTime '1970-01-01T10:00:00.000Z'
-//   → buildAppointmentDateTime produces new Date('2026-05-26T10:00:00') local
+//   → buildAppointmentDateTime produces new Date('2026-05-26T10:00:00-03:00') = 13:00 UTC
 export const DEFAULT_APPT_DATE = '2026-05-26'
-export const DEFAULT_APPT_START = '1970-01-01T10:00:00.000Z'
+const DEFAULT_APPT_START = '1970-01-01T10:00:00.000Z'
 
 export function makeAppointment(overrides?: Partial<Appointment>): Appointment {
   return {

@@ -2,10 +2,7 @@ import { useState } from 'react'
 
 import { ApiError } from '@/services/http'
 
-import {
-  applySuggestedCategory,
-  classifyExpense,
-} from '../services/finance-classify.service'
+import { applySuggestedCategory, classifyExpense } from '../services/finance-classify.service'
 import type { ExpenseClassificationResult } from '../types/finance.types'
 
 export type ClassifierState = {

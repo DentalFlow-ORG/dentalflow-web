@@ -10,7 +10,10 @@ import {
   isSlotInsideWorkingRanges,
   minutesToTime,
 } from '@/features/scheduling/utils/week-calendar-layout'
-import { makeAvailability, makeAvailabilityException } from '@/test-utils/factories/availability.factory'
+import {
+  makeAvailability,
+  makeAvailabilityException,
+} from '@/test-utils/factories/availability.factory'
 
 // ── Local fixture ─────────────────────────────────────────────────────────────
 // makeAppt uses HH:mm string times (layout-specific) — kept local rather than
@@ -72,12 +75,18 @@ describe('minutesToTime', () => {
 describe('isSlotInsideWorkingRanges', () => {
   const ranges = [{ start: 480, end: 1020 }]
 
-  it('returns true for a slot at range start', () => expect(isSlotInsideWorkingRanges(480, ranges)).toBe(true))
-  it('returns true for a slot at range end', () => expect(isSlotInsideWorkingRanges(1020, ranges)).toBe(true))
-  it('returns true for a slot inside the range', () => expect(isSlotInsideWorkingRanges(720, ranges)).toBe(true))
-  it('returns false for a slot before the range', () => expect(isSlotInsideWorkingRanges(450, ranges)).toBe(false))
-  it('returns false for a slot after the range', () => expect(isSlotInsideWorkingRanges(1050, ranges)).toBe(false))
-  it('returns false when ranges is empty', () => expect(isSlotInsideWorkingRanges(720, [])).toBe(false))
+  it('returns true for a slot at range start', () =>
+    expect(isSlotInsideWorkingRanges(480, ranges)).toBe(true))
+  it('returns true for a slot at range end', () =>
+    expect(isSlotInsideWorkingRanges(1020, ranges)).toBe(true))
+  it('returns true for a slot inside the range', () =>
+    expect(isSlotInsideWorkingRanges(720, ranges)).toBe(true))
+  it('returns false for a slot before the range', () =>
+    expect(isSlotInsideWorkingRanges(450, ranges)).toBe(false))
+  it('returns false for a slot after the range', () =>
+    expect(isSlotInsideWorkingRanges(1050, ranges)).toBe(false))
+  it('returns false when ranges is empty', () =>
+    expect(isSlotInsideWorkingRanges(720, [])).toBe(false))
 })
 
 // ── computeDayLayout ──────────────────────────────────────────────────────────
@@ -126,6 +135,74 @@ describe('computeDayLayout', () => {
     expect(result.id).toBe('orig')
     expect(result.patientName).toBe('Ana')
   })
+
+  // ── Determinism ──────────────────────────────────────────────────────────────
+
+  it('produces the same colIndex regardless of input order (two overlapping)', () => {
+    const a = makeAppt({ id: 'a', startTime: '09:00', endTime: '10:00' })
+    const b = makeAppt({ id: 'b', startTime: '09:30', endTime: '10:30' })
+
+    const forward = computeDayLayout([a, b])
+    const reversed = computeDayLayout([b, a])
+
+    const fwdA = forward.find((r) => r.id === 'a')!
+    const revA = reversed.find((r) => r.id === 'a')!
+    expect(fwdA.colIndex).toBe(revA.colIndex)
+
+    const fwdB = forward.find((r) => r.id === 'b')!
+    const revB = reversed.find((r) => r.id === 'b')!
+    expect(fwdB.colIndex).toBe(revB.colIndex)
+  })
+
+  it('produces the same colIndex regardless of input order (three overlapping)', () => {
+    const a = makeAppt({ id: 'a', startTime: '09:00', endTime: '11:00' })
+    const b = makeAppt({ id: 'b', startTime: '09:30', endTime: '10:30' })
+    const c = makeAppt({ id: 'c', startTime: '10:00', endTime: '11:30' })
+
+    const r1 = computeDayLayout([a, b, c])
+    const r2 = computeDayLayout([c, a, b])
+    const r3 = computeDayLayout([b, c, a])
+
+    for (const id of ['a', 'b', 'c']) {
+      const idx1 = r1.find((r) => r.id === id)!.colIndex
+      const idx2 = r2.find((r) => r.id === id)!.colIndex
+      const idx3 = r3.find((r) => r.id === id)!.colIndex
+      expect(idx1).toBe(idx2)
+      expect(idx1).toBe(idx3)
+    }
+  })
+
+  it('assigns a lower colIndex to the longer appointment when start times are equal', () => {
+    // Longer duration anchored to column 0, shorter to column 1
+    const long = makeAppt({
+      id: 'long',
+      startTime: '09:00',
+      endTime: '11:00',
+      durationMinutes: 120,
+    })
+    const short = makeAppt({
+      id: 'short',
+      startTime: '09:00',
+      endTime: '10:00',
+      durationMinutes: 60,
+    })
+
+    const result = computeDayLayout([short, long]) // intentionally reverse order
+    expect(result.find((r) => r.id === 'long')!.colIndex).toBe(0)
+    expect(result.find((r) => r.id === 'short')!.colIndex).toBe(1)
+  })
+
+  it('uses id as a final tiebreaker for same start and same duration', () => {
+    const a = makeAppt({ id: 'aaa', startTime: '09:00', endTime: '10:00', durationMinutes: 60 })
+    const b = makeAppt({ id: 'bbb', startTime: '09:00', endTime: '10:00', durationMinutes: 60 })
+
+    const fwd = computeDayLayout([a, b])
+    const rev = computeDayLayout([b, a])
+
+    // 'aaa' < 'bbb' lexicographically → 'aaa' always gets colIndex 0
+    expect(fwd.find((r) => r.id === 'aaa')!.colIndex).toBe(0)
+    expect(rev.find((r) => r.id === 'aaa')!.colIndex).toBe(0)
+  })
 })
 
 // ── getDayWorkingRanges ───────────────────────────────────────────────────────
@@ -137,7 +214,12 @@ describe('getDayWorkingRanges', () => {
   })
 
   it('returns special-hour range from a non-day-off exception', () => {
-    const ex = makeAvailabilityException({ exceptionDate: '2026-05-27', isDayOff: false, startTime: '10:00', endTime: '14:00' })
+    const ex = makeAvailabilityException({
+      exceptionDate: '2026-05-27',
+      isDayOff: false,
+      startTime: '10:00',
+      endTime: '14:00',
+    })
     // 10:00 = 600 min, 14:00 = 840 min
     expect(getDayWorkingRanges(WED, undefined, [ex])).toEqual([{ start: 600, end: 840 }])
   })
@@ -164,7 +246,11 @@ describe('getDayWorkingRanges', () => {
 
 describe('getDayStatus', () => {
   it('marks day as dayOff when exception isDayOff', () => {
-    const ex = makeAvailabilityException({ exceptionDate: '2026-05-27', isDayOff: true, reason: 'Feriado' })
+    const ex = makeAvailabilityException({
+      exceptionDate: '2026-05-27',
+      isDayOff: true,
+      reason: 'Feriado',
+    })
     const result = getDayStatus(WED, undefined, [ex])
     expect(result.isWorking).toBe(false)
     expect(result.kind).toBe('dayOff')
@@ -172,7 +258,12 @@ describe('getDayStatus', () => {
   })
 
   it('marks day as special when exception has custom hours', () => {
-    const ex = makeAvailabilityException({ exceptionDate: '2026-05-27', isDayOff: false, startTime: '10:00', endTime: '14:00' })
+    const ex = makeAvailabilityException({
+      exceptionDate: '2026-05-27',
+      isDayOff: false,
+      startTime: '10:00',
+      endTime: '14:00',
+    })
     const result = getDayStatus(WED, undefined, [ex])
     expect(result.isWorking).toBe(true)
     expect(result.kind).toBe('special')
@@ -205,7 +296,12 @@ describe('buildTimeSlots', () => {
   })
 
   it('uses availability to set the time window', () => {
-    const av = makeAvailability({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00', isActive: true })
+    const av = makeAvailability({
+      dayOfWeek: 1,
+      startTime: '09:00',
+      endTime: '17:00',
+      isActive: true,
+    })
     const slots = buildTimeSlots([], [], [av])
     // 09:00 = 540, 17:00 = 1020
     expect(slots[0]).toBe(540)
@@ -213,7 +309,12 @@ describe('buildTimeSlots', () => {
   })
 
   it('expands start when an appointment begins before the availability window', () => {
-    const av = makeAvailability({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00', isActive: true })
+    const av = makeAvailability({
+      dayOfWeek: 1,
+      startTime: '09:00',
+      endTime: '17:00',
+      isActive: true,
+    })
     // Appointment at 07:30 = 450 min → snapped to floor(450/30)*30 = 450
     const appt = makeAppt({ startTime: '07:30', endTime: '08:30' })
     const slots = buildTimeSlots([appt], [], [av])
@@ -222,7 +323,12 @@ describe('buildTimeSlots', () => {
   })
 
   it('expands end when an appointment finishes after the availability window', () => {
-    const av = makeAvailability({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00', isActive: true })
+    const av = makeAvailability({
+      dayOfWeek: 1,
+      startTime: '09:00',
+      endTime: '17:00',
+      isActive: true,
+    })
     // Appointment ending at 19:00 = 1140 → snapped to ceil(1140/30)*30 = 1140
     const appt = makeAppt({ startTime: '18:00', endTime: '19:00' })
     const slots = buildTimeSlots([appt], [], [av])

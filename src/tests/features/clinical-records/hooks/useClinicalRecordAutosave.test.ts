@@ -1,9 +1,10 @@
 import { act, renderHook } from '@/test-utils/render-utils'
 
-import {
-  useClinicalRecordAutosave,
-} from '@/features/clinical-records/hooks/useClinicalRecordAutosave'
-import type { ClinicalRecord, UpdateClinicalRecordDto } from '@/features/clinical-records/types/clinical-record.types'
+import { useClinicalRecordAutosave } from '@/features/clinical-records/hooks/useClinicalRecordAutosave'
+import type {
+  ClinicalRecord,
+  UpdateClinicalRecordDto,
+} from '@/features/clinical-records/types/clinical-record.types'
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 

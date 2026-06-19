@@ -11,28 +11,33 @@ type StatusConfig = {
 const STATUS_CONFIG: Record<AppointmentStatus, StatusConfig> = {
   PENDING: {
     label: 'Pendente',
-    className: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-700/50 dark:bg-amber-900/25 dark:text-amber-300',
+    className:
+      'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-700/50 dark:bg-amber-900/25 dark:text-amber-300',
     dotClass: 'bg-amber-400 dark:bg-amber-400/80',
   },
   CONFIRMED: {
     label: 'Confirmado',
-    className: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-700/50 dark:bg-emerald-900/25 dark:text-emerald-300',
+    className:
+      'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-700/50 dark:bg-emerald-900/25 dark:text-emerald-300',
     dotClass: 'bg-emerald-500 dark:bg-emerald-400/80',
   },
   CANCELED: {
     label: 'Cancelado',
-    className: 'border-red-200 bg-red-50 text-red-700 dark:border-red-700/50 dark:bg-red-900/25 dark:text-red-400',
-    dotClass: 'bg-red-500 dark:bg-red-400/80',
+    className:
+      'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-700/50 dark:bg-rose-900/25 dark:text-rose-400',
+    dotClass: 'bg-rose-500 dark:bg-rose-400/80',
   },
   COMPLETED: {
     label: 'Concluído',
-    className: 'border-border bg-muted text-muted-foreground',
-    dotClass: 'bg-muted-foreground/50',
+    className:
+      'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-700/50 dark:bg-blue-900/25 dark:text-blue-300',
+    dotClass: 'bg-blue-500 dark:bg-blue-400/80',
   },
   NO_SHOW: {
     label: 'Não compareceu',
-    className: 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-700/50 dark:bg-orange-900/25 dark:text-orange-300',
-    dotClass: 'bg-orange-400 dark:bg-orange-400/80',
+    className:
+      'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-700/50 dark:bg-violet-900/25 dark:text-violet-300',
+    dotClass: 'bg-violet-500 dark:bg-violet-400/80',
   },
 }
 
@@ -41,10 +46,7 @@ type AppointmentStatusBadgeProps = {
   className?: string
 }
 
-export function AppointmentStatusBadge({
-  status,
-  className,
-}: AppointmentStatusBadgeProps) {
+export function AppointmentStatusBadge({ status, className }: AppointmentStatusBadgeProps) {
   const config = STATUS_CONFIG[status]
   return (
     <span
@@ -54,7 +56,10 @@ export function AppointmentStatusBadge({
         className,
       )}
     >
-      <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', config.dotClass)} aria-hidden="true" />
+      <span
+        className={cn('h-1.5 w-1.5 shrink-0 rounded-full', config.dotClass)}
+        aria-hidden="true"
+      />
       {config.label}
     </span>
   )

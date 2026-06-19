@@ -3,8 +3,8 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-import { formatWallTime } from '../../utils/time'
 import type { Availability, CreateAvailabilityDto } from '../../types/scheduling.types'
+import { formatWallTime } from '../../utils/time'
 import { DayOfWeekLabel } from '../shared/DayOfWeekLabel'
 import { AvailabilitySlotForm } from './AvailabilitySlotForm'
 
@@ -56,7 +56,7 @@ export function AvailabilitySlotRow({
         className={cn(
           'shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold',
           slot.isActive
-            ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
+            ? 'border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-700/50 dark:bg-emerald-900/25 dark:text-emerald-300'
             : 'border-border bg-muted text-muted-foreground',
         )}
       >
@@ -69,9 +69,9 @@ export function AvailabilitySlotRow({
           size="icon-sm"
           onClick={onEditStart}
           disabled={isLoading}
-          aria-label="Editar"
+          aria-label="Editar disponibilidade"
         >
-          <Pencil className="h-3.5 w-3.5" />
+          <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
         <Button
           type="button"
@@ -79,9 +79,9 @@ export function AvailabilitySlotRow({
           size="icon-sm"
           onClick={onDelete}
           disabled={isLoading}
-          aria-label="Remover"
+          aria-label="Remover disponibilidade"
         >
-          <Trash2 className="h-3.5 w-3.5" />
+          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
       </div>
     </div>

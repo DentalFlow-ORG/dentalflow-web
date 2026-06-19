@@ -1,5 +1,5 @@
-import { Activity, AlertTriangle, CheckCircle2, Lock, RefreshCw } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { Activity, AlertTriangle, CheckCircle2, Lock, RefreshCw } from 'lucide-react'
 
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
@@ -7,7 +7,12 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 import { useStockAbnormalConsumption } from '../hooks/useStockAbnormalConsumption'
-import type { AbnormalConsumptionItem, AnomalySeverity, AnomalyType } from '../types/inventory.types'
+import type {
+  AbnormalConsumptionItem,
+  AnomalySeverity,
+  AnomalyType,
+} from '../types/inventory.types'
+import { InventorySummaryChip } from './InventorySummaryChip'
 import { StockAbnormalConsumptionCopilotCard } from './StockAbnormalConsumptionCopilotCard'
 
 // ── Labels ────────────────────────────────────────────────────────────────────
@@ -44,36 +49,6 @@ function SeverityBadge({ severity }: { severity: AnomalySeverity }) {
     >
       {SEVERITY_LABEL[severity]}
     </span>
-  )
-}
-
-// ── Summary chip ──────────────────────────────────────────────────────────────
-
-type ChipTone = 'neutral' | 'danger' | 'warning' | 'info'
-
-const CHIP_TONE_CLASS: Record<ChipTone, string> = {
-  neutral: 'border-border bg-muted/50 text-foreground',
-  danger:
-    'border-red-200 bg-red-50 text-red-700 dark:border-red-800/40 dark:bg-red-950/20 dark:text-red-300',
-  warning:
-    'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/20 dark:text-amber-300',
-  info: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800/40 dark:bg-blue-950/20 dark:text-blue-300',
-}
-
-function SummaryChip({
-  label,
-  value,
-  tone = 'neutral',
-}: {
-  label: string
-  value: string
-  tone?: ChipTone
-}) {
-  return (
-    <div className={cn('rounded-lg border p-4', CHIP_TONE_CLASS[tone])}>
-      <p className="text-xl font-semibold tabular-nums">{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-    </div>
   )
 }
 
@@ -160,12 +135,13 @@ function EmptyState({ recentDays }: { recentDays: number }) {
   return (
     <div className="flex flex-col items-center gap-3 py-8 text-center">
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/30">
-        <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+        <CheckCircle2
+          className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+          aria-hidden="true"
+        />
       </div>
       <div>
-        <p className="text-sm font-medium text-foreground">
-          Nenhuma variação incomum detectada.
-        </p>
+        <p className="text-sm font-medium text-foreground">Nenhuma variação incomum detectada.</p>
         <p className="mt-1 max-w-sm text-xs leading-5 text-muted-foreground">
           O consumo dos últimos {recentDays} dias está dentro dos padrões históricos.
         </p>
@@ -208,6 +184,11 @@ export function StockAbnormalConsumptionSection() {
     <PanelCard>
       <SectionHeader />
 
+      {/* Copilot — always visible so the latest analysis persists even when there are no current anomalies */}
+      <div className="mt-4">
+        <StockAbnormalConsumptionCopilotCard />
+      </div>
+
       {isPlanBlocked ? (
         <PlanBlockedState />
       ) : error ? (
@@ -218,26 +199,23 @@ export function StockAbnormalConsumptionSection() {
         </div>
       ) : (
         <div className="mt-5 space-y-5">
-          {/* Copilot AI summary — never blocks the deterministic anomaly list */}
-          <StockAbnormalConsumptionCopilotCard />
-
           {/* Summary mini-grid */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <SummaryChip
+            <InventorySummaryChip
               label="Total de anomalias"
               value={String(data.summary.totalAnomalies)}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Alta atenção"
               value={String(data.summary.highSeverity)}
               tone={data.summary.highSeverity > 0 ? 'danger' : 'neutral'}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Atenção média"
               value={String(data.summary.mediumSeverity)}
               tone={data.summary.mediumSeverity > 0 ? 'warning' : 'neutral'}
             />
-            <SummaryChip
+            <InventorySummaryChip
               label="Baixa atenção"
               value={String(data.summary.lowSeverity)}
               tone={data.summary.lowSeverity > 0 ? 'info' : 'neutral'}

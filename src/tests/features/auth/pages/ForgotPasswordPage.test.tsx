@@ -1,5 +1,5 @@
-import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
+import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 
 vi.mock('@tanstack/react-router', async () => {
   const m = await import('@/test-utils/mocks/router')
@@ -50,9 +50,7 @@ describe('ForgotPasswordPage', () => {
     await user.type(screen.getByLabelText('E-mail profissional'), 'owner@clinic.com')
     await user.click(screen.getByRole('button', { name: /Enviar instruções/i }))
 
-    expect(
-      await screen.findByText(/Se este e-mail estiver cadastrado/i),
-    ).toBeInTheDocument()
+    expect(await screen.findByText(/Se este e-mail estiver cadastrado/i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Enviar instruções/i })).not.toBeInTheDocument()
   })
 
@@ -64,8 +62,6 @@ describe('ForgotPasswordPage', () => {
     await user.type(screen.getByLabelText('E-mail profissional'), 'owner@clinic.com')
     await user.click(screen.getByRole('button', { name: /Enviar instruções/i }))
 
-    expect(
-      await screen.findByText(/Não foi possível processar a solicitação/i),
-    ).toBeInTheDocument()
+    expect(await screen.findByText(/Não foi possível processar a solicitação/i)).toBeInTheDocument()
   })
 })

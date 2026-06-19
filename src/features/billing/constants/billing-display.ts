@@ -11,13 +11,14 @@ export const BILLING_STATUS_LABELS: Record<NormalizedBillingStatus, string> = {
   incomplete: 'Incompleta',
 }
 
-export const BILLING_STATUS_TONE: Record<NormalizedBillingStatus, 'success' | 'muted' | 'warning'> = {
-  active: 'success',
-  trialing: 'success',
-  missing: 'muted',
-  canceled: 'muted',
-  paused: 'muted',
-  past_due: 'warning',
-  unpaid: 'warning',
-  incomplete: 'warning',
-}
+export const BILLING_STATUS_TONE: Record<NormalizedBillingStatus, 'success' | 'muted' | 'warning'> =
+  {
+    active: 'success',
+    trialing: 'success',
+    missing: 'muted',
+    canceled: 'muted',
+    paused: 'muted',
+    past_due: 'warning',
+    unpaid: 'warning',
+    incomplete: 'warning',
+  }

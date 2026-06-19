@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { NotificationTemplate } from '../types/notifications.types'
 import { listTemplates } from '../services/notifications.service'
+import type { NotificationTemplate } from '../types/notifications.types'
 
 export function useNotificationTemplates() {
   const [templates, setTemplates] = useState<NotificationTemplate[]>([])
@@ -10,11 +10,15 @@ export function useNotificationTemplates() {
     setIsLoading(true)
     listTemplates()
       .then(setTemplates)
-      .catch(() => {/* silent — templates are non-critical */})
+      .catch(() => {
+        /* silent — templates are non-critical */
+      })
       .finally(() => setIsLoading(false))
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   return { templates, isLoading }
 }

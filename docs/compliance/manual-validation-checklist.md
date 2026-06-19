@@ -13,7 +13,7 @@ Um build com qualquer destes pendentes falhará ou publicará dados fictícios.
 ### 0.1 Placeholders Jurídicos (`src/config/company.ts`)
 
 O app detecta automaticamente placeholders e lança erro no build de produção.
-Verifique executando `npm run build` — se falhar com `[company.ts]`, resolva os itens abaixo.
+Verifique executando `bun run build` — se falhar com `[company.ts]`, resolva os itens abaixo.
 
 - [ ] `documentNumber` preenchido com CNPJ real (formato `XX.XXX.XXX/XXXX-XX`)
       → Obter da Receita Federal; confirmar que corresponde à razão social cadastrada
@@ -28,7 +28,7 @@ Verifique executando `npm run build` — se falhar com `[company.ts]`, resolva o
 
 - [ ] Executar no backend antes do deploy:
       ```
-      npx prisma migrate deploy
+      bunx prisma migrate deploy
       ```
       Confirmar que a saída indica "All migrations have been applied".
       Sem isso, `register()` e `createRequest()` falham em runtime.
@@ -45,7 +45,7 @@ Verifique executando `npm run build` — se falhar com `[company.ts]`, resolva o
 ```powershell
 # No diretório dentalflow-web:
 Set-Location "C:\Users\yagos\DevelopmentProjects\dentalflow-web"
-npm run build
+bun run build
 # Esperado: build concluído SEM erro "[company.ts] placeholders"
 # Se falhar: preencher os campos indicados no erro e repetir
 ```

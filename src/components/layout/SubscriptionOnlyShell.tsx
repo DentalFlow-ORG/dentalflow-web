@@ -1,5 +1,5 @@
 import { LogOut } from 'lucide-react'
-import { type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 import { useNavigate } from '@tanstack/react-router'
 
@@ -35,7 +35,9 @@ export function SubscriptionOnlyShell({ children }: Props) {
             )}
             <Button variant="outline" size="sm" aria-label="Sair" onClick={handleLogout}>
               <LogOut className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline" aria-hidden="true">Sair</span>
+              <span className="hidden sm:inline" aria-hidden="true">
+                Sair
+              </span>
             </Button>
           </div>
         </div>

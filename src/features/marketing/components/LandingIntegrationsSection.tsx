@@ -3,8 +3,12 @@ import { CheckCircle2, LockKeyhole, ShieldCheck, Workflow, Zap } from 'lucide-re
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { cn } from '@/lib/utils'
 
+import {
+  type IntegrationCard as IntegrationCardData,
+  integrationCards,
+} from '../data/public-content'
 import { useRevealOnScroll } from '../hooks/useRevealOnScroll'
-import { integrationCards, type IntegrationCard as IntegrationCardData } from '../data/public-content'
+import { AuroraBackdrop } from './landing/AuroraBackdrop'
 
 const FEATURED_INTEGRATIONS = [
   'Google Calendar',
@@ -74,24 +78,7 @@ export function LandingIntegrationsSection() {
 
   return (
     <section id="integracoes" className="relative overflow-hidden bg-slate-950 py-20 lg:py-24">
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        {/* Top-right ambient — radial gradient, no blur filter */}
-        <div
-          className="absolute right-0 top-0 h-full w-2/3"
-          style={{
-            backgroundImage:
-              'radial-gradient(ellipse 70% 55% at 100% 0%, rgba(34,211,238,0.09) 0%, transparent 65%)',
-          }}
-        />
-        {/* Bottom-left ambient */}
-        <div
-          className="absolute bottom-0 left-0 h-full w-2/3"
-          style={{
-            backgroundImage:
-              'radial-gradient(ellipse 70% 55% at 0% 100%, rgba(52,211,153,0.08) 0%, transparent 65%)',
-          }}
-        />
-      </div>
+      <AuroraBackdrop withGrid={false} />
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         {/* Section header */}

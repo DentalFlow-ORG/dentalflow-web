@@ -1,7 +1,7 @@
+import { Loader2, Pencil, Plus, Tag, Trash2, X } from 'lucide-react'
+import { Dialog } from 'radix-ui'
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Loader2, Pencil, Plus, Tag, Trash2, X } from 'lucide-react'
-import { Dialog, VisuallyHidden } from 'radix-ui'
 
 import { ActionIconButton } from '@/components/common/ActionIconButton'
 import { FormField, TextInput } from '@/components/common/FormField'
@@ -20,14 +20,7 @@ import type { StockCategory } from '../types/inventory.types'
 
 const CATEGORY_NAME_MAX_LENGTH = 80
 
-const CATEGORY_COLORS = [
-  '#1E3A8A',
-  '#10B981',
-  '#6366F1',
-  '#F59E0B',
-  '#EF4444',
-  '#0EA5E9',
-] as const
+const CATEGORY_COLORS = ['#1E3A8A', '#10B981', '#6366F1', '#F59E0B', '#EF4444', '#0EA5E9'] as const
 
 const CATEGORY_COLOR_LABELS: Record<(typeof CATEGORY_COLORS)[number], string> = {
   '#1E3A8A': 'Azul',
@@ -187,24 +180,18 @@ export function CategoryManagerModal({
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
           <Dialog.Content
-            className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
+            className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
             onEscapeKeyDown={onClose}
             onInteractOutside={onClose}
           >
-            <VisuallyHidden.Root asChild>
-              <Dialog.Title>Gerenciar categorias</Dialog.Title>
-            </VisuallyHidden.Root>
-            <Dialog.Description className="sr-only">
-              Crie, edite e exclua categorias usadas nos produtos do estoque.
-            </Dialog.Description>
-            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border/50 px-5 py-4 sm:px-6">
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-5">
               <div className="min-w-0">
-                <h2 className="text-base font-semibold text-foreground">
+                <Dialog.Title className="text-base font-semibold text-foreground">
                   Gerenciar categorias
-                </h2>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                </Dialog.Title>
+                <Dialog.Description className="mt-0.5 text-sm text-muted-foreground">
                   Crie, edite e exclua categorias usadas nos produtos do estoque.
-                </p>
+                </Dialog.Description>
               </div>
               <Button
                 type="button"
@@ -218,7 +205,7 @@ export function CategoryManagerModal({
               </Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+            <div className="app-scrollbar flex-1 overflow-y-auto px-5 py-5 sm:px-6">
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
                 <form className="space-y-4" onSubmit={handleSubmit}>
                   <div>
@@ -317,7 +304,7 @@ export function CategoryManagerModal({
                     <Tag className="h-5 w-5 text-primary" aria-hidden="true" />
                   </div>
 
-                  <div className="max-h-[42vh] space-y-2 overflow-y-auto pr-1">
+                  <div className="app-scrollbar max-h-[42vh] space-y-2 overflow-y-auto pr-1">
                     {categories.length === 0 ? (
                       <p className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
                         Nenhuma categoria cadastrada.
@@ -331,7 +318,9 @@ export function CategoryManagerModal({
                           <div className="flex min-w-0 items-center gap-3">
                             <span
                               className="h-3 w-3 shrink-0 rounded-full border border-border bg-muted"
-                              style={category.color ? { backgroundColor: category.color } : undefined}
+                              style={
+                                category.color ? { backgroundColor: category.color } : undefined
+                              }
                               aria-hidden="true"
                             />
                             <div className="min-w-0">
@@ -403,17 +392,10 @@ function DeleteCategoryDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-[61] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
+          className="fixed left-1/2 top-1/2 z-[61] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
           onEscapeKeyDown={onCancel}
           onInteractOutside={onCancel}
         >
-          <VisuallyHidden.Root asChild>
-            <Dialog.Title>Excluir categoria</Dialog.Title>
-          </VisuallyHidden.Root>
-          <Dialog.Description className="sr-only">
-            Tem certeza que deseja excluir esta categoria? Categorias com produtos
-            vinculados não podem ser excluídas.
-          </Dialog.Description>
           <div className="px-8 pb-6 pt-8">
             <div
               className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 ring-8 ring-red-50"
@@ -422,14 +404,14 @@ function DeleteCategoryDialog({
               <Trash2 className="h-7 w-7 text-red-600" aria-hidden="true" />
             </div>
 
-            <h2 className="text-center text-xl font-bold text-foreground">
+            <Dialog.Title className="text-center text-xl font-bold text-foreground">
               Excluir categoria
-            </h2>
+            </Dialog.Title>
 
-            <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
-              Tem certeza que deseja excluir esta categoria? Categorias com produtos
-              vinculados não podem ser excluídas.
-            </p>
+            <Dialog.Description className="mt-2 text-center text-sm leading-6 text-muted-foreground">
+              Tem certeza que deseja excluir esta categoria? Categorias com produtos vinculados não
+              podem ser excluídas.
+            </Dialog.Description>
 
             {category && (
               <p className="mx-auto mt-3 w-fit rounded-md bg-red-50 px-3 py-1 text-sm font-semibold text-red-800">
