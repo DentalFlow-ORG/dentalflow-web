@@ -9,19 +9,27 @@ const MODEL_URL = '/base.glb'
 
 // ── Arch layout ───────────────────────────────────────────────────────────────
 // A true curved dental arch (horseshoe): the central incisors sit forward, the
-// molars wrap back around the curve. Viewed from a slightly elevated, top-down
-// camera so the arc reads as a real arcade and no tooth hides behind another.
+// molars wrap back around the curve. A wide, deep horseshoe seen from an
+// elevated, fairly top-down camera so every tooth gets breathing room and the
+// depth maps to screen height — no tooth hides behind another, so even the
+// back/side teeth stay easy to read and to select.
 const COUNT = DENTAL_WORKFLOWS.length
-const RX = 3.05 // arch half-width
-const RZ = 1.95 // arch depth (front teeth sit closest to the camera)
-const THETA_MAX = (74 * Math.PI) / 180
-const LEAN = 0.34 // each tooth reclines outward within the arch
-const LOOK_AT = new THREE.Vector3(0, -0.12, 0.5)
+const RX = 3.5 // arch half-width (wider → more space between teeth)
+const RZ = 2.55 // arch depth (deeper → the top-down view separates front/back)
+const THETA_MAX = (72 * Math.PI) / 180
+const LEAN = 0.3 // each tooth reclines outward within the arch
 const ENAMEL = '#eef5fb'
 
 // GLB tooth normalization (model is ~1.9 tall, base at y=0, centred on x/z).
 const MODEL_HEIGHT = 1.899
-const NORM_SCALE = 0.52
+const NORM_SCALE = 0.47
+
+// Camera framing — elevated and pulled in for a calm, slightly top-down read of
+// the arch. CAM_HEIGHT is shared by the initial camera and the parallax loop so
+// the drift never fights the base elevation. LOOK_AT aims into the arch centre.
+const CAM_HEIGHT = 4.0
+const CAM_DEPTH = 6.2
+const LOOK_AT = new THREE.Vector3(0, -0.1, 1.0)
 
 type ToothVariantKey = 'incisor' | 'canine' | 'molar'
 
@@ -167,7 +175,7 @@ function Tooth({
             onSelect(index)
           }}
         >
-          <boxGeometry args={[1.05, 1.6, 1.05]} />
+          <boxGeometry args={[0.95, 1.7, 0.95]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>
       </group>
@@ -210,8 +218,8 @@ function ArchContents({
     // Calm parallax that nearly freezes while a tooth is hovered, so the target
     // never drifts out from under the pointer.
     const damp = hovered !== null ? 0.12 : 1
-    const targetX = (state.pointer.x * 0.34 + Math.sin(time * 0.05) * 0.1) * damp
-    const targetY = 2.65 + (state.pointer.y * 0.18 + Math.cos(time * 0.045) * 0.07) * damp
+    const targetX = (state.pointer.x * 0.22 + Math.sin(time * 0.05) * 0.07) * damp
+    const targetY = CAM_HEIGHT + (state.pointer.y * 0.12 + Math.cos(time * 0.045) * 0.05) * damp
     state.camera.position.x += (targetX - state.camera.position.x) * 0.022
     state.camera.position.y += (targetY - state.camera.position.y) * 0.022
     state.camera.lookAt(LOOK_AT)
@@ -288,7 +296,7 @@ export default function DentalArchScene({
   return (
     <Canvas
       dpr={[1, 1.8]}
-      camera={{ position: [0, 2.65, 6.6], fov: 40 }}
+      camera={{ position: [0, CAM_HEIGHT, CAM_DEPTH], fov: 42 }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       style={{ overflow: 'visible' }}
     >
