@@ -257,7 +257,7 @@ function ArchContents({
 
       <Html position={labelPosition} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
         <div className="flex items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-slate-900/90 px-3 py-1.5 shadow-[0_8px_22px_-10px_rgba(0,0,0,0.9)]">
-          <ActiveIcon className="h-[18px] w-[18px] shrink-0" style={{ color: active.accent }} />
+          <ActiveIcon className="h-4.5 w-4.5 shrink-0" style={{ color: active.accent }} />
           <span className="text-xs font-semibold text-slate-100">{active.label}</span>
         </div>
       </Html>

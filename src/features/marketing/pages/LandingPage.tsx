@@ -11,6 +11,7 @@ import { TrialCtaSection } from '../components/TrialCtaSection'
 import { VideoSection } from '../components/VideoSection'
 import { DentalArchSection } from '../components/landing/DentalArchSection'
 import { LandingHero } from '../components/landing/LandingHero'
+import { LandingImageCarouselSection } from '../components/landing/LandingImageCarouselSection'
 import { ModulesSection } from '../components/landing/ModulesSection'
 import { ProblemSection } from '../components/landing/ProblemSection'
 import { ProductShowcaseSection } from '../components/landing/ProductShowcaseSection'
@@ -56,7 +57,10 @@ export function LandingPage() {
         <SectionDivider variant="light-to-gray" />
         <ProductShowcaseSection />
 
+        {/* Platform image gallery — visual proof/brand storytelling */}
         <SectionDivider variant="gray-to-dark" />
+        <LandingImageCarouselSection />
+
         <LandingIntegrationsSection />
 
         <SectionDivider variant="dark-to-gray" />
