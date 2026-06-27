@@ -14,6 +14,7 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
 import { cn } from '@/lib/utils'
+import { Link } from '@tanstack/react-router'
 
 import { dictateClinicalRecord } from '../services/clinical-dictation.service'
 import type {
@@ -207,10 +208,10 @@ function LockedState() {
           </p>
         </div>
         <Button size="sm" variant="outline" asChild className="mt-0.5 text-xs">
-          <a href="/app/assinatura">
+          <Link to="/app/assinatura">
             <Sparkles className="h-3 w-3" aria-hidden="true" />
             Ver planos
-          </a>
+          </Link>
         </Button>
       </div>
     </div>

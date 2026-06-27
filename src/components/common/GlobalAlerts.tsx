@@ -82,7 +82,7 @@ export function GlobalAlertsProvider({ children }: GlobalAlertsProviderProps) {
               'pointer-events-auto flex gap-3 rounded-lg border p-4 shadow-lg shadow-slate-950/10 backdrop-blur animate-in fade-in-0 slide-in-from-top-2 duration-200',
               styles.container,
             )}
-            role="status"
+            role={alert.tone === 'error' ? 'alert' : 'status'}
           >
             <Icon className={cn('mt-0.5 h-5 w-5 shrink-0', styles.iconClassName)} />
             <div className="min-w-0 flex-1">

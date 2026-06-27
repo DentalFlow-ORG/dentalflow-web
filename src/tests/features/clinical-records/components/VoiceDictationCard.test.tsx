@@ -6,6 +6,11 @@ import userEvent from '@testing-library/user-event'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
+vi.mock('@tanstack/react-router', async () => {
+  const routerMock = await import('@/test-utils/mocks/router')
+  return routerMock.createRouterMock()
+})
+
 const mockGetBillingStatus = vi.fn()
 vi.mock('@/features/billing/services/billing-status-cache', () => ({
   getCachedBillingStatus: () => mockGetBillingStatus(),

@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import type { AiAnalysisResult, AiAnalysisSection, AiQuotaInfo, AiVisibility } from '@/lib/ai-types'
 import { cn } from '@/lib/utils'
 import { ApiError } from '@/services/http'
+import { Link } from '@tanstack/react-router'
 import { AiUsageBadge } from './AiUsageBadge'
 import { PremiumBlurredPreview } from './PremiumBlurredPreview'
 
@@ -155,10 +156,10 @@ function TeaserContent({
               </p>
             </div>
             <Button size="sm" asChild>
-              <a href="/app/assinatura">
+              <Link to="/app/assinatura">
                 <Sparkles className="h-3.5 w-3.5" />
                 Ver planos
-              </a>
+              </Link>
             </Button>
           </div>
         </div>

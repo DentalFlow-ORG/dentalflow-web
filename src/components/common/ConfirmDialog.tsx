@@ -1,4 +1,4 @@
-import { AlertTriangle, Loader2, TriangleAlert } from 'lucide-react'
+import { Loader2, TriangleAlert } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 import type { ReactNode } from 'react'
 
@@ -64,7 +64,7 @@ export function ConfirmDialog({
               {isDestructive ? (
                 <TriangleAlert className="h-8 w-8 text-red-600 dark:text-red-400" />
               ) : (
-                <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                <TriangleAlert className="h-8 w-8 text-amber-600 dark:text-amber-400" />
               )}
             </div>
 
