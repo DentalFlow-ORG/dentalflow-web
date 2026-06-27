@@ -158,6 +158,15 @@ const adminDashboardRoute = createRoute({
 const appointmentsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/agendamentos',
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { googleCalendar?: 'connected' | 'error'; message?: string } => ({
+    googleCalendar:
+      search.googleCalendar === 'connected' || search.googleCalendar === 'error'
+        ? search.googleCalendar
+        : undefined,
+    message: typeof search.message === 'string' ? search.message : undefined,
+  }),
   component: () => (
     <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
       <AppointmentsPage />

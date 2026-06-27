@@ -4,6 +4,7 @@ import type { FilterDef } from '@/components/common/ListToolbar'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useListFilter } from '@/hooks/useListFilter'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { listProfiles } from '../services/profiles.service'
 import type { ProfileListItem } from '../types/profile.types'
 
@@ -27,6 +28,10 @@ export type AppointmentsView = 'calendar' | 'table'
 export function useAppointmentsPage() {
   const { showAlert } = useGlobalAlerts()
   const { user } = useAuth()
+  const { googleCalendar: googleResult, message: googleErrorMessage } = useSearch({
+    from: '/app/agendamentos',
+  })
+  const navigate = useNavigate()
 
   // Google Calendar integration is available to OWNER only on this page.
   // The route (/app/agendamentos) is guarded to OWNER and ASSISTANT, so only
@@ -105,8 +110,6 @@ export function useAppointmentsPage() {
   }, [canManageGoogleCalendar, showAlert])
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const googleResult = params.get('googleCalendar')
     if (!googleResult) return
 
     if (googleResult === 'connected') {
@@ -125,13 +128,13 @@ export function useAppointmentsPage() {
     if (googleResult === 'error') {
       showAlert({
         title: 'Erro ao conectar Google Agenda',
-        description: params.get('message') ?? 'Não foi possível conectar o Google Agenda.',
+        description: googleErrorMessage ?? 'Não foi possível conectar o Google Agenda.',
         tone: 'error',
       })
     }
 
-    window.history.replaceState(null, '', window.location.pathname)
-  }, [canManageGoogleCalendar, showAlert])
+    navigate({ to: '/app/agendamentos', replace: true })
+  }, [googleResult, googleErrorMessage, canManageGoogleCalendar, showAlert, navigate])
 
   const selectedProfileId = activeFilters.profileId as string | undefined
 
