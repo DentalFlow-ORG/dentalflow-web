@@ -1,6 +1,7 @@
 import { Navigate } from '@tanstack/react-router'
 import { type ReactNode, Suspense } from 'react'
 
+import { FullPageSpinner } from '@/components/common/FullPageSpinner'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { AppShell } from '@/components/layout/AppShell'
 import { useAuth } from '@/features/auth/hooks/useAuth'
@@ -14,11 +15,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   const { user, isAuthenticated, isBootstrapping } = useAuth()
 
   if (isBootstrapping) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background text-sm font-medium text-muted-foreground">
-        Carregando sessão...
-      </div>
-    )
+    return <FullPageSpinner message="Carregando sessão..." />
   }
 
   if (!isAuthenticated) {

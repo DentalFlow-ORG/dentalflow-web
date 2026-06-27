@@ -38,13 +38,14 @@ describe('AdminRoute', () => {
     setMockAuthState({ isBootstrapping: false, isAuthenticated: true, user: adminUser })
   })
 
-  it('shows a loading message while auth is bootstrapping', () => {
+  it('shows a loading spinner while auth is bootstrapping', () => {
     setMockAuthState({ isBootstrapping: true })
     renderWithProviders(
       <AdminRoute>
         <div>Admin Content</div>
       </AdminRoute>,
     )
+    expect(screen.getByRole('status')).toBeInTheDocument()
     expect(screen.getByText('Carregando sessão...')).toBeInTheDocument()
     expect(screen.queryByTestId('app-shell')).not.toBeInTheDocument()
   })

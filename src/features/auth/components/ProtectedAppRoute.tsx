@@ -1,7 +1,7 @@
 import { Navigate, useRouterState } from '@tanstack/react-router'
-import { Loader2 } from 'lucide-react'
 import { type ReactNode, Suspense, useEffect, useLayoutEffect, useState } from 'react'
 
+import { FullPageSpinner } from '@/components/common/FullPageSpinner'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { AppShell } from '@/components/layout/AppShell'
 import { SubscriptionOnlyShell } from '@/components/layout/SubscriptionOnlyShell'
@@ -92,15 +92,7 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
   }, [needsBillingCheck, isAdmin, billingChecked, billingStatus?.accessAllowed])
 
   if (isBootstrapping) {
-    return (
-      <div
-        className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background"
-        role="status"
-      >
-        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
-        <span className="text-sm font-medium text-muted-foreground">Carregando DentalFlow...</span>
-      </div>
-    )
+    return <FullPageSpinner message="Carregando DentalFlow..." />
   }
 
   if (!isAuthenticated) {
@@ -126,15 +118,7 @@ export function ProtectedAppRoute({ children, allowedRoles }: ProtectedAppRouteP
 
   // Billing check in progress — render nothing until we know the access state
   if (!billingChecked) {
-    return (
-      <div
-        className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background"
-        role="status"
-      >
-        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
-        <span className="text-sm font-medium text-muted-foreground">Verificando assinatura...</span>
-      </div>
-    )
+    return <FullPageSpinner message="Verificando assinatura..." />
   }
 
   // null status means the check failed (network error) — fail open so backend handles enforcement
