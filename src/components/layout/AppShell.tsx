@@ -24,7 +24,7 @@ import {
   X,
   Zap,
 } from 'lucide-react'
-import { Collapsible } from 'radix-ui'
+import { Collapsible, Dialog } from 'radix-ui'
 import { type ReactNode, useState } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
@@ -432,53 +432,53 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
       </nav>
 
       {/* ── Mobile More Sheet ──────────────────────────────────────────────── */}
-      {moreOpen && (
-        <div
-          className="fixed inset-0 z-30 lg:hidden print:hidden"
-          onClick={() => setMoreOpen(false)}
-        >
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-          <div
-            className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-border bg-card pb-[calc(env(safe-area-inset-bottom)+4rem)]"
-            onClick={(e) => e.stopPropagation()}
+      <Dialog.Root open={moreOpen} onOpenChange={setMoreOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm lg:hidden print:hidden" />
+          <Dialog.Content
+            className="fixed inset-x-0 bottom-0 z-30 rounded-t-2xl border-t border-border bg-card pb-[calc(env(safe-area-inset-bottom)+4rem)] lg:hidden print:hidden"
+            aria-describedby={undefined}
           >
             <div className="flex items-center justify-between px-5 py-4">
-              <p className="text-sm font-semibold text-foreground">Mais opções</p>
-              <button
-                type="button"
-                aria-label="Fechar"
-                onClick={() => setMoreOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-              </button>
+              <Dialog.Title className="text-sm font-semibold text-foreground">
+                Mais opções
+              </Dialog.Title>
+              <Dialog.Close asChild>
+                <button
+                  type="button"
+                  aria-label="Fechar"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </Dialog.Close>
             </div>
-            <nav className="grid grid-cols-3 gap-1 px-4 pb-4">
+            <nav aria-label="Mais opções de navegação" className="grid grid-cols-3 gap-1 px-4 pb-4">
               {secondaryNav.map((item) => {
                 const { label, to, icon: Icon } = item
                 const active = isActive(item)
                 return (
-                  <Link
-                    key={to}
-                    to={to}
-                    onClick={() => setMoreOpen(false)}
-                    aria-current={active ? 'page' : undefined}
-                    className={cn(
-                      'flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center text-[11px] font-semibold transition-colors',
-                      active
-                        ? 'bg-sidebar-accent text-sidebar-primary'
-                        : 'text-muted-foreground hover:bg-muted',
-                    )}
-                  >
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                    <span>{label}</span>
-                  </Link>
+                  <Dialog.Close key={to} asChild>
+                    <Link
+                      to={to}
+                      aria-current={active ? 'page' : undefined}
+                      className={cn(
+                        'flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center text-[11px] font-semibold transition-colors',
+                        active
+                          ? 'bg-sidebar-accent text-sidebar-primary'
+                          : 'text-muted-foreground hover:bg-muted',
+                      )}
+                    >
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                      <span>{label}</span>
+                    </Link>
+                  </Dialog.Close>
                 )
               })}
             </nav>
-          </div>
-        </div>
-      )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       {/* ── Main Content ───────────────────────────────────────────────────── */}
       <div className="lg:pl-64 print:pl-0">

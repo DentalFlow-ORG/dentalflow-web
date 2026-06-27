@@ -9,6 +9,7 @@ import {
 import { mockLogout, resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 import { mockNavigate, resetRouterMocks } from '@/test-utils/mocks/router'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 vi.mock('@tanstack/react-router', async () => {
@@ -256,5 +257,50 @@ describe('active route', () => {
     for (const link of agendaLinks) {
       expect(link).not.toHaveAttribute('aria-current', 'page')
     }
+  })
+})
+
+// ─── Mobile More Sheet ────────────────────────────────────────────────────────
+
+describe('Mobile More Sheet', () => {
+  it('opens the dialog when the Mais button is clicked', () => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell()
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Mais' }))
+    expect(screen.getByRole('dialog', { name: 'Mais opções' })).toBeInTheDocument()
+  })
+
+  it('dialog contains secondary nav items for OWNER', () => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mais' }))
+    const dialog = screen.getByRole('dialog', { name: 'Mais opções' })
+    // Configurações is an OWNER secondary nav item (not in primary routes)
+    expect(dialog).toContainElement(screen.getByRole('link', { name: 'Configurações' }))
+  })
+
+  it('closes the dialog when the Fechar button is clicked', () => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mais' }))
+    expect(screen.getByRole('dialog', { name: 'Mais opções' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('closes the dialog when Escape is pressed', async () => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mais' }))
+    expect(screen.getByRole('dialog', { name: 'Mais opções' })).toBeInTheDocument()
+
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })
