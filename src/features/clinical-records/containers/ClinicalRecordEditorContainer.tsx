@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
@@ -130,7 +131,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   })
 
   // Navigation guard — warns before leaving when there are unsaved draft changes.
-  useUnsavedChangesGuard({
+  const { isBlocked, proceed, reset } = useUnsavedChangesGuard({
     isDirty: record?.status === 'DRAFT' && Object.keys(draft).length > 0,
   })
 
@@ -705,6 +706,19 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         {/* ── Patient history ──────────────────────────────────────────────── */}
         <PatientHistoryPanel currentRecordId={record.id} identifier={identifier} />
       </AppPage>
+
+      {/* ── Unsaved-changes navigation guard ────────────────────────────────── */}
+      {/* Portal-based overlay — position in the tree does not affect layout.  */}
+      <ConfirmDialog
+        open={isBlocked}
+        title="Sair sem salvar?"
+        description="Há alterações não salvas neste prontuário. Se sair agora, as alterações pendentes serão perdidas."
+        tone="warning"
+        confirmLabel="Sair sem salvar"
+        cancelLabel="Continuar editando"
+        onConfirm={proceed}
+        onCancel={reset}
+      />
     </div>
   )
 }

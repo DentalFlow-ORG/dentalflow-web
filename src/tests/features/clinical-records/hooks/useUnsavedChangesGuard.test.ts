@@ -13,11 +13,21 @@ vi.mock('@tanstack/react-router', () => ({
 
 const mockUseBlocker = vi.mocked(useBlocker)
 
+const IDLE_RESOLVER = {
+  status: 'idle' as const,
+  current: undefined,
+  next: undefined,
+  action: undefined,
+  proceed: undefined,
+  reset: undefined,
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('useUnsavedChangesGuard', () => {
   beforeEach(() => {
     mockUseBlocker.mockClear()
+    mockUseBlocker.mockReturnValue(IDLE_RESOLVER)
   })
 
   // T1 ─────────────────────────────────────────────────────────────────────────
@@ -92,7 +102,9 @@ describe('useUnsavedChangesGuard', () => {
   it('calls useBlocker with disabled=true when isDirty is false', () => {
     renderHook(() => useUnsavedChangesGuard({ isDirty: false }))
 
-    expect(mockUseBlocker).toHaveBeenCalledWith(expect.objectContaining({ disabled: true }))
+    expect(mockUseBlocker).toHaveBeenCalledWith(
+      expect.objectContaining({ disabled: true, withResolver: true }),
+    )
   })
 
   // T7 ─────────────────────────────────────────────────────────────────────────
@@ -100,6 +112,55 @@ describe('useUnsavedChangesGuard', () => {
   it('calls useBlocker with disabled=false when isDirty is true', () => {
     renderHook(() => useUnsavedChangesGuard({ isDirty: true }))
 
-    expect(mockUseBlocker).toHaveBeenCalledWith(expect.objectContaining({ disabled: false }))
+    expect(mockUseBlocker).toHaveBeenCalledWith(
+      expect.objectContaining({ disabled: false, withResolver: true }),
+    )
+  })
+
+  // T8 ─────────────────────────────────────────────────────────────────────────
+
+  it('returns isBlocked=false and no-op callbacks when the blocker is idle', () => {
+    const { result } = renderHook(() => useUnsavedChangesGuard({ isDirty: true }))
+
+    expect(result.current.isBlocked).toBe(false)
+    // No-op callbacks must be callable without throwing
+    expect(() => result.current.proceed()).not.toThrow()
+    expect(() => result.current.reset()).not.toThrow()
+  })
+
+  // T9 ─────────────────────────────────────────────────────────────────────────
+
+  it('returns isBlocked=true and forwards proceed/reset when the blocker is blocked', () => {
+    const mockProceed = vi.fn()
+    const mockReset = vi.fn()
+
+    mockUseBlocker.mockReturnValue({
+      status: 'blocked' as const,
+      current: undefined as never,
+      next: undefined as never,
+      action: undefined as never,
+      proceed: mockProceed,
+      reset: mockReset,
+    })
+
+    const { result } = renderHook(() => useUnsavedChangesGuard({ isDirty: true }))
+
+    expect(result.current.isBlocked).toBe(true)
+
+    result.current.proceed()
+    expect(mockProceed).toHaveBeenCalledTimes(1)
+
+    result.current.reset()
+    expect(mockReset).toHaveBeenCalledTimes(1)
+  })
+
+  // T10 ────────────────────────────────────────────────────────────────────────
+
+  it('passes enableBeforeUnload=false to useBlocker so the browser guard is not duplicated', () => {
+    renderHook(() => useUnsavedChangesGuard({ isDirty: true }))
+
+    expect(mockUseBlocker).toHaveBeenCalledWith(
+      expect.objectContaining({ enableBeforeUnload: false }),
+    )
   })
 })
