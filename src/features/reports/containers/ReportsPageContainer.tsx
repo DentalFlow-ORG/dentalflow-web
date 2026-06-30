@@ -1,6 +1,8 @@
 import { DatePickerInput } from '@/components/common/DatePickerInput'
+import { EmptyState } from '@/components/common/EmptyState'
 import { FormField } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { LoadingCard } from '@/components/common/LoadingCard'
 import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
 import { AppPage } from '@/components/layout/AppPage'
 import { AppPageHeader } from '@/components/layout/AppPageHeader'
@@ -13,9 +15,13 @@ import {
 } from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
+import { listAppointments } from '@/features/scheduling/services/scheduling.service'
+import type { Appointment } from '@/features/scheduling/types/scheduling.types'
+import { isoDateToString } from '@/features/scheduling/utils/time'
 import { defaultLast30DaysRange, validateReportDateRange } from '@/lib/date-range-rules'
-import { AlertTriangle, ShieldCheck } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { formatCurrencyBRL } from '@/lib/number-formatters'
+import { AlertTriangle, ShieldCheck, Users2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { ReportCard } from '../components/ReportCard'
 import { ReportFilterChips } from '../components/ReportFilterChips'
 import {
@@ -40,6 +46,66 @@ import {
   getInventoryFilterChips,
   getInvoicesFilterChips,
 } from '../utils/report-filter-chips'
+
+type DentistProduction = {
+  profileId: string
+  displayName: string
+  completedCount: number
+  noShowCount: number
+  totalCount: number
+  completionRate: number
+  estimatedCents: number
+  avgEstimatedCents: number | null
+}
+
+function computeDentistProduction(
+  appointments: Appointment[],
+  startDate: string | undefined,
+  endDate: string | undefined,
+): DentistProduction[] {
+  const inRange = appointments.filter((a) => {
+    const date = isoDateToString(a.appointmentDate)
+    if (startDate && date < startDate) return false
+    if (endDate && date > endDate) return false
+    return true
+  })
+
+  const byProfile = new Map<
+    string,
+    { displayName: string; completed: Appointment[]; noShow: number; total: number }
+  >()
+
+  for (const appt of inRange) {
+    const key = appt.profileId
+    const entry = byProfile.get(key) ?? {
+      displayName: appt.profile?.displayName ?? 'Profissional não informado',
+      completed: [],
+      noShow: 0,
+      total: 0,
+    }
+    entry.total += 1
+    if (appt.status === 'COMPLETED') entry.completed.push(appt)
+    if (appt.status === 'NO_SHOW') entry.noShow += 1
+    byProfile.set(key, entry)
+  }
+
+  return Array.from(byProfile.entries())
+    .map(([profileId, v]) => {
+      const completedCount = v.completed.length
+      const estimatedCents = v.completed.reduce((sum, a) => sum + (a.estimatedAmountCents ?? 0), 0)
+      return {
+        profileId,
+        displayName: v.displayName,
+        completedCount,
+        noShowCount: v.noShow,
+        totalCount: v.total,
+        completionRate: v.total > 0 ? completedCount / v.total : 0,
+        estimatedCents,
+        avgEstimatedCents: completedCount > 0 ? Math.round(estimatedCents / completedCount) : null,
+      }
+    })
+    .sort((a, b) => b.estimatedCents - a.estimatedCents)
+}
 
 function FilterRow({
   children,
@@ -86,6 +152,29 @@ export function ReportsPageContainer() {
   const [invFilters, setInvFilters] = useState<InventoryReportFilters>({})
   const [invoiceFilters, setInvoiceFilters] = useState<InvoicesReportFilters>(() =>
     defaultLast30DaysRange(),
+  )
+
+  // OWNER-only "Produção por dentista" — reuses the appointments report's own
+  // period filters; data comes from the same /appointments endpoint OWNER
+  // already calls elsewhere (e.g. /app/agendamentos), no new permission needed.
+  const [allAppointments, setAllAppointments] = useState<Appointment[]>([])
+  const [isLoadingProduction, setIsLoadingProduction] = useState(isOwner)
+
+  useEffect(() => {
+    if (!isOwner) return
+    setIsLoadingProduction(true)
+    listAppointments()
+      .then(setAllAppointments)
+      .catch(() => setAllAppointments([]))
+      .finally(() => setIsLoadingProduction(false))
+  }, [isOwner])
+
+  const dentistProduction = useMemo(
+    () =>
+      isOwner
+        ? computeDentistProduction(allAppointments, apptFilters.startDate, apptFilters.endDate)
+        : [],
+    [isOwner, allAppointments, apptFilters.startDate, apptFilters.endDate],
   )
 
   const financeError = validateReportDateRange(financeFilters.startDate, financeFilters.endDate, {
@@ -272,6 +361,98 @@ export function ReportsPageContainer() {
           <ReportFilterChips chips={apptChips} onClear={clearApptFilters} />
         </ReportCard>
       </section>
+
+      {/* ── Production by dentist (OWNER only) ── */}
+      {isOwner && (
+        <section>
+          <ReportSectionHeader label="Produção por dentista" />
+          {isLoadingProduction ? (
+            <LoadingCard message="Carregando produção por dentista..." />
+          ) : dentistProduction.length === 0 ? (
+            <EmptyState
+              icon={Users2}
+              title="Nenhuma produção no período"
+              description="Ajuste o período do relatório de agendamentos acima para ver a produção por dentista."
+            />
+          ) : (
+            <div className="overflow-hidden rounded-lg border border-border bg-card">
+              <table className="w-full text-sm" aria-label="Produção por dentista">
+                <thead>
+                  <tr className="border-b border-border bg-muted text-left">
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    >
+                      Dentista
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    >
+                      Concluídas
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    >
+                      Faltas
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    >
+                      Total
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    >
+                      Taxa de conclusão
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    >
+                      Produção estimada
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    >
+                      Média por consulta
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dentistProduction.map((d) => (
+                    <tr key={d.profileId} className="border-b border-border last:border-0">
+                      <td className="px-4 py-3 font-medium text-foreground">{d.displayName}</td>
+                      <td className="px-4 py-3 tabular-nums text-foreground">{d.completedCount}</td>
+                      <td className="px-4 py-3 tabular-nums text-foreground">{d.noShowCount}</td>
+                      <td className="px-4 py-3 tabular-nums text-foreground">{d.totalCount}</td>
+                      <td className="px-4 py-3 tabular-nums text-foreground">
+                        {Math.round(d.completionRate * 100)}%
+                      </td>
+                      <td className="px-4 py-3 tabular-nums text-foreground">
+                        {formatCurrencyBRL(d.estimatedCents / 100)}
+                      </td>
+                      <td className="px-4 py-3 tabular-nums text-foreground">
+                        {d.avgEstimatedCents != null
+                          ? formatCurrencyBRL(d.avgEstimatedCents / 100)
+                          : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className="mt-2 text-xs text-muted-foreground">
+            Produção estimada com base apenas nas consultas concluídas no período selecionado no
+            relatório de agendamentos acima. Não inclui dados financeiros da clínica.
+          </p>
+        </section>
+      )}
 
       {/* ── Inventory report ── */}
       <section>

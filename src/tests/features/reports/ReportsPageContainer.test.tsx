@@ -1,7 +1,12 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { render, screen, waitFor } from '@/test-utils/render-utils'
 
 import { ReportsPageContainer } from '@/features/reports/containers/ReportsPageContainer'
-import { makeAssistantUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
+import { makeAppointment } from '@/test-utils/factories/appointment.factory'
+import {
+  makeAssistantUser,
+  makeDentistUser,
+  makeOwnerUser,
+} from '@/test-utils/factories/user.factory'
 import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -57,11 +62,17 @@ vi.mock('@/components/common/global-alerts-context', () => ({
   useGlobalAlerts: () => ({ showAlert: vi.fn(), dismissAlert: vi.fn() }),
 }))
 
+const mockListAppointments = vi.fn()
+vi.mock('@/features/scheduling/services/scheduling.service', () => ({
+  listAppointments: () => mockListAppointments(),
+}))
+
 // ── Setup / teardown ──────────────────────────────────────────────────────────
 
 beforeEach(() => {
   setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
   mockGetCachedBillingStatus.mockReturnValue({ planKey: 'professional' })
+  mockListAppointments.mockResolvedValue([])
 })
 
 afterEach(() => {
@@ -155,6 +166,177 @@ describe('ReportsPageContainer — OWNER', () => {
   it('does not render the ASSISTANT finance explainer', () => {
     render(<ReportsPageContainer />)
     expect(screen.queryByText(/disponível apenas para proprietários/i)).not.toBeInTheDocument()
+  })
+})
+
+// ── Produção por dentista (OWNER only) ────────────────────────────────────────
+
+describe('ReportsPageContainer — Produção por dentista', () => {
+  const dentistA = { id: 'profile-a', displayName: 'Dr. Ana', userId: 'user-a' }
+  const dentistB = { id: 'profile-b', displayName: 'Dr. Bruno', userId: 'user-b' }
+
+  beforeEach(() => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+  })
+
+  it('renders the section heading for OWNER', async () => {
+    render(<ReportsPageContainer />)
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Produção por dentista', level: 2 }),
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('shows an empty state when there is no appointment data in the period', async () => {
+    mockListAppointments.mockResolvedValue([])
+    render(<ReportsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Nenhuma produção no período')).toBeInTheDocument()
+    })
+  })
+
+  it('groups completed, no-show, and total counts by dentist', async () => {
+    mockListAppointments.mockResolvedValue([
+      makeAppointment({
+        id: 'a1',
+        profileId: 'profile-a',
+        profile: dentistA,
+        appointmentDate: '2026-05-20',
+        status: 'COMPLETED',
+        estimatedAmountCents: 10000,
+      }),
+      makeAppointment({
+        id: 'a2',
+        profileId: 'profile-a',
+        profile: dentistA,
+        appointmentDate: '2026-05-21',
+        status: 'COMPLETED',
+        estimatedAmountCents: 20000,
+      }),
+      makeAppointment({
+        id: 'a3',
+        profileId: 'profile-a',
+        profile: dentistA,
+        appointmentDate: '2026-05-22',
+        status: 'NO_SHOW',
+      }),
+      makeAppointment({
+        id: 'b1',
+        profileId: 'profile-b',
+        profile: dentistB,
+        appointmentDate: '2026-05-23',
+        status: 'PENDING',
+        estimatedAmountCents: 99999,
+      }),
+    ])
+    render(<ReportsPageContainer />)
+
+    const rowA = await waitFor(() => {
+      const row = screen.getByText('Dr. Ana').closest('tr')
+      expect(row).not.toBeNull()
+      return row as HTMLTableRowElement
+    })
+    // 2 completed, 1 no-show, 3 total, 67% completion rate
+    expect(rowA).toHaveTextContent('2')
+    expect(rowA).toHaveTextContent('1')
+    expect(rowA).toHaveTextContent('3')
+    expect(rowA).toHaveTextContent('67%')
+
+    const rowB = screen.getByText('Dr. Bruno').closest('tr') as HTMLTableRowElement
+    // 0 completed, 0 no-show, 1 total (PENDING only) — no production from a non-completed appointment
+    expect(rowB).toHaveTextContent('0%')
+  })
+
+  it('sums estimated production only from completed appointments, formatted as BRL', async () => {
+    mockListAppointments.mockResolvedValue([
+      makeAppointment({
+        id: 'a1',
+        profileId: 'profile-a',
+        profile: dentistA,
+        appointmentDate: '2026-05-20',
+        status: 'COMPLETED',
+        estimatedAmountCents: 10000,
+      }),
+      makeAppointment({
+        id: 'a2',
+        profileId: 'profile-a',
+        profile: dentistA,
+        appointmentDate: '2026-05-21',
+        status: 'COMPLETED',
+        estimatedAmountCents: 20000,
+      }),
+      makeAppointment({
+        id: 'a3',
+        profileId: 'profile-a',
+        profile: dentistA,
+        appointmentDate: '2026-05-22',
+        status: 'PENDING',
+        estimatedAmountCents: 99999,
+      }),
+    ])
+    render(<ReportsPageContainer />)
+
+    const rowA = await waitFor(() => {
+      const row = screen.getByText('Dr. Ana').closest('tr')
+      expect(row).not.toBeNull()
+      return row as HTMLTableRowElement
+    })
+    // Only the two COMPLETED appointments (R$100 + R$200) count toward production
+    expect(rowA?.textContent).toMatch(/R\$\s*300,00/)
+    expect(rowA?.textContent).toMatch(/R\$\s*150,00/)
+  })
+
+  it('excludes appointments outside the selected period', async () => {
+    mockListAppointments.mockResolvedValue([
+      makeAppointment({
+        id: 'a1',
+        profileId: 'profile-a',
+        profile: dentistA,
+        appointmentDate: '2026-01-01',
+        status: 'COMPLETED',
+        estimatedAmountCents: 50000,
+      }),
+    ])
+    render(<ReportsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Nenhuma produção no período')).toBeInTheDocument()
+    })
+    expect(screen.queryByText('Dr. Ana')).not.toBeInTheDocument()
+  })
+
+  it('does not render the section for ASSISTANT', async () => {
+    setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
+    render(<ReportsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Agendamentos', level: 2 })).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: 'Produção por dentista' })).not.toBeInTheDocument()
+  })
+
+  it('does not fetch appointment data for ASSISTANT', async () => {
+    setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
+    render(<ReportsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Agendamentos', level: 2 })).toBeInTheDocument()
+    })
+    expect(mockListAppointments).not.toHaveBeenCalled()
+  })
+
+  it('does not render the section for DENTIST', async () => {
+    setMockAuthState({ user: makeDentistUser(), isAuthenticated: true })
+    render(<ReportsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Agendamentos', level: 2 })).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('heading', { name: 'Produção por dentista' })).not.toBeInTheDocument()
+  })
+
+  it('does not change the existing Agendamentos report section', async () => {
+    render(<ReportsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Relatório de agendamentos' })).toBeInTheDocument()
+    })
   })
 })
 
