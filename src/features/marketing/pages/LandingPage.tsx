@@ -1,3 +1,4 @@
+import { useLocation } from '@tanstack/react-router'
 import { LazyMotion, domAnimation } from 'motion/react'
 import { useEffect } from 'react'
 
@@ -24,16 +25,16 @@ export function LandingPage() {
     'Centralize agenda, pacientes, financeiro, estoque, leads e IA em uma plataforma moderna para clínicas odontológicas. 7 dias grátis.',
   )
 
+  const location = useLocation()
+
   useEffect(() => {
-    if (!window.location.hash) return
-
+    if (!location.hash) return
+    const id = location.hash.slice(1)
     const timeout = window.setTimeout(() => {
-      const target = document.getElementById(window.location.hash.slice(1))
-      target?.scrollIntoView({ block: 'start' })
+      document.getElementById(id)?.scrollIntoView({ block: 'start' })
     }, 250)
-
     return () => window.clearTimeout(timeout)
-  }, [])
+  }, [location.hash])
 
   // `LazyMotion` + `domAnimation` loads only the animation features the landing
   // page needs, keeping the motion runtime small. All `m.*` components on the
