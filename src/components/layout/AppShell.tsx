@@ -25,7 +25,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { Collapsible, Dialog } from 'radix-ui'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 
 import { BrandLink } from '@/components/brand/BrandLink'
 import { Button } from '@/components/ui/button'
@@ -525,10 +525,10 @@ export function AppShell({ children, billingStatus }: AppShellProps) {
 }
 
 function TrialBanner({ trialEndsAt }: { trialEndsAt: string }) {
-  const [daysRemaining] = useState(() => {
+  const daysRemaining = useMemo(() => {
     const diff = new Date(trialEndsAt).getTime() - Date.now()
     return Math.max(0, Math.ceil(diff / 86_400_000))
-  })
+  }, [trialEndsAt])
 
   return (
     <div className="border-b border-orange-200 bg-orange-50 px-4 py-2 dark:border-orange-800/30 dark:bg-orange-950/30 sm:px-6 lg:px-8">
