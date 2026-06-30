@@ -1,35 +1,13 @@
 import { CalendarDays, CheckCircle2, Clock, DollarSign } from 'lucide-react'
 import { useMemo } from 'react'
 
-import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { formatCurrencyBRL } from '@/lib/number-formatters'
 
 import type { Appointment } from '../types/scheduling.types'
-import { isoDateToString } from '../utils/time'
+import { computeKpiMetrics } from './SchedulingKpiCards.utils'
 
 type SchedulingKpiCardsProps = {
   appointments: Appointment[]
-}
-
-export type KpiMetrics = {
-  todayTotal: number
-  confirmed: number
-  pending: number
-  expectedRevenueCents: number
-}
-
-export function computeKpiMetrics(appointments: Appointment[]): KpiMetrics {
-  const todayStr = brazilTodayIso()
-  const today = appointments.filter((a) => isoDateToString(a.appointmentDate) === todayStr)
-
-  return {
-    todayTotal: today.length,
-    confirmed: today.filter((a) => a.status === 'CONFIRMED').length,
-    pending: today.filter((a) => a.status === 'PENDING').length,
-    expectedRevenueCents: today
-      .filter((a) => a.status !== 'CANCELED')
-      .reduce((sum, a) => sum + (a.estimatedAmountCents ?? 0), 0),
-  }
 }
 
 export function SchedulingKpiCards({ appointments }: SchedulingKpiCardsProps) {
@@ -101,7 +79,7 @@ function KpiCard({
       <div className="min-w-0">
         <p className="line-clamp-2 text-xs text-muted-foreground">{label}</p>
         <p
-          className={`mt-1 min-w-0 break-words text-base font-semibold leading-tight tabular-nums sm:text-xl ${valueColor}`}
+          className={`mt-1 min-w-0 wrap-break-word text-base font-semibold leading-tight tabular-nums sm:text-xl ${valueColor}`}
         >
           {value}
         </p>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { computeTeamKpis } from '@/features/team/containers/TeamPageContainer'
+import { computeTeamKpis } from '@/features/team/containers/TeamPageContainer.utils'
 import type { MemberListItem, UserLimitUsage } from '@/features/team/types/team.types'
 
 function makeUsage(overrides: Partial<UserLimitUsage> = {}): UserLimitUsage {

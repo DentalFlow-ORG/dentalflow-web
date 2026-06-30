@@ -1,4 +1,5 @@
-import { MonthPickerInput, maskMonthInput } from '@/components/common/MonthPickerInput'
+import { MonthPickerInput } from '@/components/common/MonthPickerInput'
+import { maskMonthInput } from '@/components/common/MonthPickerInput.utils'
 import { brazilCurrentIsoMonth } from '@/lib/brazil-timezone'
 import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'

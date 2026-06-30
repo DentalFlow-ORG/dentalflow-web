@@ -1,9 +1,7 @@
 import { render, screen } from '@/test-utils/render-utils'
 
-import {
-  SchedulingKpiCards,
-  computeKpiMetrics,
-} from '@/features/scheduling/components/SchedulingKpiCards'
+import { SchedulingKpiCards } from '@/features/scheduling/components/SchedulingKpiCards'
+import { computeKpiMetrics } from '@/features/scheduling/components/SchedulingKpiCards.utils'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 import { DEFAULT_APPT_DATE } from '@/test-utils/factories/appointment.factory'
 

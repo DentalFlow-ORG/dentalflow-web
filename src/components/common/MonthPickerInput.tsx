@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { brazilCurrentIsoMonth } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
+import { maskMonthInput } from './MonthPickerInput.utils'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -40,13 +41,6 @@ function displayToIsoMonth(display: string): string | null {
   const m = Number.parseInt(month, 10)
   if (m < 1 || m > 12) return null
   return `${year}-${month}`
-}
-
-// Auto-inserts the slash after two month digits, strips non-digit characters.
-export function maskMonthInput(raw: string): string {
-  const digits = raw.replace(/\D/g, '').slice(0, 6)
-  if (digits.length <= 2) return digits
-  return `${digits.slice(0, 2)}/${digits.slice(2)}`
 }
 
 // 'YYYY-MM' → "Junho de 2026" (long label, UTC-safe)

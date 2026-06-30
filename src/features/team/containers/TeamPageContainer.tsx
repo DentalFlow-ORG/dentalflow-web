@@ -19,23 +19,7 @@ import { ClinicMemberPasswordModal } from '../components/ClinicMemberPasswordMod
 import { TeamMemberCards } from '../components/TeamMemberCards'
 import { TeamMembersTable } from '../components/TeamMembersTable'
 import { useTeamPage } from '../hooks/useTeamPage'
-import type { MemberListItem, UserLimitUsage } from '../types/team.types'
-
-export type TeamKpis = {
-  usageValue: string
-  dentistCount: number
-  assistantCount: number
-  isAtLimit: boolean
-}
-
-export function computeTeamKpis(members: MemberListItem[], usage: UserLimitUsage): TeamKpis {
-  return {
-    usageValue: usage.limit > 0 ? `${usage.used}/${usage.limit}` : String(usage.used),
-    dentistCount: members.filter((m) => m.role === 'DENTIST').length,
-    assistantCount: members.filter((m) => m.role === 'ASSISTANT').length,
-    isAtLimit: usage.remaining <= 0 && usage.limit > 0,
-  }
-}
+import { computeTeamKpis } from './TeamPageContainer.utils'
 
 export function TeamPageContainer() {
   const {
