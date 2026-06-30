@@ -377,25 +377,3 @@ export function getPlanCardFeatures(planKey: CommercialPlanKey): {
 
   return { sectionLabel: cardConfig.sectionLabel, features, upgradeHints }
 }
-
-export function getPlanFeatureSummaries(planKey: string, limit = 7) {
-  const normalizedPlan = planKey.toLowerCase() as CommercialPlanKey
-  if (!PLAN_ORDER.includes(normalizedPlan)) return []
-
-  const publicFeatures = getPublicCommercialFeatures()
-  const cardConfig = PLAN_CARD_FEATURES[normalizedPlan]
-
-  return cardConfig.features
-    .map((entry) => {
-      const id = typeof entry === 'string' ? entry : entry.id
-      const labelOverride = typeof entry === 'string' ? undefined : entry.label
-      const feature = publicFeatures.find((f) => f.id === id)
-      if (!feature) return null
-      const availability = getFeatureAvailability(feature, normalizedPlan)
-      if (availability === 'not_included') return null
-      const label = labelOverride ?? feature.title
-      return availability === 'soon' ? `${label} (em breve)` : label
-    })
-    .filter((label): label is string => label != null)
-    .slice(0, limit)
-}

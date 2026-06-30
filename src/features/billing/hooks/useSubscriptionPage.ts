@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
-import { getPlanFeatureSummaries } from '@/features/marketing/config/features'
 
 import { setCachedBillingStatus } from '../services/billing-status-cache'
 import {
@@ -19,21 +18,6 @@ import type {
   BillingPlan,
   CurrentBillingStatus,
 } from '../types/billing.types'
-
-export function getPlanFeatures(plan: BillingPlan): string[] {
-  const features: string[] = getPlanFeatureSummaries(plan.slug)
-  if (plan.maxProfiles != null) features.push(`Até ${plan.maxProfiles} perfis`)
-  else features.push('Perfis ilimitados')
-  if (plan.maxLeadsPerMonth != null) features.push(`Até ${plan.maxLeadsPerMonth} leads por mês`)
-  if (plan.maxServicesPerProfile != null) {
-    features.push(`Até ${plan.maxServicesPerProfile} serviços por perfil`)
-  }
-  if (plan.hasAppointments) features.push('Agendamentos online')
-  if (plan.hasAnalytics) features.push('Relatórios e análises')
-  if (plan.hasCustomDomain) features.push('Domínio personalizado')
-  if (plan.hasPrioritySupport) features.push('Suporte prioritário')
-  return [...new Set(features)]
-}
 
 export function intervalAvailableForPlan(plan: BillingPlan, interval: BillingInterval): boolean {
   return interval === 'MONTHLY' ? plan.hasMonthlyPrice : plan.hasYearlyPrice
