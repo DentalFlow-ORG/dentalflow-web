@@ -64,13 +64,13 @@ export function useInventoryPage() {
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initializedRef = useRef(false)
-  const [initKey, setInitKey] = useState(0)
+  const [retryKey, setRetryKey] = useState(0)
 
-  // Initial load: summary + categories + products in parallel; initKey increments on retry
+  // Initial load: summary + categories + products in parallel; retryKey increments on retry
   useEffect(() => {
-    if (initKey < 0) return // never true; declares initKey as a dep
     setIsLoading(true)
     setError(null)
+    if (retryKey > 0) setPlanBlocked(false) // clear stale 403 state so a successful retry renders normally
     initializedRef.current = false
 
     Promise.all([
@@ -97,7 +97,7 @@ export function useInventoryPage() {
         setError(message)
       })
       .finally(() => setIsLoading(false))
-  }, [initKey]) // initKey allows manual retry
+  }, [retryKey])
 
   // Reload products when filters/page change (skips initial run via initializedRef)
   useEffect(() => {
@@ -156,7 +156,7 @@ export function useInventoryPage() {
   }, [])
 
   const handleRetry = useCallback(() => {
-    setInitKey((k) => k + 1)
+    setRetryKey((k) => k + 1)
   }, [])
 
   const handlePageSizeChange = useCallback((size: number) => {
