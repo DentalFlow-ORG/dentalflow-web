@@ -211,8 +211,8 @@ describe('Feature matrix — DENTIST', () => {
     expect(getRoleFeatureAccess('DENTIST', 'clinicalRecords')).toBe('editable')
   })
 
-  it('has future access to Google Calendar (backend callback not yet DENTIST-aware)', () => {
-    expect(getRoleFeatureAccess('DENTIST', 'googleCalendar')).toBe('future')
+  it('has editable access to Google Calendar (role-aware backend callback)', () => {
+    expect(getRoleFeatureAccess('DENTIST', 'googleCalendar')).toBe('editable')
   })
 
   it('has editable access to own availability', () => {

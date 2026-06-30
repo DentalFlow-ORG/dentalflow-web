@@ -107,9 +107,8 @@ type RoleMatrix = Record<AuthUserRole, Record<HomeFeature, RoleFeatureAccess>>
  * Notes on specific cells:
  *   DENTIST.statusTransitions = 'read-only': limited set (COMPLETED + NO_SHOW only),
  *     enforced by DENTIST_ALLOWED_TRANSITIONS in useSchedulePage.
- *   DENTIST.googleCalendar = 'future': the backend OAuth callback currently
- *     redirects to /app/agendamentos which DENTIST cannot access; full support
- *     requires a role-aware callback before enabling the UI.
+ *   DENTIST.googleCalendar = 'editable': the backend OAuth callback is role-aware
+ *     and redirects DENTIST to /app/agenda, which now handles the callback.
  *   ASSISTANT.subscription = 'read-only': ASSISTANT can land on the subscription
  *     page if billing lapses, but cannot manage it — subscription management is
  *     an OWNER responsibility.
@@ -180,7 +179,7 @@ const ROLE_FEATURE_MATRIX: RoleMatrix = {
     finance: 'hidden',
     stock: 'hidden',
     team: 'read-only', // can view own profile via /app/equipe/$profileId
-    googleCalendar: 'future',
+    googleCalendar: 'editable',
     availability: 'editable', // via agenda tab
     subscription: 'read-only',
     reports: 'hidden',

@@ -17,6 +17,7 @@ import { ExceptionManager } from '../components/availability/ExceptionManager'
 import { WeekCalendar } from '../components/calendar/WeekCalendar'
 import { MobileAgendaList } from '../components/mobile/MobileAgendaList'
 import { MobileAgendaTimeline } from '../components/mobile/MobileAgendaTimeline'
+import { GoogleCalendarButton } from '../components/shared/GoogleCalendarButton'
 import { ViewToggle } from '../components/shared/ViewToggle'
 import { TABS } from '../constants/schedule-tabs'
 import { DENTIST_ALLOWED_TRANSITIONS, useSchedulePage } from '../hooks/useSchedulePage'
@@ -42,6 +43,12 @@ export function SchedulePageContainer() {
     setDrawerAppointment,
     isActionLoading,
     handleStatusChange,
+    googleCalendar,
+    isCalendarActionLoading,
+    canManageGoogleCalendar,
+    handleConnectGoogleCalendar,
+    handleSyncGoogleCalendar,
+    handleDisconnectGoogleCalendar,
   } = useSchedulePage()
 
   // Shared mobile selected date — persists across Agenda/Lista view switches
@@ -65,6 +72,16 @@ export function SchedulePageContainer() {
         eyebrow="Profissional"
         title="Minha agenda"
         description="Visualize seus agendamentos e gerencie sua disponibilidade semanal."
+        action={
+          <GoogleCalendarButton
+            googleCalendar={googleCalendar}
+            canManageGoogleCalendar={canManageGoogleCalendar}
+            isCalendarActionLoading={isCalendarActionLoading}
+            onConnect={handleConnectGoogleCalendar}
+            onSync={handleSyncGoogleCalendar}
+            onDisconnect={handleDisconnectGoogleCalendar}
+          />
+        }
       />
 
       {error && <InlineFeedback>{error}</InlineFeedback>}
