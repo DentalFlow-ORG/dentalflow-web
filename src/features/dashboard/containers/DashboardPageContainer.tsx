@@ -1,12 +1,22 @@
 import { Link } from '@tanstack/react-router'
-import { AlertCircle, CalendarDays, CheckCircle2, Clock, Package, Users2 } from 'lucide-react'
-import { useMemo } from 'react'
+import {
+  AlertCircle,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  MessageCircle,
+  Package,
+  Users2,
+} from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { LoadingCard } from '@/components/common/LoadingCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { NotificationSendDrawer } from '@/features/notifications/components/NotificationSendDrawer'
+import { useNotificationTemplates } from '@/features/notifications/hooks/useNotificationTemplates'
 import { AppointmentDrawer } from '@/features/scheduling/components/appointments/AppointmentDrawer'
 import { AppointmentStatusBadge } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
 import type { Appointment } from '@/features/scheduling/types/scheduling.types'
@@ -15,6 +25,10 @@ import {
   formatAppointmentDateLong,
   formatWallTime,
 } from '@/features/scheduling/utils/time'
+
+// Same template used by the appointment drawer's WhatsApp section for PENDING
+// appointments — keeps the inline shortcut and the drawer flow in sync.
+const CONFIRMATION_TEMPLATE_SLUG = 'appointment_confirmation_request'
 
 import { HomeActionGrid } from '@/features/home/components/HomeActionGrid'
 import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
@@ -184,59 +198,97 @@ function ConfirmationsSection({
   appointments: Appointment[]
   onAppointmentClick: (a: Appointment) => void
 }) {
+  const { user } = useAuth()
+  const canSendWhatsApp = user?.role === 'OWNER' || user?.role === 'ASSISTANT'
+  const { templates } = useNotificationTemplates()
+  const confirmationTemplate = templates.find((t) => t.slug === CONFIRMATION_TEMPLATE_SLUG) ?? null
+  const [notifyTarget, setNotifyTarget] = useState<Appointment | null>(null)
+
   return (
-    <HomeSection
-      title="A confirmar"
-      description={
-        appointments.length > 0
-          ? `${appointments.length} consulta${appointments.length !== 1 ? 's' : ''} aguardando confirmação`
-          : 'Todas as consultas do dia estão confirmadas ou concluídas'
-      }
-      action={<SectionLink to="/app/agendamentos" label="Gerenciar" />}
-    >
-      {appointments.length === 0 ? (
-        <HomeEmptyState
-          compact
-          icon={CheckCircle2}
-          title="Nenhuma confirmação pendente."
-          description="As consultas do dia estão sob controle."
-        />
-      ) : (
-        <ul className="mt-4 divide-y divide-border">
-          {appointments.map((appt) => (
-            <li key={appt.id}>
-              <button
-                type="button"
-                className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded px-2 py-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
-                onClick={() => onAppointmentClick(appt)}
-              >
-                <span className="w-12 shrink-0 text-right">
-                  <span className="block text-sm font-bold tabular-nums text-foreground">
-                    {formatWallTime(appt.startTime)}
-                  </span>
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-semibold text-foreground">
-                    {appt.patientName}
-                  </span>
-                  {appt.service && (
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {appt.service.name}
+    <>
+      <HomeSection
+        title="A confirmar"
+        description={
+          appointments.length > 0
+            ? `${appointments.length} consulta${appointments.length !== 1 ? 's' : ''} aguardando confirmação`
+            : 'Todas as consultas do dia estão confirmadas ou concluídas'
+        }
+        action={<SectionLink to="/app/agendamentos" label="Gerenciar" />}
+      >
+        {appointments.length === 0 ? (
+          <HomeEmptyState
+            compact
+            icon={CheckCircle2}
+            title="Nenhuma confirmação pendente."
+            description="As consultas do dia estão sob controle."
+          />
+        ) : (
+          <ul className="mt-4 divide-y divide-border">
+            {appointments.map((appt) => (
+              <li key={appt.id} className="flex items-center gap-1">
+                <button
+                  type="button"
+                  className="-mx-2 flex min-w-0 flex-1 items-center gap-3 rounded px-2 py-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
+                  onClick={() => onAppointmentClick(appt)}
+                >
+                  <span className="w-12 shrink-0 text-right">
+                    <span className="block text-sm font-bold tabular-nums text-foreground">
+                      {formatWallTime(appt.startTime)}
                     </span>
-                  )}
-                  {appt.patientPhone && (
-                    <span className="block text-xs text-muted-foreground">{appt.patientPhone}</span>
-                  )}
-                </span>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {appt.profile?.displayName}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-semibold text-foreground">
+                      {appt.patientName}
+                    </span>
+                    {appt.service && (
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {appt.service.name}
+                      </span>
+                    )}
+                    {appt.patientPhone && (
+                      <span className="block text-xs text-muted-foreground">
+                        {appt.patientPhone}
+                      </span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {appt.profile?.displayName}
+                  </span>
+                </button>
+                {canSendWhatsApp && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="shrink-0 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                    disabled={!appt.patientPhone || !confirmationTemplate}
+                    aria-label={`Enviar confirmação por WhatsApp para ${appt.patientName}`}
+                    onClick={() => setNotifyTarget(appt)}
+                  >
+                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </HomeSection>
+
+      {canSendWhatsApp && (
+        <NotificationSendDrawer
+          open={notifyTarget !== null}
+          onClose={() => setNotifyTarget(null)}
+          template={confirmationTemplate}
+          appointmentId={notifyTarget?.id ?? ''}
+          patientName={notifyTarget?.patientName ?? ''}
+          patientPhone={notifyTarget?.patientPhone ?? ''}
+          clinicName="Clínica"
+          appointmentDate={notifyTarget?.appointmentDate}
+          appointmentTime={formatWallTime(notifyTarget?.startTime)}
+          onSent={() => {}}
+        />
       )}
-    </HomeSection>
+    </>
   )
 }
 

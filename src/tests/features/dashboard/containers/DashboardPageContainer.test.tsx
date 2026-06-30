@@ -1,8 +1,12 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen } from '@/test-utils/render-utils'
 
 import { DashboardPageContainer } from '@/features/dashboard/containers/DashboardPageContainer'
 import { DEFAULT_APPT_DATE, makeAppointment } from '@/test-utils/factories/appointment.factory'
-import { makeAssistantUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
+import {
+  makeAssistantUser,
+  makeDentistUser,
+  makeOwnerUser,
+} from '@/test-utils/factories/user.factory'
 import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -26,6 +30,45 @@ vi.mock('@/features/dashboard/hooks/useDashboardPage', () => ({
 vi.mock('@/features/dashboard/containers/ProductivityCenter', () => ({
   ProductivityCenter: () => <div data-testid="productivity-center" />,
 }))
+
+const mockUseNotificationTemplates = vi.fn()
+vi.mock('@/features/notifications/hooks/useNotificationTemplates', () => ({
+  useNotificationTemplates: () => mockUseNotificationTemplates(),
+}))
+
+// Stub the send drawer — its internal consent/quota/preferences logic is
+// owned by NotificationSendDrawer itself and exercised elsewhere; here we
+// only need to confirm the dashboard wires the right appointment/template into it.
+vi.mock('@/features/notifications/components/NotificationSendDrawer', () => ({
+  NotificationSendDrawer: ({
+    open,
+    appointmentId,
+    patientPhone,
+    template,
+  }: {
+    open: boolean
+    appointmentId: string
+    patientPhone: string
+    template: { slug: string } | null
+  }) =>
+    open ? (
+      <div
+        data-testid="notification-send-drawer"
+        data-appointment-id={appointmentId}
+        data-patient-phone={patientPhone}
+        data-template={template?.slug ?? ''}
+      />
+    ) : null,
+}))
+
+const CONFIRMATION_TEMPLATE = {
+  id: 'tpl-1',
+  slug: 'appointment_confirmation_request',
+  channel: 'WHATSAPP',
+  category: 'UTILITY',
+  bodyPt: 'Olá {{patientName}}, confirme sua consulta.',
+  variables: ['patientName'],
+}
 
 // ── Default mock values ───────────────────────────────────────────────────────
 
@@ -52,6 +95,10 @@ beforeEach(() => {
   vi.setSystemTime(new Date('2026-06-04T15:00:00.000Z'))
   setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
   mockUseDashboardPage.mockReturnValue(makeDefaultDashboard())
+  mockUseNotificationTemplates.mockReturnValue({
+    templates: [CONFIRMATION_TEMPLATE],
+    isLoading: false,
+  })
 })
 
 afterEach(() => {
@@ -218,6 +265,136 @@ describe('DashboardPageContainer — ASSISTANT confirmations section', () => {
     // Empty state should show since no PENDING appointments
     expect(screen.getByText('Nenhuma confirmação pendente.')).toBeInTheDocument()
     // The confirmed patient name should NOT appear in the confirmations section (only in today schedule)
+  })
+})
+
+// ── ASSISTANT dashboard — inline WhatsApp confirmation action ─────────────────
+
+describe('DashboardPageContainer — ASSISTANT inline WhatsApp action', () => {
+  function pendingWithPhone(overrides = {}) {
+    return makeAppointment({
+      id: 'appt-pending-phone',
+      appointmentDate: DEFAULT_APPT_DATE,
+      status: 'PENDING',
+      patientName: 'Paciente Pendente',
+      patientPhone: '+5511999999999',
+      ...overrides,
+    })
+  }
+
+  it('shows an inline WhatsApp action for a pending confirmation with phone', () => {
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({
+        appointments: [pendingWithPhone()],
+        statusCounts: { total: 1, confirmed: 0, pending: 1, completed: 0, canceledOrNoShow: 0 },
+      }),
+    )
+    render(<DashboardPageContainer />)
+    const action = screen.getByRole('button', {
+      name: /enviar confirmação por whatsapp para paciente pendente/i,
+    })
+    expect(action).toBeInTheDocument()
+    expect(action).not.toBeDisabled()
+  })
+
+  it('disables the inline action when the patient phone is missing', () => {
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({
+        appointments: [pendingWithPhone({ patientPhone: null })],
+        statusCounts: { total: 1, confirmed: 0, pending: 1, completed: 0, canceledOrNoShow: 0 },
+      }),
+    )
+    render(<DashboardPageContainer />)
+    const action = screen.getByRole('button', {
+      name: /enviar confirmação por whatsapp para paciente pendente/i,
+    })
+    expect(action).toBeDisabled()
+  })
+
+  it('disables the inline action when the confirmation template is not available', () => {
+    mockUseNotificationTemplates.mockReturnValue({ templates: [], isLoading: false })
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({
+        appointments: [pendingWithPhone()],
+        statusCounts: { total: 1, confirmed: 0, pending: 1, completed: 0, canceledOrNoShow: 0 },
+      }),
+    )
+    render(<DashboardPageContainer />)
+    const action = screen.getByRole('button', {
+      name: /enviar confirmação por whatsapp para paciente pendente/i,
+    })
+    expect(action).toBeDisabled()
+  })
+
+  it('opens the existing WhatsApp send flow with the right appointment and template when clicked', () => {
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({
+        appointments: [pendingWithPhone()],
+        statusCounts: { total: 1, confirmed: 0, pending: 1, completed: 0, canceledOrNoShow: 0 },
+      }),
+    )
+    render(<DashboardPageContainer />)
+    expect(screen.queryByTestId('notification-send-drawer')).not.toBeInTheDocument()
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /enviar confirmação por whatsapp para paciente pendente/i,
+      }),
+    )
+
+    const drawer = screen.getByTestId('notification-send-drawer')
+    expect(drawer).toBeInTheDocument()
+    expect(drawer.dataset.appointmentId).toBe('appt-pending-phone')
+    expect(drawer.dataset.patientPhone).toBe('+5511999999999')
+    expect(drawer.dataset.template).toBe('appointment_confirmation_request')
+  })
+
+  it('does not open the drawer-based flow when the inline action is clicked', () => {
+    const setDrawerAppointment = vi.fn()
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({
+        appointments: [pendingWithPhone()],
+        statusCounts: { total: 1, confirmed: 0, pending: 1, completed: 0, canceledOrNoShow: 0 },
+        setDrawerAppointment,
+      }),
+    )
+    render(<DashboardPageContainer />)
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /enviar confirmação por whatsapp para paciente pendente/i,
+      }),
+    )
+    expect(setDrawerAppointment).not.toHaveBeenCalled()
+  })
+
+  it('still opens the appointment drawer when the row itself is clicked', () => {
+    const setDrawerAppointment = vi.fn()
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({
+        appointments: [pendingWithPhone()],
+        statusCounts: { total: 1, confirmed: 0, pending: 1, completed: 0, canceledOrNoShow: 0 },
+        setDrawerAppointment,
+      }),
+    )
+    render(<DashboardPageContainer />)
+    fireEvent.click(screen.getByText('Paciente Pendente'))
+    expect(setDrawerAppointment).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'appt-pending-phone' }),
+    )
+  })
+
+  it('does NOT show the inline WhatsApp action for DENTIST', () => {
+    setMockAuthState({ user: makeDentistUser(), isAuthenticated: true })
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({
+        appointments: [pendingWithPhone()],
+        statusCounts: { total: 1, confirmed: 0, pending: 1, completed: 0, canceledOrNoShow: 0 },
+      }),
+    )
+    render(<DashboardPageContainer />)
+    expect(
+      screen.queryByRole('button', { name: /enviar confirmação por whatsapp/i }),
+    ).not.toBeInTheDocument()
   })
 })
 
