@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { CalendarDays, CheckCircle2, ClipboardList, Clock } from 'lucide-react'
+import { CalendarDays, CheckCircle2, ClipboardList, Clock, TrendingUp, UserX } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
@@ -14,8 +14,13 @@ import { DENTIST_ALLOWED_TRANSITIONS } from '@/features/scheduling/hooks/useSche
 import { listProfiles } from '@/features/scheduling/services/profiles.service'
 import { listAppointments } from '@/features/scheduling/services/scheduling.service'
 import type { Appointment } from '@/features/scheduling/types/scheduling.types'
-import { formatAppointmentDateLong, formatWallTime } from '@/features/scheduling/utils/time'
-import { brazilTodayIso } from '@/lib/brazil-timezone'
+import {
+  formatAppointmentDateLong,
+  formatWallTime,
+  isoDateToString,
+} from '@/features/scheduling/utils/time'
+import { brazilCurrentMonthRange, brazilTodayIso } from '@/lib/brazil-timezone'
+import { formatCurrencyBRL } from '@/lib/number-formatters'
 
 import { HomeActionGrid } from '@/features/home/components/HomeActionGrid'
 import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
@@ -29,6 +34,7 @@ export function DentistHomePageContainer() {
   const today = brazilTodayIso()
 
   const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [monthAppointments, setMonthAppointments] = useState<Appointment[]>([])
   const [ownProfileFound, setOwnProfileFound] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -46,12 +52,16 @@ export function DentistHomePageContainer() {
     setIsLoading(true)
     setError(null)
     setOwnProfileFound(true)
-    // Fetch profiles and today's appointments in parallel; keep only own appointments.
-    Promise.all([listProfiles(), listAppointments(today)])
-      .then(([profiles, appts]) => {
+    // Fetch profiles, today's appointments, and the full appointment history (for
+    // the "Minha produção" monthly metrics) in parallel; keep only own appointments.
+    Promise.all([listProfiles(), listAppointments(today), listAppointments()])
+      .then(([profiles, appts, allAppts]) => {
         const ownProfile = profiles.find((p) => p.userId === user?.id) ?? null
         setOwnProfileFound(ownProfile !== null)
         setAppointments(ownProfile ? appts.filter((a) => a.profileId === ownProfile.id) : [])
+        setMonthAppointments(
+          ownProfile ? allAppts.filter((a) => a.profileId === ownProfile.id) : [],
+        )
       })
       .catch(() =>
         setError('Não foi possível carregar os dados do dia. Tente recarregar a página.'),
@@ -77,6 +87,19 @@ export function DentistHomePageContainer() {
     () => allTodaySorted.find((a) => a.status === 'PENDING' || a.status === 'CONFIRMED') ?? null,
     [allTodaySorted],
   )
+
+  // "Minha produção" — own activity for the current calendar month only.
+  const monthlyProduction = useMemo(() => {
+    const { from, to } = brazilCurrentMonthRange()
+    const thisMonth = monthAppointments.filter((a) => {
+      const date = isoDateToString(a.appointmentDate)
+      return date >= from && date <= to
+    })
+    const completed = thisMonth.filter((a) => a.status === 'COMPLETED')
+    const noShow = thisMonth.filter((a) => a.status === 'NO_SHOW').length
+    const estimatedCents = completed.reduce((sum, a) => sum + (a.estimatedAmountCents ?? 0), 0)
+    return { completedCount: completed.length, noShowCount: noShow, estimatedCents }
+  }, [monthAppointments])
 
   return (
     <AppPage spacing="loose">
@@ -210,6 +233,35 @@ export function DentistHomePageContainer() {
                 ))}
               </ul>
             )}
+          </HomeSection>
+
+          {/* Minha produção — own monthly activity only, no clinic-wide finance */}
+          <HomeSection
+            title="Minha produção"
+            description="Suas consultas neste mês, considerando apenas o seu próprio atendimento"
+          >
+            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <HomeKpiCard
+                label="Concluídas no mês"
+                value={String(monthlyProduction.completedCount)}
+                icon={CheckCircle2}
+                tone={monthlyProduction.completedCount > 0 ? 'success' : 'neutral'}
+              />
+              <HomeKpiCard
+                label="Faltas no mês"
+                value={String(monthlyProduction.noShowCount)}
+                icon={UserX}
+                tone={monthlyProduction.noShowCount > 0 ? 'warning' : 'neutral'}
+              />
+              <HomeKpiCard
+                label="Produção estimada"
+                value={formatCurrencyBRL(monthlyProduction.estimatedCents / 100)}
+                description="Estimativa com base apenas nas consultas concluídas"
+                icon={TrendingUp}
+                tone={monthlyProduction.estimatedCents > 0 ? 'info' : 'neutral'}
+                className="col-span-2 sm:col-span-1"
+              />
+            </div>
           </HomeSection>
 
           {/* Quick access — valid DENTIST routes only */}

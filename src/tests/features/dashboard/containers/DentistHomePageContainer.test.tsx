@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 
 import { DentistHomePageContainer } from '@/features/dashboard/containers/DentistHomePageContainer'
 import type { ProfileListItem } from '@/features/scheduling/types/profile.types'
+import { brazilAddMonths, brazilCurrentMonthRange } from '@/lib/brazil-timezone'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 import { makeDentistUser } from '@/test-utils/factories/user.factory'
 import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
@@ -424,5 +425,131 @@ describe('DentistHomePageContainer — drawer status transitions', () => {
         status: 'NO_SHOW',
       })
     })
+  })
+})
+
+// ── Minha produção (monthly metrics) ─────────────────────────────────────────
+
+describe('DentistHomePageContainer — Minha produção', () => {
+  const { from: MONTH_START } = brazilCurrentMonthRange()
+  const OUTSIDE_MONTH_DATE = brazilAddMonths(MONTH_START, -2)
+
+  it('renders the "Minha produção" section heading', async () => {
+    render(<DentistHomePageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /minha produção/i })).toBeInTheDocument()
+    })
+  })
+
+  it('counts completed appointments for the current month', async () => {
+    const completed = makeAppointment({
+      id: 'appt-completed',
+      profileId: 'profile-dr-silva',
+      appointmentDate: MONTH_START,
+      status: 'COMPLETED',
+    })
+    mockListAppointments.mockResolvedValue([completed])
+    render(<DentistHomePageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Concluídas no mês')).toBeInTheDocument()
+    })
+    const card = screen.getByText('Concluídas no mês').closest('div')
+    expect(card?.parentElement).toHaveTextContent('1')
+  })
+
+  it('counts no-show appointments for the current month', async () => {
+    const noShow = makeAppointment({
+      id: 'appt-no-show',
+      profileId: 'profile-dr-silva',
+      appointmentDate: MONTH_START,
+      status: 'NO_SHOW',
+    })
+    mockListAppointments.mockResolvedValue([noShow])
+    render(<DentistHomePageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Faltas no mês')).toBeInTheDocument()
+    })
+    const card = screen.getByText('Faltas no mês').closest('div')
+    expect(card?.parentElement).toHaveTextContent('1')
+  })
+
+  it('shows zero state when there is no activity this month', async () => {
+    mockListAppointments.mockResolvedValue([])
+    render(<DentistHomePageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Concluídas no mês')).toBeInTheDocument()
+    })
+    expect(screen.getByText(/r\$\s*0,00/i)).toBeInTheDocument()
+  })
+
+  it('sums estimated production only from completed appointments, labeled as estimated', async () => {
+    const completedWithAmount = makeAppointment({
+      id: 'appt-completed-amount',
+      profileId: 'profile-dr-silva',
+      appointmentDate: MONTH_START,
+      status: 'COMPLETED',
+      estimatedAmountCents: 15000,
+    })
+    const pendingWithAmount = makeAppointment({
+      id: 'appt-pending-amount',
+      profileId: 'profile-dr-silva',
+      appointmentDate: MONTH_START,
+      status: 'PENDING',
+      estimatedAmountCents: 99999,
+    })
+    mockListAppointments.mockResolvedValue([completedWithAmount, pendingWithAmount])
+    render(<DentistHomePageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText(/r\$\s*150,00/i)).toBeInTheDocument()
+    })
+    expect(
+      screen.getByText(/estimativa com base apenas nas consultas concluídas/i),
+    ).toBeInTheDocument()
+  })
+
+  it('excludes completed appointments from outside the current month', async () => {
+    const completedLastMonth = makeAppointment({
+      id: 'appt-completed-last-month',
+      profileId: 'profile-dr-silva',
+      appointmentDate: OUTSIDE_MONTH_DATE,
+      status: 'COMPLETED',
+      estimatedAmountCents: 50000,
+    })
+    mockListAppointments.mockResolvedValue([completedLastMonth])
+    render(<DentistHomePageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Concluídas no mês')).toBeInTheDocument()
+    })
+    const card = screen.getByText('Concluídas no mês').closest('div')
+    expect(card?.parentElement).toHaveTextContent('0')
+    expect(screen.getByText(/r\$\s*0,00/i)).toBeInTheDocument()
+  })
+
+  it("does not count another dentist's completed appointments in monthly production", async () => {
+    const otherDentistCompleted = makeAppointment({
+      id: 'appt-other-completed',
+      profileId: 'profile-other',
+      appointmentDate: MONTH_START,
+      status: 'COMPLETED',
+      estimatedAmountCents: 80000,
+    })
+    mockListAppointments.mockResolvedValue([otherDentistCompleted])
+    render(<DentistHomePageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Concluídas no mês')).toBeInTheDocument()
+    })
+    const card = screen.getByText('Concluídas no mês').closest('div')
+    expect(card?.parentElement).toHaveTextContent('0')
+    expect(screen.getByText(/r\$\s*0,00/i)).toBeInTheDocument()
+  })
+
+  it('does not expose any clinic-wide finance link or label', async () => {
+    render(<DentistHomePageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('Minha produção')).toBeInTheDocument()
+    })
+    expect(screen.queryByText(/receita da clínica/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/faturamento/i)).not.toBeInTheDocument()
+    expect(document.querySelector('a[href="/app/financeiro"]')).toBeNull()
   })
 })
