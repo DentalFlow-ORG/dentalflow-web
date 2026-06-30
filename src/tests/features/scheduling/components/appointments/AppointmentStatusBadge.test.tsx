@@ -1,9 +1,7 @@
 import { render, screen } from '@/test-utils/render-utils'
 
-import {
-  AppointmentStatusBadge,
-  STATUS_CONFIG,
-} from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
+import { AppointmentStatusBadge } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
+import { STATUS_CONFIG } from '@/features/scheduling/components/appointments/AppointmentStatusBadge.config'
 import type { AppointmentStatus } from '@/features/scheduling/types/scheduling.types'
 
 const STATUS_LABELS: [AppointmentStatus, string][] = [

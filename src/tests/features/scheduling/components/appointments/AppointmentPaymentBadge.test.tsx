@@ -1,9 +1,7 @@
 import { render, screen } from '@/test-utils/render-utils'
 
-import {
-  AppointmentPaymentBadge,
-  PAYMENT_STATUS_CONFIG,
-} from '@/features/scheduling/components/appointments/AppointmentPaymentBadge'
+import { AppointmentPaymentBadge } from '@/features/scheduling/components/appointments/AppointmentPaymentBadge'
+import { PAYMENT_STATUS_CONFIG } from '@/features/scheduling/components/appointments/AppointmentPaymentBadge.config'
 import type { AppointmentPaymentStatus } from '@/features/scheduling/types/scheduling.types'
 
 const PAYMENT_STATUS_LABELS: [AppointmentPaymentStatus, string][] = [
