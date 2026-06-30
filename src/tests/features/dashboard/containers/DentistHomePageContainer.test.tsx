@@ -18,8 +18,14 @@ vi.mock('@/features/auth/hooks/useAuth', async () => {
   return authMock.createUseAuthMock()
 })
 
+const mockShowAlert = vi.fn()
+vi.mock('@/components/common/global-alerts-context', () => ({
+  useGlobalAlerts: () => ({ showAlert: mockShowAlert }),
+}))
+
 const mockListProfiles = vi.fn()
 const mockListAppointments = vi.fn()
+const mockUpdateAppointmentStatus = vi.fn()
 
 vi.mock('@/features/scheduling/services/profiles.service', () => ({
   listProfiles: () => mockListProfiles(),
@@ -27,13 +33,43 @@ vi.mock('@/features/scheduling/services/profiles.service', () => ({
 
 vi.mock('@/features/scheduling/services/scheduling.service', () => ({
   listAppointments: () => mockListAppointments(),
+  updateAppointmentStatus: (id: unknown, data: unknown) => mockUpdateAppointmentStatus(id, data),
 }))
 
-// Prevent the full drawer from mounting (requires GlobalAlertsProvider).
-// Drawer behaviour is covered by its own test suite.
+// Lightweight drawer stub — exposes key props via data attributes so tests can
+// assert on allowed transitions without mounting the full drawer.
 vi.mock('@/features/scheduling/components/appointments/AppointmentDrawer', () => ({
-  AppointmentDrawer: ({ appointment }: { appointment: unknown }) =>
-    appointment ? <div data-testid="appointment-drawer">drawer open</div> : null,
+  AppointmentDrawer: ({
+    appointment,
+    readOnly,
+    allowedTransitions,
+    onStatusChange,
+  }: {
+    appointment: { id: string } | null
+    readOnly?: boolean
+    allowedTransitions?: string[]
+    onStatusChange: (id: string, status: string) => void
+  }) => {
+    if (!appointment) return null
+    return (
+      <div
+        data-testid="appointment-drawer"
+        data-readonly={readOnly ? 'true' : 'false'}
+        data-allowed={allowedTransitions?.join(',') ?? ''}
+      >
+        {!readOnly && allowedTransitions?.includes('COMPLETED') && (
+          <button type="button" onClick={() => onStatusChange(appointment.id, 'COMPLETED')}>
+            Concluir consulta
+          </button>
+        )}
+        {!readOnly && allowedTransitions?.includes('NO_SHOW') && (
+          <button type="button" onClick={() => onStatusChange(appointment.id, 'NO_SHOW')}>
+            Não compareceu
+          </button>
+        )}
+      </div>
+    )
+  },
 }))
 
 // ── Factories ─────────────────────────────────────────────────────────────────
@@ -319,5 +355,74 @@ describe('DentistHomePageContainer — quick actions', () => {
       expect(screen.queryByText(/carregando/i)).not.toBeInTheDocument()
     })
     expect(document.querySelector('a[href="/app/financeiro"]')).toBeNull()
+  })
+})
+
+// ── Drawer status transitions ─────────────────────────────────────────────────
+
+describe('DentistHomePageContainer — drawer status transitions', () => {
+  async function openDrawer() {
+    render(<DentistHomePageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /ver detalhes/i })).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByRole('button', { name: /ver detalhes/i }))
+    return screen.getByTestId('appointment-drawer')
+  }
+
+  it('does not render the drawer as readOnly', async () => {
+    const drawer = await openDrawer()
+    expect(drawer.dataset.readonly).toBe('false')
+  })
+
+  it('passes COMPLETED and NO_SHOW as allowedTransitions', async () => {
+    const drawer = await openDrawer()
+    const allowed = drawer.dataset.allowed?.split(',') ?? []
+    expect(allowed).toContain('COMPLETED')
+    expect(allowed).toContain('NO_SHOW')
+  })
+
+  it('does not include CANCELED in allowedTransitions', async () => {
+    const drawer = await openDrawer()
+    const allowed = drawer.dataset.allowed?.split(',') ?? []
+    expect(allowed).not.toContain('CANCELED')
+  })
+
+  it('does not include CONFIRMED in allowedTransitions', async () => {
+    const drawer = await openDrawer()
+    const allowed = drawer.dataset.allowed?.split(',') ?? []
+    expect(allowed).not.toContain('CONFIRMED')
+  })
+
+  it('shows the Concluir consulta button', async () => {
+    await openDrawer()
+    expect(screen.getByRole('button', { name: /concluir consulta/i })).toBeInTheDocument()
+  })
+
+  it('shows the Não compareceu button', async () => {
+    await openDrawer()
+    expect(screen.getByRole('button', { name: /não compareceu/i })).toBeInTheDocument()
+  })
+
+  it('calls updateAppointmentStatus with COMPLETED when Concluir is clicked', async () => {
+    mockUpdateAppointmentStatus.mockResolvedValueOnce({ ...OWN_APPT, status: 'COMPLETED' })
+    await openDrawer()
+    fireEvent.click(screen.getByRole('button', { name: /concluir consulta/i }))
+    await waitFor(() => {
+      expect(mockUpdateAppointmentStatus).toHaveBeenCalledWith('appt-1', {
+        status: 'COMPLETED',
+      })
+    })
+  })
+
+  it('calls updateAppointmentStatus with NO_SHOW when Não compareceu is clicked', async () => {
+    mockUpdateAppointmentStatus.mockResolvedValueOnce({ ...OWN_APPT, status: 'NO_SHOW' })
+    await openDrawer()
+    fireEvent.click(screen.getByRole('button', { name: /não compareceu/i }))
+    await waitFor(() => {
+      expect(mockUpdateAppointmentStatus).toHaveBeenCalledWith('appt-1', {
+        status: 'NO_SHOW',
+      })
+    })
   })
 })

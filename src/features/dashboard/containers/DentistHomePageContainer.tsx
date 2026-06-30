@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AppointmentDrawer } from '@/features/scheduling/components/appointments/AppointmentDrawer'
 import { AppointmentStatusBadge } from '@/features/scheduling/components/appointments/AppointmentStatusBadge'
+import { useAppointmentStatusChange } from '@/features/scheduling/hooks/useAppointmentStatusChange'
+import { DENTIST_ALLOWED_TRANSITIONS } from '@/features/scheduling/hooks/useSchedulePage'
 import { listProfiles } from '@/features/scheduling/services/profiles.service'
 import { listAppointments } from '@/features/scheduling/services/scheduling.service'
 import type { Appointment } from '@/features/scheduling/types/scheduling.types'
@@ -31,6 +33,14 @@ export function DentistHomePageContainer() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [drawerAppointment, setDrawerAppointment] = useState<Appointment | null>(null)
+  const [isActionLoading, setIsActionLoading] = useState(false)
+
+  const { handleStatusChange } = useAppointmentStatusChange({
+    setAppointments,
+    drawerAppointment,
+    setDrawerAppointment,
+    setIsActionLoading,
+  })
 
   useEffect(() => {
     setIsLoading(true)
@@ -210,13 +220,12 @@ export function DentistHomePageContainer() {
         </>
       )}
 
-      {/* Read-only drawer — full status transitions available at /app/agenda */}
       <AppointmentDrawer
         appointment={drawerAppointment}
-        readOnly
-        isActionLoading={false}
+        allowedTransitions={DENTIST_ALLOWED_TRANSITIONS}
+        isActionLoading={isActionLoading}
         onClose={() => setDrawerAppointment(null)}
-        onStatusChange={() => {}}
+        onStatusChange={handleStatusChange}
         onCancelRequest={() => {}}
       />
     </AppPage>
