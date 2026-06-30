@@ -1,12 +1,3 @@
-type SubscriptionStatus =
-  | 'TRIALING'
-  | 'ACTIVE'
-  | 'PAST_DUE'
-  | 'CANCELED'
-  | 'UNPAID'
-  | 'PAUSED'
-  | 'INCOMPLETE'
-
 export type BillingInterval = 'MONTHLY' | 'YEARLY'
 export type NormalizedBillingInterval = 'monthly' | 'annual'
 export type NormalizedBillingStatus =
@@ -63,24 +54,6 @@ export type BillingCampaign = {
 export type BillingPlansResponse = {
   plans: BillingPlan[]
   campaign: BillingCampaign
-}
-
-export type ClinicSubscription = {
-  id: string
-  status: SubscriptionStatus
-  billingInterval: BillingInterval | null
-  plan: {
-    id: string
-    name: string
-    slug: string
-    priceMonthly: number
-    priceYearly: number
-  } | null
-  trialEndsAt: string | null
-  currentPeriodStart: string | null
-  currentPeriodEnd: string | null
-  cancelAtPeriodEnd: boolean
-  canceledAt: string | null
 }
 
 export type CurrentBillingStatus = {

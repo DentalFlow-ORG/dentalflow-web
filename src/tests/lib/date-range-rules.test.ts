@@ -2,10 +2,8 @@ import {
   defaultLast30DaysRange,
   isEndBeforeStart,
   isFutureDate,
-  maxFollowUpIso,
   rangeExceedsMonths,
   todayIso,
-  validateFollowUpDate,
   validateReportDateRange,
 } from '@/lib/date-range-rules'
 import { afterEach, beforeEach, vi } from 'vitest'
@@ -128,22 +126,6 @@ describe('defaultLast30DaysRange', () => {
   })
 })
 
-// ── maxFollowUpIso ────────────────────────────────────────────────────────────
-
-describe('maxFollowUpIso', () => {
-  afterEach(() => vi.useRealTimers())
-
-  it('is 24 months from today in Brazil', () => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-06-01T12:00:00Z'))
-    expect(maxFollowUpIso()).toBe('2028-06-01')
-  })
-
-  it('returns YYYY-MM-DD format', () => {
-    expect(maxFollowUpIso()).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-  })
-})
-
 // ── validateReportDateRange ───────────────────────────────────────────────────
 
 describe('validateReportDateRange', () => {
@@ -172,35 +154,5 @@ describe('validateReportDateRange', () => {
   it('returns null when start or end is missing', () => {
     expect(validateReportDateRange(undefined, '2026-06-15')).toBeNull()
     expect(validateReportDateRange('2026-01-01', undefined)).toBeNull()
-  })
-})
-
-// ── validateFollowUpDate ──────────────────────────────────────────────────────
-
-describe('validateFollowUpDate', () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-06-15T12:00:00Z'))
-  })
-  afterEach(() => vi.useRealTimers())
-
-  it('returns null for a valid future date on create', () => {
-    expect(validateFollowUpDate('2026-08-01', true)).toBeNull()
-  })
-
-  it('returns an error for a past date on create', () => {
-    expect(validateFollowUpDate('2026-06-01', true)).not.toBeNull()
-  })
-
-  it('returns null for past date when isCreate is false (edit)', () => {
-    expect(validateFollowUpDate('2026-06-01', false)).toBeNull()
-  })
-
-  it('returns an error when date exceeds 24 months', () => {
-    expect(validateFollowUpDate('2030-01-01', false)).not.toBeNull()
-  })
-
-  it('returns null when date is undefined', () => {
-    expect(validateFollowUpDate(undefined, true)).toBeNull()
   })
 })

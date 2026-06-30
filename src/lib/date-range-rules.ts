@@ -1,7 +1,6 @@
-import { brazilAddMonths, brazilDaysAgo, brazilTodayIso } from './brazil-timezone'
+import { brazilDaysAgo, brazilTodayIso } from './brazil-timezone'
 
 const MAX_REPORT_MONTHS = 12
-const MAX_FOLLOW_UP_MONTHS = 24
 
 export function todayIso(): string {
   return brazilTodayIso()
@@ -30,10 +29,6 @@ export function defaultLast30DaysRange(): { startDate: string; endDate: string }
   return { startDate, endDate }
 }
 
-export function maxFollowUpIso(): string {
-  return brazilAddMonths(brazilTodayIso(), MAX_FOLLOW_UP_MONTHS)
-}
-
 export type DateRangeValidationOptions = {
   allowFuture?: boolean
   maxMonths?: number
@@ -58,20 +53,6 @@ export function validateReportDateRange(
 
   if (rangeExceedsMonths(start, end, maxMonths)) {
     return 'Selecione um período de até 12 meses por vez.'
-  }
-
-  return null
-}
-
-export function validateFollowUpDate(date: string | undefined, isCreate: boolean): string | null {
-  if (!date) return null
-
-  if (isCreate && date < todayIso()) {
-    return 'O follow-up não pode ser anterior à data atual.'
-  }
-
-  if (date > maxFollowUpIso()) {
-    return 'A data de follow-up deve estar dentro dos próximos 24 meses.'
   }
 
   return null

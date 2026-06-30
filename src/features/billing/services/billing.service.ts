@@ -5,7 +5,6 @@ import type {
   BillingPlansResponse,
   ChangeSubscriptionPlanRequest,
   CheckoutSessionRequest,
-  ClinicSubscription,
   CurrentBillingStatus,
   SessionUrlResponse,
   StartTrialRequest,
@@ -23,13 +22,6 @@ export function changeSubscriptionPlan(dto: ChangeSubscriptionPlanRequest) {
     method: 'POST',
     accessToken: getAccessToken(),
     body: JSON.stringify(dto),
-  })
-}
-
-export function getClinicSubscription() {
-  return apiRequest<ClinicSubscription | null>('/billing/subscription', {
-    method: 'GET',
-    accessToken: getAccessToken(),
   })
 }
 

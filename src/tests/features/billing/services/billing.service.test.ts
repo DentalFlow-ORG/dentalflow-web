@@ -3,7 +3,6 @@ import {
   changeSubscriptionPlan,
   createCheckoutSession,
   createPortalSession,
-  getClinicSubscription,
   getCurrentBillingStatus,
   listBillingPlans,
   startTrial,
@@ -75,28 +74,6 @@ describe('listBillingPlans', () => {
 
     const [, options] = mockApiRequest.mock.calls[0]
     expect(options.accessToken).toBe('tok-plans')
-  })
-})
-
-// ── getClinicSubscription ─────────────────────────────────────────────────────
-
-describe('getClinicSubscription', () => {
-  it('calls GET /billing/subscription', async () => {
-    mockApiRequest.mockResolvedValue(null)
-    await getClinicSubscription()
-
-    const [path, options] = mockApiRequest.mock.calls[0]
-    expect(path).toBe('/billing/subscription')
-    expect(options.method).toBe('GET')
-  })
-
-  it('passes the accessToken from getAccessToken()', async () => {
-    mockGetAccessToken.mockReturnValue('tok-sub')
-    mockApiRequest.mockResolvedValue(null)
-    await getClinicSubscription()
-
-    const [, options] = mockApiRequest.mock.calls[0]
-    expect(options.accessToken).toBe('tok-sub')
   })
 })
 
