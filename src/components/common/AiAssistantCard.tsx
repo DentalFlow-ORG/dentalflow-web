@@ -5,7 +5,6 @@ import {
   ClipboardCopy,
   Info,
   Loader2,
-  Lock,
   RefreshCw,
   Sparkles,
 } from 'lucide-react'
@@ -15,8 +14,8 @@ import { Button } from '@/components/ui/button'
 import type { AiAnalysisResult, AiAnalysisSection, AiQuotaInfo, AiVisibility } from '@/lib/ai-types'
 import { cn } from '@/lib/utils'
 import { ApiError } from '@/services/http'
-import { Link } from '@tanstack/react-router'
 import { AiUsageBadge } from './AiUsageBadge'
+import { PlanUpgradePrompt } from './PlanUpgradePrompt'
 import { PremiumBlurredPreview } from './PremiumBlurredPreview'
 
 type AiAssistantCardProps = {
@@ -146,21 +145,10 @@ function TeaserContent({
             </div>
           </div>
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-xl bg-background/80 px-6 text-center backdrop-blur-[2px]">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-              <Lock className="h-4 w-4 text-primary" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">Veja a análise completa</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Faça upgrade para Professional ou Premium para acessar todas as seções.
-              </p>
-            </div>
-            <Button size="sm" asChild>
-              <Link to="/app/assinatura">
-                <Sparkles className="h-3.5 w-3.5" />
-                Ver planos
-              </Link>
-            </Button>
+            <PlanUpgradePrompt
+              title="Veja a análise completa"
+              description="Faça upgrade para Professional ou Premium para acessar todas as seções."
+            />
           </div>
         </div>
       )}

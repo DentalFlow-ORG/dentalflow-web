@@ -1,7 +1,6 @@
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Link } from '@tanstack/react-router'
-import { Lock, Sparkles } from 'lucide-react'
+
+import { PlanUpgradePrompt } from './PlanUpgradePrompt'
 
 const FAKE_SECTIONS = [{ w: 'w-3/4' }, { w: 'w-full' }, { w: 'w-5/6' }, { w: 'w-2/3' }]
 
@@ -29,22 +28,12 @@ export function PremiumBlurredPreview({ blockedReason }: { blockedReason: string
 
       {/* Upgrade overlay */}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-xl bg-background/80 px-6 text-center backdrop-blur-[2px]">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-          <Lock className="h-5 w-5 text-primary" aria-hidden="true" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-foreground">Recurso Premium</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {blockedReason ??
-              'O assistente de IA está disponível nos planos Professional e Premium.'}
-          </p>
-        </div>
-        <Button size="sm" asChild>
-          <Link to="/app/assinatura">
-            <Sparkles className="h-3.5 w-3.5" />
-            Ver planos
-          </Link>
-        </Button>
+        <PlanUpgradePrompt
+          title="Recurso Premium"
+          description={
+            blockedReason ?? 'O assistente de IA está disponível nos planos Professional e Premium.'
+          }
+        />
       </div>
     </div>
   )

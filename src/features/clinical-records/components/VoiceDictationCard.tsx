@@ -1,20 +1,11 @@
-import {
-  AlertCircle,
-  CheckCircle2,
-  Loader2,
-  Lock,
-  Mic,
-  RotateCcw,
-  Sparkles,
-  Square,
-} from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, Mic, RotateCcw, Square } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { PlanUpgradePrompt } from '@/components/common/PlanUpgradePrompt'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
 import { cn } from '@/lib/utils'
-import { Link } from '@tanstack/react-router'
 
 import { dictateClinicalRecord } from '../services/clinical-dictation.service'
 import type {
@@ -197,22 +188,12 @@ function LockedState() {
       </div>
       {/* Upgrade overlay */}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-xl bg-card/90 px-4 text-center backdrop-blur-[1px]">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-          <Lock className="h-4 w-4 text-primary" aria-hidden="true" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-foreground">Ditado por voz</p>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Grave a consulta e a IA organiza o conteúdo nos campos do prontuário automaticamente.
-            Exclusivo do plano Premium.
-          </p>
-        </div>
-        <Button size="sm" variant="outline" asChild className="mt-0.5 text-xs">
-          <Link to="/app/assinatura">
-            <Sparkles className="h-3 w-3" aria-hidden="true" />
-            Ver planos
-          </Link>
-        </Button>
+        <PlanUpgradePrompt
+          title="Ditado por voz"
+          description="Grave a consulta e a IA organiza o conteúdo nos campos do prontuário automaticamente. Exclusivo do plano Premium."
+          buttonVariant="outline"
+          buttonClassName="mt-0.5 text-xs"
+        />
       </div>
     </div>
   )
