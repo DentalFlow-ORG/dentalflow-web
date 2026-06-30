@@ -4,7 +4,7 @@
 
 export type RotationDegrees = 0 | 90 | 180 | 270
 
-export interface Size {
+interface Size {
   width: number
   height: number
 }
