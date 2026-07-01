@@ -2,7 +2,7 @@ import { render, screen } from '@/test-utils/render-utils'
 
 import { CLINIC_FILTER_DEFS } from '@/features/admin/constants/admin-display'
 import { AdminClinicsPageContainer } from '@/features/admin/containers/AdminClinicsPageContainer'
-import type { AdminClinic } from '@/features/admin/types/admin.types'
+import type { AdminClinic, ClinicHealthRow } from '@/features/admin/types/admin.types'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
@@ -20,6 +20,11 @@ vi.mock('@/features/admin/hooks/useAdminClinicsPage', () => ({
   useAdminClinicsPage: () => mockUseAdminClinicsPage(),
 }))
 
+const mockUseClinicsHealth = vi.fn()
+vi.mock('@/features/admin/hooks/useClinicsHealth', () => ({
+  useClinicsHealth: () => mockUseClinicsHealth(),
+}))
+
 // ── Factories ─────────────────────────────────────────────────────────────────
 
 function makeClinic(overrides: Partial<AdminClinic> = {}): AdminClinic {
@@ -29,6 +34,27 @@ function makeClinic(overrides: Partial<AdminClinic> = {}): AdminClinic {
     isActive: true,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  }
+}
+
+function makeHealthRow(overrides: Partial<ClinicHealthRow> = {}): ClinicHealthRow {
+  return {
+    clinic: { id: 'clinic-1', name: 'Clínica Demo', isActive: true },
+    subscription: { status: 'ACTIVE', planName: 'Profissional', trialEndsAt: null },
+    counts: { dentists: 2, activeUsers: 3, totalAppointments: 50, recentAppointments: 5 },
+    lastActivity: { timestamp: '2026-06-29T12:00:00.000Z', source: 'USER_LOGIN' },
+    compliance: { fiscalSetupComplete: true },
+    ...overrides,
+  }
+}
+
+function makeDefaultHealthState(overrides = {}) {
+  return {
+    rows: [],
+    isLoading: false,
+    loadError: null,
+    load: vi.fn(),
     ...overrides,
   }
 }
@@ -71,6 +97,7 @@ function makeDefaultHookState(overrides = {}) {
 
 beforeEach(() => {
   mockUseAdminClinicsPage.mockReturnValue(makeDefaultHookState())
+  mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState())
 })
 
 afterEach(() => {
@@ -220,5 +247,152 @@ describe('AdminClinicsPageContainer — error state', () => {
     )
     render(<AdminClinicsPageContainer />)
     expect(screen.getByText('Não foi possível carregar as clínicas.')).toBeInTheDocument()
+  })
+})
+
+// ── Saúde das clínicas ────────────────────────────────────────────────────────
+
+describe('AdminClinicsPageContainer — Saúde das clínicas', () => {
+  it('renders the section heading and fetched clinic health rows', () => {
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({
+        rows: [makeHealthRow({ clinic: { id: 'c1', name: 'Clínica X' } })],
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getByRole('heading', { name: /saúde das clínicas/i })).toBeInTheDocument()
+    expect(screen.getAllByText('Clínica X').length).toBeGreaterThan(0)
+  })
+
+  it('shows the loading state while health data is loading', () => {
+    mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState({ isLoading: true }))
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getByText(/carregando saúde das clínicas/i)).toBeInTheDocument()
+  })
+
+  it('shows the error state when the health fetch fails', () => {
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({ loadError: 'Não foi possível carregar a saúde das clínicas.' }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getByText('Não foi possível carregar a saúde das clínicas.')).toBeInTheDocument()
+  })
+
+  it('shows the empty state when there are no health rows', () => {
+    mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState({ rows: [] }))
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getByText('Nenhum dado de saúde disponível')).toBeInTheDocument()
+  })
+
+  it('renders the payment issue flag for a PAST_DUE subscription', () => {
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({
+        rows: [makeHealthRow({ subscription: { status: 'PAST_DUE', trialEndsAt: null } })],
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getAllByText('Pagamento em atraso').length).toBeGreaterThan(0)
+  })
+
+  it('renders the payment issue flag for an UNPAID subscription', () => {
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({
+        rows: [makeHealthRow({ subscription: { status: 'UNPAID', trialEndsAt: null } })],
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getAllByText('Pagamento em atraso').length).toBeGreaterThan(0)
+  })
+
+  it('renders the trial-ending-soon flag when the trial ends within 7 days', () => {
+    const soon = new Date(Date.now() + 3 * 86_400_000).toISOString()
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({
+        rows: [makeHealthRow({ subscription: { status: 'TRIALING', trialEndsAt: soon } })],
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getAllByText('Trial acabando').length).toBeGreaterThan(0)
+  })
+
+  it('renders the no-dentists flag when dentists count is zero', () => {
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({
+        rows: [
+          makeHealthRow({
+            counts: { dentists: 0, activeUsers: 1, totalAppointments: 5, recentAppointments: 1 },
+          }),
+        ],
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getAllByText('Sem dentistas').length).toBeGreaterThan(0)
+  })
+
+  it('renders the no-recent-appointments flag when recentAppointments is zero', () => {
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({
+        rows: [
+          makeHealthRow({
+            counts: { dentists: 1, activeUsers: 1, totalAppointments: 5, recentAppointments: 0 },
+          }),
+        ],
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getAllByText('Sem consultas recentes').length).toBeGreaterThan(0)
+  })
+
+  it('renders the incomplete-fiscal-setup flag when fiscalSetupComplete is false', () => {
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({
+        rows: [makeHealthRow({ compliance: { fiscalSetupComplete: false } })],
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getAllByText('Configuração fiscal incompleta').length).toBeGreaterThan(0)
+  })
+
+  it('renders the incomplete-fiscal-setup flag when fiscalSetupComplete is null', () => {
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({
+        rows: [makeHealthRow({ compliance: { fiscalSetupComplete: null } })],
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getAllByText('Configuração fiscal incompleta').length).toBeGreaterThan(0)
+  })
+
+  it('renders the no-recent-activity flag when there is no last activity', () => {
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({
+        rows: [makeHealthRow({ lastActivity: { timestamp: null, source: null } })],
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getAllByText('Sem atividade recente').length).toBeGreaterThan(0)
+  })
+
+  it('shows "Sem sinais de risco" for a healthy clinic with no flags', () => {
+    mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState({ rows: [makeHealthRow()] }))
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getAllByText('Sem sinais de risco').length).toBeGreaterThan(0)
+  })
+
+  it('does not show any patient, appointment-detail, or clinical record data', () => {
+    mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState({ rows: [makeHealthRow()] }))
+    render(<AdminClinicsPageContainer />)
+    expect(screen.queryByText(/paciente/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/prontuário/i)).not.toBeInTheDocument()
+  })
+
+  it('does not change the existing clinics list rendering', () => {
+    const clinic = makeClinic({ name: 'Clínica Existente' })
+    mockUseAdminClinicsPage.mockReturnValue(
+      makeDefaultHookState({ allClinics: [clinic], clinics: [clinic], filteredCount: 1 }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getByRole('heading', { name: /clínicas cadastradas/i })).toBeInTheDocument()
+    expect(screen.getAllByText('Clínica Existente').length).toBeGreaterThan(0)
   })
 })

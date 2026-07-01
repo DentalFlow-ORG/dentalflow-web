@@ -4,6 +4,7 @@ import { ApiError, apiRequest } from '@/services/http'
 import type {
   AdminClinic,
   AdminClinicsResponse,
+  ClinicHealthRow,
   CreateAdminClinicDto,
   UpdateAdminClinicDto,
 } from '../types/admin.types'
@@ -24,6 +25,13 @@ export async function listAdminClinicsPage(page = 1, limit = 20) {
   }
 
   return response
+}
+
+export function getClinicsHealth() {
+  return apiRequest<ClinicHealthRow[]>('/admin/users/clinics/health', {
+    method: 'GET',
+    accessToken: getAccessToken(),
+  })
 }
 
 export function createAdminClinic(dto: CreateAdminClinicDto) {

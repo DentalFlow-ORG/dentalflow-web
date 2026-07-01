@@ -15,7 +15,9 @@ import { HomeKpiCard } from '@/features/home/components/HomeKpiCard'
 import { HomeSection } from '@/features/home/components/HomeSection'
 
 import { ClinicFormModal } from '../components/ClinicFormModal'
+import { ClinicHealthSection } from '../components/ClinicHealthSection'
 import { useAdminClinicsPage } from '../hooks/useAdminClinicsPage'
+import { useClinicsHealth } from '../hooks/useClinicsHealth'
 import type { AdminClinic } from '../types/admin.types'
 
 type AdminClinicMobileCardProps = {
@@ -107,6 +109,13 @@ export function AdminClinicsPageContainer() {
     handleEditSuccess,
     handleDeleteConfirm,
   } = useAdminClinicsPage()
+
+  const {
+    rows: healthRows,
+    isLoading: isHealthLoading,
+    loadError: healthLoadError,
+    load: reloadHealth,
+  } = useClinicsHealth()
 
   return (
     <AppPage spacing="loose">
@@ -301,6 +310,13 @@ export function AdminClinicsPageContainer() {
           </div>
         </ListPageShell>
       </HomeSection>
+
+      <ClinicHealthSection
+        rows={healthRows}
+        isLoading={isHealthLoading}
+        loadError={healthLoadError}
+        onRetry={reloadHealth}
+      />
 
       <ClinicFormModal
         open={createOpen}
