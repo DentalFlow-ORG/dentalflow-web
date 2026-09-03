@@ -43,7 +43,7 @@ function makeHealthRow(overrides: Partial<ClinicHealthRow> = {}): ClinicHealthRo
     clinic: { id: 'clinic-1', name: 'Clínica Demo', isActive: true },
     subscription: { status: 'ACTIVE', planName: 'Profissional', trialEndsAt: null },
     counts: { dentists: 2, activeUsers: 3, totalAppointments: 50, recentAppointments: 5 },
-    lastActivity: { timestamp: '2026-06-29T12:00:00.000Z', source: 'USER_LOGIN' },
+    lastActivity: { timestamp: new Date().toISOString(), source: 'USER_LOGIN' },
     compliance: { fiscalSetupComplete: true },
     ...overrides,
   }
