@@ -74,6 +74,19 @@ describe('fetchAddressByCep', () => {
     })
   })
 
+  it('falls back to empty strings and the requested digits when fields are missing/non-string', async () => {
+    mockFetch.mockReturnValue(makeFetchResponse({}))
+    const result = await fetchAddressByCep('01310100')
+    expect(result).toEqual({
+      cep: '01310100',
+      street: '',
+      neighborhood: '',
+      city: '',
+      uf: '',
+      complement: undefined,
+    })
+  })
+
   it('omits complement when ViaCEP returns empty string', async () => {
     mockFetch.mockReturnValue(
       makeFetchResponse({

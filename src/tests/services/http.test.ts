@@ -1,4 +1,6 @@
-import { ApiError, apiRequest } from '@/services/http'
+import { notifySessionExpired } from '@/features/auth/utils/auth-events'
+import { clearSession } from '@/features/auth/utils/session-storage'
+import { ApiError, apiRequest, setupAuthRefresh } from '@/services/http'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -164,5 +166,177 @@ describe('missing env.apiUrl', () => {
     mockApiUrl = undefined
     await expect(apiRequest('/test')).rejects.toThrow('VITE_API_URL não está configurada.')
     expect(mockFetch).not.toHaveBeenCalled()
+  })
+})
+
+// ── Success body parsing ──────────────────────────────────────────────────────
+
+describe('success body parsing', () => {
+  it('returns raw text for a non-JSON content type', async () => {
+    mockFetch.mockResolvedValue(
+      new Response('plain text body', { status: 200, headers: { 'Content-Type': 'text/plain' } }),
+    )
+    const result = await apiRequest<string>('/test')
+    expect(result).toBe('plain text body')
+  })
+
+  it('returns undefined for an empty (whitespace-only) body', async () => {
+    mockFetch.mockResolvedValue(
+      new Response('   ', { status: 200, headers: { 'Content-Type': 'application/json' } }),
+    )
+    const result = await apiRequest('/test')
+    expect(result).toBeUndefined()
+  })
+
+  it('throws an ApiError when the JSON body cannot be parsed', async () => {
+    mockFetch.mockResolvedValue(
+      new Response('{not valid json', {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    await expect(apiRequest('/test')).rejects.toMatchObject({
+      name: 'ApiError',
+      message: 'A resposta do servidor veio em um formato inválido.',
+    })
+  })
+})
+
+// ── Error body parsing ────────────────────────────────────────────────────────
+
+describe('error body parsing', () => {
+  it('parses a non-JSON error body as text', async () => {
+    mockFetch.mockResolvedValue(
+      new Response('server error text', {
+        status: 500,
+        headers: { 'Content-Type': 'text/plain' },
+      }),
+    )
+    await expect(apiRequest('/test')).rejects.toMatchObject({ status: 500 })
+  })
+
+  it('falls back to null body when the JSON error body cannot be parsed', async () => {
+    mockFetch.mockResolvedValue(
+      new Response('{not valid json', {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const error = await apiRequest('/test').catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(ApiError)
+    expect((error as InstanceType<typeof ApiError>).body).toBeNull()
+  })
+
+  it('joins an array message into a single translated string', async () => {
+    mockFetch.mockResolvedValue(
+      makeJsonResponse(400, { message: ['page must not be less than 1'] }),
+    )
+    await expect(apiRequest('/test')).rejects.toThrow('Página deve ser maior ou igual a 1.')
+  })
+
+  it('falls back to the error field when message is absent', async () => {
+    mockFetch.mockResolvedValue(makeJsonResponse(403, { error: 'Forbidden' }))
+    await expect(apiRequest('/test')).rejects.toMatchObject({ status: 403 })
+  })
+})
+
+// ── Request timeout / abort ───────────────────────────────────────────────────
+
+describe('external abort signal', () => {
+  it('aborts the request when the caller-provided signal aborts', async () => {
+    const externalController = new AbortController()
+    mockFetch.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => {
+            reject(new DOMException('The operation was aborted.', 'AbortError'))
+          })
+        }),
+    )
+
+    const promise = apiRequest('/test', { signal: externalController.signal })
+    const assertion = expect(promise).rejects.toMatchObject({ status: 408 })
+    externalController.abort()
+    await assertion
+  })
+})
+
+describe('request timeout', () => {
+  it('throws an ApiError with status 408 when the request times out', async () => {
+    mockFetch.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init.signal?.addEventListener('abort', () => {
+            reject(new DOMException('The operation was aborted.', 'AbortError'))
+          })
+        }),
+    )
+
+    const promise = apiRequest('/test', { timeoutMs: 1000 })
+    const assertion = expect(promise).rejects.toMatchObject({
+      status: 408,
+      message: 'A requisição demorou muito. Tente novamente.',
+    })
+    await vi.advanceTimersByTimeAsync(1000)
+    await assertion
+  })
+})
+
+// ── 401 refresh flow ──────────────────────────────────────────────────────────
+
+describe('401 refresh flow', () => {
+  it('refreshes the token and retries the request on success', async () => {
+    const onTokenRefreshed = vi.fn()
+    const onRefreshFailed = vi.fn()
+    setupAuthRefresh({
+      refreshTokens: vi.fn().mockResolvedValue({ accessToken: 'new-token' }),
+      onTokenRefreshed,
+      onRefreshFailed,
+    })
+
+    mockFetch
+      .mockResolvedValueOnce(makeJsonResponse(401, { message: 'Unauthorized' }))
+      .mockResolvedValueOnce(makeJsonResponse(200, { ok: true }))
+
+    const result = await apiRequest<{ ok: boolean }>('/test')
+
+    expect(result).toEqual({ ok: true })
+    expect(onTokenRefreshed).toHaveBeenCalledWith('new-token')
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('clears the session and rejects when the refresh itself fails', async () => {
+    const onTokenRefreshed = vi.fn()
+    const onRefreshFailed = vi.fn()
+    setupAuthRefresh({
+      refreshTokens: vi.fn().mockRejectedValue(new Error('refresh failed')),
+      onTokenRefreshed,
+      onRefreshFailed,
+    })
+
+    mockFetch.mockResolvedValue(makeJsonResponse(401, { message: 'Unauthorized' }))
+
+    await expect(apiRequest('/test')).rejects.toMatchObject({ status: 401 })
+
+    expect(clearSession).toHaveBeenCalledOnce()
+    expect(notifySessionExpired).toHaveBeenCalledOnce()
+    expect(onRefreshFailed).toHaveBeenCalledOnce()
+    expect(onTokenRefreshed).not.toHaveBeenCalled()
+  })
+
+  it('does not attempt a refresh when _skipRefresh is set', async () => {
+    const refreshTokens = vi.fn()
+    setupAuthRefresh({
+      refreshTokens,
+      onTokenRefreshed: vi.fn(),
+      onRefreshFailed: vi.fn(),
+    })
+
+    mockFetch.mockResolvedValue(makeJsonResponse(401, { message: 'Unauthorized' }))
+
+    await expect(apiRequest('/test', { _skipRefresh: true })).rejects.toMatchObject({
+      status: 401,
+    })
+    expect(refreshTokens).not.toHaveBeenCalled()
   })
 })
