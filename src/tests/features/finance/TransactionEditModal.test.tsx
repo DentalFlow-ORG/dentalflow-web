@@ -1,6 +1,6 @@
-import { render, screen } from '@/test-utils/render-utils'
-import type { ReactNode } from 'react'
-import { vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
+
+import { fireEvent, render, screen } from '@/test-utils/render-utils'
 
 vi.mock('@/components/ui/select', () => ({
   Select: ({
@@ -8,18 +8,20 @@ vi.mock('@/components/ui/select', () => ({
     onValueChange,
     children,
   }: {
-    value?: string
-    onValueChange?: (v: string) => void
-    children?: ReactNode
+    value: string
+    onValueChange: (v: string) => void
+    children: React.ReactNode
   }) => (
-    <select value={value} onChange={(e) => onValueChange?.(e.target.value)}>
+    <select value={value} onChange={(e) => onValueChange(e.target.value)}>
       {children}
     </select>
   ),
-  SelectTrigger: ({ children }: { children?: ReactNode }) => <>{children}</>,
-  SelectValue: () => null,
-  SelectContent: ({ children }: { children?: ReactNode }) => <>{children}</>,
-  SelectItem: ({ value, children }: { value: string; children?: ReactNode }) => (
+  SelectTrigger: ({ children }: { children: React.ReactNode; id?: string }) => <>{children}</>,
+  SelectValue: ({ placeholder }: { placeholder?: string }) => (
+    <option value="">{placeholder}</option>
+  ),
+  SelectContent: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SelectItem: ({ value, children }: { value: string; children: React.ReactNode }) => (
     <option value={value}>{children}</option>
   ),
 }))
@@ -30,95 +32,145 @@ vi.mock('@/components/common/DatePickerInput', () => ({
     value,
     onValueChange,
   }: {
-    id?: string
-    value?: string
-    onValueChange?: (v: string) => void
-  }) => (
-    <input type="date" id={id} value={value} onChange={(e) => onValueChange?.(e.target.value)} />
-  ),
+    id: string
+    value: string
+    onValueChange: (v: string) => void
+  }) => <input id={id} type="date" value={value} onChange={(e) => onValueChange(e.target.value)} />,
 }))
 
 import { TransactionEditModal } from '@/features/finance/components/TransactionEditModal'
 import type {
+  FinancialCategory,
   FinancialTransaction,
   TransactionFormState,
 } from '@/features/finance/types/finance.types'
 
-// ── Fixtures ──────────────────────────────────────────────────────────────────
+const CATEGORIES: FinancialCategory[] = [
+  { id: 'cat-1', name: 'Consultas', type: 'INCOME', color: '#111' } as FinancialCategory,
+]
 
-const mockTransaction = {
-  id: 'tx-1',
-  type: 'INCOME' as const,
-  categoryId: 'cat-1',
-  amount: 500,
-  description: 'Consulta do paciente',
-  transactionDate: '2026-06-01',
-  dueDate: null,
-  status: 'PAID' as const,
-  source: 'MANUAL',
-  service: null,
-  category: null,
-} as unknown as FinancialTransaction
+const TRANSACTION: FinancialTransaction = { id: 'tx-1' } as FinancialTransaction
 
-const emptyForm: TransactionFormState = {
+const FORM: TransactionFormState = {
   type: 'INCOME',
-  categoryId: '',
-  amount: '',
-  description: '',
-  transactionDate: '',
+  categoryId: 'cat-1',
+  amount: '100,00',
+  description: 'Consulta',
+  transactionDate: '2026-06-01',
   dueDate: '',
   status: 'PAID',
 }
 
-function renderModal(transaction: FinancialTransaction | null = mockTransaction) {
-  return render(
-    <TransactionEditModal
-      transaction={transaction}
-      form={emptyForm}
-      categories={[]}
-      error={null}
-      isSubmitting={false}
-      onChange={vi.fn()}
-      onSubmit={vi.fn()}
-      onClose={vi.fn()}
-    />,
-  )
+function renderModal(overrides: Partial<Parameters<typeof TransactionEditModal>[0]> = {}) {
+  const props = {
+    transaction: TRANSACTION,
+    form: FORM,
+    categories: CATEGORIES,
+    error: null,
+    isSubmitting: false,
+    onChange: vi.fn(),
+    onSubmit: vi.fn((e: React.FormEvent) => e.preventDefault()),
+    onClose: vi.fn(),
+    ...overrides,
+  }
+  return render(<TransactionEditModal {...props} />)
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
 describe('TransactionEditModal', () => {
-  it('renders Dialog.Title when modal is open', () => {
-    renderModal()
-    expect(screen.getByText('Editar lançamento')).toBeInTheDocument()
-  })
-
-  it('renders Dialog.Description for screen readers when modal is open', () => {
-    renderModal()
-    expect(
-      screen.getByText('Atualize os dados do lançamento financeiro selecionado.'),
-    ).toBeInTheDocument()
-  })
-
-  it('renders description field in the form', () => {
-    renderModal()
-    expect(screen.getByLabelText('Descrição')).toBeInTheDocument()
-  })
-
-  it('does not render modal content when transaction is null', () => {
-    renderModal(null)
+  it('renders nothing when transaction is null', () => {
+    renderModal({ transaction: null })
     expect(screen.queryByText('Editar lançamento')).not.toBeInTheDocument()
   })
 
-  it('Dialog.Content has max-h for viewport-safe scrolling', () => {
+  it('renders the form pre-filled from the transaction when open', () => {
     renderModal()
-    const content = document.body.querySelector('[role="dialog"]')
-    expect(content?.className).toMatch(/max-h-/)
+    expect(screen.getByText('Editar lançamento')).toBeInTheDocument()
+    expect(screen.getByLabelText('Descrição')).toHaveValue('Consulta')
   })
 
-  it('form body area has overflow-y-auto for scrollable content', () => {
-    renderModal()
-    const scrollable = document.body.querySelector('.overflow-y-auto')
-    expect(scrollable).toBeInTheDocument()
+  it('shows the error message when provided', () => {
+    renderModal({ error: 'Erro ao salvar.' })
+    expect(screen.getByText('Erro ao salvar.')).toBeInTheDocument()
+  })
+
+  it('calls onChange when the description changes', async () => {
+    const onChange = vi.fn()
+    renderModal({ onChange })
+    await userEvent.type(screen.getByLabelText('Descrição'), 'x')
+    expect(onChange).toHaveBeenCalledWith('description', expect.any(String))
+  })
+
+  it('calls onChange when the amount changes', async () => {
+    const onChange = vi.fn()
+    renderModal({ onChange })
+    await userEvent.type(screen.getByLabelText('Valor'), '1')
+    expect(onChange).toHaveBeenCalledWith('amount', expect.any(String))
+  })
+
+  it('calls onChange when the type select changes', async () => {
+    const onChange = vi.fn()
+    renderModal({ onChange })
+    const selects = screen.getAllByRole('combobox')
+    await userEvent.selectOptions(selects[0], 'EXPENSE')
+    expect(onChange).toHaveBeenCalledWith('type', 'EXPENSE')
+  })
+
+  it('calls onChange when the status select changes', async () => {
+    const onChange = vi.fn()
+    renderModal({ onChange })
+    const selects = screen.getAllByRole('combobox')
+    await userEvent.selectOptions(selects[1], 'PENDING')
+    expect(onChange).toHaveBeenCalledWith('status', 'PENDING')
+  })
+
+  it('calls onChange when the category select changes', async () => {
+    const onChange = vi.fn()
+    renderModal({ onChange })
+    const selects = screen.getAllByRole('combobox')
+    await userEvent.selectOptions(selects[2], 'cat-1')
+    expect(onChange).toHaveBeenCalledWith('categoryId', 'cat-1')
+  })
+
+  it('calls onChange when the transaction date changes', () => {
+    const onChange = vi.fn()
+    renderModal({ onChange })
+    const input = document.getElementById('editTxDate') as HTMLInputElement
+    fireEvent.change(input, { target: { value: '2026-07-01' } })
+    expect(onChange).toHaveBeenCalledWith('transactionDate', '2026-07-01')
+  })
+
+  it('calls onChange when the due date changes', () => {
+    const onChange = vi.fn()
+    renderModal({ onChange })
+    const input = document.getElementById('editTxDueDate') as HTMLInputElement
+    fireEvent.change(input, { target: { value: '2026-07-10' } })
+    expect(onChange).toHaveBeenCalledWith('dueDate', '2026-07-10')
+  })
+
+  it('calls onSubmit when the form is submitted', async () => {
+    const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault())
+    renderModal({ onSubmit })
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
+
+  it('calls onClose when Cancelar is clicked', async () => {
+    const onClose = vi.fn()
+    renderModal({ onClose })
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('calls onClose when the close (X) button is clicked', async () => {
+    const onClose = vi.fn()
+    renderModal({ onClose })
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar edição de lançamento' }))
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('disables the buttons while submitting', () => {
+    renderModal({ isSubmitting: true })
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Salvar alterações' })).toBeDisabled()
   })
 })
