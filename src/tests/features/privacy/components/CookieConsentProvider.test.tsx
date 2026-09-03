@@ -1,9 +1,19 @@
+import { useCookieConsent } from '@/features/privacy/components/CookieConsentContext'
 import { CookieConsentProvider } from '@/features/privacy/components/CookieConsentProvider'
 import {
   COOKIE_CONSENT_KEY,
   COOKIE_POLICY_VERSION,
 } from '@/features/privacy/utils/cookie-consent-storage'
 import { fireEvent, render, screen } from '@testing-library/react'
+
+function OpenPreferencesButton() {
+  const { openPreferences } = useCookieConsent()
+  return (
+    <button type="button" onClick={openPreferences}>
+      open-preferences
+    </button>
+  )
+}
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -152,6 +162,13 @@ describe('preferences modal', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
+  it('does not close the modal for a key other than Escape', () => {
+    renderProvider()
+    fireEvent.click(getFirstButton('Personalizar preferências de cookies'))
+    fireEvent.keyDown(document, { key: 'Enter' })
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
   it('persists the selected toggle state when "Salvar preferências" is clicked', () => {
     renderProvider()
     fireEvent.click(getFirstButton('Personalizar preferências de cookies'))
@@ -174,5 +191,78 @@ describe('preferences modal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Salvar preferências' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Aviso de cookies' })).not.toBeInTheDocument()
+  })
+
+  it('toggles the "Preferências" and "Marketing" categories', () => {
+    renderProvider()
+    fireEvent.click(getFirstButton('Personalizar preferências de cookies'))
+    fireEvent.click(screen.getByRole('switch', { name: 'Ativar cookies preferências' }))
+    fireEvent.click(screen.getByRole('switch', { name: 'Ativar cookies marketing' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar preferências' }))
+    const saved = JSON.parse(localStorage.getItem(COOKIE_CONSENT_KEY)!)
+    expect(saved.categories).toEqual({
+      necessary: true,
+      preferences: true,
+      analytics: false,
+      marketing: true,
+    })
+  })
+
+  it('seeds the toggles from previously-stored preferences when reopened', () => {
+    localStorage.setItem(
+      COOKIE_CONSENT_KEY,
+      makeStoredConsent({ analytics: true, marketing: false }),
+    )
+    // With valid consent already stored, the banner (and its "Personalizar"
+    // trigger) isn't rendered — open the modal via the context directly, the
+    // same way SiteFooter's cookie-preferences link does.
+    render(
+      <CookieConsentProvider>
+        <OpenPreferencesButton />
+      </CookieConsentProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'open-preferences' }))
+    expect(screen.getByRole('switch', { name: 'Desativar cookies análise' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+  })
+
+  it('rejects optional cookies from within the modal footer', () => {
+    renderProvider()
+    fireEvent.click(getFirstButton('Personalizar preferências de cookies'))
+    fireEvent.click(screen.getByRole('button', { name: 'Recusar opcionais' }))
+    const saved = JSON.parse(localStorage.getItem(COOKIE_CONSENT_KEY)!)
+    expect(saved.categories).toEqual({
+      necessary: true,
+      preferences: false,
+      analytics: false,
+      marketing: false,
+    })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('accepts all cookies from within the modal footer', () => {
+    renderProvider()
+    fireEvent.click(getFirstButton('Personalizar preferências de cookies'))
+    fireEvent.click(screen.getByRole('button', { name: 'Aceitar todos' }))
+    const saved = JSON.parse(localStorage.getItem(COOKIE_CONSENT_KEY)!)
+    expect(saved.categories).toEqual({
+      necessary: true,
+      preferences: true,
+      analytics: true,
+      marketing: true,
+    })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('the "Necessários" category switch is always on and cannot be toggled', () => {
+    renderProvider()
+    fireEvent.click(getFirstButton('Personalizar preferências de cookies'))
+    const necessarySwitch = screen.getByRole('switch', {
+      name: 'Cookies necessários são sempre necessários',
+    })
+    expect(necessarySwitch).toBeDisabled()
+    expect(necessarySwitch).toHaveAttribute('aria-checked', 'true')
   })
 })
