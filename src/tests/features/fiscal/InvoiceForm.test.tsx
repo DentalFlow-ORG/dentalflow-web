@@ -206,4 +206,247 @@ describe('InvoiceForm', () => {
     fireEvent.change(screen.getByLabelText('Valor'), { target: { value: '90' } })
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ amountCents: 90 }))
   })
+
+  // ── Plain field onChange wiring ────────────────────────────────────────────
+
+  it('calls onChange when typing the customer name', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Cliente/Paciente'), { target: { value: 'Ana' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ customerName: 'Ana' }))
+  })
+
+  it('calls onChange when typing the customer email', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText(/E-mail/), { target: { value: 'a@b.com' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ customerEmail: 'a@b.com' }))
+  })
+
+  it('calls onChange when typing the service description', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Serviço prestado'), { target: { value: 'Limpeza' } })
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ serviceDescription: 'Limpeza' }),
+    )
+  })
+
+  it('calls onChange when typing the service code', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText(/código de serviço/i), { target: { value: '04.12' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ serviceCode: '04.12' }))
+  })
+
+  it('calls onChange when the competence date changes', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Data de competência'), {
+      target: { value: '2026-07-01' },
+    })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ competenceDate: '2026-07-01' }))
+  })
+
+  it('calls onChange when typing notes', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText(/Observações/), { target: { value: 'Nota interna' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ notes: 'Nota interna' }))
+  })
+
+  it('formats the document field as CPF/CNPJ while typing', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText(/CPF\/CNPJ/), { target: { value: '12345678909' } })
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ customerDocument: '123.456.789-09' }),
+    )
+  })
+
+  it('formats the phone field while typing', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText(/Telefone/), { target: { value: '11987654321' } })
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ customerPhone: '(11) 98765-4321' }),
+    )
+  })
+
+  // ── Cancel ──────────────────────────────────────────────────────────────────
+
+  it('calls onCancel when Cancelar is clicked', () => {
+    const onCancel = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={vi.fn()}
+        onCancel={onCancel}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(onCancel).toHaveBeenCalledOnce()
+  })
+
+  // ── Submit + validation ─────────────────────────────────────────────────────
+
+  it('calls onSubmit when the form is valid (empty optional fields)', () => {
+    const onSubmit = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
+
+  it('calls onSubmit when document and phone are valid', () => {
+    const onSubmit = vi.fn()
+    render(
+      <InvoiceForm
+        form={{
+          ...emptyForm,
+          customerDocument: '123.456.789-09',
+          customerPhone: '(11) 98765-4321',
+        }}
+        editing={false}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
+
+  it('blocks submit and shows an error for an invalid document', () => {
+    const onSubmit = vi.fn()
+    render(
+      <InvoiceForm
+        form={{ ...emptyForm, customerDocument: '111.111.111-11' }}
+        editing={false}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByText('Informe um CPF ou CNPJ válido.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/CPF\/CNPJ/)).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('blocks submit and shows an error for an invalid phone', () => {
+    const onSubmit = vi.fn()
+    render(
+      <InvoiceForm
+        form={{ ...emptyForm, customerPhone: '123' }}
+        editing={false}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByText('Informe um telefone válido com DDD.')).toBeInTheDocument()
+  })
+
+  it('clears the document error as soon as the field changes again', () => {
+    const onChange = vi.fn()
+    const { rerender } = render(
+      <InvoiceForm
+        form={{ ...emptyForm, customerDocument: '111.111.111-11' }}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(screen.getByText('Informe um CPF ou CNPJ válido.')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText(/CPF\/CNPJ/), { target: { value: '1' } })
+    rerender(
+      <InvoiceForm
+        form={{ ...emptyForm, customerDocument: '1' }}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    expect(screen.queryByText('Informe um CPF ou CNPJ válido.')).not.toBeInTheDocument()
+  })
 })

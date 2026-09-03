@@ -1,8 +1,43 @@
-import { fireEvent, render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 import { vi } from 'vitest'
+
+vi.mock('@/services/cep/cep.service', async () => {
+  const actual = await vi.importActual<typeof import('@/services/cep/cep.service')>(
+    '@/services/cep/cep.service',
+  )
+  return {
+    ...actual,
+    fetchAddressByCep: vi.fn(),
+  }
+})
+
+vi.mock('@/components/ui/select', () => ({
+  Select: ({
+    value,
+    onValueChange,
+    children,
+  }: {
+    value: string
+    onValueChange: (v: string) => void
+    children: React.ReactNode
+  }) => (
+    <select value={value} onChange={(e) => onValueChange(e.target.value)}>
+      {children}
+    </select>
+  ),
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SelectValue: () => null,
+  SelectContent: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SelectItem: ({ value, children }: { value: string; children: React.ReactNode }) => (
+    <option value={value}>{children}</option>
+  ),
+}))
 
 import { FiscalProfileForm } from '@/features/fiscal/components/FiscalProfileForm'
 import type { FiscalProfilePayload } from '@/features/fiscal/types/fiscal.types'
+import { CepNotFoundError, fetchAddressByCep } from '@/services/cep/cep.service'
+
+const mockFetchAddressByCep = fetchAddressByCep as ReturnType<typeof vi.fn>
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -362,4 +397,219 @@ describe('FiscalProfileForm — field validation', () => {
     clickSave()
     expect(screen.getByLabelText('CNPJ')).toHaveAttribute('aria-invalid', 'true')
   })
+
+  it('does not flag issRate as invalid when it is 0', () => {
+    const onSubmit = vi.fn()
+    renderForm({
+      onSubmit,
+      form: makeForm({
+        legalName: 'Clínica Ltda',
+        documentNumber: '11.222.333/0001-81',
+        addressZipCode: '01310-100',
+        addressState: 'SP',
+        issRate: 0,
+      }),
+    })
+    clickSave()
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
+
+  it('does not flag issRate as invalid when it is null', () => {
+    const onSubmit = vi.fn()
+    renderForm({
+      onSubmit,
+      form: makeForm({
+        legalName: 'Clínica Ltda',
+        documentNumber: '11.222.333/0001-81',
+        addressZipCode: '01310-100',
+        addressState: 'SP',
+        issRate: null,
+      }),
+    })
+    clickSave()
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
+})
+
+// ── Remaining field onChange wiring ────────────────────────────────────────────
+
+describe('FiscalProfileForm — remaining onChange wiring', () => {
+  it('calls onChange when tradeName changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText(/Nome fantasia/), { target: { value: 'Sorriso' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ tradeName: 'Sorriso' }))
+  })
+
+  it('calls onChange when municipalRegistration changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText(/Inscrição municipal/), { target: { value: '123' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ municipalRegistration: '123' }))
+  })
+
+  it('calls onChange when stateRegistration changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText(/Inscrição estadual/), { target: { value: '456' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ stateRegistration: '456' }))
+  })
+
+  it('calls onChange when street changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText('Rua'), { target: { value: 'Av. Paulista' } })
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ addressStreet: 'Av. Paulista' }),
+    )
+  })
+
+  it('calls onChange when number changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText('Número'), { target: { value: '100' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ addressNumber: '100' }))
+  })
+
+  it('calls onChange when complement changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText(/Complemento/), { target: { value: 'Sala 2' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ addressComplement: 'Sala 2' }))
+  })
+
+  it('calls onChange when neighborhood changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText('Bairro'), { target: { value: 'Centro' } })
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ addressNeighborhood: 'Centro' }),
+    )
+  })
+
+  it('calls onChange when state changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText('UF'), { target: { value: 'sp' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ addressState: 'SP' }))
+  })
+
+  it('calls onChange when the tax regime select changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'MEI' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ taxRegime: 'MEI' }))
+  })
+
+  it('calls onChange when issRate changes to a valid decimal', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText(/Alíquota de ISS/), { target: { value: '2,5' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ issRate: 2.5 }))
+  })
+
+  it('sets issRate to null when the field is cleared', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange, form: makeForm({ issRate: 5 }) })
+    fireEvent.change(screen.getByLabelText(/Alíquota de ISS/), { target: { value: '' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ issRate: null }))
+  })
+
+  it('calls onChange when service code changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText(/Código de serviço municipal/), {
+      target: { value: '04.12' },
+    })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ serviceCode: '04.12' }))
+  })
+
+  it('calls onChange when CNAE changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText(/^CNAE/), { target: { value: '8630-5/04' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ cnae: '8630-5/04' }))
+  })
+
+  it('strips non-digits when the IBGE code changes', () => {
+    const onChange = vi.fn()
+    renderForm({ onChange })
+    fireEvent.change(screen.getByLabelText(/Código IBGE/), { target: { value: '35a50308' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ cityIbgeCode: '3550308' }))
+  })
+})
+
+// ── CEP auto-lookup ─────────────────────────────────────────────────────────────
+
+describe('FiscalProfileForm — CEP auto-lookup', () => {
+  afterEach(() => {
+    mockFetchAddressByCep.mockReset()
+  })
+
+  it('does not look up an incomplete CEP', async () => {
+    renderForm({ form: makeForm({ addressZipCode: '01310' }) })
+    await new Promise((r) => setTimeout(r, 500))
+    expect(mockFetchAddressByCep).not.toHaveBeenCalled()
+  })
+
+  it('debounces the lookup and fills address fields on success', async () => {
+    mockFetchAddressByCep.mockResolvedValue({
+      cep: '01310-100',
+      street: 'Av. Paulista',
+      neighborhood: 'Bela Vista',
+      city: 'São Paulo',
+      uf: 'SP',
+    })
+    const onChange = vi.fn()
+    renderForm({ onChange, form: makeForm({ addressZipCode: '01310-100' }) })
+
+    await waitFor(() => expect(mockFetchAddressByCep).toHaveBeenCalledWith('01310-100'), {
+      timeout: 2000,
+    })
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          addressStreet: 'Av. Paulista',
+          addressNeighborhood: 'Bela Vista',
+          addressCity: 'São Paulo',
+          addressState: 'SP',
+        }),
+      ),
+    )
+  }, 10000)
+
+  it('shows "CEP não encontrado." when the CEP lookup returns CepNotFoundError', async () => {
+    mockFetchAddressByCep.mockRejectedValue(new CepNotFoundError())
+    renderForm({ form: makeForm({ addressZipCode: '01310-100' }) })
+    expect(
+      await screen.findByText('CEP não encontrado.', {}, { timeout: 2000 }),
+    ).toBeInTheDocument()
+  }, 10000)
+
+  it('shows a generic error when the CEP lookup fails for another reason', async () => {
+    mockFetchAddressByCep.mockRejectedValue(new Error('network'))
+    renderForm({ form: makeForm({ addressZipCode: '01310-100' }) })
+    expect(
+      await screen.findByText('Não foi possível consultar o CEP.', {}, { timeout: 2000 }),
+    ).toBeInTheDocument()
+  }, 10000)
+
+  it('clears a prior CEP lookup error as soon as the zip field changes again', async () => {
+    mockFetchAddressByCep.mockRejectedValue(new CepNotFoundError())
+    const { rerender } = renderForm({ form: makeForm({ addressZipCode: '01310-100' }) })
+    expect(
+      await screen.findByText('CEP não encontrado.', {}, { timeout: 2000 }),
+    ).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('CEP'), { target: { value: '02000-000' } })
+    rerender(
+      <FiscalProfileForm
+        form={makeForm({ addressZipCode: '02000-000' })}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    expect(screen.queryByText('CEP não encontrado.')).not.toBeInTheDocument()
+  }, 10000)
 })

@@ -172,6 +172,18 @@ describe('InvoiceList — mobile card', () => {
     const { container } = renderList()
     expect(container.querySelector('article')).toBeInTheDocument()
   })
+
+  it('shows customerEmail when present, ahead of customerDocument', () => {
+    renderList({ invoices: [makeInvoice({ customerEmail: 'joao@clinica.com' })] })
+    expect(screen.getAllByText('joao@clinica.com').length).toBeGreaterThan(0)
+  })
+
+  it('shows "Sem contato" when both email and document are null', () => {
+    renderList({
+      invoices: [makeInvoice({ customerEmail: null, customerDocument: null })],
+    })
+    expect(screen.getAllByText('Sem contato').length).toBeGreaterThan(0)
+  })
 })
 
 // ── Desktop table ──────────────────────────────────────────────────────────────
@@ -340,11 +352,83 @@ describe('InvoiceList — callback wiring', () => {
     expect(onViewDetails).toHaveBeenCalledWith(invoice)
   })
 
-  it('clicking Cancelar calls onCancel with the invoice', () => {
+  it('clicking Cancelar (mobile and desktop) calls onCancel with the invoice', () => {
     const onCancel = vi.fn()
     const invoice = makeInvoice({ status: 'DRAFT' })
     renderList({ invoices: [invoice], isOwner: true, onCancel })
-    fireEvent.click(screen.getAllByRole('button', { name: /Cancelar nota de João Silva/ })[0])
+    const buttons = screen.getAllByRole('button', { name: /Cancelar nota de João Silva/ })
+    for (const btn of buttons) fireEvent.click(btn)
+    expect(onCancel).toHaveBeenCalledTimes(buttons.length)
     expect(onCancel).toHaveBeenCalledWith(invoice)
+  })
+
+  it('clicking Editar (mobile and desktop) calls onEdit with the invoice', () => {
+    const onEdit = vi.fn()
+    const invoice = makeInvoice({ status: 'DRAFT' })
+    renderList({ invoices: [invoice], isOwner: true, userRole: 'OWNER', onEdit })
+    const buttons = screen.getAllByRole('button', { name: /Editar nota de João Silva/ })
+    for (const btn of buttons) fireEvent.click(btn)
+    expect(onEdit).toHaveBeenCalledTimes(buttons.length)
+    expect(onEdit).toHaveBeenCalledWith(invoice)
+  })
+
+  it('clicking Marcar pronta (mobile and desktop) calls onMarkReady with the invoice', () => {
+    const onMarkReady = vi.fn()
+    const invoice = makeInvoice({ status: 'DRAFT' })
+    renderList({ invoices: [invoice], isOwner: true, onMarkReady })
+    const buttons = screen.getAllByRole('button', { name: /Marcar nota de João Silva como pronta/ })
+    for (const btn of buttons) fireEvent.click(btn)
+    expect(onMarkReady).toHaveBeenCalledTimes(buttons.length)
+    expect(onMarkReady).toHaveBeenCalledWith(invoice)
+  })
+
+  it('clicking Simular emissão (mobile and desktop) calls onSimulate with the invoice', () => {
+    const onSimulate = vi.fn()
+    const invoice = makeInvoice({ status: 'READY_TO_ISSUE' })
+    renderList({
+      invoices: [invoice],
+      isOwner: true,
+      profile: makeProfile({ fiscalProviderMode: 'LOCAL' }),
+      onSimulate,
+    })
+    const buttons = screen.getAllByRole('button', { name: /Simular emissão da nota de João Silva/ })
+    for (const btn of buttons) fireEvent.click(btn)
+    expect(onSimulate).toHaveBeenCalledTimes(buttons.length)
+    expect(onSimulate).toHaveBeenCalledWith(invoice)
+  })
+
+  it('clicking Ver detalhes on the desktop row also calls onViewDetails', () => {
+    const onViewDetails = vi.fn()
+    const invoice = makeInvoice()
+    renderList({ invoices: [invoice], onViewDetails })
+    const buttons = screen.getAllByRole('button', { name: /Ver detalhes da nota de João Silva/ })
+    fireEvent.click(buttons[buttons.length - 1])
+    expect(onViewDetails).toHaveBeenCalledWith(invoice)
+  })
+})
+
+// ── canEditInvoice fallback ─────────────────────────────────────────────────────
+
+describe('InvoiceList — canEditInvoice fallback role', () => {
+  it('hides the edit button for a role that is neither OWNER nor ASSISTANT', () => {
+    renderList({
+      invoices: [makeInvoice({ status: 'DRAFT' })],
+      isOwner: false,
+      userRole: 'DENTIST',
+    })
+    expect(
+      screen.queryByRole('button', { name: /Editar nota de João Silva/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('hides the edit button when userRole is undefined', () => {
+    renderList({
+      invoices: [makeInvoice({ status: 'DRAFT' })],
+      isOwner: false,
+      userRole: undefined,
+    })
+    expect(
+      screen.queryByRole('button', { name: /Editar nota de João Silva/ }),
+    ).not.toBeInTheDocument()
   })
 })

@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 
 vi.mock('@/features/fiscal/services/fiscal.service', () => ({
@@ -31,10 +32,31 @@ vi.mock('@/components/ui/select', () => ({
 
 import { AppointmentInvoicePickerModal } from '@/features/fiscal/components/AppointmentInvoicePickerModal'
 import { listAppointmentsForInvoice } from '@/features/fiscal/services/fiscal.service'
+import type { AppointmentForInvoice } from '@/features/fiscal/types/fiscal.types'
 
 const mockList = listAppointmentsForInvoice as ReturnType<typeof vi.fn>
 
 const emptyResponse = { data: [], total: 0, page: 1, limit: 20 }
+
+function makeAppointment(overrides: Partial<AppointmentForInvoice> = {}): AppointmentForInvoice {
+  return {
+    id: 'appt-1',
+    patientName: 'Maria Silva',
+    patientEmail: null,
+    patientPhone: null,
+    appointmentDate: '2026-06-10',
+    startTime: '10:00',
+    status: 'COMPLETED',
+    paymentStatus: 'PAID',
+    estimatedAmountCents: 10000,
+    paidAmountCents: 10000,
+    profile: { id: 'p1', displayName: 'Dra. Ana' },
+    service: { id: 's1', name: 'Limpeza' },
+    hasActiveInvoice: false,
+    activeInvoiceId: null,
+    ...overrides,
+  }
+}
 
 function renderModal(open = true) {
   return render(<AppointmentInvoicePickerModal open={open} onClose={vi.fn()} onSelect={vi.fn()} />)
@@ -140,5 +162,193 @@ describe('AppointmentInvoicePickerModal', () => {
     await waitFor(() => {
       expect(screen.getByLabelText('Paciente')).toBeInTheDocument()
     })
+  })
+
+  // ── Error state ─────────────────────────────────────────────────────────────
+
+  it('shows an error message when loading fails', async () => {
+    mockList.mockRejectedValue(new Error('network error'))
+    renderModal()
+    expect(
+      await screen.findByText('Não foi possível carregar as consultas. Tente novamente.'),
+    ).toBeInTheDocument()
+  })
+
+  // ── Appointment rows ────────────────────────────────────────────────────────
+
+  it('renders appointment details: patient, date, service, dentist, amount', async () => {
+    mockList.mockResolvedValue({
+      data: [makeAppointment()],
+      total: 1,
+      page: 1,
+      limit: 20,
+    })
+    renderModal()
+    expect(await screen.findByText('Maria Silva')).toBeInTheDocument()
+    expect(screen.getByText(/limpeza/i)).toBeInTheDocument()
+    expect(screen.getByText(/dra\. ana/i)).toBeInTheDocument()
+    expect(screen.getByText('R$ 100,00')).toBeInTheDocument()
+  })
+
+  it('shows a "Nota já existe" badge when the appointment already has an active invoice', async () => {
+    mockList.mockResolvedValue({
+      data: [makeAppointment({ hasActiveInvoice: true })],
+      total: 1,
+      page: 1,
+      limit: 20,
+    })
+    renderModal()
+    expect(await screen.findByText('Nota já existe')).toBeInTheDocument()
+  })
+
+  it('shows a pending-payment badge when paymentStatus is PAYMENT_PENDING', async () => {
+    mockList.mockResolvedValue({
+      data: [makeAppointment({ paymentStatus: 'PAYMENT_PENDING' })],
+      total: 1,
+      page: 1,
+      limit: 20,
+    })
+    renderModal()
+    const badges = await screen.findAllByText('Pagamento pendente')
+    expect(badges.length).toBeGreaterThan(0)
+  })
+
+  it('falls back to estimatedAmountCents when paidAmountCents is null', async () => {
+    mockList.mockResolvedValue({
+      data: [makeAppointment({ paidAmountCents: null, estimatedAmountCents: 5000 })],
+      total: 1,
+      page: 1,
+      limit: 20,
+    })
+    renderModal()
+    expect(await screen.findByText('R$ 50,00')).toBeInTheDocument()
+  })
+
+  it('does not render an amount when both amount fields are null', async () => {
+    mockList.mockResolvedValue({
+      data: [makeAppointment({ paidAmountCents: null, estimatedAmountCents: null })],
+      total: 1,
+      page: 1,
+      limit: 20,
+    })
+    renderModal()
+    await screen.findByText('Maria Silva')
+    expect(screen.queryByText(/^R\$/)).not.toBeInTheDocument()
+  })
+
+  it('calls onSelect with the appointment id and closes when Selecionar is clicked', async () => {
+    mockList.mockResolvedValue({ data: [makeAppointment()], total: 1, page: 1, limit: 20 })
+    const onSelect = vi.fn()
+    const onClose = vi.fn()
+    render(<AppointmentInvoicePickerModal open onClose={onClose} onSelect={onSelect} />)
+    await screen.findByText('Maria Silva')
+    await userEvent.click(screen.getByRole('button', { name: 'Selecionar' }))
+    expect(onSelect).toHaveBeenCalledWith('appt-1')
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  // ── Search ──────────────────────────────────────────────────────────────────
+
+  it('applies a patient search filter when the search button is clicked', async () => {
+    renderModal()
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(1))
+    await userEvent.type(screen.getByLabelText('Paciente'), 'Ana')
+    await userEvent.click(screen.getByRole('button', { name: 'Buscar' }))
+    await waitFor(() =>
+      expect(mockList).toHaveBeenLastCalledWith(
+        expect.objectContaining({ patient: 'Ana', page: 1 }),
+      ),
+    )
+  })
+
+  it('applies the search filter when Enter is pressed in the search field', async () => {
+    renderModal()
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(1))
+    const input = screen.getByLabelText('Paciente')
+    await userEvent.type(input, 'Bea{Enter}')
+    await waitFor(() =>
+      expect(mockList).toHaveBeenLastCalledWith(
+        expect.objectContaining({ patient: 'Bea', page: 1 }),
+      ),
+    )
+  })
+
+  // ── Payment status filter ───────────────────────────────────────────────────
+
+  it('applies the payment status filter when changed', async () => {
+    renderModal()
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(1))
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: 'PAID' },
+    })
+    await waitFor(() =>
+      expect(mockList).toHaveBeenLastCalledWith(
+        expect.objectContaining({ paymentStatus: 'PAID', page: 1 }),
+      ),
+    )
+  })
+
+  it('clears the payment status filter when "__all__" is selected', async () => {
+    renderModal()
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(1))
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: 'PAID' },
+    })
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(2))
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: '__all__' },
+    })
+    await waitFor(() =>
+      expect(mockList).toHaveBeenLastCalledWith(
+        expect.objectContaining({ paymentStatus: undefined, page: 1 }),
+      ),
+    )
+  })
+
+  // ── Pagination ──────────────────────────────────────────────────────────────
+
+  it('renders pagination and advances to the next page', async () => {
+    mockList.mockResolvedValue({
+      data: [makeAppointment()],
+      total: 50,
+      page: 1,
+      limit: 20,
+    })
+    renderModal()
+    await screen.findByText('Maria Silva')
+    expect(screen.getByText('1–20 de 50')).toBeInTheDocument()
+
+    const nextButton = screen.getByRole('button', { name: 'Próxima' })
+    expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled()
+    expect(nextButton).toBeEnabled()
+
+    await userEvent.click(nextButton)
+    await waitFor(() =>
+      expect(mockList).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 })),
+    )
+  })
+
+  it('does not render pagination when total fits within one page', async () => {
+    mockList.mockResolvedValue({ data: [makeAppointment()], total: 5, page: 1, limit: 20 })
+    renderModal()
+    await screen.findByText('Maria Silva')
+    expect(screen.queryByText(/de 5$/)).not.toBeInTheDocument()
+  })
+
+  // ── Close resets state ──────────────────────────────────────────────────────
+
+  it('resets the search field and filters when closed', async () => {
+    const onClose = vi.fn()
+    const { rerender } = render(
+      <AppointmentInvoicePickerModal open onClose={onClose} onSelect={vi.fn()} />,
+    )
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(1))
+    await userEvent.type(screen.getByLabelText('Paciente'), 'Ana')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+    expect(onClose).toHaveBeenCalledOnce()
+
+    rerender(<AppointmentInvoicePickerModal open onClose={onClose} onSelect={vi.fn()} />)
+    expect(screen.getByLabelText('Paciente')).toHaveValue('')
   })
 })
