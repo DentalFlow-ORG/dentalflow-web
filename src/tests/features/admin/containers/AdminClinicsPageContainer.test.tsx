@@ -1,3 +1,5 @@
+import userEvent from '@testing-library/user-event'
+
 import { render, screen } from '@/test-utils/render-utils'
 
 import { CLINIC_FILTER_DEFS } from '@/features/admin/constants/admin-display'
@@ -23,6 +25,11 @@ vi.mock('@/features/admin/hooks/useAdminClinicsPage', () => ({
 const mockUseClinicsHealth = vi.fn()
 vi.mock('@/features/admin/hooks/useClinicsHealth', () => ({
   useClinicsHealth: () => mockUseClinicsHealth(),
+}))
+
+vi.mock('@/features/admin/services/admin-clinics.service', () => ({
+  createAdminClinic: vi.fn(),
+  updateAdminClinic: vi.fn(),
 }))
 
 // ── Factories ─────────────────────────────────────────────────────────────────
@@ -394,5 +401,216 @@ describe('AdminClinicsPageContainer — Saúde das clínicas', () => {
     render(<AdminClinicsPageContainer />)
     expect(screen.getByRole('heading', { name: /clínicas cadastradas/i })).toBeInTheDocument()
     expect(screen.getAllByText('Clínica Existente').length).toBeGreaterThan(0)
+  })
+})
+
+// ── Filtered empty state ────────────────────────────────────────────────────────
+
+describe('AdminClinicsPageContainer — filtered empty state', () => {
+  it('shows the filtered empty state and calls clearAll', async () => {
+    const clearAll = vi.fn()
+    mockUseAdminClinicsPage.mockReturnValue(
+      makeDefaultHookState({ allClinics: [makeClinic()], clinics: [], filteredCount: 0, clearAll }),
+    )
+    mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState())
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getByText('Nenhum resultado encontrado')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }))
+    expect(clearAll).toHaveBeenCalledOnce()
+  })
+})
+
+// ── Row interactions ─────────────────────────────────────────────────────────────
+
+describe('AdminClinicsPageContainer — row interactions', () => {
+  function renderWithClinic(overrides: Partial<AdminClinic> = {}) {
+    const clinic = makeClinic({ name: 'Clínica Norte', ...overrides })
+    const setEditTarget = vi.fn()
+    const setDeleteTarget = vi.fn()
+    mockUseAdminClinicsPage.mockReturnValue(
+      makeDefaultHookState({
+        allClinics: [clinic],
+        clinics: [clinic],
+        filteredCount: 1,
+        setEditTarget,
+        setDeleteTarget,
+      }),
+    )
+    mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState())
+    render(<AdminClinicsPageContainer />)
+    return { clinic, setEditTarget, setDeleteTarget }
+  }
+
+  it('opens edit when clicking a table row', async () => {
+    const { setEditTarget, clinic } = renderWithClinic()
+    const [row] = screen.getAllByRole('button', { name: 'Editar Clínica Norte' })
+    await userEvent.click(row)
+    expect(setEditTarget).toHaveBeenCalledWith(clinic)
+  })
+
+  it('opens edit on Enter key when the row itself has focus', async () => {
+    const { setEditTarget, clinic } = renderWithClinic()
+    const [row] = screen.getAllByRole('button', { name: 'Editar Clínica Norte' })
+    row.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(setEditTarget).toHaveBeenCalledWith(clinic)
+  })
+
+  it('opens delete confirmation via the icon button without triggering row navigation', async () => {
+    const { setDeleteTarget, setEditTarget } = renderWithClinic()
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir Clínica Norte' }))
+    expect(setDeleteTarget).toHaveBeenCalledWith({ id: 'clinic-1', name: 'Clínica Norte' })
+    expect(setEditTarget).not.toHaveBeenCalled()
+  })
+
+  it('shows "Inativa" status for a clinic with isActive false', () => {
+    renderWithClinic({ isActive: false })
+    expect(screen.getAllByText('Inativa').length).toBeGreaterThan(0)
+  })
+
+  it('renders mobile-card actions that mirror the desktop row actions', async () => {
+    const { setEditTarget, setDeleteTarget, clinic } = renderWithClinic()
+    await userEvent.click(screen.getAllByRole('button', { name: /^editar$/i })[0])
+    expect(setEditTarget).toHaveBeenCalledWith(clinic)
+
+    await userEvent.click(screen.getByRole('button', { name: /^excluir$/i }))
+    expect(setDeleteTarget).toHaveBeenCalledWith({ id: 'clinic-1', name: 'Clínica Norte' })
+  })
+})
+
+// ── Toolbar / pagination wiring ───────────────────────────────────────────────
+
+describe('AdminClinicsPageContainer — toolbar and pagination wiring', () => {
+  it('calls setSearchQuery when typing in the search box', async () => {
+    const setSearchQuery = vi.fn()
+    mockUseAdminClinicsPage.mockReturnValue(
+      makeDefaultHookState({
+        allClinics: [makeClinic()],
+        clinics: [makeClinic()],
+        filteredCount: 1,
+        setSearchQuery,
+      }),
+    )
+    mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState())
+    render(<AdminClinicsPageContainer />)
+    await userEvent.type(screen.getByPlaceholderText(/pesquisar por nome da clínica/i), 'a')
+    expect(setSearchQuery).toHaveBeenCalled()
+  })
+
+  it('renders pagination and forwards page changes', async () => {
+    const setPage = vi.fn()
+    mockUseAdminClinicsPage.mockReturnValue(
+      makeDefaultHookState({
+        allClinics: [makeClinic()],
+        clinics: [makeClinic()],
+        filteredCount: 1,
+        totalPages: 2,
+        page: 1,
+        setPage,
+      }),
+    )
+    mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState())
+    render(<AdminClinicsPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: /próxima/i }))
+    expect(setPage).toHaveBeenCalledWith(2)
+  })
+})
+
+// ── Modal wiring ─────────────────────────────────────────────────────────────────
+
+describe('AdminClinicsPageContainer — modal wiring', () => {
+  beforeEach(() => {
+    mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState())
+  })
+
+  it('opens the create-clinic modal from the header button', async () => {
+    const setCreateOpen = vi.fn()
+    mockUseAdminClinicsPage.mockReturnValue(makeDefaultHookState({ setCreateOpen }))
+    render(<AdminClinicsPageContainer />)
+    await userEvent.click(screen.getAllByRole('button', { name: /nova clínica/i })[0])
+    expect(setCreateOpen).toHaveBeenCalledWith(true)
+  })
+
+  it('calls setCreateOpen(true) from the empty-state button too', async () => {
+    const setCreateOpen = vi.fn()
+    mockUseAdminClinicsPage.mockReturnValue(makeDefaultHookState({ setCreateOpen }))
+    render(<AdminClinicsPageContainer />)
+    const buttons = screen.getAllByRole('button', { name: /nova clínica/i })
+    await userEvent.click(buttons[buttons.length - 1])
+    expect(setCreateOpen).toHaveBeenCalledWith(true)
+  })
+
+  it('renders the create modal dialog when createOpen is true', () => {
+    mockUseAdminClinicsPage.mockReturnValue(makeDefaultHookState({ createOpen: true }))
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByLabelText('Nome da clínica')).toBeInTheDocument()
+  })
+
+  it('calls setCreateOpen(false) when the create modal is dismissed', async () => {
+    const setCreateOpen = vi.fn()
+    mockUseAdminClinicsPage.mockReturnValue(
+      makeDefaultHookState({ createOpen: true, setCreateOpen }),
+    )
+    render(<AdminClinicsPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(setCreateOpen).toHaveBeenCalledWith(false)
+  })
+
+  it('opens the edit modal pre-filled when editTarget is set', () => {
+    const clinic = makeClinic({ name: 'Clínica Alvo' })
+    mockUseAdminClinicsPage.mockReturnValue(makeDefaultHookState({ editTarget: clinic }))
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getByLabelText('Nome da clínica')).toHaveValue('Clínica Alvo')
+  })
+
+  it('calls setEditTarget(null) when the edit modal is dismissed', async () => {
+    const setEditTarget = vi.fn()
+    const clinic = makeClinic()
+    mockUseAdminClinicsPage.mockReturnValue(
+      makeDefaultHookState({ editTarget: clinic, setEditTarget }),
+    )
+    render(<AdminClinicsPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(setEditTarget).toHaveBeenCalledWith(null)
+  })
+
+  it('shows the delete confirm dialog with the target name and calls handleDeleteConfirm', async () => {
+    const handleDeleteConfirm = vi.fn()
+    mockUseAdminClinicsPage.mockReturnValue(
+      makeDefaultHookState({
+        deleteTarget: { id: 'clinic-1', name: 'Clínica Alvo' },
+        handleDeleteConfirm,
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getByText('Excluir clínica?')).toBeInTheDocument()
+    expect(screen.getByText('Clínica Alvo')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir' }))
+    expect(handleDeleteConfirm).toHaveBeenCalledOnce()
+  })
+
+  it('calls setDeleteTarget(null) when the delete dialog is cancelled', async () => {
+    const setDeleteTarget = vi.fn()
+    mockUseAdminClinicsPage.mockReturnValue(
+      makeDefaultHookState({
+        deleteTarget: { id: 'clinic-1', name: 'Clínica Alvo' },
+        setDeleteTarget,
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(setDeleteTarget).toHaveBeenCalledWith(null)
+  })
+
+  it('disables the confirm button while isDeleting', () => {
+    mockUseAdminClinicsPage.mockReturnValue(
+      makeDefaultHookState({
+        deleteTarget: { id: 'clinic-1', name: 'Clínica Alvo' },
+        isDeleting: true,
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getByRole('button', { name: /aguarde/i })).toBeDisabled()
   })
 })
