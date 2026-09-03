@@ -155,4 +155,9 @@ describe('validateReportDateRange', () => {
     expect(validateReportDateRange(undefined, '2026-06-15')).toBeNull()
     expect(validateReportDateRange('2026-01-01', undefined)).toBeNull()
   })
+
+  it('returns an error when the range exceeds the max months', () => {
+    const error = validateReportDateRange('2025-01-01', '2026-06-15')
+    expect(error).toBe('Selecione um período de até 12 meses por vez.')
+  })
 })

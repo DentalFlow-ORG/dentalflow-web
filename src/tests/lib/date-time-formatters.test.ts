@@ -1,9 +1,18 @@
 import {
+  addDays,
   brazilCurrentTimeHHmm,
   formatDateBR,
   formatDateInputValue,
+  formatDateLongBR,
+  formatTimeInputValue,
+  formatWeekDayHeader,
+  formatWeekRangeLabel,
   getBrazilWeekStart,
+  getWeekDates,
   isToday,
+  safeFormatDateBR,
+  safeFormatTimeBR,
+  wallTimeToMinutes,
 } from '@/lib/date-time-formatters'
 import { vi } from 'vitest'
 
@@ -121,6 +130,18 @@ describe('formatDateInputValue — no UTC-day drift', () => {
     expect(result).not.toBe('2026-05-31')
   })
 
+  it('formats a Date instance using its local calendar fields', () => {
+    expect(formatDateInputValue(new Date(2026, 5, 1))).toBe('2026-06-01')
+  })
+
+  it('parses a non-ISO-prefixed string via Date and extracts UTC calendar fields', () => {
+    expect(formatDateInputValue('June 1, 2026 00:00:00 UTC')).toBe('2026-06-01')
+  })
+
+  it('returns empty string for an unparsable string', () => {
+    expect(formatDateInputValue('not-a-date')).toBe('')
+  })
+
   it('returns empty string for a null value', () => {
     expect(formatDateInputValue(null)).toBe('')
   })
@@ -213,5 +234,128 @@ describe('getBrazilWeekStart', () => {
     expect(() => getBrazilWeekStart('not-a-date')).toThrow()
     expect(() => getBrazilWeekStart('2026-6-1')).toThrow() // wrong zero-padding
     expect(() => getBrazilWeekStart('')).toThrow()
+  })
+})
+
+describe('formatTimeInputValue', () => {
+  it('returns empty string for a falsy value', () => {
+    expect(formatTimeInputValue(null)).toBe('')
+    expect(formatTimeInputValue(undefined)).toBe('')
+    expect(formatTimeInputValue('')).toBe('')
+  })
+
+  it('formats a valid Date instance as HH:mm (UTC)', () => {
+    expect(formatTimeInputValue(new Date('2026-06-01T14:30:00.000Z'))).toBe('14:30')
+  })
+
+  it('returns empty string for an invalid Date instance', () => {
+    expect(formatTimeInputValue(new Date('not-a-date'))).toBe('')
+  })
+
+  it('extracts HH:mm from an already-formatted time string', () => {
+    expect(formatTimeInputValue('09:15:00')).toBe('09:15')
+  })
+
+  it('parses a full ISO datetime string', () => {
+    expect(formatTimeInputValue('2026-06-01T14:30:00.000Z')).toBe('14:30')
+  })
+
+  it('returns empty string for an unparsable string', () => {
+    expect(formatTimeInputValue('not-a-time')).toBe('')
+  })
+})
+
+describe('safeFormatDateBR', () => {
+  it('formats a valid value', () => {
+    expect(safeFormatDateBR('2026-06-01')).toBe('01/06/2026')
+  })
+
+  it('returns the default fallback for an empty value', () => {
+    expect(safeFormatDateBR(null)).toBe('Data não informada')
+  })
+
+  it('returns a custom fallback', () => {
+    expect(safeFormatDateBR(null, 'N/A')).toBe('N/A')
+  })
+})
+
+describe('safeFormatTimeBR', () => {
+  it('formats a valid value', () => {
+    expect(safeFormatTimeBR('09:15:00')).toBe('09:15')
+  })
+
+  it('returns the default fallback for an empty value', () => {
+    expect(safeFormatTimeBR(null)).toBe('Hora não informada')
+  })
+
+  it('returns a custom fallback', () => {
+    expect(safeFormatTimeBR(null, 'N/A')).toBe('N/A')
+  })
+})
+
+describe('formatDateLongBR', () => {
+  it('returns empty string for a falsy value', () => {
+    expect(formatDateLongBR(null)).toBe('')
+    expect(formatDateLongBR(undefined)).toBe('')
+  })
+
+  it('returns empty string when the value cannot be parsed to a date', () => {
+    expect(formatDateLongBR('not-a-date')).toBe('')
+  })
+
+  it('formats a valid date as a long-form Brazilian date', () => {
+    const result = formatDateLongBR('2026-06-01')
+    expect(result).toContain('2026')
+    expect(result.toLowerCase()).toContain('junho')
+  })
+})
+
+describe('wallTimeToMinutes', () => {
+  it('converts HH:mm to total minutes', () => {
+    expect(wallTimeToMinutes('01:30:00')).toBe(90)
+  })
+
+  it('returns 0 when the value cannot be parsed', () => {
+    expect(wallTimeToMinutes('')).toBe(0)
+  })
+})
+
+describe('getWeekDates', () => {
+  it('returns 7 consecutive dates starting from the given week start', () => {
+    const start = new Date(2026, 5, 1) // Monday, June 1 2026
+    const dates = getWeekDates(start)
+    expect(dates).toHaveLength(7)
+    expect(dates[0].getDate()).toBe(1)
+    expect(dates[6].getDate()).toBe(7)
+  })
+})
+
+describe('addDays', () => {
+  it('adds a positive number of days', () => {
+    const result = addDays(new Date(2026, 5, 1), 5)
+    expect(result.getDate()).toBe(6)
+  })
+
+  it('subtracts days when given a negative number', () => {
+    const result = addDays(new Date(2026, 5, 5), -5)
+    expect(result.getDate()).toBe(31)
+    expect(result.getMonth()).toBe(4) // May
+  })
+})
+
+describe('formatWeekDayHeader', () => {
+  it('returns a weekday and day label without trailing dots', () => {
+    const { weekday, day } = formatWeekDayHeader(new Date(2026, 5, 1))
+    expect(weekday).not.toContain('.')
+    expect(day).not.toContain('.')
+    expect(day).toContain('1')
+  })
+})
+
+describe('formatWeekRangeLabel', () => {
+  it('formats a start and end date into a range label', () => {
+    const label = formatWeekRangeLabel(new Date(2026, 5, 1), new Date(2026, 5, 7))
+    expect(label).toContain('-')
+    expect(label).toContain('2026')
   })
 })

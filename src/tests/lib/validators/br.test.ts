@@ -59,6 +59,12 @@ describe('isValidCPF', () => {
   it('rejects empty string', () => {
     expect(isValidCPF('')).toBe(false)
   })
+  it('accepts a CPF whose first check-digit remainder is 10 (mod-11 edge case, treated as 0)', () => {
+    expect(isValidCPF('00000000604')).toBe(true)
+  })
+  it('accepts a CPF whose second check-digit remainder is 10 (mod-11 edge case, treated as 0)', () => {
+    expect(isValidCPF('00000001830')).toBe(true)
+  })
 })
 
 // ── isValidCNPJ ───────────────────────────────────────────────────────────────
@@ -77,7 +83,10 @@ describe('isValidCNPJ', () => {
     expect(isValidCNPJ('11111111111111')).toBe(false)
   })
   it('rejects CNPJ with wrong first check digit', () => {
-    expect(isValidCNPJ('11222333000182')).toBe(false)
+    expect(isValidCNPJ('11222333000171')).toBe(false)
+  })
+  it('rejects CNPJ with wrong second check digit', () => {
+    expect(isValidCNPJ('11222333000180')).toBe(false)
   })
   it('rejects the commonly-used invalid test CNPJ 12.345.678/0001-90', () => {
     expect(isValidCNPJ('12345678000190')).toBe(false)
@@ -188,6 +197,9 @@ describe('isValidBrazilianPhone', () => {
   it('accepts with 55 country code prefix (13 digits)', () => {
     expect(isValidBrazilianPhone('5511987654321')).toBe(true)
   })
+  it('accepts with 0055 country code prefix', () => {
+    expect(isValidBrazilianPhone('005511987654321')).toBe(true)
+  })
   it('accepts a valid 0800 number', () => {
     expect(isValidBrazilianPhone('08001234567')).toBe(true)
   })
@@ -211,6 +223,12 @@ describe('isValidBrazilianPhone', () => {
   it('rejects all-same-digit number', () => {
     expect(isValidBrazilianPhone('11111111111')).toBe(false)
   })
+  it('rejects a mobile number whose subscriber digits are all the same', () => {
+    expect(isValidBrazilianPhone('11999999999')).toBe(false)
+  })
+  it('rejects a landline whose subscriber digits are all the same', () => {
+    expect(isValidBrazilianPhone('1122222222')).toBe(false)
+  })
   it('rejects number shorter than 10 digits', () => {
     expect(isValidBrazilianPhone('119876543')).toBe(false)
   })
@@ -228,6 +246,12 @@ describe('formatCPF', () => {
   it('formats partial input (6 digits)', () => {
     expect(formatCPF('123456')).toBe('123.456')
   })
+  it('formats partial input (3 digits) as raw digits', () => {
+    expect(formatCPF('123')).toBe('123')
+  })
+  it('formats partial input (9 digits)', () => {
+    expect(formatCPF('123456789')).toBe('123.456.789')
+  })
 })
 
 describe('formatCNPJ', () => {
@@ -236,6 +260,15 @@ describe('formatCNPJ', () => {
   })
   it('formats partial input (8 digits)', () => {
     expect(formatCNPJ('11222333')).toBe('11.222.333')
+  })
+  it('formats partial input (2 digits) as raw digits', () => {
+    expect(formatCNPJ('11')).toBe('11')
+  })
+  it('formats partial input (5 digits)', () => {
+    expect(formatCNPJ('11222')).toBe('11.222')
+  })
+  it('formats partial input (12 digits)', () => {
+    expect(formatCNPJ('112223330001')).toBe('11.222.333/0001')
   })
 })
 
@@ -254,5 +287,11 @@ describe('formatBrazilianPhone', () => {
   })
   it('formats 10-digit landline correctly', () => {
     expect(formatBrazilianPhone('1132345678')).toBe('(11) 3234-5678')
+  })
+  it('formats partial input (2 digits) as raw digits', () => {
+    expect(formatBrazilianPhone('11')).toBe('11')
+  })
+  it('formats partial input (6 digits)', () => {
+    expect(formatBrazilianPhone('119876')).toBe('(11) 9876')
   })
 })
