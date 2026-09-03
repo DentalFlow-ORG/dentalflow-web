@@ -19,11 +19,38 @@ vi.mock('@/features/fiscal/hooks/useFiscalInvoicesPage', () => ({
 }))
 
 const mockGetAppointmentInvoiceDraft = vi.fn()
+const mockListAppointmentsForInvoice = vi.fn()
 vi.mock('@/features/fiscal/services/fiscal.service', () => ({
   getAppointmentInvoiceDraft: (...args: unknown[]) => mockGetAppointmentInvoiceDraft(...args),
+  listAppointmentsForInvoice: (...args: unknown[]) => mockListAppointmentsForInvoice(...args),
+}))
+
+vi.mock('@/components/ui/select', () => ({
+  Select: ({
+    value,
+    onValueChange,
+    children,
+  }: {
+    value: string
+    onValueChange: (v: string) => void
+    children: React.ReactNode
+  }) => (
+    <select value={value} onChange={(e) => onValueChange(e.target.value)}>
+      {children}
+    </select>
+  ),
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SelectValue: ({ placeholder }: { placeholder?: string }) => (
+    <option value="">{placeholder}</option>
+  ),
+  SelectContent: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  SelectItem: ({ value, children }: { value: string; children: React.ReactNode }) => (
+    <option value={value}>{children}</option>
+  ),
 }))
 
 import { FiscalInvoicesPageContainer } from '@/features/fiscal/containers/FiscalInvoicesPageContainer'
+import type { ServiceInvoice } from '@/features/fiscal/types/fiscal.types'
 
 const FULL_PROFILE = {
   legalName: 'Clínica X',
@@ -48,6 +75,38 @@ const FULL_PROFILE = {
   fiscalProvider: 'LOCAL',
   fiscalProviderMode: 'LOCAL',
   isConfigured: true,
+}
+
+function makeInvoice(overrides: Partial<ServiceInvoice> = {}): ServiceInvoice {
+  return {
+    id: 'inv-1',
+    patientId: null,
+    appointmentId: null,
+    status: 'DRAFT',
+    environment: 'LOCAL',
+    isLegalDocument: false,
+    invoiceNumber: null,
+    verificationCode: null,
+    customerName: 'João Silva',
+    customerDocument: '123.456.789-00',
+    customerEmail: null,
+    customerPhone: null,
+    serviceDescription: 'Consulta odontológica',
+    serviceCode: null,
+    amountCents: 25000,
+    deductionsCents: null,
+    issRate: null,
+    issAmountCents: null,
+    currency: 'BRL',
+    competenceDate: '2026-06-07',
+    simulatedIssueDate: null,
+    issueDate: null,
+    errorMessage: null,
+    cancellationReason: null,
+    createdAt: '2026-06-07T00:00:00.000Z',
+    updatedAt: '2026-06-07T00:00:00.000Z',
+    ...overrides,
+  } as ServiceInvoice
 }
 
 function makeHookState(overrides: Partial<ReturnType<typeof mockUseFiscalInvoicesPage>> = {}) {
@@ -80,6 +139,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockUseAuth.mockReturnValue({ user: { role: 'OWNER' } })
   mockUseFiscalInvoicesPage.mockReturnValue(makeHookState())
+  mockListAppointmentsForInvoice.mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 })
 })
 
 describe('FiscalInvoicesPageContainer', () => {
@@ -233,5 +293,280 @@ describe('FiscalInvoicesPageContainer', () => {
     render(<FiscalInvoicesPageContainer />)
     // FiscalSummaryKpiGrid renders real content when summary is present
     expect(document.querySelector('section')).toBeInTheDocument()
+  })
+})
+
+describe('FiscalInvoicesPageContainer — filters bar', () => {
+  it('calls setFilter when the customer search input changes', async () => {
+    const setFilter = vi.fn()
+    mockUseFiscalInvoicesPage.mockReturnValue(makeHookState({ setFilter }))
+    render(<FiscalInvoicesPageContainer />)
+    await userEvent.type(screen.getByPlaceholderText('Buscar por cliente...'), 'a')
+    expect(setFilter).toHaveBeenCalledWith('customer', 'a')
+  })
+
+  it('calls setFilters to clear all filters when "Limpar filtros" is clicked', async () => {
+    const setFilters = vi.fn()
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({ setFilters, filters: { page: 1, limit: 10, customer: 'ana' } }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: /limpar filtros/i }))
+    expect(setFilters).toHaveBeenCalled()
+    const updater = setFilters.mock.calls[0][0]
+    expect(
+      updater({ page: 1, limit: 10, customer: 'ana', status: 'DRAFT', to: '2026-06-01' }),
+    ).toEqual({ page: 1, limit: 10, customer: undefined, status: undefined, to: undefined })
+  })
+})
+
+describe('FiscalInvoicesPageContainer — invoice list actions', () => {
+  it('opens the cancel dialog when "Cancelar" is clicked on a cancelable invoice', async () => {
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({ invoices: [makeInvoice({ status: 'DRAFT' })], total: 1 }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    const [cancelButton] = screen.getAllByRole('button', { name: /cancelar nota de joão silva/i })
+    await userEvent.click(cancelButton)
+    expect(screen.getByRole('heading', { name: 'Cancelar nota fiscal' })).toBeInTheDocument()
+  })
+
+  it('disables the confirm button until a cancellation reason is entered, then calls cancel()', async () => {
+    const cancel = vi.fn().mockResolvedValue(undefined)
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({ invoices: [makeInvoice({ status: 'DRAFT' })], total: 1, cancel }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    const [cancelButton] = screen.getAllByRole('button', { name: /cancelar nota de joão silva/i })
+    await userEvent.click(cancelButton)
+
+    const confirmButton = screen.getByRole('button', { name: 'Cancelar nota' })
+    expect(confirmButton).toBeDisabled()
+
+    await userEvent.type(screen.getByLabelText('Motivo do cancelamento'), 'Duplicidade')
+    expect(confirmButton).toBeEnabled()
+
+    await userEvent.click(confirmButton)
+    expect(cancel).toHaveBeenCalledWith(expect.objectContaining({ id: 'inv-1' }), 'Duplicidade')
+  })
+
+  it('closes the cancel dialog via "Voltar" without calling cancel()', async () => {
+    const cancel = vi.fn()
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({ invoices: [makeInvoice({ status: 'DRAFT' })], total: 1, cancel }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    const [cancelButton] = screen.getAllByRole('button', { name: /cancelar nota de joão silva/i })
+    await userEvent.click(cancelButton)
+    await userEvent.click(screen.getByRole('button', { name: 'Voltar' }))
+    expect(screen.queryByRole('heading', { name: 'Cancelar nota fiscal' })).not.toBeInTheDocument()
+    expect(cancel).not.toHaveBeenCalled()
+  })
+
+  it('opens invoice details and calls loadInvoiceDetails when "Ver detalhes" is clicked', async () => {
+    const loadInvoiceDetails = vi.fn().mockResolvedValue(undefined)
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({
+        invoices: [makeInvoice()],
+        total: 1,
+        loadInvoiceDetails,
+      }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    const [detailsButton] = screen.getAllByRole('button', {
+      name: /ver detalhes da nota de joão silva/i,
+    })
+    await userEvent.click(detailsButton)
+    expect(loadInvoiceDetails).toHaveBeenCalledWith(expect.objectContaining({ id: 'inv-1' }))
+  })
+
+  it('renders the invoice details panel and closes it via setSelectedInvoice(null)', async () => {
+    const setSelectedInvoice = vi.fn()
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({
+        invoices: [makeInvoice()],
+        total: 1,
+        selectedInvoice: makeInvoice(),
+        setSelectedInvoice,
+      }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    expect(screen.getByLabelText('Área de trabalho fiscal')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar detalhes da nota fiscal' }))
+    expect(setSelectedInvoice).toHaveBeenCalledWith(null)
+  })
+})
+
+describe('FiscalInvoicesPageContainer — appointment picker flow', () => {
+  it('opens the appointment picker when "Gerar a partir de consulta" is clicked', async () => {
+    render(<FiscalInvoicesPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: /gerar a partir de consulta/i }))
+    expect(
+      await screen.findByRole('heading', { name: /gerar nota a partir de consulta/i }),
+    ).toBeInTheDocument()
+  })
+
+  it('loads the draft and opens the invoice form when an appointment is selected', async () => {
+    mockListAppointmentsForInvoice.mockResolvedValue({
+      data: [
+        {
+          id: 'appt-1',
+          patientName: 'Maria Silva',
+          patientEmail: null,
+          patientPhone: null,
+          appointmentDate: '2026-06-10',
+          startTime: '10:00',
+          status: 'COMPLETED',
+          paymentStatus: 'PAID',
+          estimatedAmountCents: 10000,
+          paidAmountCents: 10000,
+          profile: { id: 'p1', displayName: 'Dra. Ana' },
+          service: { id: 's1', name: 'Limpeza' },
+          hasActiveInvoice: false,
+          activeInvoiceId: null,
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 20,
+    })
+    mockGetAppointmentInvoiceDraft.mockResolvedValue({
+      draft: {
+        customerName: 'Maria Silva',
+        customerDocument: '',
+        customerEmail: '',
+        customerPhone: '',
+        serviceDescription: 'Limpeza',
+        serviceCode: '',
+        amountCents: 10000,
+        competenceDate: '2026-06-10',
+        notes: '',
+      },
+      appointment: {
+        id: 'appt-1',
+        patientName: 'Maria Silva',
+        appointmentDate: '2026-06-10',
+        profileDisplayName: 'Dra. Ana',
+        serviceName: 'Limpeza',
+        paymentStatus: 'PAID',
+        estimatedAmountCents: 10000,
+        paidAmountCents: 10000,
+      },
+      existingInvoice: null,
+      warnings: { paymentPending: false, hasExistingInvoice: false },
+    })
+
+    render(<FiscalInvoicesPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: /gerar a partir de consulta/i }))
+    await screen.findByText('Maria Silva')
+    await userEvent.click(screen.getByRole('button', { name: 'Selecionar' }))
+
+    expect(mockGetAppointmentInvoiceDraft).toHaveBeenCalledWith('appt-1')
+    expect(await screen.findByLabelText('Área de trabalho fiscal')).toBeInTheDocument()
+  })
+
+  it('shows a payment-pending warning banner when the draft warns about it', async () => {
+    mockListAppointmentsForInvoice.mockResolvedValue({
+      data: [
+        {
+          id: 'appt-1',
+          patientName: 'Maria Silva',
+          patientEmail: null,
+          patientPhone: null,
+          appointmentDate: '2026-06-10',
+          startTime: '10:00',
+          status: 'COMPLETED',
+          paymentStatus: 'PAYMENT_PENDING',
+          estimatedAmountCents: 10000,
+          paidAmountCents: null,
+          profile: { id: 'p1', displayName: 'Dra. Ana' },
+          service: { id: 's1', name: 'Limpeza' },
+          hasActiveInvoice: false,
+          activeInvoiceId: null,
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 20,
+    })
+    mockGetAppointmentInvoiceDraft.mockResolvedValue({
+      draft: {
+        customerName: 'Maria Silva',
+        customerDocument: '',
+        customerEmail: '',
+        customerPhone: '',
+        serviceDescription: 'Limpeza',
+        serviceCode: '',
+        amountCents: 10000,
+        competenceDate: '2026-06-10',
+        notes: '',
+      },
+      appointment: {
+        id: 'appt-1',
+        patientName: 'Maria Silva',
+        appointmentDate: '2026-06-10',
+        profileDisplayName: 'Dra. Ana',
+        serviceName: 'Limpeza',
+        paymentStatus: 'PAYMENT_PENDING',
+        estimatedAmountCents: 10000,
+        paidAmountCents: null,
+      },
+      existingInvoice: null,
+      warnings: { paymentPending: true, hasExistingInvoice: false },
+    })
+
+    render(<FiscalInvoicesPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: /gerar a partir de consulta/i }))
+    await screen.findByText('Maria Silva')
+    await userEvent.click(screen.getByRole('button', { name: 'Selecionar' }))
+
+    expect(await screen.findByText('Consulta com pagamento pendente')).toBeInTheDocument()
+  })
+
+  it('shows a draft-load error when getAppointmentInvoiceDraft rejects', async () => {
+    mockListAppointmentsForInvoice.mockResolvedValue({
+      data: [
+        {
+          id: 'appt-1',
+          patientName: 'Maria Silva',
+          patientEmail: null,
+          patientPhone: null,
+          appointmentDate: '2026-06-10',
+          startTime: '10:00',
+          status: 'COMPLETED',
+          paymentStatus: 'PAID',
+          estimatedAmountCents: 10000,
+          paidAmountCents: 10000,
+          profile: { id: 'p1', displayName: 'Dra. Ana' },
+          service: { id: 's1', name: 'Limpeza' },
+          hasActiveInvoice: false,
+          activeInvoiceId: null,
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 20,
+    })
+    mockGetAppointmentInvoiceDraft.mockRejectedValue(new Error('network error'))
+
+    render(<FiscalInvoicesPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: /gerar a partir de consulta/i }))
+    await screen.findByText('Maria Silva')
+    await userEvent.click(screen.getByRole('button', { name: 'Selecionar' }))
+
+    expect(
+      await screen.findByText(/não foi possível carregar os dados da consulta/i),
+    ).toBeInTheDocument()
+  })
+
+  it('closes the picker without selecting when "Fechar" is clicked', async () => {
+    render(<FiscalInvoicesPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: /gerar a partir de consulta/i }))
+    await screen.findByRole('heading', { name: /gerar nota a partir de consulta/i })
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+    expect(
+      screen.queryByRole('heading', { name: /gerar nota a partir de consulta/i }),
+    ).not.toBeInTheDocument()
+    expect(mockGetAppointmentInvoiceDraft).not.toHaveBeenCalled()
   })
 })
