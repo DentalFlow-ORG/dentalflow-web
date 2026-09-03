@@ -50,6 +50,45 @@ describe('TeamMemberActions', () => {
     expect(onDelete).toHaveBeenCalledTimes(1)
   })
 
+  it('renders desktop actions via the popover menu and calls callbacks', async () => {
+    const user = userEvent.setup()
+    const onEdit = vi.fn()
+    const onPassword = vi.fn()
+    const onDelete = vi.fn()
+
+    render(
+      <TeamMemberActions
+        member={makeMember()}
+        onEdit={onEdit}
+        onPassword={onPassword}
+        onDelete={onDelete}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /editar/i }))
+    expect(onEdit).toHaveBeenCalledTimes(1)
+
+    await user.click(screen.getByRole('button', { name: 'Mais ações para Ana Silva' }))
+    await user.click(await screen.findByText('Alterar senha'))
+    expect(onPassword).toHaveBeenCalledTimes(1)
+
+    await user.click(screen.getByRole('button', { name: 'Mais ações para Ana Silva' }))
+    await user.click(await screen.findByText('Desativar'))
+    expect(onDelete).toHaveBeenCalledTimes(1)
+  })
+
+  it('defaults to the desktop layout when none is specified', () => {
+    render(
+      <TeamMemberActions
+        member={makeMember()}
+        onEdit={vi.fn()}
+        onPassword={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    )
+    expect(screen.getByRole('button', { name: 'Mais ações para Ana Silva' })).toBeInTheDocument()
+  })
+
   it('does not expose publish or unpublish actions', () => {
     render(
       <TeamMemberActions
