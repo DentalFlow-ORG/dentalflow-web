@@ -1,6 +1,12 @@
 import {
+  exportAppointmentsReport,
   exportFinanceReport,
+  exportInventoryReport,
+  exportInvoicesReport,
+  getAppointmentsReportPreview,
   getFinanceReportPreview,
+  getInventoryReportPreview,
+  getInvoicesReportPreview,
 } from '@/features/reports/services/reports.service'
 import type { ReportPreviewResponse } from '@/features/reports/types/reports.types'
 import { ApiError } from '@/services/http'
@@ -154,5 +160,134 @@ describe('exportFinanceReport — Authorization', () => {
 
     const err = await exportFinanceReport({}).catch((e: unknown) => e)
     expect((err as ApiError).message).toBe('Sessão expirada. Faça login novamente.')
+  })
+
+  it('includes all provided filters in the query string', async () => {
+    mockFetch.mockResolvedValue(makeCsvResponse())
+
+    await exportFinanceReport({
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+      type: 'INCOME',
+      status: 'PAID',
+      categoryId: 'cat-1',
+    })
+
+    const [url] = mockFetch.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('startDate=2026-01-01')
+    expect(url).toContain('endDate=2026-01-31')
+    expect(url).toContain('type=INCOME')
+    expect(url).toContain('status=PAID')
+    expect(url).toContain('categoryId=cat-1')
+  })
+
+  it('omits undefined/empty filters from the query string', async () => {
+    mockFetch.mockResolvedValue(makeCsvResponse())
+
+    await exportFinanceReport({ type: '' })
+
+    const [url] = mockFetch.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('http://localhost:3000/reports/finance/export')
+  })
+
+  it('creates a download link with the CSV blob and filename, then revokes the object URL', async () => {
+    mockFetch.mockResolvedValue(makeCsvResponse('a,b\n1,2'))
+    const clickSpy = vi.fn()
+    const appendSpy = vi.spyOn(document.body, 'appendChild')
+    const removeSpy = vi.spyOn(document.body, 'removeChild')
+    const originalCreateElement = document.createElement.bind(document)
+    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      const el = originalCreateElement(tag)
+      if (tag === 'a') el.click = clickSpy
+      return el
+    })
+
+    await exportFinanceReport({})
+
+    expect(clickSpy).toHaveBeenCalledOnce()
+    expect(appendSpy).toHaveBeenCalled()
+    expect(removeSpy).toHaveBeenCalled()
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url')
+
+    vi.restoreAllMocks()
+  })
+})
+
+// ── Appointments report ────────────────────────────────────────────────────────
+
+describe('appointments report — export and preview', () => {
+  it('requests /reports/appointments/preview with all filters', async () => {
+    mockFetch.mockResolvedValue(makeJsonResponse(200, makePreviewData()))
+
+    await getAppointmentsReportPreview({
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+      status: 'CONFIRMED',
+      profileId: 'prof-1',
+    })
+
+    const [url] = mockFetch.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/reports/appointments/preview')
+    expect(url).toContain('profileId=prof-1')
+  })
+
+  it('requests /reports/appointments/export', async () => {
+    mockFetch.mockResolvedValue(makeCsvResponse())
+
+    await exportAppointmentsReport({})
+
+    const [url] = mockFetch.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/reports/appointments/export')
+  })
+})
+
+// ── Inventory report ────────────────────────────────────────────────────────────
+
+describe('inventory report — export and preview', () => {
+  it('requests /reports/inventory/preview with all filters', async () => {
+    mockFetch.mockResolvedValue(makeJsonResponse(200, makePreviewData()))
+
+    await getInventoryReportPreview({ categoryId: 'cat-1', status: 'LOW' })
+
+    const [url] = mockFetch.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/reports/inventory/preview')
+    expect(url).toContain('categoryId=cat-1')
+    expect(url).toContain('status=LOW')
+  })
+
+  it('requests /reports/inventory/export', async () => {
+    mockFetch.mockResolvedValue(makeCsvResponse())
+
+    await exportInventoryReport({})
+
+    const [url] = mockFetch.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/reports/inventory/export')
+  })
+})
+
+// ── Invoices report ──────────────────────────────────────────────────────────
+
+describe('invoices report — export and preview', () => {
+  it('requests /reports/invoices/preview with all filters', async () => {
+    mockFetch.mockResolvedValue(makeJsonResponse(200, makePreviewData()))
+
+    await getInvoicesReportPreview({
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+      status: 'ISSUED',
+    })
+
+    const [url] = mockFetch.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/reports/invoices/preview')
+    expect(url).toContain('status=ISSUED')
+  })
+
+  it('requests /reports/invoices/export', async () => {
+    mockFetch.mockResolvedValue(makeCsvResponse())
+
+    await exportInvoicesReport({})
+
+    const [url] = mockFetch.mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/reports/invoices/export')
   })
 })

@@ -448,6 +448,59 @@ describe('ReportCard — preview error', () => {
       expect(screen.getByRole('button', { name: /nova prévia/i })).toBeInTheDocument(),
     )
   })
+
+  it('shows a generic fallback message when onPreview rejects with a non-Error', async () => {
+    const onPreview = vi.fn().mockRejectedValue('some string error')
+    renderCard({ onPreview })
+    fireEvent.click(screen.getByRole('button', { name: /pré-visualizar relatório/i }))
+    await waitFor(() =>
+      expect(
+        screen.getByText('Não foi possível carregar a prévia do relatório.'),
+      ).toBeInTheDocument(),
+    )
+  })
+})
+
+// ── aria-describedby on preview/download buttons ──────────────────────────────
+
+describe('ReportCard — aria-describedby on preview and download buttons', () => {
+  it('sets aria-describedby on the preview button when disabled and error present', () => {
+    renderCard({
+      onPreview: vi.fn().mockResolvedValue(makePreviewData()),
+      disabled: true,
+      error: 'Período inválido.',
+    })
+    const button = screen.getByRole('button', { name: /pré-visualizar relatório/i })
+    expect(button).toHaveAttribute('aria-describedby')
+  })
+
+  it('sets aria-describedby on the download button when disabled and error present', async () => {
+    const onPreview = vi.fn().mockResolvedValue(makePreviewData())
+    const { rerender } = render(
+      <ReportCard
+        title="Relatório financeiro"
+        description="Receitas, despesas e resultado líquido por período."
+        onExport={noop}
+        onPreview={onPreview}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /pré-visualizar relatório/i }))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /baixar csv/i })).toBeInTheDocument(),
+    )
+
+    rerender(
+      <ReportCard
+        title="Relatório financeiro"
+        description="Receitas, despesas e resultado líquido por período."
+        onExport={noop}
+        onPreview={onPreview}
+        disabled
+        error="Período inválido."
+      />,
+    )
+    expect(screen.getByRole('button', { name: /baixar csv/i })).toHaveAttribute('aria-describedby')
+  })
 })
 
 // ── Truncation warning ────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@/test-utils/render-utils'
+import { render, screen, userEvent, waitFor, within } from '@/test-utils/render-utils'
 
 import { ReportsPageContainer } from '@/features/reports/containers/ReportsPageContainer'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
@@ -464,5 +464,144 @@ describe('ReportsPageContainer — preview buttons', () => {
   it('does not render any "Exportar CSV" button on initial render', () => {
     render(<ReportsPageContainer />)
     expect(screen.queryByRole('button', { name: /exportar csv/i })).not.toBeInTheDocument()
+  })
+})
+
+// ── Preview + export click flows ──────────────────────────────────────────────
+
+describe('ReportsPageContainer — preview and export click flows', () => {
+  function cardSection(headingName: string) {
+    return screen.getByRole('heading', { name: headingName }).closest('section') as HTMLElement
+  }
+
+  it('calls getFinanceReportPreview with current filters when the Finance preview button is clicked', async () => {
+    const { getFinanceReportPreview } = await import('@/features/reports/services/reports.service')
+    render(<ReportsPageContainer />)
+    const section = cardSection('Relatório financeiro')
+    await userEvent.click(
+      within(section).getByRole('button', { name: /pré-visualizar relatório/i }),
+    )
+    await waitFor(() =>
+      expect(getFinanceReportPreview).toHaveBeenCalledWith({
+        startDate: '2026-05-07',
+        endDate: '2026-06-06',
+      }),
+    )
+  })
+
+  it('calls exportFinanceReport after previewing and clicking "Baixar CSV"', async () => {
+    const { exportFinanceReport } = await import('@/features/reports/services/reports.service')
+    render(<ReportsPageContainer />)
+    const section = cardSection('Relatório financeiro')
+    await userEvent.click(
+      within(section).getByRole('button', { name: /pré-visualizar relatório/i }),
+    )
+    const downloadButton = await within(section).findByRole('button', { name: /baixar csv/i })
+    await userEvent.click(downloadButton)
+    await waitFor(() => expect(exportFinanceReport).toHaveBeenCalled())
+  })
+
+  it('calls getAppointmentsReportPreview when the Appointments preview button is clicked', async () => {
+    const { getAppointmentsReportPreview } = await import(
+      '@/features/reports/services/reports.service'
+    )
+    render(<ReportsPageContainer />)
+    const section = cardSection('Relatório de agendamentos')
+    await userEvent.click(
+      within(section).getByRole('button', { name: /pré-visualizar relatório/i }),
+    )
+    await waitFor(() => expect(getAppointmentsReportPreview).toHaveBeenCalled())
+  })
+
+  it('calls getInventoryReportPreview when the Inventory preview button is clicked', async () => {
+    const { getInventoryReportPreview } = await import(
+      '@/features/reports/services/reports.service'
+    )
+    render(<ReportsPageContainer />)
+    const section = cardSection('Relatório de estoque')
+    await userEvent.click(
+      within(section).getByRole('button', { name: /pré-visualizar relatório/i }),
+    )
+    await waitFor(() => expect(getInventoryReportPreview).toHaveBeenCalledWith({}))
+  })
+
+  it('calls getInvoicesReportPreview when the Notas fiscais preview button is clicked', async () => {
+    const { getInvoicesReportPreview } = await import('@/features/reports/services/reports.service')
+    render(<ReportsPageContainer />)
+    const section = cardSection('Relatório de notas fiscais')
+    await userEvent.click(
+      within(section).getByRole('button', { name: /pré-visualizar relatório/i }),
+    )
+    await waitFor(() => expect(getInvoicesReportPreview).toHaveBeenCalled())
+  })
+})
+
+// ── Filter interactions ───────────────────────────────────────────────────────
+
+describe('ReportsPageContainer — filter interactions', () => {
+  it('updates the finance type filter via the Select and reflects it in the export call', async () => {
+    const { exportFinanceReport } = await import('@/features/reports/services/reports.service')
+    render(<ReportsPageContainer />)
+    const financeSection = screen
+      .getByRole('heading', { name: 'Relatório financeiro' })
+      .closest('section') as HTMLElement
+
+    await userEvent.click(within(financeSection).getByRole('combobox', { name: /^tipo$/i }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Receita' }))
+
+    await userEvent.click(
+      within(financeSection).getByRole('button', { name: /pré-visualizar relatório/i }),
+    )
+    const downloadButton = await within(financeSection).findByRole('button', {
+      name: /baixar csv/i,
+    })
+    await userEvent.click(downloadButton)
+
+    await waitFor(() =>
+      expect(exportFinanceReport).toHaveBeenCalledWith(expect.objectContaining({ type: 'INCOME' })),
+    )
+  })
+
+  it('changing the finance start date updates the input value', async () => {
+    render(<ReportsPageContainer />)
+    const startInput = document.getElementById('fin-start') as HTMLInputElement
+    await userEvent.clear(startInput)
+    await userEvent.type(startInput, '01012026')
+    await waitFor(() => expect(startInput).toHaveValue('01/01/2026'))
+  })
+
+  it('clearing finance filters resets the date inputs to the default range', async () => {
+    render(<ReportsPageContainer />)
+    const startInput = document.getElementById('fin-start') as HTMLInputElement
+    await userEvent.clear(startInput)
+    await userEvent.type(startInput, '01012026')
+    await waitFor(() => expect(startInput).toHaveValue('01/01/2026'))
+
+    const clearButtons = await screen.findAllByRole('button', { name: /limpar filtros/i })
+    await userEvent.click(clearButtons[0])
+    await waitFor(() => expect(startInput).toHaveValue('07/05/2026'))
+  })
+
+  it('updating the inventory category select changes the inventory preview call', async () => {
+    const { getInventoryReportPreview } = await import(
+      '@/features/reports/services/reports.service'
+    )
+    render(<ReportsPageContainer />)
+    const invSection = screen
+      .getByRole('heading', { name: 'Relatório de estoque' })
+      .closest('section') as HTMLElement
+
+    await userEvent.click(within(invSection).getByRole('combobox', { name: /^status$/i }))
+    const options = await screen.findAllByRole('option')
+    await userEvent.click(options[options.length - 1])
+
+    await userEvent.click(
+      within(invSection).getByRole('button', { name: /pré-visualizar relatório/i }),
+    )
+    await waitFor(() => expect(getInventoryReportPreview).toHaveBeenCalled())
+    const [callArgs] = vi.mocked(getInventoryReportPreview).mock.calls.at(-1) as [
+      { status?: string },
+    ]
+    expect(callArgs.status).toBeDefined()
   })
 })
