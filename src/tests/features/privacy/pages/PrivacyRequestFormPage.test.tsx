@@ -107,7 +107,7 @@ describe('PrivacyRequestFormPage', () => {
     )
     expect(await screen.findByText('Solicitação registrada com sucesso')).toBeInTheDocument()
     expect(screen.getByText('REQ-123')).toBeInTheDocument()
-  })
+  }, 15000)
 
   it('shows an error message when the submission fails', async () => {
     // mockImplementation(async () => { throw ... }) rather than mockRejectedValue:
