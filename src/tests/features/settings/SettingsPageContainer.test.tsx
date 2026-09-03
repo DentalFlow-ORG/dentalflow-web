@@ -197,6 +197,129 @@ describe('SettingsPageContainer — error states', () => {
       ).toBeInTheDocument()
     })
   })
+
+  it('clinic profile load error renders visible error feedback', async () => {
+    mockGetClinicProfile.mockRejectedValue(new Error('network error'))
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText(/não foi possível carregar o perfil da clínica/i)).toBeInTheDocument()
+    })
+  })
+})
+
+// ── Google Calendar connect / sync actions ────────────────────────────────────
+
+describe('SettingsPageContainer — Google Calendar connect action', () => {
+  const originalLocation = window.location
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      configurable: true,
+      writable: true,
+    })
+  })
+
+  it('redirects to the connect URL on success', async () => {
+    Object.defineProperty(window, 'location', {
+      value: { ...originalLocation, href: '' },
+      configurable: true,
+      writable: true,
+    })
+    mockCreateGoogleCalendarConnectUrl.mockResolvedValue({
+      url: 'https://accounts.google.com/oauth',
+    })
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /conectar google agenda/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /conectar google agenda/i }))
+    await waitFor(() => {
+      expect(window.location.href).toBe('https://accounts.google.com/oauth')
+    })
+  })
+
+  it('shows an error when starting the connection fails', async () => {
+    mockCreateGoogleCalendarConnectUrl.mockRejectedValue(new Error('fail'))
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /conectar google agenda/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /conectar google agenda/i }))
+    expect(
+      await screen.findByText(/não foi possível iniciar a conexão com o google agenda/i),
+    ).toBeInTheDocument()
+  })
+})
+
+describe('SettingsPageContainer — Google Calendar sync action', () => {
+  beforeEach(() => {
+    mockGetGoogleCalendarStatus.mockResolvedValue(makeConnectedCalendarStatus())
+  })
+
+  it('shows a plural sync message when multiple appointments are synced', async () => {
+    mockSyncGoogleCalendar.mockResolvedValue({ synced: 3 })
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /sincronizar/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /sincronizar/i }))
+    expect(await screen.findByText('3 consultas sincronizadas.')).toBeInTheDocument()
+  })
+
+  it('shows a singular sync message when exactly one appointment is synced', async () => {
+    mockSyncGoogleCalendar.mockResolvedValue({ synced: 1 })
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /sincronizar/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /sincronizar/i }))
+    expect(await screen.findByText('1 consulta sincronizada.')).toBeInTheDocument()
+  })
+
+  it('shows a "nothing to sync" message when synced is 0', async () => {
+    mockSyncGoogleCalendar.mockResolvedValue({ synced: 0 })
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /sincronizar/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /sincronizar/i }))
+    expect(await screen.findByText('Nenhuma consulta nova para sincronizar.')).toBeInTheDocument()
+  })
+
+  it('shows an error message when sync fails', async () => {
+    mockSyncGoogleCalendar.mockRejectedValue(new Error('fail'))
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /sincronizar/i })).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /sincronizar/i }))
+    expect(await screen.findByText(/erro ao sincronizar\. tente novamente/i)).toBeInTheDocument()
+  })
+})
+
+describe('SettingsPageContainer — Google Calendar disconnect failure', () => {
+  it('shows an error message when disconnect fails', async () => {
+    mockGetGoogleCalendarStatus.mockResolvedValue(makeConnectedCalendarStatus())
+    mockDisconnectGoogleCalendar.mockRejectedValue(new Error('fail'))
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('clinica@gmail.com')).toBeInTheDocument()
+    })
+    await user.click(screen.getByRole('button', { name: /desconectar/i }))
+    const dialog = screen.getByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: /desconectar/i }))
+    expect(
+      await screen.findByText(/não foi possível desconectar o google agenda/i),
+    ).toBeInTheDocument()
+  })
 })
 
 // ── Connected Google Calendar ─────────────────────────────────────────────────
