@@ -216,3 +216,165 @@ describe('usePatientsAttention — batch failure resilience', () => {
     expect(mockShowAlert).not.toHaveBeenCalled()
   })
 })
+
+// ── Filters ──────────────────────────────────────────────────────────────────
+
+import { act } from '@testing-library/react'
+
+function makeCustomResponse(
+  items: Array<{
+    identifier: string
+    patientName: string
+    patientEmail?: string | null
+    allReasons?: Array<'INACTIVE' | 'PENDING_PAYMENT' | 'NO_UPCOMING_APPOINTMENT'>
+    priority?: 'HIGH' | 'MEDIUM' | 'LOW'
+    hasWhatsappConsent?: boolean
+  }>,
+): AttentionResponse {
+  return {
+    summary: {
+      total: items.length,
+      inactive: 0,
+      withoutUpcomingAppointment: 0,
+      pendingPayment: 0,
+      recentlyCanceled: 0,
+      recentNoShow: 0,
+      withWhatsappConsent: 0,
+    },
+    items: items.map((item) => ({
+      identifier: item.identifier,
+      patientName: item.patientName,
+      patientEmail: item.patientEmail ?? null,
+      patientPhone: null,
+      lastAppointmentAt: null,
+      nextAppointmentAt: null,
+      lastProfessionalName: null,
+      reason: (item.allReasons?.[0] ?? 'INACTIVE') as 'INACTIVE',
+      allReasons: item.allReasons ?? ['INACTIVE'],
+      priority: item.priority ?? 'LOW',
+      pendingAmountCents: 0,
+      hasWhatsappConsent: item.hasWhatsappConsent ?? false,
+    })),
+  }
+}
+
+describe('usePatientsAttention — filters', () => {
+  it('filters by search matching patient name', async () => {
+    mockGetAttention.mockResolvedValue(
+      makeCustomResponse([
+        { identifier: 'a', patientName: 'Ana Silva' },
+        { identifier: 'b', patientName: 'Bruno Costa' },
+      ]),
+    )
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    act(() => result.current.setSearch('ana'))
+    expect(result.current.filteredItems.map((i) => i.identifier)).toEqual(['a'])
+    expect(result.current.hasFilters).toBe(true)
+  })
+
+  it('filters by search matching patient email', async () => {
+    mockGetAttention.mockResolvedValue(
+      makeCustomResponse([
+        { identifier: 'a', patientName: 'X', patientEmail: 'ana@clinica.com' },
+        { identifier: 'b', patientName: 'Y', patientEmail: 'bruno@clinica.com' },
+      ]),
+    )
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    act(() => result.current.setSearch('bruno@'))
+    expect(result.current.filteredItems.map((i) => i.identifier)).toEqual(['b'])
+  })
+
+  it('excludes an item with no email when searching and no name match', async () => {
+    mockGetAttention.mockResolvedValue(
+      makeCustomResponse([{ identifier: 'a', patientName: 'X', patientEmail: null }]),
+    )
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    act(() => result.current.setSearch('nomatch'))
+    expect(result.current.filteredItems).toEqual([])
+  })
+
+  it('filters by reasonFilter', async () => {
+    mockGetAttention.mockResolvedValue(
+      makeCustomResponse([
+        { identifier: 'a', patientName: 'A', allReasons: ['PENDING_PAYMENT'] },
+        { identifier: 'b', patientName: 'B', allReasons: ['INACTIVE'] },
+      ]),
+    )
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    act(() => result.current.setReasonFilter('PENDING_PAYMENT'))
+    expect(result.current.filteredItems.map((i) => i.identifier)).toEqual(['a'])
+  })
+
+  it('filters by priorityFilter', async () => {
+    mockGetAttention.mockResolvedValue(
+      makeCustomResponse([
+        { identifier: 'a', patientName: 'A', priority: 'HIGH' },
+        { identifier: 'b', patientName: 'B', priority: 'LOW' },
+      ]),
+    )
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    act(() => result.current.setPriorityFilter('HIGH'))
+    expect(result.current.filteredItems.map((i) => i.identifier)).toEqual(['a'])
+  })
+
+  it('filters by whatsappFilter', async () => {
+    mockGetAttention.mockResolvedValue(
+      makeCustomResponse([
+        { identifier: 'a', patientName: 'A', hasWhatsappConsent: true },
+        { identifier: 'b', patientName: 'B', hasWhatsappConsent: false },
+      ]),
+    )
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    act(() => result.current.setWhatsappFilter('HAS_CONSENT'))
+    expect(result.current.filteredItems.map((i) => i.identifier)).toEqual(['a'])
+  })
+
+  it('clearFilters resets every filter and hasFilters becomes false', async () => {
+    mockGetAttention.mockResolvedValue(
+      makeCustomResponse([{ identifier: 'a', patientName: 'A', priority: 'HIGH' }]),
+    )
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    act(() => {
+      result.current.setSearch('x')
+      result.current.setReasonFilter('INACTIVE')
+      result.current.setPriorityFilter('HIGH')
+      result.current.setWhatsappFilter('HAS_CONSENT')
+    })
+    expect(result.current.hasFilters).toBe(true)
+
+    act(() => result.current.clearFilters())
+    expect(result.current.hasFilters).toBe(false)
+    expect(result.current.search).toBe('')
+    expect(result.current.reasonFilter).toBe('ALL')
+    expect(result.current.priorityFilter).toBe('ALL')
+    expect(result.current.whatsappFilter).toBe('ALL')
+  })
+
+  it('has no filters and returns all items by default', async () => {
+    mockGetAttention.mockResolvedValue(
+      makeCustomResponse([
+        { identifier: 'a', patientName: 'A' },
+        { identifier: 'b', patientName: 'B' },
+      ]),
+    )
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    expect(result.current.hasFilters).toBe(false)
+    expect(result.current.filteredItems).toHaveLength(2)
+  })
+})
