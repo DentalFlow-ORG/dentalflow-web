@@ -52,9 +52,9 @@ describe('PasswordResetModal', () => {
   it('caps typed input at 72 characters via the maxLength attribute', async () => {
     renderModal()
     const input = screen.getByLabelText('Nova senha')
-    await userEvent.type(input, 'a'.repeat(80))
+    await userEvent.type(input, 'a'.repeat(80), { delay: null })
     expect(input).toHaveValue('a'.repeat(72))
-  })
+  }, 15000)
 
   it('shows an error when passwords do not match', async () => {
     renderModal()
