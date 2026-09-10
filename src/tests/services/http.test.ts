@@ -42,6 +42,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.unstubAllEnvs()
   vi.useRealTimers()
   vi.unstubAllGlobals()
   Object.defineProperty(window, 'location', {
@@ -285,6 +286,32 @@ describe('request timeout', () => {
 // ── 401 refresh flow ──────────────────────────────────────────────────────────
 
 describe('401 refresh flow', () => {
+  it('shares one refresh across concurrent unauthorized requests and retries both with the new token', async () => {
+    let resolveRefresh: (value: { accessToken: string }) => void = () => {}
+    const refreshTokens = vi.fn(
+      () =>
+        new Promise<{ accessToken: string }>((resolve) => {
+          resolveRefresh = resolve
+        }),
+    )
+    setupAuthRefresh({ refreshTokens, onTokenRefreshed: vi.fn(), onRefreshFailed: vi.fn() })
+    mockFetch.mockImplementation((_url: string, options: RequestInit) => {
+      const authorization = new Headers(options.headers).get('Authorization')
+      return Promise.resolve(
+        makeJsonResponse(authorization === 'Bearer refreshed' ? 200 : 401, {
+          ok: authorization === 'Bearer refreshed',
+        }),
+      )
+    })
+    const first = apiRequest('/first', { accessToken: 'expired' })
+    const second = apiRequest('/second', { accessToken: 'expired' })
+    await vi.waitFor(() => expect(refreshTokens).toHaveBeenCalledOnce())
+    resolveRefresh({ accessToken: 'refreshed' })
+    await expect(Promise.all([first, second])).resolves.toEqual([{ ok: true }, { ok: true }])
+    expect(refreshTokens).toHaveBeenCalledOnce()
+    expect(mockFetch).toHaveBeenCalledTimes(4)
+    expect(notifySessionExpired).not.toHaveBeenCalled()
+  })
   it('refreshes the token and retries the request on success', async () => {
     const onTokenRefreshed = vi.fn()
     const onRefreshFailed = vi.fn()
@@ -338,5 +365,22 @@ describe('401 refresh flow', () => {
       status: 401,
     })
     expect(refreshTokens).not.toHaveBeenCalled()
+  })
+})
+
+it('uses the production connection error without exposing development API instructions', async () => {
+  vi.stubEnv('PROD', true)
+  mockFetch.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+  await expect(apiRequest('/test')).rejects.toMatchObject({
+    status: 0,
+    message: 'Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.',
+  })
+})
+
+it('falls back to the HTTP status when a JSON error body contains no message', async () => {
+  mockFetch.mockResolvedValueOnce(makeJsonResponse(404, { statusCode: 404 }))
+  await expect(apiRequest('/test')).rejects.toMatchObject({
+    status: 404,
+    message: 'Recurso não encontrado.',
   })
 })
