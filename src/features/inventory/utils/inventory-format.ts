@@ -1,9 +1,4 @@
-export function formatBRLCents(cents: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(cents / 100)
-}
+export { formatCurrencyBRLCents as formatBRLCents } from '@/lib/number-formatters'
 
 // expiresAt is stored as @db.Date (date-only, UTC midnight) — use UTC to avoid off-by-one day
 export function formatProductDate(isoString: string): string {

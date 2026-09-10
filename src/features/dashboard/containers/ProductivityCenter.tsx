@@ -24,6 +24,10 @@ import {
   formatWallTime,
 } from '@/features/scheduling/utils/time'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
+import {
+  formatCurrencyBRL as brl,
+  formatCurrencyBRLCents as brlCents,
+} from '@/lib/number-formatters'
 import { cn } from '@/lib/utils'
 
 import { HomeActionGrid } from '@/features/home/components/HomeActionGrid'
@@ -43,13 +47,6 @@ import type {
   ProductivityAppointmentSummary,
   RecentCanceledAppointment,
 } from '../types/productivity.types'
-
-// ── Currency helpers ──────────────────────────────────────────────────────────
-
-const brl = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
-
-const brlCents = (v: number) => brl(v / 100)
 
 // ── Badge helpers (productivity-domain specific, kept local) ──────────────────
 

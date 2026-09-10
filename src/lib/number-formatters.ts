@@ -10,3 +10,7 @@ export function formatCurrencyBR(value: number | null | undefined) {
 export function formatCurrencyBRL(value: number | null | undefined, fallback = 'R$ 0,00') {
   return formatCurrencyBR(value) ?? fallback
 }
+
+export function formatCurrencyBRLCents(cents: number): string {
+  return formatCurrencyBRL(cents / 100)
+}

@@ -62,6 +62,7 @@ import {
 import { AdminRoute } from '@/features/admin/components/AdminRoute'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
 import type { AuthMode } from '@/features/auth/types'
+import { parseCalendarReturnSearch } from '@/features/scheduling/utils/calendar-return-search'
 
 const rootRoute = createRootRoute({
   component: RootRoute,
@@ -158,15 +159,7 @@ const adminDashboardRoute = createRoute({
 const appointmentsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/agendamentos',
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { googleCalendar?: 'connected' | 'error'; message?: string } => ({
-    googleCalendar:
-      search.googleCalendar === 'connected' || search.googleCalendar === 'error'
-        ? search.googleCalendar
-        : undefined,
-    message: typeof search.message === 'string' ? search.message : undefined,
-  }),
+  validateSearch: parseCalendarReturnSearch,
   component: () => (
     <ProtectedAppRoute allowedRoles={['OWNER', 'ASSISTANT']}>
       <AppointmentsPage />
@@ -177,15 +170,7 @@ const appointmentsRoute = createRoute({
 const scheduleRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/agenda',
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { googleCalendar?: 'connected' | 'error'; message?: string } => ({
-    googleCalendar:
-      search.googleCalendar === 'connected' || search.googleCalendar === 'error'
-        ? search.googleCalendar
-        : undefined,
-    message: typeof search.message === 'string' ? search.message : undefined,
-  }),
+  validateSearch: parseCalendarReturnSearch,
   component: () => (
     <ProtectedAppRoute allowedRoles={['DENTIST']}>
       <SchedulePage />

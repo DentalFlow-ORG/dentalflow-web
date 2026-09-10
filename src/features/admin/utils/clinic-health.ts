@@ -1,7 +1,7 @@
 import type { ClinicHealthRow } from '../types/admin.types'
 
-export const TRIAL_ENDING_SOON_DAYS = 7
-export const NO_RECENT_ACTIVITY_DAYS = 30
+const TRIAL_ENDING_SOON_DAYS = 7
+const NO_RECENT_ACTIVITY_DAYS = 30
 
 const PAYMENT_ISSUE_STATUSES = new Set(['PAST_DUE', 'UNPAID'])
 

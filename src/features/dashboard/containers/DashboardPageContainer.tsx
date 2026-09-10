@@ -25,6 +25,7 @@ import {
   formatAppointmentDateLong,
   formatWallTime,
 } from '@/features/scheduling/utils/time'
+import { formatCurrencyBRLCents as brlCents } from '@/lib/number-formatters'
 
 // Same template used by the appointment drawer's WhatsApp section for PENDING
 // appointments — keeps the inline shortcut and the drawer flow in sync.
@@ -39,11 +40,6 @@ import { HomeSection } from '@/features/home/components/HomeSection'
 
 import { useDashboardPage } from '../hooks/useDashboardPage'
 import { ProductivityCenter } from './ProductivityCenter'
-
-// ── Currency helper ───────────────────────────────────────────────────────────
-
-const brlCents = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v / 100)
 
 // ── Section link helper ───────────────────────────────────────────────────────
 
