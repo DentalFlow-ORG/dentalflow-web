@@ -1,4 +1,19 @@
-import { formatCurrencyBR, formatCurrencyBRL } from '@/lib/number-formatters'
+import {
+  formatCurrencyBR,
+  formatCurrencyBRL,
+  formatCurrencyBRLCents,
+} from '@/lib/number-formatters'
+
+describe('formatCurrencyBRLCents', () => {
+  it.each([
+    [0, 'R$ 0,00'],
+    [1, 'R$ 0,01'],
+    [123456, 'R$ 1.234,56'],
+    [-1250, '-R$ 12,50'],
+  ])('formats %s cents without treating them as reais', (value, expected) => {
+    expect(formatCurrencyBRLCents(value)).toBe(expected)
+  })
+})
 
 describe('formatCurrencyBR', () => {
   it('formats a positive number as BRL currency', () => {
