@@ -1,11 +1,13 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, within } from '@/test-utils/render-utils'
 
 import { AdminFinancePageContainer } from '@/features/admin/containers/AdminFinancePageContainer'
 import type {
   AdminFinancePlan,
+  AdminFinanceStripeEvent,
   AdminFinanceSubscription,
+  AdminFinanceSubscriptionPreview,
   AdminFinanceSummary,
 } from '@/features/admin/types/admin-finance.types'
 
@@ -36,6 +38,173 @@ vi.mock('@/components/ui/select', () => ({
 vi.mock('@tanstack/react-router', async () => {
   const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
+})
+
+describe('AdminFinancePageContainer — populated billing data', () => {
+  const events: AdminFinanceStripeEvent[] = [
+    {
+      id: 'evt-ok',
+      type: 'invoice.paid',
+      processed: true,
+      processedAt: '2026-06-10T12:00:00Z',
+      errorMessage: null,
+      createdAt: '2026-06-10T12:00:00Z',
+      receivedAt: '2026-06-10T12:00:00Z',
+    },
+    {
+      id: 'evt-error',
+      type: 'invoice.payment_failed',
+      processed: false,
+      processedAt: null,
+      errorMessage: 'Falha na sincronização',
+      createdAt: '2026-06-10T12:00:00Z',
+      receivedAt: '2026-06-10T12:00:00Z',
+    },
+  ]
+
+  it('renders processed and failed Stripe events with the appropriate error details', () => {
+    mockUseAdminFinancePage.mockReturnValue(
+      makeDefaultHookState({ summary: makeSummary(), events, eventsTotal: 2 }),
+    )
+    render(<AdminFinancePageContainer />)
+    expect(screen.getByText('evt-ok').closest('tr')).toHaveTextContent('Processado')
+    expect(screen.getByText('evt-error').closest('tr')).toHaveTextContent('Pendente')
+    expect(screen.getByText('evt-error').closest('tr')).toHaveTextContent('Falha na sincronização')
+    expect(screen.getByText('evt-ok').closest('tr')).not.toHaveTextContent('Falha na sincronização')
+  })
+
+  it('filters Stripe events by type, processing status, and date', async () => {
+    const setEventFilter = vi.fn()
+    mockUseAdminFinancePage.mockReturnValue(
+      makeDefaultHookState({ summary: makeSummary(), events, eventsTotal: 2, setEventFilter }),
+    )
+    render(<AdminFinancePageContainer />)
+    fireEvent.change(screen.getByLabelText('Tipo do evento'), { target: { value: 'invoice.paid' } })
+    expect(setEventFilter).toHaveBeenCalledWith('type', 'invoice.paid')
+    const select = screen
+      .getAllByRole('combobox')
+      .find((element) => within(element).queryByRole('option', { name: 'Pendente/erro' }))
+    if (!select) throw new Error('Expected processing status filter')
+    await userEvent.selectOptions(select, 'false')
+    expect(setEventFilter).toHaveBeenCalledWith('processed', 'false')
+    await userEvent.selectOptions(select, 'Todos')
+    expect(setEventFilter).toHaveBeenCalledWith('processed', undefined)
+    fireEvent.change(screen.getByLabelText('Recebido até'), { target: { value: '10/06/2026' } })
+    fireEvent.blur(screen.getByLabelText('Recebido até'))
+    expect(setEventFilter).toHaveBeenCalledWith('to', '2026-06-10')
+  })
+
+  it.each(['subscriptions', 'events'] as const)(
+    'preserves %s filters while paging and resets the page when resizing',
+    async (kind) => {
+      let filters = { page: 2, limit: 20, to: '2026-06-10' }
+      const updateFilters = vi.fn((update: (current: typeof filters) => typeof filters) => {
+        filters = update(filters)
+      })
+      const data =
+        kind === 'subscriptions'
+          ? {
+              subscriptions: [makeSubscription()],
+              subscriptionsTotal: 100,
+              subscriptionsTotalPages: 5,
+              subscriptionFilters: filters,
+              setSubscriptionFilters: updateFilters,
+            }
+          : {
+              events,
+              eventsTotal: 100,
+              eventsTotalPages: 5,
+              eventFilters: filters,
+              setEventFilters: updateFilters,
+            }
+      mockUseAdminFinancePage.mockReturnValue(
+        makeDefaultHookState({ summary: makeSummary(), ...data }),
+      )
+      render(<AdminFinancePageContainer />)
+      await userEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
+      expect(filters).toEqual({ page: 3, limit: 20, to: '2026-06-10' })
+      const select = screen
+        .getAllByRole('combobox')
+        .find((element) => within(element).queryByRole('option', { name: '50' }))
+      if (!select) throw new Error('Expected page size control')
+      await userEvent.selectOptions(select, '50')
+      expect(filters).toEqual({ page: 1, limit: 50, to: '2026-06-10' })
+    },
+  )
+
+  it('displays recent subscriptions with clinic identity fallback and cancellation dates', () => {
+    const recent: AdminFinanceSubscriptionPreview = {
+      id: 'recent',
+      clinic: { id: 'clinic-missing-email', name: 'Clínica Recente', email: null },
+      plan: { id: 'plan', name: 'Professional', slug: 'professional' },
+      status: 'CANCELED',
+      billingInterval: 'MONTHLY',
+      currency: 'BRL',
+      createdAt: '2026-06-01T12:00:00Z',
+      currentPeriodEnd: null,
+      canceledAt: '2026-06-10T12:00:00Z',
+      endedAt: null,
+    }
+    const summary = {
+      ...makeSummary(),
+      recentlyCreatedSubscriptions: [recent],
+      recentlyCanceledSubscriptions: [
+        {
+          ...recent,
+          id: 'ended',
+          clinic: { ...recent.clinic, name: 'Clínica Encerrada', email: 'contato@clinica.test' },
+          canceledAt: null,
+          endedAt: '2026-06-09T12:00:00Z',
+        },
+      ],
+    }
+    mockUseAdminFinancePage.mockReturnValue(makeDefaultHookState({ summary }))
+    render(<AdminFinancePageContainer />)
+    expect(screen.getByText('Clínica Recente').closest('tr')).toHaveTextContent(
+      'clinic-missing-email',
+    )
+    expect(screen.getByText('Clínica Recente').closest('tr')).toHaveTextContent('10/06/2026')
+    expect(screen.getByText('Clínica Encerrada').closest('tr')).toHaveTextContent(
+      'contato@clinica.test',
+    )
+    expect(screen.getByText('Clínica Encerrada').closest('tr')).toHaveTextContent('09/06/2026')
+  })
+
+  it('formats price breakdowns from cents with explicit and default currencies', () => {
+    const row: AdminFinanceSummary['revenueByPrice'][number] = {
+      stripePriceId: 'price-monthly',
+      priceNickname: 'Mensal original',
+      planId: 'plan',
+      planName: 'Professional',
+      currency: 'BRL',
+      billingInterval: 'MONTHLY',
+      estimatedMrr: 12345,
+      estimatedArr: 148140,
+      subscriberCount: 2,
+    }
+    mockUseAdminFinancePage.mockReturnValue(
+      makeDefaultHookState({
+        summary: {
+          ...makeSummary(),
+          revenueByPrice: [
+            row,
+            {
+              ...row,
+              stripePriceId: 'price-yearly',
+              priceNickname: null,
+              currency: '',
+              billingInterval: 'YEARLY',
+            },
+          ],
+        },
+      }),
+    )
+    render(<AdminFinancePageContainer />)
+    expect(screen.getByText('price-monthly').closest('tr')).toHaveTextContent('Mensal original')
+    expect(screen.getByText('price-monthly').closest('tr')).toHaveTextContent('R$ 123,45')
+    expect(screen.getByText('price-yearly').closest('tr')).toHaveTextContent('Anual')
+    expect(screen.getByText('price-yearly').closest('tr')).toHaveTextContent('R$ 123,45')
+  })
 })
 
 vi.mock('@/components/common/global-alerts-context', () => ({
