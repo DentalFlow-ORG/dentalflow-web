@@ -1,6 +1,7 @@
 import { render, screen, userEvent, waitFor, within } from '@/test-utils/render-utils'
 
 import { SettingsPageContainer } from '@/features/settings/containers/SettingsPageContainer'
+import { makeClinicProfile } from '@/test-utils/factories/settings.factory'
 import { makeOwnerUser } from '@/test-utils/factories/user.factory'
 import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
 
@@ -49,25 +50,6 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 }))
 
 // ── Factories ─────────────────────────────────────────────────────────────────
-
-function makeClinicProfile() {
-  return {
-    id: 'clinic-1',
-    name: 'Clínica Teste',
-    email: 'clinica@teste.com',
-    phone: null,
-    logoUrl: null,
-    websiteUrl: null,
-    addressLine1: null,
-    addressLine2: null,
-    city: null,
-    state: null,
-    country: 'BR',
-    postalCode: null,
-    timezone: 'America/Sao_Paulo',
-    createdAt: '2026-01-01T00:00:00.000Z',
-  }
-}
 
 function makeActiveBillingStatus() {
   return {
