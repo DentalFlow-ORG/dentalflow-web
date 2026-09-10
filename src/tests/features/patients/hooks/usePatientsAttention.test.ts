@@ -4,6 +4,7 @@ import {
 } from '@/features/patients/hooks/usePatientAvatar'
 import { usePatientsAttention } from '@/features/patients/hooks/usePatientsAttention'
 import type { AttentionResponse } from '@/features/patients/types/attention.types'
+import { ApiError } from '@/services/http'
 import { renderHook, waitFor } from '@/test-utils/render-utils'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -182,6 +183,34 @@ describe('usePatientsAttention — avatarsByIdentifier after batch', () => {
 // ── Failure resilience ────────────────────────────────────────────────────────
 
 describe('usePatientsAttention — batch failure resilience', () => {
+  it.each([new ApiError('Acesso indisponível', 403, null), new Error('network')])(
+    'retains patient data after a refresh error and recovers on retry: %s',
+    async (error) => {
+      const { result } = renderHook(() => usePatientsAttention())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      const items = result.current.allItems
+      mockGetAttention.mockRejectedValueOnce(error)
+      act(() => result.current.refresh())
+      await waitFor(() =>
+        expect(result.current.error).toBe(
+          error instanceof ApiError
+            ? error.message
+            : 'Erro ao carregar pacientes que precisam de atenção.',
+        ),
+      )
+      expect(result.current.allItems).toEqual(items)
+      expect(result.current.isLoading).toBe(false)
+      expect(mockShowAlert).toHaveBeenCalledWith({
+        title: 'Erro ao carregar atenção',
+        description: result.current.error,
+        tone: 'error',
+      })
+      act(() => result.current.refresh())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      expect(result.current.error).toBeNull()
+      expect(result.current.filteredItems).toEqual(items)
+    },
+  )
   it('batch failure does not set error state and the page remains usable', async () => {
     mockBatchAvatars.mockRejectedValue(new Error('Network error'))
 
