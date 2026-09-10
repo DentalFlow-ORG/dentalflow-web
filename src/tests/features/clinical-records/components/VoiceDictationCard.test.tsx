@@ -1,6 +1,12 @@
 import { VoiceDictationCard } from '@/features/clinical-records/components/VoiceDictationCard'
 import type { ClinicalDictationFieldKey } from '@/features/clinical-records/types/clinical-dictation.types'
 import { ApiError } from '@/services/http'
+import {
+  FakeFileReader,
+  FakeMediaRecorder,
+  latestRecorder,
+  resetMediaRecorder,
+} from '@/test-utils/mocks/clinical-media'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
@@ -27,41 +33,6 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 }))
 
 // ── Fake MediaRecorder ────────────────────────────────────────────────────────
-
-// Tracks the most recently created instance so tests can inspect or drive it.
-let latestRecorder: FakeMediaRecorder | null = null
-
-// Receives the instance as a plain parameter so `this` is never aliased to a variable.
-function trackRecorder(recorder: FakeMediaRecorder) {
-  latestRecorder = recorder
-}
-
-class FakeMediaRecorder {
-  state: 'inactive' | 'recording' = 'inactive'
-  ondataavailable: ((e: { data: Blob; size: number }) => void) | null = null
-  onstop: (() => void) | null = null
-  mimeType = 'audio/webm'
-
-  // Typed as (type: string) => boolean so mockImplementation with a typed
-  // string argument compiles without casting.
-  static isTypeSupported = vi.fn((_type: string) => true)
-
-  constructor() {
-    trackRecorder(this)
-  }
-
-  start = vi.fn(() => {
-    this.state = 'recording'
-  })
-
-  stop = vi.fn(() => {
-    if (this.state === 'inactive') return
-    this.state = 'inactive'
-    const blob = new Blob(['fake-audio'], { type: 'audio/webm' })
-    this.ondataavailable?.({ data: blob, size: blob.size })
-    this.onstop?.()
-  })
-}
 
 // Variant that emits NO audio chunks — used to test the empty-audio safety path.
 class FakeMediaRecorderNoAudio extends FakeMediaRecorder {
@@ -108,15 +79,6 @@ class FakeMediaRecorderStopThrows extends FakeMediaRecorder {
 
 // ── Fake FileReader ───────────────────────────────────────────────────────────
 
-class FakeFileReader {
-  result = 'data:audio/webm;base64,ZmFrZQ=='
-  onloadend: (() => void) | null = null
-  onerror: (() => void) | null = null
-  readAsDataURL() {
-    queueMicrotask(() => this.onloadend?.())
-  }
-}
-
 // Variant that returns a base64 payload exceeding the frontend MAX_AUDIO_BASE64_LENGTH
 // (4_000_000 chars).  The prefix is stripped inside blobToBase64, so we need the
 // part AFTER the comma to be 4_000_001 chars.
@@ -154,7 +116,7 @@ afterAll(() => {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  latestRecorder = null
+  resetMediaRecorder()
 
   mockGetBillingStatus.mockReturnValue({ planKey: 'premium', accessAllowed: true })
   mockDictateClinicalRecord.mockResolvedValue({
