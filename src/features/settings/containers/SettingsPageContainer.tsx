@@ -173,12 +173,15 @@ function ClinicProfileSection() {
 
   const postalCode = form.postalCode
   useEffect(() => {
+    setIsCepLookingUp(false)
     if (!isValidCEP(postalCode)) return
+    let cancelled = false
     const timer = setTimeout(async () => {
       setIsCepLookingUp(true)
       setCepLookupError(null)
       try {
         const address = await fetchAddressByCep(postalCode)
+        if (cancelled) return
         setForm((prev) => ({
           ...prev,
           addressLine1: address.street || prev.addressLine1,
@@ -186,16 +189,20 @@ function ClinicProfileSection() {
           state: address.uf || prev.state,
         }))
       } catch (err) {
+        if (cancelled) return
         if (err instanceof CepNotFoundError) {
           setCepLookupError('CEP não encontrado.')
         } else {
           setCepLookupError('Não foi possível consultar o CEP.')
         }
       } finally {
-        setIsCepLookingUp(false)
+        if (!cancelled) setIsCepLookingUp(false)
       }
     }, 400)
-    return () => clearTimeout(timer)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
   }, [postalCode])
 
   function set(field: keyof typeof form, value: string) {

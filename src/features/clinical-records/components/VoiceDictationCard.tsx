@@ -567,6 +567,11 @@ export function VoiceDictationCard({
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      // Permission may settle after navigation; do not start or retain a microphone.
+      if (!isMountedRef.current) {
+        for (const track of stream.getTracks()) track.stop()
+        return
+      }
       streamRef.current = stream
 
       const preferredMime = getSupportedMimeType()
@@ -646,6 +651,7 @@ export function VoiceDictationCard({
       // Release any acquired stream — getUserMedia may have succeeded before the
       // error, so we must stop the tracks to free the microphone.
       releaseStream()
+      if (!isMountedRef.current) return
       let msg = 'Não foi possível iniciar a gravação.'
       if (err instanceof Error) {
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
