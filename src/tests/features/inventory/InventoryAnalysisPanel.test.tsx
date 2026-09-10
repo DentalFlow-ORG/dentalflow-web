@@ -1,8 +1,8 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { act, render, screen } from '@/test-utils/render-utils'
 
 import { InventoryAnalysisPanel } from '@/features/inventory/components/InventoryAnalysisPanel'
 import type { StockSummary } from '@/features/inventory/types/inventory.types'
-import { makeDentistUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
+import { makeOwnerUser } from '@/test-utils/factories/user.factory'
 
 let mockUser: ReturnType<typeof makeOwnerUser> | null = makeOwnerUser()
 vi.mock('@/features/auth/hooks/useAuth', () => ({
@@ -49,6 +49,8 @@ describe('InventoryAnalysisPanel', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
     window.location.hash = originalHash
   })
 
@@ -65,14 +67,18 @@ describe('InventoryAnalysisPanel', () => {
   it('allows generation for OWNER users', () => {
     mockUser = makeOwnerUser()
     render(<InventoryAnalysisPanel summary={makeSummary()} />)
-    expect(screen.getByText('Análise do estoque')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Gerar análise' })).toBeEnabled()
   })
 
-  it('does not allow generation for non-OWNER users', () => {
-    mockUser = makeDentistUser()
-    render(<InventoryAnalysisPanel summary={makeSummary()} />)
-    expect(screen.getByText(/nenhuma análise disponível/i)).toBeInTheDocument()
-  })
+  it.each(['ADMIN', 'DENTIST', 'ASSISTANT'] as const)(
+    'does not expose generation for %s',
+    (role) => {
+      mockUser = makeOwnerUser({ role })
+      render(<InventoryAnalysisPanel summary={makeSummary()} />)
+      expect(screen.getByText(/nenhuma análise disponível/i)).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Gerar análise' })).not.toBeInTheDocument()
+    },
+  )
 
   it('passes the dataReadiness reason as the disabled reason when data is not ready', () => {
     mockUseAiAssistantInventory.mockReturnValue(
@@ -83,35 +89,36 @@ describe('InventoryAnalysisPanel', () => {
   })
 
   it('scrolls into view and focuses the section when the URL hash matches', async () => {
+    vi.useFakeTimers()
     window.location.hash = '#inventory-ai-analysis'
-    const scrollIntoViewSpy = vi.fn()
-    Element.prototype.scrollIntoView = scrollIntoViewSpy
+    const scrollIntoViewSpy = vi.spyOn(Element.prototype, 'scrollIntoView')
 
     render(<InventoryAnalysisPanel summary={makeSummary()} />)
-    await new Promise((r) => setTimeout(r, 10))
+    await act(async () => vi.advanceTimersByTimeAsync(0))
 
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
+    expect(document.getElementById('inventory-ai-analysis')).toHaveFocus()
   })
 
   it('does not scroll into view when the URL hash does not match', async () => {
+    vi.useFakeTimers()
     window.location.hash = '#something-else'
-    const scrollIntoViewSpy = vi.fn()
-    Element.prototype.scrollIntoView = scrollIntoViewSpy
+    const scrollIntoViewSpy = vi.spyOn(Element.prototype, 'scrollIntoView')
 
     render(<InventoryAnalysisPanel summary={makeSummary()} />)
-    await new Promise((r) => setTimeout(r, 10))
+    await act(async () => vi.advanceTimersByTimeAsync(0))
 
     expect(scrollIntoViewSpy).not.toHaveBeenCalled()
   })
 
   it('does not scroll into view while still loading the initial analysis', async () => {
+    vi.useFakeTimers()
     window.location.hash = '#inventory-ai-analysis'
     mockUseAiAssistantInventory.mockReturnValue(defaultHookState({ isLoadingInitial: true }))
-    const scrollIntoViewSpy = vi.fn()
-    Element.prototype.scrollIntoView = scrollIntoViewSpy
+    const scrollIntoViewSpy = vi.spyOn(Element.prototype, 'scrollIntoView')
 
     render(<InventoryAnalysisPanel summary={makeSummary()} />)
-    await new Promise((r) => setTimeout(r, 10))
+    await act(async () => vi.advanceTimersByTimeAsync(0))
 
     expect(scrollIntoViewSpy).not.toHaveBeenCalled()
   })
