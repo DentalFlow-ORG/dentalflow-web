@@ -50,95 +50,15 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 // ── Import hook after mocks are registered ───────────────────────────────────
 
 import { useFinancePage } from '@/features/finance/hooks/useFinancePage'
-import type {
-  FinanceSummary,
-  FinancialCategory,
-  FinancialTransaction,
-  FixedExpense,
-} from '@/features/finance/types/finance.types'
 
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
-function makeSummary(overrides: Partial<FinanceSummary> = {}): FinanceSummary {
-  return {
-    period: { from: '2026-06-01', to: '2026-06-30', groupBy: 'day' },
-    kpis: {
-      totalIncome: 1000,
-      totalExpenses: 500,
-      netProfit: 500,
-      profitMargin: 50,
-      pendingReceivables: 100,
-      fixedExpensesTotal: 200,
-    },
-    incomeVsExpenses: [],
-    expensesByCategory: [],
-    incomeByService: [],
-    ...overrides,
-  }
-}
-
-function makeCategory(overrides: Partial<FinancialCategory> = {}): FinancialCategory {
-  return {
-    id: 'cat-1',
-    clinicId: 'clinic-1',
-    name: 'Consultas',
-    type: 'INCOME',
-    color: '#10B981',
-    icon: null,
-    isDefault: false,
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    ...overrides,
-  }
-}
-
-function makeTransaction(overrides: Partial<FinancialTransaction> = {}): FinancialTransaction {
-  return {
-    id: 'txn-1',
-    clinicId: 'clinic-1',
-    type: 'INCOME',
-    source: 'MANUAL',
-    categoryId: 'cat-1',
-    amount: 500,
-    description: 'Consulta João',
-    transactionDate: '2026-06-10',
-    dueDate: null,
-    paidAt: null,
-    status: 'PAID',
-    appointmentId: null,
-    serviceId: null,
-    profileId: null,
-    paymentReference: null,
-    fixedExpenseId: null,
-    createdByUserId: 'user-1',
-    createdAt: '2026-06-10T00:00:00.000Z',
-    updatedAt: '2026-06-10T00:00:00.000Z',
-    category: null,
-    service: null,
-    profile: null,
-    ...overrides,
-  }
-}
-
-function makeFixedExpense(overrides: Partial<FixedExpense> = {}): FixedExpense {
-  return {
-    id: 'exp-1',
-    clinicId: 'clinic-1',
-    categoryId: 'cat-2',
-    description: 'Aluguel',
-    amount: 3000,
-    recurrence: 'MONTHLY',
-    dueDay: 5,
-    startDate: '2026-01-01',
-    endDate: null,
-    isActive: true,
-    createdByUserId: 'user-1',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    updatedAt: '2026-01-01T00:00:00.000Z',
-    category: null,
-    ...overrides,
-  }
-}
+import {
+  makeCategory,
+  makeFixedExpense,
+  makeSummary,
+  makeTransaction,
+} from '@/test-utils/factories/finance.factory'
 
 const defaultTransactionsResponse = {
   data: [],
@@ -162,6 +82,57 @@ describe('useFinancePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
+
+  it.each([new Error('Página indisponível'), null])(
+    'retains loaded transactions when pagination fails: %s',
+    async (error) => {
+      setupDefaultMocks()
+      const transaction = makeTransaction()
+      vi.mocked(listFinancialTransactions).mockResolvedValue({
+        ...defaultTransactionsResponse,
+        data: [transaction],
+        total: 30,
+      })
+      const { result } = renderHook(() => useFinancePage())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      vi.mocked(listFinancialTransactions).mockRejectedValueOnce(error)
+      act(() => result.current.setTransactionsPage(2))
+      await waitFor(() =>
+        expect(mockShowAlert).toHaveBeenCalledWith({
+          title: 'Erro ao carregar movimentacoes',
+          description: error?.message ?? 'Não foi possível carregar as movimentações.',
+          tone: 'error',
+        }),
+      )
+      expect(result.current.isLoadingTransactions).toBe(false)
+      expect(result.current.transactions).toEqual([transaction])
+      expect(result.current.transactionsTotal).toBe(30)
+      expect(result.current.loadError).toBeNull()
+    },
+  )
+
+  it.each([
+    { from: '2024-03-01', to: '2024-03-01', previousFrom: '2024-02-29', previousTo: '2024-02-29' },
+    { from: '2026-01-01', to: '2026-01-31', previousFrom: '2025-12-01', previousTo: '2025-12-31' },
+  ])(
+    'requests an inclusive previous period across $from boundaries',
+    async ({ from, to, previousFrom, previousTo }) => {
+      setupDefaultMocks()
+      const { result } = renderHook(() => useFinancePage())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      vi.mocked(getFinanceSummary).mockClear()
+      act(() => {
+        result.current.setFilter('from', from)
+        result.current.setFilter('to', to)
+      })
+      await waitFor(() =>
+        expect(getFinanceSummary).toHaveBeenCalledWith(
+          expect.objectContaining({ from: previousFrom, to: previousTo }),
+        ),
+      )
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+    },
+  )
 
   // ── Public API shape ───────────────────────────────────────────────────────
 

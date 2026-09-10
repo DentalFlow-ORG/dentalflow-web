@@ -1,7 +1,27 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { render, screen, userEvent } from '@/test-utils/render-utils'
+import { type ReactElement, cloneElement } from 'react'
+import { createPortal } from 'react-dom'
 import { vi } from 'vitest'
 
-// Recharts uses SVG which JSDOM doesn't support — stub all exports used by the chart
+const tooltipState = vi.hoisted(() => ({
+  active: false,
+  payload: [] as Array<{
+    name: string
+    value: number
+    color?: string
+    payload?: { fullDate: string }
+  }>,
+}))
+let mockTheme = 'light'
+
+beforeEach(() => {
+  tooltipState.active = false
+  tooltipState.payload = []
+  mockTheme = 'light'
+})
+
+// Stub chart layout, but render the application's actual tooltip through the
+// same content/payload boundary used by Recharts (outside the SVG).
 vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   AreaChart: ({ children }: { children: React.ReactNode }) => (
@@ -14,7 +34,8 @@ vi.mock('recharts', () => ({
   CartesianGrid: () => null,
   XAxis: () => null,
   YAxis: () => null,
-  Tooltip: () => null,
+  Tooltip: ({ content }: { content: ReactElement<typeof tooltipState> }) =>
+    createPortal(cloneElement(content, tooltipState), document.body),
   ReferenceLine: () => null,
   linearGradient: () => null,
   stop: () => null,
@@ -23,7 +44,7 @@ vi.mock('recharts', () => ({
 
 // useTheme is used to derive chart colors
 vi.mock('@/features/theme/useTheme', () => ({
-  useTheme: () => ({ theme: 'light' }),
+  useTheme: () => ({ theme: mockTheme }),
 }))
 
 import { IncomeExpensesChart } from '@/features/finance/components/IncomeExpensesChart'
@@ -66,6 +87,50 @@ const summaryEmpty: FinanceSummary = {
 }
 
 describe('IncomeExpensesChart', () => {
+  it('allows toggling series while keeping at least one series visible', async () => {
+    render(<IncomeExpensesChart summary={summaryWithData} />)
+    const income = screen.getByRole('button', { name: 'Entradas' })
+    const expenses = screen.getByRole('button', { name: 'Saídas' })
+    const profit = screen.getByRole('button', { name: 'Resultado' })
+    await userEvent.click(income)
+    await userEvent.click(expenses)
+    expect(income).toHaveAttribute('aria-pressed', 'false')
+    expect(expenses).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(profit)
+    expect(profit).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(income)
+    await userEvent.click(profit)
+    expect(income).toHaveAttribute('aria-pressed', 'true')
+    expect(profit).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it.each([
+    { theme: 'light', value: 25, text: '+R$ 25,00' },
+    { theme: 'dark', value: -25, text: '-R$ 25,00' },
+    { theme: 'light', value: 0, text: 'R$ 0,00' },
+  ])('shows signed tooltip results for $value in $theme mode', ({ theme, value, text }) => {
+    mockTheme = theme
+    tooltipState.active = true
+    tooltipState.payload = [
+      { name: 'income', value: 1000, color: '#10B981', payload: { fullDate: '01/06/2026' } },
+      { name: 'expenses', value: -1200, color: '#EF4444' },
+      { name: 'netProfit', value },
+    ]
+    render(<IncomeExpensesChart summary={summaryWithData} />)
+    // The tooltip is portalled independently from the chart's data table.
+    const values = Array.from(document.body.children).filter((node) => !node.querySelector('svg'))
+    const tooltip = values.find((node) => node.textContent?.includes('01/06/2026'))
+    expect(tooltip).toHaveTextContent('EntradasR$ 1.000,00')
+    expect(tooltip).toHaveTextContent('SaídasR$ 1.200,00')
+    expect(tooltip).toHaveTextContent(`Resultado${text}`)
+  })
+
+  it('renders no tooltip content while there is no selected data point', () => {
+    tooltipState.active = true
+    tooltipState.payload = []
+    const { container } = render(<IncomeExpensesChart summary={summaryWithData} />)
+    expect(Array.from(document.body.children).filter((node) => node !== container)).toHaveLength(0)
+  })
   // ── Empty state ────────────────────────────────────────────────────────────
 
   it('renders empty state message when no data', () => {

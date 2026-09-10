@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, within } from '@/test-utils/render-utils'
 import { vi } from 'vitest'
 
 vi.mock('@/lib/brazil-timezone', () => ({
@@ -255,25 +255,131 @@ describe('ProcedureMarginsSection', () => {
 
   // ── Empty service list ─────────────────────────────────────────────────────
 
-  it('renders dashed empty state when data has zero items', () => {
-    const { container } = renderSection(emptySuccessState)
-    expect(container.querySelector('.border-dashed')).toBeInTheDocument()
-  })
-
   it('renders empty state message when no procedures found', () => {
     renderSection(emptySuccessState)
     expect(
       screen.getByText('Nenhum procedimento identificado no período selecionado.'),
     ).toBeInTheDocument()
   })
+})
 
-  // ── Service name overflow safety ───────────────────────────────────────────
+// Retain the existing explicit overflow regression alongside behavior tests.
+it('service name span has truncate class for overflow safety', () => {
+  const { container } = renderSection(successState)
+  const serviceList = container.querySelector('[data-testid="service-list"]')
+  expect(serviceList).toBeInTheDocument()
+  const truncated = serviceList!.querySelector('.truncate')
+  expect(truncated).toBeInTheDocument()
+})
 
-  it('service name span has truncate class for overflow safety', () => {
-    const { container } = renderSection(successState)
-    const serviceList = container.querySelector('[data-testid="service-list"]')
-    expect(serviceList).toBeInTheDocument()
-    const truncated = serviceList!.querySelector('.truncate')
-    expect(truncated).toBeInTheDocument()
+describe('ProcedureMarginsSection — cost data and ordering', () => {
+  const items = [
+    {
+      ...serviceA,
+      serviceName: 'Zircônia',
+      totalAppointments: 5,
+      marginPercent: 40,
+      estimatedDirectCostCents: 1080000,
+      estimatedProfitCents: 720000,
+    },
+    {
+      ...serviceB,
+      serviceName: 'Aparelho',
+      totalAppointments: 10,
+      marginPercent: 20,
+      estimatedDirectCostCents: 2400000,
+      estimatedProfitCents: 600000,
+    },
+    {
+      ...serviceA,
+      serviceId: 'svc-3',
+      serviceName: 'Consulta',
+      totalAppointments: 30,
+      grossRevenueCents: 10000,
+      marginPercent: -10,
+      estimatedDirectCostCents: 11000,
+      estimatedProfitCents: -1000,
+    },
+    {
+      ...serviceA,
+      serviceId: 'svc-4',
+      serviceName: 'Exame',
+      totalAppointments: 0,
+      completedAppointments: 0,
+      grossRevenueCents: 0,
+    },
+  ]
+
+  function costState(margin = 20): ProcedureMarginsState {
+    return {
+      ...idleState,
+      data: {
+        ...mockData,
+        items,
+        costDataAvailable: true,
+        totals: {
+          ...mockData.totals,
+          estimatedDirectCostCents: 3000000,
+          estimatedProfitCents: margin < 0 ? -1000 : 1800000,
+          marginPercent: margin,
+        },
+      },
+    }
+  }
+
+  it.each([
+    ['revenue', ['Aparelho', 'Zircônia', 'Consulta', 'Exame']],
+    ['volume', ['Consulta', 'Aparelho', 'Zircônia', 'Exame']],
+    ['margin', ['Zircônia', 'Aparelho', 'Consulta', 'Exame']],
+    ['name', ['Aparelho', 'Consulta', 'Exame', 'Zircônia']],
+  ])('sorts the visible procedures by %s without mutating backend data', (sort, expected) => {
+    const before = items.map((item) => item.serviceId)
+    renderSection(costState())
+    fireEvent.change(screen.getByRole('combobox', { name: 'Ordenar procedimentos' }), {
+      target: { value: sort },
+    })
+    const list = within(screen.getByTestId('service-list'))
+    expect(
+      list.getAllByText(/^(Aparelho|Zircônia|Consulta|Exame)$/).map((node) => node.textContent),
+    ).toEqual(expected)
+    expect(items.map((item) => item.serviceId)).toEqual(before)
+  })
+
+  it.each([40, 20, -10, 0])('displays valid costs, profit, and %s percent margins', (margin) => {
+    renderSection(costState(margin))
+    expect(screen.getByText('Custo total est.')).toBeInTheDocument()
+    expect(screen.getByText('Maior margem (est.)').parentElement).toHaveTextContent('Zircônia')
+    expect(screen.getByText('Mais realizado').parentElement).toHaveTextContent('Consulta')
+    expect(screen.getByText('Maior receita').parentElement).toHaveTextContent('Aparelho')
+    expect(screen.getByText('Margem (est.)').parentElement).toHaveTextContent(
+      `${margin.toFixed(2).replace('.', ',')}%`,
+    )
+    const list = within(screen.getByTestId('service-list'))
+    expect(list.getByText('-10,00%')).toBeInTheDocument()
+    expect(list.getByText('Não configurado')).toBeInTheDocument()
+    expect(
+      list.getAllByText(/Média\/conclusão:/).some((node) => node.textContent?.includes('—')),
+    ).toBe(true)
+    expect(list.getByText('-R$ 10,00', { exact: false })).toBeInTheDocument()
+  })
+
+  it('omits the margin ranking when every margin is missing', () => {
+    renderSection({ ...idleState, data: { ...mockData, costDataAvailable: true } })
+    expect(screen.queryByText('Margem estimada (%)')).not.toBeInTheDocument()
+    expect(screen.queryByText('Maior margem (est.)')).not.toBeInTheDocument()
+  })
+
+  it('displays zero margins without hiding procedures or dividing by zero', () => {
+    renderSection({
+      ...idleState,
+      data: {
+        ...mockData,
+        costDataAvailable: true,
+        items: items.map((item) => ({ ...item, marginPercent: 0 })),
+      },
+    })
+    expect(screen.getByText('Margem estimada (%)')).toBeInTheDocument()
+    expect(within(screen.getByTestId('service-list')).getAllByText('0,00%')).toHaveLength(4)
+    expect(screen.queryByText(/NaN|Infinity/)).not.toBeInTheDocument()
   })
 })
