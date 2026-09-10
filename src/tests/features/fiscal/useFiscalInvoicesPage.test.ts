@@ -58,6 +58,26 @@ async function renderLoaded() {
 }
 
 describe('useFiscalInvoicesPage — initial load', () => {
+  it.each([new Error('Serviço indisponível'), null])(
+    'reports a reload failure and supports retry: %s',
+    async (error) => {
+      const { result } = await renderLoaded()
+      mockGetFiscalProfile.mockRejectedValueOnce(error)
+      act(() => result.current.load())
+      await waitFor(() =>
+        expect(result.current.loadError).toBe(
+          error?.message ?? 'Não foi possível carregar as notas fiscais.',
+        ),
+      )
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({ tone: 'error', description: result.current.loadError }),
+      )
+      expect(result.current.isLoading).toBe(false)
+      act(() => result.current.load())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      expect(result.current.loadError).toBeNull()
+    },
+  )
   it('loads profile, summary, and invoices on mount', async () => {
     mockListInvoices.mockResolvedValue({ data: [makeInvoice()], total: 1 })
     const { result } = await renderLoaded()
