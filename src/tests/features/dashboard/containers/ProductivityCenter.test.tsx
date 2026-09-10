@@ -1,4 +1,4 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { render, screen, within } from '@/test-utils/render-utils'
 
 import { ProductivityCenter } from '@/features/dashboard/containers/ProductivityCenter'
 import type { ProductivitySummary } from '@/features/dashboard/types/productivity.types'
@@ -53,6 +53,221 @@ function makeProductivitySummary(
 
 beforeEach(() => {
   mockUseProductivitySummary.mockReturnValue({ data: null, isLoading: false, error: null })
+})
+
+describe('ProductivityCenter — populated operational data', () => {
+  function show(overrides: Partial<ProductivitySummary>) {
+    mockUseProductivitySummary.mockReturnValue({
+      data: makeProductivitySummary(overrides),
+      isLoading: false,
+      error: null,
+    })
+    render(<ProductivityCenter />)
+  }
+
+  it('links each recommended action and displays its priority', () => {
+    show({
+      actions: [
+        {
+          type: 'TODAY_SCHEDULE',
+          title: 'Revisar agenda',
+          description: 'Consultas de hoje',
+          priority: 'HIGH',
+          href: '/app/agendamentos',
+        },
+        {
+          type: 'PENDING_PAYMENT',
+          title: 'Revisar cobranças',
+          description: 'Pagamentos pendentes',
+          priority: 'MEDIUM',
+          href: '/app/financeiro',
+        },
+        {
+          type: 'NEW_ACTION',
+          title: 'Revisar pacientes',
+          description: 'Retornos',
+          priority: 'LOW',
+          href: '/app/pacientes',
+        },
+      ],
+    })
+    expect(screen.getByRole('link', { name: /Alta Revisar agenda/ })).toHaveAttribute(
+      'href',
+      '/app/agendamentos',
+    )
+    expect(screen.getByRole('link', { name: /Média Revisar cobranças/ })).toHaveAttribute(
+      'href',
+      '/app/financeiro',
+    )
+    expect(screen.getByRole('link', { name: /Baixa Revisar pacientes/ })).toHaveAttribute(
+      'href',
+      '/app/pacientes',
+    )
+  })
+
+  it('renders upcoming appointments with and without service names', () => {
+    const today = {
+      ...makeProductivitySummary().today,
+      appointmentsTotal: 1,
+      appointmentsConfirmed: 1,
+    }
+    show({
+      today,
+      upcomingToday: [
+        {
+          id: '1',
+          patientName: 'Ana agenda',
+          startTime: '09:30',
+          status: 'CONFIRMED',
+          paymentStatus: null,
+          profileName: 'Dra. Maria',
+          serviceName: 'Limpeza agendada',
+        },
+        {
+          id: '2',
+          patientName: 'Bruno agenda',
+          startTime: '10:30',
+          status: 'PENDING',
+          paymentStatus: null,
+          profileName: 'Dr. João',
+          serviceName: null,
+        },
+      ],
+    })
+    expect(screen.getByText(/1 consulta · 1 confirmada/)).toBeInTheDocument()
+    const row = screen.getByText('Ana agenda').closest('li')
+    expect(row).toHaveTextContent('Limpeza agendada')
+    expect(row).toHaveTextContent('09:30')
+    expect(row).toHaveTextContent('Dra. Maria')
+    expect(screen.getByText('Bruno agenda')).toBeInTheDocument()
+  })
+
+  it.each([
+    ['PAYMENT_PENDING', 'Pagamento pendente'],
+    ['PARTIALLY_PAID', 'Parcialmente pago'],
+    ['UNKNOWN', null],
+  ])('displays %s payments with nullable amounts and profile names', (paymentStatus, label) => {
+    show({
+      pendingPaymentAppointments: [
+        {
+          id: '1',
+          patientName: 'Ana cobrança',
+          patientPhone: null,
+          appointmentDate: '2026-06-04',
+          startTime: '09:00',
+          estimatedAmountCents: 12345,
+          paidAmountCents: null,
+          paymentStatus,
+          profileName: 'Dra. Maria',
+          serviceName: null,
+        },
+        {
+          id: '2',
+          patientName: 'Bruno cobrança',
+          patientPhone: null,
+          appointmentDate: '2026-06-04',
+          startTime: '10:00',
+          estimatedAmountCents: null,
+          paidAmountCents: null,
+          paymentStatus,
+          profileName: '',
+          serviceName: null,
+        },
+      ],
+    })
+    const row = screen.getByText('Ana cobrança').closest('li')
+    expect(row).toHaveTextContent('R$ 123,45')
+    expect(row).toHaveTextContent('04/06/2026 · Dra. Maria')
+    if (label) expect(row).toHaveTextContent(label)
+    else expect(row).not.toHaveTextContent('UNKNOWN')
+    expect(screen.getByText('Bruno cobrança').closest('li')).not.toHaveTextContent('R$')
+  })
+
+  it.each([
+    ['LOW', 'Estoque baixo'],
+    ['EMPTY', 'Sem estoque'],
+    ['EXPIRING', 'Vence em breve'],
+    ['EXPIRED', 'Vencido'],
+  ] as const)('shows %s inventory warnings', (status, label) => {
+    show({
+      inventory: {
+        lowStockCount: 1,
+        expiringSoonCount: 1,
+        criticalProducts: [
+          {
+            id: '1',
+            name: 'Luvas clínicas',
+            currentQuantity: 0,
+            minQuantity: 5,
+            unit: 'CX',
+            expiresAt: '2026-07-01',
+            status,
+            categoryName: 'Proteção',
+          },
+          {
+            id: '2',
+            name: 'Máscaras clínicas',
+            currentQuantity: 1,
+            minQuantity: 5,
+            unit: 'CX',
+            expiresAt: null,
+            status,
+            categoryName: null,
+          },
+        ],
+      },
+    })
+    const row = screen.getByText('Luvas clínicas').closest('li')
+    expect(row).toHaveTextContent(label)
+    expect(row).toHaveTextContent('Proteção')
+    expect(screen.getByText('Máscaras clínicas')).toBeInTheDocument()
+    expect(screen.getByText('1 com estoque baixo · 1 com vencimento próximo')).toBeInTheDocument()
+  })
+
+  it('shows return examples and the remaining count without inventing a missing visit date', () => {
+    show({
+      patients: {
+        withoutReturnCount: 4,
+        examples: [
+          { patientName: 'Ana retorno', patientPhone: null, lastVisit: '2026-03-01' },
+          { patientName: 'Bruno retorno', patientPhone: null, lastVisit: null },
+        ],
+      },
+    })
+    expect(screen.getByText('Ana retorno').closest('li')).toHaveTextContent('Última: 01/03/2026')
+    expect(screen.getByText('Bruno retorno').closest('li')).not.toHaveTextContent('Última:')
+    expect(screen.getByText('+2 pacientes a mais')).toBeInTheDocument()
+  })
+
+  it('shows cancellation reasons only when the backend supplies one', () => {
+    show({
+      recentCanceled: [
+        {
+          id: '1',
+          patientName: 'Ana cancelada',
+          appointmentDate: '2026-06-04',
+          startTime: '09:00',
+          cancellationReason: 'Imprevisto',
+          profileName: 'Dra. Maria',
+        },
+        {
+          id: '2',
+          patientName: 'Bruno cancelado',
+          appointmentDate: '2026-06-04',
+          startTime: '10:00',
+          cancellationReason: null,
+          profileName: 'Dr. João',
+        },
+      ],
+    })
+    expect(screen.getByText('Ana cancelada').closest('li')).toHaveTextContent('Imprevisto')
+    expect(screen.getByText('Bruno cancelado')).toBeInTheDocument()
+    expect(
+      within(screen.getByText('Bruno cancelado').closest('li') as HTMLElement).queryByText(
+        'Imprevisto',
+      ),
+    ).not.toBeInTheDocument()
+  })
 })
 
 afterEach(() => {
