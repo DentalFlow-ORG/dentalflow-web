@@ -30,7 +30,11 @@ vi.mock('@/services/http', () => ({
 
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AuthProvider } from '@/features/auth/providers/AuthProvider'
-import { clearSession, hasStoredSession } from '@/features/auth/utils/session-storage'
+import {
+  clearSession,
+  getAccessToken,
+  hasStoredSession,
+} from '@/features/auth/utils/session-storage'
 
 const originalLocation = window.location
 
@@ -106,7 +110,7 @@ describe('AuthProvider', () => {
     expect(hasStoredSession()).toBe(false)
   })
 
-  it('registers the http refresh config on mount', async () => {
+  it('refreshes tokens through the HTTP callback and updates the in-memory session', async () => {
     render(
       <AuthProvider>
         <Consumer />
@@ -114,23 +118,30 @@ describe('AuthProvider', () => {
     )
     await waitFor(() => expect(mockSetupAuthRefresh).toHaveBeenCalledOnce())
     const config = mockSetupAuthRefresh.mock.calls[0][0]
-    expect(typeof config.refreshTokens).toBe('function')
-    expect(typeof config.onTokenRefreshed).toBe('function')
-    expect(typeof config.onRefreshFailed).toBe('function')
+    mockRefresh.mockResolvedValueOnce({ accessToken: 'rotated-token' })
+    await expect(config.refreshTokens()).resolves.toEqual({ accessToken: 'rotated-token' })
+    expect(mockRefresh).toHaveBeenCalledOnce()
+    act(() => config.onTokenRefreshed('rotated-token'))
+    expect(getAccessToken()).toBe('rotated-token')
+    expect(localStorage.getItem('dentalflow.accessToken')).toBeNull()
   })
 
   it('onRefreshFailed clears the session and redirects to /acessar', async () => {
-    render(
-      <AuthProvider>
-        <Consumer />
-      </AuthProvider>,
-    )
+    mockLogin.mockResolvedValue({ accessToken: 'active-token', user: { id: 'active-user' } })
+    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
+    await act(async () => result.current.login({ email: 'active@clinic.test', password: 'secret' }))
+    expect(result.current.isAuthenticated).toBe(true)
+    expect(hasStoredSession()).toBe(true)
+    expect(getAccessToken()).toBe('active-token')
     await waitFor(() => expect(mockSetupAuthRefresh).toHaveBeenCalledOnce())
     const config = mockSetupAuthRefresh.mock.calls[0][0]
 
     act(() => config.onRefreshFailed())
 
     expect(hasStoredSession()).toBe(false)
+    expect(getAccessToken()).toBeNull()
+    expect(result.current.user).toBeNull()
+    expect(result.current.isAuthenticated).toBe(false)
     expect(window.location.replace).toHaveBeenCalledWith('/acessar')
   })
 

@@ -2,6 +2,7 @@ import {
   completeProfile,
   forgotPassword,
   getCurrentUser,
+  getGoogleOAuthStartUrl,
   login,
   logout,
   refresh,
@@ -22,6 +23,13 @@ vi.mock('@/features/auth/utils/session-storage', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
+})
+
+afterEach(() => vi.unstubAllEnvs())
+
+it('starts Google OAuth at the configured API origin', () => {
+  vi.stubEnv('VITE_API_URL', 'https://api.dentalflow.test')
+  expect(getGoogleOAuthStartUrl()).toBe('https://api.dentalflow.test/auth/google')
 })
 
 // ── login ─────────────────────────────────────────────────────────────────────

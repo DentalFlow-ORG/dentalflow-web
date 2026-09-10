@@ -155,6 +155,7 @@ describe('ProtectedAppRoute', () => {
     )
     expect(screen.getByTestId('app-shell')).toBeInTheDocument()
     expect(screen.getByText('Protected Content')).toBeInTheDocument()
+    expect(mockGetCurrentBillingStatus).not.toHaveBeenCalled()
   })
 
   it('redirects to /app/assinatura when billing access is denied on a non-billing route', async () => {
