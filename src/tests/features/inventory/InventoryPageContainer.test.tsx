@@ -223,6 +223,8 @@ describe('InventoryPageContainer', () => {
     const selects = screen.getAllByRole('combobox')
     await userEvent.selectOptions(selects[0], 'Todas as categorias')
     expect(handleCategoryChange).toHaveBeenCalledWith(undefined)
+    await userEvent.selectOptions(selects[0], 'Luvas')
+    expect(handleCategoryChange).toHaveBeenLastCalledWith('cat-1')
   })
 
   it('calls handleStatusChange with the selected status', async () => {
@@ -231,7 +233,9 @@ describe('InventoryPageContainer', () => {
     render(<InventoryPageContainer />)
     const selects = screen.getAllByRole('combobox')
     await userEvent.selectOptions(selects[1], selects[1].querySelectorAll('option')[1])
-    expect(handleStatusChange).toHaveBeenCalled()
+    expect(handleStatusChange).toHaveBeenCalledWith('ACTIVE')
+    await userEvent.selectOptions(selects[1], 'all')
+    expect(handleStatusChange).toHaveBeenLastCalledWith(undefined)
   })
 
   it('does not render attention chips when there is no summary', () => {

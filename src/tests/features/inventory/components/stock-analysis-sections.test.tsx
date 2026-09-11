@@ -260,6 +260,31 @@ it('uses the returned analysis window for an empty consumption list', () => {
   ).toBeInTheDocument()
 })
 
+it.each(['HIGH', 'LOW'] as const)(
+  'shows zero counts for severities absent from a %s-only dataset',
+  (severity) => {
+    consumption.data = consumptionData()
+    consumption.data.items = consumption.data.items.filter((item) => item.severity === severity)
+    consumption.data.summary = {
+      ...consumption.data.summary,
+      totalAnomalies: 1,
+      highSeverity: severity === 'HIGH' ? 1 : 0,
+      mediumSeverity: 0,
+      lowSeverity: severity === 'LOW' ? 1 : 0,
+    }
+    renderWithProviders(<StockAbnormalConsumptionSection />)
+    expect(screen.getByText('Alta atenção', { selector: 'p' }).parentElement).toHaveTextContent(
+      severity === 'HIGH' ? '1' : '0',
+    )
+    expect(screen.getByText('Atenção média', { selector: 'p' }).parentElement).toHaveTextContent(
+      '0',
+    )
+    expect(screen.getByText('Baixa atenção', { selector: 'p' }).parentElement).toHaveTextContent(
+      severity === 'LOW' ? '1' : '0',
+    )
+  },
+)
+
 it('shows empty purchases when the summary reports no items', () => {
   purchase.data = purchaseData()
   purchase.data.summary.totalItems = 0

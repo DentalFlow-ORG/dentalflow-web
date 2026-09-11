@@ -1,4 +1,4 @@
-import { render, screen, userEvent } from '@/test-utils/render-utils'
+import { render, screen, userEvent, within } from '@/test-utils/render-utils'
 import { vi } from 'vitest'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -66,6 +66,36 @@ function defaultProps(overrides: Partial<Parameters<typeof InventoryProductTable
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('InventoryProductTable', () => {
+  it.each([
+    ['EMPTY', 'Sem estoque'],
+    ['LOW', 'Baixo estoque'],
+    ['EXPIRED', 'Vencido'],
+    ['EXPIRING', 'Vencendo'],
+  ] as const)(
+    'keeps the %s status and product actions coherent during refresh',
+    async (status, label) => {
+      const expiresAt =
+        status === 'EXPIRED' ? '2020-01-01' : status === 'EXPIRING' ? '2026-09-15' : null
+      const product = buildProduct({
+        status,
+        currentQuantity: status === 'EMPTY' ? 0 : 1,
+        minQuantity: 0,
+        supplier: null,
+        purchasePrice: null,
+        expiresAt,
+      })
+      const props = defaultProps({ products: [product], isLoading: true })
+      render(<InventoryProductTable {...props} />)
+      expect(
+        screen.getByRole('status', { name: 'Atualizando lista de produtos' }),
+      ).toBeInTheDocument()
+      const row = within(screen.getByRole('row', { name: /Luva cirúrgica/ }))
+      expect(row.getByText(label)).toBeInTheDocument()
+      expect(row.getAllByText('—')).toHaveLength(expiresAt ? 3 : 4)
+      await userEvent.click(row.getByRole('button', { name: /Adicionar 1 unidade de/i }))
+      expect(props.onQuickMove).toHaveBeenCalledWith(product, 'in')
+    },
+  )
   beforeEach(() => {
     vi.clearAllMocks()
   })

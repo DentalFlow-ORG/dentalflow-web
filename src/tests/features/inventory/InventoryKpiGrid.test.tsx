@@ -35,13 +35,13 @@ describe('InventoryKpiGrid', () => {
   })
 
   it('renders KPI values derived from summary', () => {
-    render(<InventoryKpiGrid summary={summary} />)
+    render(<InventoryKpiGrid summary={{ ...summary, expired: 7 }} />)
 
     expect(screen.getByText('42')).toBeInTheDocument()
     expect(screen.getByText('3')).toBeInTheDocument()
     expect(screen.getByText('1')).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
-    expect(screen.getByText('0')).toBeInTheDocument()
+    expect(screen.getByText('7')).toBeInTheDocument()
     // estimatedValue = 125000 cents = R$ 1.250,00
     expect(screen.getByText(/1\.250/)).toBeInTheDocument()
   })

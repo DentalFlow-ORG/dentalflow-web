@@ -44,6 +44,29 @@ describe.each([
     generate: vi.mocked(generateAbnormalConsumptionCopilotSummary),
   },
 ])('$name copilot lifecycle', ({ useCopilot, latest, generate }) => {
+  it('allows explicit generation after an unavailable saved analysis', async () => {
+    latest.mockRejectedValueOnce(new Error('offline'))
+    const { result } = renderHook(useCopilot)
+    await waitFor(() => expect(result.current.isLoadingInitial).toBe(false))
+    expect(result.current.isPlanBlocked).toBe(false)
+    expect(result.current.result).toBeNull()
+    expect(generate).not.toHaveBeenCalled()
+    await act(async () => result.current.handleGenerate())
+    expect(result.current.result?.summary).toBe('Novo resumo')
+  })
+
+  it('preserves the last analysis after a non-API generation error and retries', async () => {
+    generate.mockRejectedValueOnce(new Error('offline'))
+    const { result } = renderHook(useCopilot)
+    await waitFor(() => expect(result.current.isLoadingInitial).toBe(false))
+    await act(async () => result.current.handleGenerate())
+    expect(result.current.result).toEqual(saved)
+    expect(result.current.error).toBe('Não foi possível gerar o resumo. Tente novamente.')
+    expect(result.current.isGenerating).toBe(false)
+    await act(async () => result.current.handleGenerate())
+    expect(result.current.result?.summary).toBe('Novo resumo')
+    expect(result.current.error).toBeNull()
+  })
   beforeEach(() => {
     vi.resetAllMocks()
     latest.mockResolvedValue(saved)

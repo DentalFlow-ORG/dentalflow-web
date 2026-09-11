@@ -111,6 +111,69 @@ function setupDefaultMocks() {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('useInventoryPage', () => {
+  it.each([new Error('offline'), new ApiError('Resumo indisponível', 503, null)])(
+    'preserves products after a post-save reload failure and retries: %s',
+    async (error) => {
+      setupDefaultMocks()
+      const { result } = renderHook(() => useInventoryPage())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+      const previous = result.current.products
+      vi.mocked(getStockSummary).mockRejectedValueOnce(error)
+      act(() => result.current.handleProductSaved())
+      await waitFor(() =>
+        expect(mockShowAlert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Erro ao recarregar',
+            description: error instanceof ApiError ? error.message : 'Erro ao recarregar estoque.',
+          }),
+        ),
+      )
+      expect(result.current.products).toEqual(previous)
+      const updated = makeProduct({ name: 'Produto atualizado' })
+      vi.mocked(listStockProducts).mockResolvedValueOnce({
+        data: [updated],
+        total: 1,
+        page: 1,
+        limit: 20,
+      })
+      act(() => result.current.handleProductSaved())
+      await waitFor(() => expect(result.current.products).toEqual([updated]))
+    },
+  )
+
+  it('cancels a pending search when filters are cleared', async () => {
+    setupDefaultMocks()
+    const { result } = renderHook(() => useInventoryPage())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    vi.useFakeTimers()
+    try {
+      act(() => result.current.handleSearchChange('rascunho'))
+      act(() => result.current.handleClearFilters())
+      await act(async () => vi.advanceTimersByTimeAsync(400))
+      expect(result.current.search).toBe('')
+      expect(result.current.hasFilters).toBe(false)
+      expect(listStockProducts).not.toHaveBeenCalledWith(
+        expect.objectContaining({ search: 'rascunho' }),
+      )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('preserves the viewed product if refresh fails after a successful quick movement', async () => {
+    setupDefaultMocks()
+    vi.mocked(createStockMovement).mockResolvedValue(undefined as never)
+    vi.mocked(getStockProduct).mockRejectedValueOnce(new Error('offline'))
+    const { result } = renderHook(() => useInventoryPage())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    const product = makeProduct()
+    act(() => result.current.handleOpenDetails(product))
+    await act(async () => result.current.handleQuickMove(product, 'in'))
+    expect(result.current.viewingProduct).toEqual(product)
+    expect(result.current.quickMovingIds.has(product.id)).toBe(false)
+    expect(mockShowAlert).toHaveBeenCalledOnce()
+    expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'success' }))
+  })
   beforeEach(() => {
     vi.clearAllMocks()
     mockRole = 'OWNER'
@@ -154,17 +217,24 @@ describe('useInventoryPage', () => {
     expect(result.current.total).toBe(1)
   })
 
-  it('sets error and clears planBlocked when load fails with a non-403 error', async () => {
-    vi.mocked(getStockSummary).mockRejectedValue(new ApiError('Servidor indisponível.', 500, null))
-    vi.mocked(listStockCategories).mockResolvedValue([])
-    vi.mocked(listStockProducts).mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 })
+  it.each([new ApiError('Servidor indisponível.', 500, null), new Error('offline')])(
+    'reports a non-403 initial failure: %s',
+    async (error) => {
+      vi.mocked(getStockSummary).mockRejectedValue(error)
+      vi.mocked(listStockCategories).mockResolvedValue([])
+      vi.mocked(listStockProducts).mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 })
 
-    const { result } = renderHook(() => useInventoryPage())
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
+      const { result } = renderHook(() => useInventoryPage())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    expect(result.current.error).toBe('Servidor indisponível.')
-    expect(result.current.planBlocked).toBe(false)
-  })
+      expect(result.current.error).toBe(
+        error instanceof ApiError
+          ? error.message
+          : 'Não foi possível carregar o estoque. Tente novamente.',
+      )
+      expect(result.current.planBlocked).toBe(false)
+    },
+  )
 
   // ── Plan blocking (403) ───────────────────────────────────────────────────
 
@@ -256,6 +326,7 @@ describe('useInventoryPage', () => {
     vi.useFakeTimers()
     try {
       act(() => result.current.setPage(3))
+      act(() => result.current.handleSearchChange('lu'))
       act(() => result.current.handleSearchChange('luva'))
 
       expect(result.current.search).toBe('luva')
@@ -271,6 +342,7 @@ describe('useInventoryPage', () => {
       expect(listStockProducts).toHaveBeenCalledWith(
         expect.objectContaining({ search: 'luva', page: 1 }),
       )
+      expect(listStockProducts).not.toHaveBeenCalledWith(expect.objectContaining({ search: 'lu' }))
     } finally {
       vi.useRealTimers()
     }
@@ -458,20 +530,26 @@ describe('useInventoryPage', () => {
     await waitFor(() => expect(listStockProducts).toHaveBeenCalled())
   })
 
-  it('shows an error alert when reloadInventoryData fails', async () => {
-    setupDefaultMocks()
-    const { result } = renderHook(() => useInventoryPage())
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
+  it.each([new Error('fail'), new ApiError('Categorias indisponíveis', 503, null)])(
+    'reports a category reload failure: %s',
+    async (error) => {
+      setupDefaultMocks()
+      const { result } = renderHook(() => useInventoryPage())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    vi.mocked(getStockSummary).mockRejectedValueOnce(new Error('fail'))
-    act(() => result.current.reloadInventoryData())
+      vi.mocked(getStockSummary).mockRejectedValueOnce(error)
+      act(() => result.current.reloadInventoryData())
 
-    await waitFor(() =>
-      expect(mockShowAlert).toHaveBeenCalledWith(
-        expect.objectContaining({ description: 'Erro ao recarregar categorias.' }),
-      ),
-    )
-  })
+      await waitFor(() =>
+        expect(mockShowAlert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            description:
+              error instanceof ApiError ? error.message : 'Erro ao recarregar categorias.',
+          }),
+        ),
+      )
+    },
+  )
 
   // ── Movement modal / details ──────────────────────────────────────────────
 
@@ -510,24 +588,29 @@ describe('useInventoryPage', () => {
     expect(result.current.movementHistoryRefreshKey).toBeGreaterThan(refreshKeyBefore)
   })
 
-  it('handleMovementSaved shows an alert when refetching the viewed product fails', async () => {
-    setupDefaultMocks()
-    const product = makeProduct()
-    vi.mocked(getStockProduct).mockRejectedValue(new Error('fail'))
+  it.each([new Error('fail'), new ApiError('Produto indisponível', 503, null)])(
+    'reports failure refreshing a viewed product after movement: %s',
+    async (error) => {
+      setupDefaultMocks()
+      const product = makeProduct()
+      vi.mocked(getStockProduct).mockRejectedValue(error)
 
-    const { result } = renderHook(() => useInventoryPage())
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
+      const { result } = renderHook(() => useInventoryPage())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    act(() => result.current.handleOpenMovement(product))
-    act(() => result.current.handleOpenDetails(product))
-    act(() => result.current.handleMovementSaved())
+      act(() => result.current.handleOpenMovement(product))
+      act(() => result.current.handleOpenDetails(product))
+      act(() => result.current.handleMovementSaved())
 
-    await waitFor(() =>
-      expect(mockShowAlert).toHaveBeenCalledWith(
-        expect.objectContaining({ description: 'Erro ao recarregar produto.' }),
-      ),
-    )
-  })
+      await waitFor(() =>
+        expect(mockShowAlert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            description: error instanceof ApiError ? error.message : 'Erro ao recarregar produto.',
+          }),
+        ),
+      )
+    },
+  )
 
   it('handleMovementSaved does not refetch when no product is being viewed', async () => {
     setupDefaultMocks()
@@ -629,29 +712,33 @@ describe('useInventoryPage', () => {
 
   // ── Reactivate ────────────────────────────────────────────────────────────
 
-  it('reactivates a product successfully and updates the viewed product if matching', async () => {
-    setupDefaultMocks()
-    const product = makeProduct({ status: 'INACTIVE' })
-    const updated = { ...product, status: 'ACTIVE' as const }
-    vi.mocked(reactivateStockProduct).mockResolvedValue(updated)
+  it.each([true, false])(
+    'reactivates a product while preserving the appropriate details (matching=%s)',
+    async (matching) => {
+      setupDefaultMocks()
+      const product = makeProduct({ status: 'INACTIVE' })
+      const updated = { ...product, status: 'ACTIVE' as const }
+      vi.mocked(reactivateStockProduct).mockResolvedValue(updated)
 
-    const { result } = renderHook(() => useInventoryPage())
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
+      const { result } = renderHook(() => useInventoryPage())
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    act(() => result.current.handleOpenDetails(product))
-    act(() => result.current.handleReactivateRequest(product))
+      const viewed = matching ? product : makeProduct({ id: 'other-product' })
+      act(() => result.current.handleOpenDetails(viewed))
+      act(() => result.current.handleReactivateRequest(product))
 
-    await act(async () => {
-      await result.current.handleReactivateConfirm()
-    })
+      await act(async () => {
+        await result.current.handleReactivateConfirm()
+      })
 
-    expect(reactivateStockProduct).toHaveBeenCalledWith(product.id)
-    expect(result.current.reactivatingProduct).toBeNull()
-    expect(result.current.viewingProduct).toEqual(updated)
-    expect(mockShowAlert).toHaveBeenCalledWith(
-      expect.objectContaining({ title: 'Produto reativado com sucesso.' }),
-    )
-  })
+      expect(reactivateStockProduct).toHaveBeenCalledWith(product.id)
+      expect(result.current.reactivatingProduct).toBeNull()
+      expect(result.current.viewingProduct).toEqual(matching ? updated : viewed)
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Produto reativado com sucesso.' }),
+      )
+    },
+  )
 
   it('sets reactivateError on failure', async () => {
     setupDefaultMocks()
