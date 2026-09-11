@@ -69,6 +69,32 @@ async function stop() {
   await act(async () => vi.advanceTimersByTimeAsync(0))
 }
 
+it('expands and collapses a long transcript without changing its content', async () => {
+  const transcript = 'Relato detalhado da consulta. '.repeat(40)
+  vi.mocked(dictateClinicalRecord).mockResolvedValue({ ...response, transcript })
+  await record()
+  await stop()
+  const expand = screen.getByRole('button', { name: 'Ver mais' })
+  expect(expand).toHaveAttribute('aria-expanded', 'false')
+  fireEvent.click(expand)
+  expect(screen.getByRole('button', { name: 'Ver menos' })).toHaveAttribute('aria-expanded', 'true')
+  expect(screen.getByText(transcript.trim())).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Ver menos' }))
+  expect(screen.getByRole('button', { name: 'Ver mais' })).toHaveAttribute('aria-expanded', 'false')
+})
+
+it('restores a deselected suggested field so it can be applied again', async () => {
+  await record()
+  await stop()
+  const field = screen.getByRole('checkbox')
+  fireEvent.click(field)
+  expect(field).not.toBeChecked()
+  expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeDisabled()
+  fireEvent.click(field)
+  expect(field).toBeChecked()
+  expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeEnabled()
+})
+
 it('automatically stops once at 180 seconds and sends the recorded duration', async () => {
   await record()
   await act(async () => vi.advanceTimersByTimeAsync(179_000))
