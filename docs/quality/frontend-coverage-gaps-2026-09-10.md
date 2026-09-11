@@ -2,7 +2,7 @@
 
 The first global table records the baseline at 2f21c07. The continuation checkpoint below records the newer full-suite measurement and closed domain entries. The filename is retained for existing links.
 
-**Verdict: PARTIAL.** A/B entries are still meaningful testable behavior or edge cases. Listing them is not a claim that they were tested or that convergence was achieved. No coverage exclusions or ignore comments were added. All categories remain in the raw denominator.
+**Verdict: PARTIAL.** A/B entries are still meaningful testable behavior or edge cases. Listing them is not a claim that they were tested or that convergence was achieved. No coverage exclusions or coverage-ignore comments were added. All categories remain in the raw denominator.
 
 | Metric | Starting baseline at 2f21c07 | Covered / total |
 | --- | ---: | ---: |
@@ -13,7 +13,7 @@ The first global table records the baseline at 2f21c07. The continuation checkpo
 
 A = meaningful behavior still requiring tests. B = meaningful edge case still requiring tests. C = proven dead code (removed, recorded in the handoff). D = non-behavioral wiring/static declarations; no exclusion applied. E = defensive/unreachable arm with a specific invariant. F = browser integration requiring manual/E2E QA. Mixed files keep their testable A/B gaps; browser limitations do not waive unrelated logic.
 
-The starting full report contained **217 files** with uncovered locations. Closed scheduling, clinical, finance, fiscal and protected-route sections have been removed; surviving locations in those domains have exact D/E/F rationales. Other domains retain their open A/B locations pending their batches.
+The starting full report contained **217 files** with uncovered locations. Closed scheduling, clinical, finance, fiscal, inventory and protected-route sections have been removed; surviving locations in those domains have exact D/E/F rationales. Other domains retain their open A/B locations pending their batches.
 
 ## Continuation from 2f21c07 — in progress
 
@@ -30,6 +30,12 @@ Finance: 33 domain suites / 451 tests passed. Coverage in the complete run: 99.8
 Fiscal: the previous complete domain run passed 16 suites / 428 tests; the subsequent reload regression suite passed all 41 tests (11 added), then all fiscal tests ran in the full checkpoint above. Coverage in that complete run: 99.40% / 99.56% / 98.86% / 99.57% (S/B/F/L). Covered nullable profile/invoice fields, form integration, overlapping workspaces, warning combinations, filter clearing, picker pagination/reset and escaped print output including zero ISS. Confirmed fixes discard obsolete CEP lookups, filter/reload/picker responses, preserve current filters after mutation completion and dismiss the picker once on Escape. Invoice hook focused coverage is 100% in all four metrics.
 
 Typecheck, Biome and git diff --check passed through these commits. Full validation beyond this coverage checkpoint (standalone tests, build, unused checks and both Knip modes) remains pending for convergence. No push, merge, branch switch, dependencies, API contracts, role permissions or coverage exclusions changed. Browser checks remain unexecuted.
+
+Inventory continuation after the full checkpoint: **30 suites / 432 tests passed**, +60 inventory tests and one suite since that checkpoint. Domain S/B/F/L: **98.74% / 98.46% / 99.59% / 99.26%**. The previous global measurement remains a checkpoint; it has not yet been rerun after these inventory changes.
+
+Closed product create/edit validation, optional fields, numeric/date payloads, failure/retry and reset; stock movement quantities, zero adjustment, busy state and retry; category validation, create/update/delete errors, nested cancellation and lifecycle; critical mobile/desktop states, missing values, filters, KPIs, partial anomaly datasets, copilot failures and formatting. Existing owner category access and plan gates remain unchanged. Four dialog regressions confirmed duplicate Escape dismissal (product, movement, category manager and details), now fixed. Two history regressions confirmed old product responses/errors replacing the current history, now discarded.
+
+Removed StockMovementHistory's unreachable refreshKey < 0 branch: the sole production source initializes the counter to zero and only increments it. The effect retains refreshKey as an intentional reload dependency using a one-line Biome useExhaustiveDependencies rationale; this is a lint annotation, not a coverage ignore. Remaining inventory locations have exact D/E/F reasons below. Two new anomaly assertions initially matched both KPI labels and badges; corrected selectors passed in the entire domain rerun. Typecheck, Biome and diff checks passed. Browser QA and the later full validation sequence remain pending.
 
 Priority order: P0 role/access/consent boundaries; P1 scheduling, clinical correctness and finance/fiscal calculations; P2 forms, mutations, persistence and stale-response recovery; P3 interaction, filtering and lifecycle; P4 nullable display/formatting; P5 marketing/static presentation. Mixed files close higher-priority behavior first. Original location IDs remain stable references, not an alphabetical work queue.
 
@@ -102,49 +108,6 @@ S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%.
 | 131 ImpactCard | `function ImpactCard({ metric, index }: { metric: ImpactMetric; index: number }) { const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.12) const Icon = metric.icon` |
 | 167 AnimatedImpactSection | `export function AnimatedImpactSection() { const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.12)` |
 | 201 (anonymous_7) | `<ImpactCard key={metric.id} metric={metric} index={index} /> ))} </div>` |
-
-## 3. src/features/inventory/components/ProductFormModal.tsx
-
-Classification: **A**. product form callbacks, optional values and validation/disabled presentation need additional scenarios.
-
-S/B/F/L: 71.42% / 73.97% / 50.00% / 72.22%.
-
-- Uncovered lines: 107-108, 111-112, 166, 169, 178, 267, 281, 312, 324, 331, 349, 367, 376.
-- Uncovered functions: `(anonymous_6)@178`; `(anonymous_10)@267`; `(anonymous_11)@281`; `(anonymous_12)@312`; `(anonymous_13)@324`; `(anonymous_14)@331`; `(anonymous_15)@349`; `(anonymous_16)@367`; `(anonymous_17)@376`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 60:73 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `minQuantity: product.minQuantity > 0 ? String(product.minQuantity) : '',` |
-| 62:34 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `supplier: product.supplier ?? '',` |
-| 64:68 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `expiresAt: product.expiresAt ? product.expiresAt.slice(0, 10) : '',` |
-| 65:40 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: product.description ?? '',` |
-| 66:28 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `notes: product.notes ?? '',` |
-| 98:4 b5.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!open) return` |
-| 106:4 b7.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!form.name.trim()) {` |
-| 110:4 b8.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!form.categoryId) {` |
-| 120:10 b10.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? parsedQtyValue` |
-| 119:52 b11.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `!isEditMode && form.currentQuantity !== '' && !Number.isNaN(parsedQtyValue)` |
-| 140:44 b17.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `supplier: form.supplier.trim() \|\| undefined,` |
-| 141:39 b18.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `expiresAt: form.expiresAt \|\| null,` |
-| 142:50 b19.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: form.description.trim() \|\| undefined,` |
-| 143:38 b20.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `notes: form.notes.trim() \|\| undefined,` |
-| 167:12 b25.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? err.message` |
-| 168:12 b25.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Não foi possível salvar o produto. Tente novamente.'` |
-| 178:55 b27.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
-| 178:66 b27.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
-| 219:26 b30.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{error && <InlineFeedback>{error}</InlineFeedback>}` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 178 (anonymous_6) | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
-| 267 (anonymous_10) | `onChange={(e) => setField('unit', e.target.value)} /> </FormField>` |
-| 281 (anonymous_11) | `onChange={(e) => setField('supplier', e.target.value)} /> </FormField>` |
-| 312 (anonymous_12) | `onChange={(e) => setField('currentQuantity', e.target.value)} /> </FormField>` |
-| 324 (anonymous_13) | `onChange={(e) => setField('minQuantity', e.target.value)} /> </FormField>` |
-| 331 (anonymous_14) | `onValueChange={(v) => setField('expiresAt', v)} /> </FormField>` |
-| 349 (anonymous_15) | `setField('purchasePrice', formatMoneyInputFromDigits(e.target.value)) } />` |
-| 367 (anonymous_16) | `onChange={(e) => setField('description', e.target.value)} /> </FormField>` |
-| 376 (anonymous_17) | `onChange={(e) => setField('notes', e.target.value)} /> </FormField>` |
 
 ## 4. src/features/patients/containers/PatientsAttentionContainer.tsx
 
@@ -328,68 +291,11 @@ S/B/F/L: 97.84% / 81.05% / 96.96% / 97.59%.
 
 ## 10. src/features/inventory/components/CategoryManagerModal.tsx
 
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **E**. Exact residual explanations follow; no coverage exclusion or ignore directive was added.
 
-S/B/F/L: 80.64% / 71.66% / 82.60% / 82.02%.
+S/B/F/L: 98.92% / 98.33% / 100.00% / 100.00%.
 
-- Uncovered lines: 77-81, 104-105, 109-110, 135, 168, 179, 242, 391, 450, 453.
-- Uncovered functions: `(anonymous_9)@179`; `(anonymous_12)@242`; `(anonymous_13)@242`; `(anonymous_21)@391`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 76:4 b1.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!open) {` |
-| 103:4 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!name) {` |
-| 108:4 b3.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {` |
-| 137:12 b7.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Não foi possível atualizar a categoria.'` |
-| 138:12 b7.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Não foi possível cadastrar a categoria.',` |
-| 156:4 b8.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!deletingCategory) return` |
-| 167:6 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (editingCategory?.id === deletingCategory.id) {` |
-| 179:57 b10.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
-| 179:68 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
-| 220:32 b12.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{formError && <InlineFeedback>{formError}</InlineFeedback>}` |
-| 332:69 b21.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{category.productCount !== 1 ? 's' : ''}` |
-| 391:68 b22.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={category !== null} onOpenChange={(isOpen) => !isOpen && onCancel()}>` |
-| 391:79 b22.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={category !== null} onOpenChange={(isOpen) => !isOpen && onCancel()}>` |
-| 445:2 b27.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (error instanceof ApiError) {` |
-| 446:4 b28.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (error.status === 409) {` |
-| 450:11 b29.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return error.message \|\| 'Não foi possível excluir a categoria.'` |
-| 450:28 b29.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return error.message \|\| 'Não foi possível excluir a categoria.'` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 179 (anonymous_9) | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
-| 242 (anonymous_12) | `setForm((current) => ({ ...current, color: event.target.value })) } />` |
-| 242 (anonymous_13) | `setForm((current) => ({ ...current, color: event.target.value })) } />` |
-| 391 (anonymous_21) | `<Dialog.Root open={category !== null} onOpenChange={(isOpen) => !isOpen && onCancel()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
-
-## 11. src/features/inventory/components/InventoryProductCard.tsx
-
-Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 100.00% / 70.17% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 69:8 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div` |
-| 70:132 b6.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EMPTY' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-300'}'}` |
-| 70:234 b6.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EMPTY' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-300'}'}` |
-| 74:14 b7.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Sem estoque — necessita reposição'` |
-| 75:14 b7.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Estoque abaixo do mínimo'}` |
-| 81:8 b8.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div` |
-| 82:134 b9.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EXPIRED' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800/50 dark:bg-orange-950/30 dark:text-orange-300'}'}` |
-| 82:236 b9.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EXPIRED' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800/50 dark:bg-orange-950/30 dark:text-orange-300'}'}` |
-| 85:42 b10.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{product.status === 'EXPIRED' ? 'Validade vencida' : 'Validade próxima do vencimento'}` |
-| 85:63 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{product.status === 'EXPIRED' ? 'Validade vencida' : 'Validade próxima do vencimento'}` |
-| 94:76 b11.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-0.5 font-semibold ${product.status === 'EMPTY' ? 'text-red-600 dark:text-red-400' : product.status === 'LOW' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}'}` |
-| 94:138 b12.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-0.5 font-semibold ${product.status === 'EMPTY' ? 'text-red-600 dark:text-red-400' : product.status === 'LOW' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}'}` |
-| 105:14 b13.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
-| 112:76 b14.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-0.5 font-medium ${product.status === 'EXPIRED' ? 'text-red-600 dark:text-red-400' : product.status === 'EXPIRING' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}'}` |
-| 112:143 b15.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-0.5 font-medium ${product.status === 'EXPIRED' ? 'text-red-600 dark:text-red-400' : product.status === 'EXPIRING' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}'}` |
-| 114:21 b16.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{product.expiresAt ? (` |
-| 128:10 b18.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="col-span-2 min-w-0">` |
+- 156:4 b8.0 — E: confirmation controls are mounted only for an existing deletingCategory; the missing-target guard has no callable user control.
 
 ## 12. src/features/finance/components/ExpenseClassifyAction.tsx
 
@@ -713,32 +619,16 @@ Uncovered lines: none. Functions: none.
 
 ## 29. src/features/inventory/components/StockMovementModal.tsx
 
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **E**. Exact residual explanations follow; no coverage exclusion or ignore directive was added.
 
-S/B/F/L: 82.14% / 82.69% / 72.22% / 86.00%.
+S/B/F/L: 94.64% / 90.38% / 100.00% / 96.00%.
 
-- Uncovered lines: 89-90, 116, 119, 126, 284, 295.
-- Uncovered functions: `(anonymous_5)@126`; `(anonymous_12)@284`; `(anonymous_13)@284`; `(anonymous_14)@295`; `(anonymous_15)@295`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 82:4 b3.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!product) return` |
-| 88:6 b5.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (parsedNewQuantity === null) {` |
-| 105:48 b9.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? { newQuantity: parsedNewQuantity ?? 0 }` |
-| 106:42 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: { quantity: parsedQuantity ?? 0 }),` |
-| 117:12 b13.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? err.message` |
-| 118:12 b13.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Não foi possível registrar a movimentação. Tente novamente.'` |
-| 126:55 b14.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>` |
-| 126:64 b14.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>` |
-| 332:59 b24.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return Number.isFinite(parsed) && parsed >= 0 ? parsed : null` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 126 (anonymous_5) | `<Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
-| 284 (anonymous_12) | `setForm((current) => ({ ...current, reason: event.target.value })) } />` |
-| 284 (anonymous_13) | `setForm((current) => ({ ...current, reason: event.target.value })) } />` |
-| 295 (anonymous_14) | `setForm((current) => ({ ...current, notes: event.target.value })) } />` |
-| 295 (anonymous_15) | `setForm((current) => ({ ...current, notes: event.target.value })) } />` |
+- 82:4 b3.0 — E: the submit control exists only while a product is selected; the synchronous handler cannot lose its captured product between the form event and this guard.
+- 88:6 b5.0 — E: the real number input is required with min=0; native constraint validation blocks empty, negative and non-finite submissions before React onSubmit. Tests exercise invalid native values and explicit zero without synthesizing impossible submit events.
+- 105:48 b9.1 — E: adjustment submission already rejected a null parsedNewQuantity; the fallback is defensive typing only. Explicit zero adjustment is tested.
+- 106:42 b10.1 — E: non-adjustment submission already rejected null/non-positive parsedQuantity; this fallback cannot be selected by a valid submission.
+- 328:59 b24.1 — E: the only caller receives the browser-validated required number input with min=0; native invalid values are blocked before this parser executes.
+- Lines 89-90 — E: the native-validation invariant at the adjustment guard above prevents this error-return body from executing on user submission.
 
 ## 30. src/features/marketing/pages/PlansPage.tsx
 
@@ -875,77 +765,9 @@ S/B/F/L: 86.36% / 87.50% / 72.22% / 85.93%.
 | 222 (anonymous_14) | `onPhoneChange={(value) => { set('phone', value) setPhoneError(null)` |
 | 230 (anonymous_15) | `<Select value={form.isActive} onValueChange={(value) => set('isActive', value)}> <SelectTrigger id="memberIsActive"> <SelectValue placeholder="Selecione o status" />` |
 
-## 36. src/features/inventory/hooks/useInventoryPage.ts
-
-Classification: **A**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-S/B/F/L: 98.04% / 88.05% / 95.91% / 98.93%.
-
-- Uncovered lines: 184-185.
-- Uncovered functions: `(anonymous_21)@183`; `(anonymous_48)@366`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 96:14 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Não foi possível carregar o estoque. Tente novamente.'` |
-| 135:4 b8.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (debounceRef.current) clearTimeout(debounceRef.current)` |
-| 150:4 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (debounceRef.current) clearTimeout(debounceRef.current)` |
-| 184:50 b11.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const message = err instanceof ApiError ? err.message : 'Erro ao recarregar estoque.'` |
-| 184:64 b11.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const message = err instanceof ApiError ? err.message : 'Erro ao recarregar estoque.'` |
-| 216:52 b17.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const message = err instanceof ApiError ? err.message : 'Erro ao recarregar categorias.'` |
-| 261:52 b21.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const message = err instanceof ApiError ? err.message : 'Erro ao recarregar produto.'` |
-| 320:6 b25.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (viewingProduct?.id === reactivatingProduct.id) {` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 183 (anonymous_21) | `.catch((err) => { const message = err instanceof ApiError ? err.message : 'Erro ao recarregar estoque.' showAlert({ title: 'Erro ao recarregar', description: message, tone: 'error' })` |
-| 366 (anonymous_48) | `.catch(() => {}) } } catch (err) {` |
-
 ## 37. src/features/clinical-records/hooks/useClinicalRecordAutosave.ts
 
 Classification: **E**. Focused coverage S100% / B96.66% / F100% / L100%. Twelve tests cover real draft clearing, indicator expiration, new edits, stale successes/errors, cancellation and timer cleanup. The only uncovered branch is line 90, the false arm of `if (timerRef.current)` in the draft-effect cleanup: that cleanup is returned only after assigning the timeout unconditionally. No ignore directive or exclusion.
-
-## 38. src/features/inventory/components/InventoryProductTable.tsx
-
-Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 100.00% / 82.97% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 68:10 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span role="status" aria-label="Atualizando lista de produtos">` |
-| 184:36 b11.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'text-red-600 dark:text-red-400'` |
-| 186:38 b12.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'text-amber-700 dark:text-amber-400'` |
-| 216:24 b14.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
-| 226:28 b15.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'font-medium text-red-600 dark:text-red-400'` |
-| 228:30 b16.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'font-medium text-amber-700 dark:text-amber-400'` |
-| 235:24 b17.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
-| 246:43 b19.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{product.supplier ?? <span className="text-muted-foreground">—</span>}` |
-
-## 39. src/features/inventory/components/ProductDetailsDrawer.tsx
-
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 88.88% / 83.33% / 87.50% / 88.88%.
-
-- Uncovered lines: 41.
-- Uncovered functions: `(anonymous_1)@41`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 41:60 b0.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={!!product} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
-| 41:71 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={!!product} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
-| 97:26 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'danger'` |
-| 99:28 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'warning'` |
-| 181:22 b13.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
-| 185:41 b14.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{product.supplier ?? <span className="text-muted-foreground">—</span>}` |
-| 191:22 b15.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 41 (anonymous_1) | `<Dialog.Root open={!!product} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0 duration-200" />` |
 
 ## 40. src/features/billing/pages/SubscriptionSuccessPage.tsx
 
@@ -1165,20 +987,13 @@ S/B/F/L: 96.55% / 90.00% / 88.88% / 95.83%.
 
 ## 57. src/features/inventory/hooks/usePersistedCopilot.ts
 
-Classification: **A**. both real consumers exercise persisted load/generate/error/retry behavior. Remaining cancellation defenses are retained; removed draft unmount assertions did not prove observable behavior.
+Classification: **E**. Exact residual explanations follow; no coverage exclusion or ignore directive was added.
 
-S/B/F/L: 94.11% / 77.27% / 100.00% / 97.87%.
+S/B/F/L: 96.07% / 86.36% / 100.00% / 100.00%.
 
-- Uncovered lines: 87.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 37:8 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (cancelledRef.current) return` |
-| 41:8 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (cancelledRef.current) return` |
-| 42:8 b3.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (err instanceof ApiError) {` |
-| 56:8 b6.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!cancelledRef.current) setIsLoadingInitial(false)` |
-| 74:6 b8.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (err instanceof ApiError) {` |
+- 37:8 b0.0 — E: post-unmount fulfillment only suppresses local React state writes; there is no external effect. React already discards state writes after unmount, so forcing this guard provides no distinguishable product assertion. Both real callers pass stable imported service functions.
+- 41:8 b2.0 — E: post-unmount rejection only suppresses local plan/quota state writes; there is no alert or other external effect to certify after the consumer leaves. Mounted HTTP and non-API failures are tested through both real consumers.
+- 56:8 b6.1 — E: after unmount the loading flag has no mounted consumer; asserting a frozen renderHook result would not distinguish this guard from React discarding the update.
 
 ## 58. src/features/compliance/components/PrivacyRequestsTab.tsx
 
@@ -1426,21 +1241,6 @@ S/B/F/L: 98.71% / 86.36% / 100.00% / 100.00%.
 | 107:8 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isMounted) return` |
 | 186:24 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `[field]: value \|\| undefined,` |
 
-## 84. src/features/inventory/components/StockAbnormalConsumptionSection.tsx
-
-Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 211:63 b9.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={data.summary.highSeverity > 0 ? 'danger' : 'neutral'}` |
-| 216:66 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={data.summary.mediumSeverity > 0 ? 'warning' : 'neutral'}` |
-| 221:60 b11.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={data.summary.lowSeverity > 0 ? 'info' : 'neutral'}` |
-
 ## 85. src/features/marketing/components/landing/DentalArch.tsx
 
 Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
@@ -1578,20 +1378,6 @@ S/B/F/L: 100.00% / 96.15% / 100.00% / 100.00%.
 
 - 167:16 b4.1 — E: this event is dispatched by a mounted client DOM button; document cannot be absent in that runtime. There is no server-rendered event path.
 
-## 98. src/features/inventory/utils/inventory-format.ts
-
-Classification: **A**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-S/B/F/L: 84.61% / 80.00% / 100.00% / 91.66%.
-
-- Uncovered lines: 64.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 37:25 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return labels[type] ?? type` |
-| 51:2 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!iso) return ''` |
-
 ## 99. src/features/marketing/hooks/useDropdownNav.ts
 
 Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
@@ -1720,34 +1506,6 @@ S/B/F/L: 100.00% / 66.66% / 100.00% / 100.00%.
 
 - 18:48 b0.1 — E: every color rendered from the private CATEGORY_COLORS tuple has a CATEGORY_COLOR_NAMES entry; an unknown color cannot be selected by this control.
 - 19:72 b1.1 — E: the accessible label uses the same complete static color-name mapping as the title.
-
-## 115. src/features/inventory/components/StockMovementHistory.tsx
-
-Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 95.23% / 85.71% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 28:4 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (refreshKey < 0) return // never true; declares refreshKey as a dep` |
-| 92:14 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className="break-words text-muted-foreground">{movement.notes}</p>` |
-
-## 116. src/features/inventory/containers/InventoryPageContainer.tsx
-
-Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 100.00% / 95.83% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 132:91 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onValueChange={(value) => handleCategoryChange(value === 'all' ? undefined : value)}` |
-| 151:53 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `handleStatusChange(value === 'all' ? undefined : (value as StockProductStatus))` |
 
 ## 117. src/features/marketing/components/FeatureMockups.tsx
 
@@ -1996,31 +1754,13 @@ S/B/F/L: 100.00% / 75.00% / 100.00% / 100.00%.
 
 - 5:42 b0.1 — E: cents / 100 always produces a number; formatCurrencyBR returns null only for a nullish argument, so this fallback cannot be reached through formatCents.
 
-## 148. src/features/inventory/components/InventoryKpiGrid.tsx
-
-Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 44:36 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={summary.expired > 0 ? 'danger' : 'neutral'}` |
-
 ## 149. src/features/inventory/hooks/useAiAssistantInventory.ts
 
-Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+Classification: **E**. Exact residual explanations follow; no coverage exclusion or ignore directive was added.
 
 S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
 
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 34:8 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!cancelledRef.current) {` |
+- 34:8 b2.1 — E: the remaining branch suppresses local reset writes on rejection after unmount. There is no observable external effect; mounted rejection, generation, and initial state behavior are tested. A frozen renderHook result would not prove this guard.
 
 ## 150. src/features/marketing/components/PublicHeader.tsx
 
@@ -2388,25 +2128,19 @@ S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
 ## 186. src/features/inventory/pages/InventoryPage.tsx
 
-Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
+Classification: **D/F**. Exact residual explanations follow; no coverage exclusion or ignore directive was added.
 
 S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Uncovered lines: 4.
-- Uncovered functions: `InventoryPage@3`.
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 3 InventoryPage | `export function InventoryPage() { return <InventoryPageContainer /> }` |
+- Lines 4; InventoryPage@3 — D/F: thin route composition; tested container behavior is separate from browser lazy-chunk/navigation QA.
 
 ## 187. src/features/inventory/types/inventory.types.ts
 
-Classification: **D**. The unexecuted const tuples only derive exported TypeScript string unions through typeof. Their consumers import types; there is no user interaction to exercise.
+Classification: **D**. Exact residual explanations follow; no coverage exclusion or ignore directive was added.
 
 S/B/F/L: 0.00% / 100.00% / 100.00% / 0.00%.
 
-- Uncovered lines: 1, 12.
-- Uncovered functions: none.
+- Lines 1, 12 — D: const tuples derive TypeScript string unions; consumers import their types, not runtime behavior. No coverage exclusion applied.
 
 ## 188. src/features/marketing/components/SectionDivider.tsx
 

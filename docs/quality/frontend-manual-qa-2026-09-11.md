@@ -32,6 +32,8 @@ Status: **not executed**. Unit tests validate application decisions and mocked i
 - [ ] Close finance edit dialogs and the appointment invoice picker using Escape, outside click and touch. Confirm one dismissal and correct focus restoration.
 - [ ] OWNER, DENTIST and ASSISTANT views: confirm visible actions, navigation and plan gates using distinct authorized test accounts. Backend authorization must be checked independently.
 - [ ] Check drawers/modals with keyboard and touch, focus restoration, mobile soft keyboard and long validation/API messages.
+- [ ] Switch products while movement history is loading, then refresh after a stock movement. Confirm the displayed history always belongs to the selected product.
+- [ ] Validate native quantity constraints on desktop/mobile: blank and negative final stock must not submit; explicit zero adjustment must remain allowed.
 
 ## Shared shell and marketing
 
