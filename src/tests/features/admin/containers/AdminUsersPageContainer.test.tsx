@@ -301,12 +301,19 @@ describe('AdminUsersPageContainer — row interactions', () => {
     expect(setEditTarget).toHaveBeenCalledWith(user)
   })
 
-  it('opens edit on Enter key when the row itself has focus', async () => {
+  it.each(['{Enter}', ' '])('opens edit with %s when the row itself has focus', async (key) => {
     const { setEditTarget, user } = renderWithUser()
     const [row] = screen.getAllByRole('button', { name: 'Editar Carlos Rocha' })
     row.focus()
-    await userEvent.keyboard('{Enter}')
+    await userEvent.keyboard(key)
     expect(setEditTarget).toHaveBeenCalledWith(user)
+  })
+
+  it('ignores unrelated keys on a user row', async () => {
+    const { setEditTarget } = renderWithUser()
+    screen.getAllByRole('button', { name: 'Editar Carlos Rocha' })[0].focus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(setEditTarget).not.toHaveBeenCalled()
   })
 
   it('does not trigger row navigation when Enter is pressed on a nested action button', async () => {
@@ -393,6 +400,23 @@ describe('AdminUsersPageContainer — toolbar and pagination wiring', () => {
 // ── Modal wiring ─────────────────────────────────────────────────────────────────
 
 describe('AdminUsersPageContainer — modal wiring', () => {
+  it('dismisses the edit modal without saving', async () => {
+    const setEditTarget = vi.fn()
+    const handleEditSuccess = vi.fn()
+    mockUseAdminUsersPage.mockReturnValue(
+      makeDefaultHookState({
+        editTarget: makeAdminUser(),
+        setEditTarget,
+        handleEditSuccess,
+      }),
+    )
+    render(<AdminUsersPageContainer />)
+    await userEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar' }),
+    )
+    expect(setEditTarget).toHaveBeenCalledExactlyOnceWith(null)
+    expect(handleEditSuccess).not.toHaveBeenCalled()
+  })
   it('opens the create-user modal from the header button', () => {
     mockUseAdminUsersPage.mockReturnValue(makeDefaultHookState({ createOpen: true }))
     render(<AdminUsersPageContainer />)

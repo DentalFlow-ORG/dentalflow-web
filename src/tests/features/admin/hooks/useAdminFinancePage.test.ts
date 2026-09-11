@@ -38,6 +38,18 @@ async function renderLoaded() {
 }
 
 describe('useAdminFinancePage — initial load', () => {
+  it('does not emit an alert when the initial request rejects after unmount', async () => {
+    let rejectRequest!: (reason: unknown) => void
+    mockGetSummary.mockReturnValue(
+      new Promise((_, reject) => {
+        rejectRequest = reject
+      }),
+    )
+    const { unmount } = renderHook(() => useAdminFinancePage())
+    unmount()
+    await act(async () => rejectRequest(new Error('expired request')))
+    expect(mockShowAlert).not.toHaveBeenCalled()
+  })
   it('loads summary, plans, subscriptions and events on mount', async () => {
     mockListSubscriptions.mockResolvedValue({ data: [{ id: 's1' }], total: 1, page: 1, limit: 10 })
     const { result } = await renderLoaded()
@@ -182,6 +194,34 @@ describe('useAdminFinancePage — event filters', () => {
 })
 
 describe('useAdminFinancePage — manual load()', () => {
+  it('presents a generic reload error and recovers on retry', async () => {
+    const { result } = await renderLoaded()
+    mockGetSummary.mockRejectedValueOnce('offline')
+    act(() => result.current.load())
+    await waitFor(() =>
+      expect(result.current.loadError).toBe('Não foi possível carregar os dados financeiros.'),
+    )
+    expect(mockShowAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: 'Não foi possível carregar os dados financeiros.',
+        tone: 'error',
+      }),
+    )
+    act(() => result.current.load())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.loadError).toBeNull()
+    expect(result.current.summary).toEqual({ totalClinics: 5 })
+  })
+
+  it('clears the event type filter and returns to the first page', async () => {
+    const { result } = await renderLoaded()
+    act(() => result.current.setEventFilters({ type: 'invoice.paid', page: 3, limit: 10 }))
+    await waitFor(() => expect(mockListEvents).toHaveBeenCalledTimes(2))
+    act(() => result.current.setEventFilter('type', ''))
+    await waitFor(() =>
+      expect(mockListEvents).toHaveBeenLastCalledWith({ type: undefined, page: 1, limit: 10 }),
+    )
+  })
   it('reloads all data and applies it, using current filters', async () => {
     const { result } = await renderLoaded()
     mockGetSummary.mockResolvedValue({ totalClinics: 9 })

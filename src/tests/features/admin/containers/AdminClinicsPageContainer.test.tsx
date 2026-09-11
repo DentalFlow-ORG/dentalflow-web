@@ -260,6 +260,34 @@ describe('AdminClinicsPageContainer — error state', () => {
 // ── Saúde das clínicas ────────────────────────────────────────────────────────
 
 describe('AdminClinicsPageContainer — Saúde das clínicas', () => {
+  it.each([null, {}])(
+    'shows missing subscription information for %j on desktop and mobile',
+    (subscription) => {
+      mockUseClinicsHealth.mockReturnValue(
+        makeDefaultHealthState({ rows: [makeHealthRow({ subscription })] }),
+      )
+      render(<AdminClinicsPageContainer />)
+      expect(screen.getAllByText('Sem assinatura')).toHaveLength(2)
+    },
+  )
+
+  it('shows the last trial day in singular on desktop and mobile', () => {
+    mockUseClinicsHealth.mockReturnValue(
+      makeDefaultHealthState({
+        rows: [
+          makeHealthRow({
+            subscription: {
+              status: 'TRIALING',
+              trialEndsAt: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+            },
+          }),
+        ],
+      }),
+    )
+    render(<AdminClinicsPageContainer />)
+    expect(screen.getAllByText('1 dia restante de trial')).toHaveLength(2)
+  })
+
   it('renders the section heading and fetched clinic health rows', () => {
     mockUseClinicsHealth.mockReturnValue(
       makeDefaultHealthState({
@@ -448,12 +476,23 @@ describe('AdminClinicsPageContainer — row interactions', () => {
     expect(setEditTarget).toHaveBeenCalledWith(clinic)
   })
 
-  it('opens edit on Enter key when the row itself has focus', async () => {
+  it.each(['{Enter}', ' '])('opens edit with %s when the row itself has focus', async (key) => {
     const { setEditTarget, clinic } = renderWithClinic()
     const [row] = screen.getAllByRole('button', { name: 'Editar Clínica Norte' })
     row.focus()
-    await userEvent.keyboard('{Enter}')
+    await userEvent.keyboard(key)
     expect(setEditTarget).toHaveBeenCalledWith(clinic)
+  })
+
+  it('ignores unrelated keys and activates the nested edit button only once', async () => {
+    const { setEditTarget, clinic } = renderWithClinic()
+    const [row, editButton] = screen.getAllByRole('button', { name: 'Editar Clínica Norte' })
+    row.focus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(setEditTarget).not.toHaveBeenCalled()
+    editButton.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(setEditTarget).toHaveBeenCalledExactlyOnceWith(clinic)
   })
 
   it('opens delete confirmation via the icon button without triggering row navigation', async () => {

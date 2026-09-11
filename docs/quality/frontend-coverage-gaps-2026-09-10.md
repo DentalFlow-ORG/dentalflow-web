@@ -13,7 +13,7 @@ The first global table records the baseline at 2f21c07. The continuation checkpo
 
 A = meaningful behavior still requiring tests. B = meaningful edge case still requiring tests. C = proven dead code (removed, recorded in the handoff). D = non-behavioral wiring/static declarations; no exclusion applied. E = defensive/unreachable arm with a specific invariant. F = browser integration requiring manual/E2E QA. Mixed files keep their testable A/B gaps; browser limitations do not waive unrelated logic.
 
-The starting full report contained **217 files** with uncovered locations. Closed scheduling, clinical, finance, fiscal, inventory and protected-route sections have been removed; surviving locations in those domains have exact D/E/F rationales. Other domains retain their open A/B locations pending their batches.
+The starting full report contained **217 files** with uncovered locations. Closed scheduling, clinical, finance, fiscal, inventory, admin and protected-route sections have been removed; surviving locations in those domains have exact D/E/F rationales. Other domains retain their open A/B locations pending their batches.
 
 ## Continuation from 2f21c07 — in progress
 
@@ -36,6 +36,8 @@ Inventory continuation after the full checkpoint: **30 suites / 432 tests passed
 Closed product create/edit validation, optional fields, numeric/date payloads, failure/retry and reset; stock movement quantities, zero adjustment, busy state and retry; category validation, create/update/delete errors, nested cancellation and lifecycle; critical mobile/desktop states, missing values, filters, KPIs, partial anomaly datasets, copilot failures and formatting. Existing owner category access and plan gates remain unchanged. Four dialog regressions confirmed duplicate Escape dismissal (product, movement, category manager and details), now fixed. Two history regressions confirmed old product responses/errors replacing the current history, now discarded.
 
 Removed StockMovementHistory's unreachable refreshKey < 0 branch: the sole production source initializes the counter to zero and only increments it. The effect retains refreshKey as an intentional reload dependency using a one-line Biome useExhaustiveDependencies rationale; this is a lint annotation, not a coverage ignore. Remaining inventory locations have exact D/E/F reasons below. Two new anomaly assertions initially matched both KPI labels and badges; corrected selectors passed in the entire domain rerun. Typecheck, Biome and diff checks passed. Browser QA and the later full validation sequence remain pending.
+
+Admin continuation: **17 suites / 307 tests passed**, +17 tests since the inventory checkpoint. Domain S/B/F/L: **99.21% / 99.44% / 98.07% / 99.15%**. All administrative A/B inventory entries are closed. Covered restricted access for OWNER/DENTIST/ASSISTANT and absent authenticated user, preservation of other records during editing, generic reload failure/retry, obsolete initial-request alert suppression, event filter clearing, keyboard activation and nested actions, edit cancellation, absent subscriptions, singular trial day and missing chart payload values. Two RED regressions confirmed duplicate Escape dismissal in UserFormModal and ClinicFormModal; both now dismiss once through Radix Root. Remaining UserFormModal clinicId fallbacks are unreachable after required-clinic validation; four thin route pages remain D/F. Typecheck, Biome and diff checks passed. The global coverage checkpoint predates inventory/admin changes; full convergence validation remains pending.
 
 Priority order: P0 role/access/consent boundaries; P1 scheduling, clinical correctness and finance/fiscal calculations; P2 forms, mutations, persistence and stale-response recovery; P3 interaction, filtering and lifecycle; P4 nullable display/formatting; P5 marketing/static presentation. Mixed files close higher-priority behavior first. Original location IDs remain stable references, not an alphabetical work queue.
 
@@ -885,25 +887,9 @@ S/B/F/L: 95.91% / 94.59% / 92.30% / 94.87%.
 
 ## 50. src/features/admin/components/UserFormModal.tsx
 
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **E**. All meaningful form behavior is covered. S/B/F/L: 100% / 97.36% / 100% / 100%.
 
-S/B/F/L: 98.48% / 92.10% / 95.00% / 98.43%.
-
-- Uncovered lines: 170.
-- Uncovered functions: `(anonymous_9)@170`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 145:29 b17.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `phone: rawPhone \|\| undefined,` |
-| 148:52 b19.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `clinicId: showClinicId ? form.clinicId \|\| undefined : null,` |
-| 158:52 b22.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `clinicId: showClinicId ? form.clinicId \|\| undefined : undefined,` |
-| 170:55 b24.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
-| 170:66 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
-| 228:24 b29.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!CLINIC_REQUIRED_ROLES.includes(v as UserRole)) {` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 170 (anonymous_9) | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+- Lines 148 and 158: the undefined arm of form.clinicId || undefined inside showClinicId cannot execute: handleSubmit returns with a visible validation error whenever showClinicId is true and clinicId is empty (lines 130–132). Clinic-required role changes and retained clinic selection are tested. The ADMIN null/undefined payload branches are separately covered. No ignore or exclusion was added.
 
 ## 51. src/features/clinical-records/components/OdontogramSection.tsx
 
@@ -1192,25 +1178,6 @@ S/B/F/L: 94.73% / 90.32% / 87.50% / 93.75%.
 | --- | --- |
 | 198 (anonymous_7) | `onCancel={() => setShowCancelDialog(false)} /> </AppPage>` |
 
-## 79. src/features/admin/containers/AdminClinicsPageContainer.tsx
-
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 92.30% / 85.00% / 94.44% / 96.00%.
-
-- Uncovered lines: 274.
-- Uncovered functions: `(anonymous_13)@274`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 243:32 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.target !== event.currentTarget) return` |
-| 244:32 b5.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.key === 'Enter' \|\| event.key === ' ') {` |
-| 244:61 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.key === 'Enter' \|\| event.key === ' ') {` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 274 (anonymous_13) | `onClick={() => setEditTarget(clinic)} > <Pencil className="h-3.5 w-3.5" aria-hidden="true" />` |
-
 ## 81. src/components/common/MonthPickerInput.tsx
 
 Classification: **B**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
@@ -1225,21 +1192,6 @@ S/B/F/L: 96.55% / 92.68% / 100.00% / 100.00%.
 | 39:2 b1.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!match) return null` |
 | 48:2 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!/^\d{4}-\d{2}$/.test(isoMonth)) return ''` |
 | 147:38 b17.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `aria-label={triggerLabel \|\| placeholder}` |
-
-## 82. src/features/admin/hooks/useAdminFinancePage.ts
-
-Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-S/B/F/L: 98.71% / 86.36% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 74:47 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `error instanceof Error ? error.message : 'Não foi possível carregar os dados financeiros.'` |
-| 107:8 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isMounted) return` |
-| 186:24 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `[field]: value \|\| undefined,` |
 
 ## 85. src/features/marketing/components/landing/DentalArch.tsx
 
@@ -1391,56 +1343,6 @@ S/B/F/L: 96.87% / 80.00% / 100.00% / 96.00%.
 | --- | --- | --- |
 | 18:6 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (headerRef.current && !headerRef.current.contains(e.target as Node)) {` |
 | 23:6 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (e.key === 'Escape') {` |
-
-## 100. src/features/admin/components/ClinicFormModal.tsx
-
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 96.55% / 93.54% / 88.88% / 96.29%.
-
-- Uncovered lines: 87.
-- Uncovered functions: `(anonymous_6)@87`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 87:55 b7.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
-| 87:66 b7.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 87 (anonymous_6) | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
-
-## 101. src/features/admin/containers/AdminUsersPageContainer.tsx
-
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 96.42% / 91.66% / 95.45% / 96.29%.
-
-- Uncovered lines: 384.
-- Uncovered functions: `(anonymous_19)@384`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 277:30 b5.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.key === 'Enter' \|\| event.key === ' ') {` |
-| 277:59 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.key === 'Enter' \|\| event.key === ' ') {` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 384 (anonymous_19) | `onClose={() => setEditTarget(null)} onSuccess={handleEditSuccess} />` |
-
-## 102. src/features/admin/components/ClinicHealthSection.tsx
-
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 96.77% / 93.10% / 100.00% / 96.77%.
-
-- Uncovered lines: 90.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 89:2 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!subscription \|\| !subscription.status) {` |
-| 105:59 b13.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia restante' : 'dias restantes'} de` |
 
 ## 104. src/components/common/DatePickerInput.tsx
 
@@ -1664,45 +1566,6 @@ S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%.
 | Location / branch arm | Class / technical requirement | Source condition or branch |
 | --- | --- | --- |
 | 42:52 b6.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className={cn('mt-5 leading-7', isDark ? 'text-slate-300' : 'text-slate-600')}>` |
-
-## 130. src/features/admin/containers/AdminFinancePageContainer.tsx
-
-Classification: **B**. Chart hover/leave, light/dark rendering, axis formatting, filters, pagination, inactive plans, nullable clinic identity and period-date fallback are covered. Remaining tooltip fallback is B: a payload item without a value falls back to zero; it remains conservatively testable at the chart-library boundary, rather than being waived.
-
-S/B/F/L: 100.00% / 98.80% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 282:54 b8.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{valueFormatter(Number(payload[0]?.value ?? 0))}` |
-
-## 131. src/features/admin/hooks/useAdminClinicsPage.ts
-
-Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 96:81 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setAllClinics((prev) => prev.map((item) => (item.id === clinic.id ? clinic : item)))` |
-
-## 132. src/features/admin/hooks/useAdminUsersPage.ts
-
-Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-S/B/F/L: 100.00% / 90.00% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 96:69 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setAllUsers((prev) => prev.map((u) => (u.id === user.id ? user : u)))` |
 
 ## 133. src/features/clinical-records/components/odontogram/OdontogramLegend.tsx
 

@@ -117,12 +117,15 @@ describe('useAdminUsersPage', () => {
 
   it('handleEditSuccess replaces the user without reloading', async () => {
     const original = makeUser({ id: '1', firstName: 'Original' })
-    const { result } = await renderLoaded([original])
+    const other = makeUser({ id: '2', firstName: 'Bruna', role: 'DENTIST' })
+    const { result } = await renderLoaded([original, other])
     act(() => result.current.setEditTarget(original))
     mockListAdminUsers.mockClear()
     act(() => result.current.handleEditSuccess(makeUser({ id: '1', firstName: 'Renomeado' })))
     expect(result.current.editTarget).toBeNull()
     expect(result.current.allUsers[0].firstName).toBe('Renomeado')
+    expect(result.current.allUsers).toHaveLength(2)
+    expect(result.current.allUsers[1]).toEqual(other)
     expect(mockListAdminUsers).not.toHaveBeenCalled()
   })
 

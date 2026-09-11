@@ -24,6 +24,8 @@ Removed StockMovementHistory's unreachable refreshKey < 0 branch: the sole produ
 
 Typecheck, Biome and git diff --check passed through these commits. Full validation beyond this coverage checkpoint (standalone tests, build, unused checks and both Knip modes) remains pending for convergence. No push, merge, branch switch, dependencies, API contracts, role permissions or coverage exclusions changed. Browser checks remain unexecuted.
 
+Admin continuation: **17 suites / 307 tests passed**, +17 tests since the inventory checkpoint. Domain S/B/F/L: **99.21% / 99.44% / 98.07% / 99.15%**. All administrative A/B inventory entries are closed. Covered restricted access for OWNER/DENTIST/ASSISTANT and absent authenticated user, preservation of other records during editing, generic reload failure/retry, obsolete initial-request alert suppression, event filter clearing, keyboard activation and nested actions, edit cancellation, absent subscriptions, singular trial day and missing chart payload values. Two RED regressions confirmed duplicate Escape dismissal in UserFormModal and ClinicFormModal; both now dismiss once through Radix Root. Remaining UserFormModal clinicId fallbacks are unreachable after required-clinic validation; four thin route pages remain D/F. Typecheck, Biome and diff checks passed. The global coverage checkpoint predates inventory/admin changes; full convergence validation remains pending.
+
 The sections below are historical results from the preceding continuation, retained until final validation replaces them. Use the active section and inventory for current progress.
 
 **PARTIAL — substantive meaningful coverage gaps remain.**

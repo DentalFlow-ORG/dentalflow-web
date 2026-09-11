@@ -212,6 +212,7 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 }))
 
 const chartTheme = vi.hoisted(() => ({ value: 'light' }))
+const chartPayload = vi.hoisted(() => ({ missingValue: false }))
 vi.mock('@/features/theme/useTheme', () => ({
   useTheme: () => ({ theme: chartTheme.value }),
 }))
@@ -260,7 +261,7 @@ vi.mock('recharts', async () => {
       content: React.ReactElement<{
         active: boolean
         label?: string
-        payload?: { value: number }[]
+        payload?: { value?: number }[]
       }>
     }) => {
       const { active } = useContext(Chart)
@@ -269,7 +270,9 @@ vi.mock('recharts', async () => {
           {cloneElement(content, {
             active: !!active,
             label: active?.label,
-            payload: active ? [{ value: active.value }] : undefined,
+            payload: active
+              ? [{ value: chartPayload.missingValue ? undefined : active.value }]
+              : undefined,
           })}
         </div>
       )
@@ -355,6 +358,7 @@ describe('AdminFinancePageContainer — chart interactions', () => {
   })
   afterEach(() => {
     chartTheme.value = 'light'
+    chartPayload.missingValue = false
   })
 
   it.each(['light', 'dark'])(
@@ -401,6 +405,10 @@ describe('AdminFinancePageContainer — chart interactions', () => {
       await userEvent.hover(within(status).getByRole('button'))
       expect(within(status).getByRole('tooltip')).toHaveTextContent('Assinaturas2')
       expect(within(status).getByLabelText('Escala')).toHaveTextContent('2')
+      chartPayload.missingValue = true
+      await userEvent.unhover(within(status).getByRole('button'))
+      await userEvent.hover(within(status).getByRole('button'))
+      expect(within(status).getByRole('tooltip')).toHaveTextContent('Assinaturas0')
     },
   )
 })

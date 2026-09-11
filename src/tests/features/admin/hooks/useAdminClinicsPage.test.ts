@@ -139,7 +139,13 @@ describe('useAdminClinicsPage', () => {
 
   it('handleEditSuccess replaces the clinic in the list without reloading', async () => {
     const original = makeClinic({ id: '1', name: 'Original' })
-    mockListAdminClinicsPage.mockResolvedValue({ data: [original], total: 1, page: 1, limit: 500 })
+    const other = makeClinic({ id: '2', name: 'Outra clínica', isActive: false })
+    mockListAdminClinicsPage.mockResolvedValue({
+      data: [original, other],
+      total: 2,
+      page: 1,
+      limit: 500,
+    })
     const { result } = renderHook(() => useAdminClinicsPage())
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
@@ -150,6 +156,7 @@ describe('useAdminClinicsPage', () => {
 
     expect(result.current.editTarget).toBeNull()
     expect(result.current.allClinics.find((c) => c.id === '1')?.name).toBe('Renomeada')
+    expect(result.current.allClinics).toEqual([updated, other])
     expect(mockListAdminClinicsPage).not.toHaveBeenCalled()
   })
 
