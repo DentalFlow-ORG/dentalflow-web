@@ -12,13 +12,18 @@ vi.mock('@/features/notifications/components/NotificationSendDrawer', () => ({
     open,
     template,
     onSent,
+    onClose,
   }: {
     open: boolean
     template: { slug: string } | null
     onSent: () => void
+    onClose: () => void
   }) =>
     open ? (
       <div data-testid="send-drawer">
+        <button type="button" onClick={onClose}>
+          Fechar envio
+        </button>
         <span>{template?.slug}</span>
         <button type="button" onClick={onSent}>
           simulate-sent
@@ -28,8 +33,14 @@ vi.mock('@/features/notifications/components/NotificationSendDrawer', () => ({
 }))
 
 vi.mock('@/features/notifications/components/MessageHistoryDrawer', () => ({
-  MessageHistoryDrawer: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="history-drawer" /> : null,
+  MessageHistoryDrawer: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
+    open ? (
+      <div data-testid="history-drawer">
+        <button type="button" onClick={onClose}>
+          Fechar histórico
+        </button>
+      </div>
+    ) : null,
 }))
 
 import { AppointmentNotificationActions } from '@/features/notifications/components/AppointmentNotificationActions'
@@ -82,12 +93,17 @@ describe('AppointmentNotificationActions', () => {
     await userEvent.click(screen.getByText(/lembrete de consulta \(24h\)/i))
     expect(screen.getByTestId('send-drawer')).toBeInTheDocument()
     expect(screen.getByText('appointment_reminder_24h')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar envio' }))
+    expect(screen.queryByTestId('send-drawer')).not.toBeInTheDocument()
+    expect(screen.queryByText(/nesta sessão/i)).not.toBeInTheDocument()
   })
 
   it('opens the history drawer when the history button is clicked', async () => {
     render(<AppointmentNotificationActions {...baseProps} />)
     await userEvent.click(screen.getByText('Histórico de mensagens'))
     expect(screen.getByTestId('history-drawer')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar histórico' }))
+    expect(screen.queryByTestId('history-drawer')).not.toBeInTheDocument()
   })
 
   it('increments and pluralizes the sent-count line after messages are sent', async () => {

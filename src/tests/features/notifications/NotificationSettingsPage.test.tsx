@@ -1,4 +1,5 @@
-import { render, screen, userEvent } from '@/test-utils/render-utils'
+import { ApiError } from '@/services/http'
+import { render, screen, userEvent, waitFor } from '@/test-utils/render-utils'
 
 import { NotificationSettingsPage } from '@/features/notifications/pages/NotificationSettingsPage'
 import { makeAssistantUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
@@ -188,6 +189,69 @@ describe('NotificationSettingsPage — monthly usage', () => {
 // ── WhatsApp toggle ───────────────────────────────────────────────────────────
 
 describe('NotificationSettingsPage — WhatsApp toggle', () => {
+  it('activates and deactivates the configured real provider with accurate feedback', async () => {
+    mockUseNotificationPreferences.mockReturnValue(
+      makeDefaultPreferencesHook({
+        preferences: makePreferences({ providerType: 'whatsapp_cloud', providerConfigured: true }),
+      }),
+    )
+    render(<NotificationSettingsPage />)
+    expect(
+      screen.getByText('Ative para enviar mensagens via WhatsApp Cloud API.'),
+    ).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Ativar' }))
+    expect(mockShowAlert).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        title: 'WhatsApp ativado',
+        description: 'WhatsApp real ativo. Mensagens só serão enviadas por ação explícita.',
+      }),
+    )
+    expect(screen.getByText('WhatsApp real ativo')).toBeInTheDocument()
+    expect(screen.getByText(/Templates devem estar aprovados/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Desativar' }))
+    expect(mockSave).toHaveBeenLastCalledWith({ whatsappEnabled: false })
+    expect(mockShowAlert).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        title: 'WhatsApp desativado',
+        description: 'Notificações WhatsApp desativadas.',
+      }),
+    )
+    expect(screen.getByRole('button', { name: 'Ativar' })).toBeInTheDocument()
+  })
+
+  it.each([new ApiError('Provedor indisponível.', 503, null), new Error('network')])(
+    'restores the toggle after save failure and permits retry: %s',
+    async (error) => {
+      mockSave.mockRejectedValueOnce(error)
+      render(<NotificationSettingsPage />)
+      await userEvent.click(screen.getByRole('button', { name: 'Ativar' }))
+      expect(screen.getByRole('button', { name: 'Ativar' })).toBeInTheDocument()
+      expect(mockShowAlert).toHaveBeenCalledWith({
+        title: 'Erro',
+        tone: 'error',
+        description: error instanceof ApiError ? error.message : 'Erro ao salvar preferências.',
+      })
+      await userEvent.click(screen.getByRole('button', { name: 'Ativar' }))
+      expect(screen.getByRole('button', { name: 'Desativar' })).toBeInTheDocument()
+    },
+  )
+
+  it('explains missing provider configuration and a plan without a message allowance', () => {
+    mockUseNotificationPreferences.mockReturnValue(
+      makeDefaultPreferencesHook({
+        preferences: makePreferences({ providerType: 'whatsapp_cloud', providerConfigured: false }),
+      }),
+    )
+    mockUseNotificationQuota.mockReturnValue(
+      makeDefaultQuotaHook({ quota: makeQuota({ used: 0, limit: 0, available: 0 }) }),
+    )
+    render(<NotificationSettingsPage />)
+    expect(
+      screen.getByText('Configure as credenciais da Meta antes de ativar o envio real.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/credenciais obrigatórias não estão configuradas/)).toBeInTheDocument()
+    expect(screen.getByText('Seu plano atual não inclui mensagens WhatsApp.')).toBeInTheDocument()
+  })
   it('renders the Ativar button when WhatsApp is disabled', () => {
     render(<NotificationSettingsPage />)
     expect(screen.getByRole('button', { name: /ativar/i })).toBeInTheDocument()
@@ -218,6 +282,20 @@ describe('NotificationSettingsPage — WhatsApp toggle', () => {
 // ── Reminder hours select ─────────────────────────────────────────────────────
 
 describe('NotificationSettingsPage — reminder hours select', () => {
+  it.each([false, true])(
+    'persists reminder hours and restores the prior selection on failure=%s',
+    async (fails) => {
+      if (fails) mockSave.mockRejectedValueOnce(new Error('offline'))
+      render(<NotificationSettingsPage />)
+      await userEvent.click(screen.getByRole('combobox', { name: /antecedência do lembrete/i }))
+      await userEvent.click(screen.getByRole('option', { name: '48h' }))
+      expect(mockSave).toHaveBeenCalledWith({ reminderHoursBefore: 48 })
+      await waitFor(() =>
+        expect(screen.getByRole('combobox')).toHaveTextContent(fails ? '24h' : '48h'),
+      )
+    },
+  )
+
   it('renders the reminder hours select', () => {
     render(<NotificationSettingsPage />)
     expect(screen.getByRole('combobox', { name: /antecedência do lembrete/i })).toBeInTheDocument()

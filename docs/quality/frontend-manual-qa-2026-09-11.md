@@ -37,6 +37,9 @@ Status: **not executed**. Unit tests validate application decisions and mocked i
 
 ## Shared shell and marketing
 
+- [ ] Notifications: switch patients during delayed consent load/grant/revoke. Confirm the current patient's consent controls sending and no previous patient's state appears.
+- [ ] With an authorized test provider, verify quota, consent and explicit-send enforcement end to end, provider failures, delivery status, and reminder preference persistence. Unit tests do not send real messages.
+
 - [ ] Dashboard donut: compare mouse hover, touch legend selection/deselection and direct chart taps on iOS/Android. Verify no unwanted scrolling/focus rectangle and confirm passive touch listener behavior; jsdom callback tests do not certify touch cancellation.
 - [ ] Administrative user/clinic forms: Escape and outside-click dismissal must occur once, with correct focus restoration.
 

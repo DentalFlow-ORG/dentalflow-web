@@ -102,6 +102,13 @@ beforeEach(() => {
 })
 
 describe('NotificationSendDrawer — header and preview', () => {
+  it('uses the public template slug when no display label is known', () => {
+    render(
+      <NotificationSendDrawer {...baseProps} template={{ ...TEMPLATE, slug: 'custom_followup' }} />,
+    )
+    expect(screen.getByRole('heading', { name: 'custom_followup' })).toBeInTheDocument()
+  })
+
   it('renders nothing when closed', () => {
     render(<NotificationSendDrawer {...baseProps} open={false} />)
     expect(screen.queryByText('Ana')).not.toBeInTheDocument()

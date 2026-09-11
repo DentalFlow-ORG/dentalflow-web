@@ -20,6 +20,24 @@ function setHookState(overrides = {}) {
 }
 
 describe('MessageHistoryDrawer', () => {
+  it('shows a safe missing-date placeholder for a malformed message timestamp', () => {
+    setHookState({
+      total: 1,
+      messages: [
+        {
+          id: 'm1',
+          templateSlug: 'custom',
+          status: 'SENT',
+          sentAt: 'invalid-timestamp',
+          createdAt: 'invalid-timestamp',
+        },
+      ],
+    })
+    render(<MessageHistoryDrawer appointmentId="appt-1" patientName="Ana" open onClose={vi.fn()} />)
+    expect(screen.getByText(/Enviado em/)).toHaveTextContent('Enviado em Data não informada')
+    expect(screen.queryByText(/Invalid Date/)).not.toBeInTheDocument()
+  })
+
   it('renders nothing meaningful when closed', () => {
     setHookState()
     render(

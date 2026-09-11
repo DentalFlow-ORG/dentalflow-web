@@ -41,6 +41,8 @@ Admin continuation: **17 suites / 307 tests passed**, +17 tests since the invent
 
 Dashboard continuation: **7 suites / 142 tests passed**, +9 tests. Domain S/B/F/L: **98.29% / 98.15% / 94.49% / 99.03%**. Closed assistant pending/partial payments, missing times and capped ordering, service display, error presentation, read-only detail lifecycle and notification dismissal; dentist agenda ordering/detail lifecycle; owner negative balance, empty day and singular return reminder; chart hover tooltip counts, selection, touch/desktop differences and single-status data. Existing role boundaries and dentist production filtering remain tested. No production changes. Remaining complete-map fallbacks, disabled-button guards, empty callbacks and thin pages have exact D/E/F classifications. New fixtures initially used two incorrect contract fields and one ambiguous button name; corrected tests passed. A touch preventDefault assertion was replaced with observable selection assertions because React uses passive touch listeners; real touch behavior remains F. Typecheck/Biome/diff checks passed; complete global validation is still pending.
 
+Notifications continuation: **15 suites / 141 tests passed**, +15 tests. Domain S/B/F/L: **100% / 99.57% / 100% / 100%**. Closed provider configuration/activation/deactivation, save failure rollback/retry, reminder persistence/failure restoration, zero quota, send/history dismissal, unknown template display and invalid message timestamps. Three RED tests confirmed old patient consent surviving a phone change, an obsolete response overwriting current consent, and an old revoke mutating the new consent. Request/mutation generations now isolate phone changes and concurrent loads, reset old consent/loading/saving state, and prevent expired grants from reloading old patients. Seven hook tests cover these cases plus removed phones and reload/revoke races. The sole remaining measured branch is the complete template-label map after filtering through TEMPLATES_BY_STATUS; its exact E rationale is below. One new date assertion initially expected a dash instead of the existing Data não informada copy; the corrected complete domain passed. Typecheck/Biome/diff checks passed. Real message delivery/provider integration and the global convergence validation remain pending.
+
 Priority order: P0 role/access/consent boundaries; P1 scheduling, clinical correctness and finance/fiscal calculations; P2 forms, mutations, persistence and stale-response recovery; P3 interaction, filtering and lifecycle; P4 nullable display/formatting; P5 marketing/static presentation. Mixed files close higher-priority behavior first. Original location IDs remain stable references, not an alphabetical work queue.
 
 ## 1. src/features/clinical-records/components/VoiceDictationCard.tsx
@@ -273,38 +275,6 @@ Classification: **E**. Remaining locations have the exact invariants below; no i
 S/B/F/L: 100.00% / 96.66% / 100.00% / 100.00%.
 
 - 115:44 b9.1 — E: SOURCE_LABEL covers every ClassificationSource variant accepted by the typed classifier response.
-
-## 13. src/features/notifications/pages/NotificationSettingsPage.tsx
-
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 74.19% / 75.80% / 71.42% / 74.19%.
-
-- Uncovered lines: 64-66, 71-73, 75, 222.
-- Uncovered functions: `(anonymous_3)@70`; `(anonymous_5)@222`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 55:46 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `title: enabled ? 'WhatsApp ativado' : 'WhatsApp desativado',` |
-| 60:12 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Notificações WhatsApp desativadas.',` |
-| 58:14 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'WhatsApp real ativo. Mensagens só serão enviadas por ação explícita.'` |
-| 64:44 b6.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const msg = err instanceof ApiError ? err.message : 'Erro ao salvar preferências.'` |
-| 64:58 b6.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const msg = err instanceof ApiError ? err.message : 'Erro ao salvar preferências.'` |
-| 130:24 b13.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'WhatsApp real ativo'` |
-| 137:24 b15.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Mensagens enviadas via Meta WhatsApp Business Cloud API.'` |
-| 140:24 b16.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Ative para enviar mensagens via WhatsApp Cloud API.'` |
-| 139:40 b17.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: isRealProvider && providerConfigured` |
-| 142:26 b18.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Configure as credenciais da Meta antes de ativar o envio real.'` |
-| 169:48 b23.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{whatsappEnabled && isRealProvider && providerConfigured && (` |
-| 170:12 b23.3 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="rounded-md bg-green-50 px-3 py-2 text-xs text-green-800 dark:bg-green-900/20 dark:text-green-300">` |
-| 175:29 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{isRealProvider && !providerConfigured && (` |
-| 176:12 b24.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-900/20 dark:text-red-300">` |
-| 199:14 b27.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className="text-xs text-muted-foreground">` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 70 (anonymous_3) | `const handleHoursChange = async (hours: number) => { setLocalHours(hours) try {` |
-| 222 (anonymous_5) | `onValueChange={(value) => handleHoursChange(Number(value))} disabled={isSaving} >` |
 
 ## 14. src/features/patients/components/AvatarCropModal.tsx
 
@@ -1411,21 +1381,7 @@ S/B/F/L: 81.81% / 91.66% / 77.77% / 81.81%.
 
 ## 124. src/features/notifications/components/AppointmentNotificationActions.tsx
 
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 90.90% / 90.00% / 80.00% / 89.47%.
-
-- Uncovered lines: 107, 123.
-- Uncovered functions: `(anonymous_8)@107`; `(anonymous_9)@123`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 70:50 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{TEMPLATE_LABELS[tpl.slug] ?? tpl.slug}` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 107 (anonymous_8) | `onClose={() => setSendOpen(false)} template={selectedTemplate} appointmentId={appointmentId}` |
-| 123 (anonymous_9) | `onClose={() => setHistoryOpen(false)} /> </>` |
+Classification: **E**. Only line 70 remains: TEMPLATE_LABELS[tpl.slug] ?? tpl.slug. Before rendering, templates are filtered through TEMPLATES_BY_STATUS; every slug in that fixed map is present in TEMPLATE_LABELS (notifications.service.ts:110–126). An unknown server template cannot reach this display branch. The public unfiltered NotificationSendDrawer unknown-template fallback is separately tested. All other notifications files measure 100% in all metrics; no exclusions were added.
 
 ## 127. src/components/common/ConfirmDialog.tsx
 
@@ -1588,45 +1544,6 @@ S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
 | Location / branch arm | Class / technical requirement | Source condition or branch |
 | --- | --- | --- |
 | 117:22 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `) : null` |
-
-## 156. src/features/notifications/components/MessageHistoryDrawer.tsx
-
-Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 100.00% / 95.00% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 20:36 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return time ? '${date} ${time}' : date` |
-
-## 157. src/features/notifications/components/NotificationSendDrawer.tsx
-
-Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 100.00% / 98.33% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 152:65 b15.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{template ? (TEMPLATE_LABELS[template.slug] ?? template.slug) : 'Enviar mensagem'}` |
-
-## 158. src/features/notifications/hooks/useNotificationConsent.ts
-
-Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 53:93 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setConsent((c) => (c ? { ...c, granted: false, revokedAt: new Date().toISOString() } : null))` |
 
 ## 159. src/features/reports/containers/ReportsPageContainer.tsx
 
