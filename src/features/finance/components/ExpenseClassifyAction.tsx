@@ -118,6 +118,11 @@ export function ExpenseClassifyAction({
         {result.reason && (
           <p className="text-[10px] italic text-muted-foreground">{result.reason}</p>
         )}
+        {error && (
+          <p role="alert" className="text-[11px] text-red-600 dark:text-red-400">
+            {error}
+          </p>
+        )}
         <div className="flex items-center gap-1.5">
           <Button
             size="sm"
