@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, waitFor, within } from '@/test-utils/render-utils'
 
 import { PatientsPageContainer } from '@/features/patients/containers/PatientsPageContainer'
 import type { PatientSummary } from '@/features/patients/types/patients.types'
@@ -24,18 +24,30 @@ vi.mock('@/features/patients/hooks/usePatientsPage', () => ({
 }))
 
 // Prevent detail panel hooks from firing
+const mockHistory = vi.fn()
+const mockAvatar = vi.fn()
+const mockUpdateAvatar = vi.fn()
+const mockShowAlert = vi.fn()
+vi.mock('@/features/patients/components/AvatarCropModal', () => ({
+  AvatarCropModal: ({ open, onConfirm }: { open: boolean; onConfirm: (value: string) => void }) =>
+    open ? (
+      <button type="button" onClick={() => onConfirm('cropped-photo')}>
+        Confirmar recorte
+      </button>
+    ) : null,
+}))
 vi.mock('@/features/patients/hooks/usePatientHistory', () => ({
-  usePatientHistory: () => ({ appointments: [], isLoading: false }),
+  usePatientHistory: () => mockHistory(),
 }))
 vi.mock('@/features/clinical-records/hooks/usePatientClinicalTimeline', () => ({
   usePatientClinicalTimeline: () => ({ records: [], isLoading: false }),
 }))
 vi.mock('@/features/patients/hooks/usePatientAvatar', () => ({
-  usePatientAvatar: () => ({ avatarUrl: null, isSaving: false, update: vi.fn() }),
+  usePatientAvatar: () => mockAvatar(),
   setCachedPatientAvatar: vi.fn(),
 }))
 vi.mock('@/components/common/global-alerts-context', () => ({
-  useGlobalAlerts: () => ({ showAlert: vi.fn() }),
+  useGlobalAlerts: () => ({ showAlert: mockShowAlert }),
 }))
 
 // ── Factories ─────────────────────────────────────────────────────────────────
@@ -84,6 +96,9 @@ function makeDefaultHookState(overrides = {}) {
 // ── Setup / teardown ──────────────────────────────────────────────────────────
 
 beforeEach(() => {
+  mockHistory.mockReturnValue({ appointments: [], isLoading: false })
+  mockUpdateAvatar.mockReset().mockResolvedValue(undefined)
+  mockAvatar.mockReturnValue({ avatarUrl: null, isSaving: false, update: mockUpdateAvatar })
   setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
   mockUsePatientsPage.mockReturnValue(makeDefaultHookState())
 })
@@ -410,5 +425,191 @@ describe('PatientsPageContainer — panel prontuário role behavior', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Prontuários' }))
     // ASSISTANT should see the restriction message, not the timeline
     expect(screen.getByText(/informações clínicas restritas/i)).toBeInTheDocument()
+  })
+})
+
+describe('PatientsPageContainer — detail interactions', () => {
+  function preparePatient(overrides: Partial<PatientSummary> = {}, open = true) {
+    const patient = makePatient(overrides)
+    const state = makeDefaultHookState({
+      patients: [patient],
+      filteredPatients: [patient],
+      paginatedPatients: [patient],
+      selectedPatient: open ? patient : null,
+    })
+    mockUsePatientsPage.mockReturnValue(state)
+    return { patient, state }
+  }
+
+  it.each(['Enter', ' '])('opens patient details with the %s key on a focused row', (key) => {
+    const { patient, state } = preparePatient({}, false)
+    render(<PatientsPageContainer />)
+    const row = within(screen.getByRole('table')).getByRole('button', {
+      name: 'Ver detalhes de Ana Souza',
+    })
+    row.focus()
+    expect(row).toHaveFocus()
+    fireEvent.keyDown(row, { key })
+    expect(state.setSelectedPatient).toHaveBeenCalledExactlyOnceWith(patient)
+  })
+
+  it('ignores navigation keys and keyboard events bubbling from row descendants', () => {
+    const { state } = preparePatient({}, false)
+    render(<PatientsPageContainer />)
+    const row = within(screen.getByRole('table')).getByRole('button')
+    fireEvent.keyDown(row, { key: 'ArrowDown' })
+    fireEvent.keyDown(within(row).getByText('Ana Souza'), { key: 'Enter' })
+    expect(state.setSelectedPatient).not.toHaveBeenCalled()
+    fireEvent.click(row)
+    expect(state.setSelectedPatient).toHaveBeenCalledOnce()
+  })
+
+  it('renders appointment service, dentist, schedule, notes and nullable detail fallbacks', () => {
+    preparePatient()
+    const appointment = {
+      id: 'a1',
+      appointmentDate: '2026-06-01',
+      startTime: '09:00',
+      endTime: '09:30',
+      status: 'COMPLETED',
+      patientName: 'Ana Souza',
+      patientEmail: null,
+      patientPhone: null,
+      notes: 'Retorno em seis meses',
+      service: { id: 's1', name: 'Limpeza preventiva' },
+      profile: { id: 'p1', displayName: 'Dra. Beatriz' },
+    }
+    mockHistory.mockReturnValue({
+      appointments: [
+        appointment,
+        { ...appointment, id: 'a2', service: null, profile: null, notes: null },
+      ],
+      isLoading: false,
+    })
+    render(<PatientsPageContainer />)
+    const panel = within(screen.getByRole('tabpanel'))
+    expect(panel.getByText('Limpeza preventiva')).toBeInTheDocument()
+    expect(panel.getByText('Dra. Beatriz')).toBeInTheDocument()
+    expect(panel.getByText('Retorno em seis meses')).toBeInTheDocument()
+    expect(panel.getByText('Consulta')).toBeInTheDocument()
+    expect(panel.getAllByText(/01\/06\/2026 · 09:00–09:30/)).toHaveLength(2)
+    expect(panel.getAllByText('Concluído')).toHaveLength(2)
+  })
+
+  it('handles a patient without contacts, visits or appointments', () => {
+    preparePatient({
+      patientEmail: null,
+      patientPhone: null,
+      lastVisit: null,
+      totalAppointments: 0,
+      completedAppointments: 0,
+      canceledAppointments: 0,
+    })
+    render(<PatientsPageContainer />)
+    const dialog = within(screen.getByRole('dialog'))
+    expect(dialog.queryByRole('link', { name: 'Ligar' })).not.toBeInTheDocument()
+    expect(dialog.queryByRole('link', { name: 'E-mail' })).not.toBeInTheDocument()
+    expect(dialog.getByText('Nenhuma consulta encontrada.')).toBeInTheDocument()
+    expect(dialog.getByText('—')).toBeInTheDocument()
+  })
+
+  it('retries a failed patient list request through Atualizar', () => {
+    const state = makeDefaultHookState({ error: 'Serviço indisponível' })
+    mockUsePatientsPage.mockReturnValue(state)
+    const { rerender } = render(<PatientsPageContainer />)
+    expect(screen.getByText('Serviço indisponível')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar' }))
+    expect(state.handleRefresh).toHaveBeenCalledOnce()
+    preparePatient({}, false)
+    rerender(<PatientsPageContainer />)
+    expect(screen.queryByText('Serviço indisponível')).not.toBeInTheDocument()
+    expect(screen.getByRole('table')).toHaveTextContent('Ana Souza')
+  })
+
+  it.each(['close button', 'Escape'])('dismisses details using %s', (method) => {
+    const { state } = preparePatient()
+    render(<PatientsPageContainer />)
+    if (method === 'Escape') fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    else fireEvent.click(screen.getByRole('button', { name: 'Fechar painel do paciente' }))
+    expect(state.setSelectedPatient).toHaveBeenCalledWith(null)
+  })
+
+  it('reports successful avatar removal', async () => {
+    preparePatient()
+    mockAvatar.mockReturnValue({ avatarUrl: 'photo', isSaving: false, update: mockUpdateAvatar })
+    render(<PatientsPageContainer />)
+    fireEvent.click(screen.getByRole('button', { name: 'Alterar foto do paciente' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Remover foto' }))
+    await waitFor(() =>
+      expect(mockShowAlert).toHaveBeenCalledWith({
+        title: 'Foto removida.',
+        description: 'A foto do paciente foi removida.',
+        tone: 'success',
+      }),
+    )
+    expect(mockUpdateAvatar).toHaveBeenCalledExactlyOnceWith(null)
+  })
+
+  it('reports avatar persistence failure and allows another attempt', async () => {
+    preparePatient()
+    mockUpdateAvatar.mockRejectedValueOnce(new Error('offline'))
+    mockAvatar.mockReturnValue({ avatarUrl: 'photo', isSaving: false, update: mockUpdateAvatar })
+    render(<PatientsPageContainer />)
+    fireEvent.click(screen.getByRole('button', { name: 'Alterar foto do paciente' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Remover foto' }))
+    await waitFor(() =>
+      expect(mockShowAlert).toHaveBeenCalledWith({
+        title: 'Erro',
+        description: 'Não foi possível salvar a foto.',
+        tone: 'error',
+      }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Alterar foto do paciente' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Remover foto' }))
+    await waitFor(() =>
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Foto removida.',
+          tone: 'success',
+        }),
+      ),
+    )
+    expect(mockUpdateAvatar).toHaveBeenCalledTimes(2)
+  })
+
+  it('reports invalid image input without persisting it', () => {
+    preparePatient()
+    render(<PatientsPageContainer />)
+    const input = screen.getByRole('dialog').querySelector('input[type="file"]')
+    if (!input) throw new Error('Missing avatar file input')
+    fireEvent.change(input, {
+      target: { files: [new File(['text'], 'photo.txt', { type: 'text/plain' })] },
+    })
+    expect(mockShowAlert).toHaveBeenCalledWith({
+      title: 'Foto inválida',
+      description: 'Formato inválido. Envie apenas JPEG, PNG ou WebP.',
+      tone: 'error',
+    })
+    expect(mockUpdateAvatar).not.toHaveBeenCalled()
+  })
+
+  it('saves a confirmed avatar crop and reports success', async () => {
+    preparePatient()
+    render(<PatientsPageContainer />)
+    const input = screen.getByRole('dialog').querySelector('input[type="file"]')
+    if (!input) throw new Error('Missing avatar file input')
+    fireEvent.change(input, {
+      target: { files: [new File(['photo'], 'photo.png', { type: 'image/png' })] },
+    })
+    expect(mockUpdateAvatar).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar recorte' }))
+    await waitFor(() =>
+      expect(mockShowAlert).toHaveBeenCalledWith({
+        title: 'Foto atualizada.',
+        description: 'A foto do paciente foi salva.',
+        tone: 'success',
+      }),
+    )
+    expect(mockUpdateAvatar).toHaveBeenCalledExactlyOnceWith('cropped-photo')
   })
 })
