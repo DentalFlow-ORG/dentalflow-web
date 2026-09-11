@@ -162,6 +162,41 @@ describe('AvailabilityManager — add flow', () => {
 })
 
 describe('AvailabilityManager — edit flow', () => {
+  it('recovers from an unknown update failure without replacing another slot', async () => {
+    const slot = makeAvailability({ id: 'first', dayOfWeek: 1 })
+    const other = makeAvailability({ id: 'second', dayOfWeek: 2 })
+    const updated = { ...slot, endTime: '18:00' }
+    mockUpdateAvailability.mockRejectedValueOnce(null).mockResolvedValueOnce(updated)
+    const onSlotsChange = vi.fn()
+    render(
+      <AvailabilityManager
+        profileId="prof-1"
+        slots={[slot, other]}
+        onSlotsChange={onSlotsChange}
+      />,
+    )
+    await userEvent.click(screen.getAllByRole('button', { name: /editar/i })[0])
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    expect(await screen.findByText('Erro ao atualizar.')).toBeInTheDocument()
+    expect(onSlotsChange).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    expect(onSlotsChange).toHaveBeenCalledWith([updated, other])
+  })
+
+  it('dismisses slot editing without updating availability', async () => {
+    render(
+      <AvailabilityManager
+        profileId="prof-1"
+        slots={[makeAvailability()]}
+        onSlotsChange={vi.fn()}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /editar/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByRole('button', { name: 'Salvar' })).not.toBeInTheDocument()
+    expect(mockUpdateAvailability).not.toHaveBeenCalled()
+  })
+
   it('starts editing a slot and calls onSlotsChange with the updated slot', async () => {
     const slot = makeAvailability({
       id: 'slot-1',
@@ -203,6 +238,23 @@ describe('AvailabilityManager — edit flow', () => {
 })
 
 describe('AvailabilityManager — delete flow', () => {
+  it('preserves the slot after an unknown delete failure and permits retry', async () => {
+    mockDeleteAvailability.mockRejectedValueOnce(null).mockResolvedValueOnce(undefined)
+    const onSlotsChange = vi.fn()
+    render(
+      <AvailabilityManager
+        profileId="prof-1"
+        slots={[makeAvailability()]}
+        onSlotsChange={onSlotsChange}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /remover|excluir|deletar/i }))
+    expect(await screen.findByText('Erro ao remover.')).toBeInTheDocument()
+    expect(onSlotsChange).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: /remover|excluir|deletar/i }))
+    expect(onSlotsChange).toHaveBeenCalledWith([])
+  })
+
   it('deletes a slot and calls onSlotsChange without it', async () => {
     const slot = makeAvailability({ id: 'slot-1' })
     mockDeleteAvailability.mockResolvedValue(undefined)

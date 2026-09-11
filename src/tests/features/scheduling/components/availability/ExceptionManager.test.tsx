@@ -1,7 +1,8 @@
-import { render, screen, userEvent, waitFor, within } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, userEvent, waitFor, within } from '@/test-utils/render-utils'
 
 import { ExceptionManager } from '@/features/scheduling/components/availability/ExceptionManager'
 import {
+  createAvailabilityException,
   deleteAvailabilityException,
   updateAvailabilityException,
 } from '@/features/scheduling/services/scheduling.service'
@@ -109,7 +110,116 @@ function renderManager(
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(createAvailabilityException).mockReset()
+  vi.mocked(updateAvailabilityException).mockReset()
+  vi.mocked(deleteAvailabilityException).mockReset()
   mocks.brazilTodayIso.mockReturnValue('2026-06-05')
+})
+
+describe('ExceptionManager — mutation recovery', () => {
+  it.each([new Error('Servidor indisponível'), null])(
+    'preserves a new exception after rejection %s and retries',
+    async (error) => {
+      vi.mocked(createAvailabilityException)
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce(FUTURE_1)
+      const { onExceptionsChange } = renderManager([FUTURE_2])
+      const user = userEvent.setup()
+      await user.click(screen.getByRole('button', { name: /adicionar/i }))
+      fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-06-10' } })
+      await user.type(screen.getByLabelText(/Motivo/), 'Folga mensal')
+      await user.click(screen.getByRole('button', { name: 'Salvar' }))
+      expect(
+        await screen.findByText(error?.message ?? 'Erro ao adicionar exceção.'),
+      ).toBeInTheDocument()
+      expect(onExceptionsChange).not.toHaveBeenCalled()
+      expect(screen.getByLabelText(/Motivo/)).toHaveValue('Folga mensal')
+      await user.click(screen.getByRole('button', { name: 'Salvar' }))
+      await waitFor(() => expect(onExceptionsChange).toHaveBeenCalledWith([FUTURE_2, FUTURE_1]))
+      expect(createAvailabilityException).toHaveBeenLastCalledWith('profile-1', {
+        exceptionDate: '2026-06-10',
+        isDayOff: true,
+        reason: 'Folga mensal',
+      })
+      expect(screen.queryByLabelText('Data')).not.toBeInTheDocument()
+    },
+  )
+
+  it.each([new Error('Servidor indisponível'), null])(
+    'preserves edited exceptions after rejection %s and retries',
+    async (error) => {
+      vi.mocked(updateAvailabilityException)
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce(FUTURE_1)
+      const { onExceptionsChange } = renderManager([FUTURE_1, FUTURE_2])
+      const user = userEvent.setup()
+      await user.click(
+        within(screen.getByTestId('exception-row-exc-future-1')).getByRole('button', {
+          name: /editar exceção/i,
+        }),
+      )
+      await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+      await waitFor(() =>
+        expect(mocks.showAlert).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            title: error?.message ?? 'Erro ao atualizar exceção.',
+            tone: 'error',
+          }),
+        ),
+      )
+      expect(onExceptionsChange).not.toHaveBeenCalled()
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+      await waitFor(() => expect(onExceptionsChange).toHaveBeenCalledWith([FUTURE_1, FUTURE_2]))
+    },
+  )
+
+  describe.each(['modal', 'row'])('%s deletion', (origin) => {
+    it.each([new Error('Servidor indisponível'), null])(
+      'keeps an exception after rejection %s and retries',
+      async (error) => {
+        vi.mocked(deleteAvailabilityException)
+          .mockRejectedValueOnce(error)
+          .mockResolvedValueOnce(undefined)
+        const { onExceptionsChange } = renderManager([FUTURE_1])
+        const user = userEvent.setup()
+        if (origin === 'modal')
+          await user.click(screen.getByRole('button', { name: /editar exceção/i }))
+        const buttonName = origin === 'modal' ? /excluir exceção/i : /remover exceção/i
+        await user.click(screen.getByRole('button', { name: buttonName }))
+        if (origin === 'modal') {
+          await waitFor(() =>
+            expect(mocks.showAlert).toHaveBeenLastCalledWith(
+              expect.objectContaining({
+                title: error?.message ?? 'Erro ao remover exceção.',
+                tone: 'error',
+              }),
+            ),
+          )
+        } else {
+          expect(
+            await screen.findByText(error?.message ?? 'Erro ao remover exceção.'),
+          ).toBeInTheDocument()
+        }
+        expect(onExceptionsChange).not.toHaveBeenCalled()
+        await user.click(screen.getByRole('button', { name: buttonName }))
+        await waitFor(() => expect(onExceptionsChange).toHaveBeenCalledWith([]))
+      },
+    )
+  })
+
+  it('dismisses create and edit forms without persisting changes', async () => {
+    renderManager([FUTURE_1])
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /adicionar/i }))
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByLabelText('Data')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /editar exceção/i }))
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(createAvailabilityException).not.toHaveBeenCalled()
+    expect(updateAvailabilityException).not.toHaveBeenCalled()
+  })
 })
 
 describe('ExceptionManager — filter behavior', () => {
