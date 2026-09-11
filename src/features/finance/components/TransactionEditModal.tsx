@@ -48,8 +48,6 @@ export function TransactionEditModal({
         <Dialog.Content
           aria-labelledby="edit-tx-title"
           className="fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-lg max-h-[calc(100dvh-2rem)] flex-col -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
-          onEscapeKeyDown={onClose}
-          onInteractOutside={onClose}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
             <Dialog.Title id="edit-tx-title" className="text-base font-semibold text-foreground">

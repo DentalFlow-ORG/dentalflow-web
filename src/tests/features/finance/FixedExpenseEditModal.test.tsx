@@ -77,6 +77,33 @@ function renderModal(overrides: Partial<Parameters<typeof FixedExpenseEditModal>
 }
 
 describe('FixedExpenseEditModal', () => {
+  it('closes once when Escape is pressed', async () => {
+    const onClose = vi.fn()
+    renderModal({ onClose })
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('changes and clears the optional end date', () => {
+    const onChange = vi.fn()
+    const { rerender } = renderModal({ onChange })
+    fireEvent.change(screen.getByLabelText(/Fim/), { target: { value: '2026-12-31' } })
+    expect(onChange).toHaveBeenCalledWith('endDate', '2026-12-31')
+    rerender(
+      <FixedExpenseEditModal
+        expense={EXPENSE}
+        form={{ ...FORM, endDate: '2026-12-31' }}
+        categories={CATEGORIES}
+        error={null}
+        isSubmitting={false}
+        onChange={onChange}
+        onSubmit={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText(/Fim/), { target: { value: '' } })
+    expect(onChange).toHaveBeenLastCalledWith('endDate', '')
+  })
   it('renders nothing when expense is null', () => {
     renderModal({ expense: null })
     expect(screen.queryByText('Editar despesa fixa')).not.toBeInTheDocument()

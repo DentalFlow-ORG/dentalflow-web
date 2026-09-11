@@ -51,6 +51,19 @@ function renderModal(overrides: Partial<Parameters<typeof CategoryEditModal>[0]>
 }
 
 describe('CategoryEditModal', () => {
+  it('closes once when Escape is pressed', async () => {
+    const onClose = vi.fn()
+    renderModal({ onClose })
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('changes the category color through the shared picker', async () => {
+    const onChange = vi.fn()
+    renderModal({ onChange })
+    await userEvent.click(screen.getByRole('button', { name: 'Selecionar cor: Azul' }))
+    expect(onChange).toHaveBeenCalledWith('color', '#0EA5E9')
+  })
   it('renders nothing when category is null', () => {
     renderModal({ category: null })
     expect(screen.queryByText('Editar categoria')).not.toBeInTheDocument()

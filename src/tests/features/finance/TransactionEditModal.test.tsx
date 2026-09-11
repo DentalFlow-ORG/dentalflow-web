@@ -77,6 +77,12 @@ function renderModal(overrides: Partial<Parameters<typeof TransactionEditModal>[
 }
 
 describe('TransactionEditModal', () => {
+  it('closes once when Escape is pressed', async () => {
+    const onClose = vi.fn()
+    renderModal({ onClose })
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledOnce()
+  })
   it('renders nothing when transaction is null', () => {
     renderModal({ transaction: null })
     expect(screen.queryByText('Editar lançamento')).not.toBeInTheDocument()
