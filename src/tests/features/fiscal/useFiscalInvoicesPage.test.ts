@@ -58,6 +58,130 @@ async function renderLoaded() {
 }
 
 describe('useFiscalInvoicesPage — initial load', () => {
+  it.each([
+    { mode: 'initial', fails: false },
+    { mode: 'initial', fails: true },
+    { mode: 'reload', fails: false },
+    { mode: 'reload', fails: true },
+    { mode: 'filter', fails: false },
+    { mode: 'filter', fails: true },
+  ])(
+    'keeps the latest reload pending after obsolete $mode completion (fails=$fails)',
+    async ({ mode, fails }) => {
+      let resolveOld!: (value: unknown) => void
+      let rejectOld!: (error: Error) => void
+      const oldRequest = new Promise((resolve, reject) => {
+        resolveOld = resolve
+        rejectOld = reject
+      })
+      if (mode === 'initial') mockListInvoices.mockReturnValueOnce(oldRequest)
+      const { result } = renderHook(() => useFiscalInvoicesPage())
+      if (mode !== 'initial') {
+        await waitFor(() => expect(result.current.isLoading).toBe(false))
+        mockListInvoices.mockReturnValueOnce(oldRequest)
+        act(() => {
+          if (mode === 'reload') result.current.load()
+          else result.current.setFilter('customer', 'Ana')
+        })
+      }
+      let resolveCurrent!: (value: unknown) => void
+      mockListInvoices.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveCurrent = resolve
+        }),
+      )
+      act(() => result.current.load())
+      await act(async () => {
+        if (fails) rejectOld(new Error('Requisição superada'))
+        else resolveOld({ data: [makeInvoice({ id: 'obsolete' })], total: 15 })
+      })
+      expect(result.current.isLoading).toBe(true)
+      expect(result.current.invoices).toEqual([])
+      expect(result.current.loadError).toBeNull()
+      expect(mockShowAlert).not.toHaveBeenCalled()
+      const current = makeInvoice({ id: 'current' })
+      await act(async () => {
+        resolveCurrent({ data: [current], total: 1 })
+      })
+      expect(result.current.invoices).toEqual([current])
+      expect(result.current.isLoading).toBe(false)
+    },
+  )
+
+  it.each(['success', 'failure'] as const)(
+    'ignores a reload %s after leaving the page',
+    async (outcome) => {
+      const { result, unmount } = await renderLoaded()
+      let resolve!: (value: unknown) => void
+      let reject!: (error: Error) => void
+      mockListInvoices.mockReturnValueOnce(
+        new Promise((yes, no) => {
+          resolve = yes
+          reject = no
+        }),
+      )
+      act(() => result.current.load())
+      unmount()
+      await act(async () => {
+        if (outcome === 'success') resolve({ data: [makeInvoice()], total: 1 })
+        else reject(new Error('late reload'))
+      })
+      expect(mockShowAlert).not.toHaveBeenCalled()
+    },
+  )
+
+  it('reloads using the latest filters when an earlier invoice mutation finishes', async () => {
+    const { result } = await renderLoaded()
+    let resolve!: () => void
+    mockCreateInvoice.mockReturnValueOnce(
+      new Promise<void>((yes) => {
+        resolve = yes
+      }),
+    )
+    let saving!: Promise<void>
+    act(() => {
+      saving = result.current.saveInvoice({
+        customerName: 'Ana',
+        amountCents: 10000,
+        serviceDescription: 'Consulta',
+        competenceDate: '2026-09-11',
+      })
+    })
+    act(() => result.current.setFilter('customer', 'Beatriz'))
+    await act(async () => {
+      resolve()
+      await saving
+    })
+    expect(mockListInvoices).toHaveBeenLastCalledWith(
+      expect.objectContaining({ customer: 'Beatriz' }),
+    )
+  })
+  it.each(['initial', 'reload'] as const)(
+    'does not let an older %s load replace a newer filtered list',
+    async (mode) => {
+      let resolve!: (value: unknown) => void
+      const pending = new Promise((yes) => {
+        resolve = yes
+      })
+      if (mode === 'initial') mockListInvoices.mockReturnValueOnce(pending)
+      const { result } = renderHook(() => useFiscalInvoicesPage())
+      if (mode === 'reload') {
+        await waitFor(() => expect(result.current.isLoading).toBe(false))
+        mockListInvoices.mockReturnValueOnce(pending)
+        act(() => result.current.load())
+      }
+      const current = makeInvoice({ id: 'filtered', customerName: 'Beatriz' })
+      mockListInvoices.mockResolvedValueOnce({ data: [current], total: 1 })
+      act(() => result.current.setFilter('customer', 'Beatriz'))
+      await waitFor(() => expect(result.current.invoices).toEqual([current]))
+      await act(async () => {
+        resolve({ data: [makeInvoice()], total: 25 })
+      })
+      expect(result.current.invoices).toEqual([current])
+      expect(result.current.total).toBe(1)
+      expect(result.current.isLoading).toBe(false)
+    },
+  )
   it.each(['success', 'failure'] as const)(
     'ignores an obsolete filter %s after a newer search finishes',
     async (outcome) => {

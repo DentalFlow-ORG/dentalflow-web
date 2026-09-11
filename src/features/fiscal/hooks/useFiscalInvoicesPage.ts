@@ -46,27 +46,41 @@ export function useFiscalInvoicesPage() {
 
   const isInitialLoad = useRef(true)
   const initialFiltersRef = useRef(filters)
+  const filtersRef = useRef(filters)
+  filtersRef.current = filters
+  const mountedRef = useRef(true)
+  const fullLoadGenerationRef = useRef(0)
+  const listGenerationRef = useRef(0)
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(total / filters.limit)),
     [filters.limit, total],
   )
 
-  function applyData([profile, summaryResponse, invoicesResponse]: Awaited<
-    ReturnType<typeof loadFiscalData>
-  >) {
+  function applyData(
+    [profile, summaryResponse, invoicesResponse]: Awaited<ReturnType<typeof loadFiscalData>>,
+    listGeneration: number,
+  ) {
     setProfileResponse(profile)
     setSummary(summaryResponse)
-    setInvoices(invoicesResponse.data)
-    setTotal(invoicesResponse.total)
+    if (listGeneration === listGenerationRef.current) {
+      setInvoices(invoicesResponse.data)
+      setTotal(invoicesResponse.total)
+    }
   }
 
   function load() {
+    const generation = ++fullLoadGenerationRef.current
+    const listGeneration = ++listGenerationRef.current
+    const isCurrent = () => mountedRef.current && generation === fullLoadGenerationRef.current
     setIsLoading(true)
     setLoadError(null)
-    loadFiscalData(filters)
-      .then(applyData)
+    loadFiscalData(filtersRef.current)
+      .then((responses) => {
+        if (isCurrent()) applyData(responses, listGeneration)
+      })
       .catch((error: unknown) => {
+        if (!isCurrent() || listGeneration !== listGenerationRef.current) return
         if (error instanceof ApiError && error.status === 403) {
           setPlanBlocked(true)
           return
@@ -75,21 +89,33 @@ export function useFiscalInvoicesPage() {
         setLoadError(message)
         showAlert({ title: 'Erro ao carregar notas fiscais', description: message, tone: 'error' })
       })
-      .finally(() => setIsLoading(false))
+      .finally(() => {
+        if (isCurrent()) setIsLoading(false)
+      })
   }
 
   useEffect(() => {
     let isMounted = true
+    mountedRef.current = true
+    const generation = ++fullLoadGenerationRef.current
+    const listGeneration = ++listGenerationRef.current
     loadFiscalData(initialFiltersRef.current)
       .then((responses) => {
-        if (!isMounted) return
+        if (!isMounted || generation !== fullLoadGenerationRef.current) return
         setProfileResponse(responses[0])
         setSummary(responses[1])
-        setInvoices(responses[2].data)
-        setTotal(responses[2].total)
+        if (listGeneration === listGenerationRef.current) {
+          setInvoices(responses[2].data)
+          setTotal(responses[2].total)
+        }
       })
       .catch((error: unknown) => {
-        if (!isMounted) return
+        if (
+          !isMounted ||
+          generation !== fullLoadGenerationRef.current ||
+          listGeneration !== listGenerationRef.current
+        )
+          return
         if (error instanceof ApiError && error.status === 403) {
           setPlanBlocked(true)
           return
@@ -103,10 +129,11 @@ export function useFiscalInvoicesPage() {
         })
       })
       .finally(() => {
-        if (isMounted) setIsLoading(false)
+        if (isMounted && generation === fullLoadGenerationRef.current) setIsLoading(false)
       })
     return () => {
       isMounted = false
+      mountedRef.current = false
     }
     // Runs once on mount; subsequent filter changes are handled by the effect below.
   }, [])
@@ -117,14 +144,15 @@ export function useFiscalInvoicesPage() {
       return
     }
     let isCurrent = true
+    const listGeneration = ++listGenerationRef.current
     listInvoices(filters)
       .then((response) => {
-        if (!isCurrent) return
+        if (!isCurrent || listGeneration !== listGenerationRef.current) return
         setInvoices(response.data)
         setTotal(response.total)
       })
       .catch((error: unknown) => {
-        if (!isCurrent) return
+        if (!isCurrent || listGeneration !== listGenerationRef.current) return
         showAlert({
           title: 'Erro ao carregar notas fiscais',
           description: getErrorMessage(error, 'Não foi possível carregar as notas fiscais.'),
