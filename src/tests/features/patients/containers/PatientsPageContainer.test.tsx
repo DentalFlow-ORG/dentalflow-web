@@ -526,6 +526,23 @@ describe('PatientsPageContainer — detail interactions', () => {
     expect(screen.getByRole('table')).toHaveTextContent('Ana Souza')
   })
 
+  it('passes the entered patient search to the list hook', () => {
+    const { state } = preparePatient({}, false)
+    render(<PatientsPageContainer />)
+    fireEvent.change(screen.getByLabelText('Buscar paciente'), { target: { value: 'Ana' } })
+    expect(state.handleSearchChange).toHaveBeenCalledWith('Ana')
+  })
+
+  it('shows the clinical empty state for an authorized owner and returns to appointments', () => {
+    preparePatient()
+    render(<PatientsPageContainer />)
+    fireEvent.click(screen.getByRole('tab', { name: 'Prontuários' }))
+    expect(screen.getByText('Nenhum prontuário encontrado.')).toBeInTheDocument()
+    expect(screen.queryByText(/Informações clínicas restritas/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('tab', { name: 'Consultas' }))
+    expect(screen.getByText('Nenhuma consulta encontrada.')).toBeInTheDocument()
+  })
+
   it.each(['close button', 'Escape'])('dismisses details using %s', (method) => {
     const { state } = preparePatient()
     render(<PatientsPageContainer />)

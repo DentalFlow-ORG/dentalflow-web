@@ -1,3 +1,4 @@
+import { useAvatarImage } from '@/features/patients/hooks/useAvatarImage'
 import { cn } from '@/lib/utils'
 
 import { getAvatarInitials } from './PatientAvatarWidget'
@@ -33,6 +34,7 @@ export function PatientAvatar({ name, avatarUrl, size = 'md', className }: Patie
   const sizeClass = SIZE_CLASSES[size]
   const initials = getAvatarInitials(name)
   const label = name?.trim() || 'Paciente'
+  const { imageSrc, onImageError } = useAvatarImage(avatarUrl)
 
   return (
     <div
@@ -42,13 +44,14 @@ export function PatientAvatar({ name, avatarUrl, size = 'md', className }: Patie
         'shrink-0 select-none overflow-hidden rounded-full',
         'flex items-center justify-center font-bold',
         sizeClass,
-        !avatarUrl && 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary',
+        !imageSrc && 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary',
         className,
       )}
     >
-      {avatarUrl ? (
+      {imageSrc ? (
         <img
-          src={`data:image/jpeg;base64,${avatarUrl}`}
+          src={imageSrc}
+          onError={onImageError}
           alt=""
           aria-hidden="true"
           className={cn('rounded-full object-cover', sizeClass)}

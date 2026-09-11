@@ -1,6 +1,7 @@
 import { ImagePlus, Loader2, Plus, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
+import { useAvatarImage } from '@/features/patients/hooks/useAvatarImage'
 import { ALLOWED_AVATAR_TYPES, MAX_AVATAR_INPUT_BYTES } from '@/lib/compress-avatar'
 import { cn } from '@/lib/utils'
 import { AvatarCropModal } from './AvatarCropModal'
@@ -63,6 +64,7 @@ export function PatientAvatarWidget({
   const sizeClass = SIZE[size]
   const isInteractive = Boolean(onUpload) && !isSaving
   const hasPhoto = Boolean(avatarUrl)
+  const { imageSrc, onImageError } = useAvatarImage(avatarUrl)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -161,15 +163,16 @@ export function PatientAvatarWidget({
         className={cn(
           'flex items-center justify-center rounded-full font-bold select-none',
           sizeClass,
-          avatarUrl
+          imageSrc
             ? 'bg-transparent'
             : 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground',
         )}
         aria-hidden="true"
       >
-        {avatarUrl ? (
+        {imageSrc ? (
           <img
-            src={`data:image/jpeg;base64,${avatarUrl}`}
+            src={imageSrc}
+            onError={onImageError}
             alt={name}
             className={cn('rounded-full object-cover', sizeClass)}
           />
