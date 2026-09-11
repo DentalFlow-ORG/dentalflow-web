@@ -125,14 +125,7 @@ export function RolePage({ content }: RolePageProps) {
 
             {/* Right: role mockup — hidden on xs, visible from sm up */}
             <div className="hidden w-full sm:block lg:max-w-sm xl:max-w-md">
-              <RoleHeroMockup
-                type={content.mockupType}
-                accent={content.accent}
-                role={content.role}
-                icon={content.icon}
-                modules={content.modules}
-                moduleIcons={content.moduleIcons}
-              />
+              <RoleHeroMockup type={content.mockupType} />
             </div>
           </div>
         </div>
