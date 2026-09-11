@@ -91,24 +91,24 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 
 // Replace the calendar-popover DatePickerInput with a plain input so tests
 // can set the date with a simple fireEvent.change.
-vi.mock('@/components/common/DatePickerInput', () => ({
-  DatePickerInput: ({
-    id,
-    onValueChange,
-    disabled,
-  }: {
-    id?: string
-    onValueChange?: (v: string) => void
-    disabled?: boolean
-  }) => (
-    <input
-      id={id}
-      data-testid="date-picker-input"
-      disabled={disabled ?? false}
-      onChange={(e) => onValueChange?.(e.target.value)}
-    />
-  ),
-}))
+const calendarMode = vi.hoisted(() => ({ real: false }))
+vi.mock('@/components/common/DatePickerInput', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/components/common/DatePickerInput')>()
+  return {
+    DatePickerInput: (props: Parameters<typeof actual.DatePickerInput>[0]) => {
+      if (calendarMode.real) return <actual.DatePickerInput {...props} />
+      const { id, disabled, onValueChange } = props
+      return (
+        <input
+          id={id}
+          data-testid="date-picker-input"
+          disabled={disabled ?? false}
+          onChange={(e) => onValueChange?.(e.target.value)}
+        />
+      )
+    },
+  }
+})
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -143,6 +143,7 @@ const MOCK_SLOT = { time: '10:00', available: true, durationMinutes: 30 }
 // ── Setup ─────────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
+  calendarMode.real = false
   vi.clearAllMocks()
   mockCreateAppointment.mockResolvedValue(MOCK_APPOINTMENT)
   mockUpsertPatientAvatar.mockResolvedValue(undefined)
@@ -193,6 +194,36 @@ function submitForm() {
   if (!form) throw new Error('create-appointment-form not found in DOM')
   fireEvent.submit(form)
 }
+
+describe('CreateAppointmentModal — calendar integration', () => {
+  it('blocks unavailable dates and selects a working day through the real calendar', async () => {
+    calendarMode.real = true
+    const { onClose } = renderModal()
+    await waitFor(() => expect(mockListAvailability).toHaveBeenCalled())
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Abrir calendário' }))
+    expect(screen.getAllByRole('button', { name: '4' })[0]).toBeDisabled()
+    await user.click(screen.getAllByRole('button', { name: '7' })[0])
+    expect(screen.getByPlaceholderText('DD/MM/AAAA')).toHaveValue('07/01/2020')
+    expect(await screen.findByRole('button', { name: '10:00' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalled()
+  })
+
+  it('recovers from a non-Error persistence failure', async () => {
+    mockCreateAppointment.mockRejectedValueOnce(null)
+    const { onCreated } = renderModal()
+    await fillRequiredFields()
+    submitForm()
+    await waitFor(() =>
+      expect(mockShowAlert).toHaveBeenLastCalledWith(
+        expect.objectContaining({ tone: 'error', description: undefined }),
+      ),
+    )
+    expect(onCreated).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: /Criar agendamento/ })).toBeEnabled()
+  })
+})
 
 // Simulates selecting an image file and confirming through the crop modal.
 async function selectAvatarFile(mimeType = 'image/jpeg') {

@@ -36,24 +36,24 @@ vi.mock('@/lib/brazil-timezone', async (importOriginal) => {
   return { ...mod, brazilTodayIso: vi.fn().mockReturnValue('2020-01-01') }
 })
 
-vi.mock('@/components/common/DatePickerInput', () => ({
-  DatePickerInput: ({
-    id,
-    onValueChange,
-    disabled,
-  }: {
-    id?: string
-    onValueChange?: (v: string) => void
-    disabled?: boolean
-  }) => (
-    <input
-      id={id}
-      data-testid="date-picker-input"
-      disabled={disabled ?? false}
-      onChange={(e) => onValueChange?.(e.target.value)}
-    />
-  ),
-}))
+const calendarMode = vi.hoisted(() => ({ real: false }))
+vi.mock('@/components/common/DatePickerInput', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/components/common/DatePickerInput')>()
+  return {
+    DatePickerInput: (props: Parameters<typeof actual.DatePickerInput>[0]) => {
+      if (calendarMode.real) return <actual.DatePickerInput {...props} />
+      const { id, disabled, onValueChange } = props
+      return (
+        <input
+          id={id}
+          data-testid="date-picker-input"
+          disabled={disabled ?? false}
+          onChange={(e) => onValueChange?.(e.target.value)}
+        />
+      )
+    },
+  }
+})
 
 const SERVICE = { id: 'svc-1', name: 'Limpeza', priceFrom: 100, isActive: true }
 const SLOT = { time: '10:00', available: true, durationMinutes: 30 }
@@ -72,6 +72,7 @@ const FUTURE_APPOINTMENT = makeAppointment({
 })
 
 beforeEach(() => {
+  calendarMode.real = false
   vi.clearAllMocks()
   mockUpdateAppointment.mockReset().mockResolvedValue(FUTURE_APPOINTMENT)
   mockGetAvailableSlots.mockResolvedValue([SLOT])
@@ -100,6 +101,20 @@ function renderModal(
 }
 
 describe('EditAppointmentModal — form lifecycle', () => {
+  it('reschedules using an available calendar day and dismisses with Escape', async () => {
+    calendarMode.real = true
+    const { onClose } = renderModal()
+    await waitFor(() => expect(mockListAvailability).toHaveBeenCalled())
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Abrir calendário' }))
+    expect(screen.getByRole('button', { name: '7' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: '6' }))
+    expect(screen.getByPlaceholderText('DD/MM/AAAA')).toHaveValue('06/12/2030')
+    expect(await screen.findByRole('button', { name: '10:00' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalled()
+  })
+
   it.each(['profile', 'slots'])(
     'settles a failed %s lookup without leaving loading controls stuck',
     async (lookup) => {
