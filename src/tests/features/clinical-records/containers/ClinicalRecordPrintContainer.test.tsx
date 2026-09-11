@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@/test-utils/render-utils'
+import { act, render, screen, waitFor } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
 
 import type {
@@ -183,6 +183,27 @@ describe('ClinicalRecordPrintContainer', () => {
     expect(screen.queryByText('Odontograma')).not.toBeInTheDocument()
   })
 
+  it('prints a notes-only odontogram and a clinic city without a state', async () => {
+    mockGetClinicalRecordPrintData.mockResolvedValue(
+      makePrintData({
+        clinic: {
+          name: 'Clínica Demo',
+          email: null,
+          phone: null,
+          addressLine1: null,
+          city: 'Santos',
+          state: null,
+        },
+      }),
+    )
+    mockGetOdontogram.mockResolvedValue({ data: { notes: 'Reavaliar oclusão' } })
+    render(<ClinicalRecordPrintContainer recordId="rec-1" />)
+    expect(await screen.findByText('Reavaliar oclusão')).toBeInTheDocument()
+    expect(screen.getByText('Santos')).toBeInTheDocument()
+    expect(screen.getByText('Odontograma')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /imprimir/i })).toBeEnabled()
+  })
+
   it('renders attachments when present', async () => {
     mockGetClinicalRecordPrintData.mockResolvedValue(
       makePrintData({
@@ -195,7 +216,7 @@ describe('ClinicalRecordPrintContainer', () => {
               clinicalRecordId: 'rec-1',
               fileName: 'raio-x.jpg',
               fileType: 'image',
-              mimeType: 'image/jpeg',
+              mimeType: null,
               sizeBytes: 1000,
               storageKey: null,
               dataBase64: 'ZmFrZS1kYXRh',
@@ -212,6 +233,10 @@ describe('ClinicalRecordPrintContainer', () => {
     render(<ClinicalRecordPrintContainer recordId="rec-1" />)
     expect(await screen.findByText('Imagens clínicas')).toBeInTheDocument()
     expect(screen.getByText('Raio-X panorâmico')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'raio-x.jpg' })).toHaveAttribute(
+      'src',
+      'data:image/jpeg;base64,ZmFrZS1kYXRh',
+    )
   })
 
   it('renders a placeholder for an attachment without base64 data', async () => {
@@ -306,4 +331,78 @@ describe('ClinicalRecordPrintContainer', () => {
     const link = await screen.findByRole('link', { name: /voltar ao prontuário/i })
     expect(link).toHaveAttribute('href', '/app/prontuario/$clinicalRecordId')
   })
+
+  it('hides the previous patient while preparing another record and clears its odontogram', async () => {
+    mockGetClinicalRecordPrintData.mockResolvedValueOnce(makePrintData())
+    mockGetOdontogram.mockResolvedValueOnce({ data: ODONTOGRAM_DATA }).mockResolvedValueOnce(null)
+    const view = render(<ClinicalRecordPrintContainer recordId="rec-1" />)
+    await screen.findByText('Observação geral')
+    let resolve!: (data: PrintData) => void
+    mockGetClinicalRecordPrintData.mockReturnValueOnce(
+      new Promise((done) => {
+        resolve = done
+      }),
+    )
+    view.rerender(<ClinicalRecordPrintContainer recordId="rec-2" />)
+    expect(screen.queryByText('Observação geral')).not.toBeInTheDocument()
+    expect(screen.queryByText('Ana Martins')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /imprimir/i })).not.toBeInTheDocument()
+    expect(screen.getByText('Preparando prontuário para impressão...')).toBeInTheDocument()
+    await act(async () => {
+      resolve(
+        makePrintData({
+          record: { ...makeRecord({ id: 'rec-2', patientName: 'Bruno Silva' }), attachments: [] },
+        }),
+      )
+    })
+    expect(screen.getAllByText('Bruno Silva')).toHaveLength(2)
+    expect(screen.queryByText('Observação geral')).not.toBeInTheDocument()
+    expect(screen.queryByText('Ana Martins')).not.toBeInTheDocument()
+  })
+
+  it('recovers from a load failure when opening another record', async () => {
+    mockGetClinicalRecordPrintData
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce(makePrintData())
+    mockGetOdontogram.mockResolvedValueOnce(null)
+    const view = render(<ClinicalRecordPrintContainer recordId="failed" />)
+    await screen.findByText('Não foi possível carregar os dados para impressão.')
+    view.rerender(<ClinicalRecordPrintContainer recordId="rec-1" />)
+    expect(await screen.findByRole('button', { name: /imprimir/i })).toBeEnabled()
+    expect(
+      screen.queryByText('Não foi possível carregar os dados para impressão.'),
+    ).not.toBeInTheDocument()
+  })
+
+  it.each(['success', 'failure'] as const)(
+    'ignores a previous print request with a late %s',
+    async (outcome) => {
+      let resolve!: (data: PrintData) => void
+      let reject!: (reason: Error) => void
+      mockGetClinicalRecordPrintData
+        .mockReturnValueOnce(
+          new Promise((yes, no) => {
+            resolve = yes
+            reject = no
+          }),
+        )
+        .mockResolvedValueOnce(
+          makePrintData({
+            record: { ...makeRecord({ patientName: 'Bruno Silva' }), attachments: [] },
+          }),
+        )
+      mockGetOdontogram.mockResolvedValueOnce(null)
+      const view = render(<ClinicalRecordPrintContainer recordId="old" />)
+      view.rerender(<ClinicalRecordPrintContainer recordId="current" />)
+      await screen.findByRole('button', { name: /imprimir/i })
+      await act(async () => {
+        if (outcome === 'success') resolve(makePrintData())
+        else reject(new Error('late failure'))
+      })
+      expect(screen.getAllByText('Bruno Silva')).toHaveLength(2)
+      expect(screen.queryByText('Ana Martins')).not.toBeInTheDocument()
+      expect(mockGetOdontogram).toHaveBeenCalledTimes(1)
+      expect(screen.getByRole('button', { name: /imprimir/i })).toBeEnabled()
+    },
+  )
 })

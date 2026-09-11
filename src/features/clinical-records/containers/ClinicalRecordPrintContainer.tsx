@@ -46,6 +46,10 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
 
   useEffect(() => {
     let isCurrent = true
+    setIsLoading(true)
+    setError(null)
+    setData(null)
+    setOdontogramData(null)
 
     async function loadPrintData() {
       try {
