@@ -1,2204 +1,4052 @@
-# Final coverage gaps — 2026-09-10
+# Frontend coverage inventory — 2026-09-11 continuation
 
-Historical first-pass inventory, before the 20 continuation tests and two fixes.
-Voice/settings locations and counts must be refreshed before further work.
-See [the handoff](HARDENING-HANDOFF.md) for the latest validation baseline.
+Current measurement from the complete coverage suite after this continuation. This file supersedes its earlier contents. The filename is retained for existing links.
 
-Source: the complete final `bun run test:coverage --maxWorkers=2` run. All 380 suites and 4967 tests passed. No new coverage exclusions were applied.
+**Verdict: PARTIAL.** A/B entries are still meaningful testable behavior or edge cases. Listing them is not a claim that they were tested or that convergence was achieved. No coverage exclusions or ignore comments were added. All categories remain in the raw denominator.
 
-| Metric | Initial | Final |
-| --- | ---: | ---: |
-| Statements | 84.56% | 89.60% (8788/9808) |
-| Branches | 82.08% | 86.84% (7071/8142) |
-| Functions | 80.20% | 85.76% (2886/3365) |
-| Lines | 85.35% | 90.40% (8123/8985) |
+| Metric | Fresh start | Current | Covered / total |
+| --- | ---: | ---: | ---: |
+| statements | 89.93% | 91.58% | 9005 / 9832 |
+| branches | 87.29% | 89.47% | 7276 / 8132 |
+| functions | 86.03% | 88.51% | 2983 / 3370 |
+| lines | 90.72% | 92.18% | 8297 / 9000 |
 
-218 production files remain below 100% in at least one dimension. This is an exact inventory of open gaps, not a certification that all important behavior is covered.
+A = meaningful behavior still requiring tests. B = meaningful edge case still requiring tests. C = proven dead code (removed, recorded in the handoff). D = non-behavioral wiring/static declarations; no exclusion applied. E = defensive/unreachable arm with a specific invariant. F = browser integration requiring manual/E2E QA. Mixed files keep their testable A/B gaps; browser limitations do not waive unrelated logic.
 
-## How to read this report
-
-A = important test work still open; B = worthwhile additional behavior/integration tests; C candidate = inspect a defensive branch before deciding it is unreachable; D candidate = narrowly review non-behavioral wiring, without excluding it here. No E/dead-file classification was established. C1–C4 refer to the audit's critical/shared/UI/low-value coverage categories. No category automatically excuses a gap.
-
-Files are ranked by missing branch arms, then ascending line coverage. S/B/F/L means statements/branches/functions/lines. Branch entries are `line:column bID.arm type (location)`, with one-based lines, zero-based columns and zero-based arm indexes. `(condition)` means V8 omitted an arm span (usually an implicit else); the parent condition is reported. A dash means no missing entries in that dimension. Anonymous function names are Istanbul report identifiers, not new exported APIs.
-
-The entries identify exact unexecuted locations. Generic A/B classifications intentionally remain open where individual reachability has not been established; they are not invented explanations for excluding executable production behavior.
+There are **217 files** with uncovered locations. Every surviving branch arm and function is listed below, alongside uncovered line ranges. Ordering is missing branch count then line coverage. One-based lines, zero-based columns/arm indexes; condition denotes a V8 arm without its own source span. Source excerpts identify the exact action or condition requiring a scenario; they do not assert unproven unreachability.
 
 ## 1. src/features/clinical-records/components/VoiceDictationCard.tsx
 
-S/B/F/L: 89.12% / 77.68% / 92.85% / 91.81%. Missing branch arms: 52.
+Classification: **A**. Transcript expansion/collapse and field reselection are now covered. Remaining A/B: timer/reset combinations, double-start or late-recorder events, odontogram reselection and optional suggested-field values. Real MediaRecorder encoding/microphone permission behavior is F, but the application event/timer branches are not automatically browser-only exemptions.
+
+S/B/F/L: 93.73% / 85.65% / 100.00% / 95.95%.
+
+- Uncovered lines: 323-324, 327-328, 331-332, 384-385, 554-558, 735.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 82:2 b0.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (typeof MediaRecorder !== 'undefined') {` |
+| 322:4 b15.0 if (arm) | E: reset/apply/discard controls exist only after success/error; stop and processing handlers clear these timer refs before entering those states. Retained teardown safeguards cannot be activated through the current UI. | `if (stopFallbackTimerRef.current) {` |
+| 326:4 b16.0 if (arm) | E: reset/apply/discard controls exist only after success/error; stop and processing handlers clear these timer refs before entering those states. Retained teardown safeguards cannot be activated through the current UI. | `if (processingTimeoutRef.current) {` |
+| 330:4 b17.0 if (arm) | E: reset/apply/discard controls exist only after success/error; stop and processing handlers clear these timer refs before entering those states. Retained teardown safeguards cannot be activated through the current UI. | `if (processingStepTimerRef.current) {` |
+| 363:6 b18.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isMountedRef.current) return` |
+| 376:6 b19.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current)` |
+| 379:8 b20.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isMountedRef.current \|\| processingAbortedRef.current) return` |
+| 383:8 b22.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (processingStepTimerRef.current) {` |
+| 419:8 b27.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (import.meta.env.DEV) {` |
+| 432:10 b29.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isMountedRef.current \|\| processingAbortedRef.current) return` |
+| 448:10 b31.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isMountedRef.current \|\| processingAbortedRef.current) return` |
+| 513:4 b39.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!recorder \|\| recorder.state === 'inactive') return` |
+| 526:4 b41.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (stopFallbackTimerRef.current) clearTimeout(stopFallbackTimerRef.current)` |
+| 529:6 b42.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isMountedRef.current \|\| hasProcessedStopRef.current) return` |
+| 550:4 b44.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (readOnly \|\| state !== 'idle') return` |
+| 553:4 b46.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!navigator.mediaDevices?.getUserMedia) {` |
+| 586:49 b50.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const effectiveMime = recorder.mimeType \|\| preferredMime \|\| 'audio/webm'` |
+| 586:66 b50.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const effectiveMime = recorder.mimeType \|\| preferredMime \|\| 'audio/webm'` |
+| 592:8 b51.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (e.data.size > 0) chunksRef.current.push(e.data)` |
+| 605:8 b54.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (hasProcessedStopRef.current) return` |
+| 656:6 b58.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (err instanceof Error) {` |
+| 659:19 b61.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `} else if (err.name === 'NotFoundError') {` |
+| 676:61 b63.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const formatted = formatDictationFieldText(rawValue ?? '')` |
+| 684:75 b65.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.map((s) => ({ ...s, note: editableOdontogramNotes[s.toothNumber] ?? s.note }))` |
+| 696:4 b69.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (hasValidFields) onApplyFields(toApply, fieldModes)` |
+| 735:11 b72.1 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `else next.add(toothNumber)` |
+| 749:55 b74.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const existing = (currentFieldValues?.[key] ?? '').trim()` |
+| 750:49 b75.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const original = suggestedFields[key] ?? ''` |
+| 761:41 b76.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `[key]: suggestedFields[key] ?? '',` |
+| 984:77 b97.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const currentMode: FieldApplyMode = fieldModes[key] ?? 'append'` |
+| 1050:62 b102.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={editableFields[key] ?? ''}` |
+| 1116:90 b106.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={editableOdontogramNotes[suggestion.toothNumber] ?? ''}` |
+| 1220:31 b110.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{errorMessage ?? 'Não foi possível processar o ditado.'}` |
+| 1240:42 b112.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p>MIME: {debugInfo.mimeType \|\| '(browser default)'}</p>` |
+
+## 2. src/features/marketing/components/AnimatedImpactSection.tsx
+
+Classification: **A**. untested browser-visible animation/interaction behavior; not a static configuration file and not excluded.
+
+S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%.
+
+- Uncovered lines: 29, 88-89, 91-92, 98, 101, 103-104, 106-109, 112-113, 115-117, 119-121, 124-125, 128, 132-133, 135, 137, 168, 170, 201.
+- Uncovered functions: `formatValue@87`; `useCountUp@100`; `(anonymous_2)@103`; `(anonymous_3)@115`; `(anonymous_4)@125`; `ImpactCard@131`; `AnimatedImpactSection@167`; `(anonymous_7)@201`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 88:2 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!decimalDigits) {` |
+| 88:2 b0.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!decimalDigits) {` |
+| 104:4 b1.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isActive) return` |
+| 104:4 b1.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isActive) return` |
+| 107:4 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (reduceMotion) {` |
+| 107:4 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (reduceMotion) {` |
+| 121:6 b3.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (progress < 1) raf = window.requestAnimationFrame(tick)` |
+| 121:6 b3.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (progress < 1) raf = window.requestAnimationFrame(tick)` |
+| 142:20 b4.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',` |
+| 142:50 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',` |
+| 144:44 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '${Math.min(index * 60, 300)}ms' : '0ms' }}` |
+| 144:79 b5.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '${Math.min(index * 60, 300)}ms' : '0ms' }}` |
+| 152:9 b6.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{metric.displayPrefix && (` |
+| 153:10 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-base font-medium text-slate-400">{metric.displayPrefix}</span>` |
+| 182:24 b7.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',` |
+| 182:54 b7.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',` |
+| 209:24 b8.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'opacity-100' : 'opacity-0',` |
+| 209:40 b8.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'opacity-100' : 'opacity-0',` |
+| 211:48 b9.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '380ms' : '0ms' }}` |
+| 211:58 b9.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '380ms' : '0ms' }}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 87 formatValue | `function formatValue(raw: number, decimalDigits?: number): string { if (!decimalDigits) { return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(raw)` |
+| 100 useCountUp | `function useCountUp(target: number, isActive: boolean): number { const [value, setValue] = useState(0)` |
+| 103 (anonymous_2) | `useEffect(() => { if (!isActive) return` |
+| 115 (anonymous_3) | `const tick = (now: number) => { const elapsed = now - startTime const progress = Math.min(elapsed / COUNT_UP_DURATION_MS, 1)` |
+| 125 (anonymous_4) | `return () => window.cancelAnimationFrame(raf) }, [isActive, target])` |
+| 131 ImpactCard | `function ImpactCard({ metric, index }: { metric: ImpactMetric; index: number }) { const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.12) const Icon = metric.icon` |
+| 167 AnimatedImpactSection | `export function AnimatedImpactSection() { const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.12)` |
+| 201 (anonymous_7) | `<ImpactCard key={metric.id} metric={metric} index={index} /> ))} </div>` |
+
+## 3. src/features/inventory/components/ProductFormModal.tsx
+
+Classification: **A**. product form callbacks, optional values and validation/disabled presentation need additional scenarios.
+
+S/B/F/L: 71.42% / 73.97% / 50.00% / 72.22%.
+
+- Uncovered lines: 107-108, 111-112, 166, 169, 178, 267, 281, 312, 324, 331, 349, 367, 376.
+- Uncovered functions: `(anonymous_6)@178`; `(anonymous_10)@267`; `(anonymous_11)@281`; `(anonymous_12)@312`; `(anonymous_13)@324`; `(anonymous_14)@331`; `(anonymous_15)@349`; `(anonymous_16)@367`; `(anonymous_17)@376`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 60:73 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `minQuantity: product.minQuantity > 0 ? String(product.minQuantity) : '',` |
+| 62:34 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `supplier: product.supplier ?? '',` |
+| 64:68 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `expiresAt: product.expiresAt ? product.expiresAt.slice(0, 10) : '',` |
+| 65:40 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: product.description ?? '',` |
+| 66:28 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `notes: product.notes ?? '',` |
+| 98:4 b5.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!open) return` |
+| 106:4 b7.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!form.name.trim()) {` |
+| 110:4 b8.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!form.categoryId) {` |
+| 120:10 b10.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? parsedQtyValue` |
+| 119:52 b11.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `!isEditMode && form.currentQuantity !== '' && !Number.isNaN(parsedQtyValue)` |
+| 140:44 b17.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `supplier: form.supplier.trim() \|\| undefined,` |
+| 141:39 b18.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `expiresAt: form.expiresAt \|\| null,` |
+| 142:50 b19.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: form.description.trim() \|\| undefined,` |
+| 143:38 b20.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `notes: form.notes.trim() \|\| undefined,` |
+| 167:12 b25.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? err.message` |
+| 168:12 b25.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Não foi possível salvar o produto. Tente novamente.'` |
+| 178:55 b27.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 178:66 b27.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 219:26 b30.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{error && <InlineFeedback>{error}</InlineFeedback>}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 178 (anonymous_6) | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+| 267 (anonymous_10) | `onChange={(e) => setField('unit', e.target.value)} /> </FormField>` |
+| 281 (anonymous_11) | `onChange={(e) => setField('supplier', e.target.value)} /> </FormField>` |
+| 312 (anonymous_12) | `onChange={(e) => setField('currentQuantity', e.target.value)} /> </FormField>` |
+| 324 (anonymous_13) | `onChange={(e) => setField('minQuantity', e.target.value)} /> </FormField>` |
+| 331 (anonymous_14) | `onValueChange={(v) => setField('expiresAt', v)} /> </FormField>` |
+| 349 (anonymous_15) | `setField('purchasePrice', formatMoneyInputFromDigits(e.target.value)) } />` |
+| 367 (anonymous_16) | `onChange={(e) => setField('description', e.target.value)} /> </FormField>` |
+| 376 (anonymous_17) | `onChange={(e) => setField('notes', e.target.value)} /> </FormField>` |
+
+## 4. src/features/patients/containers/PatientsAttentionContainer.tsx
+
+Classification: **A**. Open A/B: keyboard activation and descendant-event handling, WhatsApp filtering, resizing pagination, nullable contact/visit/next-appointment/professional presentation, drawer dismissal and reason overflow. These are meaningful application behaviors; no exclusion is justified.
+
+S/B/F/L: 73.91% / 81.00% / 75.00% / 74.41%.
+
+- Uncovered lines: 149, 499-500, 613, 615-618, 681-682, 709.
+- Uncovered functions: `(anonymous_5)@149`; `(anonymous_15)@498`; `(anonymous_19)@613`; `(anonymous_20)@614`; `(anonymous_22)@680`; `(anonymous_23)@709`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 149:64 b3.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={!!item} onOpenChange={(open: boolean) => !open && onClose()}>` |
+| 149:73 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={!!item} onOpenChange={(open: boolean) => !open && onClose()}>` |
+| 414:54 b24.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={summary.total > 0 ? 'warning' : 'neutral'}` |
+| 420:62 b25.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={summary.pendingPayment > 0 ? 'danger' : 'neutral'}` |
+| 426:57 b26.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={summary.inactive > 0 ? 'warning' : 'neutral'}` |
+| 432:72 b27.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={summary.withoutUpcomingAppointment > 0 ? 'info' : 'neutral'}` |
+| 531:157 b32.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? '${filteredItems.length} paciente${filteredItems.length !== 1 ? 's' : ''} encontrado${filteredItems.length !== 1 ? 's' : ''}${hasFilters ? ' com os filtros aplicados' : ''}.'` |
+| 542:64 b34.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `hasFilters ? 'Nenhum paciente encontrado' : 'Todos os pacientes estão em dia'` |
+| 547:24 b35.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Nenhuma pendência encontrada.'` |
+| 595:32 b37.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Todos os pacientes estão em dia'` |
+| 600:32 b38.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Nenhuma pendência encontrada.'` |
+| 615:26 b39.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (e.target !== e.currentTarget) return` |
+| 615:26 b39.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (e.target !== e.currentTarget) return` |
+| 616:26 b40.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (e.key === 'Enter' \|\| e.key === ' ') {` |
+| 616:26 b40.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (e.key === 'Enter' \|\| e.key === ' ') {` |
+| 616:30 b41.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (e.key === 'Enter' \|\| e.key === ' ') {` |
+| 616:51 b41.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (e.key === 'Enter' \|\| e.key === ' ') {` |
+| 636:30 b42.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">` |
+| 654:28 b43.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 149 (anonymous_5) | `<Dialog.Root open={!!item} onOpenChange={(open: boolean) => !open && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+| 498 (anonymous_15) | `onValueChange={(v) => { setWhatsappFilter(v as WhatsAppFilter) setPage(1)` |
+| 613 (anonymous_19) | `onClick={() => setSelectedItem(item)} onKeyDown={(e) => { if (e.target !== e.currentTarget) return` |
+| 614 (anonymous_20) | `onKeyDown={(e) => { if (e.target !== e.currentTarget) return if (e.key === 'Enter' \|\| e.key === ' ') {` |
+| 680 (anonymous_22) | `onPageSizeChange={(s) => { setPageSize(s) setPage(1)` |
+| 709 (anonymous_23) | `onClose={() => setSelectedItem(null)} avatarUrl={selectedItem ? avatarsByIdentifier[selectedItem.identifier] : undefined} />` |
+
+## 5. src/features/scheduling/components/calendar/WeekCalendar.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 98.03% / 64.81% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 104:4 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!value) return` |
+| 184:31 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `today && dayStatus.isWorking && 'bg-primary/5',` |
+| 184:54 b2.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `today && dayStatus.isWorking && 'bg-primary/5',` |
+| 186:54 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dayStatus.kind === 'special' && 'bg-indigo-50/70',` |
+| 193:28 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'text-primary'` |
+| 192:33 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `today && dayStatus.isWorking` |
+| 195:30 b7.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'text-indigo-600'` |
+| 207:28 b9.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'text-primary'` |
+| 206:33 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `today && dayStatus.isWorking` |
+| 209:30 b11.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'text-indigo-950'` |
+| 222:44 b15.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{dayStatus.reason ? 'Folga: ${dayStatus.reason}' : 'Folga'}` |
+| 225:53 b16.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{dayStatus.kind === 'special' && dayStatus.timeRange && (` |
+| 226:22 b16.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p` |
+| 282:30 b19.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'bg-primary/5'` |
+| 281:35 b20.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `today && dayStatus.isWorking` |
+| 284:32 b21.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'bg-muted/50'` |
+| 298:36 b22.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'bg-[repeating-linear-gradient(135deg,#f8fafc_0px,#f8fafc_8px,#eef2f7_8px,#eef2f7_12px)] dark:bg-[repeating-linear-gradient(135deg,#171717_0px,#171717_8px,#262626_8px,#262626_12px)] opacity-90',` |
+| 304:36 b23.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Fora da rotina de atendimento deste dia'` |
+| 323:77 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const startMin = wallTimeToMinutes(appt.startTime ?? '')` |
+
+## 6. src/features/marketing/components/landing/DentalArchScene.tsx
+
+Classification: **F**. Three.js geometry/materials, renderer frames and WebGL lighting require a real canvas/GPU. Unit mocks cannot certify the rendered scene.
+
+S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%.
+
+- Uncovered lines: 8, 16-21, 24-25, 30-32, 37, 44, 54-58, 60-64, 66, 68-77, 109-114, 118-119, 130, 132-133, 135, 137-140, 143-144, 147, 164-166, 169-171, 174-175, 194-198, 201-202, 204-205, 209-211, 215-217, 220-225, 228, 245, 253, 296, 308.
+- Uncovered functions: `archPoint@43`; `(anonymous_1)@54`; `(anonymous_2)@56`; `(anonymous_3)@68`; `Tooth@108`; `(anonymous_5)@118`; `(anonymous_6)@130`; `(anonymous_7)@132`; `(anonymous_8)@163`; `(anonymous_9)@168`; `(anonymous_10)@173`; `ArchContents@193`; `(anonymous_12)@205`; `(anonymous_13)@209`; `(anonymous_14)@210`; `(anonymous_15)@215`; `(anonymous_16)@245`; `(anonymous_17)@253`; `DentalArchScene@295`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 69:34 b0.0 cond-expr (arm) | F: see file rationale. | `const target = (COUNT === 1 ? 0.5 : k / (COUNT - 1)) * total` |
+| 69:40 b0.1 cond-expr (arm) | F: see file rationale. | `const target = (COUNT === 1 ? 0.5 : k / (COUNT - 1)) * total` |
+| 71:11 b1.0 binary-expr (arm) | F: see file rationale. | `while (i < SAMPLES && cum[i] < target) i++` |
+| 71:26 b1.1 binary-expr (arm) | F: see file rationale. | `while (i < SAMPLES && cum[i] < target) i++` |
+| 72:42 b2.0 binary-expr (arm) | F: see file rationale. | `const segT = (target - cum[i - 1]) / (cum[i] - cum[i - 1] \|\| 1)` |
+| 72:65 b2.1 binary-expr (arm) | F: see file rationale. | `const segT = (target - cum[i - 1]) / (cum[i] - cum[i - 1] \|\| 1)` |
+| 84:28 b3.0 cond-expr (arm) | F: see file rationale. | `variant: absT < 0.3 ? 'incisor' : absT < 0.62 ? 'canine' : 'molar',` |
+| 84:40 b3.1 cond-expr (arm) | F: see file rationale. | `variant: absT < 0.3 ? 'incisor' : absT < 0.62 ? 'canine' : 'molar',` |
+| 84:54 b4.0 cond-expr (arm) | F: see file rationale. | `variant: absT < 0.3 ? 'incisor' : absT < 0.62 ? 'canine' : 'molar',` |
+| 84:65 b4.1 cond-expr (arm) | F: see file rationale. | `variant: absT < 0.3 ? 'incisor' : absT < 0.62 ? 'canine' : 'molar',` |
+| 135:33 b5.0 cond-expr (arm) | F: see file rationale. | `lift.current += ((isActive ? 1 : 0) - lift.current) * Math.min(1, delta * 6)` |
+| 135:37 b5.1 cond-expr (arm) | F: see file rationale. | `lift.current += ((isActive ? 1 : 0) - lift.current) * Math.min(1, delta * 6)` |
+| 138:4 b6.0 if (arm) | F: see file rationale. | `if (node) {` |
+| 138:4 b6.1 if (condition) | F: see file rationale. | `if (node) {` |
+| 196:22 b7.0 binary-expr (arm) | F: see file rationale. | `const activeIndex = hovered ?? selectedIndex` |
+| 196:33 b7.1 binary-expr (arm) | F: see file rationale. | `const activeIndex = hovered ?? selectedIndex` |
+| 220:36 b8.0 cond-expr (arm) | F: see file rationale. | `const damp = hovered !== null ? 0.12 : 1` |
+| 220:43 b8.1 cond-expr (arm) | F: see file rationale. | `const damp = hovered !== null ? 0.12 : 1` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 43 archPoint | `function archPoint(theta: number) { return { x: Math.sin(theta) * RX, y: 0, z: Math.cos(theta) * RZ } }` |
+| 54 (anonymous_1) | `const PLACEMENTS: ToothPlacement[] = (() => { const SAMPLES = 240 const pts = Array.from({ length: SAMPLES + 1 }, (_, i) => {` |
+| 56 (anonymous_2) | `const pts = Array.from({ length: SAMPLES + 1 }, (_, i) => { const theta = (-1 + (2 * i) / SAMPLES) * THETA_MAX return { theta, ...archPoint(theta) }` |
+| 68 (anonymous_3) | `return DENTAL_WORKFLOWS.map((_, k) => { const target = (COUNT === 1 ? 0.5 : k / (COUNT - 1)) * total let i = 1` |
+| 108 Tooth | `}) { const visible = useRef<THREE.Group>(null) const lift = useRef(0)` |
+| 118 (anonymous_5) | `const material = useMemo(() => { return new THREE.MeshStandardMaterial({ color: ENAMEL,` |
+| 130 (anonymous_6) | `useEffect(() => () => material.dispose(), [material]) useFrame((_, delta) => {` |
+| 132 (anonymous_7) | `useFrame((_, delta) => { elapsed.current += delta // Calm, slightly slow ease toward the active state.` |
+| 163 (anonymous_8) | `onPointerOver={(event: ThreeEvent<PointerEvent>) => { event.stopPropagation() onActivate(index)` |
+| 168 (anonymous_9) | `onPointerOut={(event: ThreeEvent<PointerEvent>) => { event.stopPropagation() onClear()` |
+| 173 (anonymous_10) | `onClick={(event: ThreeEvent<MouseEvent>) => { event.stopPropagation() onSelect(index)` |
+| 193 ArchContents | `}) { const [hovered, setHovered] = useState<number \| null>(null) const elapsed = useRef(0)` |
+| 205 (anonymous_12) | `() => PLACEMENTS[activeIndex].position.clone().add(new THREE.Vector3(0, 1.05, 0.15)), [activeIndex], )` |
+| 209 (anonymous_13) | `useEffect(() => { return () => { document.body.style.cursor = ''` |
+| 210 (anonymous_14) | `return () => { document.body.style.cursor = '' }` |
+| 215 (anonymous_15) | `useFrame((state, delta) => { elapsed.current += delta const time = elapsed.current` |
+| 245 (anonymous_16) | `<Tooth key={workflow.key} geometry={toothGeometry}` |
+| 253 (anonymous_17) | `onClear={() => setHovered(null)} onSelect={onSelect} />` |
+| 295 DentalArchScene | `}) { return ( <Canvas` |
+
+## 7. src/features/dashboard/components/TodayAppointmentsChart.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 75.47% / 76.62% / 64.70% / 77.27%.
+
+- Uncovered lines: 53-56, 79-80, 165-166, 183-184.
+- Uncovered functions: `CustomTooltip@52`; `ActiveSector@70`; `(anonymous_7)@165`; `(anonymous_8)@166`; `(anonymous_9)@183`; `(anonymous_10)@184`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 53:2 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active \|\| !payload?.length) return null` |
+| 53:2 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active \|\| !payload?.length) return null` |
+| 53:6 b3.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active \|\| !payload?.length) return null` |
+| 53:17 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active \|\| !payload?.length) return null` |
+| 63:39 b4.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{row.count} {row.count === 1 ? 'consulta' : 'consultas'}` |
+| 63:52 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{row.count} {row.count === 1 ? 'consulta' : 'consultas'}` |
+| 72:9 b5.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `cx = 0,` |
+| 73:9 b6.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `cy = 0,` |
+| 74:18 b7.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `innerRadius = 0,` |
+| 75:18 b8.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `outerRadius = 0,` |
+| 76:17 b9.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `startAngle = 0,` |
+| 77:15 b10.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `endAngle = 0,` |
+| 177:55 b15.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `paddingAngle={pieRows.length > 1 ? 2 : 0}` |
+| 183:30 b17.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onMouseEnter={isHoverDevice ? (_, index) => setHoveredIndex(index) : undefined}` |
+| 184:30 b18.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onMouseLeave={isHoverDevice ? () => setHoveredIndex(null) : undefined}` |
+| 247:20 b29.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active) return` |
+| 253:20 b30.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isHoverDevice) setSelectedIndex(null)` |
+| 259:20 b31.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active) return` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 52 CustomTooltip | `}) { if (!active \|\| !payload?.length) return null const row = payload[0].payload` |
+| 70 ActiveSector | `function ActiveSector(props: PieSectorDataItem) { const { cx = 0,` |
+| 165 (anonymous_7) | `onMouseDown={(e) => e.preventDefault()} onTouchStart={(e) => e.preventDefault()} >` |
+| 166 (anonymous_8) | `onTouchStart={(e) => e.preventDefault()} > <ResponsiveContainer width="100%" height={300}>` |
+| 183 (anonymous_9) | `onMouseEnter={isHoverDevice ? (_, index) => setHoveredIndex(index) : undefined} onMouseLeave={isHoverDevice ? () => setHoveredIndex(null) : undefined} >` |
+| 184 (anonymous_10) | `onMouseLeave={isHoverDevice ? () => setHoveredIndex(null) : undefined} > {pieRows.map((row) => (` |
+
+## 8. src/features/clinical-records/containers/ClinicalRecordEditorContainer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 88.07% / 84.74% / 77.50% / 92.06%.
+
+- Uncovered lines: 294, 326-327, 349, 508, 550, 574, 624, 642, 659.
+- Uncovered functions: `(anonymous_3)@148`; `(anonymous_21)@326`; `(anonymous_24)@348`; `(anonymous_32)@508`; `(anonymous_34)@550`; `(anonymous_35)@574`; `(anonymous_36)@624`; `(anonymous_37)@642`; `(anonymous_38)@659`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 146:8 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent && data) setOdontogramData(data.data)` |
+| 152:8 b6.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent) setOdontogramLoaded(true)` |
+| 293:6 b20.7 switch (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `default:` |
+| 301:4 b22.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!canEditClinicalContent) return` |
+| 311:4 b23.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!targetField) return` |
+| 318:4 b25.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (targetSection) openSection(targetSection)` |
+| 322:4 b26.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!canEditClinicalContent) return` |
+| 325:4 b27.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (Object.keys(odontogramData.teeth).length > 0) {` |
+| 337:4 b28.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!canEditClinicalContent) return` |
+| 340:6 b29.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!odontogramAlertShownRef.current) {` |
+| 347:8 b30.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (odontogramAlertResetRef.current) clearTimeout(odontogramAlertResetRef.current)` |
+| 362:4 b31.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!canEditClinicalContent) return` |
+| 376:4 b32.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (targetSection) openSection(targetSection)` |
+| 383:4 b33.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!canEditClinicalContent \|\| suggestions.length === 0) return` |
+| 397:34 b37.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `notes: suggestion.note \|\| undefined,` |
+| 404:64 b39.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: 'Não aplicado: dente${skipped.length > 1 ? 's' : ''} ${skipped.join(', ')} já ${skipped.length > 1 ? 'possuem' : 'possui'} condição registrada.',` |
+| 404:122 b40.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: 'Não aplicado: dente${skipped.length > 1 ? 's' : ''} ${skipped.join(', ')} já ${skipped.length > 1 ? 'possuem' : 'possui'} condição registrada.',` |
+| 666:62 b46.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={isReadOnly ? (record.privateNotes ?? '') : field('privateNotes')}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 148 (anonymous_3) | `.catch(() => { /* odontogram is optional — ignore load errors */ })` |
+| 326 (anonymous_21) | `upsertOdontogram(identifier, record.patientName, odontogramData).catch(() => { showAlert({ title: 'Odontograma não salvo',` |
+| 348 (anonymous_24) | `odontogramAlertResetRef.current = setTimeout(() => { odontogramAlertShownRef.current = false }, 10_000)` |
+| 508 (anonymous_32) | `onToggle={() => toggleSection('evolucao')} > {/* hideLabel: section title already communicates this field's purpose */}` |
+| 550 (anonymous_34) | `onToggle={() => toggleSection('diagnostico')} > {/* hideLabel: section title already communicates this field's purpose */}` |
+| 574 (anonymous_35) | `onToggle={() => toggleSection('plano')} > <div className="space-y-6">` |
+| 624 (anonymous_36) | `onToggle={() => toggleSection('odontograma')} > {/* showTitle={false}: ClinicalSection header already says "Odontograma" */}` |
+| 642 (anonymous_37) | `onToggle={() => toggleSection('imagens')} > {/* showTitle={false}: ClinicalSection header already says "Imagens e anexos" */}` |
+| 659 (anonymous_38) | `onToggle={() => toggleSection('notas-privadas')} className="border-amber-100 bg-amber-50 dark:border-amber-800/30 dark:bg-amber-950/20" >` |
+
+## 9. src/components/layout/AppShell.tsx
+
+Classification: **A**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+
+S/B/F/L: 97.84% / 81.05% / 96.96% / 97.59%.
+
+- Uncovered lines: 179, 195.
+- Uncovered functions: `cycleTheme@194`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 177:18 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return raw ? (JSON.parse(raw) as Record<string, boolean>) : {}` |
+| 195:33 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setTheme(theme === 'light' ? 'dark' : 'light')` |
+| 195:42 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setTheme(theme === 'light' ? 'dark' : 'light')` |
+| 198:51 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const label = theme === 'light' ? 'Tema claro' : 'Tema escuro'` |
+| 199:41 b5.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const Icon = theme === 'light' ? Sun : Moon` |
+| 270:88 b23.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const primaryRoutes = user?.role ? (MOBILE_PRIMARY_ROUTES_BY_ROLE[user.role] ?? []) : []` |
+| 270:82 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const primaryRoutes = user?.role ? (MOBILE_PRIMARY_ROUTES_BY_ROLE[user.role] ?? []) : []` |
+| 327:38 b27.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `hasActive ? 'text-sidebar-primary' : 'text-sidebar-foreground/50',` |
+| 335:38 b28.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `hasActive ? 'text-sidebar-primary' : 'text-sidebar-foreground/40',` |
+| 351:53 b30.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `aria-current={active ? 'page' : undefined}` |
+| 354:42 b31.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `active && 'bg-sidebar-accent font-semibold text-sidebar-primary',` |
+| 380:43 b33.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `aria-current={active ? 'page' : undefined}` |
+| 383:32 b34.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `active && 'bg-sidebar-accent text-sidebar-primary',` |
+| 464:45 b39.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `aria-current={active ? 'page' : undefined}` |
+| 468:28 b40.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'bg-sidebar-accent text-sidebar-primary'` |
+| 494:53 b41.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{user ? getUserDisplayName(user) : 'Usuário'}` |
+| 545:16 b43.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: ' · expira hoje'}` |
+| 544:61 b44.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? ' · ${daysRemaining} ${daysRemaining === 1 ? 'dia restante' : 'dias restantes'}'` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 194 cycleTheme | `function cycleTheme() { setTheme(theme === 'light' ? 'dark' : 'light') }` |
+
+## 10. src/features/inventory/components/CategoryManagerModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 80.64% / 71.66% / 82.60% / 82.02%.
+
+- Uncovered lines: 77-81, 104-105, 109-110, 135, 168, 179, 242, 391, 450, 453.
+- Uncovered functions: `(anonymous_9)@179`; `(anonymous_12)@242`; `(anonymous_13)@242`; `(anonymous_21)@391`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 76:4 b1.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!open) {` |
+| 103:4 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!name) {` |
+| 108:4 b3.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {` |
+| 137:12 b7.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Não foi possível atualizar a categoria.'` |
+| 138:12 b7.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Não foi possível cadastrar a categoria.',` |
+| 156:4 b8.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!deletingCategory) return` |
+| 167:6 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (editingCategory?.id === deletingCategory.id) {` |
+| 179:57 b10.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 179:68 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 220:32 b12.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{formError && <InlineFeedback>{formError}</InlineFeedback>}` |
+| 332:69 b21.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{category.productCount !== 1 ? 's' : ''}` |
+| 391:68 b22.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={category !== null} onOpenChange={(isOpen) => !isOpen && onCancel()}>` |
+| 391:79 b22.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={category !== null} onOpenChange={(isOpen) => !isOpen && onCancel()}>` |
+| 445:2 b27.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (error instanceof ApiError) {` |
+| 446:4 b28.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (error.status === 409) {` |
+| 450:11 b29.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return error.message \|\| 'Não foi possível excluir a categoria.'` |
+| 450:28 b29.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return error.message \|\| 'Não foi possível excluir a categoria.'` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 179 (anonymous_9) | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+| 242 (anonymous_12) | `setForm((current) => ({ ...current, color: event.target.value })) } />` |
+| 242 (anonymous_13) | `setForm((current) => ({ ...current, color: event.target.value })) } />` |
+| 391 (anonymous_21) | `<Dialog.Root open={category !== null} onOpenChange={(isOpen) => !isOpen && onCancel()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+
+## 11. src/features/inventory/components/InventoryProductCard.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 100.00% / 70.17% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 69:8 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div` |
+| 70:132 b6.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EMPTY' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-300'}'}` |
+| 70:234 b6.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EMPTY' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-300'}'}` |
+| 74:14 b7.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Sem estoque — necessita reposição'` |
+| 75:14 b7.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Estoque abaixo do mínimo'}` |
+| 81:8 b8.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div` |
+| 82:134 b9.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EXPIRED' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800/50 dark:bg-orange-950/30 dark:text-orange-300'}'}` |
+| 82:236 b9.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-3 flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-medium ${product.status === 'EXPIRED' ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-300' : 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-800/50 dark:bg-orange-950/30 dark:text-orange-300'}'}` |
+| 85:42 b10.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{product.status === 'EXPIRED' ? 'Validade vencida' : 'Validade próxima do vencimento'}` |
+| 85:63 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{product.status === 'EXPIRED' ? 'Validade vencida' : 'Validade próxima do vencimento'}` |
+| 94:76 b11.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-0.5 font-semibold ${product.status === 'EMPTY' ? 'text-red-600 dark:text-red-400' : product.status === 'LOW' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}'}` |
+| 94:138 b12.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-0.5 font-semibold ${product.status === 'EMPTY' ? 'text-red-600 dark:text-red-400' : product.status === 'LOW' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}'}` |
+| 105:14 b13.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
+| 112:76 b14.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-0.5 font-medium ${product.status === 'EXPIRED' ? 'text-red-600 dark:text-red-400' : product.status === 'EXPIRING' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}'}` |
+| 112:143 b15.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={'mt-0.5 font-medium ${product.status === 'EXPIRED' ? 'text-red-600 dark:text-red-400' : product.status === 'EXPIRING' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}'}` |
+| 114:21 b16.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{product.expiresAt ? (` |
+| 128:10 b18.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="col-span-2 min-w-0">` |
+
+## 12. src/features/finance/components/ExpenseClassifyAction.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 47.61% / 46.42% / 16.66% / 47.61%.
+
+- Uncovered lines: 11, 13, 19, 86-87, 92, 101, 103, 127, 137, 152.
+- Uncovered functions: `ConfidenceBadge@10`; `(anonymous_2)@92`; `(anonymous_3)@127`; `(anonymous_4)@137`; `(anonymous_5)@152`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 14:8 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-400'` |
+| 15:8 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: pct >= 70` |
+| 16:10 b1.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-400'` |
+| 17:10 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'border-red-200 bg-red-50 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-400'` |
+| 85:2 b6.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (result) {` |
+| 86:4 b7.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (result.source === 'NO_MATCH' \|\| !result.suggestedCategoryId) {` |
+| 86:4 b7.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (result.source === 'NO_MATCH' \|\| !result.suggestedCategoryId) {` |
+| 86:8 b8.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (result.source === 'NO_MATCH' \|\| !result.suggestedCategoryId) {` |
+| 86:40 b8.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (result.source === 'NO_MATCH' \|\| !result.suggestedCategoryId) {` |
+| 115:13 b9.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{SOURCE_LABEL[result.source] ?? result.source}` |
+| 115:44 b9.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{SOURCE_LABEL[result.source] ?? result.source}` |
+| 118:9 b10.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{result.reason && (` |
+| 119:10 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className="text-[10px] italic text-muted-foreground">{result.reason}</p>` |
+| 129:26 b11.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{isApplying ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : null}` |
+| 129:92 b11.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{isApplying ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : null}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 10 ConfidenceBadge | `function ConfidenceBadge({ confidence }: { confidence: number }) { const pct = Math.round(confidence * 100) const cls =` |
+| 92 (anonymous_2) | `onClick={() => onDismiss(transactionId)} className="text-[11px] text-muted-foreground underline hover:text-foreground" >` |
+| 127 (anonymous_3) | `onClick={() => onApply(transactionId, categoryId)} > {isApplying ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : null}` |
+| 137 (anonymous_4) | `onClick={() => onDismiss(transactionId)} > <X className="h-3 w-3" aria-hidden="true" />` |
+| 152 (anonymous_5) | `onClick={() => onClassify(transactionId)} className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-primary hover:underline disabled:pointer-events-none disabled:opacity-50" aria-label="Sugerir categoria para este lançamento"` |
+
+## 13. src/features/notifications/pages/NotificationSettingsPage.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 74.19% / 75.80% / 71.42% / 74.19%.
+
+- Uncovered lines: 64-66, 71-73, 75, 222.
+- Uncovered functions: `(anonymous_3)@70`; `(anonymous_5)@222`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 55:46 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `title: enabled ? 'WhatsApp ativado' : 'WhatsApp desativado',` |
+| 60:12 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Notificações WhatsApp desativadas.',` |
+| 58:14 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'WhatsApp real ativo. Mensagens só serão enviadas por ação explícita.'` |
+| 64:44 b6.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const msg = err instanceof ApiError ? err.message : 'Erro ao salvar preferências.'` |
+| 64:58 b6.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const msg = err instanceof ApiError ? err.message : 'Erro ao salvar preferências.'` |
+| 130:24 b13.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'WhatsApp real ativo'` |
+| 137:24 b15.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Mensagens enviadas via Meta WhatsApp Business Cloud API.'` |
+| 140:24 b16.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Ative para enviar mensagens via WhatsApp Cloud API.'` |
+| 139:40 b17.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: isRealProvider && providerConfigured` |
+| 142:26 b18.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Configure as credenciais da Meta antes de ativar o envio real.'` |
+| 169:48 b23.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{whatsappEnabled && isRealProvider && providerConfigured && (` |
+| 170:12 b23.3 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="rounded-md bg-green-50 px-3 py-2 text-xs text-green-800 dark:bg-green-900/20 dark:text-green-300">` |
+| 175:29 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{isRealProvider && !providerConfigured && (` |
+| 176:12 b24.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-900/20 dark:text-red-300">` |
+| 199:14 b27.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className="text-xs text-muted-foreground">` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 70 (anonymous_3) | `const handleHoursChange = async (hours: number) => { setLocalHours(hours) try {` |
+| 222 (anonymous_5) | `onValueChange={(value) => handleHoursChange(Number(value))} disabled={isSaving} >` |
+
+## 14. src/features/patients/components/AvatarCropModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 90.80% / 79.16% / 91.42% / 93.03%.
+
+- Uncovered lines: 89-91, 93, 95, 134, 184-185, 205-206, 426.
+- Uncovered functions: `(anonymous_4)@89`; `(anonymous_5)@95`; `(anonymous_31)@425`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 87:4 b1.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!shell \|\| typeof ResizeObserver === 'undefined') return` |
+| 87:18 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!shell \|\| typeof ResizeObserver === 'undefined') return` |
+| 133:4 b3.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (cropSize === clampedCropSize) return` |
+| 147:70 b5.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return next.x === current.x && next.y === current.y ? current : next` |
+| 166:57 b9.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setCropSize((current) => (current === nextCropSize ? current : nextCropSize))` |
+| 183:6 b11.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (rafId.current !== null) {` |
+| 204:6 b12.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (rafId.current !== null) {` |
+| 222:6 b13.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!activeInteraction.current) return` |
+| 230:10 b15.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!interaction \|\| !pp) return` |
+| 271:16 b19.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: nextTransform.offset` |
+| 330:54 b21.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const nextNaturalSize = { w: el.naturalWidth \|\| 1, h: el.naturalHeight \|\| 1 }` |
+| 330:80 b22.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const nextNaturalSize = { w: el.naturalWidth \|\| 1, h: el.naturalHeight \|\| 1 }` |
+| 378:4 b23.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!img) return` |
+| 426:8 b26.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isOpen) onCancel()` |
+| 426:8 b26.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isOpen) onCancel()` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 89 (anonymous_4) | `const observer = new ResizeObserver(([entry]) => { const nextWidth = Math.min(STAGE_WIDTH, Math.max(1, entry.contentRect.width)) setStageWidth(nextWidth)` |
+| 95 (anonymous_5) | `return () => observer.disconnect() }, [])` |
+| 425 (anonymous_31) | `onOpenChange={(isOpen) => { if (!isOpen) onCancel() }}` |
+
+## 15. src/features/finance/components/MonthlyFinanceDiagnosisCard.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 95.65% / 72.00% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 91:2 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (items.length === 0) return null` |
+| 125:88 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const profitTone = s.profitCents >= 0 ? (s.profitCents > 0 ? 'success' : 'neutral') : 'danger'` |
+| 125:75 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const profitTone = s.profitCents >= 0 ? (s.profitCents > 0 ? 'success' : 'neutral') : 'danger'` |
+| 142:91 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={s.profitMarginPercent !== null ? '${s.profitMarginPercent.toFixed(1)}%' : '—'}` |
+| 145:16 b4.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'neutral'` |
+| 148:18 b5.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: s.profitMarginPercent >= 0` |
+| 149:20 b6.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'warning'` |
+| 150:20 b6.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'danger'` |
+| 185:12 b7.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px]">` |
+| 190:48 b8.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{diagnosis.source === 'AI' ? 'IA' : 'Cache'}` |
+| 201:12 b9.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />` |
+| 311:8 b18.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `diagnosis.highlights.length === 0 &&` |
+| 312:8 b18.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `diagnosis.risks.length === 0 && (` |
+| 313:10 b18.3 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3 text-sm text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-400">` |
+
+## 16. src/features/scheduling/components/appointments/AppointmentClinicalSection.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 52.17% / 45.83% / 50.00% / 52.38%.
+
+- Uncovered lines: 37-39, 46-48, 55-56, 61, 67.
+- Uncovered functions: `(anonymous_2)@36`; `(anonymous_3)@45`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 37:4 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!record) return` |
+| 37:4 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!record) return` |
+| 50:19 b3.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `profileId: appointment.profile?.id ?? appointment.profileId,` |
+| 50:46 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `profileId: appointment.profile?.id ?? appointment.profileId,` |
+| 52:22 b4.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `patientEmail: appointment.patientEmail ?? undefined,` |
+| 52:50 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `patientEmail: appointment.patientEmail ?? undefined,` |
+| 53:22 b5.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `patientPhone: appointment.patientPhone ?? undefined,` |
+| 53:50 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `patientPhone: appointment.patientPhone ?? undefined,` |
+| 74:8 b6.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="flex items-center gap-2.5 px-4 py-3.5 text-sm text-muted-foreground">` |
+| 79:8 b7.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<button` |
+| 106:35 b8.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `aria-label={isCreating ? 'Criando prontuário' : 'Criar prontuário clínico'}` |
+| 113:14 b9.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />` |
+| 120:28 b10.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{isCreating ? 'Criando prontuário...' : 'Criar prontuário'}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 36 (anonymous_2) | `const handleOpen = () => { if (!record) return onClose()` |
+| 45 (anonymous_3) | `const handleCreate = async () => { setIsCreating(true) try {` |
+
+## 17. src/features/auth/components/AuthForm.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 70.42% / 81.42% / 88.88% / 72.46%.
+
+- Uncovered lines: 93-94, 104, 106-109, 115, 117, 125, 132, 134-137, 139, 359-361.
+- Uncovered functions: `getAuthErrorMessage@358`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 58:4 b0.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (mode === 'login' \|\| mode === 'register') {` |
+| 92:4 b5.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isLogin && !isValidPersonName(normalizedResponsibleName)) {` |
+| 97:4 b7.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isLogin && !acceptedTerms) {` |
+| 107:6 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isLogin) {` |
+| 114:13 b9.1 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `} else {` |
+| 134:30 b10.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const title = isLogin ? 'Não foi possível entrar' : 'Não foi possível criar a conta'` |
+| 134:58 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const title = isLogin ? 'Não foi possível entrar' : 'Não foi possível criar a conta'` |
+| 292:14 b23.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<>` |
+| 329:8 b28.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="mt-4">` |
+| 359:2 b33.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (error instanceof ApiError) return error.message` |
+| 359:2 b33.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (error instanceof ApiError) return error.message` |
+| 360:2 b34.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (error instanceof Error) return error.message` |
+| 360:2 b34.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (error instanceof Error) return error.message` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 358 getAuthErrorMessage | `function getAuthErrorMessage(error: unknown) { if (error instanceof ApiError) return error.message if (error instanceof Error) return error.message` |
+
+## 18. src/features/dashboard/containers/DashboardPageContainer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 84.37% / 77.58% / 65.21% / 83.87%.
+
+- Uncovered lines: 85, 180, 276, 309, 313.
+- Uncovered functions: `(anonymous_5)@85`; `(anonymous_8)@180`; `(anonymous_9)@181`; `(anonymous_10)@182`; `(anonymous_16)@276`; `(anonymous_17)@284`; `(anonymous_19)@309`; `(anonymous_20)@313`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 85:25 b1.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))` |
+| 85:40 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))` |
+| 85:58 b2.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))` |
+| 85:73 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))` |
+| 96:54 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `(a.paymentStatus === 'PAYMENT_PENDING' \|\| a.paymentStatus === 'PARTIALLY_PAID') &&` |
+| 118:16 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{error && <InlineFeedback>{error}</InlineFeedback>}` |
+| 209:76 b12.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? '${appointments.length} consulta${appointments.length !== 1 ? 's' : ''} aguardando confirmação'` |
+| 240:22 b14.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="block truncate text-xs text-muted-foreground">` |
+| 307:8 b22.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<ul className="mt-4 divide-y divide-border">` |
+| 319:19 b23.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{appt.service && (` |
+| 320:20 b23.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="block truncate text-xs text-muted-foreground">` |
+| 360:47 b25.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{appt.profile?.displayName ? ' · ${appt.profile.displayName}' : ''}` |
+| 370:61 b27.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{appt.paymentStatus === 'PARTIALLY_PAID' ? 'Parcial' : 'Pendente'}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 85 (anonymous_5) | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')) .slice(0, 8), [appointments],` |
+| 180 (anonymous_8) | `onClose={() => setDrawerAppointment(null)} onStatusChange={() => {}} onCancelRequest={() => {}}` |
+| 181 (anonymous_9) | `onStatusChange={() => {}} onCancelRequest={() => {}} />` |
+| 182 (anonymous_10) | `onCancelRequest={() => {}} /> </AppPage>` |
+| 276 (anonymous_16) | `onClose={() => setNotifyTarget(null)} template={confirmationTemplate} appointmentId={notifyTarget?.id ?? ''}` |
+| 284 (anonymous_17) | `onSent={() => {}} /> )}` |
+| 309 (anonymous_19) | `<li key={appt.id}> <button type="button"` |
+| 313 (anonymous_20) | `onClick={() => onAppointmentClick(appt)} > <span className="min-w-0">` |
+
+## 19. src/features/fiscal/components/FiscalProfileForm.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 96.92% / 83.33% / 96.00% / 98.38%.
+
+- Uncovered lines: 102.
+- Uncovered functions: `(anonymous_6)@102`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 81:43 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `addressStreet: address.street \|\| currentForm.addressStreet,` |
+| 82:55 b11.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `addressNeighborhood: address.neighborhood \|\| currentForm.addressNeighborhood,` |
+| 83:39 b12.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `addressCity: address.city \|\| currentForm.addressCity,` |
+| 84:38 b13.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `addressState: address.uf \|\| currentForm.addressState,` |
+| 101:4 b15.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (field && field in errors) {` |
+| 152:41 b20.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.tradeName ?? ''}` |
+| 176:53 b22.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.municipalRegistration ?? ''}` |
+| 184:49 b23.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.stateRegistration ?? ''}` |
+| 218:18 b27.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Loader2` |
+| 242:49 b28.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.addressComplement ?? ''}` |
+| 327:43 b33.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.serviceCode ?? ''}` |
+| 335:36 b34.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.cnae ?? ''}` |
+| 343:44 b35.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.cityIbgeCode ?? ''}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 102 (anonymous_6) | `setErrors((prev) => ({ ...prev, [field]: undefined })) } if (field === 'addressZipCode') {` |
+
+## 20. src/features/clinical-records/components/ImageAttachmentPanel.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 98.69% / 88.49% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 34:2 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (typeof navigator === 'undefined' \|\| typeof window === 'undefined') return false` |
+| 213:6 b17.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (inputRef.current) inputRef.current.value = ''` |
+| 214:6 b18.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (cameraInputRef.current) cameraInputRef.current.value = ''` |
+| 300:29 b26.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{isUploading ? 'Enviando...' : 'Enviar imagem'}` |
+| 373:78 b34.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onPreview={att.dataBase64 ? () => setPreviewAttachment(att) : undefined}` |
+| 392:10 b36.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (confirmDeleteId) void handleRemove(confirmDeleteId)` |
+| 430:14 b38.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="flex h-64 w-64 items-center justify-center rounded-lg bg-muted">` |
+| 425:59 b39.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `src={'data:${previewAttachment.mimeType ?? 'image/jpeg'};base64,${previewAttachment.dataBase64}'}` |
+| 467:4 b42.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (readOnly) return` |
+| 483:6 b44.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (timerRef.current) clearTimeout(timerRef.current)` |
+| 488:37 b46.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'data:${attachment.mimeType ?? 'image/jpeg'};base64,${attachment.thumbnailBase64}'` |
+| 491:8 b47.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: null` |
+| 526:10 b49.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="flex aspect-square w-full items-center justify-center bg-muted">` |
+
+## 21. src/features/marketing/components/LandingIntegrationsSection.tsx
+
+Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%.
+
+- Uncovered lines: 13, 29-30, 32, 74-77, 79, 115, 128.
+- Uncovered functions: `IntegrationCard@28`; `LandingIntegrationsSection@73`; `(anonymous_2)@76`; `(anonymous_3)@76`; `(anonymous_4)@77`; `(anonymous_5)@115`; `(anonymous_6)@128`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 37:20 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',` |
+| 37:50 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',` |
+| 39:44 b1.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '${Math.min(index * 65, 300)}ms' : '0ms' }}` |
+| 39:79 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '${Math.min(index * 65, 300)}ms' : '0ms' }}` |
+| 45:12 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<img` |
+| 52:12 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Icon className="h-6 w-6 text-primary" aria-hidden="true" />` |
+| 89:24 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',` |
+| 89:54 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',` |
+| 104:24 b4.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'opacity-100' : 'opacity-0',` |
+| 104:40 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'opacity-100' : 'opacity-0',` |
+| 106:48 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '100ms' : '0ms' }}` |
+| 106:58 b5.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '100ms' : '0ms' }}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 28 IntegrationCard | `}) { const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.12) const Icon = integration.icon` |
+| 73 LandingIntegrationsSection | `export function LandingIntegrationsSection() { const { ref, isVisible } = useRevealOnScroll<HTMLDivElement>(0.12) const featured = FEATURED_INTEGRATIONS.map((name) =>` |
+| 76 (anonymous_2) | `integrationCards.find((integration) => integration.name === name), ).filter((integration): integration is IntegrationCardData => Boolean(integration))` |
+| 76 (anonymous_3) | `integrationCards.find((integration) => integration.name === name), ).filter((integration): integration is IntegrationCardData => Boolean(integration))` |
+| 77 (anonymous_4) | `).filter((integration): integration is IntegrationCardData => Boolean(integration)) return (` |
+| 115 (anonymous_5) | `<div key={text} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm text-slate-300"` |
+| 128 (anonymous_6) | `<IntegrationCard key={integration.name} integration={integration} index={index} /> ))} </div>` |
+
+## 22. src/features/scheduling/components/availability/ExceptionManager.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 75.75% / 70.00% / 84.21% / 77.04%.
+
+- Uncovered lines: 76-82, 84, 86, 105, 123, 140, 181, 249.
+- Uncovered functions: `handleAdd@75`; `(anonymous_12)@181`; `(anonymous_18)@249`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 84:38 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setError(err instanceof Error ? err.message : 'Erro ao adicionar exceção.')` |
+| 84:52 b5.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setError(err instanceof Error ? err.message : 'Erro ao adicionar exceção.')` |
+| 91:4 b6.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!editingException) return` |
+| 101:89 b7.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onExceptionsChange(exceptions.map((e) => (e.id === editingException.id ? updated : e)))` |
+| 106:38 b8.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `title: err instanceof Error ? err.message : 'Erro ao atualizar exceção.',` |
+| 106:52 b8.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `title: err instanceof Error ? err.message : 'Erro ao atualizar exceção.',` |
+| 115:4 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!editingException) return` |
+| 124:38 b10.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `title: err instanceof Error ? err.message : 'Erro ao remover exceção.',` |
+| 124:52 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `title: err instanceof Error ? err.message : 'Erro ao remover exceção.',` |
+| 140:38 b11.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setError(err instanceof Error ? err.message : 'Erro ao remover exceção.')` |
+| 140:52 b11.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setError(err instanceof Error ? err.message : 'Erro ao remover exceção.')` |
+| 174:18 b14.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{error && <InlineFeedback tone="error">{error}</InlineFeedback>}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 75 handleAdd | `async function handleAdd(dto: CreateAvailabilityExceptionDto) { setLoadingId('new') setError(null)` |
+| 181 (anonymous_12) | `onCancel={() => setIsAdding(false)} /> )}` |
+| 249 (anonymous_18) | `onClose={() => setEditingException(null)} onSave={handleModalSave} onDelete={handleModalDelete}` |
+
+## 23. src/features/settings/containers/SettingsPageContainer.tsx
+
+Classification: **B**. Open B: obsolete postal-code lookup rejection, remaining profile validation alternatives, nullable profile presentation and conditional member counters. Postal-code success/failure, stale success rejection and formatted profile saves were already covered by the starting committed tests; those are not being described as newly missing.
+
+S/B/F/L: 99.35% / 92.77% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 192:8 b25.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (cancelled) return` |
+| 225:4 b30.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (form.name.trim()) payload.name = form.name.trim()` |
+| 423:73 b50.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className="text-sm text-foreground">{profile?.timezone ?? 'Não informado'}</p>` |
+| 427:72 b51.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className="text-sm text-foreground">{profile?.country ?? 'Não informado'}</p>` |
+| 568:61 b62.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{connected ? (status?.calendarSummary ?? 'Conectado') : 'Não conectado'}` |
+| 636:8 b70.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Anual'` |
+| 641:6 b72.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? new Date(status.currentPeriodEnd).toLocaleDateString('pt-BR')` |
+| 644:6 b73.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? new Date(status.trialEndsAt).toLocaleDateString('pt-BR')` |
+| 680:10 b76.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `) : null}` |
+| 673:43 b80.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{status.status === 'trialing' && trialDate && (` |
+| 674:12 b80.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-xs text-muted-foreground">· Teste até {trialDate}</span>` |
+| 677:12 b81.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-xs text-muted-foreground">· Renova em {renewalDate}</span>` |
+
+## 24. src/features/fiscal/containers/FiscalInvoicesPageContainer.tsx
+
+Classification: **B**. Open A/B: switching between simultaneously open workspaces, absent profile initialization, nonzero ISS rate when editing, existing-invoice warning and closing the actively loaded details workspace. Invoice/profile persistence, validation, failures/retry, cancellation, action dispatch, filters and pagination have integration tests. The missing cancelTarget early return is E: the confirmation control only exists while a target is selected.
+
+S/B/F/L: 98.30% / 89.32% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 112:46 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const profile = profileResponse?.profile ?? null` |
+| 116:72 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `summary?.configurationPending ?? (profile ? !profile.isConfigured : false)` |
+| 153:10 b5.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: emptyProfileForm,` |
+| 173:39 b21.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `issRate: invoice.issRate ? Number(invoice.issRate) : undefined,` |
+| 218:6 b24.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (activeWorkspace === 'form') setActiveWorkspace('none')` |
+| 236:6 b25.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (activeWorkspace === 'profile') setActiveWorkspace('none')` |
+| 245:4 b26.0 if (arm) | E: confirmation is rendered only while cancelTarget is non-null. | `if (!cancelTarget) return` |
+| 270:4 b27.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (activeWorkspace === 'details') setActiveWorkspace('none')` |
+| 423:22 b42.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (activeWorkspace === 'profile') setActiveWorkspace('none')` |
+| 445:20 b45.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div role="alert">` |
+| 463:22 b46.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (activeWorkspace === 'form') setActiveWorkspace('none')` |
+
+## 25. src/features/marketing/components/DataMigrationSection.tsx
+
+Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%.
+
+- Uncovered lines: 9, 33, 41, 65-67, 106, 144.
+- Uncovered functions: `DataMigrationSection@40`; `(anonymous_1)@64`; `(anonymous_2)@106`; `(anonymous_3)@144`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 73:26 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'border-emerald-200 bg-emerald-50/50'` |
+| 74:26 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'border-slate-200 bg-white',` |
+| 82:30 b1.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'bg-emerald-100 text-emerald-600'` |
+| 83:30 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'bg-slate-100 text-slate-500',` |
+| 96:42 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `step.accent ? 'text-emerald-800' : 'text-slate-900',` |
+| 96:63 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `step.accent ? 'text-emerald-800' : 'text-slate-900',` |
+| 111:32 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'bg-emerald-100 text-emerald-700'` |
+| 112:32 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'bg-slate-100 text-slate-500',` |
+| 121:19 b4.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{!isLast && (` |
+| 122:20 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 40 DataMigrationSection | `export function DataMigrationSection() { return ( <section className="bg-white py-24 lg:py-32" aria-labelledby="migration-heading">` |
+| 64 (anonymous_1) | `{PIPELINE_STEPS.map((step, index) => { const Icon = step.icon const isLast = index === PIPELINE_STEPS.length - 1` |
+| 106 (anonymous_2) | `<span key={chip} className={cn(` |
+| 144 (anonymous_3) | `<li key={benefit} className="flex items-start gap-2.5"> <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500"` |
+
+## 26. src/features/marketing/components/landing/FlowOrbit.tsx
+
+Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%.
+
+- Uncovered lines: 20, 22, 26, 42-43, 45-51, 54, 59, 88, 132, 178-179, 226-227, 229, 231.
+- Uncovered functions: `(anonymous_0)@20`; `useStaticOrbit@41`; `(anonymous_2)@45`; `(anonymous_3)@49`; `(anonymous_4)@51`; `OrbitPoster@58`; `StaticOrbit@87`; `(anonymous_7)@132`; `(anonymous_8)@177`; `FlowOrbit@225`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 46:4 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (typeof window === 'undefined' \|\| typeof window.matchMedia !== 'function') return` |
+| 46:4 b0.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (typeof window === 'undefined' \|\| typeof window.matchMedia !== 'function') return` |
+| 46:8 b1.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (typeof window === 'undefined' \|\| typeof window.matchMedia !== 'function') return` |
+| 46:41 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (typeof window === 'undefined' \|\| typeof window.matchMedia !== 'function') return` |
+| 54:9 b2.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return reduced \|\| smallOrCoarse` |
+| 54:20 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return reduced \|\| smallOrCoarse` |
+| 229:2 b3.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isStatic) return <StaticOrbit />` |
+| 229:2 b3.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isStatic) return <StaticOrbit />` |
+| 234:8 b4.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Suspense fallback={<OrbitPoster />}>` |
+| 238:8 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<OrbitPoster />` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 20 (anonymous_0) | `const FlowOrbitScene = lazy(() => import('./FlowOrbitScene')) const ORBIT_RADIUS = 34` |
+| 41 useStaticOrbit | `function useStaticOrbit(): boolean { const reduced = usePrefersReducedMotion() const [smallOrCoarse, setSmallOrCoarse] = useState(false)` |
+| 45 (anonymous_2) | `useEffect(() => { if (typeof window === 'undefined' \|\| typeof window.matchMedia !== 'function') return const query = window.matchMedia('(max-width: 767px), (pointer: coarse)')` |
+| 49 (anonymous_3) | `const onChange = (event: MediaQueryListEvent) => setSmallOrCoarse(event.matches) query.addEventListener('change', onChange) return () => query.removeEventListener('change', onChange)` |
+| 51 (anonymous_4) | `return () => query.removeEventListener('change', onChange) }, [])` |
+| 58 OrbitPoster | `function OrbitPoster() { return ( <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-2xl">` |
+| 87 StaticOrbit | `function StaticOrbit() { return ( <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-2xl">` |
+| 132 (anonymous_7) | `<g key={satellite.label}> <line x1={satellite.x}` |
+| 177 (anonymous_8) | `{SATELLITES.map((satellite) => { const { Icon } = satellite return (` |
+| 225 FlowOrbit | `export default function FlowOrbit() { const isStatic = useStaticOrbit() const { ref, isVisible } = useRevealOnScroll<HTMLDivElement>(0.05)` |
+
+## 27. src/features/scheduling/components/mobile/MobileAgendaTimeline.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 97.82% / 84.12% / 100.00% / 97.61%.
+
+- Uncovered lines: 88.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 48:52 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `weekDateStrings.includes(todayStr) ? todayStr : weekDateStrings[0],` |
+| 57:10 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: weekDateStrings.includes(todayStr)` |
+| 58:12 b4.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? todayStr` |
+| 59:12 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: weekDateStrings[0],` |
+| 75:40 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')),` |
+| 75:73 b7.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')),` |
+| 84:4 b9.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (match) {` |
+| 199:56 b24.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `endTime ? '${startTime} – ${endTime}' : startTime,` |
+| 201:50 b25.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `serviceName && professionalName ? professionalName : null,` |
+| 242:54 b28.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `appt.status === 'CANCELED' && 'opacity-60',` |
+
+## 28. src/features/scheduling/utils/week-calendar-layout.ts
+
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 98.85% / 89.13% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 45:37 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const startCmp = (a.startTime ?? '').localeCompare(b.startTime ?? '')` |
+| 45:70 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const startCmp = (a.startTime ?? '').localeCompare(b.startTime ?? '')` |
+| 47:41 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const durCmp = (b.durationMinutes ?? 0) - (a.durationMinutes ?? 0)` |
+| 47:68 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const durCmp = (b.durationMinutes ?? 0) - (a.durationMinutes ?? 0)` |
+| 55:27 b9.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `(appt.startTime ?? '') < (other.endTime ?? '') &&` |
+| 56:28 b11.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `(other.startTime ?? '') < (appt.endTime ?? ''),` |
+| 56:51 b12.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `(other.startTime ?? '') < (appt.endTime ?? ''),` |
+| 86:74 b18.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `kind: hasSpecialHours ? 'special' : exception.isDayOff ? 'dayOff' : 'working',` |
+| 177:4 b37.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!exception.startTime \|\| !exception.endTime) continue` |
+| 185:54 b41.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const start = wallTimeToMinutes(appt.startTime ?? '')` |
+
+## 29. src/features/inventory/components/StockMovementModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 82.14% / 82.69% / 72.22% / 86.00%.
+
+- Uncovered lines: 89-90, 116, 119, 126, 284, 295.
+- Uncovered functions: `(anonymous_5)@126`; `(anonymous_12)@284`; `(anonymous_13)@284`; `(anonymous_14)@295`; `(anonymous_15)@295`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 82:4 b3.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!product) return` |
+| 88:6 b5.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (parsedNewQuantity === null) {` |
+| 105:48 b9.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? { newQuantity: parsedNewQuantity ?? 0 }` |
+| 106:42 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: { quantity: parsedQuantity ?? 0 }),` |
+| 117:12 b13.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? err.message` |
+| 118:12 b13.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Não foi possível registrar a movimentação. Tente novamente.'` |
+| 126:55 b14.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>` |
+| 126:64 b14.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>` |
+| 332:59 b24.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return Number.isFinite(parsed) && parsed >= 0 ? parsed : null` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 126 (anonymous_5) | `<Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+| 284 (anonymous_12) | `setForm((current) => ({ ...current, reason: event.target.value })) } />` |
+| 284 (anonymous_13) | `setForm((current) => ({ ...current, reason: event.target.value })) } />` |
+| 295 (anonymous_14) | `setForm((current) => ({ ...current, notes: event.target.value })) } />` |
+| 295 (anonymous_15) | `setForm((current) => ({ ...current, notes: event.target.value })) } />` |
+
+## 30. src/features/marketing/pages/PlansPage.tsx
+
+Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 97.67% / 84.48% / 95.83% / 97.61%.
+
+- Uncovered lines: 445.
+- Uncovered functions: `(anonymous_14)@445`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 116:60 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `heroVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',` |
+| 173:60 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `heroVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0',` |
+| 445:65 b10.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onToggle={() => setOpenFaq(openFaq === index ? null : index)}` |
+| 445:72 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onToggle={() => setOpenFaq(openFaq === index ? null : index)}` |
+| 475:57 b11.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `ctaVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',` |
+| 534:50 b12.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0',` |
+| 539:65 b14.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '${index * 100}ms' : '0ms' }}` |
+| 702:22 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isOpen && 'rotate-180',` |
+| 708:8 b25.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 445 (anonymous_14) | `onToggle={() => setOpenFaq(openFaq === index ? null : index)} /> ))}` |
+
+## 31. src/features/dashboard/containers/ProductivityCenter.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 66:87 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', cls[priority] ?? cls.LOW)}` |
+| 68:27 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{labels[priority] ?? priority}` |
+| 110:30 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const c = config[status] ?? { label: status, cls: 'bg-muted text-muted-foreground' }` |
+| 181:8 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Nenhuma consulta agendada para hoje'` |
+| 229:8 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Consultas concluídas sem pagamento registrado'` |
+| 289:44 b15.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={monthNet >= 0 ? 'success' : 'danger'}` |
+| 294:53 b16.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={pendingReceivables > 0 ? 'warning' : 'neutral'}` |
+| 313:46 b18.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? '${count} paciente${count === 1 ? '' : 's'} sem consulta há mais de 60 dias'` |
+| 462:70 b32.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={data.today.pendingPaymentsCount > 0 ? 'warning' : 'neutral'}` |
+
+## 32. src/features/marketing/components/VideoSection.tsx
+
+Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%.
+
+- Uncovered lines: 8-10, 13-14, 16, 51, 82.
+- Uncovered functions: `VideoSection@12`; `(anonymous_1)@51`; `(anonymous_2)@82`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 26:24 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',` |
+| 26:54 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',` |
+| 65:24 b1.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',` |
+| 65:54 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-5 opacity-0',` |
+| 67:48 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '120ms' : '0ms' }}` |
+| 67:58 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '120ms' : '0ms' }}` |
+| 71:14 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<iframe` |
+| 80:14 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<button` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 12 VideoSection | `export function VideoSection() { const { ref, isVisible } = useRevealOnScroll<HTMLElement>(0.22) const [isPlaying, setIsPlaying] = useState(false)` |
+| 51 (anonymous_1) | `<div key={label} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm shadow-slate-950/[0.03]"` |
+| 82 (anonymous_2) | `onClick={() => setIsPlaying(true)} className="group absolute inset-0 w-full cursor-pointer" aria-label="Assistir vídeo do DentalFlow"` |
+
+## 33. src/features/marketing/components/landing/FlowOrbitScene.tsx
+
+Classification: **F**. Three.js camera, renderer frames, geometry and effects require a real WebGL context and browser rendering QA.
+
+S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%.
+
+- Uncovered lines: 20-23, 27, 39-41, 46-58, 60-62, 65-66, 83-84, 86-88, 90-93, 96, 134-137, 139, 141, 144-145, 151-153, 157-159, 161-166, 169, 189, 217.
+- Uncovered functions: `(anonymous_0)@39`; `useGlowTexture@45`; `(anonymous_2)@46`; `(anonymous_3)@65`; `OrbitNode@82`; `(anonymous_5)@86`; `OrbitContent@133`; `(anonymous_7)@139`; `(anonymous_8)@151`; `(anonymous_9)@157`; `(anonymous_10)@189`; `FlowOrbitScene@216`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 52:4 b0.0 if (arm) | F: see file rationale. | `if (ctx) {` |
+| 52:4 b0.1 if (condition) | F: see file rationale. | `if (ctx) {` |
+| 88:4 b1.0 if (arm) | F: see file rationale. | `if (!node) return` |
+| 88:4 b1.1 if (condition) | F: see file rationale. | `if (!node) return` |
+| 144:4 b2.0 if (arm) | F: see file rationale. | `if (ringRef.current) {` |
+| 144:4 b2.1 if (condition) | F: see file rationale. | `if (ringRef.current) {` |
+| 159:4 b3.0 if (arm) | F: see file rationale. | `if (ringRef.current) ringRef.current.rotation.y += delta * 0.12` |
+| 159:4 b3.1 if (condition) | F: see file rationale. | `if (ringRef.current) ringRef.current.rotation.y += delta * 0.12` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 39 (anonymous_0) | `const NODE_POSITIONS = MODULES.map((_, index) => { const angle = (index / MODULES.length) * Math.PI * 2 return new THREE.Vector3(Math.cos(angle) * ORBIT_RADIUS, 0, Math.sin(angle) * ORBIT_RADIUS)` |
+| 45 useGlowTexture | `function useGlowTexture() { const texture = useMemo(() => { const size = 128` |
+| 46 (anonymous_2) | `const texture = useMemo(() => { const size = 128 const canvas = document.createElement('canvas')` |
+| 65 (anonymous_3) | `useEffect(() => () => texture.dispose(), [texture]) return texture }` |
+| 82 OrbitNode | `}) { const traveler = useRef<THREE.Sprite>(null) const { Icon } = module` |
+| 86 (anonymous_5) | `useFrame(() => { const node = traveler.current if (!node) return` |
+| 133 OrbitContent | `function OrbitContent() { const ringRef = useRef<THREE.Group>(null) const progress = useRef(0)` |
+| 139 (anonymous_7) | `useEffect(() => { // GSAP drives the seamless inward light-trace flow (linear, infinite loop). const flow = gsap.to(progress, { current: 1, duration: 5, ease: 'none', repeat: -1 })` |
+| 151 (anonymous_8) | `return () => { flow.kill() entrance?.kill()` |
+| 157 (anonymous_9) | `useFrame((state, delta) => { elapsed.current += delta if (ringRef.current) ringRef.current.rotation.y += delta * 0.12` |
+| 189 (anonymous_10) | `<OrbitNode key={module.label} module={module}` |
+| 216 FlowOrbitScene | `export default function FlowOrbitScene() { return ( <div aria-hidden="true" className="relative mx-auto aspect-square w-full max-w-[42rem]">` |
+
+## 34. src/features/scheduling/components/appointments/AppointmentPaymentSection.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 85.36% / 83.33% / 57.14% / 85.00%.
+
+- Uncovered lines: 168, 187, 199, 205, 235, 273.
+- Uncovered functions: `(anonymous_5)@168`; `(anonymous_6)@187`; `(anonymous_7)@199`; `(anonymous_8)@205`; `(anonymous_10)@235`; `(anonymous_13)@273`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 58:8 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<AppointmentDetailsRow label="Valor previsto">` |
+| 68:8 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<AppointmentDetailsRow label="Forma de pagamento">` |
+| 73:8 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<AppointmentDetailsRow label="Data do pagamento">` |
+| 110:42 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const finalStatus = overrideStatus ?? status` |
+| 111:76 b11.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const paidCents = requiresPaid \|\| overrideStatus ? reaisToCents(paid) : undefined` |
+| 248:82 b19.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onClick={() => handleSubmit(status === 'PAYMENT_PENDING' ? 'PAID' : undefined)}` |
+| 251:45 b20.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{status === 'PARTIALLY_PAID' ? 'Salvar pagamento parcial' : 'Confirmar pagamento'}` |
+| 267:14 b22.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Button` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 168 (anonymous_5) | `<Select value={status} onValueChange={(v) => setStatus(v as AppointmentPaymentStatus)}> <SelectTrigger className="w-full"> <SelectValue />` |
+| 187 (anonymous_6) | `onChange={(e) => setEstimated(e.target.value)} /> </FormField>` |
+| 199 (anonymous_7) | `onChange={(e) => setPaid(e.target.value)} /> </FormField>` |
+| 205 (anonymous_8) | `<Select value={method} onValueChange={(v) => setMethod(v as AppointmentPaymentMethod)}> <SelectTrigger className="w-full"> <SelectValue placeholder="Selecione..." />` |
+| 235 (anonymous_10) | `onChange={(e) => setNotes(e.target.value)} rows={2} className="min-h-0"` |
+| 273 (anonymous_13) | `onClick={() => handleSubmit('CANCELED')} > <Ban />` |
+
+## 35. src/features/team/components/ClinicMemberFormModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 86.36% / 87.50% / 72.22% / 85.93%.
+
+- Uncovered lines: 104, 107, 133-134, 169, 199, 223-224, 230.
+- Uncovered functions: `(anonymous_4)@102`; `(anonymous_9)@169`; `(anonymous_10)@199`; `(anonymous_14)@222`; `(anonymous_15)@230`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 105:14 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? err.message` |
+| 106:14 b5.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Não foi possível carregar os horários do profissional.'` |
+| 132:4 b10.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (rawPhone && !isValidBrazilianPhone(rawPhone)) {` |
+| 132:20 b11.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (rawPhone && !isValidBrazilianPhone(rawPhone)) {` |
+| 162:52 b15.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setError(err instanceof Error ? err.message : 'Erro ao salvar usuário.')` |
+| 169:55 b16.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 169:66 b16.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 338:41 b29.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isActive: member.isActive ? 'true' : 'false',` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 102 (anonymous_4) | `.catch((err) => { const msg = err instanceof Error` |
+| 169 (anonymous_9) | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+| 199 (anonymous_10) | `<MemberTypeSelector value={form.role} onChange={(role) => set('role', role)} /> </div>` |
+| 222 (anonymous_14) | `onPhoneChange={(value) => { set('phone', value) setPhoneError(null)` |
+| 230 (anonymous_15) | `<Select value={form.isActive} onValueChange={(value) => set('isActive', value)}> <SelectTrigger id="memberIsActive"> <SelectValue placeholder="Selecione o status" />` |
+
+## 36. src/features/inventory/hooks/useInventoryPage.ts
+
+Classification: **A**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 98.04% / 88.05% / 95.91% / 98.93%.
+
+- Uncovered lines: 184-185.
+- Uncovered functions: `(anonymous_21)@183`; `(anonymous_48)@366`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 96:14 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Não foi possível carregar o estoque. Tente novamente.'` |
+| 135:4 b8.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (debounceRef.current) clearTimeout(debounceRef.current)` |
+| 150:4 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (debounceRef.current) clearTimeout(debounceRef.current)` |
+| 184:50 b11.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const message = err instanceof ApiError ? err.message : 'Erro ao recarregar estoque.'` |
+| 184:64 b11.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const message = err instanceof ApiError ? err.message : 'Erro ao recarregar estoque.'` |
+| 216:52 b17.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const message = err instanceof ApiError ? err.message : 'Erro ao recarregar categorias.'` |
+| 261:52 b21.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const message = err instanceof ApiError ? err.message : 'Erro ao recarregar produto.'` |
+| 320:6 b25.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (viewingProduct?.id === reactivatingProduct.id) {` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 183 (anonymous_21) | `.catch((err) => { const message = err instanceof ApiError ? err.message : 'Erro ao recarregar estoque.' showAlert({ title: 'Erro ao recarregar', description: message, tone: 'error' })` |
+| 366 (anonymous_48) | `.catch(() => {}) } } catch (err) {` |
+
+## 37. src/features/clinical-records/hooks/useClinicalRecordAutosave.ts
+
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 89.79% / 75.00% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 69:8 b5.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isCurrent) return` |
+| 76:8 b7.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (savedTimerRef.current) clearTimeout(savedTimerRef.current)` |
+| 78:10 b8.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isCurrent) return` |
+| 79:61 b9.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setAutosaveStatus((s) => (s === 'saved' ? 'idle' : s))` |
+| 82:8 b10.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isCurrent) return` |
+| 89:6 b11.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (timerRef.current) clearTimeout(timerRef.current)` |
+| 102:4 b14.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (timerRef.current) clearTimeout(timerRef.current)` |
+| 103:4 b15.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (savedTimerRef.current) clearTimeout(savedTimerRef.current)` |
+
+## 38. src/features/inventory/components/InventoryProductTable.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 100.00% / 82.97% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 68:10 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span role="status" aria-label="Atualizando lista de produtos">` |
+| 184:36 b11.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'text-red-600 dark:text-red-400'` |
+| 186:38 b12.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'text-amber-700 dark:text-amber-400'` |
+| 216:24 b14.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
+| 226:28 b15.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'font-medium text-red-600 dark:text-red-400'` |
+| 228:30 b16.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'font-medium text-amber-700 dark:text-amber-400'` |
+| 235:24 b17.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
+| 246:43 b19.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{product.supplier ?? <span className="text-muted-foreground">—</span>}` |
+
+## 39. src/features/inventory/components/ProductDetailsDrawer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 88.88% / 83.33% / 87.50% / 88.88%.
+
+- Uncovered lines: 41.
+- Uncovered functions: `(anonymous_1)@41`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 41:60 b0.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={!!product} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 41:71 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={!!product} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 97:26 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'danger'` |
+| 99:28 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'warning'` |
+| 181:22 b13.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
+| 185:41 b14.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{product.supplier ?? <span className="text-muted-foreground">—</span>}` |
+| 191:22 b15.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="text-muted-foreground">—</span>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 41 (anonymous_1) | `<Dialog.Root open={!!product} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0 duration-200" />` |
+
+## 40. src/features/billing/pages/SubscriptionSuccessPage.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 91.86% / 88.88% / 100.00% / 93.67%.
+
+- Uncovered lines: 782-783, 788-789, 795.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 235:6 b5.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (cancelled) return` |
+| 643:53 b23.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const renewalDate = status.status === 'trialing' ? status.trialEndsAt : status.currentPeriodEnd` |
+| 646:63 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{ icon: Package, label: 'Plano', value: status.planName ?? 'Não definido' },` |
+| 781:2 b27.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (interval === 'monthly') return 'Mensal'` |
+| 782:2 b28.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (interval === 'annual') return 'Anual'` |
+| 782:2 b28.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (interval === 'annual') return 'Anual'` |
+| 787:2 b29.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!iso) return 'Não definido'` |
+
+## 41. src/features/patients/components/CameraPreviewModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 87.30% / 80.55% / 80.00% / 94.64%.
+
+- Uncovered lines: 100, 108-109.
+- Uncovered functions: `(anonymous_8)@99`; `(anonymous_9)@107`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 42:8 b3.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (videoRef.current) {` |
+| 47:8 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (cancelled) return` |
+| 70:4 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!video) return` |
+| 76:4 b12.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!ctx) return` |
+| 81:8 b13.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!blob) return` |
+| 100:8 b14.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isOpen) handleCancel()` |
+| 100:8 b14.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isOpen) handleCancel()` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 99 (anonymous_8) | `onOpenChange={(isOpen) => { if (!isOpen) handleCancel() }}` |
+| 107 (anonymous_9) | `onEscapeKeyDown={(e) => { e.preventDefault() handleCancel()` |
+
+## 42. src/features/scheduling/components/mobile/MobileAgendaList.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 97.36% / 83.72% / 100.00% / 97.05%.
+
+- Uncovered lines: 86.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 46:52 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `weekDateStrings.includes(todayStr) ? todayStr : weekDateStrings[0],` |
+| 55:10 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: weekDateStrings.includes(todayStr)` |
+| 56:12 b4.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? todayStr` |
+| 57:12 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: weekDateStrings[0],` |
+| 74:40 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')),` |
+| 74:73 b7.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')),` |
+| 82:4 b9.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (match) {` |
+
+## 43. src/features/clinical-records/containers/ClinicalRecordPrintContainer.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 95.65% / 90.41% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 53:8 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isCurrent) return` |
+| 61:8 b4.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent) setError('Não foi possível carregar os dados para impressão.')` |
+| 63:8 b5.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent) setIsLoading(false)` |
+| 76:2 b8.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!data) return null` |
+| 117:55 b13.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{clinic.state ? ' / ${clinic.state}' : ''}` |
+| 224:44 b28.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const hasData = Object.keys(data.teeth ?? {}).length > 0 \|\| Boolean(data.notes)` |
+| 258:45 b33.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'data:${attachment.mimeType ?? 'image/jpeg'};base64,${attachment.dataBase64}'` |
+
+## 44. src/features/fiscal/components/InvoiceForm.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 100.00% / 78.12% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 20:47 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const doc = form.customerDocument?.trim() ?? ''` |
+| 24:46 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const phone = form.customerPhone?.trim() ?? ''` |
+| 93:48 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.customerDocument ?? ''}` |
+| 109:45 b11.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.customerEmail ?? ''}` |
+| 122:45 b12.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.customerPhone ?? ''}` |
+| 153:43 b13.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.serviceCode ?? ''}` |
+| 183:35 b14.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={form.notes ?? ''}` |
+
+## 45. src/features/marketing/components/PricingSection.tsx
+
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 100.00% / 79.41% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 38:54 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',` |
+| 65:54 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',` |
+| 67:58 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '150ms' : '0ms' }}` |
+| 90:54 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',` |
+| 92:58 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '450ms' : '0ms' }}` |
+| 139:50 b5.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0',` |
+| 144:65 b7.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ transitionDelay: isVisible ? '${index * 100}ms' : '0ms' }}` |
+
+## 46. src/features/scheduling/components/shared/GoogleCalendarButton.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 83.33% / 50.00% / 100.00% / 83.33%.
+
+- Uncovered lines: 23.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 22:2 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (canManageGoogleCalendar && googleCalendar?.connected) {` |
+| 31:17 b2.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `title={googleCalendar.calendarSummary ?? 'Google Agenda conectado'}` |
+| 31:51 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `title={googleCalendar.calendarSummary ?? 'Google Agenda conectado'}` |
+| 35:12 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />` |
+| 37:12 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<RefreshCw className="h-4 w-4" aria-hidden="true" />` |
+| 65:10 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />` |
+
+## 47. src/components/common/AiAssistantCard.tsx
+
+Classification: **A**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+
+S/B/F/L: 90.90% / 94.73% / 94.11% / 94.52%.
+
+- Uncovered lines: 60, 66, 105, 114.
+- Uncovered functions: `(anonymous_13)@252`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 59:4 b0.1 switch (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `case 'warning':` |
+| 65:4 b0.2 switch (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `case 'danger':` |
+| 229:4 b17.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (state === 'loading' \|\| effectiveDisabledReason) return` |
+| 247:4 b20.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!result) return` |
+| 296:69 b30.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<RefreshCw className={cn('h-3.5 w-3.5', isLoading && 'animate-spin')} />` |
+| 438:216 b46.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Esta análise foi gerada para o período ${formatDate(result.periodStart)} – ${formatDate(result.periodEnd)}.${canGenerate ? ' Clique em "Atualizar análise" para gerar para o período atual.' : ' O responsável da clínica pode atualizá-la a qualquer momento.'}'` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 252 (anonymous_13) | `setTimeout(() => setCopied(false), 2000) } catch { // clipboard not available in some environments — ignore silently` |
+
+## 48. src/features/billing/components/PricingCard.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 95.91% / 94.59% / 92.30% / 94.87%.
+
+- Uncovered lines: 303, 343.
+- Uncovered functions: `(anonymous_8)@303`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 62:66 b3.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const tagline = plan.description ?? PLAN_TAGLINES[plan.slug] ?? null` |
+| 63:44 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const PlanIcon = PLAN_ICONS[plan.slug] ?? Rocket` |
+| 109:81 b13.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{isCurrentPlan && <BillingStatusBadge status={billingStatus?.status ?? 'active'} />}` |
+| 136:66 b18.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `Sem preço {billingInterval === 'MONTHLY' ? 'mensal' : 'anual'} disponível.` |
+| 217:70 b21.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{formatCurrencyBR((plan.campaign.promotionalPriceMonthly ?? 0) / 100)}` |
+| 339:2 b39.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (actionType === 'checkout' \|\| actionType === 'change_plan' \|\| actionType === 'reactivate') {` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 303 (anonymous_8) | `onAnimationEnd={() => setRocketAnimating(false)} /> ) : (` |
+
+## 49. src/features/finance/components/ProcedureMarginsSection.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 98.36% / 95.23% / 100.00% / 97.91%.
+
+- Uncovered lines: 229.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 228:6 b20.4 switch (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `default:` |
+| 223:32 b21.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `(b.marginPercent ?? Number.NEGATIVE_INFINITY) -` |
+| 257:88 b29.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return withMargin.reduce((best, cur) => (cur.marginPercent! > best.marginPercent! ? cur : best))` |
+| 350:55 b39.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{data.items.length > 0 && data.limitation && !data.costDataAvailable && (` |
+| 351:12 b39.3 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 text-sm text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-400">` |
+| 506:16 b54.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />` |
+
+## 50. src/features/admin/components/UserFormModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 98.48% / 92.10% / 95.00% / 98.43%.
+
+- Uncovered lines: 170.
+- Uncovered functions: `(anonymous_9)@170`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 145:29 b17.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `phone: rawPhone \|\| undefined,` |
+| 148:52 b19.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `clinicId: showClinicId ? form.clinicId \|\| undefined : null,` |
+| 158:52 b22.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `clinicId: showClinicId ? form.clinicId \|\| undefined : undefined,` |
+| 170:55 b24.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 170:66 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 228:24 b29.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!CLINIC_REQUIRED_ROLES.includes(v as UserRole)) {` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 170 (anonymous_9) | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+
+## 51. src/features/clinical-records/components/OdontogramSection.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 94.87% / 92.10% / 96.29% / 98.57%.
+
+- Uncovered lines: 235.
+- Uncovered functions: `(anonymous_20)@235`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 48:4 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (readOnly) return` |
+| 61:4 b6.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (readOnly) return` |
+| 72:4 b7.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (readOnly) return` |
+| 190:12 b23.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (selected) setToothCondition(selected, condition)` |
+| 193:12 b24.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (selected) setToothNotes(selected, notes)` |
+| 208:31 b25.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value={data.notes ?? ''}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 235 (anonymous_20) | `onClick={() => onChange('permanent')} className={cn( 'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',` |
+
+## 52. src/features/marketing/components/landing/DentalArchSection.tsx
+
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 100.00% / 62.50% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 32:28 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `duration: reduced ? 0 : 0.32,` |
+| 35:35 b1.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `staggerChildren: reduced ? 0 : 0.07,` |
+| 36:33 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `delayChildren: reduced ? 0 : 0.05,` |
+| 39:58 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `exit: { opacity: 0, transition: { duration: reduced ? 0 : 0.28, ease: 'easeInOut' as const } },` |
+| 42:40 b4.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `initial: { opacity: 0, y: reduced ? 0 : 8 },` |
+| 43:67 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `animate: { opacity: 1, y: 0, transition: { duration: reduced ? 0 : 0.4, ease: EASE_OUT } },` |
+
+## 53. src/features/patients/containers/PatientsPageContainer.tsx
+
+Classification: **B**. Open B: singular/plural patient counts and populated/loading clinical timeline data. Search, keyboard activation, appointment details, nullable contacts, dismissal, avatar feedback and list retry now have integration tests. The no-filter empty-list branches are E: usePatientsPage returns every patient when both date filters are absent; the list only renders with patients present or during loading, which selects skeletons.
+
+S/B/F/L: 100.00% / 95.04% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 171:87 b9.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{patient.totalAppointments} consulta{patient.totalAppointments !== 1 ? 's' : ''}` |
+| 188:50 b12.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{patient.canceledAppointments !== 1 ? 's' : ''}` |
+| 616:69 b45.1 cond-expr (arm) | E: no-filter empty-list state contradicts usePatientsPage filtering plus the enclosing list/loading guards. | `hasFilters ? 'Nenhum resultado para sua busca' : 'Nenhum paciente encontrado.'` |
+| 621:24 b46.1 cond-expr (arm) | E: no-filter empty-list state contradicts usePatientsPage filtering plus the enclosing list/loading guards. | `: undefined` |
+| 664:32 b49.1 cond-expr (arm) | E: no-filter empty-list state contradicts usePatientsPage filtering plus the enclosing list/loading guards. | `: 'Nenhum paciente encontrado.'` |
+| 669:32 b50.1 cond-expr (arm) | E: no-filter empty-list state contradicts usePatientsPage filtering plus the enclosing list/loading guards. | `: undefined` |
+
+## 54. src/features/scheduling/hooks/useSchedulePage.ts
+
+Classification: **A**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 100.00% / 80.00% / 83.33% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: `(anonymous_7)@109`; `(anonymous_11)@189`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 106:6 b7.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (canManageGoogleCalendar) {` |
+| 139:58 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: err instanceof Error ? err.message : undefined,` |
+| 155:32 b11.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `result.synced === 1 ? '' : 's'` |
+| 156:46 b12.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `} sincronizado${result.synced === 1 ? '' : 's'}.',` |
+| 162:58 b13.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: err instanceof Error ? err.message : undefined,` |
+| 184:58 b14.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: err instanceof Error ? err.message : undefined,` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 109 (anonymous_7) | `.catch(() => {}) } }` |
+| 189 (anonymous_11) | `.catch(() => {}) } finally { setIsCalendarActionLoading(false)` |
+
+## 55. src/features/finance/components/TransactionsTable.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 86.66% / 86.48% / 75.00% / 86.66%.
+
+- Uncovered lines: 296, 305.
+- Uncovered functions: `(anonymous_6)@296`; `(anonymous_7)@305`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 87:10 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span role="status" aria-label="Carregando movimentações">` |
+| 152:55 b8.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{SOURCE_LABEL[transaction.source] ?? transaction.source}` |
+| 153:47 b9.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{transaction.service?.name ? ' · ${transaction.service.name}' : ''}` |
+| 275:26 b16.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className="mt-0.5 text-xs text-muted-foreground">` |
+| 281:61 b17.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{SOURCE_LABEL[transaction.source] ?? transaction.source}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 296 (anonymous_6) | `onClick={() => onEdit(transaction)} > <Pencil className="h-4 w-4" aria-hidden="true" />` |
+| 305 (anonymous_7) | `onClick={() => onDelete(transaction)} > <Trash2 className="h-4 w-4" aria-hidden="true" />` |
+
+## 56. src/features/dashboard/containers/DentistHomePageContainer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 96.55% / 90.00% / 88.88% / 95.83%.
+
+- Uncovered lines: 213, 279.
+- Uncovered functions: `(anonymous_23)@213`; `(anonymous_24)@279`; `(anonymous_25)@281`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 81:59 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `() => [...appointments].sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')),` |
+| 81:92 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `() => [...appointments].sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')),` |
+| 145:49 b14.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={statusCounts.confirmed > 0 ? 'success' : 'neutral'}` |
+| 220:26 b19.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="block truncate text-xs text-muted-foreground">` |
+| 313:12 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className="mt-0.5 truncate text-sm text-muted-foreground">` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 213 (anonymous_23) | `onClick={() => setDrawerAppointment(appt)} > <span className="min-w-0">` |
+| 279 (anonymous_24) | `onClose={() => setDrawerAppointment(null)} onStatusChange={handleStatusChange} onCancelRequest={() => {}}` |
+| 281 (anonymous_25) | `onCancelRequest={() => {}} /> </AppPage>` |
+
+## 57. src/features/inventory/hooks/usePersistedCopilot.ts
+
+Classification: **A**. both real consumers exercise persisted load/generate/error/retry behavior. Remaining cancellation defenses are retained; removed draft unmount assertions did not prove observable behavior.
+
+S/B/F/L: 94.11% / 77.27% / 100.00% / 97.87%.
+
+- Uncovered lines: 87.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 37:8 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (cancelledRef.current) return` |
+| 41:8 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (cancelledRef.current) return` |
+| 42:8 b3.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (err instanceof ApiError) {` |
+| 56:8 b6.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!cancelledRef.current) setIsLoadingInitial(false)` |
+| 74:6 b8.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (err instanceof ApiError) {` |
+
+## 58. src/features/compliance/components/PrivacyRequestsTab.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 100.00% / 86.84% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 74:50 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setFilter('status', v === '__ALL__' ? '' : (v as PrivacyRequestStatus))` |
+| 92:55 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setFilter('requestType', v === '__ALL__' ? '' : (v as PrivacyRequestType))` |
+| 124:65 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isEmpty={!isLoading && !error && (result?.data.length ?? 0) === 0}` |
+| 161:62 b13.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{REQUEST_TYPE_LABEL[req.requestType] ?? req.requestType}` |
+| 192:58 b15.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{REQUEST_TYPE_LABEL[req.requestType] ?? req.requestType}` |
+
+## 59. src/features/fiscal/utils/print-invoice.ts
+
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 100.00% / 64.28% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 55:32 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `${invoice.invoiceNumber ? '<p style="font-size:11px;color:#64748b;margin-top:4px">Nº ${escapeHtml(invoice.invoiceNumber)}</p>' : ''}` |
+| 70:28 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `${invoice.serviceCode ? '<p style="font-size:12px;color:#64748b">Código de serviço: ${escapeHtml(invoice.serviceCode)}</p>' : ''}` |
+| 77:34 b4.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `${invoice.issRate != null ? '<div class="field"><label>Alíquota ISS</label><span>${escapeHtml(String(invoice.issRate))}%</span></div>' : ''}` |
+| 78:41 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `${invoice.issAmountCents != null ? '<div class="field"><label>Valor ISS</label><span>${escapeHtml(formatCents(invoice.issAmountCents))}</span></div>' : ''}` |
+| 81:20 b6.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `${invoice.notes ? '<div class="section"><h2>Observações</h2><p>${escapeHtml(invoice.notes)}</p></div>' : ''}` |
+
+## 60. src/features/marketing/components/landing/Reveal.tsx
+
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 100.00% / 70.58% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 32:25 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `initial={reduced ? false : 'hidden'}` |
+| 33:47 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `animate={isVisible \|\| reduced ? 'show' : 'hidden'}` |
+| 33:28 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `animate={isVisible \|\| reduced ? 'show' : 'hidden'}` |
+| 70:47 b8.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `animate={isVisible \|\| reduced ? 'show' : 'hidden'}` |
+| 70:28 b9.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `animate={isVisible \|\| reduced ? 'show' : 'hidden'}` |
+
+## 61. src/features/reports/utils/report-filter-chips.ts
+
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 100.00% / 88.63% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 72:83 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `chips.push({ key: 'type', label: 'Tipo: ${FINANCE_TYPE_LABELS[filters.type] ?? filters.type}' })` |
+| 77:65 b7.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `label: 'Status: ${FINANCE_STATUS_LABELS[filters.status] ?? filters.status}',` |
+| 97:62 b13.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `label: 'Status: ${APPT_STATUS_LABELS[filters.status] ?? filters.status}',` |
+| 108:61 b15.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `label: 'Status: ${INV_STATUS_LABELS[filters.status] ?? filters.status}',` |
+| 134:65 b21.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `label: 'Status: ${INVOICE_STATUS_LABELS[filters.status] ?? filters.status}',` |
+
+## 62. src/features/marketing/pages/IntegrationsPage.tsx
+
+Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%.
+
+- Uncovered lines: 11, 39, 43, 66-68, 141.
+- Uncovered functions: `IntegrationsPage@38`; `(anonymous_1)@65`; `(anonymous_2)@141`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 76:24 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<img` |
+| 83:24 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Icon className="h-5 w-5 text-primary" aria-hidden="true" />` |
+| 97:23 b1.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{integration.statusLabel \|\| style.label}` |
+| 97:50 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{integration.statusLabel \|\| style.label}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 38 IntegrationsPage | `export function IntegrationsPage() { usePageMeta( 'DentalFlow \| Integrações e serviços conectados',` |
+| 65 (anonymous_1) | `{integrationCards.map((integration) => { const Icon = integration.icon const style = STATUS_STYLES[integration.status]` |
+| 141 (anonymous_2) | `<li key={item} className="flex items-start gap-2.5"> <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"` |
+
+## 63. src/features/scheduling/constants/appointment-filters.ts
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 50.00% / 0.00% / 0.00% / 50.00%.
+
+- Uncovered lines: 12, 17-18.
+- Uncovered functions: `(anonymous_0)@12`; `(anonymous_1)@17`; `(anonymous_2)@18`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 12:32 b0.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `'${appointment.patientName} ${appointment.patientEmail ?? ''} ${appointment.patientPhone ?? ''}'` |
+| 12:60 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `'${appointment.patientName} ${appointment.patientEmail ?? ''} ${appointment.patientPhone ?? ''}'` |
+| 12:66 b1.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `'${appointment.patientName} ${appointment.patientEmail ?? ''} ${appointment.patientPhone ?? ''}'` |
+| 12:94 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `'${appointment.patientName} ${appointment.patientEmail ?? ''} ${appointment.patientPhone ?? ''}'` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 12 (anonymous_0) | `'${appointment.patientName} ${appointment.patientEmail ?? ''} ${appointment.patientPhone ?? ''}' .toLowerCase() .includes(query)` |
+| 17 (anonymous_1) | `status: (appointment: Appointment, value: string) => appointment.status === value, profileId: (appointment: Appointment, value: string) => appointment.profileId === value, }` |
+| 18 (anonymous_2) | `profileId: (appointment: Appointment, value: string) => appointment.profileId === value, }` |
+
+## 64. src/features/scheduling/containers/AppointmentsPageContainer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 66.66% / 66.66% / 45.45% / 66.66%.
+
+- Uncovered lines: 145, 156, 168, 178, 184, 190.
+- Uncovered functions: `(anonymous_5)@145`; `(anonymous_6)@156`; `(anonymous_7)@168`; `(anonymous_8)@178`; `(anonymous_9)@184`; `(anonymous_10)@190`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 66:35 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return dates.includes(today) ? today : dates[0]` |
+| 73:36 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dates.includes(prev) ? prev : dates.includes(today) ? today : dates[0],` |
+| 73:60 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dates.includes(prev) ? prev : dates.includes(today) ? today : dates[0],` |
+| 73:68 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dates.includes(prev) ? prev : dates.includes(today) ? today : dates[0],` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 145 (anonymous_5) | `onCreateAppointment={() => setIsCreating(true)} selectedDate={mobileSelectedDate} onSelectedDateChange={setMobileSelectedDate}` |
+| 156 (anonymous_6) | `onCreateAppointment={() => setIsCreating(true)} selectedDate={mobileSelectedDate} onSelectedDateChange={setMobileSelectedDate}` |
+| 168 (anonymous_7) | `onClose={() => setDrawerAppointment(null)} onEdit={handleEdit} onStatusChange={handleStatusChange}` |
+| 178 (anonymous_8) | `onCancel={() => setCancelTarget(null)} onConfirm={handleCancelConfirm} />` |
+| 184 (anonymous_9) | `onClose={() => setEditTarget(null)} onUpdated={handleUpdated} />` |
+| 190 (anonymous_10) | `onClose={() => setIsCreating(false)} onCreated={handleCreated} />` |
+
+## 65. src/features/finance/components/FinancialAnalysisPanel.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 71.42% / 50.00% / 66.66% / 75.00%.
+
+- Uncovered lines: 26-28.
+- Uncovered functions: `(anonymous_2)@26`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 21:44 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dataReadiness && !dataReadiness.ready ? dataReadiness.reason : undefined` |
+| 21:21 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dataReadiness && !dataReadiness.ready ? dataReadiness.reason : undefined` |
+| 24:4 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isLoadingInitial) return` |
+| 25:4 b3.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!['#ai-analysis', '#finance-ai'].includes(window.location.hash)) return` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 26 (anonymous_2) | `window.setTimeout(() => { sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) sectionRef.current?.focus({ preventScroll: true })` |
+
+## 66. src/features/scheduling/containers/SchedulePageContainer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 92.85% / 83.33% / 66.66% / 92.85%.
+
+- Uncovered lines: 249.
+- Uncovered functions: `(anonymous_6)@165`; `(anonymous_7)@249`; `(anonymous_8)@251`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 58:35 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return dates.includes(today) ? today : dates[0]` |
+| 65:36 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dates.includes(prev) ? prev : dates.includes(today) ? today : dates[0],` |
+| 65:60 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dates.includes(prev) ? prev : dates.includes(today) ? today : dates[0],` |
+| 65:68 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dates.includes(prev) ? prev : dates.includes(today) ? today : dates[0],` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 165 (anonymous_6) | `onCancelRequest={() => {}} /> </>` |
+| 249 (anonymous_7) | `onClose={() => setDrawerAppointment(null)} onStatusChange={handleStatusChange} onCancelRequest={() => {}}` |
+| 251 (anonymous_8) | `onCancelRequest={() => {}} /> </AppPage>` |
+
+## 67. src/features/auth/pages/CompleteProfilePage.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 95.74% / 85.71% / 100.00% / 95.65%.
+
+- Uncovered lines: 59-60.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 31:44 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setResponsibleName('${user.firstName ?? ''} ${user.lastName ?? ''}'.trim())` |
+| 31:67 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setResponsibleName('${user.firstName ?? ''} ${user.lastName ?? ''}'.trim())` |
+| 58:4 b8.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (normalizedClinic.length < 2) {` |
+| 88:12 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Não foi possível concluir o perfil agora.'` |
+
+## 68. src/features/scheduling/components/appointments/CreateAppointmentModal.tsx
+
+Classification: **A**. Creation validation, same-day time boundaries, whitespace-only name rejection, retries, busy controls, service prices, draft/avatar reset, lookup failures and stale slot responses are covered. Remaining A/B: calendar disabled-date integration, Escape/outside dismissal, profile reset alternatives and non-Error persistence rejection. Each exact surviving location below remains open; callback presence alone is not treated as behavioral coverage.
+
+S/B/F/L: 98.40% / 95.00% / 94.44% / 98.29%.
+
+- Uncovered lines: 276, 364.
+- Uncovered functions: `(anonymous_21)@276`; `(anonymous_28)@364`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 267:58 b23.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: err instanceof Error ? err.message : undefined,` |
+| 276:53 b24.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(open) => !open && handleClose()}>` |
+| 276:62 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(open) => !open && handleClose()}>` |
+| 363:23 b29.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `form.profileId` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 276 (anonymous_21) | `<Dialog.Root open={open} onOpenChange={(open) => !open && handleClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+| 364 (anonymous_28) | `? (dv) => !isDateAvailable(dv, profileAvailability, profileExceptions) : undefined }` |
+
+## 69. src/features/clinical-records/components/ClinicalStickyBar.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 81.81% / 77.77% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 15:2 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (parts.length === 0) return '?'` |
+| 16:2 b1.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()` |
+| 125:8 b7.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<CheckCircle2 className="h-3 w-3 text-emerald-500" aria-hidden="true" />` |
+| 128:8 b8.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<>` |
+
+## 70. src/features/clinical-records/hooks/useClinicalTemplates.ts
+
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 100.00% / 50.00% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 31:8 b0.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent) setTemplates(data)` |
+| 34:8 b1.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent) setError('Não foi possível carregar os modelos clínicos.')` |
+| 37:8 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent) setIsLoading(false)` |
+| 70:70 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setTemplates((prev) => prev.map((t) => (t.id === id ? updated : t)))` |
+
+## 71. src/features/compliance/components/AuditLogsTab.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 100.00% / 91.30% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 59:8 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!cancelled) setResolved({ resolvedKey: key, data, error: null })` |
+| 62:8 b3.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!cancelled)` |
+| 92:70 b8.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onValueChange={(v) => setFilter('action', v === '__ALL__' ? '' : v)}` |
+| 136:65 b13.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isEmpty={!isLoading && !error && (result?.data.length ?? 0) === 0}` |
+
+## 72. src/features/finance/components/IncomeExpensesChart.tsx
+
+Classification: **B**. application tooltip/sign and toggle behavior now run; remaining chart callbacks, reduction alternatives and nullable fallbacks need targeted cases/reachability review.
+
+S/B/F/L: 100.00% / 93.10% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 54:53 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const fullDate = (payload[0]?.payload?.fullDate ?? '') as string` |
+| 76:50 b7.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const label = CHART_SERIES_LABELS[key] ?? key` |
+| 133:38 b18.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `item.netProfit > best.netProfit ? item : best,` |
+| 160:82 b22.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<FinanceInsight label="Último resultado" value={lastPoint?.netProfit ?? 0} />` |
+
+## 73. src/features/scheduling/hooks/useAppointmentsPage.ts
+
+Classification: **A**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 100.00% / 87.50% / 90.90% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: `(anonymous_9)@124`; `(anonymous_21)@246`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 121:6 b5.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (canManageGoogleCalendar) {` |
+| 194:58 b11.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: err instanceof Error ? err.message : undefined,` |
+| 217:58 b14.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: err instanceof Error ? err.message : undefined,` |
+| 239:58 b15.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: err instanceof Error ? err.message : undefined,` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 124 (anonymous_9) | `.catch(() => {}) } }` |
+| 246 (anonymous_21) | `.catch(() => {}) } finally { setIsCalendarActionLoading(false)` |
+
+## 74. src/config/company.ts
+
+Classification: **A**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+
+S/B/F/L: 63.15% / 50.00% / 60.00% / 66.66%.
+
+- Uncovered lines: 165, 169-170, 172-173, 175.
+- Uncovered functions: `(anonymous_1)@165`; `(anonymous_2)@169`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 168:2 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (failures.length > 0) {` |
+| 172:4 b1.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (import.meta.env.PROD) {` |
+| 172:4 b1.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (import.meta.env.PROD) {` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 165 (anonymous_1) | `isPlaceholder(companyInfo[field] as string), )` |
+| 169 (anonymous_2) | `const lines = failures.map(({ field, hint }) => ' • ${field}: ${hint}') const message = '[company.ts] ${failures.length} placeholder(s) de produção detectado(s):\n${lines.join('\n')}'` |
+
+## 75. src/features/patients/components/PatientAvatarWidget.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 89.70% / 93.02% / 100.00% / 90.16%.
+
+- Uncovered lines: 95-100.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 72:4 b5.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!file \|\| !onUpload) return` |
+| 93:11 b9.1 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `} else {` |
+| 140:6 b12.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (e.key === 'Escape') setShowSourcePicker(false)` |
+
+## 76. src/components/common/PasswordResetModal.tsx
+
+Classification: **A**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+
+S/B/F/L: 91.17% / 84.21% / 87.50% / 90.62%.
+
+- Uncovered lines: 67-68, 87.
+- Uncovered functions: `(anonymous_5)@87`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 66:4 b3.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (form.password.length > PASSWORD_MAX_LENGTH) {` |
+| 87:55 b6.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 87:66 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 87 (anonymous_5) | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+
+## 77. src/features/billing/containers/SubscriptionPageContainer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 94.73% / 90.32% / 87.50% / 93.75%.
+
+- Uncovered lines: 198.
+- Uncovered functions: `(anonymous_7)@198`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 134:16 b12.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `billingStatus.planKey === plan.slug &&` |
+| 135:16 b12.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `billingStatus.billingInterval === normalizedInterval` |
+| 156:71 b13.2 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isRecommended={index === 1 \|\| (plans.length === 1 && plan.hasAnalytics)}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 198 (anonymous_7) | `onCancel={() => setShowCancelDialog(false)} /> </AppPage>` |
+
+## 78. src/features/fiscal/components/AppointmentInvoicePickerModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 93.18% / 90.62% / 85.00% / 94.87%.
+
+- Uncovered lines: 94, 240.
+- Uncovered functions: `(anonymous_8)@94`; `(anonymous_15)@240`; `(anonymous_16)@240`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 76:63 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setFilters((prev) => ({ ...prev, patient: pendingSearch \|\| undefined, page: 1 }))` |
+| 94:53 b2.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(open) => !open && handleClose()}>` |
+| 94:62 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(open) => !open && handleClose()}>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 94 (anonymous_8) | `<Dialog.Root open={open} onOpenChange={(open) => !open && handleClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0 duration-200" />` |
+| 240 (anonymous_15) | `onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))} > Anterior` |
+| 240 (anonymous_16) | `onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))} > Anterior` |
+
+## 79. src/features/admin/containers/AdminClinicsPageContainer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 92.30% / 85.00% / 94.44% / 96.00%.
+
+- Uncovered lines: 274.
+- Uncovered functions: `(anonymous_13)@274`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 243:32 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.target !== event.currentTarget) return` |
+| 244:32 b5.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.key === 'Enter' \|\| event.key === ' ') {` |
+| 244:61 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.key === 'Enter' \|\| event.key === ' ') {` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 274 (anonymous_13) | `onClick={() => setEditTarget(clinic)} > <Pencil className="h-3.5 w-3.5" aria-hidden="true" />` |
+
+## 80. src/features/scheduling/components/availability/AvailabilityManager.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 98.03% / 85.00% / 92.85% / 97.91%.
+
+- Uncovered lines: 134.
+- Uncovered functions: `(anonymous_11)@134`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 52:67 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onSlotsChange(slots.map((s) => (s.id === slot.id ? updated : s)))` |
+| 56:55 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const msg = err instanceof Error ? err.message : 'Erro ao atualizar.'` |
+| 72:55 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const msg = err instanceof Error ? err.message : 'Erro ao remover.'` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 134 (anonymous_11) | `onEditCancel={() => setEditingId(null)} onUpdate={(dto) => handleUpdate(slot, dto)} onDelete={() => handleDelete(slot)}` |
+
+## 81. src/components/common/MonthPickerInput.tsx
+
+Classification: **B**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+
+S/B/F/L: 96.55% / 92.68% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 39:2 b1.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!match) return null` |
+| 48:2 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!/^\d{4}-\d{2}$/.test(isoMonth)) return ''` |
+| 147:38 b17.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `aria-label={triggerLabel \|\| placeholder}` |
+
+## 82. src/features/admin/hooks/useAdminFinancePage.ts
+
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 98.71% / 86.36% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 74:47 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `error instanceof Error ? error.message : 'Não foi possível carregar os dados financeiros.'` |
+| 107:8 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isMounted) return` |
+| 186:24 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `[field]: value \|\| undefined,` |
+
+## 83. src/features/fiscal/hooks/useFiscalInvoicesPage.ts
+
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 98.00% / 86.36% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 85:8 b3.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isMounted) return` |
+| 92:8 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!isMounted) return` |
+| 106:8 b7.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isMounted) setIsLoading(false)` |
+
+## 84. src/features/inventory/components/StockAbnormalConsumptionSection.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 211:63 b9.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={data.summary.highSeverity > 0 ? 'danger' : 'neutral'}` |
+| 216:66 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={data.summary.mediumSeverity > 0 ? 'warning' : 'neutral'}` |
+| 221:60 b11.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={data.summary.lowSeverity > 0 ? 'info' : 'neutral'}` |
+
+## 85. src/features/marketing/components/landing/DentalArch.tsx
+
+Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 92.30% / 85.00% / 81.81% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: `(anonymous_0)@9`; `(anonymous_5)@51`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 23:44 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const t = DENTAL_WORKFLOWS.length === 1 ? 0 : (index / (DENTAL_WORKFLOWS.length - 1)) * 2 - 1` |
+| 48:4 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (typeof window === 'undefined' \|\| typeof window.matchMedia !== 'function') return` |
+| 171:8 b9.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Suspense fallback={<StaticArch selectedIndex={selectedIndex} onSelect={onSelect} />}>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 9 (anonymous_0) | `const DentalArchScene = lazy(() => import('./DentalArchScene')) type DentalArchProps = {` |
+| 51 (anonymous_5) | `const onChange = (event: MediaQueryListEvent) => setSmallOrCoarse(event.matches) query.addEventListener('change', onChange) return () => query.removeEventListener('change', onChange)` |
+
+## 86. src/features/marketing/pages/FeatureDetailPage.tsx
+
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 100.00% / 83.33% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 46:60 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `heroVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',` |
+| 84:60 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `heroVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0',` |
+| 369:57 b8.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `ctaVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',` |
+
+## 87. src/features/patients/hooks/usePatientAvatar.ts
+
+Classification: **A**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 95.74% / 86.36% / 94.11% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: `(anonymous_16)@97`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 74:8 b8.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (active) {` |
+| 81:8 b9.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (active) setState({ avatarUrl: null, isLoading: false, isSaving: false })` |
+| 90:6 b10.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!identifier) return` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 97 (anonymous_16) | `setState((s) => ({ ...s, isSaving: false })) throw new Error('Não foi possível salvar a foto.') }` |
+
+## 88. src/features/scheduling/components/SchedulingToolbar.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 100.00% / 75.00% / 25.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: `(anonymous_1)@81`; `(anonymous_2)@82`; `(anonymous_3)@83`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 81:23 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onConnect={onConnectGoogleCalendar ?? (() => {})}` |
+| 82:20 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onSync={onSyncGoogleCalendar ?? (() => {})}` |
+| 83:26 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onDisconnect={onDisconnectGoogleCalendar ?? (() => {})}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 81 (anonymous_1) | `onConnect={onConnectGoogleCalendar ?? (() => {})} onSync={onSyncGoogleCalendar ?? (() => {})} onDisconnect={onDisconnectGoogleCalendar ?? (() => {})}` |
+| 82 (anonymous_2) | `onSync={onSyncGoogleCalendar ?? (() => {})} onDisconnect={onDisconnectGoogleCalendar ?? (() => {})} />` |
+| 83 (anonymous_3) | `onDisconnect={onDisconnectGoogleCalendar ?? (() => {})} />` |
+
+## 89. src/lib/validators/br.ts
+
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 99.09% / 96.29% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 25:2 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (rem !== Number.parseInt(d[9])) return false` |
+| 53:23 b12.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const d1 = rem < 2 ? 0 : 11 - rem` |
+| 60:23 b14.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const d2 = rem < 2 ? 0 : 11 - rem` |
+
+## 90. src/features/finance/components/CategoryEditModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 60.00% / 66.66% / 60.00% / 60.00%.
+
+- Uncovered lines: 40, 94.
+- Uncovered functions: `(anonymous_1)@40`; `(anonymous_4)@94`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 40:66 b0.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={category !== null} onOpenChange={(open) => !open && onClose()}>` |
+| 40:75 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={category !== null} onOpenChange={(open) => !open && onClose()}>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 40 (anonymous_1) | `<Dialog.Root open={category !== null} onOpenChange={(open) => !open && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+| 94 (anonymous_4) | `<ColorPicker value={form.color} onChange={(color) => onChange('color', color)} /> </FormField>` |
+
+## 91. src/features/marketing/components/landing/ProductShowcaseSection.tsx
+
+Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 67.56% / 80.00% / 47.82% / 67.56%.
+
+- Uncovered lines: 38, 115, 133, 147, 161, 174, 236, 240, 248, 303, 311, 327.
+- Uncovered functions: `Tile@37`; `ProntuarioMock@114`; `(anonymous_6)@133`; `(anonymous_7)@147`; `FinanceiroMock@160`; `(anonymous_9)@174`; `EquipeMock@235`; `(anonymous_13)@240`; `(anonymous_14)@248`; `(anonymous_16)@303`; `(anonymous_17)@311`; `(anonymous_19)@327`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 137:25 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `marked ? 'border-cyan-300 bg-cyan-100' : 'border-slate-200 bg-slate-50',` |
+| 137:57 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `marked ? 'border-cyan-300 bg-cyan-100' : 'border-slate-200 bg-slate-50',` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 37 Tile | `}: { label: string; value: string; hint: string; accent: string }) { return ( <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">` |
+| 114 ProntuarioMock | `function ProntuarioMock() { return ( <MockWindow title="DentalFlow · Prontuário">` |
+| 133 (anonymous_6) | `<span key={'tooth-${i}'} className={cn(` |
+| 147 (anonymous_7) | `<div key={evo.date} className="rounded-lg border border-slate-200 bg-slate-50/70 p-2.5"> <p className="text-[11px] font-semibold text-cyan-700">{evo.date}</p> <p className="text-xs leading-5 text-slate-600">{evo.note}</p>` |
+| 160 FinanceiroMock | `function FinanceiroMock() { return ( <MockWindow title="DentalFlow · Financeiro">` |
+| 174 (anonymous_9) | `<div key={'bar-${i}'} className="flex-1 rounded-t-md bg-gradient-to-t from-emerald-400 to-cyan-400"` |
+| 235 EquipeMock | `function EquipeMock() { return ( <MockWindow title="DentalFlow · Equipe">` |
+| 240 (anonymous_13) | `<div key={member.name} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3"` |
+| 248 (anonymous_14) | `.map((p) => p[0]) .join('')} </span>` |
+| 303 (anonymous_16) | `render: () => <ProntuarioMock />, }, {` |
+| 311 (anonymous_17) | `render: () => <FinanceiroMock />, }, {` |
+| 327 (anonymous_19) | `render: () => <EquipeMock />, }, ]` |
+
+## 92. src/features/finance/components/FixedExpenseEditModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 80.00% / 66.66% / 80.00% / 80.00%.
+
+- Uncovered lines: 47, 159.
+- Uncovered functions: `(anonymous_1)@47`; `(anonymous_9)@159`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 47:65 b0.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={expense !== null} onOpenChange={(open) => !open && onClose()}>` |
+| 47:74 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={expense !== null} onOpenChange={(open) => !open && onClose()}>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 47 (anonymous_1) | `<Dialog.Root open={expense !== null} onOpenChange={(open) => !open && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+| 159 (anonymous_9) | `onValueChange={(value) => onChange('endDate', value)} /> </FormField>` |
+
+## 93. src/features/team/components/TeamMembersTable.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 75.00% / 80.00% / 75.00% / 81.81%.
+
+- Uncovered lines: 68-69.
+- Uncovered functions: `(anonymous_6)@68`; `(anonymous_7)@69`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 46:18 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.target !== event.currentTarget) return` |
+| 47:18 b1.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.key === 'Enter' \|\| event.key === ' ') {` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 68 (anonymous_6) | `onPassword={() => onPassword(member)} onDelete={() => onDelete(member)} />` |
+| 69 (anonymous_7) | `onDelete={() => onDelete(member)} /> </td>` |
+
+## 94. src/features/finance/containers/FinancePageContainer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 87.50% / 92.30% / 91.66% / 86.95%.
+
+- Uncovered lines: 127-129.
+- Uncovered functions: `(anonymous_1)@126`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 167:16 b4.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (typeof document !== 'undefined') {` |
+| 342:68 b12.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `categories={editForm.type === 'INCOME' ? incomeCategories : expenseCategories}` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 126 (anonymous_1) | `onAction: () => { setFilter('type', undefined) setFilter('status', undefined)` |
+
+## 95. src/features/scheduling/components/appointments/AppointmentTable.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 85.71% / 92.00% / 81.81% / 89.47%.
+
+- Uncovered lines: 122, 219.
+- Uncovered functions: `(anonymous_4)@122`; `(anonymous_10)@219`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 183:8 b8.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.target !== event.currentTarget) return` |
+| 184:8 b9.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.key === 'Enter' \|\| event.key === ' ') {` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 122 (anonymous_4) | `<td className="px-4 py-3" onClick={(e) => e.stopPropagation()}> <AppointmentStatusBadge status={appt.status} /> </td>` |
+| 219 (anonymous_10) | `<div className="mt-3 flex justify-end" onClick={(e) => e.stopPropagation()}> <StatusActionMenu appointment={appt}` |
+
+## 96. src/features/finance/components/TransactionEditModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 90.00% / 66.66% / 90.00% / 90.00%.
+
+- Uncovered lines: 45.
+- Uncovered functions: `(anonymous_1)@45`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 45:69 b0.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={transaction !== null} onOpenChange={(open) => !open && onClose()}>` |
+| 45:78 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={transaction !== null} onOpenChange={(open) => !open && onClose()}>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 45 (anonymous_1) | `<Dialog.Root open={transaction !== null} onOpenChange={(open) => !open && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+
+## 97. src/features/scheduling/components/appointments/AppointmentDrawer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 90.00% / 93.54% / 80.00% / 90.00%.
+
+- Uncovered lines: 56.
+- Uncovered functions: `(anonymous_3)@56`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 56:62 b2.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={!!appointment} onOpenChange={(open) => !open && onClose()}>` |
+| 56:71 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={!!appointment} onOpenChange={(open) => !open && onClose()}>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 56 (anonymous_3) | `<Dialog.Root open={!!appointment} onOpenChange={(open) => !open && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0 duration-200" />` |
+
+## 98. src/features/inventory/utils/inventory-format.ts
+
+Classification: **A**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+
+S/B/F/L: 84.61% / 80.00% / 100.00% / 91.66%.
+
+- Uncovered lines: 64.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 37:25 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return labels[type] ?? type` |
+| 51:2 b4.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!iso) return ''` |
+
+## 99. src/features/marketing/hooks/useDropdownNav.ts
+
+Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+
+S/B/F/L: 96.87% / 80.00% / 100.00% / 96.00%.
+
+- Uncovered lines: 19.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 18:6 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (headerRef.current && !headerRef.current.contains(e.target as Node)) {` |
+| 23:6 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (e.key === 'Escape') {` |
+
+## 100. src/features/admin/components/ClinicFormModal.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 96.55% / 93.54% / 88.88% / 96.29%.
+
+- Uncovered lines: 87.
+- Uncovered functions: `(anonymous_6)@87`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 87:55 b7.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+| 87:66 b7.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 87 (anonymous_6) | `<Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+
+## 101. src/features/admin/containers/AdminUsersPageContainer.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 96.42% / 91.66% / 95.45% / 96.29%.
+
+- Uncovered lines: 384.
+- Uncovered functions: `(anonymous_19)@384`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 277:30 b5.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.key === 'Enter' \|\| event.key === ' ') {` |
+| 277:59 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (event.key === 'Enter' \|\| event.key === ' ') {` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 384 (anonymous_19) | `onClose={() => setEditTarget(null)} onSuccess={handleEditSuccess} />` |
+
+## 102. src/features/admin/components/ClinicHealthSection.tsx
+
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 96.77% / 93.10% / 100.00% / 96.77%.
+
+- Uncovered lines: 90.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 89:2 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!subscription \|\| !subscription.status) {` |
+| 105:59 b13.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{trialDaysRemaining} {trialDaysRemaining === 1 ? 'dia restante' : 'dias restantes'} de` |
+
+## 103. src/features/scheduling/components/appointments/EditAppointmentModal.tsx
+
+Classification: **A**. Future edit and past reschedule payloads, nullable fields, service/price changes, same-day validation, busy states, failures/retry, lookup failures and stale slot responses are covered. Remaining A/B: calendar disabled-date integration, Escape/outside dismissal and any surviving asynchronous cleanup branches listed below. Native calendar interaction requires an integration scenario, not just calling the predicate in isolation.
+
+S/B/F/L: 98.24% / 97.93% / 94.59% / 98.03%.
+
+- Uncovered lines: 239, 343.
+- Uncovered functions: `(anonymous_24)@239`; `(anonymous_32)@343`.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 239:62 b27.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={!!appointment} onOpenChange={(open) => !open && handleClose()}>` |
+| 239:71 b27.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<Dialog.Root open={!!appointment} onOpenChange={(open) => !open && handleClose()}>` |
+
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 239 (anonymous_24) | `<Dialog.Root open={!!appointment} onOpenChange={(open) => !open && handleClose()}> <Dialog.Portal> <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />` |
+| 343 (anonymous_32) | `disabledDate={(dv) => !isDateAvailable(dv, profileAvailability, profileExceptions)} onValueChange={(value) => { set('appointmentDate', formatDateInputValue(value))` |
+
+## 104. src/components/common/DatePickerInput.tsx
+
+Classification: **B**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+
+S/B/F/L: 96.96% / 96.36% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 74:4 b10.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isBeforeMinDate(nextValue, minDateValue)) return` |
+| 75:4 b11.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (disabledDate?.(nextValue)) return` |
+
+## 105. src/components/layout/SiteFooter.tsx
+
+Classification: **B**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+
+S/B/F/L: 100.00% / 66.66% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 47:22 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}` |
+| 49:15 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{icon ?? <FooterChevron />}` |
+
+## 106. src/features/auth/pages/ResetPasswordPage.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+
+S/B/F/L: 96.00% / 88.88% / 100.00% / 100.00%.
+
+- Uncovered lines: none.
+- Uncovered functions: none.
+
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 24:4 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!token) return` |
+| 33:45 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `err instanceof Error ? err.message : 'Não foi possível redefinir a senha. Tente novamente.'` |
+
+## 107. src/features/clinical-records/components/ClinicalSection.tsx
+
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-A / C1 — maximum-duration auto-stop, audio conversion failures, microphone absence, late processing/timer paths and optional suggestion values need further tests. Some reset/nullable defenses may be unreachable through enabled UI; no blanket exclusion is justified.
+S/B/F/L: 100.00% / 85.71% / 100.00% / 100.00%.
 
-- Lines: 109-110, 115-116, 323-324, 327-328, 331-332, 384-385, 447-449, 460-461, 554-558, 642, 653-654, 720, 729, 914.
-- Branches: `82:2 b0.1 if (condition)`; `108:6 b2.0 if (arm)`; `114:6 b3.0 if (arm)`; `322:4 b15.0 if (arm)`; `326:4 b16.0 if (arm)`; `330:4 b17.0 if (arm)`; `363:6 b18.0 if (arm)`; `376:6 b19.0 if (arm)`; `379:8 b20.0 if (arm)`; `383:8 b22.0 if (arm)`; `401:8 b24.1 if (condition)`; `419:8 b27.1 if (condition)`; `432:10 b29.0 if (arm)`; `448:10 b31.0 if (arm)`; `448:10 b31.1 if (condition)`; `448:14 b32.0 binary-expr (arm)`; `448:39 b32.1 binary-expr (arm)`; `459:8 b33.0 if (arm)`; `495:8 b37.0 if (arm)`; `513:4 b39.0 if (arm)`; `526:4 b41.0 if (arm)`; `529:6 b42.0 if (arm)`; `550:4 b44.0 if (arm)`; `553:4 b46.0 if (arm)`; `581:49 b49.1 binary-expr (arm)`; `581:66 b49.2 binary-expr (arm)`; `587:8 b50.1 if (condition)`; `600:8 b53.0 if (arm)`; `638:8 b55.0 if (arm)`; `650:6 b56.1 if (condition)`; `653:19 b57.1 if (arm)`; `651:46 b58.1 binary-expr (arm)`; `653:19 b59.0 if (arm)`; `653:19 b59.1 if (condition)`; `670:61 b61.1 binary-expr (arm)`; `678:75 b63.1 binary-expr (arm)`; `690:4 b67.1 if (condition)`; `720:11 b69.1 if (arm)`; `729:11 b70.1 if (arm)`; `743:55 b72.1 binary-expr (arm)`; `744:49 b73.1 binary-expr (arm)`; `755:41 b74.1 binary-expr (arm)`; `911:20 b88.1 binary-expr (arm)`; `917:44 b89.0 cond-expr (arm)`; `917:58 b89.1 cond-expr (arm)`; `928:38 b90.1 binary-expr (arm)`; `928:61 b90.2 binary-expr (arm)`; `978:77 b95.1 binary-expr (arm)`; `1044:62 b100.1 binary-expr (arm)`; `1110:90 b104.1 binary-expr (arm)`; `1214:31 b108.1 binary-expr (arm)`; `1234:42 b110.1 binary-expr (arm)`.
-- Functions: `(anonymous_5)@120`; `(anonymous_19)@446`; `(anonymous_44)@914`; `(anonymous_45)@914`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 2. src/features/settings/containers/SettingsPageContainer.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 59:47 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `expanded ? 'text-primary/70' : 'text-muted-foreground',` |
+| 76:45 b5.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `expanded ? 'bg-primary/60' : 'bg-muted-foreground/35',` |
 
-S/B/F/L: 86.98% / 77.50% / 82.05% / 87.87%. Missing branch arms: 36.
+## 108. src/features/clinical-records/hooks/useClinicalRecord.ts
 
-A / C1–C2 — debounced postal-code lookup success/failure, preserving existing address values, form callbacks and validation presentation remain incomplete.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-- Lines: 124, 177-182, 189-190, 192, 195, 198, 292, 336, 351, 361.
-- Branches: `123:2 b3.0 if (arm)`; `123:27 b4.1 binary-expr (arm)`; `162:32 b12.1 binary-expr (arm)`; `163:23 b13.0 cond-expr (arm)`; `169:28 b19.0 cond-expr (arm)`; `176:4 b20.1 if (condition)`; `184:24 b21.0 binary-expr (arm)`; `184:42 b21.1 binary-expr (arm)`; `185:16 b22.0 binary-expr (arm)`; `185:32 b22.1 binary-expr (arm)`; `186:17 b23.0 binary-expr (arm)`; `186:31 b23.1 binary-expr (arm)`; `189:8 b24.0 if (arm)`; `191:15 b24.1 if (arm)`; `218:4 b27.1 if (condition)`; `219:4 b28.1 if (condition)`; `220:4 b29.0 if (arm)`; `221:4 b30.0 if (arm)`; `222:4 b31.0 if (arm)`; `223:4 b32.0 if (arm)`; `224:4 b33.0 if (arm)`; `225:4 b34.0 if (arm)`; `226:4 b35.0 if (arm)`; `295:47 b41.0 cond-expr (arm)`; `393:18 b45.1 binary-expr (arm)`; `401:29 b46.1 binary-expr (arm)`; `416:73 b47.1 binary-expr (arm)`; `420:72 b48.1 binary-expr (arm)`; `561:61 b59.1 binary-expr (arm)`; `629:8 b67.0 cond-expr (arm)`; `634:6 b69.0 cond-expr (arm)`; `637:6 b70.0 cond-expr (arm)`; `673:10 b73.1 cond-expr (arm)`; `666:43 b77.1 binary-expr (arm)`; `667:12 b77.2 binary-expr (arm)`; `670:12 b78.2 binary-expr (arm)`.
-- Functions: `(anonymous_6)@177`; `(anonymous_7)@182`; `(anonymous_8)@198`; `(anonymous_15)@292`; `(anonymous_17)@336`; `(anonymous_18)@351`; `(anonymous_19)@361`.
+S/B/F/L: 100.00% / 93.10% / 100.00% / 100.00%.
 
-## 3. src/features/patients/containers/PatientsPageContainer.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 67.30% / 71.07% / 61.53% / 68.75%. Missing branch arms: 35.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 37:8 b1.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent) setError('Não foi possível carregar o prontuário.')` |
+| 229:8 b13.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent) dispatch({ type: 'error' })` |
 
-A / C1 — patient-detail appointment content, keyboard row activation, avatar mutation feedback and drawer callbacks remain incomplete.
+## 109. src/features/compliance/components/CookieConsentLogsTab.tsx
 
-- Lines: 97, 232-234, 240, 245, 260, 414, 561, 682, 684-687, 763.
-- Branches: `102:13 b3.0 binary-expr (arm)`; `102:35 b3.1 binary-expr (arm)`; `104:11 b4.0 binary-expr (arm)`; `105:12 b4.1 binary-expr (arm)`; `114:11 b5.0 binary-expr (arm)`; `115:12 b5.1 binary-expr (arm)`; `157:8 b7.1 cond-expr (arm)`; `170:71 b8.1 cond-expr (arm)`; `171:87 b9.1 cond-expr (arm)`; `179:14 b10.1 cond-expr (arm)`; `188:50 b12.0 cond-expr (arm)`; `235:24 b18.0 cond-expr (arm)`; `235:45 b18.1 cond-expr (arm)`; `236:30 b19.0 cond-expr (arm)`; `236:64 b19.1 cond-expr (arm)`; `245:69 b20.0 binary-expr (arm)`; `245:80 b20.1 binary-expr (arm)`; `310:88 b26.1 cond-expr (arm)`; `314:75 b27.1 cond-expr (arm)`; `322:47 b28.2 binary-expr (arm)`; `322:71 b28.3 binary-expr (arm)`; `428:18 b37.0 cond-expr (arm)`; `431:29 b38.0 binary-expr (arm)`; `431:51 b38.1 binary-expr (arm)`; `616:69 b45.1 cond-expr (arm)`; `621:24 b46.1 cond-expr (arm)`; `664:32 b49.1 cond-expr (arm)`; `669:32 b50.1 cond-expr (arm)`; `684:26 b51.0 if (arm)`; `684:26 b51.1 if (condition)`; `685:26 b52.0 if (arm)`; `685:26 b52.1 if (condition)`; `685:30 b53.0 binary-expr (arm)`; `685:55 b53.1 binary-expr (arm)`; `712:28 b54.1 cond-expr (arm)`.
-- Functions: `(anonymous_0)@52`; `AppointmentRow@96`; `(anonymous_9)@231`; `(anonymous_10)@245`; `(anonymous_11)@260`; `(anonymous_14)@414`; `(anonymous_18)@561`; `(anonymous_23)@682`; `(anonymous_24)@683`; `(anonymous_25)@763`.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-## 4. src/features/marketing/components/RoleHeroMockup.tsx
+S/B/F/L: 100.00% / 95.23% / 100.00% / 100.00%.
 
-S/B/F/L: 85.00% / 67.00% / 94.11% / 87.17%. Missing branch arms: 33.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-B / C3 — marketing role/demo presentation and animation alternatives remain incompletely exercised; this is not an authorization guard.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 102:70 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onValueChange={(v) => setFilter('source', v === '__ALL__' ? '' : v)}` |
+| 146:65 b10.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `isEmpty={!isLoading && !error && (result?.data.length ?? 0) === 0}` |
 
-- Lines: 44, 46, 103-105.
-- Branches: `39:2 b3.1 if (condition)`; `50:17 b4.0 cond-expr (arm)`; `50:51 b4.1 cond-expr (arm)`; `58:19 b5.0 cond-expr (arm)`; `58:53 b5.1 cond-expr (arm)`; `65:23 b6.0 cond-expr (arm)`; `65:42 b6.1 cond-expr (arm)`; `71:67 b7.0 cond-expr (arm)`; `71:82 b7.1 cond-expr (arm)`; `79:21 b8.0 cond-expr (arm)`; `79:55 b8.1 cond-expr (arm)`; `84:62 b9.0 cond-expr (arm)`; `84:81 b9.1 cond-expr (arm)`; `96:21 b10.0 cond-expr (arm)`; `96:40 b10.1 cond-expr (arm)`; `104:12 b11.0 if (arm)`; `104:12 b11.1 if (condition)`; `110:27 b12.0 cond-expr (arm)`; `110:61 b12.1 cond-expr (arm)`; `116:29 b13.0 cond-expr (arm)`; `116:45 b13.1 cond-expr (arm)`; `120:58 b14.0 cond-expr (arm)`; `120:76 b14.1 cond-expr (arm)`; `126:29 b15.0 cond-expr (arm)`; `126:48 b15.1 cond-expr (arm)`; `142:14 b16.0 cond-expr (arm)`; `143:14 b16.1 cond-expr (arm)`; `149:21 b17.0 cond-expr (arm)`; `149:37 b17.1 cond-expr (arm)`; `152:58 b18.0 cond-expr (arm)`; `152:76 b18.1 cond-expr (arm)`; `154:57 b19.0 cond-expr (arm)`; `154:76 b19.1 cond-expr (arm)`.
-- Functions: `(anonymous_1)@102`.
+## 110. src/features/finance/components/ColorPicker.tsx
 
-## 5. src/features/fiscal/containers/FiscalInvoicesPageContainer.tsx
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 70.33% / 71.84% / 58.82% / 76.19%. Missing branch arms: 29.
+S/B/F/L: 100.00% / 66.66% / 100.00% / 100.00%.
 
-A / C1 — invoice-form/action callbacks and conditional detail rendering need further integration scenarios.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: 215-221, 228-230, 235-236, 240, 264, 422-423, 462-464, 484-485, 503, 506, 509-510.
-- Branches: `112:46 b0.1 binary-expr (arm)`; `116:72 b3.1 cond-expr (arm)`; `153:10 b5.1 cond-expr (arm)`; `164:10 b15.0 cond-expr (arm)`; `166:30 b16.0 binary-expr (arm)`; `166:58 b16.1 binary-expr (arm)`; `167:27 b17.0 binary-expr (arm)`; `167:52 b17.1 binary-expr (arm)`; `168:27 b18.0 binary-expr (arm)`; `168:52 b18.1 binary-expr (arm)`; `170:25 b19.0 binary-expr (arm)`; `170:48 b19.1 binary-expr (arm)`; `172:29 b20.0 binary-expr (arm)`; `172:56 b20.1 binary-expr (arm)`; `173:39 b21.0 cond-expr (arm)`; `173:65 b21.1 cond-expr (arm)`; `175:19 b22.0 binary-expr (arm)`; `175:36 b22.1 binary-expr (arm)`; `218:6 b24.0 if (arm)`; `218:6 b24.1 if (condition)`; `236:6 b25.0 if (arm)`; `236:6 b25.1 if (condition)`; `245:4 b26.0 if (arm)`; `270:4 b27.0 if (arm)`; `423:22 b42.0 if (arm)`; `423:22 b42.1 if (condition)`; `445:20 b45.1 binary-expr (arm)`; `463:22 b46.0 if (arm)`; `463:22 b46.1 if (condition)`.
-- Functions: `submitInvoice@214`; `submitProfile@227`; `(anonymous_15)@421`; `(anonymous_16)@461`; `(anonymous_18)@484`; `(anonymous_19)@485`; `(anonymous_21)@502`; `(anonymous_22)@503`; `(anonymous_23)@505`; `(anonymous_24)@506`; `(anonymous_25)@509`; `(anonymous_26)@509`; `(anonymous_27)@510`; `(anonymous_28)@510`.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 18:48 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `title={CATEGORY_COLOR_NAMES[color] ?? color}` |
+| 19:72 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `aria-label={'Selecionar cor: ${CATEGORY_COLOR_NAMES[color] ?? color}'}` |
 
-## 6. src/features/admin/containers/AdminFinancePageContainer.tsx
+## 111. src/features/finance/components/KpiGrid.tsx
 
-S/B/F/L: 73.07% / 67.85% / 80.55% / 73.91%. Missing branch arms: 27.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-A / C1 — chart tooltip/axis formatter callbacks and remaining nullable billing presentation paths are not all exercised; event filtering/pagination are now tested.
+S/B/F/L: 100.00% / 94.44% / 100.00% / 100.00%.
 
-- Lines: 166, 170, 179, 183, 258, 260-264, 266, 599.
-- Branches: `258:2 b1.0 if (arm)`; `258:2 b1.1 if (condition)`; `258:6 b2.0 binary-expr (arm)`; `258:17 b2.1 binary-expr (arm)`; `260:27 b3.0 cond-expr (arm)`; `260:39 b3.1 cond-expr (arm)`; `261:31 b4.0 cond-expr (arm)`; `261:58 b4.1 cond-expr (arm)`; `262:30 b5.0 cond-expr (arm)`; `262:42 b5.1 cond-expr (arm)`; `263:30 b6.0 cond-expr (arm)`; `263:42 b6.1 cond-expr (arm)`; `264:30 b7.0 cond-expr (arm)`; `264:42 b7.1 cond-expr (arm)`; `282:33 b8.0 binary-expr (arm)`; `282:54 b8.1 binary-expr (arm)`; `308:29 b9.0 cond-expr (arm)`; `309:29 b10.0 cond-expr (arm)`; `310:28 b11.0 cond-expr (arm)`; `343:8 b13.1 cond-expr (arm)`; `361:41 b14.0 cond-expr (arm)`; `361:68 b14.1 cond-expr (arm)`; `579:61 b26.0 cond-expr (arm)`; `639:58 b29.1 binary-expr (arm)`; `655:73 b30.1 binary-expr (arm)`; `726:69 b32.1 cond-expr (arm)`; `727:51 b33.1 cond-expr (arm)`.
-- Functions: `(anonymous_1)@166`; `(anonymous_2)@170`; `(anonymous_3)@179`; `(anonymous_4)@183`; `AdminChartTooltip@257`; `(anonymous_15)@312`; `(anonymous_26)@599`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 7. src/features/reports/containers/ReportsPageContainer.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 58:51 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={kpis.profitMargin >= 0 ? 'success' : 'danger'}` |
+| 72:60 b13.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={kpis.pendingReceivables > 0 ? 'warning' : 'neutral'}` |
 
-S/B/F/L: 74.46% / 69.66% / 54.90% / 79.45%. Missing branch arms: 27.
+## 112. src/features/finance/hooks/useExpenseClassifier.ts
 
-A / C1 — report/chart formatter callbacks, filter interactions and conditional/null data presentation remain incomplete.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-- Lines: 168, 199, 202, 205, 258, 286, 321, 330, 337, 344, 464, 503, 513, 521, 528.
-- Branches: `69:4 b2.0 if (arm)`; `81:48 b5.1 binary-expr (arm)`; `95:93 b8.1 binary-expr (arm)`; `102:65 b9.1 cond-expr (arm)`; `256:51 b21.1 binary-expr (arm)`; `258:63 b22.0 binary-expr (arm)`; `258:68 b22.1 binary-expr (arm)`; `268:42 b24.0 cond-expr (arm)`; `288:44 b26.0 cond-expr (arm)`; `288:57 b26.1 cond-expr (arm)`; `329:48 b27.1 binary-expr (arm)`; `330:80 b28.0 binary-expr (arm)`; `330:85 b28.1 binary-expr (arm)`; `336:46 b29.1 binary-expr (arm)`; `337:78 b30.0 binary-expr (arm)`; `337:83 b30.1 binary-expr (arm)`; `344:71 b32.0 cond-expr (arm)`; `344:83 b32.1 cond-expr (arm)`; `472:70 b38.0 cond-expr (arm)`; `511:51 b39.1 binary-expr (arm)`; `513:63 b40.0 binary-expr (arm)`; `513:68 b40.1 binary-expr (arm)`; `520:49 b41.1 binary-expr (arm)`; `521:81 b42.0 binary-expr (arm)`; `521:86 b42.1 binary-expr (arm)`; `528:74 b44.0 cond-expr (arm)`; `528:86 b44.1 cond-expr (arm)`.
-- Functions: `(anonymous_13)@168`; `clearApptFilters@198`; `clearInvFilters@201`; `clearInvoiceFilters@204`; `(anonymous_24)@258`; `(anonymous_25)@258`; `(anonymous_28)@286`; `(anonymous_29)@286`; `(anonymous_30)@321`; `(anonymous_32)@330`; `(anonymous_33)@330`; `(anonymous_34)@337`; `(anonymous_35)@337`; `(anonymous_36)@344`; `(anonymous_37)@344`; `(anonymous_39)@464`; `(anonymous_43)@503`; `(anonymous_45)@513`; `(anonymous_46)@513`; `(anonymous_47)@521`; `(anonymous_48)@521`; `(anonymous_49)@528`; `(anonymous_50)@528`.
+S/B/F/L: 100.00% / 86.66% / 100.00% / 100.00%.
 
-## 8. src/features/scheduling/components/appointments/EditAppointmentModal.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 72.89% / 76.92% / 60.00% / 73.46%. Missing branch arms: 21.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 58:8 b5.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (err.status === 429) {` |
+| 64:38 b6.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `error: err instanceof Error ? err.message : 'Não foi possível classificar o gasto.',` |
 
-A / C1 — edit-form callbacks, conditional appointment fields and asynchronous modal lifecycle paths remain incomplete.
+## 113. src/features/finance/hooks/useFinanceTransactions.ts
 
-- Lines: 103-105, 116-119, 121, 138, 165, 170, 173, 178, 184, 189, 229, 286, 297, 316-318, 320-322, 333, 364.
-- Branches: `112:4 b2.1 if (condition)`; `117:4 b3.0 if (arm)`; `120:11 b3.1 if (arm)`; `135:35 b6.1 binary-expr (arm)`; `164:4 b13.0 if (arm)`; `164:30 b14.1 binary-expr (arm)`; `172:4 b15.0 if (arm)`; `180:4 b16.0 if (arm)`; `182:6 b17.1 binary-expr (arm)`; `200:10 b18.1 cond-expr (arm)`; `202:23 b19.0 binary-expr (arm)`; `202:41 b19.1 binary-expr (arm)`; `204:26 b20.0 binary-expr (arm)`; `204:54 b20.1 binary-expr (arm)`; `206:19 b21.0 binary-expr (arm)`; `206:40 b21.1 binary-expr (arm)`; `212:59 b22.1 cond-expr (arm)`; `220:58 b23.1 cond-expr (arm)`; `229:62 b24.0 binary-expr (arm)`; `229:71 b24.1 binary-expr (arm)`; `249:64 b26.1 binary-expr (arm)`.
-- Functions: `(anonymous_8)@102`; `(anonymous_12)@116`; `(anonymous_13)@119`; `(anonymous_14)@121`; `(anonymous_16)@138`; `(anonymous_22)@229`; `(anonymous_24)@286`; `(anonymous_25)@297`; `(anonymous_26)@315`; `(anonymous_27)@320`; `(anonymous_28)@321`; `(anonymous_29)@322`; `(anonymous_30)@333`; `(anonymous_33)@364`.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-## 9. src/features/marketing/components/AnimatedImpactSection.tsx
+S/B/F/L: 98.43% / 93.75% / 100.00% / 100.00%.
 
-S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%. Missing branch arms: 20.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-B / C3 — untested browser-visible animation/interaction behavior; not a static configuration file and not excluded.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 47:59 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `transactionForm.type === 'INCOME' ? incomeCategories : expenseCategories` |
+| 114:6 b7.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (field === 'type') next.categoryId = ''` |
 
-- Lines: 29, 88-89, 91-92, 98, 101, 103-104, 106-109, 112-113, 115-117, 119-121, 124-125, 128, 132-133, 135, 137, 168, 170, 201.
-- Branches: `88:2 b0.0 if (arm)`; `88:2 b0.1 if (condition)`; `104:4 b1.0 if (arm)`; `104:4 b1.1 if (condition)`; `107:4 b2.0 if (arm)`; `107:4 b2.1 if (condition)`; `121:6 b3.0 if (arm)`; `121:6 b3.1 if (condition)`; `142:20 b4.0 cond-expr (arm)`; `142:50 b4.1 cond-expr (arm)`; `144:44 b5.0 cond-expr (arm)`; `144:79 b5.1 cond-expr (arm)`; `152:9 b6.0 binary-expr (arm)`; `153:10 b6.1 binary-expr (arm)`; `182:24 b7.0 cond-expr (arm)`; `182:54 b7.1 cond-expr (arm)`; `209:24 b8.0 cond-expr (arm)`; `209:40 b8.1 cond-expr (arm)`; `211:48 b9.0 cond-expr (arm)`; `211:58 b9.1 cond-expr (arm)`.
-- Functions: `formatValue@87`; `useCountUp@100`; `(anonymous_2)@103`; `(anonymous_3)@115`; `(anonymous_4)@125`; `ImpactCard@131`; `AnimatedImpactSection@167`; `(anonymous_7)@201`.
+## 114. src/features/fiscal/containers/FiscalProfilePageContainer.tsx
 
-## 10. src/features/scheduling/components/appointments/CreateAppointmentModal.tsx
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 69.49% / 72.97% / 58.82% / 71.68%. Missing branch arms: 20.
+S/B/F/L: 100.00% / 93.33% / 100.00% / 100.00%.
 
-A / C1 — creation-form callbacks, conditional appointment fields and asynchronous modal lifecycle paths remain incomplete.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: 109-110, 113, 134-136, 146-149, 151, 169, 191, 194, 199, 202, 207, 213, 218, 255, 266, 307-311, 338-341, 354, 454.
-- Branches: `102:4 b0.0 if (arm)`; `103:4 b1.1 if (condition)`; `141:4 b3.0 if (arm)`; `142:4 b4.1 if (condition)`; `147:4 b5.0 if (arm)`; `150:11 b5.1 if (arm)`; `190:4 b9.0 if (arm)`; `193:4 b11.0 if (arm)`; `201:4 b12.0 if (arm)`; `209:4 b13.0 if (arm)`; `211:6 b14.1 binary-expr (arm)`; `257:44 b20.0 cond-expr (arm)`; `257:58 b20.1 cond-expr (arm)`; `266:53 b21.0 binary-expr (arm)`; `266:62 b21.1 binary-expr (arm)`; `304:51 b22.1 binary-expr (arm)`; `304:72 b22.2 binary-expr (arm)`; `316:53 b23.0 cond-expr (arm)`; `333:76 b24.2 binary-expr (arm)`; `353:23 b26.0 cond-expr (arm)`.
-- Functions: `(anonymous_2)@112`; `(anonymous_3)@113`; `(anonymous_6)@124`; `(anonymous_8)@133`; `(anonymous_10)@146`; `(anonymous_12)@169`; `(anonymous_19)@266`; `(anonymous_20)@306`; `(anonymous_22)@338`; `(anonymous_23)@339`; `(anonymous_24)@340`; `(anonymous_25)@341`; `(anonymous_26)@354`; `(anonymous_33)@454`.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 54:83 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `documentNumber: p.documentNumber ? formatCpfCnpjBR(p.documentNumber) : '',` |
+| 68:79 b9.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `addressZipCode: p.addressZipCode ? formatCepBR(p.addressZipCode) : '',` |
 
-## 11. src/features/inventory/components/ProductFormModal.tsx
+## 115. src/features/inventory/components/StockMovementHistory.tsx
 
-S/B/F/L: 71.42% / 73.97% / 50.00% / 72.22%. Missing branch arms: 19.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-A / C1–C2 — product form callbacks, optional values and validation/disabled presentation need additional scenarios.
+S/B/F/L: 95.23% / 85.71% / 100.00% / 100.00%.
 
-- Lines: 107-108, 111-112, 166, 169, 178, 267, 281, 312, 324, 331, 349, 367, 376.
-- Branches: `60:73 b0.1 cond-expr (arm)`; `62:34 b1.1 binary-expr (arm)`; `64:68 b2.1 cond-expr (arm)`; `65:40 b3.1 binary-expr (arm)`; `66:28 b4.1 binary-expr (arm)`; `98:4 b5.0 if (arm)`; `106:4 b7.0 if (arm)`; `110:4 b8.0 if (arm)`; `120:10 b10.0 cond-expr (arm)`; `119:52 b11.2 binary-expr (arm)`; `140:44 b17.1 binary-expr (arm)`; `141:39 b18.1 binary-expr (arm)`; `142:50 b19.1 binary-expr (arm)`; `143:38 b20.1 binary-expr (arm)`; `167:12 b25.0 cond-expr (arm)`; `168:12 b25.1 cond-expr (arm)`; `178:55 b27.0 binary-expr (arm)`; `178:66 b27.1 binary-expr (arm)`; `219:26 b30.1 binary-expr (arm)`.
-- Functions: `(anonymous_6)@178`; `(anonymous_10)@267`; `(anonymous_11)@281`; `(anonymous_12)@312`; `(anonymous_13)@324`; `(anonymous_14)@331`; `(anonymous_15)@349`; `(anonymous_16)@367`; `(anonymous_17)@376`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 12. src/features/patients/containers/PatientsAttentionContainer.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 28:4 b0.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (refreshKey < 0) return // never true; declares refreshKey as a dep` |
+| 92:14 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className="break-words text-muted-foreground">{movement.notes}</p>` |
 
-S/B/F/L: 73.91% / 81.00% / 75.00% / 74.41%. Missing branch arms: 19.
+## 116. src/features/inventory/containers/InventoryPageContainer.tsx
 
-A / C1 — remaining patient attention actions, conditional values and list interactions need further integration tests.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-- Lines: 149, 499-500, 613, 615-618, 681-682, 709.
-- Branches: `149:64 b3.0 binary-expr (arm)`; `149:73 b3.1 binary-expr (arm)`; `414:54 b24.1 cond-expr (arm)`; `420:62 b25.1 cond-expr (arm)`; `426:57 b26.1 cond-expr (arm)`; `432:72 b27.1 cond-expr (arm)`; `531:157 b32.0 cond-expr (arm)`; `542:64 b34.1 cond-expr (arm)`; `547:24 b35.1 cond-expr (arm)`; `595:32 b37.1 cond-expr (arm)`; `600:32 b38.1 cond-expr (arm)`; `615:26 b39.0 if (arm)`; `615:26 b39.1 if (condition)`; `616:26 b40.0 if (arm)`; `616:26 b40.1 if (condition)`; `616:30 b41.0 binary-expr (arm)`; `616:51 b41.1 binary-expr (arm)`; `636:30 b42.1 binary-expr (arm)`; `654:28 b43.1 cond-expr (arm)`.
-- Functions: `(anonymous_5)@149`; `(anonymous_15)@498`; `(anonymous_19)@613`; `(anonymous_20)@614`; `(anonymous_22)@680`; `(anonymous_23)@709`.
+S/B/F/L: 100.00% / 95.83% / 100.00% / 100.00%.
 
-## 13. src/features/scheduling/components/calendar/WeekCalendar.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 98.03% / 64.81% / 100.00% / 100.00%. Missing branch arms: 19.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 132:91 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onValueChange={(value) => handleCategoryChange(value === 'all' ? undefined : value)}` |
+| 151:53 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `handleStatusChange(value === 'all' ? undefined : (value as StockProductStatus))` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 117. src/features/marketing/components/FeatureMockups.tsx
 
-- Lines: —.
-- Branches: `104:4 b0.0 if (arm)`; `184:31 b2.1 binary-expr (arm)`; `184:54 b2.2 binary-expr (arm)`; `186:54 b4.1 binary-expr (arm)`; `193:28 b5.0 cond-expr (arm)`; `192:33 b6.1 binary-expr (arm)`; `195:30 b7.0 cond-expr (arm)`; `207:28 b9.0 cond-expr (arm)`; `206:33 b10.1 binary-expr (arm)`; `209:30 b11.0 cond-expr (arm)`; `222:44 b15.0 cond-expr (arm)`; `225:53 b16.1 binary-expr (arm)`; `226:22 b16.2 binary-expr (arm)`; `282:30 b19.0 cond-expr (arm)`; `281:35 b20.1 binary-expr (arm)`; `284:32 b21.0 cond-expr (arm)`; `298:36 b22.1 cond-expr (arm)`; `304:36 b23.1 cond-expr (arm)`; `323:77 b24.1 binary-expr (arm)`.
-- Functions: —.
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
 
-## 14. src/features/marketing/components/landing/DentalArchScene.tsx
+S/B/F/L: 100.00% / 96.55% / 100.00% / 100.00%.
 
-S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%. Missing branch arms: 18.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 96:30 b12.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dot === 'blue' && 'bg-blue-400',` |
+| 97:31 b13.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `dot === 'slate' && 'bg-slate-500',` |
 
-- Lines: 8, 16-21, 24-25, 30-32, 37, 44, 54-58, 60-64, 66, 68-77, 109-114, 118-119, 130, 132-133, 135, 137-140, 143-144, 147, 164-166, 169-171, 174-175, 194-198, 201-202, 204-205, 209-211, 215-217, 220-225, 228, 245, 253, 296, 308.
-- Branches: `69:34 b0.0 cond-expr (arm)`; `69:40 b0.1 cond-expr (arm)`; `71:11 b1.0 binary-expr (arm)`; `71:26 b1.1 binary-expr (arm)`; `72:42 b2.0 binary-expr (arm)`; `72:65 b2.1 binary-expr (arm)`; `84:28 b3.0 cond-expr (arm)`; `84:40 b3.1 cond-expr (arm)`; `84:54 b4.0 cond-expr (arm)`; `84:65 b4.1 cond-expr (arm)`; `135:33 b5.0 cond-expr (arm)`; `135:37 b5.1 cond-expr (arm)`; `138:4 b6.0 if (arm)`; `138:4 b6.1 if (condition)`; `196:22 b7.0 binary-expr (arm)`; `196:33 b7.1 binary-expr (arm)`; `220:36 b8.0 cond-expr (arm)`; `220:43 b8.1 cond-expr (arm)`.
-- Functions: `archPoint@43`; `(anonymous_1)@54`; `(anonymous_2)@56`; `(anonymous_3)@68`; `Tooth@108`; `(anonymous_5)@118`; `(anonymous_6)@130`; `(anonymous_7)@132`; `(anonymous_8)@163`; `(anonymous_9)@168`; `(anonymous_10)@173`; `ArchContents@193`; `(anonymous_12)@205`; `(anonymous_13)@209`; `(anonymous_14)@210`; `(anonymous_15)@215`; `(anonymous_16)@245`; `(anonymous_17)@253`; `DentalArchScene@295`.
+## 118. src/features/marketing/pages/FeaturesPage.tsx
 
-## 15. src/features/dashboard/components/TodayAppointmentsChart.tsx
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
 
-S/B/F/L: 75.47% / 76.62% / 64.70% / 77.27%. Missing branch arms: 18.
+S/B/F/L: 100.00% / 90.90% / 100.00% / 100.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: 53-56, 79-80, 165-166, 183-184.
-- Branches: `53:2 b2.0 if (arm)`; `53:2 b2.1 if (condition)`; `53:6 b3.0 binary-expr (arm)`; `53:17 b3.1 binary-expr (arm)`; `63:39 b4.0 cond-expr (arm)`; `63:52 b4.1 cond-expr (arm)`; `72:9 b5.0 default-arg (arm)`; `73:9 b6.0 default-arg (arm)`; `74:18 b7.0 default-arg (arm)`; `75:18 b8.0 default-arg (arm)`; `76:17 b9.0 default-arg (arm)`; `77:15 b10.0 default-arg (arm)`; `177:55 b15.1 cond-expr (arm)`; `183:30 b17.0 cond-expr (arm)`; `184:30 b18.0 cond-expr (arm)`; `247:20 b29.0 if (arm)`; `253:20 b30.1 if (condition)`; `259:20 b31.0 if (arm)`.
-- Functions: `CustomTooltip@52`; `ActiveSector@70`; `(anonymous_7)@165`; `(anonymous_8)@166`; `(anonymous_9)@183`; `(anonymous_10)@184`.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 160:58 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `heroVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',` |
+| 487:57 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `ctaVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0',` |
 
-## 16. src/features/clinical-records/containers/ClinicalRecordEditorContainer.tsx
+## 119. src/features/reports/components/ReportCard.tsx
 
-S/B/F/L: 88.07% / 84.74% / 77.50% / 92.06%. Missing branch arms: 18.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 96.15% / 96.42% / 100.00% / 100.00%.
 
-- Lines: 294, 326-327, 349, 508, 550, 574, 624, 642, 659.
-- Branches: `146:8 b4.0 if (arm)`; `152:8 b6.1 if (condition)`; `293:6 b20.7 switch (arm)`; `301:4 b22.0 if (arm)`; `311:4 b23.0 if (arm)`; `318:4 b25.1 if (condition)`; `322:4 b26.0 if (arm)`; `325:4 b27.0 if (arm)`; `337:4 b28.0 if (arm)`; `340:6 b29.1 if (condition)`; `347:8 b30.0 if (arm)`; `362:4 b31.0 if (arm)`; `376:4 b32.1 if (condition)`; `383:4 b33.0 if (arm)`; `397:34 b37.1 binary-expr (arm)`; `404:64 b39.0 cond-expr (arm)`; `404:122 b40.0 cond-expr (arm)`; `666:62 b46.1 binary-expr (arm)`.
-- Functions: `(anonymous_3)@148`; `(anonymous_21)@326`; `(anonymous_24)@348`; `(anonymous_32)@508`; `(anonymous_34)@550`; `(anonymous_35)@574`; `(anonymous_36)@624`; `(anonymous_37)@642`; `(anonymous_38)@659`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 17. src/components/layout/AppShell.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 57:4 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!onPreview) return` |
+| 79:59 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const message = err instanceof Error ? err.message : 'Não foi possível gerar o relatório.'` |
 
-S/B/F/L: 97.84% / 81.05% / 96.96% / 97.59%. Missing branch arms: 18.
+## 120. src/features/scheduling/components/availability/ExceptionForm.tsx
 
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-- Lines: 179, 195.
-- Branches: `177:18 b2.0 cond-expr (arm)`; `195:33 b3.0 cond-expr (arm)`; `195:42 b3.1 cond-expr (arm)`; `198:51 b4.1 cond-expr (arm)`; `199:41 b5.1 cond-expr (arm)`; `270:88 b23.1 cond-expr (arm)`; `270:82 b24.1 binary-expr (arm)`; `327:38 b27.0 cond-expr (arm)`; `335:38 b28.0 cond-expr (arm)`; `351:53 b30.0 cond-expr (arm)`; `354:42 b31.1 binary-expr (arm)`; `380:43 b33.0 cond-expr (arm)`; `383:32 b34.1 binary-expr (arm)`; `464:45 b39.0 cond-expr (arm)`; `468:28 b40.0 cond-expr (arm)`; `494:53 b41.1 cond-expr (arm)`; `545:16 b43.1 cond-expr (arm)`; `544:61 b44.0 cond-expr (arm)`.
-- Functions: `cycleTheme@194`.
+S/B/F/L: 100.00% / 95.55% / 100.00% / 100.00%.
 
-## 18. src/features/inventory/components/CategoryManagerModal.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 80.64% / 71.66% / 82.60% / 82.02%. Missing branch arms: 17.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 50:53 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? formatDateInputValue(initial.exceptionDate)` |
+| 53:43 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `reason: String(data.get('reason') ?? '').trim() \|\| undefined,` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 121. src/lib/date-time-formatters.ts
 
-- Lines: 77-81, 104-105, 109-110, 135, 168, 179, 242, 391, 450, 453.
-- Branches: `76:4 b1.0 if (arm)`; `103:4 b2.0 if (arm)`; `108:4 b3.0 if (arm)`; `137:12 b7.0 cond-expr (arm)`; `138:12 b7.1 cond-expr (arm)`; `156:4 b8.0 if (arm)`; `167:6 b9.0 if (arm)`; `179:57 b10.0 binary-expr (arm)`; `179:68 b10.1 binary-expr (arm)`; `220:32 b12.1 binary-expr (arm)`; `332:69 b21.1 cond-expr (arm)`; `391:68 b22.0 binary-expr (arm)`; `391:79 b22.1 binary-expr (arm)`; `445:2 b27.1 if (condition)`; `446:4 b28.1 if (condition)`; `450:11 b29.0 binary-expr (arm)`; `450:28 b29.1 binary-expr (arm)`.
-- Functions: `(anonymous_9)@179`; `(anonymous_12)@242`; `(anonymous_13)@242`; `(anonymous_21)@391`.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-## 19. src/features/inventory/components/InventoryProductCard.tsx
+S/B/F/L: 97.64% / 95.23% / 100.00% / 100.00%.
 
-S/B/F/L: 100.00% / 70.17% / 100.00% / 100.00%. Missing branch arms: 17.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 52:2 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!value) return ''` |
+| 54:2 b10.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!match) return ''` |
 
-- Lines: —.
-- Branches: `69:8 b5.1 binary-expr (arm)`; `70:132 b6.0 cond-expr (arm)`; `70:234 b6.1 cond-expr (arm)`; `74:14 b7.0 cond-expr (arm)`; `75:14 b7.1 cond-expr (arm)`; `81:8 b8.1 binary-expr (arm)`; `82:134 b9.0 cond-expr (arm)`; `82:236 b9.1 cond-expr (arm)`; `85:42 b10.0 cond-expr (arm)`; `85:63 b10.1 cond-expr (arm)`; `94:76 b11.0 cond-expr (arm)`; `94:138 b12.0 cond-expr (arm)`; `105:14 b13.1 cond-expr (arm)`; `112:76 b14.0 cond-expr (arm)`; `112:143 b15.0 cond-expr (arm)`; `114:21 b16.0 cond-expr (arm)`; `128:10 b18.1 binary-expr (arm)`.
-- Functions: —.
+## 122. src/features/billing/components/BillingIntervalToggle.tsx
 
-## 20. src/features/finance/components/ExpenseClassifyAction.tsx
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 47.61% / 46.42% / 16.66% / 47.61%. Missing branch arms: 15.
+S/B/F/L: 66.66% / 95.65% / 66.66% / 66.66%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: 36.
+- Uncovered functions: `(anonymous_1)@36`.
 
-- Lines: 11, 13, 19, 86-87, 92, 101, 103, 127, 137, 152.
-- Branches: `14:8 b0.0 cond-expr (arm)`; `15:8 b0.1 cond-expr (arm)`; `16:10 b1.0 cond-expr (arm)`; `17:10 b1.1 cond-expr (arm)`; `85:2 b6.0 if (arm)`; `86:4 b7.0 if (arm)`; `86:4 b7.1 if (condition)`; `86:8 b8.0 binary-expr (arm)`; `86:40 b8.1 binary-expr (arm)`; `115:13 b9.0 binary-expr (arm)`; `115:44 b9.1 binary-expr (arm)`; `118:9 b10.0 binary-expr (arm)`; `119:10 b10.1 binary-expr (arm)`; `129:26 b11.0 cond-expr (arm)`; `129:92 b11.1 cond-expr (arm)`.
-- Functions: `ConfidenceBadge@10`; `(anonymous_2)@92`; `(anonymous_3)@127`; `(anonymous_4)@137`; `(anonymous_5)@152`.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 72:22 b7.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'bg-emerald-500 text-white'` |
 
-## 21. src/features/notifications/pages/NotificationSettingsPage.tsx
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 36 (anonymous_1) | `onClick={() => onChange('MONTHLY')} className={cn( 'h-10 gap-1.5 px-5 text-sm font-medium',` |
 
-S/B/F/L: 74.19% / 75.80% / 71.42% / 74.19%. Missing branch arms: 15.
+## 123. src/features/team/containers/TeamPageContainer.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-- Lines: 64-66, 71-73, 75, 222.
-- Branches: `55:46 b3.1 cond-expr (arm)`; `60:12 b4.1 cond-expr (arm)`; `58:14 b5.0 cond-expr (arm)`; `64:44 b6.0 cond-expr (arm)`; `64:58 b6.1 cond-expr (arm)`; `130:24 b13.0 cond-expr (arm)`; `137:24 b15.0 cond-expr (arm)`; `140:24 b16.0 cond-expr (arm)`; `139:40 b17.1 binary-expr (arm)`; `142:26 b18.0 cond-expr (arm)`; `169:48 b23.2 binary-expr (arm)`; `170:12 b23.3 binary-expr (arm)`; `175:29 b24.1 binary-expr (arm)`; `176:12 b24.2 binary-expr (arm)`; `199:14 b27.1 binary-expr (arm)`.
-- Functions: `(anonymous_3)@70`; `(anonymous_5)@222`.
+S/B/F/L: 81.81% / 91.66% / 77.77% / 81.81%.
 
-## 22. src/features/patients/components/AvatarCropModal.tsx
+- Uncovered lines: 175, 181.
+- Uncovered functions: `(anonymous_3)@175`; `(anonymous_4)@181`.
 
-S/B/F/L: 90.80% / 79.16% / 91.42% / 93.03%. Missing branch arms: 15.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 79:29 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{usage.planName ?? usage.planSlug}.{' '}` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 175 (anonymous_3) | `setPasswordTarget({ id: member.id, name: '${member.firstName} ${member.lastName}',` |
+| 181 (anonymous_4) | `setDeleteTarget({ id: member.id, name: '${member.firstName} ${member.lastName}',` |
 
-- Lines: 89-91, 93, 95, 134, 184-185, 205-206, 426.
-- Branches: `87:4 b1.1 if (condition)`; `87:18 b2.1 binary-expr (arm)`; `133:4 b3.1 if (condition)`; `147:70 b5.1 cond-expr (arm)`; `166:57 b9.0 cond-expr (arm)`; `183:6 b11.0 if (arm)`; `204:6 b12.0 if (arm)`; `222:6 b13.0 if (arm)`; `230:10 b15.0 if (arm)`; `271:16 b19.1 cond-expr (arm)`; `330:54 b21.1 binary-expr (arm)`; `330:80 b22.1 binary-expr (arm)`; `378:4 b23.0 if (arm)`; `426:8 b26.0 if (arm)`; `426:8 b26.1 if (condition)`.
-- Functions: `(anonymous_4)@89`; `(anonymous_5)@95`; `(anonymous_31)@425`.
+## 124. src/features/notifications/components/AppointmentNotificationActions.tsx
 
-## 23. src/features/finance/components/MonthlyFinanceDiagnosisCard.tsx
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 95.65% / 72.00% / 100.00% / 100.00%. Missing branch arms: 14.
+S/B/F/L: 90.90% / 90.00% / 80.00% / 89.47%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: 107, 123.
+- Uncovered functions: `(anonymous_8)@107`; `(anonymous_9)@123`.
 
-- Lines: —.
-- Branches: `91:2 b0.0 if (arm)`; `125:88 b1.1 cond-expr (arm)`; `125:75 b2.1 cond-expr (arm)`; `142:91 b3.1 cond-expr (arm)`; `145:16 b4.0 cond-expr (arm)`; `148:18 b5.1 cond-expr (arm)`; `149:20 b6.0 cond-expr (arm)`; `150:20 b6.1 cond-expr (arm)`; `185:12 b7.1 binary-expr (arm)`; `190:48 b8.1 cond-expr (arm)`; `201:12 b9.0 cond-expr (arm)`; `311:8 b18.1 binary-expr (arm)`; `312:8 b18.2 binary-expr (arm)`; `313:10 b18.3 binary-expr (arm)`.
-- Functions: —.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 70:50 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{TEMPLATE_LABELS[tpl.slug] ?? tpl.slug}` |
 
-## 24. src/features/scheduling/components/appointments/AppointmentClinicalSection.tsx
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 107 (anonymous_8) | `onClose={() => setSendOpen(false)} template={selectedTemplate} appointmentId={appointmentId}` |
+| 123 (anonymous_9) | `onClose={() => setHistoryOpen(false)} /> </>` |
 
-S/B/F/L: 52.17% / 45.83% / 50.00% / 52.38%. Missing branch arms: 13.
+## 125. src/features/clinical-records/containers/ClinicalRecordsListContainer.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-- Lines: 37-39, 46-48, 55-56, 61, 67.
-- Branches: `37:4 b2.0 if (arm)`; `37:4 b2.1 if (condition)`; `50:19 b3.0 binary-expr (arm)`; `50:46 b3.1 binary-expr (arm)`; `52:22 b4.0 binary-expr (arm)`; `52:50 b4.1 binary-expr (arm)`; `53:22 b5.0 binary-expr (arm)`; `53:50 b5.1 binary-expr (arm)`; `74:8 b6.0 cond-expr (arm)`; `79:8 b7.0 cond-expr (arm)`; `106:35 b8.0 cond-expr (arm)`; `113:14 b9.0 cond-expr (arm)`; `120:28 b10.0 cond-expr (arm)`.
-- Functions: `(anonymous_2)@36`; `(anonymous_3)@45`.
+S/B/F/L: 93.02% / 98.11% / 85.00% / 92.30%.
 
-## 25. src/features/auth/components/AuthForm.tsx
+- Uncovered lines: 211, 223, 229.
+- Uncovered functions: `(anonymous_12)@211`; `(anonymous_14)@223`; `(anonymous_15)@229`.
 
-S/B/F/L: 70.42% / 81.42% / 88.88% / 72.46%. Missing branch arms: 13.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 47:15 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `else if (r.status === 'LOCKED') acc.locked++` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 211 (anonymous_12) | `onClick={() => setStatusFilter('TODOS')} /> <KpiChip` |
+| 223 (anonymous_14) | `onClick={() => setStatusFilter('COMPLETED')} /> <KpiChip` |
+| 229 (anonymous_15) | `onClick={() => setStatusFilter('LOCKED')} /> </div>` |
 
-- Lines: 93-94, 104, 106-109, 115, 117, 125, 132, 134-137, 139, 359-361.
-- Branches: `58:4 b0.1 if (condition)`; `92:4 b5.0 if (arm)`; `97:4 b7.1 if (condition)`; `107:6 b9.0 if (arm)`; `114:13 b9.1 if (arm)`; `134:30 b10.0 cond-expr (arm)`; `134:58 b10.1 cond-expr (arm)`; `292:14 b23.0 cond-expr (arm)`; `329:8 b28.1 binary-expr (arm)`; `359:2 b33.0 if (arm)`; `359:2 b33.1 if (condition)`; `360:2 b34.0 if (arm)`; `360:2 b34.1 if (condition)`.
-- Functions: `getAuthErrorMessage@358`.
+## 126. src/features/auth/components/ProtectedAppRoute.tsx
 
-## 26. src/features/dashboard/containers/DashboardPageContainer.tsx
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 84.37% / 77.58% / 65.21% / 83.87%. Missing branch arms: 13.
+S/B/F/L: 98.00% / 98.07% / 100.00% / 97.82%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: 150.
+- Uncovered functions: none.
 
-- Lines: 85, 180, 276, 309, 313.
-- Branches: `85:25 b1.0 binary-expr (arm)`; `85:40 b1.1 binary-expr (arm)`; `85:58 b2.0 binary-expr (arm)`; `85:73 b2.1 binary-expr (arm)`; `96:54 b3.1 binary-expr (arm)`; `118:16 b5.1 binary-expr (arm)`; `209:76 b12.0 cond-expr (arm)`; `240:22 b14.1 binary-expr (arm)`; `307:8 b22.1 cond-expr (arm)`; `319:19 b23.0 binary-expr (arm)`; `320:20 b23.1 binary-expr (arm)`; `360:47 b25.0 cond-expr (arm)`; `370:61 b27.0 cond-expr (arm)`.
-- Functions: `(anonymous_5)@85`; `(anonymous_8)@180`; `(anonymous_9)@181`; `(anonymous_10)@182`; `(anonymous_16)@276`; `(anonymous_17)@284`; `(anonymous_19)@309`; `(anonymous_20)@313`.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 149:2 b24.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (role) return getRoleHomeRoute(role)` |
 
-## 27. src/features/fiscal/components/FiscalProfileForm.tsx
+## 127. src/components/common/ConfirmDialog.tsx
 
-S/B/F/L: 96.92% / 83.33% / 96.00% / 98.38%. Missing branch arms: 13.
+Classification: **B**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 100.00% / 96.55% / 100.00% / 100.00%.
 
-- Lines: 102.
-- Branches: `81:43 b10.1 binary-expr (arm)`; `82:55 b11.1 binary-expr (arm)`; `83:39 b12.1 binary-expr (arm)`; `84:38 b13.1 binary-expr (arm)`; `101:4 b15.0 if (arm)`; `152:41 b20.1 binary-expr (arm)`; `176:53 b22.1 binary-expr (arm)`; `184:49 b23.1 binary-expr (arm)`; `218:18 b27.1 binary-expr (arm)`; `242:49 b28.1 binary-expr (arm)`; `327:43 b33.1 binary-expr (arm)`; `335:36 b34.1 binary-expr (arm)`; `343:44 b35.1 binary-expr (arm)`.
-- Functions: `(anonymous_6)@102`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 28. src/features/clinical-records/components/ImageAttachmentPanel.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 43:18 b6.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{trigger && <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>}` |
 
-S/B/F/L: 98.69% / 88.49% / 100.00% / 100.00%. Missing branch arms: 13.
+## 128. src/components/common/GlobalAlerts.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **B**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
 
-- Lines: —.
-- Branches: `34:2 b0.0 if (arm)`; `213:6 b17.1 if (condition)`; `214:6 b18.1 if (condition)`; `300:29 b26.0 cond-expr (arm)`; `373:78 b34.1 cond-expr (arm)`; `392:10 b36.1 if (condition)`; `430:14 b38.1 cond-expr (arm)`; `425:59 b39.1 binary-expr (arm)`; `467:4 b42.0 if (arm)`; `483:6 b44.1 if (condition)`; `488:37 b46.1 binary-expr (arm)`; `491:8 b47.1 cond-expr (arm)`; `526:10 b49.1 cond-expr (arm)`.
-- Functions: —.
+S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%.
 
-## 29. src/features/marketing/components/LandingIntegrationsSection.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%. Missing branch arms: 12.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 57:12 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: '${Date.now()}-${Math.random()}'` |
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+## 129. src/components/common/SectionHeading.tsx
 
-- Lines: 13, 29-30, 32, 74-77, 79, 115, 128.
-- Branches: `37:20 b0.0 cond-expr (arm)`; `37:50 b0.1 cond-expr (arm)`; `39:44 b1.0 cond-expr (arm)`; `39:79 b1.1 cond-expr (arm)`; `45:12 b2.0 cond-expr (arm)`; `52:12 b2.1 cond-expr (arm)`; `89:24 b3.0 cond-expr (arm)`; `89:54 b3.1 cond-expr (arm)`; `104:24 b4.0 cond-expr (arm)`; `104:40 b4.1 cond-expr (arm)`; `106:48 b5.0 cond-expr (arm)`; `106:58 b5.1 cond-expr (arm)`.
-- Functions: `IntegrationCard@28`; `LandingIntegrationsSection@73`; `(anonymous_2)@76`; `(anonymous_3)@76`; `(anonymous_4)@77`; `(anonymous_5)@115`; `(anonymous_6)@128`.
+Classification: **B**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
 
-## 30. src/features/scheduling/components/availability/ExceptionManager.tsx
+S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%.
 
-S/B/F/L: 75.75% / 70.00% / 84.21% / 77.04%. Missing branch arms: 12.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 42:52 b6.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className={cn('mt-5 leading-7', isDark ? 'text-slate-300' : 'text-slate-600')}>` |
 
-- Lines: 76-82, 84, 86, 105, 123, 140, 181, 249.
-- Branches: `84:38 b5.0 cond-expr (arm)`; `84:52 b5.1 cond-expr (arm)`; `91:4 b6.0 if (arm)`; `101:89 b7.1 cond-expr (arm)`; `106:38 b8.0 cond-expr (arm)`; `106:52 b8.1 cond-expr (arm)`; `115:4 b9.0 if (arm)`; `124:38 b10.0 cond-expr (arm)`; `124:52 b10.1 cond-expr (arm)`; `140:38 b11.0 cond-expr (arm)`; `140:52 b11.1 cond-expr (arm)`; `174:18 b14.1 binary-expr (arm)`.
-- Functions: `handleAdd@75`; `(anonymous_12)@181`; `(anonymous_18)@249`.
+## 130. src/features/admin/containers/AdminFinancePageContainer.tsx
 
-## 31. src/features/marketing/components/DataMigrationSection.tsx
+Classification: **B**. Chart hover/leave, light/dark rendering, axis formatting, filters, pagination, inactive plans, nullable clinic identity and period-date fallback are covered. Remaining tooltip fallback is B: a payload item without a value falls back to zero; it remains conservatively testable at the chart-library boundary, rather than being waived.
 
-S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%. Missing branch arms: 10.
+S/B/F/L: 100.00% / 98.80% / 100.00% / 100.00%.
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: 9, 33, 41, 65-67, 106, 144.
-- Branches: `73:26 b0.0 cond-expr (arm)`; `74:26 b0.1 cond-expr (arm)`; `82:30 b1.0 cond-expr (arm)`; `83:30 b1.1 cond-expr (arm)`; `96:42 b2.0 cond-expr (arm)`; `96:63 b2.1 cond-expr (arm)`; `111:32 b3.0 cond-expr (arm)`; `112:32 b3.1 cond-expr (arm)`; `121:19 b4.0 binary-expr (arm)`; `122:20 b4.1 binary-expr (arm)`.
-- Functions: `DataMigrationSection@40`; `(anonymous_1)@64`; `(anonymous_2)@106`; `(anonymous_3)@144`.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 282:54 b8.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{valueFormatter(Number(payload[0]?.value ?? 0))}` |
 
-## 32. src/features/marketing/components/landing/FlowOrbit.tsx
+## 131. src/features/admin/hooks/useAdminClinicsPage.ts
 
-S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%. Missing branch arms: 10.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%.
 
-- Lines: 20, 22, 26, 42-43, 45-51, 54, 59, 88, 132, 178-179, 226-227, 229, 231.
-- Branches: `46:4 b0.0 if (arm)`; `46:4 b0.1 if (condition)`; `46:8 b1.0 binary-expr (arm)`; `46:41 b1.1 binary-expr (arm)`; `54:9 b2.0 binary-expr (arm)`; `54:20 b2.1 binary-expr (arm)`; `229:2 b3.0 if (arm)`; `229:2 b3.1 if (condition)`; `234:8 b4.0 cond-expr (arm)`; `238:8 b4.1 cond-expr (arm)`.
-- Functions: `(anonymous_0)@20`; `useStaticOrbit@41`; `(anonymous_2)@45`; `(anonymous_3)@49`; `(anonymous_4)@51`; `OrbitPoster@58`; `StaticOrbit@87`; `(anonymous_7)@132`; `(anonymous_8)@177`; `FlowOrbit@225`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 33. src/features/scheduling/components/mobile/MobileAgendaTimeline.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 96:81 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setAllClinics((prev) => prev.map((item) => (item.id === clinic.id ? clinic : item)))` |
 
-S/B/F/L: 97.82% / 84.12% / 100.00% / 97.61%. Missing branch arms: 10.
+## 132. src/features/admin/hooks/useAdminUsersPage.ts
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-- Lines: 88.
-- Branches: `48:52 b2.1 cond-expr (arm)`; `57:10 b3.1 cond-expr (arm)`; `58:12 b4.0 cond-expr (arm)`; `59:12 b4.1 cond-expr (arm)`; `75:40 b6.1 binary-expr (arm)`; `75:73 b7.1 binary-expr (arm)`; `84:4 b9.1 if (condition)`; `199:56 b24.1 cond-expr (arm)`; `201:50 b25.0 cond-expr (arm)`; `242:54 b28.1 binary-expr (arm)`.
-- Functions: —.
+S/B/F/L: 100.00% / 90.00% / 100.00% / 100.00%.
 
-## 34. src/features/scheduling/utils/week-calendar-layout.ts
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 98.85% / 89.13% / 100.00% / 100.00%. Missing branch arms: 10.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 96:69 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setAllUsers((prev) => prev.map((u) => (u.id === user.id ? user : u)))` |
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+## 133. src/features/clinical-records/components/odontogram/OdontogramLegend.tsx
 
-- Lines: —.
-- Branches: `45:37 b2.1 binary-expr (arm)`; `45:70 b3.1 binary-expr (arm)`; `47:41 b5.1 binary-expr (arm)`; `47:68 b6.1 binary-expr (arm)`; `55:27 b9.1 binary-expr (arm)`; `56:28 b11.1 binary-expr (arm)`; `56:51 b12.1 binary-expr (arm)`; `86:74 b18.1 cond-expr (arm)`; `177:4 b37.0 if (arm)`; `185:54 b41.1 binary-expr (arm)`.
-- Functions: —.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-## 35. src/features/inventory/components/StockMovementModal.tsx
+S/B/F/L: 100.00% / 85.71% / 100.00% / 100.00%.
 
-S/B/F/L: 82.14% / 82.69% / 72.22% / 86.00%. Missing branch arms: 9.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 23:25 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `classes ?? 'border-border bg-card text-muted-foreground',` |
 
-- Lines: 89-90, 116, 119, 126, 284, 295.
-- Branches: `82:4 b3.0 if (arm)`; `88:6 b5.0 if (arm)`; `105:48 b9.1 binary-expr (arm)`; `106:42 b10.1 binary-expr (arm)`; `117:12 b13.0 cond-expr (arm)`; `118:12 b13.1 cond-expr (arm)`; `126:55 b14.0 binary-expr (arm)`; `126:64 b14.1 binary-expr (arm)`; `332:59 b24.1 cond-expr (arm)`.
-- Functions: `(anonymous_5)@126`; `(anonymous_12)@284`; `(anonymous_13)@284`; `(anonymous_14)@295`; `(anonymous_15)@295`.
+## 134. src/features/clinical-records/components/odontogram/OdontogramToothDetailsPanel.tsx
 
-## 36. src/features/marketing/pages/PlansPage.tsx
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 97.67% / 84.48% / 95.83% / 97.61%. Missing branch arms: 9.
+S/B/F/L: 100.00% / 94.73% / 100.00% / 100.00%.
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: 445.
-- Branches: `116:60 b0.1 cond-expr (arm)`; `173:60 b1.1 cond-expr (arm)`; `445:65 b10.0 cond-expr (arm)`; `445:72 b10.1 cond-expr (arm)`; `475:57 b11.1 cond-expr (arm)`; `534:50 b12.1 cond-expr (arm)`; `539:65 b14.1 cond-expr (arm)`; `702:22 b24.1 binary-expr (arm)`; `708:8 b25.1 binary-expr (arm)`.
-- Functions: `(anonymous_14)@445`.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 51:6 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `'border-border bg-card text-muted-foreground')` |
 
-## 37. src/features/dashboard/containers/ProductivityCenter.tsx
+## 135. src/features/clinical-records/hooks/useClinicalRecords.ts
 
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%. Missing branch arms: 9.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
 
-- Lines: —.
-- Branches: `66:87 b0.1 binary-expr (arm)`; `68:27 b1.1 binary-expr (arm)`; `110:30 b3.1 binary-expr (arm)`; `181:8 b5.0 cond-expr (arm)`; `229:8 b10.1 cond-expr (arm)`; `289:44 b15.1 cond-expr (arm)`; `294:53 b16.1 cond-expr (arm)`; `313:46 b18.0 cond-expr (arm)`; `462:70 b32.1 cond-expr (arm)`.
-- Functions: —.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 38. src/features/marketing/components/VideoSection.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 43:8 b3.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent) dispatch({ type: 'error' })` |
 
-S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%. Missing branch arms: 8.
+## 136. src/features/clinical-records/hooks/usePatientClinicalTimeline.ts
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-- Lines: 8-10, 13-14, 16, 51, 82.
-- Branches: `26:24 b0.0 cond-expr (arm)`; `26:54 b0.1 cond-expr (arm)`; `65:24 b1.0 cond-expr (arm)`; `65:54 b1.1 cond-expr (arm)`; `67:48 b2.0 cond-expr (arm)`; `67:58 b2.1 cond-expr (arm)`; `71:14 b3.0 cond-expr (arm)`; `80:14 b3.1 cond-expr (arm)`.
-- Functions: `VideoSection@12`; `(anonymous_1)@51`; `(anonymous_2)@82`.
+S/B/F/L: 100.00% / 90.00% / 100.00% / 100.00%.
 
-## 39. src/features/marketing/components/landing/FlowOrbitScene.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%. Missing branch arms: 8.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 42:8 b3.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isCurrent) dispatch({ type: 'error' })` |
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+## 137. src/features/clinical-records/utils/apply-clinical-dictation-fields.ts
 
-- Lines: 20-23, 27, 39-41, 46-58, 60-62, 65-66, 83-84, 86-88, 90-93, 96, 134-137, 139, 141, 144-145, 151-153, 157-159, 161-166, 169, 189, 217.
-- Branches: `52:4 b0.0 if (arm)`; `52:4 b0.1 if (condition)`; `88:4 b1.0 if (arm)`; `88:4 b1.1 if (condition)`; `144:4 b2.0 if (arm)`; `144:4 b2.1 if (condition)`; `159:4 b3.0 if (arm)`; `159:4 b3.1 if (condition)`.
-- Functions: `(anonymous_0)@39`; `useGlowTexture@45`; `(anonymous_2)@46`; `(anonymous_3)@65`; `OrbitNode@82`; `(anonymous_5)@86`; `OrbitContent@133`; `(anonymous_7)@139`; `(anonymous_8)@151`; `(anonymous_9)@157`; `(anonymous_10)@189`; `FlowOrbitScene@216`.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-## 40. src/features/scheduling/components/appointments/AppointmentPaymentSection.tsx
+S/B/F/L: 100.00% / 94.44% / 100.00% / 100.00%.
 
-S/B/F/L: 85.36% / 83.33% / 57.14% / 85.00%. Missing branch arms: 8.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 92:72 b8.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (keys.some((k) => k in dictationFields && (dictationFields[k] ?? '').trim())) {` |
 
-- Lines: 168, 187, 199, 205, 235, 273.
-- Branches: `58:8 b2.1 binary-expr (arm)`; `68:8 b4.1 binary-expr (arm)`; `73:8 b5.1 binary-expr (arm)`; `110:42 b10.1 binary-expr (arm)`; `111:76 b11.1 cond-expr (arm)`; `248:82 b19.1 cond-expr (arm)`; `251:45 b20.0 cond-expr (arm)`; `267:14 b22.2 binary-expr (arm)`.
-- Functions: `(anonymous_5)@168`; `(anonymous_6)@187`; `(anonymous_7)@199`; `(anonymous_8)@205`; `(anonymous_10)@235`; `(anonymous_13)@273`.
+## 138. src/features/clinical-records/utils/parse-dictation-odontogram.ts
 
-## 41. src/features/team/components/ClinicMemberFormModal.tsx
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-S/B/F/L: 86.36% / 87.50% / 72.22% / 85.93%. Missing branch arms: 8.
+S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: 104, 107, 133-134, 169, 199, 223-224, 230.
-- Branches: `105:14 b5.0 cond-expr (arm)`; `106:14 b5.1 cond-expr (arm)`; `132:4 b10.0 if (arm)`; `132:20 b11.1 binary-expr (arm)`; `162:52 b15.1 cond-expr (arm)`; `169:55 b16.0 binary-expr (arm)`; `169:66 b16.1 binary-expr (arm)`; `338:41 b29.1 cond-expr (arm)`.
-- Functions: `(anonymous_4)@102`; `(anonymous_9)@169`; `(anonymous_10)@199`; `(anonymous_14)@222`; `(anonymous_15)@230`.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 120:71 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const conditionLabel = ODONTOGRAM_CONDITION_LABELS[condition] ?? condition` |
 
-## 42. src/features/inventory/hooks/useInventoryPage.ts
+## 139. src/features/compliance/services/compliance.service.ts
 
-S/B/F/L: 98.04% / 88.05% / 95.91% / 98.93%. Missing branch arms: 8.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+S/B/F/L: 100.00% / 85.71% / 100.00% / 100.00%.
 
-- Lines: 184-185.
-- Branches: `96:14 b3.1 cond-expr (arm)`; `135:4 b8.0 if (arm)`; `150:4 b9.0 if (arm)`; `184:50 b11.0 cond-expr (arm)`; `184:64 b11.1 cond-expr (arm)`; `216:52 b17.0 cond-expr (arm)`; `261:52 b21.0 cond-expr (arm)`; `320:6 b25.1 if (condition)`.
-- Functions: `(anonymous_21)@183`; `(anonymous_48)@366`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 43. src/features/clinical-records/hooks/useClinicalRecordAutosave.ts
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 21:25 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return qs ? '?${qs}' : ''` |
 
-S/B/F/L: 89.79% / 75.00% / 100.00% / 100.00%. Missing branch arms: 8.
+## 140. src/features/dashboard/hooks/useDashboardPage.ts
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-- Lines: —.
-- Branches: `69:8 b5.0 if (arm)`; `76:8 b7.0 if (arm)`; `78:10 b8.0 if (arm)`; `79:61 b9.1 cond-expr (arm)`; `82:8 b10.0 if (arm)`; `89:6 b11.1 if (condition)`; `102:4 b14.1 if (condition)`; `103:4 b15.0 if (arm)`.
-- Functions: —.
+S/B/F/L: 100.00% / 92.85% / 100.00% / 100.00%.
 
-## 44. src/features/inventory/components/InventoryProductTable.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 100.00% / 82.97% / 100.00% / 100.00%. Missing branch arms: 8.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 58:73 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 141. src/features/finance/components/CategoriesPanel.tsx
 
-- Lines: —.
-- Branches: `68:10 b2.0 cond-expr (arm)`; `184:36 b11.0 cond-expr (arm)`; `186:38 b12.0 cond-expr (arm)`; `216:24 b14.1 cond-expr (arm)`; `226:28 b15.0 cond-expr (arm)`; `228:30 b16.0 cond-expr (arm)`; `235:24 b17.1 cond-expr (arm)`; `246:43 b19.1 binary-expr (arm)`.
-- Functions: —.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-## 45. src/features/inventory/components/ProductDetailsDrawer.tsx
+S/B/F/L: 100.00% / 90.00% / 100.00% / 100.00%.
 
-S/B/F/L: 88.88% / 83.33% / 87.50% / 88.88%. Missing branch arms: 7.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 80:62 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `style={{ backgroundColor: category.color ?? '#94A3B8' }}` |
 
-- Lines: 41.
-- Branches: `41:60 b0.0 binary-expr (arm)`; `41:71 b0.1 binary-expr (arm)`; `97:26 b3.0 cond-expr (arm)`; `99:28 b5.0 cond-expr (arm)`; `181:22 b13.1 cond-expr (arm)`; `185:41 b14.1 binary-expr (arm)`; `191:22 b15.1 cond-expr (arm)`.
-- Functions: `(anonymous_1)@41`.
+## 142. src/features/finance/components/FinanceInsight.tsx
 
-## 46. src/features/billing/pages/SubscriptionSuccessPage.tsx
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 91.86% / 88.88% / 100.00% / 93.67%. Missing branch arms: 7.
+S/B/F/L: 100.00% / 83.33% / 100.00% / 100.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: 782-783, 788-789, 795.
-- Branches: `235:6 b5.0 if (arm)`; `643:53 b23.0 cond-expr (arm)`; `646:63 b24.1 binary-expr (arm)`; `781:2 b27.1 if (condition)`; `782:2 b28.0 if (arm)`; `782:2 b28.1 if (condition)`; `787:2 b29.1 if (condition)`.
-- Functions: —.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 24:16 b1.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'text-foreground',` |
 
-## 47. src/features/patients/components/CameraPreviewModal.tsx
+## 143. src/features/finance/hooks/useAiAssistantFinance.ts
 
-S/B/F/L: 87.30% / 80.55% / 80.00% / 94.64%. Missing branch arms: 7.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
 
-- Lines: 100, 108-109.
-- Branches: `42:8 b3.1 if (condition)`; `47:8 b4.0 if (arm)`; `70:4 b9.0 if (arm)`; `76:4 b12.0 if (arm)`; `81:8 b13.0 if (arm)`; `100:8 b14.0 if (arm)`; `100:8 b14.1 if (condition)`.
-- Functions: `(anonymous_8)@99`; `(anonymous_9)@107`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 48. src/features/scheduling/components/mobile/MobileAgendaList.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 31:8 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!cancelledRef.current) {` |
 
-S/B/F/L: 97.36% / 83.72% / 100.00% / 97.05%. Missing branch arms: 7.
+## 144. src/features/finance/hooks/useFinancePage.ts
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-- Lines: 86.
-- Branches: `46:52 b2.1 cond-expr (arm)`; `55:10 b3.1 cond-expr (arm)`; `56:12 b4.0 cond-expr (arm)`; `57:12 b4.1 cond-expr (arm)`; `74:40 b6.1 binary-expr (arm)`; `74:73 b7.1 binary-expr (arm)`; `82:4 b9.1 if (condition)`.
-- Functions: —.
+S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%.
 
-## 49. src/features/clinical-records/containers/ClinicalRecordPrintContainer.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 95.65% / 90.41% / 100.00% / 100.00%. Missing branch arms: 7.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 128:47 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `err instanceof Error ? err.message : 'Não foi possível carregar o financeiro.'` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 145. src/features/fiscal/components/FiscalInvoiceFiltersBar.tsx
 
-- Lines: —.
-- Branches: `53:8 b0.0 if (arm)`; `61:8 b4.1 if (condition)`; `63:8 b5.1 if (condition)`; `76:2 b8.0 if (arm)`; `117:55 b13.1 cond-expr (arm)`; `224:44 b28.1 binary-expr (arm)`; `258:45 b33.1 binary-expr (arm)`.
-- Functions: —.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-## 50. src/features/fiscal/components/InvoiceForm.tsx
+S/B/F/L: 100.00% / 93.33% / 100.00% / 100.00%.
 
-S/B/F/L: 100.00% / 78.12% / 100.00% / 100.00%. Missing branch arms: 7.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 62:39 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `(value === '__all__' ? undefined : value) as ServiceInvoiceStatus \| undefined,` |
 
-- Lines: —.
-- Branches: `20:47 b0.1 binary-expr (arm)`; `24:46 b3.1 binary-expr (arm)`; `93:48 b10.1 binary-expr (arm)`; `109:45 b11.1 binary-expr (arm)`; `122:45 b12.1 binary-expr (arm)`; `153:43 b13.1 binary-expr (arm)`; `183:35 b14.1 binary-expr (arm)`.
-- Functions: —.
+## 146. src/features/fiscal/components/InvoiceDetails.tsx
 
-## 51. src/features/marketing/components/PricingSection.tsx
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 100.00% / 79.41% / 100.00% / 100.00%. Missing branch arms: 7.
+S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%.
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: —.
-- Branches: `38:54 b0.1 cond-expr (arm)`; `65:54 b1.1 cond-expr (arm)`; `67:58 b2.1 cond-expr (arm)`; `90:54 b3.1 cond-expr (arm)`; `92:58 b4.1 cond-expr (arm)`; `139:50 b5.1 cond-expr (arm)`; `144:65 b7.1 cond-expr (arm)`.
-- Functions: —.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 94:81 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{event.nextStatus ? INVOICE_STATUS_LABEL[event.nextStatus] : '-'} ·{' '}` |
 
-## 52. src/features/scheduling/components/shared/GoogleCalendarButton.tsx
+## 147. src/features/fiscal/utils/invoice-format.ts
 
-S/B/F/L: 83.33% / 50.00% / 100.00% / 83.33%. Missing branch arms: 6.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 100.00% / 75.00% / 100.00% / 100.00%.
 
-- Lines: 23.
-- Branches: `22:2 b0.0 if (arm)`; `31:17 b2.0 binary-expr (arm)`; `31:51 b2.1 binary-expr (arm)`; `35:12 b3.0 cond-expr (arm)`; `37:12 b3.1 cond-expr (arm)`; `65:10 b5.0 cond-expr (arm)`.
-- Functions: —.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 53. src/components/common/AiAssistantCard.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 5:42 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return formatCurrencyBR(cents / 100) ?? 'R$ 0,00'` |
 
-S/B/F/L: 90.90% / 94.73% / 94.11% / 94.52%. Missing branch arms: 6.
+## 148. src/features/inventory/components/InventoryKpiGrid.tsx
 
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-- Lines: 60, 66, 105, 114.
-- Branches: `59:4 b0.1 switch (arm)`; `65:4 b0.2 switch (arm)`; `229:4 b17.0 if (arm)`; `247:4 b20.0 if (arm)`; `296:69 b30.1 binary-expr (arm)`; `438:216 b46.1 cond-expr (arm)`.
-- Functions: `(anonymous_13)@252`.
+S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
 
-## 54. src/features/billing/components/PricingCard.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 95.91% / 94.59% / 92.30% / 94.87%. Missing branch arms: 6.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 44:36 b3.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={summary.expired > 0 ? 'danger' : 'neutral'}` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 149. src/features/inventory/hooks/useAiAssistantInventory.ts
 
-- Lines: 303, 343.
-- Branches: `62:66 b3.2 binary-expr (arm)`; `63:44 b4.1 binary-expr (arm)`; `109:81 b13.1 binary-expr (arm)`; `136:66 b18.1 cond-expr (arm)`; `217:70 b21.1 binary-expr (arm)`; `339:2 b39.1 if (condition)`.
-- Functions: `(anonymous_8)@303`.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-## 55. src/features/reports/utils/report-filter-chips.ts
+S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
 
-S/B/F/L: 97.29% / 86.36% / 100.00% / 97.29%. Missing branch arms: 6.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 34:8 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!cancelledRef.current) {` |
 
-- Lines: 92.
-- Branches: `72:83 b5.1 binary-expr (arm)`; `77:65 b7.1 binary-expr (arm)`; `91:2 b10.0 if (arm)`; `97:62 b13.1 binary-expr (arm)`; `108:61 b15.1 binary-expr (arm)`; `134:65 b21.1 binary-expr (arm)`.
-- Functions: —.
+## 150. src/features/marketing/components/PublicHeader.tsx
 
-## 56. src/features/finance/components/ProcedureMarginsSection.tsx
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
 
-S/B/F/L: 98.36% / 95.23% / 100.00% / 97.91%. Missing branch arms: 6.
+S/B/F/L: 100.00% / 97.50% / 100.00% / 100.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: 229.
-- Branches: `228:6 b20.4 switch (arm)`; `223:32 b21.1 binary-expr (arm)`; `257:88 b29.0 cond-expr (arm)`; `350:55 b39.2 binary-expr (arm)`; `351:12 b39.3 binary-expr (arm)`; `506:16 b54.0 cond-expr (arm)`.
-- Functions: —.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 157:24 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'bg-white/15 text-white'` |
 
-## 57. src/features/admin/components/UserFormModal.tsx
+## 151. src/features/marketing/components/PublicLayout.tsx
 
-S/B/F/L: 98.48% / 92.10% / 95.00% / 98.43%. Missing branch arms: 6.
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 100.00% / 80.00% / 100.00% / 100.00%.
 
-- Lines: 170.
-- Branches: `145:29 b17.1 binary-expr (arm)`; `148:52 b19.1 binary-expr (arm)`; `158:52 b22.1 binary-expr (arm)`; `170:55 b24.0 binary-expr (arm)`; `170:66 b24.1 binary-expr (arm)`; `228:24 b29.1 if (condition)`.
-- Functions: `(anonymous_9)@170`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 58. src/features/clinical-records/components/OdontogramSection.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 35:12 b2.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? '${bgClassName} overflow-x-hidden'` |
 
-S/B/F/L: 94.87% / 92.10% / 96.29% / 98.57%. Missing branch arms: 6.
+## 152. src/features/marketing/components/RoleModulesPanel.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
 
-- Lines: 235.
-- Branches: `48:4 b4.0 if (arm)`; `61:4 b6.0 if (arm)`; `72:4 b7.0 if (arm)`; `190:12 b23.1 if (condition)`; `193:12 b24.1 if (condition)`; `208:31 b25.1 binary-expr (arm)`.
-- Functions: `(anonymous_20)@235`.
+S/B/F/L: 83.33% / 88.88% / 100.00% / 100.00%.
 
-## 59. src/features/marketing/components/landing/DentalArchSection.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 100.00% / 62.50% / 100.00% / 100.00%. Missing branch arms: 6.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 38:16 b1.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!ModuleIcon) return null` |
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+## 153. src/features/marketing/components/RoleSwitcher.tsx
 
-- Lines: —.
-- Branches: `32:28 b0.0 cond-expr (arm)`; `35:35 b1.0 cond-expr (arm)`; `36:33 b2.0 cond-expr (arm)`; `39:58 b3.0 cond-expr (arm)`; `42:40 b4.0 cond-expr (arm)`; `43:67 b5.0 cond-expr (arm)`.
-- Functions: —.
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
 
-## 60. src/features/scheduling/hooks/useSchedulePage.ts
+S/B/F/L: 94.11% / 87.50% / 100.00% / 100.00%.
 
-S/B/F/L: 100.00% / 80.00% / 83.33% / 100.00%. Missing branch arms: 6.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 47:2 b3.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (cards.length === 0) return null` |
 
-- Lines: —.
-- Branches: `106:6 b7.1 if (condition)`; `139:58 b10.1 cond-expr (arm)`; `155:32 b11.0 cond-expr (arm)`; `156:46 b12.0 cond-expr (arm)`; `162:58 b13.1 cond-expr (arm)`; `184:58 b14.1 cond-expr (arm)`.
-- Functions: `(anonymous_7)@109`; `(anonymous_11)@189`.
+## 154. src/features/marketing/config/features.ts
 
-## 61. src/features/finance/components/TransactionsTable.tsx
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
 
-S/B/F/L: 86.66% / 86.48% / 75.00% / 86.66%. Missing branch arms: 5.
+S/B/F/L: 97.05% / 90.00% / 100.00% / 100.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: 296, 305.
-- Branches: `87:10 b3.0 cond-expr (arm)`; `152:55 b8.1 binary-expr (arm)`; `153:47 b9.0 cond-expr (arm)`; `275:26 b16.1 binary-expr (arm)`; `281:61 b17.1 binary-expr (arm)`.
-- Functions: `(anonymous_6)@296`; `(anonymous_7)@305`.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 365:6 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!feature) return null` |
 
-## 62. src/features/scheduling/components/appointments/AppointmentServiceValueSection.tsx
+## 155. src/features/marketing/pages/FaqPage.tsx
 
-S/B/F/L: 86.66% / 86.11% / 83.33% / 92.30%. Missing branch arms: 5.
+Classification: **B**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
 
-- Lines: 76.
-- Branches: `76:75 b7.0 cond-expr (arm)`; `76:80 b7.1 cond-expr (arm)`; `76:20 b8.0 binary-expr (arm)`; `76:43 b8.1 binary-expr (arm)`; `80:4 b9.0 if (arm)`.
-- Functions: `handleServiceChange@75`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 63. src/features/dashboard/containers/DentistHomePageContainer.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 117:22 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `) : null` |
 
-S/B/F/L: 96.55% / 90.00% / 88.88% / 95.83%. Missing branch arms: 5.
+## 156. src/features/notifications/components/MessageHistoryDrawer.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-- Lines: 213, 279.
-- Branches: `81:59 b3.1 binary-expr (arm)`; `81:92 b4.1 binary-expr (arm)`; `145:49 b14.0 cond-expr (arm)`; `220:26 b19.1 binary-expr (arm)`; `313:12 b24.1 binary-expr (arm)`.
-- Functions: `(anonymous_23)@213`; `(anonymous_24)@279`; `(anonymous_25)@281`.
+S/B/F/L: 100.00% / 95.00% / 100.00% / 100.00%.
 
-## 64. src/features/inventory/hooks/usePersistedCopilot.ts
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 94.11% / 77.27% / 100.00% / 97.87%. Missing branch arms: 5.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 20:36 b0.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return time ? '${date} ${time}' : date` |
 
-B / C2 — both real consumers exercise persisted load/generate/error/retry behavior. Remaining cancellation defenses are retained; removed draft unmount assertions did not prove observable behavior.
+## 157. src/features/notifications/components/NotificationSendDrawer.tsx
 
-- Lines: 87.
-- Branches: `37:8 b0.0 if (arm)`; `41:8 b2.0 if (arm)`; `42:8 b3.1 if (condition)`; `56:8 b6.1 if (condition)`; `74:6 b8.1 if (condition)`.
-- Functions: —.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-## 65. src/features/compliance/components/PrivacyRequestsTab.tsx
+S/B/F/L: 100.00% / 98.33% / 100.00% / 100.00%.
 
-S/B/F/L: 100.00% / 86.84% / 100.00% / 100.00%. Missing branch arms: 5.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 152:65 b15.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{template ? (TEMPLATE_LABELS[template.slug] ?? template.slug) : 'Enviar mensagem'}` |
 
-- Lines: —.
-- Branches: `74:50 b3.0 cond-expr (arm)`; `92:55 b5.0 cond-expr (arm)`; `124:65 b10.1 binary-expr (arm)`; `161:62 b13.1 binary-expr (arm)`; `192:58 b15.1 binary-expr (arm)`.
-- Functions: —.
+## 158. src/features/notifications/hooks/useNotificationConsent.ts
 
-## 66. src/features/fiscal/utils/print-invoice.ts
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-S/B/F/L: 100.00% / 64.28% / 100.00% / 100.00%. Missing branch arms: 5.
+S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: —.
-- Branches: `55:32 b2.0 cond-expr (arm)`; `70:28 b3.0 cond-expr (arm)`; `77:34 b4.0 cond-expr (arm)`; `78:41 b5.0 cond-expr (arm)`; `81:20 b6.0 cond-expr (arm)`.
-- Functions: —.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 53:93 b3.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `setConsent((c) => (c ? { ...c, granted: false, revokedAt: new Date().toISOString() } : null))` |
 
-## 67. src/features/marketing/components/landing/Reveal.tsx
+## 159. src/features/reports/containers/ReportsPageContainer.tsx
 
-S/B/F/L: 100.00% / 70.58% / 100.00% / 100.00%. Missing branch arms: 5.
+Classification: **E**. All report export callbacks, status/date filter round trips, plan transitions and nullable dentist/amount presentation are covered. The zero-total completion-rate arm is E: every map entry is inserted only after entry.total is incremented, so a mapped dentist always has at least one appointment.
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+S/B/F/L: 100.00% / 98.87% / 100.00% / 100.00%.
 
-- Lines: —.
-- Branches: `32:25 b2.0 cond-expr (arm)`; `33:47 b3.1 cond-expr (arm)`; `33:28 b4.1 binary-expr (arm)`; `70:47 b8.1 cond-expr (arm)`; `70:28 b9.1 binary-expr (arm)`.
-- Functions: —.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 68. src/features/marketing/pages/IntegrationsPage.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 102:65 b9.1 cond-expr (arm) | E: each map entry has total >= 1 before insertion. | `completionRate: v.total > 0 ? completedCount / v.total : 0,` |
 
-S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%. Missing branch arms: 4.
+## 160. src/features/scheduling/components/appointments/AppointmentServiceValueSection.tsx
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-- Lines: 11, 39, 43, 66-68, 141.
-- Branches: `76:24 b0.0 cond-expr (arm)`; `83:24 b0.1 cond-expr (arm)`; `97:23 b1.0 binary-expr (arm)`; `97:50 b1.1 binary-expr (arm)`.
-- Functions: `IntegrationsPage@38`; `(anonymous_1)@65`; `(anonymous_2)@141`.
+S/B/F/L: 93.33% / 97.22% / 100.00% / 100.00%.
 
-## 69. src/features/scheduling/constants/appointment-filters.ts
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 50.00% / 0.00% / 0.00% / 50.00%. Missing branch arms: 4.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 80:4 b9.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!restoredPrice) return` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 161. src/features/scheduling/components/availability/ExceptionEditModal.tsx
 
-- Lines: 12, 17-18.
-- Branches: `12:32 b0.0 binary-expr (arm)`; `12:60 b0.1 binary-expr (arm)`; `12:66 b1.0 binary-expr (arm)`; `12:94 b1.1 binary-expr (arm)`.
-- Functions: `(anonymous_0)@12`; `(anonymous_1)@17`; `(anonymous_2)@18`.
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-## 70. src/features/scheduling/containers/AppointmentsPageContainer.tsx
+S/B/F/L: 94.11% / 95.00% / 100.00% / 100.00%.
 
-S/B/F/L: 66.66% / 66.66% / 45.45% / 66.66%. Missing branch arms: 4.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 39:4 b1.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isSaving \|\| isDeleting) return` |
 
-- Lines: 145, 156, 168, 178, 184, 190.
-- Branches: `66:35 b0.0 cond-expr (arm)`; `73:36 b1.1 cond-expr (arm)`; `73:60 b2.0 cond-expr (arm)`; `73:68 b2.1 cond-expr (arm)`.
-- Functions: `(anonymous_5)@145`; `(anonymous_6)@156`; `(anonymous_7)@168`; `(anonymous_8)@178`; `(anonymous_9)@184`; `(anonymous_10)@190`.
+## 162. src/features/scheduling/components/mobile/MobileAppointmentCard.tsx
 
-## 71. src/features/finance/components/FinancialAnalysisPanel.tsx
+Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 71.42% / 50.00% / 66.66% / 75.00%. Missing branch arms: 4.
+S/B/F/L: 100.00% / 94.11% / 100.00% / 100.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: 26-28.
-- Branches: `21:44 b0.0 cond-expr (arm)`; `21:21 b1.1 binary-expr (arm)`; `24:4 b2.0 if (arm)`; `25:4 b3.1 if (condition)`.
-- Functions: `(anonymous_2)@26`.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 40:45 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `appointment.status === 'CANCELED' && 'opacity-60',` |
 
-## 72. src/features/scheduling/containers/SchedulePageContainer.tsx
+## 163. src/features/scheduling/hooks/useAppointmentCancel.ts
 
-S/B/F/L: 92.85% / 83.33% / 66.66% / 92.85%. Missing branch arms: 4.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 100.00% / 90.00% / 100.00% / 100.00%.
 
-- Lines: 249.
-- Branches: `58:35 b0.0 cond-expr (arm)`; `65:36 b1.1 cond-expr (arm)`; `65:60 b2.0 cond-expr (arm)`; `65:68 b2.1 cond-expr (arm)`.
-- Functions: `(anonymous_6)@165`; `(anonymous_7)@249`; `(anonymous_8)@251`.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 73. src/features/auth/pages/CompleteProfilePage.tsx
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 44:58 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: err instanceof Error ? err.message : undefined,` |
 
-S/B/F/L: 95.74% / 85.71% / 100.00% / 95.65%. Missing branch arms: 4.
+## 164. src/features/scheduling/hooks/useAppointmentStatusChange.ts
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-- Lines: 59-60.
-- Branches: `31:44 b1.1 binary-expr (arm)`; `31:67 b2.1 binary-expr (arm)`; `58:4 b8.0 if (arm)`; `88:12 b10.1 cond-expr (arm)`.
-- Functions: —.
+S/B/F/L: 100.00% / 83.33% / 100.00% / 100.00%.
 
-## 74. src/features/clinical-records/components/ClinicalStickyBar.tsx
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 81.81% / 77.77% / 100.00% / 100.00%. Missing branch arms: 4.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 33:58 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `description: err instanceof Error ? err.message : undefined,` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 165. src/features/scheduling/utils/appointment-state-machine.ts
 
-- Lines: —.
-- Branches: `15:2 b0.0 if (arm)`; `16:2 b1.0 if (arm)`; `125:8 b7.1 binary-expr (arm)`; `128:8 b8.1 binary-expr (arm)`.
-- Functions: —.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-## 75. src/features/clinical-records/hooks/useClinicalTemplates.ts
+S/B/F/L: 100.00% / 92.85% / 100.00% / 100.00%.
 
-S/B/F/L: 100.00% / 50.00% / 100.00% / 100.00%. Missing branch arms: 4.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 61:62 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const { roleAllowedTargets, now = new Date() } = options ?? {}` |
 
-- Lines: —.
-- Branches: `31:8 b0.1 if (condition)`; `34:8 b1.1 if (condition)`; `37:8 b2.1 if (condition)`; `70:70 b3.1 cond-expr (arm)`.
-- Functions: —.
+## 166. src/features/team/hooks/useTeamPage.ts
 
-## 76. src/features/compliance/components/AuditLogsTab.tsx
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-S/B/F/L: 100.00% / 91.30% / 100.00% / 100.00%. Missing branch arms: 4.
+S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-- Lines: —.
-- Branches: `59:8 b2.1 if (condition)`; `62:8 b3.1 if (condition)`; `92:70 b8.0 cond-expr (arm)`; `136:65 b13.1 binary-expr (arm)`.
-- Functions: —.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 42:25 b0.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `value === 'active' ? member.isActive : !member.isActive,` |
 
-## 77. src/features/finance/components/IncomeExpensesChart.tsx
+## 167. src/lib/date-time-input.ts
 
-S/B/F/L: 100.00% / 93.10% / 100.00% / 100.00%. Missing branch arms: 4.
+Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-B / C2–C3 — application tooltip/sign and toggle behavior now run; remaining chart callbacks, reduction alternatives and nullable fallbacks need targeted cases/reachability review.
+S/B/F/L: 97.50% / 96.15% / 100.00% / 100.00%.
 
-- Lines: —.
-- Branches: `54:53 b2.1 binary-expr (arm)`; `76:50 b7.1 binary-expr (arm)`; `133:38 b18.0 cond-expr (arm)`; `160:82 b22.1 binary-expr (arm)`.
-- Functions: —.
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-## 78. src/features/scheduling/hooks/useAppointmentsPage.ts
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 72:2 b12.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!Number.isFinite(value)) return min` |
 
-S/B/F/L: 100.00% / 87.50% / 90.90% / 100.00%. Missing branch arms: 4.
+## 168. src/services/http.ts
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+Classification: **B**. remaining nullish fallback in error translation needs reachability review against the translator contract. HTTP refresh/retry/concurrency and error outcomes are tested; no exclusion added.
 
-- Lines: —.
-- Branches: `121:6 b5.1 if (condition)`; `194:58 b11.1 cond-expr (arm)`; `217:58 b14.1 cond-expr (arm)`; `239:58 b15.1 cond-expr (arm)`.
-- Functions: `(anonymous_9)@124`; `(anonymous_21)@246`.
+S/B/F/L: 100.00% / 98.11% / 100.00% / 100.00%.
 
-## 79. src/config/company.ts
+- Uncovered lines: none.
+- Uncovered functions: none.
 
-S/B/F/L: 63.15% / 50.00% / 60.00% / 66.66%. Missing branch arms: 3.
+| Location / branch arm | Class / technical requirement | Source condition or branch |
+| --- | --- | --- |
+| 80:72 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `translateApiErrorMessage(getErrorMessage(body), response.status) ??` |
 
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+## 169. src/App.tsx
 
-- Lines: 165, 169-170, 172-173, 175.
-- Branches: `168:2 b0.0 if (arm)`; `172:4 b1.0 if (arm)`; `172:4 b1.1 if (condition)`.
-- Functions: `(anonymous_1)@165`; `(anonymous_2)@169`.
+Classification: **F**. RouterProvider connects the real router; built-app navigation and chunk loading are browser integration checks.
 
-## 80. src/features/patients/components/PatientAvatarWidget.tsx
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-S/B/F/L: 89.55% / 93.02% / 100.00% / 90.00%. Missing branch arms: 3.
+- Uncovered lines: 6.
+- Uncovered functions: `App@5`.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 App | `function App() { return <RouterProvider router={router} /> }` |
 
-- Lines: 93-98.
-- Branches: `70:4 b5.0 if (arm)`; `91:11 b9.1 if (arm)`; `138:6 b12.1 if (condition)`.
-- Functions: —.
+## 170. src/main.tsx
 
-## 81. src/components/common/PasswordResetModal.tsx
+Classification: **F**. React DOM root creation, StrictMode and production configuration initialization require an actual built-app bootstrap smoke test.
 
-S/B/F/L: 91.17% / 84.21% / 87.50% / 90.62%. Missing branch arms: 3.
+S/B/F/L: 0.00% / 100.00% / 100.00% / 0.00%.
 
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+- Uncovered lines: 7, 9.
+- Uncovered functions: none.
 
-- Lines: 67-68, 87.
-- Branches: `66:4 b3.0 if (arm)`; `87:55 b6.0 binary-expr (arm)`; `87:66 b6.1 binary-expr (arm)`.
-- Functions: `(anonymous_5)@87`.
+## 171. src/app/RootRoute.tsx
 
-## 82. src/features/billing/containers/SubscriptionPageContainer.tsx
+Classification: **F**. Provider composition, Suspense and error-boundary integration require app-level navigation/loading/failure QA. Individual providers have unit tests; that does not certify the assembled application.
 
-S/B/F/L: 94.73% / 90.32% / 87.50% / 93.75%. Missing branch arms: 3.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: 13.
+- Uncovered functions: `RootRoute@12`.
 
-- Lines: 198.
-- Branches: `134:16 b12.1 binary-expr (arm)`; `135:16 b12.2 binary-expr (arm)`; `156:71 b13.2 binary-expr (arm)`.
-- Functions: `(anonymous_7)@198`.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 12 RootRoute | `export function RootRoute() { return ( <ErrorBoundary FallbackComponent={CrashScreen}>` |
 
-## 83. src/features/fiscal/components/AppointmentInvoicePickerModal.tsx
+## 172. src/features/admin/pages/AdminClinicsPage.tsx
 
-S/B/F/L: 93.18% / 90.62% / 85.00% / 94.87%. Missing branch arms: 3.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Lines: 94, 240.
-- Branches: `76:63 b1.1 binary-expr (arm)`; `94:53 b2.0 binary-expr (arm)`; `94:62 b2.1 binary-expr (arm)`.
-- Functions: `(anonymous_8)@94`; `(anonymous_15)@240`; `(anonymous_16)@240`.
+- Uncovered lines: 4.
+- Uncovered functions: `AdminClinicsPage@3`.
 
-## 84. src/features/admin/containers/AdminClinicsPageContainer.tsx
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 AdminClinicsPage | `export function AdminClinicsPage() { return <AdminClinicsPageContainer /> }` |
 
-S/B/F/L: 92.30% / 85.00% / 94.44% / 96.00%. Missing branch arms: 3.
+## 173. src/features/admin/pages/AdminDashboardPage.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-- Lines: 274.
-- Branches: `243:32 b4.0 if (arm)`; `244:32 b5.1 if (condition)`; `244:61 b6.1 binary-expr (arm)`.
-- Functions: `(anonymous_13)@274`.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-## 85. src/features/scheduling/components/availability/AvailabilityManager.tsx
+- Uncovered lines: 4.
+- Uncovered functions: `AdminDashboardPage@3`.
 
-S/B/F/L: 98.03% / 85.00% / 92.85% / 97.91%. Missing branch arms: 3.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 AdminDashboardPage | `export function AdminDashboardPage() { return <AdminDashboardPageContainer /> }` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 174. src/features/admin/pages/AdminFinancePage.tsx
 
-- Lines: 134.
-- Branches: `52:67 b1.1 cond-expr (arm)`; `56:55 b2.1 cond-expr (arm)`; `72:55 b3.1 cond-expr (arm)`.
-- Functions: `(anonymous_11)@134`.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-## 86. src/components/common/MonthPickerInput.tsx
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-S/B/F/L: 96.55% / 92.68% / 100.00% / 100.00%. Missing branch arms: 3.
+- Uncovered lines: 4.
+- Uncovered functions: `AdminFinancePage@3`.
 
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 AdminFinancePage | `export function AdminFinancePage() { return <AdminFinancePageContainer /> }` |
 
-- Lines: —.
-- Branches: `39:2 b1.0 if (arm)`; `48:2 b4.0 if (arm)`; `147:38 b17.1 binary-expr (arm)`.
-- Functions: —.
+## 175. src/features/admin/pages/AdminUsersPage.tsx
 
-## 87. src/features/admin/hooks/useAdminFinancePage.ts
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-S/B/F/L: 98.71% / 86.36% / 100.00% / 100.00%. Missing branch arms: 3.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+- Uncovered lines: 4.
+- Uncovered functions: `AdminUsersPage@3`.
 
-- Lines: —.
-- Branches: `74:47 b0.1 cond-expr (arm)`; `107:8 b2.0 if (arm)`; `186:24 b10.1 binary-expr (arm)`.
-- Functions: —.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 AdminUsersPage | `export function AdminUsersPage() { return <AdminUsersPageContainer /> }` |
 
-## 88. src/features/fiscal/hooks/useFiscalInvoicesPage.ts
+## 176. src/features/billing/pages/SubscriptionPage.tsx
 
-S/B/F/L: 98.00% / 86.36% / 100.00% / 100.00%. Missing branch arms: 3.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Lines: —.
-- Branches: `85:8 b3.0 if (arm)`; `92:8 b4.0 if (arm)`; `106:8 b7.1 if (condition)`.
-- Functions: —.
+- Uncovered lines: 4.
+- Uncovered functions: `SubscriptionPage@3`.
 
-## 89. src/features/inventory/components/StockAbnormalConsumptionSection.tsx
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 SubscriptionPage | `export function SubscriptionPage() { return <SubscriptionPageContainer /> }` |
 
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%. Missing branch arms: 3.
+## 177. src/features/clinical-records/pages/ClinicalRecordEditorPage.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-- Lines: —.
-- Branches: `211:63 b9.1 cond-expr (arm)`; `216:66 b10.1 cond-expr (arm)`; `221:60 b11.1 cond-expr (arm)`.
-- Functions: —.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-## 90. src/features/marketing/components/landing/DentalArch.tsx
+- Uncovered lines: 6-7.
+- Uncovered functions: `ClinicalRecordEditorPage@5`.
 
-S/B/F/L: 92.30% / 85.00% / 81.81% / 100.00%. Missing branch arms: 3.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 ClinicalRecordEditorPage | `export function ClinicalRecordEditorPage() { const { clinicalRecordId } = useParams({ from: '/app/prontuario/$clinicalRecordId' }) return <ClinicalRecordEditorContainer recordId={clinicalRecordId} />` |
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+## 178. src/features/clinical-records/pages/ClinicalRecordPrintPage.tsx
 
-- Lines: —.
-- Branches: `23:44 b0.0 cond-expr (arm)`; `48:4 b2.0 if (arm)`; `171:8 b9.0 cond-expr (arm)`.
-- Functions: `(anonymous_0)@9`; `(anonymous_5)@51`.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-## 91. src/features/marketing/pages/FeatureDetailPage.tsx
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-S/B/F/L: 100.00% / 83.33% / 100.00% / 100.00%. Missing branch arms: 3.
+- Uncovered lines: 6-7.
+- Uncovered functions: `ClinicalRecordPrintPage@5`.
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 ClinicalRecordPrintPage | `export function ClinicalRecordPrintPage() { const { clinicalRecordId } = useParams({ from: '/app/prontuario/$clinicalRecordId/imprimir' }) return <ClinicalRecordPrintContainer recordId={clinicalRecordId} />` |
 
-- Lines: —.
-- Branches: `46:60 b0.1 cond-expr (arm)`; `84:60 b1.1 cond-expr (arm)`; `369:57 b8.1 cond-expr (arm)`.
-- Functions: —.
+## 179. src/features/clinical-records/pages/ClinicalRecordsPage.tsx
 
-## 92. src/features/patients/hooks/usePatientAvatar.ts
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-S/B/F/L: 95.74% / 86.36% / 94.11% / 100.00%. Missing branch arms: 3.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+- Uncovered lines: 4.
+- Uncovered functions: `ClinicalRecordsPage@3`.
 
-- Lines: —.
-- Branches: `74:8 b8.1 if (condition)`; `81:8 b9.1 if (condition)`; `90:6 b10.0 if (arm)`.
-- Functions: `(anonymous_16)@97`.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 ClinicalRecordsPage | `export function ClinicalRecordsPage() { return <ClinicalRecordsListContainer /> }` |
 
-## 93. src/features/scheduling/components/SchedulingToolbar.tsx
+## 180. src/features/compliance/pages/CompliancePage.tsx
 
-S/B/F/L: 100.00% / 75.00% / 25.00% / 100.00%. Missing branch arms: 3.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Lines: —.
-- Branches: `81:23 b3.1 binary-expr (arm)`; `82:20 b4.1 binary-expr (arm)`; `83:26 b5.1 binary-expr (arm)`.
-- Functions: `(anonymous_1)@81`; `(anonymous_2)@82`; `(anonymous_3)@83`.
+- Uncovered lines: 4.
+- Uncovered functions: `CompliancePage@3`.
 
-## 94. src/lib/validators/br.ts
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 CompliancePage | `export function CompliancePage() { return <CompliancePageContainer /> }` |
 
-S/B/F/L: 99.09% / 96.29% / 100.00% / 100.00%. Missing branch arms: 3.
+## 181. src/features/dashboard/pages/DashboardPage.tsx
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-- Lines: —.
-- Branches: `25:2 b4.0 if (arm)`; `53:23 b12.0 cond-expr (arm)`; `60:23 b14.0 cond-expr (arm)`.
-- Functions: —.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-## 95. src/features/finance/components/CategoryEditModal.tsx
+- Uncovered lines: 4.
+- Uncovered functions: `DashboardPage@3`.
 
-S/B/F/L: 60.00% / 66.66% / 60.00% / 60.00%. Missing branch arms: 2.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 DashboardPage | `export function DashboardPage() { return <DashboardPageContainer /> }` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 182. src/features/dashboard/pages/DentistHomePage.tsx
 
-- Lines: 40, 94.
-- Branches: `40:66 b0.0 binary-expr (arm)`; `40:75 b0.1 binary-expr (arm)`.
-- Functions: `(anonymous_1)@40`; `(anonymous_4)@94`.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-## 96. src/features/marketing/components/landing/ProductShowcaseSection.tsx
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-S/B/F/L: 67.56% / 80.00% / 47.82% / 67.56%. Missing branch arms: 2.
+- Uncovered lines: 4.
+- Uncovered functions: `DentistHomePage@3`.
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 DentistHomePage | `export function DentistHomePage() { return <DentistHomePageContainer /> }` |
 
-- Lines: 38, 115, 133, 147, 161, 174, 236, 240, 248, 303, 311, 327.
-- Branches: `137:25 b0.0 cond-expr (arm)`; `137:57 b0.1 cond-expr (arm)`.
-- Functions: `Tile@37`; `ProntuarioMock@114`; `(anonymous_6)@133`; `(anonymous_7)@147`; `FinanceiroMock@160`; `(anonymous_9)@174`; `EquipeMock@235`; `(anonymous_13)@240`; `(anonymous_14)@248`; `(anonymous_16)@303`; `(anonymous_17)@311`; `(anonymous_19)@327`.
+## 183. src/features/finance/pages/FinancePage.tsx
 
-## 97. src/features/finance/components/FixedExpenseEditModal.tsx
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-S/B/F/L: 80.00% / 66.66% / 80.00% / 80.00%. Missing branch arms: 2.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: 4.
+- Uncovered functions: `FinancePage@3`.
 
-- Lines: 47, 159.
-- Branches: `47:65 b0.0 binary-expr (arm)`; `47:74 b0.1 binary-expr (arm)`.
-- Functions: `(anonymous_1)@47`; `(anonymous_9)@159`.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 FinancePage | `export function FinancePage() { return <FinancePageContainer /> }` |
 
-## 98. src/features/fiscal/components/FiscalInvoiceFiltersBar.tsx
+## 184. src/features/fiscal/pages/FiscalInvoicesPage.tsx
 
-S/B/F/L: 80.00% / 86.66% / 75.00% / 80.00%. Missing branch arms: 2.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Lines: 61.
-- Branches: `62:39 b2.0 cond-expr (arm)`; `62:51 b2.1 cond-expr (arm)`.
-- Functions: `(anonymous_2)@61`.
+- Uncovered lines: 4.
+- Uncovered functions: `FiscalInvoicesPage@3`.
 
-## 99. src/features/team/components/TeamMembersTable.tsx
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 FiscalInvoicesPage | `export function FiscalInvoicesPage() { return <FiscalInvoicesPageContainer /> }` |
 
-S/B/F/L: 75.00% / 80.00% / 75.00% / 81.81%. Missing branch arms: 2.
+## 185. src/features/fiscal/pages/FiscalProfilePage.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **A**. thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
 
-- Lines: 68-69.
-- Branches: `46:18 b0.0 if (arm)`; `47:18 b1.1 if (condition)`.
-- Functions: `(anonymous_6)@68`; `(anonymous_7)@69`.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-## 100. src/features/finance/containers/FinancePageContainer.tsx
+- Uncovered lines: 8.
+- Uncovered functions: `FiscalProfilePage@7`.
 
-S/B/F/L: 87.50% / 92.30% / 91.66% / 86.95%. Missing branch arms: 2.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 7 FiscalProfilePage | `export function FiscalProfilePage() { return ( <AppPage spacing="loose">` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 186. src/features/inventory/pages/InventoryPage.tsx
 
-- Lines: 127-129.
-- Branches: `167:16 b4.1 if (condition)`; `342:68 b12.1 cond-expr (arm)`.
-- Functions: `(anonymous_1)@126`.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-## 101. src/features/scheduling/components/appointments/AppointmentTable.tsx
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-S/B/F/L: 85.71% / 92.00% / 81.81% / 89.47%. Missing branch arms: 2.
+- Uncovered lines: 4.
+- Uncovered functions: `InventoryPage@3`.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 InventoryPage | `export function InventoryPage() { return <InventoryPageContainer /> }` |
 
-- Lines: 122, 219.
-- Branches: `183:8 b8.0 if (arm)`; `184:8 b9.1 if (condition)`.
-- Functions: `(anonymous_4)@122`; `(anonymous_10)@219`.
+## 187. src/features/inventory/types/inventory.types.ts
 
-## 102. src/features/finance/components/TransactionEditModal.tsx
+Classification: **D**. The unexecuted const tuples only derive exported TypeScript string unions through typeof. Their consumers import types; there is no user interaction to exercise.
 
-S/B/F/L: 90.00% / 66.66% / 90.00% / 90.00%. Missing branch arms: 2.
+S/B/F/L: 0.00% / 100.00% / 100.00% / 0.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: 1, 12.
+- Uncovered functions: none.
 
-- Lines: 45.
-- Branches: `45:69 b0.0 binary-expr (arm)`; `45:78 b0.1 binary-expr (arm)`.
-- Functions: `(anonymous_1)@45`.
+## 188. src/features/marketing/components/SectionDivider.tsx
 
-## 103. src/features/scheduling/components/appointments/AppointmentDrawer.tsx
+Classification: **D**. aria-hidden decorative divider renders static color/gradient configuration and CSS animation. No interactive control or product state transition; appearance belongs to browser visual QA.
 
-S/B/F/L: 90.00% / 93.54% / 80.00% / 90.00%. Missing branch arms: 2.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: 21, 87, 89.
+- Uncovered functions: `SectionDivider@86`.
 
-- Lines: 56.
-- Branches: `56:62 b2.0 binary-expr (arm)`; `56:71 b2.1 binary-expr (arm)`.
-- Functions: `(anonymous_3)@56`.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 86 SectionDivider | `}) { const cfg = CONFIGS[variant]` |
 
-## 104. src/features/inventory/utils/inventory-format.ts
+## 189. src/features/marketing/components/TrialCtaSection.tsx
 
-S/B/F/L: 84.61% / 80.00% / 100.00% / 91.66%. Missing branch arms: 2.
+Classification: **A**. marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Lines: 64.
-- Branches: `37:25 b0.1 binary-expr (arm)`; `51:2 b4.0 if (arm)`.
-- Functions: —.
+- Uncovered lines: 9, 12, 57.
+- Uncovered functions: `TrialCtaSection@11`; `(anonymous_1)@57`.
 
-## 105. src/features/marketing/hooks/useDropdownNav.ts
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 11 TrialCtaSection | `export function TrialCtaSection() { return ( <section className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#0f3b73_0%,#082f5f_100%)] py-24">` |
+| 57 (anonymous_1) | `<span key={signal} className="flex items-center gap-1.5 text-sm font-medium text-blue-100"` |
 
-S/B/F/L: 96.87% / 80.00% / 100.00% / 96.00%. Missing branch arms: 2.
+## 190. src/features/marketing/pages/AgendaFeaturePage.tsx
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-- Lines: 19.
-- Branches: `18:6 b0.0 if (arm)`; `23:6 b2.1 if (condition)`.
-- Functions: —.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-## 106. src/features/admin/components/ClinicFormModal.tsx
+- Uncovered lines: 6, 10.
+- Uncovered functions: `AgendaFeaturePage@5`.
 
-S/B/F/L: 96.55% / 93.54% / 88.88% / 96.29%. Missing branch arms: 2.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 AgendaFeaturePage | `export function AgendaFeaturePage() { usePageMeta( 'DentalFlow \| Agenda para clínicas odontológicas',` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 191. src/features/marketing/pages/AiFeaturePage.tsx
 
-- Lines: 87.
-- Branches: `87:55 b7.0 binary-expr (arm)`; `87:66 b7.1 binary-expr (arm)`.
-- Functions: `(anonymous_6)@87`.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-## 107. src/features/admin/containers/AdminUsersPageContainer.tsx
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-S/B/F/L: 96.42% / 91.66% / 95.45% / 96.29%. Missing branch arms: 2.
+- Uncovered lines: 6, 10.
+- Uncovered functions: `AiFeaturePage@5`.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 AiFeaturePage | `export function AiFeaturePage() { usePageMeta( 'DentalFlow \| IA de gestão para clínicas odontológicas',` |
 
-- Lines: 384.
-- Branches: `277:30 b5.1 if (condition)`; `277:59 b6.1 binary-expr (arm)`.
-- Functions: `(anonymous_19)@384`.
+## 192. src/features/marketing/pages/ClinicalRecordsFeaturePage.tsx
 
-## 108. src/features/admin/components/ClinicHealthSection.tsx
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-S/B/F/L: 96.77% / 93.10% / 100.00% / 96.77%. Missing branch arms: 2.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: 6, 10.
+- Uncovered functions: `ClinicalRecordsFeaturePage@5`.
 
-- Lines: 90.
-- Branches: `89:2 b9.0 if (arm)`; `105:59 b13.0 cond-expr (arm)`.
-- Functions: —.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 ClinicalRecordsFeaturePage | `export function ClinicalRecordsFeaturePage() { usePageMeta( 'DentalFlow \| Prontuários digitais para clínicas odontológicas',` |
 
-## 109. src/components/common/DatePickerInput.tsx
+## 193. src/features/marketing/pages/FinanceFeaturePage.tsx
 
-S/B/F/L: 96.96% / 96.36% / 100.00% / 100.00%. Missing branch arms: 2.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Lines: —.
-- Branches: `74:4 b10.0 if (arm)`; `75:4 b11.0 if (arm)`.
-- Functions: —.
+- Uncovered lines: 6, 10.
+- Uncovered functions: `FinanceFeaturePage@5`.
 
-## 110. src/components/layout/SiteFooter.tsx
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 FinanceFeaturePage | `export function FinanceFeaturePage() { usePageMeta( 'DentalFlow \| Gestão financeira para clínicas odontológicas',` |
 
-S/B/F/L: 100.00% / 66.66% / 100.00% / 100.00%. Missing branch arms: 2.
+## 194. src/features/marketing/pages/FiscalFeaturePage.tsx
 
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-- Lines: —.
-- Branches: `47:22 b0.0 cond-expr (arm)`; `49:15 b1.1 binary-expr (arm)`.
-- Functions: —.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-## 111. src/features/auth/pages/ResetPasswordPage.tsx
+- Uncovered lines: 6, 10.
+- Uncovered functions: `FiscalFeaturePage@5`.
 
-S/B/F/L: 96.00% / 88.88% / 100.00% / 100.00%. Missing branch arms: 2.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 FiscalFeaturePage | `export function FiscalFeaturePage() { usePageMeta( 'DentalFlow \| Controle fiscal para clínicas odontológicas',` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 195. src/features/marketing/pages/ForDentistPage.tsx
 
-- Lines: —.
-- Branches: `24:4 b0.0 if (arm)`; `33:45 b1.1 cond-expr (arm)`.
-- Functions: —.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-## 112. src/features/clinical-records/components/ClinicalSection.tsx
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-S/B/F/L: 100.00% / 85.71% / 100.00% / 100.00%. Missing branch arms: 2.
+- Uncovered lines: 6, 10.
+- Uncovered functions: `ForDentistPage@5`.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 ForDentistPage | `export function ForDentistPage() { usePageMeta( 'DentalFlow \| Para dentistas',` |
 
-- Lines: —.
-- Branches: `59:47 b2.1 cond-expr (arm)`; `76:45 b5.1 cond-expr (arm)`.
-- Functions: —.
+## 196. src/features/marketing/pages/ForManagerPage.tsx
 
-## 113. src/features/clinical-records/hooks/useClinicalRecord.ts
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-S/B/F/L: 100.00% / 93.10% / 100.00% / 100.00%. Missing branch arms: 2.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+- Uncovered lines: 6, 10.
+- Uncovered functions: `ForManagerPage@5`.
 
-- Lines: —.
-- Branches: `37:8 b1.1 if (condition)`; `229:8 b13.1 if (condition)`.
-- Functions: —.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 ForManagerPage | `export function ForManagerPage() { usePageMeta( 'DentalFlow \| Para gestores e administradores de clínicas',` |
 
-## 114. src/features/compliance/components/CookieConsentLogsTab.tsx
+## 197. src/features/marketing/pages/ForNewClinicPage.tsx
 
-S/B/F/L: 100.00% / 95.23% / 100.00% / 100.00%. Missing branch arms: 2.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Lines: —.
-- Branches: `102:70 b5.0 cond-expr (arm)`; `146:65 b10.1 binary-expr (arm)`.
-- Functions: —.
+- Uncovered lines: 6, 10.
+- Uncovered functions: `ForNewClinicPage@5`.
 
-## 115. src/features/finance/components/ColorPicker.tsx
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 ForNewClinicPage | `export function ForNewClinicPage() { usePageMeta( 'DentalFlow \| Para clínicas odontológicas em abertura',` |
 
-S/B/F/L: 100.00% / 66.66% / 100.00% / 100.00%. Missing branch arms: 2.
+## 198. src/features/marketing/pages/ForSecretaryPage.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-- Lines: —.
-- Branches: `18:48 b0.1 binary-expr (arm)`; `19:72 b1.1 binary-expr (arm)`.
-- Functions: —.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-## 116. src/features/finance/components/KpiGrid.tsx
+- Uncovered lines: 6, 10.
+- Uncovered functions: `ForSecretaryPage@5`.
 
-S/B/F/L: 100.00% / 94.44% / 100.00% / 100.00%. Missing branch arms: 2.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 ForSecretaryPage | `export function ForSecretaryPage() { usePageMeta( 'DentalFlow \| Para secretárias e recepcionistas de clínicas',` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 199. src/features/marketing/pages/InventoryFeaturePage.tsx
 
-- Lines: —.
-- Branches: `58:51 b10.1 cond-expr (arm)`; `72:60 b13.1 cond-expr (arm)`.
-- Functions: —.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-## 117. src/features/finance/hooks/useExpenseClassifier.ts
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-S/B/F/L: 100.00% / 86.66% / 100.00% / 100.00%. Missing branch arms: 2.
+- Uncovered lines: 6, 10.
+- Uncovered functions: `InventoryFeaturePage@5`.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 InventoryFeaturePage | `export function InventoryFeaturePage() { usePageMeta( 'DentalFlow \| Controle de estoque para clínicas odontológicas',` |
 
-- Lines: —.
-- Branches: `58:8 b5.1 if (condition)`; `64:38 b6.0 cond-expr (arm)`.
-- Functions: —.
+## 200. src/features/marketing/pages/PatientsFeaturePage.tsx
 
-## 118. src/features/finance/hooks/useFinanceTransactions.ts
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-S/B/F/L: 98.43% / 93.75% / 100.00% / 100.00%. Missing branch arms: 2.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+- Uncovered lines: 6, 10.
+- Uncovered functions: `PatientsFeaturePage@5`.
 
-- Lines: —.
-- Branches: `47:59 b0.1 cond-expr (arm)`; `114:6 b7.0 if (arm)`.
-- Functions: —.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 PatientsFeaturePage | `export function PatientsFeaturePage() { usePageMeta( 'DentalFlow \| Gestão de pacientes para clínicas odontológicas',` |
 
-## 119. src/features/fiscal/containers/FiscalProfilePageContainer.tsx
+## 201. src/features/marketing/pages/ReportsFeaturePage.tsx
 
-S/B/F/L: 100.00% / 93.33% / 100.00% / 100.00%. Missing branch arms: 2.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Lines: —.
-- Branches: `54:83 b2.1 cond-expr (arm)`; `68:79 b9.1 cond-expr (arm)`.
-- Functions: —.
+- Uncovered lines: 6, 10.
+- Uncovered functions: `ReportsFeaturePage@5`.
 
-## 120. src/features/inventory/components/StockMovementHistory.tsx
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 ReportsFeaturePage | `export function ReportsFeaturePage() { usePageMeta( 'DentalFlow \| Relatórios e indicadores para clínicas odontológicas',` |
 
-S/B/F/L: 95.23% / 85.71% / 100.00% / 100.00%. Missing branch arms: 2.
+## 202. src/features/marketing/pages/WhatsappFeaturePage.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-- Lines: —.
-- Branches: `28:4 b0.0 if (arm)`; `92:14 b6.1 binary-expr (arm)`.
-- Functions: —.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-## 121. src/features/inventory/containers/InventoryPageContainer.tsx
+- Uncovered lines: 6, 10.
+- Uncovered functions: `WhatsappFeaturePage@5`.
 
-S/B/F/L: 100.00% / 95.83% / 100.00% / 100.00%. Missing branch arms: 2.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 5 WhatsappFeaturePage | `export function WhatsappFeaturePage() { usePageMeta( 'DentalFlow \| WhatsApp e notificações para clínicas odontológicas',` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 203. src/features/patients/pages/PatientsAttentionPage.tsx
 
-- Lines: —.
-- Branches: `132:91 b3.1 cond-expr (arm)`; `151:53 b5.0 cond-expr (arm)`.
-- Functions: —.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-## 122. src/features/marketing/components/FeatureMockups.tsx
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-S/B/F/L: 100.00% / 96.55% / 100.00% / 100.00%. Missing branch arms: 2.
+- Uncovered lines: 4.
+- Uncovered functions: `PatientsAttentionPage@3`.
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 PatientsAttentionPage | `export function PatientsAttentionPage() { return <PatientsAttentionContainer /> }` |
 
-- Lines: —.
-- Branches: `96:30 b12.1 binary-expr (arm)`; `97:31 b13.1 binary-expr (arm)`.
-- Functions: —.
+## 204. src/features/patients/pages/PatientsPage.tsx
 
-## 123. src/features/marketing/pages/FeaturesPage.tsx
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-S/B/F/L: 100.00% / 90.90% / 100.00% / 100.00%. Missing branch arms: 2.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
+- Uncovered lines: 4.
+- Uncovered functions: `PatientsPage@3`.
 
-- Lines: —.
-- Branches: `160:58 b0.1 cond-expr (arm)`; `487:57 b10.1 cond-expr (arm)`.
-- Functions: —.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 PatientsPage | `export function PatientsPage() { return <PatientsPageContainer /> }` |
 
-## 124. src/features/reports/components/ReportCard.tsx
+## 205. src/features/reports/pages/ReportsPage.tsx
 
-S/B/F/L: 96.15% / 96.42% / 100.00% / 100.00%. Missing branch arms: 2.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Lines: —.
-- Branches: `57:4 b2.0 if (arm)`; `79:59 b4.1 cond-expr (arm)`.
-- Functions: —.
+- Uncovered lines: 4.
+- Uncovered functions: `ReportsPage@3`.
 
-## 125. src/features/scheduling/components/availability/ExceptionForm.tsx
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 ReportsPage | `export function ReportsPage() { return <ReportsPageContainer /> }` |
 
-S/B/F/L: 100.00% / 95.55% / 100.00% / 100.00%. Missing branch arms: 2.
+## 206. src/features/scheduling/pages/AppointmentsPage.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-- Lines: —.
-- Branches: `50:53 b2.1 cond-expr (arm)`; `53:43 b4.1 binary-expr (arm)`.
-- Functions: —.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-## 126. src/lib/date-time-formatters.ts
+- Uncovered lines: 4.
+- Uncovered functions: `AppointmentsPage@3`.
 
-S/B/F/L: 97.64% / 95.23% / 100.00% / 100.00%. Missing branch arms: 2.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 AppointmentsPage | `export function AppointmentsPage() { return <AppointmentsPageContainer /> }` |
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+## 207. src/features/scheduling/pages/SchedulePage.tsx
 
-- Lines: —.
-- Branches: `52:2 b9.0 if (arm)`; `54:2 b10.0 if (arm)`.
-- Functions: —.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-## 127. src/features/billing/components/BillingIntervalToggle.tsx
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-S/B/F/L: 66.66% / 95.65% / 66.66% / 66.66%. Missing branch arms: 1.
+- Uncovered lines: 4.
+- Uncovered functions: `SchedulePage@3`.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 SchedulePage | `export function SchedulePage() { return <SchedulePageContainer /> }` |
 
-- Lines: 36.
-- Branches: `72:22 b7.0 cond-expr (arm)`.
-- Functions: `(anonymous_1)@36`.
+## 208. src/features/settings/pages/SettingsPage.tsx
 
-## 128. src/features/team/containers/TeamPageContainer.tsx
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-S/B/F/L: 81.81% / 91.66% / 77.77% / 81.81%. Missing branch arms: 1.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+- Uncovered lines: 4.
+- Uncovered functions: `SettingsPage@3`.
 
-- Lines: 175, 181.
-- Branches: `79:29 b1.1 binary-expr (arm)`.
-- Functions: `(anonymous_3)@175`; `(anonymous_4)@181`.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 SettingsPage | `export function SettingsPage() { return <SettingsPageContainer /> }` |
 
-## 129. src/features/notifications/components/AppointmentNotificationActions.tsx
+## 209. src/features/team/pages/TeamPage.tsx
 
-S/B/F/L: 90.90% / 90.00% / 80.00% / 89.47%. Missing branch arms: 1.
+Classification: **D**. Thin route renderer delegates to its feature container or static role/feature configuration. Container behavior is tested separately. An assertion that only repeats this JSX composition would add no independent product behavior; route/chunk integration remains browser QA.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%.
 
-- Lines: 107, 123.
-- Branches: `70:50 b2.1 binary-expr (arm)`.
-- Functions: `(anonymous_8)@107`; `(anonymous_9)@123`.
+- Uncovered lines: 4.
+- Uncovered functions: `TeamPage@3`.
 
-## 130. src/features/clinical-records/containers/ClinicalRecordsListContainer.tsx
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 3 TeamPage | `export function TeamPage() { return <TeamPageContainer /> }` |
 
-S/B/F/L: 93.02% / 98.11% / 85.00% / 92.30%. Missing branch arms: 1.
+## 210. src/app/route-components.tsx
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+Classification: **F**. Dynamic import callbacks need actual lazy-route navigation and chunk-load failure QA. Route registration tests do not execute every production chunk.
 
-- Lines: 211, 223, 229.
-- Branches: `47:15 b2.1 if (condition)`.
-- Functions: `(anonymous_12)@211`; `(anonymous_14)@223`; `(anonymous_15)@229`.
+S/B/F/L: 33.33% / 100.00% / 0.00% / 33.33%.
 
-## 131. src/features/auth/components/ProtectedAppRoute.tsx
+- Uncovered lines: 4-5, 10-11, 16-17, 22-23, 28-29, 34-35, 40-41, 46-47, 52-53, 58-59, 64-65, 70-71, 76-77, 82-83, 88-89, 94-95, 100-101, 106-107, 112-113, 118-119, 124-125, 130-131, 136-137, 142-143, 148-149, 154-155, 160-161, 167-168, 173-174, 179-180, 185-186, 191-192, 197-198, 203-204, 209-210, 215-216, 221-222, 227-228, 233-234, 239-240, 246-247, 252-253, 258-259, 264-265, 270-271, 276-277, 282-283, 288-289, 294-295, 300-301, 306-307, 312-313, 318-319, 324-325, 330-331, 336-337.
+- Uncovered functions: `(anonymous_0)@4`; `(anonymous_1)@5`; `(anonymous_2)@10`; `(anonymous_3)@11`; `(anonymous_4)@16`; `(anonymous_5)@17`; `(anonymous_6)@22`; `(anonymous_7)@23`; `(anonymous_8)@28`; `(anonymous_9)@29`; `(anonymous_10)@34`; `(anonymous_11)@35`; `(anonymous_12)@40`; `(anonymous_13)@41`; `(anonymous_14)@46`; `(anonymous_15)@47`; `(anonymous_16)@52`; `(anonymous_17)@53`; `(anonymous_18)@58`; `(anonymous_19)@59`; `(anonymous_20)@64`; `(anonymous_21)@65`; `(anonymous_22)@70`; `(anonymous_23)@71`; `(anonymous_24)@76`; `(anonymous_25)@77`; `(anonymous_26)@82`; `(anonymous_27)@83`; `(anonymous_28)@88`; `(anonymous_29)@89`; `(anonymous_30)@94`; `(anonymous_31)@95`; `(anonymous_32)@100`; `(anonymous_33)@101`; `(anonymous_34)@106`; `(anonymous_35)@107`; `(anonymous_36)@112`; `(anonymous_37)@113`; `(anonymous_38)@118`; `(anonymous_39)@119`; `(anonymous_40)@124`; `(anonymous_41)@125`; `(anonymous_42)@130`; `(anonymous_43)@131`; `(anonymous_44)@136`; `(anonymous_45)@137`; `(anonymous_46)@142`; `(anonymous_47)@143`; `(anonymous_48)@148`; `(anonymous_49)@149`; `(anonymous_50)@154`; `(anonymous_51)@155`; `(anonymous_52)@160`; `(anonymous_53)@161`; `(anonymous_54)@167`; `(anonymous_55)@168`; `(anonymous_56)@173`; `(anonymous_57)@174`; `(anonymous_58)@179`; `(anonymous_59)@180`; `(anonymous_60)@185`; `(anonymous_61)@186`; `(anonymous_62)@191`; `(anonymous_63)@192`; `(anonymous_64)@197`; `(anonymous_65)@198`; `(anonymous_66)@203`; `(anonymous_67)@204`; `(anonymous_68)@209`; `(anonymous_69)@210`; `(anonymous_70)@215`; `(anonymous_71)@216`; `(anonymous_72)@221`; `(anonymous_73)@222`; `(anonymous_74)@227`; `(anonymous_75)@228`; `(anonymous_76)@233`; `(anonymous_77)@234`; `(anonymous_78)@239`; `(anonymous_79)@240`; `(anonymous_80)@246`; `(anonymous_81)@247`; `(anonymous_82)@252`; `(anonymous_83)@253`; `(anonymous_84)@258`; `(anonymous_85)@259`; `(anonymous_86)@264`; `(anonymous_87)@265`; `(anonymous_88)@270`; `(anonymous_89)@271`; `(anonymous_90)@276`; `(anonymous_91)@277`; `(anonymous_92)@282`; `(anonymous_93)@283`; `(anonymous_94)@288`; `(anonymous_95)@289`; `(anonymous_96)@294`; `(anonymous_97)@295`; `(anonymous_98)@300`; `(anonymous_99)@301`; `(anonymous_100)@306`; `(anonymous_101)@307`; `(anonymous_102)@312`; `(anonymous_103)@313`; `(anonymous_104)@318`; `(anonymous_105)@319`; `(anonymous_106)@324`; `(anonymous_107)@325`; `(anonymous_108)@330`; `(anonymous_109)@331`; `(anonymous_110)@336`; `(anonymous_111)@337`.
 
-S/B/F/L: 98.00% / 98.07% / 100.00% / 97.82%. Missing branch arms: 1.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 4 (anonymous_0) | `import('@/features/marketing/pages/LandingPage').then((m) => ({ default: m.LandingPage, })),` |
+| 5 (anonymous_1) | `default: m.LandingPage, })), )` |
+| 10 (anonymous_2) | `import('@/features/marketing/pages/FeaturesPage').then((m) => ({ default: m.FeaturesPage, })),` |
+| 11 (anonymous_3) | `default: m.FeaturesPage, })), )` |
+| 16 (anonymous_4) | `import('@/features/auth/pages/AuthRoutePage').then((m) => ({ default: m.AuthRoutePage, })),` |
+| 17 (anonymous_5) | `default: m.AuthRoutePage, })), )` |
+| 22 (anonymous_6) | `import('@/features/auth/pages/OAuthSuccessPage').then((m) => ({ default: m.OAuthSuccessPage, })),` |
+| 23 (anonymous_7) | `default: m.OAuthSuccessPage, })), )` |
+| 28 (anonymous_8) | `import('@/features/auth/pages/CompleteProfilePage').then((m) => ({ default: m.CompleteProfilePage, })),` |
+| 29 (anonymous_9) | `default: m.CompleteProfilePage, })), )` |
+| 34 (anonymous_10) | `import('@/features/auth/pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage, })),` |
+| 35 (anonymous_11) | `default: m.ForgotPasswordPage, })), )` |
+| 40 (anonymous_12) | `import('@/features/auth/pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage, })),` |
+| 41 (anonymous_13) | `default: m.ResetPasswordPage, })), )` |
+| 46 (anonymous_14) | `import('@/features/dashboard/pages/DashboardPage').then((m) => ({ default: m.DashboardPage, })),` |
+| 47 (anonymous_15) | `default: m.DashboardPage, })), )` |
+| 52 (anonymous_16) | `import('@/features/dashboard/pages/DentistHomePage').then((m) => ({ default: m.DentistHomePage, })),` |
+| 53 (anonymous_17) | `default: m.DentistHomePage, })), )` |
+| 58 (anonymous_18) | `import('@/features/scheduling/pages/AppointmentsPage').then((m) => ({ default: m.AppointmentsPage, })),` |
+| 59 (anonymous_19) | `default: m.AppointmentsPage, })), )` |
+| 64 (anonymous_20) | `import('@/features/scheduling/pages/SchedulePage').then((m) => ({ default: m.SchedulePage, })),` |
+| 65 (anonymous_21) | `default: m.SchedulePage, })), )` |
+| 70 (anonymous_22) | `import('@/features/team/pages/TeamPage').then((m) => ({ default: m.TeamPage, })),` |
+| 71 (anonymous_23) | `default: m.TeamPage, })), )` |
+| 76 (anonymous_24) | `import('@/features/finance/pages/FinancePage').then((m) => ({ default: m.FinancePage, })),` |
+| 77 (anonymous_25) | `default: m.FinancePage, })), )` |
+| 82 (anonymous_26) | `import('@/features/fiscal/pages/FiscalInvoicesPage').then((m) => ({ default: m.FiscalInvoicesPage, })),` |
+| 83 (anonymous_27) | `default: m.FiscalInvoicesPage, })), )` |
+| 88 (anonymous_28) | `import('@/features/admin/pages/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage, })),` |
+| 89 (anonymous_29) | `default: m.AdminDashboardPage, })), )` |
+| 94 (anonymous_30) | `import('@/features/admin/pages/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage, })),` |
+| 95 (anonymous_31) | `default: m.AdminUsersPage, })), )` |
+| 100 (anonymous_32) | `import('@/features/admin/pages/AdminClinicsPage').then((m) => ({ default: m.AdminClinicsPage, })),` |
+| 101 (anonymous_33) | `default: m.AdminClinicsPage, })), )` |
+| 106 (anonymous_34) | `import('@/features/admin/pages/AdminFinancePage').then((m) => ({ default: m.AdminFinancePage, })),` |
+| 107 (anonymous_35) | `default: m.AdminFinancePage, })), )` |
+| 112 (anonymous_36) | `import('@/features/compliance/pages/CompliancePage').then((m) => ({ default: m.CompliancePage, })),` |
+| 113 (anonymous_37) | `default: m.CompliancePage, })), )` |
+| 118 (anonymous_38) | `import('@/features/patients/pages/PatientsPage').then((m) => ({ default: m.PatientsPage, })),` |
+| 119 (anonymous_39) | `default: m.PatientsPage, })), )` |
+| 124 (anonymous_40) | `import('@/features/billing/pages/SubscriptionPage').then((m) => ({ default: m.SubscriptionPage, })),` |
+| 125 (anonymous_41) | `default: m.SubscriptionPage, })), )` |
+| 130 (anonymous_42) | `import('@/features/billing/pages/SubscriptionSuccessPage').then((m) => ({ default: m.SubscriptionSuccessPage, })),` |
+| 131 (anonymous_43) | `default: m.SubscriptionSuccessPage, })), )` |
+| 136 (anonymous_44) | `import('@/features/billing/pages/SubscriptionCancelPage').then((m) => ({ default: m.SubscriptionCancelPage, })),` |
+| 137 (anonymous_45) | `default: m.SubscriptionCancelPage, })), )` |
+| 142 (anonymous_46) | `import('@/features/clinical-records/pages/ClinicalRecordsPage').then((m) => ({ default: m.ClinicalRecordsPage, })),` |
+| 143 (anonymous_47) | `default: m.ClinicalRecordsPage, })), )` |
+| 148 (anonymous_48) | `import('@/features/clinical-records/pages/ClinicalRecordEditorPage').then((m) => ({ default: m.ClinicalRecordEditorPage, })),` |
+| 149 (anonymous_49) | `default: m.ClinicalRecordEditorPage, })), )` |
+| 154 (anonymous_50) | `import('@/features/clinical-records/pages/ClinicalRecordPrintPage').then((m) => ({ default: m.ClinicalRecordPrintPage, })),` |
+| 155 (anonymous_51) | `default: m.ClinicalRecordPrintPage, })), )` |
+| 160 (anonymous_52) | `import('@/features/inventory/pages/InventoryPage').then((m) => ({ default: m.InventoryPage, })),` |
+| 161 (anonymous_53) | `default: m.InventoryPage, })), )` |
+| 167 (anonymous_54) | `import('@/features/legal/pages/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage, })),` |
+| 168 (anonymous_55) | `default: m.PrivacyPolicyPage, })), )` |
+| 173 (anonymous_56) | `import('@/features/legal/pages/TermsOfUsePage').then((m) => ({ default: m.TermsOfUsePage, })),` |
+| 174 (anonymous_57) | `default: m.TermsOfUsePage, })), )` |
+| 179 (anonymous_58) | `import('@/features/legal/pages/CookiePolicyPage').then((m) => ({ default: m.CookiePolicyPage, })),` |
+| 180 (anonymous_59) | `default: m.CookiePolicyPage, })), )` |
+| 185 (anonymous_60) | `import('@/features/legal/pages/DataProcessingPage').then((m) => ({ default: m.DataProcessingPage, })),` |
+| 186 (anonymous_61) | `default: m.DataProcessingPage, })), )` |
+| 191 (anonymous_62) | `import('@/features/legal/pages/SecurityPage').then((m) => ({ default: m.SecurityPage, })),` |
+| 192 (anonymous_63) | `default: m.SecurityPage, })), )` |
+| 197 (anonymous_64) | `import('@/features/legal/pages/DataRightsPage').then((m) => ({ default: m.DataRightsPage, })),` |
+| 198 (anonymous_65) | `default: m.DataRightsPage, })), )` |
+| 203 (anonymous_66) | `import('@/features/legal/pages/DpoContactPage').then((m) => ({ default: m.DpoContactPage, })),` |
+| 204 (anonymous_67) | `default: m.DpoContactPage, })), )` |
+| 209 (anonymous_68) | `import('@/features/privacy/pages/PrivacyRequestFormPage').then((m) => ({ default: m.PrivacyRequestFormPage, })),` |
+| 210 (anonymous_69) | `default: m.PrivacyRequestFormPage, })), )` |
+| 215 (anonymous_70) | `import('@/features/notifications/pages/NotificationSettingsPage').then((m) => ({ default: m.NotificationSettingsPage, })),` |
+| 216 (anonymous_71) | `default: m.NotificationSettingsPage, })), )` |
+| 221 (anonymous_72) | `import('@/features/settings/pages/SettingsPage').then((m) => ({ default: m.SettingsPage, })),` |
+| 222 (anonymous_73) | `default: m.SettingsPage, })), )` |
+| 227 (anonymous_74) | `import('@/features/fiscal/pages/FiscalProfilePage').then((m) => ({ default: m.FiscalProfilePage, })),` |
+| 228 (anonymous_75) | `default: m.FiscalProfilePage, })), )` |
+| 233 (anonymous_76) | `import('@/features/patients/pages/PatientsAttentionPage').then((m) => ({ default: m.PatientsAttentionPage, })),` |
+| 234 (anonymous_77) | `default: m.PatientsAttentionPage, })), )` |
+| 239 (anonymous_78) | `import('@/features/reports/pages/ReportsPage').then((m) => ({ default: m.ReportsPage, })),` |
+| 240 (anonymous_79) | `default: m.ReportsPage, })), )` |
+| 246 (anonymous_80) | `import('@/features/marketing/pages/PlansPage').then((m) => ({ default: m.PlansPage, })),` |
+| 247 (anonymous_81) | `default: m.PlansPage, })), )` |
+| 252 (anonymous_82) | `import('@/features/marketing/pages/IntegrationsPage').then((m) => ({ default: m.IntegrationsPage, })),` |
+| 253 (anonymous_83) | `default: m.IntegrationsPage, })), )` |
+| 258 (anonymous_84) | `import('@/features/marketing/pages/FaqPage').then((m) => ({ default: m.FaqPage, })),` |
+| 259 (anonymous_85) | `default: m.FaqPage, })), )` |
+| 264 (anonymous_86) | `import('@/features/marketing/pages/ForSecretaryPage').then((m) => ({ default: m.ForSecretaryPage, })),` |
+| 265 (anonymous_87) | `default: m.ForSecretaryPage, })), )` |
+| 270 (anonymous_88) | `import('@/features/marketing/pages/ForDentistPage').then((m) => ({ default: m.ForDentistPage, })),` |
+| 271 (anonymous_89) | `default: m.ForDentistPage, })), )` |
+| 276 (anonymous_90) | `import('@/features/marketing/pages/ForManagerPage').then((m) => ({ default: m.ForManagerPage, })),` |
+| 277 (anonymous_91) | `default: m.ForManagerPage, })), )` |
+| 282 (anonymous_92) | `import('@/features/marketing/pages/ForNewClinicPage').then((m) => ({ default: m.ForNewClinicPage, })),` |
+| 283 (anonymous_93) | `default: m.ForNewClinicPage, })), )` |
+| 288 (anonymous_94) | `import('@/features/marketing/pages/AgendaFeaturePage').then((m) => ({ default: m.AgendaFeaturePage, })),` |
+| 289 (anonymous_95) | `default: m.AgendaFeaturePage, })), )` |
+| 294 (anonymous_96) | `import('@/features/marketing/pages/FinanceFeaturePage').then((m) => ({ default: m.FinanceFeaturePage, })),` |
+| 295 (anonymous_97) | `default: m.FinanceFeaturePage, })), )` |
+| 300 (anonymous_98) | `import('@/features/marketing/pages/AiFeaturePage').then((m) => ({ default: m.AiFeaturePage, })),` |
+| 301 (anonymous_99) | `default: m.AiFeaturePage, })), )` |
+| 306 (anonymous_100) | `import('@/features/marketing/pages/WhatsappFeaturePage').then((m) => ({ default: m.WhatsappFeaturePage, })),` |
+| 307 (anonymous_101) | `default: m.WhatsappFeaturePage, })), )` |
+| 312 (anonymous_102) | `import('@/features/marketing/pages/PatientsFeaturePage').then((m) => ({ default: m.PatientsFeaturePage, })),` |
+| 313 (anonymous_103) | `default: m.PatientsFeaturePage, })), )` |
+| 318 (anonymous_104) | `import('@/features/marketing/pages/ClinicalRecordsFeaturePage').then((m) => ({ default: m.ClinicalRecordsFeaturePage, })),` |
+| 319 (anonymous_105) | `default: m.ClinicalRecordsFeaturePage, })), )` |
+| 324 (anonymous_106) | `import('@/features/marketing/pages/InventoryFeaturePage').then((m) => ({ default: m.InventoryFeaturePage, })),` |
+| 325 (anonymous_107) | `default: m.InventoryFeaturePage, })), )` |
+| 330 (anonymous_108) | `import('@/features/marketing/pages/ReportsFeaturePage').then((m) => ({ default: m.ReportsFeaturePage, })),` |
+| 331 (anonymous_109) | `default: m.ReportsFeaturePage, })), )` |
+| 336 (anonymous_110) | `import('@/features/marketing/pages/FiscalFeaturePage').then((m) => ({ default: m.FiscalFeaturePage, })),` |
+| 337 (anonymous_111) | `default: m.FiscalFeaturePage, })), )` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 211. src/features/finance/components/FixedExpenseForm.tsx
 
-- Lines: 150.
-- Branches: `149:2 b24.1 if (condition)`.
-- Functions: —.
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-## 132. src/components/common/ConfirmDialog.tsx
+S/B/F/L: 75.00% / 100.00% / 75.00% / 75.00%.
 
-S/B/F/L: 100.00% / 96.55% / 100.00% / 100.00%. Missing branch arms: 1.
+- Uncovered lines: 99, 126.
+- Uncovered functions: `(anonymous_4)@99`; `(anonymous_6)@126`.
 
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 99 (anonymous_4) | `onChange('amount', formatMoneyInputFromDigits(event.target.value)) } />` |
+| 126 (anonymous_6) | `onChange={(event) => onChange('dueDay', event.target.value)} /> </FormField>` |
 
-- Lines: —.
-- Branches: `43:18 b6.1 binary-expr (arm)`.
-- Functions: —.
+## 212. src/features/reports/components/ReportPreviewPanel.tsx
 
-## 133. src/components/common/GlobalAlerts.tsx
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%. Missing branch arms: 1.
+S/B/F/L: 80.00% / 100.00% / 100.00% / 80.00%.
 
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+- Uncovered lines: 22.
+- Uncovered functions: none.
 
-- Lines: —.
-- Branches: `57:12 b2.1 cond-expr (arm)`.
-- Functions: —.
+## 213. src/features/scheduling/components/appointments/AppointmentStatusActions.tsx
 
-## 134. src/components/common/SectionHeading.tsx
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%. Missing branch arms: 1.
+S/B/F/L: 81.81% / 100.00% / 66.66% / 80.00%.
 
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
+- Uncovered lines: 65, 78.
+- Uncovered functions: `(anonymous_3)@65`; `(anonymous_4)@78`.
 
-- Lines: —.
-- Branches: `42:52 b6.0 cond-expr (arm)`.
-- Functions: —.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 65 (anonymous_3) | `onClick={() => onStatusChange(id, 'COMPLETED')} > <CheckCircle2 aria-hidden="true" />` |
+| 78 (anonymous_4) | `onClick={() => onStatusChange(id, 'NO_SHOW')} > <UserX aria-hidden="true" />` |
 
-## 135. src/features/admin/hooks/useAdminClinicsPage.ts
+## 214. src/features/scheduling/components/appointments/StatusActionMenu.tsx
 
-S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%. Missing branch arms: 1.
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+S/B/F/L: 81.81% / 100.00% / 66.66% / 80.00%.
 
-- Lines: —.
-- Branches: `96:81 b3.1 cond-expr (arm)`.
-- Functions: —.
+- Uncovered lines: 55, 69.
+- Uncovered functions: `(anonymous_3)@55`; `(anonymous_4)@69`.
 
-## 136. src/features/admin/hooks/useAdminUsersPage.ts
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 55 (anonymous_3) | `onClick={() => onStatusChange(id, 'COMPLETED')} aria-label="Concluir consulta" >` |
+| 69 (anonymous_4) | `onClick={() => onStatusChange(id, 'NO_SHOW')} aria-label="Não compareceu" className="text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/40 dark:hover:text-orange-300"` |
 
-S/B/F/L: 100.00% / 90.00% / 100.00% / 100.00%. Missing branch arms: 1.
+## 215. src/features/finance/components/TransactionForm.tsx
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
 
-- Lines: —.
-- Branches: `96:69 b2.1 cond-expr (arm)`.
-- Functions: —.
+S/B/F/L: 88.88% / 100.00% / 88.88% / 88.88%.
 
-## 137. src/features/clinical-records/components/odontogram/OdontogramLegend.tsx
+- Uncovered lines: 134.
+- Uncovered functions: `(anonymous_7)@134`.
 
-S/B/F/L: 100.00% / 85.71% / 100.00% / 100.00%. Missing branch arms: 1.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 134 (anonymous_7) | `onValueChange={(value) => onChange('dueDate', value)} /> </FormField>` |
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+## 216. src/components/common/ListToolbar.tsx
 
-- Lines: —.
-- Branches: `23:25 b2.1 binary-expr (arm)`.
-- Functions: —.
+Classification: **A**. remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
 
-## 138. src/features/clinical-records/components/odontogram/OdontogramToothDetailsPanel.tsx
+S/B/F/L: 95.65% / 100.00% / 92.30% / 95.00%.
 
-S/B/F/L: 100.00% / 94.73% / 100.00% / 100.00%. Missing branch arms: 1.
+- Uncovered lines: 169.
+- Uncovered functions: `(anonymous_10)@169`.
 
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 169 (anonymous_10) | `onClick={() => setFilterOpen(false)} > Aplicar` |
 
-- Lines: —.
-- Branches: `51:6 b4.1 binary-expr (arm)`.
-- Functions: —.
+## 217. src/features/clinical-records/hooks/useUnsavedChangesGuard.ts
 
-## 139. src/features/clinical-records/hooks/useClinicalRecords.ts
+Classification: **A**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
 
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%. Missing branch arms: 1.
+S/B/F/L: 93.75% / 100.00% / 83.33% / 100.00%.
 
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
+- Uncovered lines: none.
+- Uncovered functions: `(anonymous_5)@62`.
 
-- Lines: —.
-- Branches: `43:8 b3.1 if (condition)`.
-- Functions: —.
-
-## 140. src/features/clinical-records/hooks/usePatientClinicalTimeline.ts
-
-S/B/F/L: 100.00% / 90.00% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `42:8 b3.1 if (condition)`.
-- Functions: —.
-
-## 141. src/features/clinical-records/utils/apply-clinical-dictation-fields.ts
-
-S/B/F/L: 100.00% / 94.44% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `92:72 b8.1 binary-expr (arm)`.
-- Functions: —.
-
-## 142. src/features/clinical-records/utils/parse-dictation-odontogram.ts
-
-S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `120:71 b5.1 binary-expr (arm)`.
-- Functions: —.
-
-## 143. src/features/compliance/services/compliance.service.ts
-
-S/B/F/L: 100.00% / 85.71% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `21:25 b2.1 cond-expr (arm)`.
-- Functions: —.
-
-## 144. src/features/dashboard/hooks/useDashboardPage.ts
-
-S/B/F/L: 100.00% / 92.85% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `58:73 b4.1 binary-expr (arm)`.
-- Functions: —.
-
-## 145. src/features/finance/components/CategoriesPanel.tsx
-
-S/B/F/L: 100.00% / 90.00% / 100.00% / 100.00%. Missing branch arms: 1.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: —.
-- Branches: `80:62 b1.1 binary-expr (arm)`.
-- Functions: —.
-
-## 146. src/features/finance/components/FinanceInsight.tsx
-
-S/B/F/L: 100.00% / 83.33% / 100.00% / 100.00%. Missing branch arms: 1.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: —.
-- Branches: `24:16 b1.1 cond-expr (arm)`.
-- Functions: —.
-
-## 147. src/features/finance/hooks/useAiAssistantFinance.ts
-
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `31:8 b2.1 if (condition)`.
-- Functions: —.
-
-## 148. src/features/finance/hooks/useFinancePage.ts
-
-S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `128:47 b2.1 cond-expr (arm)`.
-- Functions: —.
-
-## 149. src/features/fiscal/components/InvoiceDetails.tsx
-
-S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%. Missing branch arms: 1.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: —.
-- Branches: `94:81 b4.1 cond-expr (arm)`.
-- Functions: —.
-
-## 150. src/features/fiscal/utils/invoice-format.ts
-
-S/B/F/L: 100.00% / 75.00% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `5:42 b0.1 binary-expr (arm)`.
-- Functions: —.
-
-## 151. src/features/inventory/components/InventoryKpiGrid.tsx
-
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%. Missing branch arms: 1.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: —.
-- Branches: `44:36 b3.0 cond-expr (arm)`.
-- Functions: —.
-
-## 152. src/features/inventory/hooks/useAiAssistantInventory.ts
-
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `34:8 b2.1 if (condition)`.
-- Functions: —.
-
-## 153. src/features/marketing/components/PublicHeader.tsx
-
-S/B/F/L: 100.00% / 97.50% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
-
-- Lines: —.
-- Branches: `157:24 b5.0 cond-expr (arm)`.
-- Functions: —.
-
-## 154. src/features/marketing/components/PublicLayout.tsx
-
-S/B/F/L: 100.00% / 80.00% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
-
-- Lines: —.
-- Branches: `35:12 b2.0 cond-expr (arm)`.
-- Functions: —.
-
-## 155. src/features/marketing/components/RoleModulesPanel.tsx
-
-S/B/F/L: 83.33% / 88.88% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
-
-- Lines: —.
-- Branches: `38:16 b1.0 if (arm)`.
-- Functions: —.
-
-## 156. src/features/marketing/components/RoleSwitcher.tsx
-
-S/B/F/L: 94.11% / 87.50% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
-
-- Lines: —.
-- Branches: `47:2 b3.0 if (arm)`.
-- Functions: —.
-
-## 157. src/features/marketing/config/features.ts
-
-S/B/F/L: 97.05% / 90.00% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
-
-- Lines: —.
-- Branches: `365:6 b2.0 if (arm)`.
-- Functions: —.
-
-## 158. src/features/marketing/pages/FaqPage.tsx
-
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
-
-- Lines: —.
-- Branches: `117:22 b3.1 cond-expr (arm)`.
-- Functions: —.
-
-## 159. src/features/notifications/components/MessageHistoryDrawer.tsx
-
-S/B/F/L: 100.00% / 95.00% / 100.00% / 100.00%. Missing branch arms: 1.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: —.
-- Branches: `20:36 b0.1 cond-expr (arm)`.
-- Functions: —.
-
-## 160. src/features/notifications/components/NotificationSendDrawer.tsx
-
-S/B/F/L: 100.00% / 98.33% / 100.00% / 100.00%. Missing branch arms: 1.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: —.
-- Branches: `152:65 b15.1 binary-expr (arm)`.
-- Functions: —.
-
-## 161. src/features/notifications/hooks/useNotificationConsent.ts
-
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `53:93 b3.1 cond-expr (arm)`.
-- Functions: —.
-
-## 162. src/features/scheduling/components/availability/ExceptionEditModal.tsx
-
-S/B/F/L: 94.11% / 95.00% / 100.00% / 100.00%. Missing branch arms: 1.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: —.
-- Branches: `39:4 b1.0 if (arm)`.
-- Functions: —.
-
-## 163. src/features/scheduling/components/mobile/MobileAppointmentCard.tsx
-
-S/B/F/L: 100.00% / 94.11% / 100.00% / 100.00%. Missing branch arms: 1.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: —.
-- Branches: `40:45 b5.1 binary-expr (arm)`.
-- Functions: —.
-
-## 164. src/features/scheduling/hooks/useAppointmentCancel.ts
-
-S/B/F/L: 100.00% / 90.00% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `44:58 b4.1 cond-expr (arm)`.
-- Functions: —.
-
-## 165. src/features/scheduling/hooks/useAppointmentStatusChange.ts
-
-S/B/F/L: 100.00% / 83.33% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `33:58 b2.1 cond-expr (arm)`.
-- Functions: —.
-
-## 166. src/features/scheduling/utils/appointment-state-machine.ts
-
-S/B/F/L: 100.00% / 92.85% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `61:62 b5.1 binary-expr (arm)`.
-- Functions: —.
-
-## 167. src/features/team/hooks/useTeamPage.ts
-
-S/B/F/L: 100.00% / 91.66% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `42:25 b0.0 cond-expr (arm)`.
-- Functions: —.
-
-## 168. src/lib/date-time-input.ts
-
-S/B/F/L: 97.50% / 96.15% / 100.00% / 100.00%. Missing branch arms: 1.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: `72:2 b12.0 if (arm)`.
-- Functions: —.
-
-## 169. src/services/http.ts
-
-S/B/F/L: 100.00% / 98.11% / 100.00% / 100.00%. Missing branch arms: 1.
-
-C candidate / C2 — remaining nullish fallback in error translation needs reachability review against the translator contract. HTTP refresh/retry/concurrency and error outcomes are tested; no exclusion added.
-
-- Lines: —.
-- Branches: `80:72 b5.1 binary-expr (arm)`.
-- Functions: —.
-
-## 170. src/App.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6.
-- Branches: —.
-- Functions: `App@5`.
-
-## 171. src/main.tsx
-
-S/B/F/L: 0.00% / 100.00% / 100.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 7, 9.
-- Branches: —.
-- Functions: —.
-
-## 172. src/app/RootRoute.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-B / C2–C4 — composition/lazy-loading wiring remains incompletely executed by the unit harness. Real route guards are tested separately; browser integration is still useful.
-
-- Lines: 13.
-- Branches: —.
-- Functions: `RootRoute@12`.
-
-## 173. src/features/admin/pages/AdminClinicsPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `AdminClinicsPage@3`.
-
-## 174. src/features/admin/pages/AdminDashboardPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `AdminDashboardPage@3`.
-
-## 175. src/features/admin/pages/AdminFinancePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `AdminFinancePage@3`.
-
-## 176. src/features/admin/pages/AdminUsersPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `AdminUsersPage@3`.
-
-## 177. src/features/billing/pages/SubscriptionPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `SubscriptionPage@3`.
-
-## 178. src/features/clinical-records/pages/ClinicalRecordEditorPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6-7.
-- Branches: —.
-- Functions: `ClinicalRecordEditorPage@5`.
-
-## 179. src/features/clinical-records/pages/ClinicalRecordPrintPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6-7.
-- Branches: —.
-- Functions: `ClinicalRecordPrintPage@5`.
-
-## 180. src/features/clinical-records/pages/ClinicalRecordsPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `ClinicalRecordsPage@3`.
-
-## 181. src/features/compliance/pages/CompliancePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `CompliancePage@3`.
-
-## 182. src/features/dashboard/pages/DashboardPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `DashboardPage@3`.
-
-## 183. src/features/dashboard/pages/DentistHomePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `DentistHomePage@3`.
-
-## 184. src/features/finance/pages/FinancePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `FinancePage@3`.
-
-## 185. src/features/fiscal/pages/FiscalInvoicesPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `FiscalInvoicesPage@3`.
-
-## 186. src/features/fiscal/pages/FiscalProfilePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 8.
-- Branches: —.
-- Functions: `FiscalProfilePage@7`.
-
-## 187. src/features/inventory/pages/InventoryPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `InventoryPage@3`.
-
-## 188. src/features/inventory/types/inventory.types.ts
-
-S/B/F/L: 0.00% / 100.00% / 100.00% / 0.00%. Missing branch arms: 0.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: 1, 12.
-- Branches: —.
-- Functions: —.
-
-## 189. src/features/marketing/components/SectionDivider.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
-
-- Lines: 21, 87, 89.
-- Branches: —.
-- Functions: `SectionDivider@86`.
-
-## 190. src/features/marketing/components/TrialCtaSection.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-B / C3 — marketing presentation/browser interaction alternatives remain unexecuted. Browser/visual validation is more useful than fabricated canvas or animation call counts; no exclusion.
-
-- Lines: 9, 12, 57.
-- Branches: —.
-- Functions: `TrialCtaSection@11`; `(anonymous_1)@57`.
-
-## 191. src/features/marketing/pages/AgendaFeaturePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `AgendaFeaturePage@5`.
-
-## 192. src/features/marketing/pages/AiFeaturePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `AiFeaturePage@5`.
-
-## 193. src/features/marketing/pages/ClinicalRecordsFeaturePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `ClinicalRecordsFeaturePage@5`.
-
-## 194. src/features/marketing/pages/FinanceFeaturePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `FinanceFeaturePage@5`.
-
-## 195. src/features/marketing/pages/FiscalFeaturePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `FiscalFeaturePage@5`.
-
-## 196. src/features/marketing/pages/ForDentistPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `ForDentistPage@5`.
-
-## 197. src/features/marketing/pages/ForManagerPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `ForManagerPage@5`.
-
-## 198. src/features/marketing/pages/ForNewClinicPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `ForNewClinicPage@5`.
-
-## 199. src/features/marketing/pages/ForSecretaryPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `ForSecretaryPage@5`.
-
-## 200. src/features/marketing/pages/InventoryFeaturePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `InventoryFeaturePage@5`.
-
-## 201. src/features/marketing/pages/PatientsFeaturePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `PatientsFeaturePage@5`.
-
-## 202. src/features/marketing/pages/ReportsFeaturePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `ReportsFeaturePage@5`.
-
-## 203. src/features/marketing/pages/WhatsappFeaturePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 6, 10.
-- Branches: —.
-- Functions: `WhatsappFeaturePage@5`.
-
-## 204. src/features/patients/pages/PatientsAttentionPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `PatientsAttentionPage@3`.
-
-## 205. src/features/patients/pages/PatientsPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `PatientsPage@3`.
-
-## 206. src/features/reports/pages/ReportsPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `ReportsPage@3`.
-
-## 207. src/features/scheduling/pages/AppointmentsPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `AppointmentsPage@3`.
-
-## 208. src/features/scheduling/pages/SchedulePage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `SchedulePage@3`.
-
-## 209. src/features/settings/pages/SettingsPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `SettingsPage@3`.
-
-## 210. src/features/team/pages/TeamPage.tsx
-
-S/B/F/L: 0.00% / 100.00% / 0.00% / 0.00%. Missing branch arms: 0.
-
-D candidate / C4 — thin declarative renderer/bootstrap; useful route/browser integration coverage is preferable to call-count padding. Retained in coverage, not excluded.
-
-- Lines: 4.
-- Branches: —.
-- Functions: `TeamPage@3`.
-
-## 211. src/app/route-components.tsx
-
-S/B/F/L: 33.33% / 100.00% / 0.00% / 33.33%. Missing branch arms: 0.
-
-B / C2–C4 — composition/lazy-loading wiring remains incompletely executed by the unit harness. Real route guards are tested separately; browser integration is still useful.
-
-- Lines: 4-5, 10-11, 16-17, 22-23, 28-29, 34-35, 40-41, 46-47, 52-53, 58-59, 64-65, 70-71, 76-77, 82-83, 88-89, 94-95, 100-101, 106-107, 112-113, 118-119, 124-125, 130-131, 136-137, 142-143, 148-149, 154-155, 160-161, 167-168, 173-174, 179-180, 185-186, 191-192, 197-198, 203-204, 209-210, 215-216, 221-222, 227-228, 233-234, 239-240, 246-247, 252-253, 258-259, 264-265, 270-271, 276-277, 282-283, 288-289, 294-295, 300-301, 306-307, 312-313, 318-319, 324-325, 330-331, 336-337.
-- Branches: —.
-- Functions: `(anonymous_0)@4`; `(anonymous_1)@5`; `(anonymous_2)@10`; `(anonymous_3)@11`; `(anonymous_4)@16`; `(anonymous_5)@17`; `(anonymous_6)@22`; `(anonymous_7)@23`; `(anonymous_8)@28`; `(anonymous_9)@29`; `(anonymous_10)@34`; `(anonymous_11)@35`; `(anonymous_12)@40`; `(anonymous_13)@41`; `(anonymous_14)@46`; `(anonymous_15)@47`; `(anonymous_16)@52`; `(anonymous_17)@53`; `(anonymous_18)@58`; `(anonymous_19)@59`; `(anonymous_20)@64`; `(anonymous_21)@65`; `(anonymous_22)@70`; `(anonymous_23)@71`; `(anonymous_24)@76`; `(anonymous_25)@77`; `(anonymous_26)@82`; `(anonymous_27)@83`; `(anonymous_28)@88`; `(anonymous_29)@89`; `(anonymous_30)@94`; `(anonymous_31)@95`; `(anonymous_32)@100`; `(anonymous_33)@101`; `(anonymous_34)@106`; `(anonymous_35)@107`; `(anonymous_36)@112`; `(anonymous_37)@113`; `(anonymous_38)@118`; `(anonymous_39)@119`; `(anonymous_40)@124`; `(anonymous_41)@125`; `(anonymous_42)@130`; `(anonymous_43)@131`; `(anonymous_44)@136`; `(anonymous_45)@137`; `(anonymous_46)@142`; `(anonymous_47)@143`; `(anonymous_48)@148`; `(anonymous_49)@149`; `(anonymous_50)@154`; `(anonymous_51)@155`; `(anonymous_52)@160`; `(anonymous_53)@161`; `(anonymous_54)@167`; `(anonymous_55)@168`; `(anonymous_56)@173`; `(anonymous_57)@174`; `(anonymous_58)@179`; `(anonymous_59)@180`; `(anonymous_60)@185`; `(anonymous_61)@186`; `(anonymous_62)@191`; `(anonymous_63)@192`; `(anonymous_64)@197`; `(anonymous_65)@198`; `(anonymous_66)@203`; `(anonymous_67)@204`; `(anonymous_68)@209`; `(anonymous_69)@210`; `(anonymous_70)@215`; `(anonymous_71)@216`; `(anonymous_72)@221`; `(anonymous_73)@222`; `(anonymous_74)@227`; `(anonymous_75)@228`; `(anonymous_76)@233`; `(anonymous_77)@234`; `(anonymous_78)@239`; `(anonymous_79)@240`; `(anonymous_80)@246`; `(anonymous_81)@247`; `(anonymous_82)@252`; `(anonymous_83)@253`; `(anonymous_84)@258`; `(anonymous_85)@259`; `(anonymous_86)@264`; `(anonymous_87)@265`; `(anonymous_88)@270`; `(anonymous_89)@271`; `(anonymous_90)@276`; `(anonymous_91)@277`; `(anonymous_92)@282`; `(anonymous_93)@283`; `(anonymous_94)@288`; `(anonymous_95)@289`; `(anonymous_96)@294`; `(anonymous_97)@295`; `(anonymous_98)@300`; `(anonymous_99)@301`; `(anonymous_100)@306`; `(anonymous_101)@307`; `(anonymous_102)@312`; `(anonymous_103)@313`; `(anonymous_104)@318`; `(anonymous_105)@319`; `(anonymous_106)@324`; `(anonymous_107)@325`; `(anonymous_108)@330`; `(anonymous_109)@331`; `(anonymous_110)@336`; `(anonymous_111)@337`.
-
-## 212. src/features/finance/components/FixedExpenseForm.tsx
-
-S/B/F/L: 75.00% / 100.00% / 75.00% / 75.00%. Missing branch arms: 0.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: 99, 126.
-- Branches: —.
-- Functions: `(anonymous_4)@99`; `(anonymous_6)@126`.
-
-## 213. src/features/reports/components/ReportPreviewPanel.tsx
-
-S/B/F/L: 80.00% / 100.00% / 100.00% / 80.00%. Missing branch arms: 0.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: 22.
-- Branches: —.
-- Functions: —.
-
-## 214. src/features/scheduling/components/appointments/AppointmentStatusActions.tsx
-
-S/B/F/L: 81.81% / 100.00% / 66.66% / 80.00%. Missing branch arms: 0.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: 65, 78.
-- Branches: —.
-- Functions: `(anonymous_3)@65`; `(anonymous_4)@78`.
-
-## 215. src/features/scheduling/components/appointments/StatusActionMenu.tsx
-
-S/B/F/L: 81.81% / 100.00% / 66.66% / 80.00%. Missing branch arms: 0.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: 55, 69.
-- Branches: —.
-- Functions: `(anonymous_3)@55`; `(anonymous_4)@69`.
-
-## 216. src/features/finance/components/TransactionForm.tsx
-
-S/B/F/L: 88.88% / 100.00% / 88.88% / 88.88%. Missing branch arms: 0.
-
-A review / C1–C3 — remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-- Lines: 134.
-- Branches: —.
-- Functions: `(anonymous_7)@134`.
-
-## 217. src/components/common/ListToolbar.tsx
-
-S/B/F/L: 95.65% / 100.00% / 92.30% / 95.00%. Missing branch arms: 0.
-
-B / C2–C3 — remaining shared UI callbacks/conditional rendering need meaningful interaction or fallback tests; no exclusion.
-
-- Lines: 169.
-- Branches: —.
-- Functions: `(anonymous_10)@169`.
-
-## 218. src/features/clinical-records/hooks/useUnsavedChangesGuard.ts
-
-S/B/F/L: 93.75% / 100.00% / 83.33% / 100.00%. Missing branch arms: 0.
-
-B / C2 — remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-- Lines: —.
-- Branches: —.
-- Functions: `(anonymous_5)@62`.
+| Function location | Source entry / behavior still to execute |
+| --- | --- |
+| 62 (anonymous_5) | `const shouldBlockFn = useCallback(() => true, []) const resolver = useBlocker({` |

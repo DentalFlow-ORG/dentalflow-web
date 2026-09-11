@@ -1,167 +1,92 @@
-# DentalFlow hardening — pause handoff
+# DentalFlow frontend hardening handoff — 2026-09-11
 
-## Commit closure — 2026-09-10
+**PARTIAL — substantive meaningful coverage gaps remain.**
 
-The user subsequently authorized committing all remaining hardening files in
-separate refactor, bug-fix, tooling and documentation commits. The original 13
-test commits are preserved without rewriting. Production dependencies are now
-included in the same branch history; do not cherry-pick the test-only series
-without those dependencies. No push, merge or branch switch is authorized.
+## Current state
 
-The sections below record the earlier pause, including its then-uncommitted
-files and then-unrefreshed coverage. They are historical, not the current Git
-state. A fresh full-test/coverage validation follows the commit closure; its
-results will be recorded separately. No next coverage batch is authorized yet.
+Branch `dev/yago`; continuation started at `6867ed3`. Source/tests validated at `d53ff38`, followed by a docs-only commit. Existing hardening commits were preserved without rewriting. Nothing pushed or merged; no branch switch. All production fixes are committed with their regression tests.
 
-## Earlier pause snapshot
+## Current measurements
 
-Paused at the user's request on 2026-09-10. Resume this working tree; do not reset,
-discard, clean, or restart the audit. The meaningful-hardening target is PARTIAL.
+| Metric | Original baseline | First hardening | Fresh start | Current |
+| --- | ---: | ---: | ---: | ---: |
+| statements | 84.56% | 89.60% | 89.93% | 91.58% |
+| branches | 82.08% | 86.84% | 87.29% | 89.47% |
+| functions | 80.20% | 85.76% | 86.03% | 88.51% |
+| lines | 85.35% | 90.40% | 90.72% | 92.18% |
 
-## Git state
+Before: 382 suites / 4,987 tests. Now: **383 suites / 5060 tests** in both full tests and full coverage; **+73 tests**.
 
-Branch: `dev/yago`. HEAD: `eb1a64a`.
+## Completed batches
 
-The user explicitly authorized module-separated test commits when pausing,
-superseding the earlier no-commit instruction for those tests. No push occurred.
-All test and test-helper changes are committed. The index is empty. Production,
-tooling, and audit documentation remain uncommitted intentionally.
+- Patients (+16): keyboard row activation and descendant events; appointment details and nullable contacts; list refresh after failure; detail dismissal; owner clinical empty state; avatar upload/removal/error feedback; shared image-decoding fallback and replacement recovery.
+- Fiscal (+12): create/edit save payloads, reset, validation, failure preservation/retry, profile busy state, cancellation retry, details failure, ready/simulate dispatch, status/date filtering and pagination.
+- Admin (+4): real application tooltip and axis formatters through a Recharts boundary double, hover/leave, light/dark mode, zero-series filtering, inactive plans and nullable billing identity/date presentation.
+- Reports (+14): status/date filter round trips, all-types reset, preview/export callbacks, nullable dentist production, failed production loading and plan transitions. Existing OWNER restrictions remain unchanged.
+- Scheduling (+25): real phone validation, whitespace-only name rejection, same-day time boundaries, past-date rejection, busy states, failed submit/retry, nullable fields, create/edit reset differences, dentist/service selection, manual/derived prices, lookup failures and out-of-order slot results.
+- Other inventory (+2): long dictation transcript expansion/collapse and field reselection. Removed unreachable role-marketing fallback; preserved all four supported variants.
 
-| Module | Commit |
+## Confirmed fixes
+
+1. **Avatar decode failure:** both display and upload avatars kept a broken image after its error event. Two new regressions failed because initials were absent. Shared `useAvatarImage` now restores initials and allows replacement data to load.
+2. **Stale slot responses:** both appointment modals accepted obsolete success/error responses after a date change, replacing the latest slots. Four regressions failed before the fix. Effect cleanup now invalidates obsolete success/error/loading updates without changing requests or payloads.
+3. **Whitespace-only patient name:** creation sent `patientName: ""` after trimming an all-space value. The regression observed an API call with the empty name. Validation now checks the trimmed name before submitting.
+
+## Remaining work
+
+The [complete current ranked inventory](frontend-coverage-gaps-2026-09-10.md) lists **217 files** with every uncovered line range, branch arm and function, classifications and source context. File-level classifications: A: 86, B: 88, F: 6, E: 1, D: 36. Mixed files may additionally identify specific E arms or F browser requirements.
+
+A/B gaps remain in clinical dictation/editor/autosave, patient attention and detail edges, fiscal workspaces/profile forms, inventory forms and copilots, scheduling calendar/mobile/payment/clinical interactions, authentication, notifications, billing, compliance, team, settings, dashboards and shared UI. These are **open meaningful coverage gaps**, not accepted exemptions. The report explicitly retains them; phases 6/8 have not achieved convergence. A/B branch classifications remain conservative wherever unreachability is not established. Do not label this continuation COMPLETE.
+
+Continue with the ranked A/B items. Preserve D/E/F rationale and do not turn mixed files into blanket exclusions. The remaining inventory includes testable behavior; passing builds does not meet the complete-hardening target.
+
+## Dead code and Knip
+
+Removed the generic safety fallback in `RoleHeroMockup` and its now-unused `accent`, `role`, `icon`, `modules` and `moduleIcons` props. Evidence: the local type admits exactly dashboard/checklist/agenda/schedule; the sole caller passes static typed role content; all four variants were already handled before the fallback. The caller now passes only type. Existing RolePage tests still render all four variants. No intentional production Knip APIs or exported types were removed.
+
+Standard `bun run knip`: exit 0, no unused code findings. The existing informational hint about `src/test-utils/**` remains. Production `bun run knip:production`: exit 1 with **24 exports and 5 exported types**, unchanged; this is an explained finding set, not a zero-finding pass.
+
+| Remaining symbols | Rationale |
 | --- | --- |
-| Shared number formatting | `b35c780` |
-| HTTP | `1655c0e` |
-| Authentication | `1c9fa79` |
-| Routing | `ba60e7e` |
-| Admin | `ee0745c` |
-| Clinical records | `3d2764c` |
-| Dashboard | `5bb085b` |
-| Finance | `9880484` |
-| Fiscal | `5f1adfc` |
-| Inventory | `8b1481a` |
-| Patients | `da8b72f` |
-| Scheduling | `9a20ce1` |
-| Settings | `eb1a64a` |
+| `ODONTOGRAM_TOOTH_TOKENS`, `normalizeOdontogramSnapshot` | Tested odontogram domain API; normalization also has internal callers. |
+| `ROLE_HOME_LABELS`, `getRoleHomeLabel`, `getRoleFeatureAccess` | Tested public role configuration contract; permissions preserved. |
+| `__resetAvatarCache` | Test seam for session/cache isolation. |
+| `COOKIE_CONSENT_KEY` | Persisted consent storage contract exercised by tests. |
+| `APPOINTMENT_TRANSITIONS`, `canTransitionTo` | Tested appointment state-machine API. |
+| `SLOT_MINUTES`, `DEFAULT_START_MINUTES`, `DEFAULT_END_MINUTES` | Calendar-layout constants used by layout tests. |
+| `computeRotatedDimensions` | Tested crop geometry API. |
+| `brazilAddMonths` | Tested timezone/date API. |
+| `todayIso`, `isFutureDate`, `isEndBeforeStart`, `rangeExceedsMonths` | Tested date-validation API. |
+| `isValidCPF`, `formatCPF`, `formatCNPJ`, `formatCEP`, `VALID_UFS`, `formatBrazilianPhone` | Tested Brazilian validation/formatting contracts. |
+| `BillingPlanCampaign`, `FiscalInvoiceEvent`, `RoleFeatureAccess`, `HomeFeature`, `AttentionSummary` | Nested/public TypeScript domain/response contracts; no runtime behavior to delete. |
 
-IMPORTANT: these are test-only commits, not a standalone green series without
-the accompanying production working tree. In particular, the formatter tests
-need the pending cents formatter, and clinical/settings regressions need the
-pending fixes below. Keep all pending files together. Review and commit the
-production changes separately before sharing/cherry-picking the test series.
-Do not push or make additional commits without a new user request.
+## Final validation
 
-## Work completed in this continuation
+| Command | Result |
+| --- | --- |
+| `bun run typecheck` | PASS (exit 0) |
+| `bun run check:biome` | PASS (exit 0) |
+| `bun run check:unused` | PASS (exit 0) |
+| `bun run test --maxWorkers=2` | PASS: 383 suites / 5060 tests |
+| `bun run test:coverage --maxWorkers=2` | PASS: 383 suites / 5060 tests |
+| `bun run test:coverage:report` | PASS (exit 0) |
+| `bun run build` | PASS (exit 0) |
+| `bun run check` | PASS (exit 0) |
+| `bun run knip` | PASS (exit 0) |
+| `bun run knip:production` | Exit 1: unchanged 24 intentional exports / 5 types |
+| `git diff --check` | PASS (exit 0) |
+| Search for `.only`, `.skip`, focused test calls and coverage-ignore comments | No matches in src, Vite config or scripts |
 
-Added 20 tests, split into focused suites:
+Build passed with Vite's chunk-size warning (largest reported chunk: 889.74 kB before gzip). No bundling or dependency changes were made to silence it.
 
-- `VoiceDictationCard.lifecycle.test.tsx` (13): 180-second auto-stop, recorded
-  duration, invalid/missing base64, FileReader failures, missing microphone,
-  missing MediaRecorder, six-second processing progress, timeout/retry with late
-  API completion/failure, unmount during conversion/API processing, and late
-  microphone permission resolution/rejection.
-- `SettingsPageContainer.profile.test.tsx` (7): postal-code debounce, populated
-  address, missing address fields preserving user input, lookup failures/retry,
-  formatted/trimmed profile payloads, phone validation, and stale lookup results.
+## Browser QA
 
-Reused media doubles through `src/test-utils/mocks/clinical-media.ts` and profile
-fixtures through `src/test-utils/factories/settings.factory.ts`. Existing suites
-use those shared helpers; useful tests were preserved.
+- Real microphone permissions, camera tracks, MediaRecorder encoding/events, image decoding/canvas crop fidelity and download/print/navigation behavior.
+- Recharts pointer geometry, resize/layout and SVG rendering; tests verify application formatting at the library boundary.
+- Native calendar/popover behavior, touch/keyboard focus and responsive layouts in real browsers.
+- Three.js/WebGL scenes, GSAP/frame timing, reduced-motion and visual rendering.
+- Built-app startup, provider composition, lazy route chunk loading/failure and actual browser history/navigation.
 
-### Confirmed bugs fixed but NOT committed
+No manual browser/E2E pass was performed. jsdom's existing navigation-not-implemented messages are not browser certification.
 
-1. `src/features/clinical-records/components/VoiceDictationCard.tsx`
-   - A microphone grant arriving after unmount created a recorder and leaked
-     tracks. The new regression failed with zero calls to stop the tracks.
-   - A permission rejection after navigation displayed a global microphone alert.
-   - Mounted-state guards now release late tracks, avoid creating the recorder,
-     and suppress alerts after navigation. No request/role contract changed.
-2. `src/features/settings/containers/SettingsPageContainer.tsx`
-   - An older postal-code response overwrote an address already populated by a
-     newer lookup. The regression observed the old street instead of the new one.
-   - Effect cleanup now invalidates obsolete results/errors, and lookup loading
-     state follows the current postal code. The regression now passes.
-
-One initial missing-microphone test used a jsdom DOMException from a different
-Error realm. Its fixture was corrected to a named Error; no production error
-classification was changed to accommodate the test environment.
-
-## Validation at this pause
-
-- `bun run typecheck`: passed after correcting new test typings.
-- `bun run check`: passed (Biome and custom unused-file checker).
-- `bun run build`: passed; existing >500 kB chunk warning remains.
-- Four affected suites: 195 tests passed. Command:
-
-```sh
-bun run test --maxWorkers=2 src/tests/features/settings/SettingsPageContainer.test.tsx src/tests/features/settings/containers/SettingsPageContainer.profile.test.tsx src/tests/features/clinical-records/components/VoiceDictationCard.test.tsx src/tests/features/clinical-records/components/VoiceDictationCard.lifecycle.test.tsx
-```
-
-- `git diff --check`: passed before commits; rerun at resume.
-- No commit hook was bypassed. The configured commit-msg hook only checks
-  Conventional Commits.
-- Complete tests, complete coverage, and Knip were NOT rerun for this continuation
-  before the requested pause. Do not present the earlier results as refreshed.
-
-## Coverage baseline — not a new measurement
-
-| Metric | Original | After first hardening pass |
-| --- | ---: | ---: |
-| Statements | 84.56% | 89.60% |
-| Branches | 82.08% | 86.84% |
-| Functions | 80.20% | 85.76% |
-| Lines | 85.35% | 90.40% |
-
-The last full run passed 380 suites / 4967 tests and listed 218 files below 100%.
-The 20 continuation tests have not yet been included in a new global measurement.
-
-Existing reports remain the first-pass snapshot:
-
-- [Hardening audit](frontend-hardening-2026-09-10.md)
-- [Ranked coverage inventory](frontend-coverage-gaps-2026-09-10.md)
-
-This handoff supersedes their working-tree/commit status, not their historical
-coverage numbers. Preserve the original and first-pass columns when updating.
-The first-pass raw JSON was copied to
-`C:/Users/yagos/AppData/Local/Temp/dentalflow-first-pass-coverage-20260910.json`.
-The older original snapshot is
-`C:/Users/yagos/AppData/Local/Temp/dentalflow-coverage-initial-20260910.json`.
-
-## Remaining uncommitted work to preserve
-
-- First-pass router/calendar search parser, inventory copilot extraction, BRL
-  formatting reuse, and module-private clinic-health constants.
-- The two continuation bug fixes described above.
-- `package.json`: referenced-project typecheck and coverage-report command.
-- `scripts/coverage-gaps.cjs`: reporting helper, including implicit-else locations.
-- The two existing quality reports and this handoff.
-
-## Resume plan
-
-1. Read this handoff and the two existing reports. Check status without resetting
-   the working tree. Ensure all pending production/helper files are still present.
-2. Rerun complete coverage with two workers and regenerate the ranked inventory.
-   Reassess the remaining voice/settings gaps: their old entries are stale after
-   these additions and must not be automatically marked fully covered.
-3. Continue the named high-priority files not yet worked on in this continuation:
-   - `PatientsPageContainer.tsx`: keyboard activation, avatar feedback, details.
-   - `FiscalInvoicesPageContainer.tsx`: invoice actions/form integration.
-   - `AdminFinancePageContainer.tsx`: chart callbacks/nullable financial states.
-   - `ReportsPageContainer.tsx`: filters/charts/owner-only/empty/error behavior.
-   - Appointment create/edit modals: validation/lifecycle/errors/dirty dismissal.
-4. Continue the ENTIRE ranked inventory, classifying individual remaining items:
-   A meaningful behavior; B meaningful edge case; C dead; D non-behavioral;
-   E technically unreachable defensive branch; F browser/runtime integration.
-   Do not blanket-classify substantive UI callbacks as exceptions.
-5. Recheck standard and production Knip. Last verified production findings were
-   24 intentional exports plus five types; the earlier audit lists every rationale.
-6. Assess browser-only scenarios and create the requested manual smoke checklist.
-   Package/config inspection found no existing E2E/browser-test framework; no new
-   dependencies were installed. This assessment/checklist is NOT complete yet.
-7. Run final TypeScript, check-only Biome, complete tests/coverage, build, both Knip
-   checks, focus/skip/ignore scans, diff check and status. Review the COMPLETE
-   hardening changes relative to `308bb61`, including committed tests and pending
-   production work. A passing build is not a COMPLETE hardening verdict.
-
-No new coverage exclusions, dependency changes, backend changes, or role-policy
-changes were made in this continuation. The user's remaining hardening request
-is paused, not completed. No arbitrary 90%/95% stopping target applies.
+The [current results report](frontend-hardening-2026-09-10.md) contains commit lineage and full outcomes. The old pause state is historical and is no longer this handoff's current state.
