@@ -75,7 +75,8 @@ export function useClinicalRecordAutosave({
 
         if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
         savedTimerRef.current = setTimeout(() => {
-          if (!isCurrent) return
+          // Clearing the saved draft invalidates this effect, but the indicator
+          // still needs to expire. Preserve any newer pending/saving status.
           setAutosaveStatus((s) => (s === 'saved' ? 'idle' : s))
         }, 2500)
       } catch {

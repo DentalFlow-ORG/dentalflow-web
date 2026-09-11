@@ -1,4 +1,5 @@
 import { act, renderHook } from '@/test-utils/render-utils'
+import { useState } from 'react'
 
 import { useClinicalRecordAutosave } from '@/features/clinical-records/hooks/useClinicalRecordAutosave'
 import type {
@@ -56,6 +57,127 @@ describe('useClinicalRecordAutosave', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+  })
+
+  it('clears the saved indicator after saving a real stateful draft', async () => {
+    const record = makeDraftRecord()
+    const saveQuiet = vi.fn().mockResolvedValue(undefined)
+    const { result } = renderHook(() => {
+      const [draft, setDraft] = useState<UpdateClinicalRecordDto>({ diagnosis: 'Achado clínico' })
+      return {
+        draft,
+        ...useClinicalRecordAutosave({
+          draft,
+          setDraft,
+          record,
+          canAutosave: true,
+          saveQuiet,
+          debounceMs: DEBOUNCE_MS,
+        }),
+      }
+    })
+    await act(() => vi.advanceTimersByTimeAsync(DEBOUNCE_MS))
+    expect(saveQuiet).toHaveBeenCalledExactlyOnceWith({ diagnosis: 'Achado clínico' })
+    expect(result.current.draft).toEqual({})
+    expect(result.current.autosaveStatus).toBe('saved')
+    await act(() => vi.advanceTimersByTimeAsync(2500))
+    expect(result.current.autosaveStatus).toBe('idle')
+  })
+
+  it('does not erase a newer pending indicator when the previous saved timer expires', async () => {
+    const record = makeDraftRecord()
+    const saveQuiet = vi.fn().mockResolvedValue(undefined)
+    const setDraft = vi.fn()
+    const { result, rerender } = renderHook(
+      ({ draft, debounceMs }) =>
+        useClinicalRecordAutosave({
+          draft,
+          setDraft,
+          record,
+          canAutosave: true,
+          saveQuiet,
+          debounceMs,
+        }),
+      { initialProps: { draft: { diagnosis: 'v1' }, debounceMs: 1000 } },
+    )
+    await act(() => vi.advanceTimersByTimeAsync(1000))
+    expect(result.current.autosaveStatus).toBe('saved')
+    rerender({ draft: { diagnosis: 'v2' }, debounceMs: 4000 })
+    await act(() => vi.advanceTimersByTimeAsync(2500))
+    expect(result.current.autosaveStatus).toBe('pending')
+    await act(() => vi.advanceTimersByTimeAsync(1500))
+    expect(result.current.autosaveStatus).toBe('saved')
+    await act(() => vi.advanceTimersByTimeAsync(2500))
+    expect(result.current.autosaveStatus).toBe('idle')
+  })
+
+  it.each(['resolve', 'reject'] as const)(
+    'ignores obsolete save %s after a newer draft is typed',
+    async (outcome) => {
+      const record = makeDraftRecord()
+      const setDraft = vi.fn()
+      let resolve!: () => void
+      let reject!: (error: Error) => void
+      const saveQuiet = vi
+        .fn()
+        .mockReturnValueOnce(
+          new Promise<void>((done, fail) => {
+            resolve = done
+            reject = fail
+          }),
+        )
+        .mockResolvedValue(undefined)
+      const { result, rerender } = renderHook(
+        ({ draft }) =>
+          useClinicalRecordAutosave({
+            draft,
+            setDraft,
+            record,
+            canAutosave: true,
+            saveQuiet,
+            debounceMs: DEBOUNCE_MS,
+          }),
+        { initialProps: { draft: { diagnosis: 'v1' } } },
+      )
+      await act(() => vi.advanceTimersByTimeAsync(DEBOUNCE_MS))
+      rerender({ draft: { diagnosis: 'v2' } })
+      await act(async () => {
+        if (outcome === 'resolve') resolve()
+        else reject(new Error('stale failure'))
+      })
+      expect(setDraft).not.toHaveBeenCalled()
+      expect(result.current.autosaveStatus).toBe('pending')
+      await act(() => vi.advanceTimersByTimeAsync(DEBOUNCE_MS))
+      expect(saveQuiet).toHaveBeenLastCalledWith({ diagnosis: 'v2' })
+      expect(result.current.autosaveStatus).toBe('saved')
+    },
+  )
+
+  it('can cancel before any draft exists and after a save completes', async () => {
+    const record = makeDraftRecord()
+    const saveQuiet = vi.fn().mockResolvedValue(undefined)
+    const setDraft = vi.fn()
+    const { result, rerender } = renderHook(
+      ({ draft }: { draft: UpdateClinicalRecordDto }) =>
+        useClinicalRecordAutosave({
+          draft,
+          setDraft,
+          record,
+          canAutosave: true,
+          saveQuiet,
+          debounceMs: DEBOUNCE_MS,
+        }),
+      { initialProps: { draft: {} } },
+    )
+    act(() => result.current.cancelPendingAutosave())
+    expect(saveQuiet).not.toHaveBeenCalled()
+    rerender({ draft: { diagnosis: 'new finding' } })
+    await act(() => vi.advanceTimersByTimeAsync(DEBOUNCE_MS))
+    expect(result.current.autosaveStatus).toBe('saved')
+    act(() => result.current.cancelPendingAutosave())
+    await act(() => vi.advanceTimersByTimeAsync(3000))
+    expect(result.current.autosaveStatus).toBe('idle')
+    expect(saveQuiet).toHaveBeenCalledOnce()
   })
 
   // T1 ─────────────────────────────────────────────────────────────────────────
