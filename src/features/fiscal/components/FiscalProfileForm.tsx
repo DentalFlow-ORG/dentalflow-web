@@ -69,12 +69,15 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
 
   const addressZipCode = form.addressZipCode
   useEffect(() => {
+    setIsCepLookingUp(false)
     if (!isValidCEP(addressZipCode)) return
+    let isCurrent = true
     const timer = setTimeout(async () => {
       setIsCepLookingUp(true)
       setCepLookupError(null)
       try {
         const address = await fetchAddressByCep(addressZipCode)
+        if (!isCurrent) return
         const currentForm = formRef.current
         onChangeRef.current({
           ...currentForm,
@@ -84,16 +87,20 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
           addressState: address.uf || currentForm.addressState,
         })
       } catch (err) {
+        if (!isCurrent) return
         setCepLookupError(
           err instanceof CepNotFoundError
             ? 'CEP não encontrado.'
             : 'Não foi possível consultar o CEP.',
         )
       } finally {
-        setIsCepLookingUp(false)
+        if (isCurrent) setIsCepLookingUp(false)
       }
     }, 400)
-    return () => clearTimeout(timer)
+    return () => {
+      isCurrent = false
+      clearTimeout(timer)
+    }
   }, [addressZipCode])
 
   function handleChange(updated: FiscalProfilePayload, field?: keyof FiscalProfileErrors) {

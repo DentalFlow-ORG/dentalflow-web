@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import { useState } from 'react'
 import { vi } from 'vitest'
 
 vi.mock('@/services/cep/cep.service', async () => {
@@ -542,6 +543,145 @@ describe('FiscalProfileForm — remaining onChange wiring', () => {
 // ── CEP auto-lookup ─────────────────────────────────────────────────────────────
 
 describe('FiscalProfileForm — CEP auto-lookup', () => {
+  it('clears the lookup indicator when the postal code is shortened during a pending request', async () => {
+    vi.useFakeTimers()
+    try {
+      let resolve!: (address: unknown) => void
+      mockFetchAddressByCep.mockReturnValueOnce(
+        new Promise((done) => {
+          resolve = done
+        }),
+      )
+      function Form() {
+        const [form, setForm] = useState(makeForm({ addressZipCode: '01310-100' }))
+        return (
+          <FiscalProfileForm form={form} onChange={setForm} onCancel={vi.fn()} onSubmit={vi.fn()} />
+        )
+      }
+      render(<Form />)
+      await act(async () => vi.advanceTimersByTimeAsync(400))
+      const zip = screen.getByLabelText('CEP')
+      expect(zip.parentElement?.querySelector('svg')).toBeInTheDocument()
+      fireEvent.change(zip, { target: { value: '01310' } })
+      expect(zip.parentElement?.querySelector('svg')).not.toBeInTheDocument()
+      await act(async () =>
+        resolve({ street: 'Endereço antigo', neighborhood: '', city: '', uf: '' }),
+      )
+      expect(screen.getByLabelText('Rua')).toHaveValue('')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+  it('preserves manually entered address fields when CEP data omits them', async () => {
+    mockFetchAddressByCep.mockResolvedValueOnce({ street: '', neighborhood: '', city: '', uf: '' })
+    const { props } = renderForm({
+      form: makeForm({
+        addressZipCode: '01310-100',
+        addressStreet: 'Rua digitada',
+        addressNeighborhood: 'Bairro digitado',
+        addressCity: 'Santos',
+        addressState: 'SP',
+      }),
+    })
+    await waitFor(() =>
+      expect(props.onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          addressStreet: 'Rua digitada',
+          addressNeighborhood: 'Bairro digitado',
+          addressCity: 'Santos',
+          addressState: 'SP',
+        }),
+      ),
+    )
+  })
+
+  it('clears the corrected field error without hiding other validation errors', () => {
+    function Form() {
+      const [form, setForm] = useState(makeForm())
+      return (
+        <FiscalProfileForm form={form} onChange={setForm} onCancel={vi.fn()} onSubmit={vi.fn()} />
+      )
+    }
+    render(<Form />)
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar dados fiscais' }))
+    expect(screen.getByText('Informe a razão social.')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Razão social'), { target: { value: 'Clínica Dental' } })
+    expect(screen.queryByText('Informe a razão social.')).not.toBeInTheDocument()
+    expect(screen.getByText('Informe um CNPJ válido com 14 dígitos.')).toBeInTheDocument()
+  })
+
+  it('accepts absent optional fiscal fields without invalidating required company data', () => {
+    const { props } = renderForm({
+      form: makeForm({
+        legalName: 'Clínica Dental',
+        documentNumber: '11.222.333/0001-81',
+        addressZipCode: '01310-100',
+        addressState: 'SP',
+        tradeName: undefined,
+        municipalRegistration: undefined,
+        stateRegistration: undefined,
+        addressComplement: undefined,
+        serviceCode: undefined,
+        cnae: undefined,
+        cityIbgeCode: undefined,
+      }),
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar dados fiscais' }))
+    expect(props.onSubmit).toHaveBeenCalledOnce()
+  })
+  it.each(['success', 'failure'] as const)(
+    'does not overwrite a newer postal-code lookup with a late %s',
+    async (outcome) => {
+      vi.useFakeTimers()
+      try {
+        let resolveOld!: (address: unknown) => void
+        let rejectOld!: (error: Error) => void
+        mockFetchAddressByCep
+          .mockReturnValueOnce(
+            new Promise((yes, no) => {
+              resolveOld = yes
+              rejectOld = no
+            }),
+          )
+          .mockResolvedValueOnce({
+            street: 'Rua Nova',
+            neighborhood: 'Centro',
+            city: 'Santos',
+            uf: 'SP',
+          })
+        function Form() {
+          const [form, setForm] = useState(makeForm({ addressZipCode: '01310-100' }))
+          return (
+            <FiscalProfileForm
+              form={form}
+              onChange={setForm}
+              onCancel={vi.fn()}
+              onSubmit={vi.fn()}
+            />
+          )
+        }
+        render(<Form />)
+        await act(async () => vi.advanceTimersByTimeAsync(400))
+        fireEvent.change(screen.getByLabelText('CEP'), { target: { value: '11010-000' } })
+        await act(async () => vi.advanceTimersByTimeAsync(400))
+        expect(screen.getByLabelText('Rua')).toHaveValue('Rua Nova')
+        await act(async () => {
+          if (outcome === 'success')
+            resolveOld({
+              street: 'Rua Antiga',
+              neighborhood: 'Antigo',
+              city: 'São Paulo',
+              uf: 'SP',
+            })
+          else rejectOld(new CepNotFoundError())
+        })
+        expect(screen.getByLabelText('Rua')).toHaveValue('Rua Nova')
+        expect(screen.queryByText('CEP não encontrado.')).not.toBeInTheDocument()
+      } finally {
+        vi.useRealTimers()
+      }
+    },
+  )
   afterEach(() => {
     mockFetchAddressByCep.mockReset()
   })
