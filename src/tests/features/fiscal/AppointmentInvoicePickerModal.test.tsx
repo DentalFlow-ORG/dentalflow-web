@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 
@@ -72,6 +72,59 @@ describe('AppointmentInvoicePickerModal', () => {
   })
 
   // ── Dialog semantics ────────────────────────────────────────────────────────
+
+  it.each(['success', 'failure'] as const)(
+    'ignores an old search %s after reopening the picker',
+    async (outcome) => {
+      let resolve!: (value: unknown) => void
+      let reject!: (error: Error) => void
+      mockList.mockReturnValueOnce(
+        new Promise((yes, no) => {
+          resolve = yes
+          reject = no
+        }),
+      )
+      const onClose = vi.fn()
+      const onSelect = vi.fn()
+      const { rerender } = render(
+        <AppointmentInvoicePickerModal open onClose={onClose} onSelect={onSelect} />,
+      )
+      rerender(<AppointmentInvoicePickerModal open={false} onClose={onClose} onSelect={onSelect} />)
+      mockList.mockResolvedValueOnce({
+        ...emptyResponse,
+        total: 1,
+        data: [makeAppointment({ id: 'current', patientName: 'Paciente atual' })],
+      })
+      rerender(<AppointmentInvoicePickerModal open onClose={onClose} onSelect={onSelect} />)
+      await screen.findByText('Paciente atual')
+      await act(async () => {
+        if (outcome === 'success')
+          resolve({ ...emptyResponse, total: 1, data: [makeAppointment()] })
+        else reject(new Error('Pesquisa antiga indisponível'))
+      })
+      expect(screen.getByText('Paciente atual')).toBeInTheDocument()
+      expect(screen.queryByText('Maria Silva')).not.toBeInTheDocument()
+      expect(screen.queryByText(/Não foi possível carregar/)).not.toBeInTheDocument()
+      await userEvent.click(screen.getByRole('button', { name: 'Selecionar' }))
+      expect(onSelect).toHaveBeenCalledWith('current')
+    },
+  )
+
+  it('dismisses once with Escape and clears the search on reopening', async () => {
+    const onClose = vi.fn()
+    const onSelect = vi.fn()
+    const { rerender } = render(
+      <AppointmentInvoicePickerModal open onClose={onClose} onSelect={onSelect} />,
+    )
+    await screen.findByText('Nenhuma consulta encontrada.')
+    await userEvent.type(screen.getByLabelText('Paciente'), 'Ana')
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledOnce()
+    expect(onSelect).not.toHaveBeenCalled()
+    rerender(<AppointmentInvoicePickerModal open={false} onClose={onClose} onSelect={onSelect} />)
+    rerender(<AppointmentInvoicePickerModal open onClose={onClose} onSelect={onSelect} />)
+    expect(screen.getByLabelText('Paciente')).toHaveValue('')
+  })
 
   it('renders Dialog.Title text', async () => {
     renderModal()
@@ -259,6 +312,13 @@ describe('AppointmentInvoicePickerModal', () => {
         expect.objectContaining({ patient: 'Ana', page: 1 }),
       ),
     )
+    await userEvent.clear(screen.getByLabelText('Paciente'))
+    await userEvent.click(screen.getByRole('button', { name: 'Buscar' }))
+    await waitFor(() =>
+      expect(mockList).toHaveBeenLastCalledWith(
+        expect.objectContaining({ patient: undefined, page: 1 }),
+      ),
+    )
   })
 
   it('applies the search filter when Enter is pressed in the search field', async () => {
@@ -326,6 +386,16 @@ describe('AppointmentInvoicePickerModal', () => {
     await waitFor(() =>
       expect(mockList).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 })),
     )
+    await userEvent.click(screen.getByRole('button', { name: 'Próxima' }))
+    await waitFor(() =>
+      expect(mockList).toHaveBeenLastCalledWith(expect.objectContaining({ page: 3 })),
+    )
+    expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled()
+    await userEvent.click(screen.getByRole('button', { name: 'Anterior' }))
+    await waitFor(() =>
+      expect(mockList).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 })),
+    )
+    expect(screen.getByRole('button', { name: 'Próxima' })).toBeEnabled()
   })
 
   it('does not render pagination when total fits within one page', async () => {

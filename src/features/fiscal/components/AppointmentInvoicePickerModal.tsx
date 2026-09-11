@@ -1,6 +1,6 @@
 import { AlertTriangle, CalendarDays, Loader2, Search, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
@@ -53,24 +53,29 @@ export function AppointmentInvoicePickerModal({
   const [error, setError] = useState<string | null>(null)
   const [pendingSearch, setPendingSearch] = useState('')
 
-  const load = useCallback(async (f: AppointmentsForInvoiceFilters) => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const result = await listAppointmentsForInvoice(f)
-      setAppointments(result.data)
-      setTotal(result.total)
-    } catch {
-      setError('Não foi possível carregar as consultas. Tente novamente.')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
     if (!open) return
-    void load(filters)
-  }, [open, filters, load])
+    let isCurrent = true
+    setIsLoading(true)
+    setError(null)
+    async function load() {
+      try {
+        const result = await listAppointmentsForInvoice(filters)
+        if (!isCurrent) return
+        setAppointments(result.data)
+        setTotal(result.total)
+      } catch {
+        if (!isCurrent) return
+        setError('Não foi possível carregar as consultas. Tente novamente.')
+      } finally {
+        if (isCurrent) setIsLoading(false)
+      }
+    }
+    void load()
+    return () => {
+      isCurrent = false
+    }
+  }, [open, filters])
 
   function applySearch() {
     setFilters((prev) => ({ ...prev, patient: pendingSearch || undefined, page: 1 }))
@@ -100,8 +105,6 @@ export function AppointmentInvoicePickerModal({
             'sm:inset-auto sm:left-1/2 sm:top-1/2 sm:max-h-[80dvh] sm:w-full sm:max-w-2xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl',
             'animate-in slide-in-from-bottom sm:fade-in-0 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200',
           )}
-          onEscapeKeyDown={handleClose}
-          onInteractOutside={handleClose}
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
