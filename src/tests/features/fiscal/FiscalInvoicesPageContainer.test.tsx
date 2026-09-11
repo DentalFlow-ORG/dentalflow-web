@@ -1,6 +1,6 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 
 vi.mock('@tanstack/react-router', async () => {
   const m = await import('@/test-utils/mocks/router')
@@ -13,6 +13,10 @@ vi.mock('@/features/auth/hooks/useAuth', () => ({
 }))
 
 const mockLoad = vi.fn()
+vi.mock('@/services/cep/cep.service', () => ({
+  fetchAddressByCep: vi.fn().mockResolvedValue({ street: '', neighborhood: '', city: '', uf: '' }),
+  CepNotFoundError: class extends Error {},
+}))
 const mockUseFiscalInvoicesPage = vi.fn()
 vi.mock('@/features/fiscal/hooks/useFiscalInvoicesPage', () => ({
   useFiscalInvoicesPage: () => mockUseFiscalInvoicesPage(),
@@ -140,6 +144,193 @@ beforeEach(() => {
   mockUseAuth.mockReturnValue({ user: { role: 'OWNER' } })
   mockUseFiscalInvoicesPage.mockReturnValue(makeHookState())
   mockListAppointmentsForInvoice.mockResolvedValue({ data: [], total: 0, page: 1, limit: 20 })
+})
+
+describe('FiscalInvoicesPageContainer — form persistence', () => {
+  it.each([false, true])(
+    'saves a %s editing invoice and resets the next draft',
+    async (editing) => {
+      const invoice = makeInvoice({ customerDocument: null })
+      const saveInvoice = vi.fn().mockResolvedValue(undefined)
+      mockUseFiscalInvoicesPage.mockReturnValue(
+        makeHookState({ invoices: [invoice], total: 1, saveInvoice }),
+      )
+      render(<FiscalInvoicesPageContainer />)
+      if (editing)
+        fireEvent.click(screen.getAllByRole('button', { name: /editar nota de joão silva/i })[0])
+      else fireEvent.click(screen.getByRole('button', { name: 'Criar nota fiscal' }))
+      fireEvent.change(screen.getByLabelText('Cliente/Paciente'), { target: { value: 'Ana Lima' } })
+      fireEvent.change(screen.getByLabelText('Serviço prestado'), { target: { value: 'Limpeza' } })
+      fireEvent.click(
+        screen.getByRole('button', { name: editing ? 'Salvar alterações' : 'Salvar rascunho' }),
+      )
+      await waitFor(() =>
+        expect(screen.queryByLabelText('Cliente/Paciente')).not.toBeInTheDocument(),
+      )
+      expect(saveInvoice).toHaveBeenCalledWith(
+        expect.objectContaining({ customerName: 'Ana Lima', serviceDescription: 'Limpeza' }),
+        editing ? invoice : null,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Criar nota fiscal' }))
+      expect(screen.getByLabelText('Cliente/Paciente')).toHaveValue('')
+      expect(screen.getByRole('button', { name: 'Salvar rascunho' })).toBeInTheDocument()
+    },
+  )
+
+  it('keeps an unsuccessful draft available for correction and retry', async () => {
+    const saveInvoice = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValue(undefined)
+    mockUseFiscalInvoicesPage.mockReturnValue(makeHookState({ saveInvoice }))
+    render(<FiscalInvoicesPageContainer />)
+    fireEvent.click(screen.getByRole('button', { name: 'Criar nota fiscal' }))
+    fireEvent.change(screen.getByLabelText('Cliente/Paciente'), { target: { value: 'Ana Lima' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(screen.getByLabelText('Cliente/Paciente')).toHaveValue('Ana Lima')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    await waitFor(() => expect(screen.queryByLabelText('Cliente/Paciente')).not.toBeInTheDocument())
+    expect(saveInvoice).toHaveBeenCalledTimes(2)
+  })
+
+  it('blocks an invalid customer document and clears the error after correction', async () => {
+    const saveInvoice = vi.fn().mockResolvedValue(undefined)
+    mockUseFiscalInvoicesPage.mockReturnValue(makeHookState({ saveInvoice }))
+    render(<FiscalInvoicesPageContainer />)
+    fireEvent.click(screen.getByRole('button', { name: 'Criar nota fiscal' }))
+    fireEvent.change(screen.getByLabelText(/CPF\/CNPJ do cliente/), {
+      target: { value: '11111111111' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(screen.getByText('Informe um CPF ou CNPJ válido.')).toBeInTheDocument()
+    expect(saveInvoice).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText(/CPF\/CNPJ do cliente/), { target: { value: '' } })
+    expect(screen.queryByText('Informe um CPF ou CNPJ válido.')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(saveInvoice).toHaveBeenCalledOnce()
+  })
+
+  it.each(['invoice', 'profile'])('dismisses the %s workspace without saving', (kind) => {
+    const state = makeHookState()
+    mockUseFiscalInvoicesPage.mockReturnValue(state)
+    render(<FiscalInvoicesPageContainer />)
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: kind === 'invoice' ? 'Criar nota fiscal' : 'Configurar dados fiscais',
+      }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByLabelText('Área de trabalho fiscal')).not.toBeInTheDocument()
+    expect(state.saveInvoice).not.toHaveBeenCalled()
+    expect(state.saveProfile).not.toHaveBeenCalled()
+  })
+
+  it('disables profile actions while saving and restores them after failure for retry', async () => {
+    let rejectSave!: (error: Error) => void
+    const saveProfile = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectSave = reject
+          }),
+      )
+      .mockResolvedValue(undefined)
+    mockUseFiscalInvoicesPage.mockReturnValue(makeHookState({ saveProfile }))
+    render(<FiscalInvoicesPageContainer />)
+    fireEvent.click(screen.getByRole('button', { name: 'Configurar dados fiscais' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar dados fiscais' }))
+    expect(screen.getByRole('button', { name: 'Salvar dados fiscais' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+    await act(async () => rejectSave(new Error('offline')))
+    expect(screen.getByRole('button', { name: 'Salvar dados fiscais' })).toBeEnabled()
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar dados fiscais' }))
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Salvar dados fiscais' }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(saveProfile).toHaveBeenCalledTimes(2)
+    expect(saveProfile).toHaveBeenLastCalledWith(
+      expect.objectContaining({ addressState: 'SP', legalName: 'Clínica X' }),
+    )
+  })
+
+  it('keeps the cancellation reason after failure and prevents duplicate confirmation while pending', async () => {
+    let rejectCancel!: (error: Error) => void
+    const cancel = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectCancel = reject
+          }),
+      )
+      .mockResolvedValue(undefined)
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({ invoices: [makeInvoice()], total: 1, cancel }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    fireEvent.click(screen.getAllByRole('button', { name: /cancelar nota de joão silva/i })[0])
+    fireEvent.change(screen.getByLabelText('Motivo do cancelamento'), {
+      target: { value: '  Duplicidade  ' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar nota' }))
+    expect(screen.getByRole('button', { name: 'Aguarde...' })).toBeDisabled()
+    await act(async () => rejectCancel(new Error('offline')))
+    expect(screen.getByLabelText('Motivo do cancelamento')).toHaveValue('  Duplicidade  ')
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar nota' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(cancel).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'inv-1' }), 'Duplicidade')
+  })
+
+  it('closes a failed details workspace and allows loading it again', async () => {
+    const loadInvoiceDetails = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValue(undefined)
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({ invoices: [makeInvoice()], total: 1, loadInvoiceDetails }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    await userEvent.click(
+      screen.getAllByRole('button', { name: /ver detalhes da nota de joão silva/i })[0],
+    )
+    expect(screen.queryByLabelText('Área de trabalho fiscal')).not.toBeInTheDocument()
+    await userEvent.click(
+      screen.getAllByRole('button', { name: /ver detalhes da nota de joão silva/i })[0],
+    )
+    expect(loadInvoiceDetails).toHaveBeenCalledTimes(2)
+  })
+
+  it.each(['markReady', 'simulateIssue'] as const)(
+    'dispatches %s and absorbs an already-reported failure',
+    async (action) => {
+      const mutation = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('reported by hook'))
+        .mockResolvedValue(undefined)
+      const invoice = makeInvoice({ status: action === 'markReady' ? 'DRAFT' : 'READY_TO_ISSUE' })
+      mockUseFiscalInvoicesPage.mockReturnValue(
+        makeHookState({
+          invoices: [invoice],
+          total: 1,
+          profileResponse: { profile: FULL_PROFILE, providerMode: 'LOCAL' },
+          [action]: mutation,
+        }),
+      )
+      render(<FiscalInvoicesPageContainer />)
+      const label =
+        action === 'markReady'
+          ? /marcar nota de joão silva como pronta/i
+          : /simular emissão da nota de joão silva/i
+      await userEvent.click(screen.getAllByRole('button', { name: label })[0])
+      expect(mutation).toHaveBeenCalledExactlyOnceWith(invoice)
+      expect(screen.getAllByRole('button', { name: label })[0]).toBeEnabled()
+      await userEvent.click(screen.getAllByRole('button', { name: label })[0])
+      expect(mutation).toHaveBeenCalledTimes(2)
+    },
+  )
 })
 
 describe('FiscalInvoicesPageContainer', () => {
