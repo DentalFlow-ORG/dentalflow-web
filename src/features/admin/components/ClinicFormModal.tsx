@@ -90,8 +90,6 @@ export function ClinicFormModal({ open, initialData, onClose, onSuccess }: Clini
         <Dialog.Content
           aria-labelledby="clinic-form-title"
           className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
-          onEscapeKeyDown={onClose}
-          onInteractOutside={onClose}
         >
           <div className="border-b border-border px-6 py-5">
             <Dialog.Title

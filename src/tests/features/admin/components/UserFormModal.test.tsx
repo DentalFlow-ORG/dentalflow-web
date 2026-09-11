@@ -81,6 +81,14 @@ async function fillCreateForm() {
 }
 
 describe('UserFormModal — create mode', () => {
+  it('dismisses exactly once with Escape', async () => {
+    const onClose = vi.fn()
+    render(<UserFormModal open onClose={onClose} onSuccess={vi.fn()} />)
+    await screen.findByText('Clínica Demo')
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
   beforeEach(() => {
     mockCreateAdminUser.mockReset()
     mockUpdateAdminUser.mockReset()
@@ -290,6 +298,26 @@ describe('UserFormModal — create mode', () => {
 })
 
 describe('UserFormModal — edit mode', () => {
+  it('preserves the clinic when changing between clinic roles and omits a missing phone', async () => {
+    const user = makeUser({ phone: null })
+    mockUpdateAdminUser.mockResolvedValue({ ...user, role: 'ASSISTANT' })
+    const onSuccess = vi.fn()
+    render(<UserFormModal open initialData={user} onClose={vi.fn()} onSuccess={onSuccess} />)
+    await screen.findByText('Clínica Demo')
+    await userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'ASSISTANT')
+    expect(screen.getAllByRole('combobox')[1]).toHaveValue('clinic-1')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce())
+    expect(mockUpdateAdminUser).toHaveBeenCalledWith(
+      user.id,
+      expect.objectContaining({
+        role: 'ASSISTANT',
+        clinicId: 'clinic-1',
+        phone: undefined,
+      }),
+    )
+  })
+
   beforeEach(() => {
     mockCreateAdminUser.mockReset()
     mockUpdateAdminUser.mockReset()

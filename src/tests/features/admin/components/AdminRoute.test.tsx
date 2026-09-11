@@ -27,7 +27,6 @@ vi.mock('@/components/common/LoadingCard', () => ({
 // ── Fixtures ─────────────────────────────────────────────────────────────────
 
 const adminUser = makeAdminUser()
-const ownerUser = makeOwnerUser()
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
@@ -60,15 +59,20 @@ describe('AdminRoute', () => {
     expect(screen.getByTestId('navigate')).toHaveAttribute('data-to', '/acessar')
   })
 
-  it('redirects a non-ADMIN user to /app', () => {
-    setMockAuthState({ user: ownerUser })
-    renderWithProviders(
-      <AdminRoute>
-        <div>Admin Content</div>
-      </AdminRoute>,
-    )
-    expect(screen.getByTestId('navigate')).toHaveAttribute('data-to', '/app')
-  })
+  it.each(['OWNER', 'DENTIST', 'ASSISTANT', null] as const)(
+    'denies administrative content when the authenticated role is %s',
+    (role) => {
+      setMockAuthState({ user: role ? makeOwnerUser({ role }) : null })
+      renderWithProviders(
+        <AdminRoute>
+          <div>Admin Content</div>
+        </AdminRoute>,
+      )
+      expect(screen.getByTestId('navigate')).toHaveAttribute('data-to', '/app')
+      expect(screen.queryByText('Admin Content')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('app-shell')).not.toBeInTheDocument()
+    },
+  )
 
   it('renders AppShell with children for an ADMIN user', () => {
     renderWithProviders(

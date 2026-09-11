@@ -44,6 +44,13 @@ function makeClinic(overrides: Partial<AdminClinic> = {}): AdminClinic {
 }
 
 describe('ClinicFormModal — create mode', () => {
+  it('dismisses exactly once with Escape', async () => {
+    const onClose = vi.fn()
+    render(<ClinicFormModal open onClose={onClose} onSuccess={vi.fn()} />)
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
   beforeEach(() => {
     mockCreateAdminClinic.mockReset()
     mockUpdateAdminClinic.mockReset()
