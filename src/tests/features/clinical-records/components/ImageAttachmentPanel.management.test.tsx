@@ -124,6 +124,31 @@ it('previews full-size image data, keeps image clicks open, and supports closing
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
 
+it('uses JPEG for a thumbnail and full preview when MIME metadata is absent', async () => {
+  vi.mocked(listAttachments).mockResolvedValue([makeAttachment({ mimeType: null })])
+  await openPanel()
+  expect(screen.getByRole('img')).toHaveAttribute(
+    'src',
+    expect.stringContaining('data:image/jpeg;base64,'),
+  )
+  await userEvent.click(screen.getByRole('button', { name: /Ver imagem em tela cheia/ }))
+  expect(within(screen.getByRole('dialog')).getByRole('img')).toHaveAttribute(
+    'src',
+    'data:image/jpeg;base64,aW1hZ2U=',
+  )
+})
+
+it('cancels a pending caption update when the record becomes read-only', async () => {
+  const view = await openPanel()
+  vi.useFakeTimers()
+  fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Legenda pendente' } })
+  view.rerender(<ImageAttachmentPanel recordId="record-1" readOnly />)
+  await act(async () => vi.advanceTimersByTimeAsync(800))
+  expect(updateAttachmentDescription).not.toHaveBeenCalled()
+  expect(screen.getByRole('textbox')).toHaveAttribute('readonly')
+  expect(screen.queryByRole('button', { name: 'Remover' })).not.toBeInTheDocument()
+})
+
 it('cancels deletion without making a request, then removes only after confirmation', async () => {
   const user = userEvent.setup()
   await openPanel()

@@ -156,11 +156,12 @@ describe('ClinicalRecordsListContainer', () => {
       makeRecord({ id: 'r2', status: 'COMPLETED' }),
       makeRecord({ id: 'r3', status: 'LOCKED' }),
       makeRecord({ id: 'r4', status: 'DRAFT' }),
+      makeRecord({ id: 'r5', status: 'CANCELED' }),
     ]
     mockUseClinicalRecords.mockReturnValue({ ...defaultHookState(), records })
     render(<ClinicalRecordsListContainer />)
 
-    expect(screen.getByRole('button', { name: /^4\s*Total$/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^5\s*Total$/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^2\s*Rascunhos$/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^1\s*Concluídos$/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^1\s*Bloqueados$/ })).toBeInTheDocument()
@@ -175,6 +176,16 @@ describe('ClinicalRecordsListContainer', () => {
     expect(draftChip).toHaveAttribute('aria-pressed', 'false')
     await userEvent.click(draftChip)
     expect(draftChip).toHaveAttribute('aria-pressed', 'true')
+    for (const [label, status] of [
+      [/concluídos/i, 'COMPLETED'],
+      [/bloqueados/i, 'LOCKED'],
+      [/total/i, undefined],
+    ] as const) {
+      const chip = getKpiChip(label)
+      await userEvent.click(chip)
+      expect(chip).toHaveAttribute('aria-pressed', 'true')
+      expect(mockUseClinicalRecords).toHaveBeenCalledWith(expect.objectContaining({ status }))
+    }
   })
 
   it('renders the record list when records are present', () => {

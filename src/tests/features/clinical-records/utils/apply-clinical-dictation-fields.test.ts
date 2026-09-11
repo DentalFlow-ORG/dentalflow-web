@@ -10,6 +10,17 @@ function cv(values: Record<string, string> = {}): Record<string, string> {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('applyDictationFields', () => {
+  it('ignores an explicitly absent optional field while applying another suggestion', () => {
+    expect(
+      applyDictationFields(
+        { clinicalEvolution: undefined, diagnosis: 'Cárie' },
+        { clinicalEvolution: 'Preservar evolução' },
+      ),
+    ).toEqual({
+      draftPatch: { diagnosis: 'Cárie' },
+      targetSection: 'diagnostico',
+    })
+  })
   // ── 1. Single-field application ─────────────────────────────────────────────
 
   it('sets dictated text when the current field is empty', () => {

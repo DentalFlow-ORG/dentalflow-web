@@ -1,4 +1,4 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { render, screen, userEvent } from '@/test-utils/render-utils'
 
 import { ClinicalStickyBar } from '@/features/clinical-records/components/ClinicalStickyBar'
 import type { ClinicalRecord } from '@/features/clinical-records/types/clinical-record.types'
@@ -47,6 +47,21 @@ const noop = () => {}
 // ── Patient identity ──────────────────────────────────────────────────────────
 
 describe('ClinicalStickyBar — patient identity', () => {
+  it.each([
+    ['  ', '?'],
+    [' Ana ', 'AN'],
+  ])('handles patient name %j without broken initials', (patientName, initials) => {
+    render(
+      <ClinicalStickyBar
+        record={makeRecord({ patientName })}
+        isSaving={false}
+        autosaveStatus="idle"
+        onSaveDraft={noop}
+        onComplete={noop}
+      />,
+    )
+    expect(screen.getByText(initials)).toBeInTheDocument()
+  })
   it('renders the patient name', () => {
     render(
       <ClinicalStickyBar
@@ -77,6 +92,27 @@ describe('ClinicalStickyBar — patient identity', () => {
 // ── DRAFT quick actions ───────────────────────────────────────────────────────
 
 describe('ClinicalStickyBar — DRAFT actions', () => {
+  it('allows retry after an autosave error and blocks duplicate actions during saving', async () => {
+    const onSaveDraft = vi.fn()
+    const onComplete = vi.fn()
+    const props = { record: makeRecord(), onSaveDraft, onComplete }
+    const view = render(<ClinicalStickyBar {...props} isSaving={false} autosaveStatus="error" />)
+    expect(screen.getByText('Erro ao salvar')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    expect(onSaveDraft).toHaveBeenCalledOnce()
+    view.rerender(<ClinicalStickyBar {...props} isSaving autosaveStatus="saving" />)
+    await userEvent.click(screen.getByRole('button', { name: 'Salvando...' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Concluir' }))
+    expect(onSaveDraft).toHaveBeenCalledOnce()
+    expect(onComplete).not.toHaveBeenCalled()
+    view.rerender(<ClinicalStickyBar {...props} isSaving={false} autosaveStatus="saved" />)
+    expect(screen.queryByText('Erro ao salvar')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Concluir' }))
+    expect(onComplete).toHaveBeenCalledOnce()
+    view.rerender(<ClinicalStickyBar {...props} isSaving={false} autosaveStatus="pending" />)
+    expect(screen.queryByText('Salvando')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled()
+  })
   it('renders the Concluir (Complete) button', () => {
     render(
       <ClinicalStickyBar

@@ -5,6 +5,20 @@ import { render, screen } from '@/test-utils/render-utils'
 import { OdontogramToothDetailsPanel } from '@/features/clinical-records/components/odontogram/OdontogramToothDetailsPanel'
 
 describe('OdontogramToothDetailsPanel', () => {
+  it('preserves notes and allows correcting an unfamiliar saved condition', async () => {
+    const onSetCondition = vi.fn()
+    render(
+      <OdontogramToothDetailsPanel
+        toothNumber={11}
+        tooth={{ condition: 'legacy-condition', notes: 'Registro antigo' }}
+        onSetCondition={onSetCondition}
+        onSetNotes={vi.fn()}
+      />,
+    )
+    expect(screen.getByLabelText('Observações do dente')).toHaveValue('Registro antigo')
+    await userEvent.click(screen.getByRole('button', { name: 'Cárie' }))
+    expect(onSetCondition).toHaveBeenCalledWith('caries')
+  })
   it('shows a placeholder when no tooth is selected', () => {
     render(
       <OdontogramToothDetailsPanel

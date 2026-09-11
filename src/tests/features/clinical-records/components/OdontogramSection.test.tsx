@@ -36,6 +36,21 @@ describe('OdontogramSection — title and read-only description', () => {
 })
 
 describe('OdontogramSection — single-tooth selection', () => {
+  it('returns to permanent dentition without retaining a deciduous selection or changing saved data', async () => {
+    const onChange = vi.fn()
+    render(
+      <OdontogramSection data={{ teeth: { '11': { condition: 'caries' } } }} onChange={onChange} />,
+    )
+    expect(screen.getByLabelText('Observações gerais do odontograma')).toHaveValue('')
+    await userEvent.click(screen.getByRole('button', { name: 'Decídua' }))
+    await userEvent.click(screen.getByRole('button', { name: /dente 51/i }))
+    expect(screen.getByText('Dente 51')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Permanente' }))
+    expect(screen.getByText('Nenhum dente selecionado')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /dente/i })).toHaveLength(32)
+    expect(screen.getByRole('button', { name: /dente 11/i })).toHaveAccessibleName(/cárie/i)
+    expect(onChange).not.toHaveBeenCalled()
+  })
   it('selects a tooth on click and shows its details panel', async () => {
     render(<OdontogramSection data={makeData()} onChange={vi.fn()} />)
     await userEvent.click(screen.getByRole('button', { name: /dente 11/i }))

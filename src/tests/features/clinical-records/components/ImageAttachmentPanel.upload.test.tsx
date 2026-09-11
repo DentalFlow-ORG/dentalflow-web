@@ -163,3 +163,54 @@ it('treats cancelling the file picker as a no-op', async () => {
   expect(showAlert).not.toHaveBeenCalled()
   expect(screen.getByRole('button', { name: 'Enviar imagem' })).toBeEnabled()
 })
+
+it('keeps existing images visible and prevents duplicate uploads while adding another image', async () => {
+  vi.mocked(listAttachments).mockResolvedValue([
+    makeAttachment({ id: 'existing', fileName: 'existente.jpg' }),
+  ])
+  vi.mocked(addAttachmentMetadata).mockResolvedValue(makeAttachment({ id: 'new' }))
+  await selectImage()
+  expect(screen.getByRole('img', { name: 'existente.jpg' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Enviando...' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Tirar foto' })).toBeDisabled()
+  await act(async () => image.onload())
+  expect(screen.getByRole('img', { name: 'existente.jpg' })).toBeInTheDocument()
+  expect(screen.getByRole('img', { name: 'radiografia.jpg' })).toBeInTheDocument()
+  expect(addAttachmentMetadata).toHaveBeenCalledOnce()
+  expect(screen.getByRole('button', { name: 'Enviar imagem' })).toBeEnabled()
+})
+
+it('shows returned attachment metadata without offering a broken image preview when image data is absent', async () => {
+  vi.mocked(addAttachmentMetadata).mockResolvedValue(
+    makeAttachment({ dataBase64: null, thumbnailBase64: null }),
+  )
+  await selectImage()
+  await act(async () => image.onload())
+  expect(screen.getByText('radiografia.jpg')).toBeInTheDocument()
+  expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: /Ver imagem em tela cheia/ })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Enviar imagem' })).toBeEnabled()
+})
+
+it('keeps mutation controls hidden if a record becomes read-only during an initiated upload', async () => {
+  let resolve!: (value: ReturnType<typeof makeAttachment>) => void
+  vi.mocked(addAttachmentMetadata).mockReturnValueOnce(
+    new Promise((done) => {
+      resolve = done
+    }),
+  )
+  const view = renderWithProviders(<ImageAttachmentPanel recordId="record-1" />)
+  await screen.findByRole('button', { name: 'Enviar imagem' })
+  const input = view.container.querySelector('input[type="file"]')
+  if (!input) throw new Error('Expected image input')
+  fireEvent.change(input, {
+    target: { files: [new File(['image'], 'radiografia.jpg', { type: 'image/jpeg' })] },
+  })
+  await act(async () => image.onload())
+  view.rerender(<ImageAttachmentPanel recordId="record-1" readOnly />)
+  await act(async () => resolve(makeAttachment()))
+  expect(screen.getByRole('img', { name: 'radiografia.jpg' })).toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Enviar imagem' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Remover' })).not.toBeInTheDocument()
+  expect(screen.getByRole('textbox')).toHaveAttribute('readonly')
+})

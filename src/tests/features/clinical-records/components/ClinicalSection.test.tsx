@@ -1,11 +1,40 @@
 import userEvent from '@testing-library/user-event'
 import { FileText } from 'lucide-react'
+import { useState } from 'react'
 
 import { render, screen } from '@/test-utils/render-utils'
 
 import { ClinicalSection } from '@/features/clinical-records/components/ClinicalSection'
 
 describe('ClinicalSection', () => {
+  it('opens and closes a populated section with Enter and Space', async () => {
+    function Section() {
+      const [expanded, setExpanded] = useState(false)
+      return (
+        <ClinicalSection
+          id="history"
+          title="Histórico"
+          icon={FileText}
+          hasContent
+          expanded={expanded}
+          onToggle={() => setExpanded((value) => !value)}
+        >
+          <p>Histórico do paciente</p>
+        </ClinicalSection>
+      )
+    }
+    render(<Section />)
+    const trigger = screen.getByRole('button', { name: 'Histórico' })
+    trigger.focus()
+    await userEvent.keyboard('{Enter}')
+    expect(screen.getByRole('region', { name: 'Histórico' })).toHaveTextContent(
+      'Histórico do paciente',
+    )
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    await userEvent.keyboard(' ')
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('region')).not.toBeInTheDocument()
+  })
   it('renders the title and children', () => {
     render(
       <ClinicalSection id="anamnesis" title="Anamnese" expanded onToggle={vi.fn()}>
