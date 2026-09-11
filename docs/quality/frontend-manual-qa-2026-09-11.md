@@ -26,6 +26,10 @@ Status: **not executed**. Unit tests validate application decisions and mocked i
 
 - [ ] Recharts pointer hit-testing, tooltips, legends and resize behavior with empty, sparse and dense datasets.
 - [ ] Invoice printing/downloads: native save dialogs, filenames, content, cancellation, blocked popups and repeated downloads.
+- [ ] Print an invoice with number, service code, zero ISS and observations containing angle brackets/quotes. Confirm readable literal text and native page layout.
+- [ ] Delay CEP responses and change/shorten the postal code. Confirm only the current lookup affects the address and its loading indicator.
+- [ ] Change invoice filters during refresh or saving, and close/reopen the appointment picker during loading. Confirm the current search remains visible when older requests finish.
+- [ ] Close finance edit dialogs and the appointment invoice picker using Escape, outside click and touch. Confirm one dismissal and correct focus restoration.
 - [ ] OWNER, DENTIST and ASSISTANT views: confirm visible actions, navigation and plan gates using distinct authorized test accounts. Backend authorization must be checked independently.
 - [ ] Check drawers/modals with keyboard and touch, focus restoration, mobile soft keyboard and long validation/API messages.
 
