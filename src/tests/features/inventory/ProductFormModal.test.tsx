@@ -1,4 +1,4 @@
-import { render, screen, userEvent } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen, userEvent } from '@/test-utils/render-utils'
 import { vi } from 'vitest'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -58,6 +58,7 @@ import {
   updateStockProduct,
 } from '@/features/inventory/services/inventory.service'
 import type { StockCategory, StockProduct } from '@/features/inventory/types/inventory.types'
+import { ApiError } from '@/services/http'
 
 const mockCreate = vi.mocked(createStockProduct)
 const mockUpdate = vi.mocked(updateStockProduct)
@@ -129,6 +130,146 @@ describe('ProductFormModal', () => {
   })
 
   // ── Create mode ────────────────────────────────────────────────────────────
+
+  it('dismisses once with Escape without saving a product', async () => {
+    const props = defaultProps()
+    render(<ProductFormModal {...props} />)
+    await userEvent.keyboard('{Escape}')
+    expect(props.onClose).toHaveBeenCalledOnce()
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('rejects whitespace-only names and missing categories', async () => {
+    render(<ProductFormModal {...defaultProps()} />)
+    fireEvent.change(screen.getByLabelText(/Nome do produto/i), { target: { value: '   ' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar produto' }))
+    expect(screen.getByText('O nome do produto é obrigatório.')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(/Nome do produto/i), { target: { value: 'Resina' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar produto' }))
+    expect(screen.getByText('Selecione uma categoria para o produto.')).toBeInTheDocument()
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('creates a product with entered stock, price, expiry and trimmed optional details', async () => {
+    const props = defaultProps()
+    render(<ProductFormModal {...props} />)
+    for (const [label, value] of [
+      [/Nome do produto/i, '  Resina  '],
+      [/Unidade/i, '  ml  '],
+      [/Fornecedor/i, '  Dental  '],
+      [/Quantidade atual/i, '1.5'],
+      [/Quantidade mínima/i, '0.5'],
+      [/Validade/i, '2027-12-31'],
+      [/Valor de compra/i, '123456'],
+      [/^Descrição/i, '  Uso clínico  '],
+      [/Observações internas/i, '  Lote A  '],
+    ] as const)
+      fireEvent.change(screen.getByLabelText(label), { target: { value } })
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'cat-2')
+    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar produto' }))
+    expect(mockCreate).toHaveBeenCalledWith({
+      name: 'Resina',
+      categoryId: 'cat-2',
+      unit: 'ml',
+      currentQuantity: 1.5,
+      minQuantity: 0.5,
+      purchasePrice: 123456,
+      supplier: 'Dental',
+      expiresAt: '2027-12-31',
+      description: 'Uso clínico',
+      notes: 'Lote A',
+    })
+    expect(props.onSuccess).toHaveBeenCalledOnce()
+  })
+
+  it('loads a product without optional data and omits unset values when saving', async () => {
+    render(
+      <ProductFormModal
+        {...defaultProps({
+          product: buildProduct({
+            minQuantity: 0,
+            purchasePrice: null,
+            supplier: null,
+            expiresAt: null,
+            description: null,
+            notes: null,
+          }),
+        })}
+      />,
+    )
+    expect(screen.getByLabelText(/Fornecedor/i)).toHaveValue('')
+    expect(screen.getByLabelText(/Validade/i)).toHaveValue('')
+    expect(screen.getByLabelText(/Quantidade mínima/i)).toHaveValue(null)
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(mockUpdate).toHaveBeenCalledWith('prod-1', {
+      name: 'Luva cirúrgica',
+      categoryId: 'cat-1',
+      unit: 'cx',
+      minQuantity: undefined,
+      purchasePrice: undefined,
+      supplier: undefined,
+      expiresAt: null,
+      description: undefined,
+      notes: undefined,
+    })
+  })
+
+  it.each([new ApiError('Produto duplicado', 409, null), new Error('offline')])(
+    'preserves a failed creation and retries: %s',
+    async (error) => {
+      mockCreate.mockRejectedValueOnce(error)
+      const props = defaultProps()
+      render(<ProductFormModal {...props} />)
+      fireEvent.change(screen.getByLabelText(/Nome do produto/i), { target: { value: 'Resina' } })
+      await userEvent.selectOptions(screen.getByRole('combobox'), 'cat-1')
+      await userEvent.click(screen.getByRole('button', { name: 'Cadastrar produto' }))
+      expect(
+        screen.getByText(
+          error instanceof ApiError
+            ? error.message
+            : 'Não foi possível salvar o produto. Tente novamente.',
+        ),
+      ).toBeInTheDocument()
+      expect(screen.getByLabelText(/Nome do produto/i)).toHaveValue('Resina')
+      expect(props.onClose).not.toHaveBeenCalled()
+      await userEvent.click(screen.getByRole('button', { name: 'Cadastrar produto' }))
+      expect(mockCreate).toHaveBeenCalledTimes(2)
+      expect(props.onSuccess).toHaveBeenCalledOnce()
+    },
+  )
+
+  it('disables repeated saves while an update is pending', async () => {
+    let resolve!: (product: StockProduct) => void
+    mockUpdate.mockReturnValueOnce(
+      new Promise((yes) => {
+        resolve = yes
+      }),
+    )
+    const props = defaultProps({ product: buildProduct() })
+    render(<ProductFormModal {...props} />)
+    const submit = screen.getByRole('button', { name: 'Salvar alterações' })
+    await userEvent.click(submit)
+    expect(submit).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+    await userEvent.click(submit)
+    expect(mockUpdate).toHaveBeenCalledOnce()
+    await act(async () => resolve(buildProduct()))
+    expect(props.onSuccess).toHaveBeenCalledOnce()
+  })
+
+  it('resets an edited draft when closing and reopening in create mode', () => {
+    const props = defaultProps()
+    const { rerender } = render(<ProductFormModal {...props} product={buildProduct()} />)
+    fireEvent.change(screen.getByLabelText(/Nome do produto/i), {
+      target: { value: 'Rascunho alterado' },
+    })
+    rerender(<ProductFormModal {...props} open={false} />)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    rerender(<ProductFormModal {...props} />)
+    expect(screen.getByLabelText(/Nome do produto/i)).toHaveValue('')
+    expect(screen.getByLabelText(/Fornecedor/i)).toHaveValue('')
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
 
   it('renders the create mode title', () => {
     render(<ProductFormModal {...defaultProps()} />)

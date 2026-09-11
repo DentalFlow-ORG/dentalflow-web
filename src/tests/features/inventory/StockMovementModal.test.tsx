@@ -1,4 +1,4 @@
-import { render, screen, userEvent } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen, userEvent } from '@/test-utils/render-utils'
 import { vi } from 'vitest'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -23,6 +23,7 @@ vi.mock('@/features/inventory/services/inventory.service', () => ({
 import { StockMovementModal } from '@/features/inventory/components/StockMovementModal'
 import { createStockMovement } from '@/features/inventory/services/inventory.service'
 import type { StockProduct } from '@/features/inventory/types/inventory.types'
+import { ApiError } from '@/services/http'
 
 const mockCreateMovement = vi.mocked(createStockMovement)
 
@@ -69,6 +70,124 @@ describe('StockMovementModal', () => {
   })
 
   // ── Dialog structure ───────────────────────────────────────────────────────
+
+  it('dismisses once with Escape without recording a movement', async () => {
+    const props = defaultProps()
+    render(<StockMovementModal {...props} />)
+    await userEvent.keyboard('{Escape}')
+    expect(props.onClose).toHaveBeenCalledOnce()
+    expect(mockCreateMovement).not.toHaveBeenCalled()
+  })
+
+  it('clears quantity and validation errors when reopened for another product', async () => {
+    const props = defaultProps()
+    const { rerender } = render(<StockMovementModal {...props} />)
+    fireEvent.change(screen.getByRole('spinbutton', { name: /^Quantidade$/i }), {
+      target: { value: '0' },
+    })
+    await userEvent.click(screen.getByRole('button', { name: /Registrar movimentação/ }))
+    expect(screen.getByText('Informe uma quantidade maior que zero.')).toBeInTheDocument()
+    rerender(<StockMovementModal {...props} product={null} />)
+    rerender(
+      <StockMovementModal {...props} product={buildProduct({ id: 'prod-2', name: 'Resina' })} />,
+    )
+    expect(screen.getByText('Resina')).toBeInTheDocument()
+    expect(screen.getByRole('spinbutton', { name: /^Quantidade$/i })).toHaveValue(null)
+    expect(screen.queryByText('Informe uma quantidade maior que zero.')).not.toBeInTheDocument()
+  })
+
+  it.each(['OUT', 'LOSS'] as const)(
+    'records %s with fractional quantity and trimmed justification',
+    async (type) => {
+      const props = defaultProps()
+      render(<StockMovementModal {...props} />)
+      await userEvent.click(
+        screen.getByRole('radio', { name: type === 'OUT' ? /Saída/i : /Perda\/descarte/i }),
+      )
+      fireEvent.change(screen.getByRole('spinbutton', { name: /^Quantidade$/i }), {
+        target: { value: '1.5' },
+      })
+      fireEvent.change(screen.getByLabelText(/Motivo/), { target: { value: '  Uso clínico  ' } })
+      fireEvent.change(screen.getByLabelText(/Observações/), { target: { value: '  Conferido  ' } })
+      await userEvent.click(screen.getByRole('button', { name: /Registrar movimentação/ }))
+      expect(mockCreateMovement).toHaveBeenCalledWith({
+        productId: 'prod-1',
+        type,
+        quantity: 1.5,
+        reason: 'Uso clínico',
+        notes: 'Conferido',
+      })
+      expect(props.onSuccess).toHaveBeenCalledOnce()
+      expect(props.onClose).toHaveBeenCalledOnce()
+    },
+  )
+
+  it.each(['', '-1'])(
+    'prevents native submission of invalid final quantity %s',
+    async (quantity) => {
+      render(<StockMovementModal {...defaultProps()} />)
+      await userEvent.click(screen.getByRole('radio', { name: /Ajuste/i }))
+      const input = screen.getByRole('spinbutton', { name: /Quantidade final/i })
+      fireEvent.change(input, { target: { value: quantity } })
+      await userEvent.click(screen.getByRole('button', { name: /Registrar movimentação/ }))
+      expect(input).toBeInvalid()
+      expect(mockCreateMovement).not.toHaveBeenCalled()
+    },
+  )
+
+  it('accepts an explicit zero adjustment and blocks duplicate submission while saving', async () => {
+    let resolve!: () => void
+    mockCreateMovement.mockReturnValueOnce(
+      new Promise((yes) => {
+        resolve = () => yes(undefined as never)
+      }),
+    )
+    const props = defaultProps()
+    render(<StockMovementModal {...props} />)
+    await userEvent.click(screen.getByRole('radio', { name: /Ajuste/i }))
+    fireEvent.change(screen.getByRole('spinbutton', { name: /Quantidade final/i }), {
+      target: { value: '0' },
+    })
+    const submit = screen.getByRole('button', { name: /Registrar movimentação/ })
+    await userEvent.click(submit)
+    expect(submit).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+    await userEvent.click(submit)
+    expect(mockCreateMovement).toHaveBeenCalledOnce()
+    expect(mockCreateMovement).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'ADJUSTMENT', newQuantity: 0 }),
+    )
+    expect(props.onClose).not.toHaveBeenCalled()
+    await act(async () => resolve())
+    expect(props.onSuccess).toHaveBeenCalledOnce()
+    expect(submit).toBeEnabled()
+  })
+
+  it.each([new ApiError('Saldo insuficiente', 400, null), new Error('offline')])(
+    'preserves the draft and retries a failed movement: %s',
+    async (error) => {
+      mockCreateMovement.mockRejectedValueOnce(error)
+      const props = defaultProps()
+      render(<StockMovementModal {...props} />)
+      fireEvent.change(screen.getByRole('spinbutton', { name: /^Quantidade$/i }), {
+        target: { value: '2' },
+      })
+      await userEvent.click(screen.getByRole('button', { name: /Registrar movimentação/ }))
+      expect(
+        screen.getByText(
+          error instanceof ApiError
+            ? error.message
+            : 'Não foi possível registrar a movimentação. Tente novamente.',
+        ),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('spinbutton', { name: /^Quantidade$/i })).toHaveValue(2)
+      expect(props.onSuccess).not.toHaveBeenCalled()
+      expect(props.onClose).not.toHaveBeenCalled()
+      await userEvent.click(screen.getByRole('button', { name: /Registrar movimentação/ }))
+      expect(mockCreateMovement).toHaveBeenCalledTimes(2)
+      expect(props.onSuccess).toHaveBeenCalledOnce()
+    },
+  )
 
   it('renders the dialog title', () => {
     render(<StockMovementModal {...defaultProps()} />)
