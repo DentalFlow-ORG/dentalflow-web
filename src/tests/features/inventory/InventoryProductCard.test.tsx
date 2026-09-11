@@ -44,6 +44,30 @@ function defaultHandlers() {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('InventoryProductCard', () => {
+  it.each([
+    ['EMPTY', 'Sem estoque — necessita reposição'],
+    ['LOW', 'Estoque abaixo do mínimo'],
+    ['EXPIRED', 'Validade vencida'],
+    ['EXPIRING', 'Validade próxima do vencimento'],
+  ] as const)(
+    'presents the %s warning and opens the matching product details',
+    async (status, warning) => {
+      const handlers = defaultHandlers()
+      const product = buildProduct({
+        status,
+        currentQuantity: status === 'EMPTY' ? 0 : 1,
+        minQuantity: 0,
+        purchasePrice: 0,
+        expiresAt: '2026-09-15',
+      })
+      render(<InventoryProductCard product={product} {...handlers} />)
+      expect(screen.getByText(warning)).toBeInTheDocument()
+      expect(screen.getByText('Mínimo').parentElement).toHaveTextContent('—')
+      expect(screen.getByText(/R\$\s*0,00/)).toBeInTheDocument()
+      await userEvent.click(screen.getByRole('button', { name: /Ver detalhes de/i }))
+      expect(handlers.onViewDetails).toHaveBeenCalledWith(product)
+    },
+  )
   beforeEach(() => {
     vi.clearAllMocks()
   })

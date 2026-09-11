@@ -55,6 +55,25 @@ function defaultProps(overrides: Partial<Parameters<typeof ProductDetailsDrawer>
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('ProductDetailsDrawer', () => {
+  it.each(['EMPTY', 'LOW'] as const)(
+    'keeps movement available for an active %s product with missing optional data',
+    async (status) => {
+      const product = buildProduct({
+        status,
+        currentQuantity: status === 'EMPTY' ? 0 : 1,
+        purchasePrice: null,
+        supplier: null,
+        expiresAt: null,
+      })
+      const props = defaultProps({ product })
+      render(<ProductDetailsDrawer {...props} />)
+      for (const label of ['Valor de compra', 'Fornecedor', 'Validade']) {
+        expect(screen.getByText(label).parentElement).toHaveTextContent('—')
+      }
+      await userEvent.click(screen.getByRole('button', { name: /Movimentar estoque de/i }))
+      expect(props.onMove).toHaveBeenCalledWith(product)
+    },
+  )
   it('dismisses the product details once with Escape', async () => {
     const props = defaultProps()
     render(<ProductDetailsDrawer {...props} />)
