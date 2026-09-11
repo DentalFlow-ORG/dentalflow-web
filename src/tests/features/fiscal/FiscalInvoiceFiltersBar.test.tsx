@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, userEvent } from '@/test-utils/render-utils'
 import { vi } from 'vitest'
 
 import { FiscalInvoiceFiltersBar } from '@/features/fiscal/components/FiscalInvoiceFiltersBar'
@@ -34,6 +34,12 @@ function renderBar(overrides: Props = {}) {
 // ── Structure ─────────────────────────────────────────────────────────────────
 
 describe('FiscalInvoiceFiltersBar', () => {
+  it('removes the status restriction by selecting Todos', async () => {
+    const { onStatusChange } = renderBar({ status: 'DRAFT' })
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.click(screen.getByRole('option', { name: 'Todos' }))
+    expect(onStatusChange).toHaveBeenCalledWith(undefined)
+  })
   it('renders "Filtros" section title', () => {
     renderBar()
     expect(screen.getByText('Filtros')).toBeInTheDocument()

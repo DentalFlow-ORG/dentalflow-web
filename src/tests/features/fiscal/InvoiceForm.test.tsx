@@ -45,6 +45,35 @@ function renderForm(overrides: { editing?: boolean; form?: InvoicePayload } = {}
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('InvoiceForm', () => {
+  it('allows saving a draft with optional customer and service metadata omitted', () => {
+    const onSubmit = vi.fn()
+    render(
+      <InvoiceForm
+        form={{
+          customerName: 'Ana',
+          serviceDescription: 'Consulta',
+          amountCents: 15000,
+          competenceDate: '2026-06-07',
+        }}
+        editing={false}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    for (const id of [
+      'customerDocument',
+      'customerEmail',
+      'customerPhone',
+      'serviceCode',
+      'notes',
+    ]) {
+      expect(document.getElementById(id)).toHaveValue('')
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+    expect(screen.queryByText('Informe um CPF ou CNPJ válido.')).not.toBeInTheDocument()
+  })
   // ── Title by mode ──────────────────────────────────────────────────────────
 
   it('renders "Criar nota fiscal" heading when not editing', () => {

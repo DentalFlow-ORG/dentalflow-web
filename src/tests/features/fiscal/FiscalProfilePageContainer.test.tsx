@@ -81,6 +81,15 @@ beforeEach(() => {
 })
 
 describe('FiscalProfilePageContainer', () => {
+  it('preserves an incomplete saved profile without inventing a document or postal code', async () => {
+    mockGetFiscalProfile.mockResolvedValue({
+      profile: makeProfile({ documentNumber: '', addressZipCode: '' }),
+    })
+    render(<FiscalProfilePageContainer />)
+    expect(await screen.findByTestId('legal-name')).toHaveTextContent('Clínica X')
+    expect(screen.getByTestId('document-number')).toBeEmptyDOMElement()
+    expect(screen.getByTestId('zip-code')).toBeEmptyDOMElement()
+  })
   it('shows a loading indicator while fetching the profile', () => {
     mockGetFiscalProfile.mockReturnValue(new Promise(() => {}))
     render(<FiscalProfilePageContainer />)

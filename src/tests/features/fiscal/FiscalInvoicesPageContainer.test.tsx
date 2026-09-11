@@ -182,10 +182,14 @@ describe('FiscalInvoicesPageContainer — form persistence', () => {
     await userEvent.selectOptions(size, '50')
     expect(filters).toEqual({ page: 1, limit: 50, customer: 'João' })
   })
-  it.each([false, true])(
-    'saves a %s editing invoice and resets the next draft',
-    async (editing) => {
-      const invoice = makeInvoice({ customerDocument: null })
+  it.each([
+    { editing: false, issRate: null },
+    { editing: true, issRate: null },
+    { editing: true, issRate: 5 },
+  ])(
+    'saves an invoice with editing=$editing and ISS=$issRate, then resets the next draft',
+    async ({ editing, issRate }) => {
+      const invoice = makeInvoice({ customerDocument: null, issRate })
       const saveInvoice = vi.fn().mockResolvedValue(undefined)
       mockUseFiscalInvoicesPage.mockReturnValue(
         makeHookState({ invoices: [invoice], total: 1, saveInvoice }),
@@ -203,7 +207,11 @@ describe('FiscalInvoicesPageContainer — form persistence', () => {
         expect(screen.queryByLabelText('Cliente/Paciente')).not.toBeInTheDocument(),
       )
       expect(saveInvoice).toHaveBeenCalledWith(
-        expect.objectContaining({ customerName: 'Ana Lima', serviceDescription: 'Limpeza' }),
+        expect.objectContaining({
+          customerName: 'Ana Lima',
+          serviceDescription: 'Limpeza',
+          ...(editing ? { issRate: issRate ?? undefined } : {}),
+        }),
         editing ? invoice : null,
       )
       fireEvent.click(screen.getByRole('button', { name: 'Criar nota fiscal' }))
@@ -258,6 +266,73 @@ describe('FiscalInvoicesPageContainer — form persistence', () => {
     expect(screen.queryByLabelText('Área de trabalho fiscal')).not.toBeInTheDocument()
     expect(state.saveInvoice).not.toHaveBeenCalled()
     expect(state.saveProfile).not.toHaveBeenCalled()
+  })
+
+  it.each(['invoice', 'profile'] as const)(
+    'keeps the active workspace open when dismissing an older %s form',
+    (kind) => {
+      render(<FiscalInvoicesPageContainer />)
+      const first = kind === 'invoice' ? 'Criar nota fiscal' : 'Configurar dados fiscais'
+      const second = kind === 'invoice' ? 'Configurar dados fiscais' : 'Criar nota fiscal'
+      fireEvent.click(screen.getByRole('button', { name: first }))
+      fireEvent.click(screen.getByRole('button', { name: second }))
+      fireEvent.click(
+        screen.getAllByRole('button', { name: 'Cancelar' })[kind === 'profile' ? 0 : 1],
+      )
+      expect(
+        screen.getByLabelText(kind === 'invoice' ? 'Razão social' : 'Cliente/Paciente'),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByLabelText(kind === 'invoice' ? 'Cliente/Paciente' : 'Razão social'),
+      ).not.toBeInTheDocument()
+      expect(screen.getByLabelText('Área de trabalho fiscal')).toBeInTheDocument()
+    },
+  )
+
+  it.each(['invoice', 'profile'] as const)(
+    'keeps the active workspace open after saving an older %s form',
+    async (kind) => {
+      const state = makeHookState({
+        saveInvoice: vi.fn().mockResolvedValue(undefined),
+        saveProfile: vi.fn().mockResolvedValue(undefined),
+      })
+      mockUseFiscalInvoicesPage.mockReturnValue(state)
+      render(<FiscalInvoicesPageContainer />)
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: kind === 'invoice' ? 'Criar nota fiscal' : 'Configurar dados fiscais',
+        }),
+      )
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: kind === 'invoice' ? 'Configurar dados fiscais' : 'Criar nota fiscal',
+        }),
+      )
+      await userEvent.click(
+        screen.getByRole('button', {
+          name: kind === 'invoice' ? 'Salvar rascunho' : 'Salvar dados fiscais',
+        }),
+      )
+      expect(
+        screen.queryByLabelText(kind === 'invoice' ? 'Cliente/Paciente' : 'Razão social'),
+      ).not.toBeInTheDocument()
+      expect(
+        screen.getByLabelText(kind === 'invoice' ? 'Razão social' : 'Cliente/Paciente'),
+      ).toBeInTheDocument()
+      expect(screen.getByLabelText('Área de trabalho fiscal')).toBeInTheDocument()
+    },
+  )
+
+  it('opens an empty profile form when fiscal profile data is absent', () => {
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({ profileResponse: null, summary: null }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    fireEvent.click(screen.getByRole('button', { name: 'Configurar dados fiscais' }))
+    expect(screen.getByLabelText('Razão social')).toHaveValue('')
+    expect(screen.getByLabelText('CNPJ')).toHaveValue('')
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar dados fiscais' }))
+    expect(screen.getByText('Informe a razão social.')).toBeInTheDocument()
   })
 
   it('disables profile actions while saving and restores them after failure for retry', async () => {
@@ -621,6 +696,27 @@ describe('FiscalInvoicesPageContainer — invoice list actions', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Fechar detalhes da nota fiscal' }))
     expect(setSelectedInvoice).toHaveBeenCalledWith(null)
   })
+
+  it('closes the active details workspace after its invoice finishes loading', async () => {
+    const invoice = makeInvoice()
+    const state = makeHookState({
+      invoices: [invoice],
+      total: 1,
+      loadInvoiceDetails: vi.fn().mockResolvedValue(undefined),
+    })
+    mockUseFiscalInvoicesPage.mockReturnValue(state)
+    const view = render(<FiscalInvoicesPageContainer />)
+    await userEvent.click(
+      screen.getAllByRole('button', { name: /ver detalhes da nota de joão silva/i })[0],
+    )
+    mockUseFiscalInvoicesPage.mockReturnValue({ ...state, selectedInvoice: invoice })
+    view.rerender(<FiscalInvoicesPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar detalhes da nota fiscal' }))
+    expect(state.setSelectedInvoice).toHaveBeenCalledWith(null)
+    mockUseFiscalInvoicesPage.mockReturnValue(state)
+    view.rerender(<FiscalInvoicesPageContainer />)
+    expect(screen.queryByLabelText('Área de trabalho fiscal')).not.toBeInTheDocument()
+  })
 })
 
 describe('FiscalInvoicesPageContainer — appointment picker flow', () => {
@@ -691,7 +787,7 @@ describe('FiscalInvoicesPageContainer — appointment picker flow', () => {
     expect(await screen.findByLabelText('Área de trabalho fiscal')).toBeInTheDocument()
   })
 
-  it('shows a payment-pending warning banner when the draft warns about it', async () => {
+  it('warns about pending payment and an existing invoice before creating another draft', async () => {
     mockListAppointmentsForInvoice.mockResolvedValue({
       data: [
         {
@@ -738,7 +834,7 @@ describe('FiscalInvoicesPageContainer — appointment picker flow', () => {
         paidAmountCents: null,
       },
       existingInvoice: null,
-      warnings: { paymentPending: true, hasExistingInvoice: false },
+      warnings: { paymentPending: true, hasExistingInvoice: true },
     })
 
     render(<FiscalInvoicesPageContainer />)
@@ -747,6 +843,7 @@ describe('FiscalInvoicesPageContainer — appointment picker flow', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Selecionar' }))
 
     expect(await screen.findByText('Consulta com pagamento pendente')).toBeInTheDocument()
+    expect(screen.getByText('Já existe uma nota vinculada a esta consulta')).toBeInTheDocument()
   })
 
   it('shows a draft-load error when getAppointmentInvoiceDraft rejects', async () => {

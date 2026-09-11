@@ -51,6 +51,28 @@ describe('printInvoice', () => {
     expect(window.open).toHaveBeenCalled()
   })
 
+  it('prints optional invoice and tax data as escaped text, including zero ISS', () => {
+    printInvoice({
+      ...baseInvoice,
+      invoiceNumber: 'NF-42',
+      serviceCode: '04.12',
+      issRate: 0,
+      issAmountCents: 0,
+      notes: '<b>Revisão</b> & "retorno"',
+    })
+    const document = new DOMParser().parseFromString(
+      mockWin.document.write.mock.calls[0][0],
+      'text/html',
+    )
+    expect(document.body.textContent).toContain('Nº NF-42')
+    expect(document.body.textContent).toContain('Código de serviço: 04.12')
+    expect(document.body.textContent).toContain('Alíquota ISS0%')
+    expect(document.body.textContent).toMatch(/Valor ISSR\$\s0,00/)
+    expect(document.body.textContent).toContain('<b>Revisão</b> & "retorno"')
+    expect(document.querySelector('b')).toBeNull()
+    expect(mockWin.document.close).toHaveBeenCalledOnce()
+  })
+
   it('does not throw when window.open returns null', () => {
     vi.spyOn(window, 'open').mockReturnValue(null)
     expect(() => printInvoice(baseInvoice)).not.toThrow()

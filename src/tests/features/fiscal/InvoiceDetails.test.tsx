@@ -329,6 +329,25 @@ describe('InvoiceDetails', () => {
     expect(screen.getByText(/- →/)).toBeInTheDocument()
   })
 
+  it('keeps an event without a destination status visible in the timeline', () => {
+    render(
+      <InvoiceDetails
+        invoice={makeInvoice({
+          events: [
+            makeEvent({
+              previousStatus: 'DRAFT',
+              nextStatus: null,
+              message: 'Aguardando resposta do provedor',
+            }),
+          ],
+        })}
+        onClose={vi.fn()}
+      />,
+    )
+    expect(screen.getByText(/Rascunho → -/)).toBeInTheDocument()
+    expect(screen.getByText('Aguardando resposta do provedor')).toBeInTheDocument()
+  })
+
   // ── Empty timeline state ────────────────────────────────────────────────────
 
   it('renders dashed empty state when events array is empty', () => {
