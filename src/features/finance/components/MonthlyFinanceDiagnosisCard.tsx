@@ -277,7 +277,7 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
       )}
 
       {/* Error */}
-      {error && !diagnosis && (
+      {error && (
         <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-400">
           <XCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <div>
@@ -285,7 +285,7 @@ export function MonthlyFinanceDiagnosisCard({ state, onGenerate }: Props) {
             <p className="mt-0.5 text-xs opacity-80">{error}</p>
             <button
               type="button"
-              onClick={handleGenerate}
+              onClick={diagnosis ? handleRefresh : handleGenerate}
               className="mt-2 text-xs underline hover:no-underline"
             >
               Tentar novamente

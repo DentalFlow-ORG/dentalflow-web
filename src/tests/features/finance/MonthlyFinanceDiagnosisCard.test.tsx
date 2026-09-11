@@ -101,6 +101,64 @@ function renderCard(state: DiagnosisState = idleState, onGenerate = vi.fn()) {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('MonthlyFinanceDiagnosisCard', () => {
+  it.each([
+    { profitCents: 0, margin: null, expectedMargin: '—', health: 'WARNING' as const },
+    { profitCents: 100, margin: 10, expectedMargin: '10.0%', health: 'WARNING' as const },
+    { profitCents: -100, margin: -10, expectedMargin: '-10.0%', health: 'CRITICAL' as const },
+  ])(
+    'renders a cached diagnosis with profit $profitCents and margin $margin',
+    ({ profitCents, margin, expectedMargin, health }) => {
+      renderCard({
+        ...successState,
+        diagnosis: {
+          ...mockDiagnosis,
+          financialHealth: health,
+          cached: true,
+          source: 'CACHE',
+          highlights: [],
+          risks: [],
+          recommendedActions: [],
+          financeSnapshot: {
+            ...mockDiagnosis.financeSnapshot,
+            profitCents,
+            profitMarginPercent: margin,
+            alerts: [{ type: 'LOW_DATA', severity: 'LOW', message: 'Poucos dados' }],
+          },
+        },
+      })
+      expect(screen.getByText(expectedMargin)).toBeInTheDocument()
+      expect(screen.getAllByText('Cache')).toHaveLength(2)
+      expect(screen.queryByText('Pontos positivos')).not.toBeInTheDocument()
+      expect(screen.getByText(/Ainda não há dados financeiros suficientes/)).toBeInTheDocument()
+    },
+  )
+
+  it('keeps a previous diagnosis visible and disables refresh while updating a selected month', () => {
+    const onGenerate = vi.fn()
+    const view = render(
+      <MonthlyFinanceDiagnosisCard state={successState} onGenerate={onGenerate} />,
+    )
+    fireEvent.change(screen.getByTestId('month-picker'), { target: { value: '2026-05' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar diagnóstico' }))
+    expect(onGenerate).toHaveBeenCalledWith('2026-05', true)
+    view.rerender(
+      <MonthlyFinanceDiagnosisCard
+        state={{ ...successState, isGenerating: true }}
+        onGenerate={onGenerate}
+      />,
+    )
+    expect(screen.getByRole('button', { name: 'Atualizar diagnóstico' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar diagnóstico' }))
+    expect(onGenerate).toHaveBeenCalledOnce()
+    expect(screen.getByText(mockDiagnosis.summary)).toBeInTheDocument()
+  })
+  it('shows refresh errors while preserving the previous diagnosis and retries the refresh', () => {
+    const { onGenerate } = renderCard({ ...successState, error: 'Não foi possível atualizar.' })
+    expect(screen.getByText('Não foi possível atualizar.')).toBeInTheDocument()
+    expect(screen.getByText(mockDiagnosis.summary)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
+    expect(onGenerate).toHaveBeenCalledWith('2026-06', true)
+  })
   // ── Header ─────────────────────────────────────────────────────────────────
 
   it('renders the title', () => {
@@ -203,8 +261,10 @@ describe('MonthlyFinanceDiagnosisCard', () => {
   })
 
   it('error state has a retry link', () => {
-    renderCard(errorState)
+    const { onGenerate } = renderCard(errorState)
     expect(screen.getByText('Tentar novamente')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
+    expect(onGenerate).toHaveBeenCalledWith('2026-06', false)
   })
 
   // ── Success state ──────────────────────────────────────────────────────────
