@@ -1,5 +1,19 @@
 # DentalFlow frontend hardening handoff — 2026-09-11
 
+## Active continuation from 2f21c07
+
+In progress on dev/yago. Starting full baseline: 383 suites / 5,060 tests; coverage 91.58% statements, 89.47% branches, 88.51% functions, 92.18% lines.
+
+Scheduling: +65 tests; complete domain run passed 46 suites / 623 tests, with S99.20% / B98.36% / F97.96% / L99.71%. All remaining scheduling gaps have exact D/E explanations in the inventory; calendar-return-search is covered by existing router tests outside the domain command. An initial aggregate payment-test timeout was fixed by entering form values in one change event; the entire domain was rerun successfully. Focused checks cover transitions, payment/clinical actions, calendars, exception recovery, filters, mobile lifecycle and table keyboard interactions. ProtectedAppRoute: +1 access test, 100% in all four metrics.
+
+Clinical: a new stateful regression confirmed that successful autosave left its saved indicator stuck after clearing the draft. The indicator timer now survives that expected draft-effect cleanup while preserving newer pending/saving states; request stale-response guards remain intact. Focused autosave tests pass (12 tests); the sole remaining timer-ref guard has an exact E rationale in the inventory.
+
+Clinical domain: 40 suites / 660 tests passed; +59 tests relative to this continuation start. Domain S/B/F/L: 97.69% / 96.24% / 98.88% / 99.04%. Closed meaningful editor, autosave, list, template, timeline, attachment, print, odontogram and dictation gaps. Exact remaining D/E/F explanations follow. Confirmed fixes: stuck autosave indicator; prior patient print state; expired dictation responses/timers; duplicate pending microphone requests; expired recorder stop events. Typecheck/Biome results are recorded in the handoff. Global coverage remains the starting measurement until a full rerun.
+
+Typecheck, Biome and whitespace checks passed through the complete clinical domain batch. Full global validation/coverage remain pending. No push, merge, branch switch, exclusions, dependency changes or history rewrite. Browser QA has not been run.
+
+The sections below are historical results from the preceding continuation, retained until final validation replaces them. Use the active section and inventory for current progress.
+
 **PARTIAL — substantive meaningful coverage gaps remain.**
 
 ## Current state
