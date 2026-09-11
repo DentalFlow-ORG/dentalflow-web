@@ -24,17 +24,26 @@ export function StockMovementHistory({ product, refreshKey }: StockMovementHisto
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey reloads history after a movement without changing the product ID.
   useEffect(() => {
-    if (refreshKey < 0) return // never true; declares refreshKey as a dep
+    let isCurrent = true
     setIsLoading(true)
     setError(null)
 
     listProductStockMovements(product.id, { page: 1, limit: MOVEMENT_HISTORY_LIMIT })
-      .then((response) => setMovements(response.data))
+      .then((response) => {
+        if (isCurrent) setMovements(response.data)
+      })
       .catch(() => {
+        if (!isCurrent) return
         setError('Não foi possível carregar o histórico de movimentações.')
       })
-      .finally(() => setIsLoading(false))
+      .finally(() => {
+        if (isCurrent) setIsLoading(false)
+      })
+    return () => {
+      isCurrent = false
+    }
   }, [product.id, refreshKey])
 
   if (isLoading) {

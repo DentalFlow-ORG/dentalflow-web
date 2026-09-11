@@ -1,4 +1,4 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { act, render, screen } from '@/test-utils/render-utils'
 import { vi } from 'vitest'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -82,6 +82,53 @@ function mockResolved(movements: StockMovement[]) {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('StockMovementHistory', () => {
+  it('recovers from a failed history request on refresh and displays movement notes', async () => {
+    mockList.mockRejectedValueOnce(new Error('offline'))
+    const { rerender } = render(<StockMovementHistory product={buildProduct()} refreshKey={0} />)
+    await screen.findByText('Não foi possível carregar o histórico de movimentações.')
+    mockList.mockResolvedValueOnce({
+      data: [buildMovement({ notes: 'Lote conferido' })],
+      total: 1,
+      page: 1,
+      limit: 8,
+    })
+    rerender(<StockMovementHistory product={buildProduct()} refreshKey={1} />)
+    expect(await screen.findByText('Lote conferido')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Não foi possível carregar o histórico de movimentações.'),
+    ).not.toBeInTheDocument()
+  })
+  it.each(['success', 'failure'] as const)(
+    'ignores the previous product history %s after switching products',
+    async (outcome) => {
+      let resolve!: (value: Awaited<ReturnType<typeof listProductStockMovements>>) => void
+      let reject!: (error: Error) => void
+      mockList.mockReturnValueOnce(
+        new Promise((yes, no) => {
+          resolve = yes
+          reject = no
+        }),
+      )
+      const { rerender } = render(<StockMovementHistory product={buildProduct()} refreshKey={0} />)
+      mockList.mockResolvedValueOnce({
+        data: [buildMovement({ id: 'current', productId: 'prod-2', reason: 'Movimentação atual' })],
+        total: 1,
+        page: 1,
+        limit: 8,
+      })
+      rerender(<StockMovementHistory product={buildProduct({ id: 'prod-2' })} refreshKey={0} />)
+      await screen.findByText('Movimentação atual')
+      await act(async () => {
+        if (outcome === 'success') resolve({ data: [buildMovement()], total: 1, page: 1, limit: 8 })
+        else reject(new Error('Histórico antigo indisponível'))
+      })
+      expect(screen.getByText('Movimentação atual')).toBeInTheDocument()
+      expect(screen.queryByText('Reposição mensal')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Não foi possível carregar o histórico de movimentações.'),
+      ).not.toBeInTheDocument()
+    },
+  )
   beforeEach(() => {
     vi.clearAllMocks()
   })
