@@ -8,7 +8,7 @@ import {
   makeOwnerUser,
 } from '@/test-utils/factories/user.factory'
 import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
-import { act, fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen, userEvent, waitFor } from '@/test-utils/render-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockShowAlert = vi.fn()
@@ -258,5 +258,104 @@ describe('conditional buttons', () => {
       />,
     )
     expect(screen.queryByRole('button', { name: /Marcar como pendente/i })).not.toBeInTheDocument()
+  })
+})
+
+describe('payment editing workflow', () => {
+  beforeEach(() => {
+    setMockAuthState({ user: makeAssistantUser(), isAuthenticated: true })
+    vi.mocked(updateAppointmentPayment).mockReset().mockResolvedValue(makeAppointment())
+  })
+
+  it('validates partial payments, preserves entered values on failure and retries', async () => {
+    vi.mocked(updateAppointmentPayment).mockRejectedValueOnce(new Error('offline'))
+    const onUpdated = vi.fn()
+    render(<AppointmentPaymentSection appointment={makeAppointment()} onUpdated={onUpdated} />)
+    const user = userEvent.setup()
+    await user.click(screen.getAllByRole('combobox')[0])
+    await user.click(screen.getByRole('option', { name: 'Pago parcialmente' }))
+    await user.click(screen.getByRole('button', { name: 'Salvar pagamento parcial' }))
+    expect(updateAppointmentPayment).not.toHaveBeenCalled()
+    expect(mockShowAlert).toHaveBeenLastCalledWith(
+      expect.objectContaining({ title: 'Valor obrigatório' }),
+    )
+    const [estimated, paid] = screen.getAllByPlaceholderText('Ex: 250,00')
+    await user.type(estimated, '250,00')
+    await user.type(paid, '125,50')
+    await user.click(screen.getAllByRole('combobox')[1])
+    await user.click(screen.getByRole('option', { name: 'PIX' }))
+    await user.type(
+      screen.getByPlaceholderText('Observações sobre o pagamento...'),
+      '  Primeira parcela  ',
+    )
+    await user.click(screen.getByRole('button', { name: 'Salvar pagamento parcial' }))
+    await waitFor(() =>
+      expect(mockShowAlert).toHaveBeenLastCalledWith(expect.objectContaining({ title: 'Erro' })),
+    )
+    expect(onUpdated).not.toHaveBeenCalled()
+    expect(paid).toHaveValue('125,50')
+    await user.click(screen.getByRole('button', { name: 'Salvar pagamento parcial' }))
+    await waitFor(() => expect(onUpdated).toHaveBeenCalledOnce())
+    expect(updateAppointmentPayment).toHaveBeenLastCalledWith('appt-1', {
+      paymentStatus: 'PARTIALLY_PAID',
+      estimatedAmountCents: 25000,
+      paidAmountCents: 12550,
+      paymentMethod: 'PIX',
+      paymentDate: undefined,
+      paymentNotes: 'Primeira parcela',
+    })
+  })
+
+  it('cancels collection for a canceled appointment', async () => {
+    render(
+      <AppointmentPaymentSection
+        appointment={makeAppointment({ status: 'CANCELED' })}
+        onUpdated={vi.fn()}
+      />,
+    )
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Cancelar cobrança' }))
+    await waitFor(() =>
+      expect(updateAppointmentPayment).toHaveBeenCalledWith(
+        'appt-1',
+        expect.objectContaining({ paymentStatus: 'CANCELED' }),
+      ),
+    )
+  })
+
+  it('saves a refunded status without requiring a paid amount', async () => {
+    render(<AppointmentPaymentSection appointment={makeAppointment()} onUpdated={vi.fn()} />)
+    const user = userEvent.setup()
+    await user.click(screen.getAllByRole('combobox')[0])
+    await user.click(screen.getByRole('option', { name: 'Reembolsado' }))
+    await user.click(screen.getByRole('button', { name: 'Confirmar pagamento' }))
+    await waitFor(() =>
+      expect(updateAppointmentPayment).toHaveBeenCalledWith(
+        'appt-1',
+        expect.objectContaining({ paymentStatus: 'REFUNDED', paidAmountCents: undefined }),
+      ),
+    )
+  })
+
+  it('shows payment details to the dentist without exposing editable controls', () => {
+    setMockAuthState({ user: makeDentistUser(), isAuthenticated: true })
+    render(
+      <AppointmentPaymentSection
+        appointment={makeAppointment({
+          estimatedAmountCents: 25000,
+          paidAmountCents: 0,
+          paymentMethod: 'PIX',
+          paymentDate: '2026-05-26',
+          paymentNotes: 'Conferido',
+        })}
+        onUpdated={vi.fn()}
+      />,
+    )
+    expect(screen.getByText('R$ 250,00')).toBeInTheDocument()
+    expect(screen.getByText('R$ 0,00')).toBeInTheDocument()
+    expect(screen.getByText('PIX')).toBeInTheDocument()
+    expect(screen.getByText('26/05/2026')).toBeInTheDocument()
+    expect(screen.getByText('Conferido')).toBeInTheDocument()
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 })
