@@ -45,11 +45,13 @@ vi.mock('@/features/scheduling/components/appointments/AppointmentDrawer', () =>
     readOnly,
     allowedTransitions,
     onStatusChange,
+    onClose,
   }: {
     appointment: { id: string } | null
     readOnly?: boolean
     allowedTransitions?: string[]
     onStatusChange: (id: string, status: string) => void
+    onClose: () => void
   }) => {
     if (!appointment) return null
     return (
@@ -57,7 +59,11 @@ vi.mock('@/features/scheduling/components/appointments/AppointmentDrawer', () =>
         data-testid="appointment-drawer"
         data-readonly={readOnly ? 'true' : 'false'}
         data-allowed={allowedTransitions?.join(',') ?? ''}
+        data-appointment-id={appointment.id}
       >
+        <button type="button" onClick={onClose}>
+          Fechar consulta
+        </button>
         {!readOnly && allowedTransitions?.includes('COMPLETED') && (
           <button type="button" onClick={() => onStatusChange(appointment.id, 'COMPLETED')}>
             Concluir consulta
@@ -288,6 +294,49 @@ describe('DentistHomePageContainer — next appointment hero', () => {
 // ── Agenda do dia section ─────────────────────────────────────────────────────
 
 describe('DentistHomePageContainer — agenda do dia', () => {
+  it('orders missing times safely and opens the selected consultation from the agenda', async () => {
+    const service = {
+      id: 'cleaning',
+      name: 'Limpeza',
+      durationMinutes: null,
+      priceFrom: null,
+      priceTo: null,
+    }
+    mockListAppointments.mockResolvedValue([
+      makeAppointment({
+        ...OWN_APPT,
+        id: 'late',
+        patientName: 'Tarde',
+        startTime: '17:00',
+        status: 'CONFIRMED',
+        service,
+      }),
+      makeAppointment({
+        ...OWN_APPT,
+        id: 'missing',
+        patientName: 'Sem horário',
+        startTime: null,
+        service,
+      }),
+      makeAppointment({
+        ...OWN_APPT,
+        id: 'missing-2',
+        patientName: 'Sem horário dois',
+        startTime: null,
+      }),
+    ])
+    render(<DentistHomePageContainer />)
+    await screen.findByRole('button', { name: /Tarde/ })
+    const rows = screen.getAllByRole('listitem')
+    expect(rows[0]).toHaveTextContent('Sem horário')
+    expect(rows[1]).toHaveTextContent('Sem horário dois')
+    expect(rows[2]).toHaveTextContent('Tarde')
+    fireEvent.click(screen.getByRole('button', { name: /Tarde/ }))
+    expect(screen.getByTestId('appointment-drawer')).toHaveAttribute('data-appointment-id', 'late')
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar consulta' }))
+    expect(screen.queryByTestId('appointment-drawer')).not.toBeInTheDocument()
+  })
+
   it('renders the "Agenda do dia" section heading', async () => {
     render(<DentistHomePageContainer />)
     await waitFor(() => {

@@ -39,6 +39,8 @@ Removed StockMovementHistory's unreachable refreshKey < 0 branch: the sole produ
 
 Admin continuation: **17 suites / 307 tests passed**, +17 tests since the inventory checkpoint. Domain S/B/F/L: **99.21% / 99.44% / 98.07% / 99.15%**. All administrative A/B inventory entries are closed. Covered restricted access for OWNER/DENTIST/ASSISTANT and absent authenticated user, preservation of other records during editing, generic reload failure/retry, obsolete initial-request alert suppression, event filter clearing, keyboard activation and nested actions, edit cancellation, absent subscriptions, singular trial day and missing chart payload values. Two RED regressions confirmed duplicate Escape dismissal in UserFormModal and ClinicFormModal; both now dismiss once through Radix Root. Remaining UserFormModal clinicId fallbacks are unreachable after required-clinic validation; four thin route pages remain D/F. Typecheck, Biome and diff checks passed. The global coverage checkpoint predates inventory/admin changes; full convergence validation remains pending.
 
+Dashboard continuation: **7 suites / 142 tests passed**, +9 tests. Domain S/B/F/L: **98.29% / 98.15% / 94.49% / 99.03%**. Closed assistant pending/partial payments, missing times and capped ordering, service display, error presentation, read-only detail lifecycle and notification dismissal; dentist agenda ordering/detail lifecycle; owner negative balance, empty day and singular return reminder; chart hover tooltip counts, selection, touch/desktop differences and single-status data. Existing role boundaries and dentist production filtering remain tested. No production changes. Remaining complete-map fallbacks, disabled-button guards, empty callbacks and thin pages have exact D/E/F classifications. New fixtures initially used two incorrect contract fields and one ambiguous button name; corrected tests passed. A touch preventDefault assertion was replaced with observable selection assertions because React uses passive touch listeners; real touch behavior remains F. Typecheck/Biome/diff checks passed; complete global validation is still pending.
+
 Priority order: P0 role/access/consent boundaries; P1 scheduling, clinical correctness and finance/fiscal calculations; P2 forms, mutations, persistence and stale-response recovery; P3 interaction, filtering and lifecycle; P4 nullable display/formatting; P5 marketing/static presentation. Mixed files close higher-priority behavior first. Original location IDs remain stable references, not an alphabetical work queue.
 
 ## 1. src/features/clinical-records/components/VoiceDictationCard.tsx
@@ -205,42 +207,7 @@ S/B/F/L: 0.00% / 0.00% / 0.00% / 0.00%.
 
 ## 7. src/features/dashboard/components/TodayAppointmentsChart.tsx
 
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 75.47% / 76.62% / 64.70% / 77.27%.
-
-- Uncovered lines: 53-56, 79-80, 165-166, 183-184.
-- Uncovered functions: `CustomTooltip@52`; `ActiveSector@70`; `(anonymous_7)@165`; `(anonymous_8)@166`; `(anonymous_9)@183`; `(anonymous_10)@184`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 53:2 b2.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active \|\| !payload?.length) return null` |
-| 53:2 b2.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active \|\| !payload?.length) return null` |
-| 53:6 b3.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active \|\| !payload?.length) return null` |
-| 53:17 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active \|\| !payload?.length) return null` |
-| 63:39 b4.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{row.count} {row.count === 1 ? 'consulta' : 'consultas'}` |
-| 63:52 b4.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{row.count} {row.count === 1 ? 'consulta' : 'consultas'}` |
-| 72:9 b5.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `cx = 0,` |
-| 73:9 b6.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `cy = 0,` |
-| 74:18 b7.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `innerRadius = 0,` |
-| 75:18 b8.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `outerRadius = 0,` |
-| 76:17 b9.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `startAngle = 0,` |
-| 77:15 b10.0 default-arg (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `endAngle = 0,` |
-| 177:55 b15.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `paddingAngle={pieRows.length > 1 ? 2 : 0}` |
-| 183:30 b17.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onMouseEnter={isHoverDevice ? (_, index) => setHoveredIndex(index) : undefined}` |
-| 184:30 b18.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `onMouseLeave={isHoverDevice ? () => setHoveredIndex(null) : undefined}` |
-| 247:20 b29.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active) return` |
-| 253:20 b30.1 if (condition) | B: exercise the uncovered conditional/data alternative; remains open. | `if (isHoverDevice) setSelectedIndex(null)` |
-| 259:20 b31.0 if (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `if (!active) return` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 52 CustomTooltip | `}) { if (!active \|\| !payload?.length) return null const row = payload[0].payload` |
-| 70 ActiveSector | `function ActiveSector(props: PieSectorDataItem) { const { cx = 0,` |
-| 165 (anonymous_7) | `onMouseDown={(e) => e.preventDefault()} onTouchStart={(e) => e.preventDefault()} >` |
-| 166 (anonymous_8) | `onTouchStart={(e) => e.preventDefault()} > <ResponsiveContainer width="100%" height={300}>` |
-| 183 (anonymous_9) | `onMouseEnter={isHoverDevice ? (_, index) => setHoveredIndex(index) : undefined} onMouseLeave={isHoverDevice ? () => setHoveredIndex(null) : undefined} >` |
-| 184 (anonymous_10) | `onMouseLeave={isHoverDevice ? () => setHoveredIndex(null) : undefined} > {pieRows.map((row) => (` |
+Classification: **E/F**. Hover tooltips, active sector callback, singular/plural counts, single-status datasets, selection and dismissal are tested. E: guards at lines 247 and 259 require inactive legend rows; those rows use disabled buttons, whose React mouse-enter/click handlers are suppressed. Disabled behavior is tested without bypassing native controls. F: Recharts sector geometry, resizing, physical hover/touch and passive touch-event cancellation require browser QA; the chart double only certifies application callback wiring.
 
 ## 8. src/features/clinical-records/containers/ClinicalRecordEditorContainer.tsx
 
@@ -413,39 +380,7 @@ S/B/F/L: 70.42% / 81.42% / 88.88% / 72.46%.
 
 ## 18. src/features/dashboard/containers/DashboardPageContainer.tsx
 
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 84.37% / 77.58% / 65.21% / 83.87%.
-
-- Uncovered lines: 85, 180, 276, 309, 313.
-- Uncovered functions: `(anonymous_5)@85`; `(anonymous_8)@180`; `(anonymous_9)@181`; `(anonymous_10)@182`; `(anonymous_16)@276`; `(anonymous_17)@284`; `(anonymous_19)@309`; `(anonymous_20)@313`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 85:25 b1.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))` |
-| 85:40 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))` |
-| 85:58 b2.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))` |
-| 85:73 b2.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))` |
-| 96:54 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `(a.paymentStatus === 'PAYMENT_PENDING' \|\| a.paymentStatus === 'PARTIALLY_PAID') &&` |
-| 118:16 b5.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{error && <InlineFeedback>{error}</InlineFeedback>}` |
-| 209:76 b12.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? '${appointments.length} consulta${appointments.length !== 1 ? 's' : ''} aguardando confirmação'` |
-| 240:22 b14.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="block truncate text-xs text-muted-foreground">` |
-| 307:8 b22.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<ul className="mt-4 divide-y divide-border">` |
-| 319:19 b23.0 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{appt.service && (` |
-| 320:20 b23.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="block truncate text-xs text-muted-foreground">` |
-| 360:47 b25.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{appt.profile?.displayName ? ' · ${appt.profile.displayName}' : ''}` |
-| 370:61 b27.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{appt.paymentStatus === 'PARTIALLY_PAID' ? 'Parcial' : 'Pendente'}` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 85 (anonymous_5) | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')) .slice(0, 8), [appointments],` |
-| 180 (anonymous_8) | `onClose={() => setDrawerAppointment(null)} onStatusChange={() => {}} onCancelRequest={() => {}}` |
-| 181 (anonymous_9) | `onStatusChange={() => {}} onCancelRequest={() => {}} />` |
-| 182 (anonymous_10) | `onCancelRequest={() => {}} /> </AppPage>` |
-| 276 (anonymous_16) | `onClose={() => setNotifyTarget(null)} template={confirmationTemplate} appointmentId={notifyTarget?.id ?? ''}` |
-| 284 (anonymous_17) | `onSent={() => {}} /> )}` |
-| 309 (anonymous_19) | `<li key={appt.id}> <button type="button"` |
-| 313 (anonymous_20) | `onClick={() => onAppointmentClick(appt)} > <span className="min-w-0">` |
+Classification: **D/E**. All meaningful branches are covered. Lines 181–182 are empty status/cancel callbacks on an explicitly readOnly AppointmentDrawer; those actions are not rendered. Line 284 is an intentionally empty onSent callback: notification sending has no dashboard state mutation. Calling empty callbacks would not prove product behavior.
 
 ## 20. src/features/clinical-records/components/ImageAttachmentPanel.tsx
 
@@ -659,24 +594,7 @@ S/B/F/L: 97.67% / 84.48% / 95.83% / 97.61%.
 
 ## 31. src/features/dashboard/containers/ProductivityCenter.tsx
 
-Classification: **B**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 100.00% / 87.50% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 66:87 b0.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', cls[priority] ?? cls.LOW)}` |
-| 68:27 b1.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `{labels[priority] ?? priority}` |
-| 110:30 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `const c = config[status] ?? { label: status, cls: 'bg-muted text-muted-foreground' }` |
-| 181:8 b5.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? 'Nenhuma consulta agendada para hoje'` |
-| 229:8 b10.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `: 'Consultas concluídas sem pagamento registrado'` |
-| 289:44 b15.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={monthNet >= 0 ? 'success' : 'danger'}` |
-| 294:53 b16.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={pendingReceivables > 0 ? 'warning' : 'neutral'}` |
-| 313:46 b18.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `? '${count} paciente${count === 1 ? '' : 's'} sem consulta há mais de 60 dias'` |
-| 462:70 b32.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={data.today.pendingPaymentsCount > 0 ? 'warning' : 'neutral'}` |
+Classification: **E**. Lines 66 and 68 are complete priority-map fallbacks: the sole input is ProductivityAction.priority, whose closed union is HIGH/MEDIUM/LOW, all tested. Line 110 is the complete stock-status map fallback: CriticalProduct.status permits exactly LOW/EMPTY/EXPIRING/EXPIRED, all tested. No malformed values are fabricated outside the public contracts.
 
 ## 32. src/features/marketing/components/VideoSection.tsx
 
@@ -950,26 +868,7 @@ S/B/F/L: 100.00% / 94.59% / 100.00% / 100.00%.
 
 ## 56. src/features/dashboard/containers/DentistHomePageContainer.tsx
 
-Classification: **A**. remaining feature callbacks, optional data and conditional UI are not all exercised. Keep as open scenario coverage; do not exclude the whole file.
-
-S/B/F/L: 96.55% / 90.00% / 88.88% / 95.83%.
-
-- Uncovered lines: 213, 279.
-- Uncovered functions: `(anonymous_23)@213`; `(anonymous_24)@279`; `(anonymous_25)@281`.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 81:59 b3.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `() => [...appointments].sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')),` |
-| 81:92 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `() => [...appointments].sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? '')),` |
-| 145:49 b14.0 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `tone={statusCounts.confirmed > 0 ? 'success' : 'neutral'}` |
-| 220:26 b19.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<span className="block truncate text-xs text-muted-foreground">` |
-| 313:12 b24.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `<p className="mt-0.5 truncate text-sm text-muted-foreground">` |
-
-| Function location | Source entry / behavior still to execute |
-| --- | --- |
-| 213 (anonymous_23) | `onClick={() => setDrawerAppointment(appt)} > <span className="min-w-0">` |
-| 279 (anonymous_24) | `onClose={() => setDrawerAppointment(null)} onStatusChange={handleStatusChange} onCancelRequest={() => {}}` |
-| 281 (anonymous_25) | `onCancelRequest={() => {}} /> </AppPage>` |
+Classification: **D/E**. All meaningful branches are covered. Line 281 is an empty cancellation callback; DENTIST_ALLOWED_TRANSITIONS only admits COMPLETED/NO_SHOW, and tests verify that CANCELED is absent. No reachable cancellation action exists in this dashboard.
 
 ## 57. src/features/inventory/hooks/usePersistedCopilot.ts
 
@@ -1595,19 +1494,6 @@ S/B/F/L: 100.00% / 85.71% / 100.00% / 100.00%.
 | Location / branch arm | Class / technical requirement | Source condition or branch |
 | --- | --- | --- |
 | 21:25 b2.1 cond-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `return qs ? '?${qs}' : ''` |
-
-## 140. src/features/dashboard/hooks/useDashboardPage.ts
-
-Classification: **B**. remaining public behavior or defensive/fallback branches need targeted cases and source-level reachability review. They are not automatically waived.
-
-S/B/F/L: 100.00% / 92.85% / 100.00% / 100.00%.
-
-- Uncovered lines: none.
-- Uncovered functions: none.
-
-| Location / branch arm | Class / technical requirement | Source condition or branch |
-| --- | --- | --- |
-| 58:73 b4.1 binary-expr (arm) | B: exercise the uncovered conditional/data alternative; remains open. | `.sort((a, b) => (a.startTime ?? '').localeCompare(b.startTime ?? ''))` |
 
 ## 147. src/features/fiscal/utils/invoice-format.ts
 

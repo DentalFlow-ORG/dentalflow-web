@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, within } from '@/test-utils/render-utils'
 
 import { DashboardPageContainer } from '@/features/dashboard/containers/DashboardPageContainer'
 import { DEFAULT_APPT_DATE, makeAppointment } from '@/test-utils/factories/appointment.factory'
@@ -32,6 +32,25 @@ vi.mock('@/features/dashboard/containers/ProductivityCenter', () => ({
 }))
 
 const mockUseNotificationTemplates = vi.fn()
+vi.mock('@/features/scheduling/components/appointments/AppointmentDrawer', () => ({
+  AppointmentDrawer: ({
+    appointment,
+    readOnly,
+    onClose,
+  }: {
+    appointment: { patientName: string } | null
+    readOnly: boolean
+    onClose: () => void
+  }) =>
+    appointment ? (
+      <div role="dialog" aria-label="Detalhes da consulta" data-readonly={String(readOnly)}>
+        {appointment.patientName}
+        <button type="button" onClick={onClose}>
+          Fechar consulta
+        </button>
+      </div>
+    ) : null,
+}))
 vi.mock('@/features/notifications/hooks/useNotificationTemplates', () => ({
   useNotificationTemplates: () => mockUseNotificationTemplates(),
 }))
@@ -45,11 +64,13 @@ vi.mock('@/features/notifications/components/NotificationSendDrawer', () => ({
     appointmentId,
     patientPhone,
     template,
+    onClose,
   }: {
     open: boolean
     appointmentId: string
     patientPhone: string
     template: { slug: string } | null
+    onClose: () => void
   }) =>
     open ? (
       <div
@@ -57,7 +78,11 @@ vi.mock('@/features/notifications/components/NotificationSendDrawer', () => ({
         data-appointment-id={appointmentId}
         data-patient-phone={patientPhone}
         data-template={template?.slug ?? ''}
-      />
+      >
+        <button type="button" onClick={onClose}>
+          Fechar envio
+        </button>
+      </div>
     ) : null,
 }))
 
@@ -222,6 +247,59 @@ describe('DashboardPageContainer — ASSISTANT KPI cards', () => {
 // ── ASSISTANT dashboard — confirmations section ───────────────────────────────
 
 describe('DashboardPageContainer — ASSISTANT confirmations section', () => {
+  it('sorts pending confirmations by time, handles missing times and caps the list at eight', () => {
+    const appointments = [
+      makeAppointment({ id: 'late', patientName: 'Último horário', startTime: '18:00' }),
+      makeAppointment({ id: 'missing', patientName: 'Sem horário', startTime: null }),
+      ...Array.from({ length: 8 }, (_, index) =>
+        makeAppointment({
+          id: `slot-${index}`,
+          patientName: `Paciente ${index}`,
+          startTime: `0${index}:00`,
+        }),
+      ),
+    ]
+    mockUseDashboardPage.mockReturnValue(makeDefaultDashboard({ appointments }))
+    render(<DashboardPageContainer />)
+    const rows = screen.getAllByRole('listitem')
+    expect(rows).toHaveLength(8)
+    expect(rows[0]).toHaveTextContent('Sem horário')
+    expect(rows[1]).toHaveTextContent('Paciente 0')
+    expect(screen.queryByText('Último horário')).not.toBeInTheDocument()
+    expect(screen.getByText('8 consultas aguardando confirmação')).toBeInTheDocument()
+  })
+
+  it('opens upcoming appointments with optional service data and closes the read-only drawer', () => {
+    const setDrawerAppointment = vi.fn()
+    const appointment = makeAppointment({
+      patientName: 'Ana',
+      status: 'CONFIRMED',
+      service: {
+        id: 'service-1',
+        name: 'Limpeza',
+        durationMinutes: null,
+        priceFrom: null,
+        priceTo: null,
+      },
+    })
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({
+        upcomingAppointments: [appointment, makeAppointment({ id: 'other', patientName: 'Bruna' })],
+        setDrawerAppointment,
+      }),
+    )
+    const { rerender } = render(<DashboardPageContainer />)
+    fireEvent.click(screen.getByText('Ana'))
+    expect(setDrawerAppointment).toHaveBeenCalledWith(appointment)
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({ drawerAppointment: appointment, setDrawerAppointment }),
+    )
+    rerender(<DashboardPageContainer />)
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-readonly', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar consulta' }))
+    expect(setDrawerAppointment).toHaveBeenLastCalledWith(null)
+  })
+
   it('renders the "A confirmar" section heading', () => {
     render(<DashboardPageContainer />)
     expect(screen.getByRole('heading', { name: /^a confirmar$/i })).toBeInTheDocument()
@@ -232,6 +310,13 @@ describe('DashboardPageContainer — ASSISTANT confirmations section', () => {
       appointmentDate: DEFAULT_APPT_DATE,
       status: 'PENDING',
       patientName: 'Paciente Pendente',
+      service: {
+        id: 'cleaning',
+        name: 'Limpeza de confirmação',
+        durationMinutes: null,
+        priceFrom: null,
+        priceTo: null,
+      },
     })
     mockUseDashboardPage.mockReturnValue(
       makeDefaultDashboard({
@@ -241,6 +326,7 @@ describe('DashboardPageContainer — ASSISTANT confirmations section', () => {
     )
     render(<DashboardPageContainer />)
     expect(screen.getByText('Paciente Pendente')).toBeInTheDocument()
+    expect(screen.getByText('Limpeza de confirmação')).toBeInTheDocument()
   })
 
   it('shows empty state when no pending confirmations', () => {
@@ -347,6 +433,8 @@ describe('DashboardPageContainer — ASSISTANT inline WhatsApp action', () => {
     expect(drawer.dataset.appointmentId).toBe('appt-pending-phone')
     expect(drawer.dataset.patientPhone).toBe('+5511999999999')
     expect(drawer.dataset.template).toBe('appointment_confirmation_request')
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar envio' }))
+    expect(screen.queryByTestId('notification-send-drawer')).not.toBeInTheDocument()
   })
 
   it('does not open the drawer-based flow when the inline action is clicked', () => {
@@ -401,6 +489,37 @@ describe('DashboardPageContainer — ASSISTANT inline WhatsApp action', () => {
 // ── ASSISTANT dashboard — pending payments section ────────────────────────────
 
 describe('DashboardPageContainer — ASSISTANT pending payments section', () => {
+  it('includes partial payments and excludes canceled, pending and paid appointments', () => {
+    const partial = makeAppointment({
+      id: 'partial',
+      patientName: 'Pagamento parcial',
+      status: 'CONFIRMED',
+      paymentStatus: 'PARTIALLY_PAID',
+      estimatedAmountCents: 20000,
+      profile: { id: 'dentist', displayName: 'Dra. Ana', userId: null },
+    })
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({
+        appointments: [
+          partial,
+          makeAppointment({ id: 'canceled', status: 'CANCELED', patientName: 'Cancelado' }),
+          makeAppointment({
+            id: 'paid',
+            status: 'COMPLETED',
+            paymentStatus: 'PAID',
+            patientName: 'Pago',
+          }),
+        ],
+      }),
+    )
+    render(<DashboardPageContainer />)
+    const row = screen.getByText('Pagamento parcial').closest('li')!
+    expect(within(row).getByText('Parcial')).toBeInTheDocument()
+    expect(row).toHaveTextContent('Dra. Ana')
+    expect(row).toHaveTextContent(/R\$\s*200,00/)
+    expect(screen.queryByText('Cancelado')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pago')).not.toBeInTheDocument()
+  })
   it('renders the "Pagamentos pendentes" section heading', () => {
     render(<DashboardPageContainer />)
     expect(screen.getByRole('heading', { name: /pagamentos pendentes/i })).toBeInTheDocument()
@@ -441,6 +560,17 @@ describe('DashboardPageContainer — ASSISTANT pending payments section', () => 
 // ── ASSISTANT dashboard — loading state ───────────────────────────────────────
 
 describe('DashboardPageContainer — ASSISTANT loading state', () => {
+  it('presents the load error while preserving operational navigation', () => {
+    mockUseDashboardPage.mockReturnValue(
+      makeDefaultDashboard({ error: 'Não foi possível carregar a agenda.' }),
+    )
+    render(<DashboardPageContainer />)
+    expect(screen.getByText('Não foi possível carregar a agenda.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Pacientes' })).toHaveAttribute(
+      'href',
+      '/app/pacientes',
+    )
+  })
   it('shows loading card while data loads', () => {
     mockUseDashboardPage.mockReturnValue(makeDefaultDashboard({ isLoading: true }))
     render(<DashboardPageContainer />)

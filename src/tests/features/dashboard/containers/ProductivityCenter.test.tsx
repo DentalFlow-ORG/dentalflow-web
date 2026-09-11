@@ -56,6 +56,52 @@ beforeEach(() => {
 })
 
 describe('ProductivityCenter — populated operational data', () => {
+  it('shows an empty day, a negative monthly balance and one patient due for return', () => {
+    const baseline = makeProductivitySummary()
+    show({
+      today: {
+        ...baseline.today,
+        appointmentsTotal: 0,
+        appointmentsConfirmed: 0,
+        appointmentsPending: 0,
+        pendingPaymentsCount: 0,
+        pendingPaymentsAmountCents: 0,
+      },
+      finance: { monthIncome: 0, monthExpenses: 500, monthNet: -500, pendingReceivables: 0 },
+      patients: {
+        withoutReturnCount: 1,
+        examples: [{ patientName: 'Ana retorno', patientPhone: null, lastVisit: null }],
+      },
+    })
+    expect(screen.getByText('Nenhuma consulta agendada para hoje')).toBeInTheDocument()
+    expect(screen.getByText(/-R\$\s*500,00/)).toBeInTheDocument()
+    expect(screen.getByText('1 paciente sem consulta há mais de 60 dias')).toBeInTheDocument()
+    expect(screen.getByText('Ana retorno')).toBeInTheDocument()
+    expect(screen.getByText('Nenhum pagamento pendente.')).toBeInTheDocument()
+  })
+
+  it('explains completed appointments with no recorded payment amount', () => {
+    show({
+      today: { ...makeProductivitySummary().today, pendingPaymentsAmountCents: 0 },
+      pendingPaymentAppointments: [
+        {
+          id: 'unpriced',
+          patientName: 'Sem valor',
+          patientPhone: null,
+          appointmentDate: '2026-06-04',
+          startTime: '10:00',
+          estimatedAmountCents: null,
+          paidAmountCents: null,
+          paymentStatus: 'PAYMENT_PENDING',
+          profileName: '',
+          serviceName: null,
+        },
+      ],
+    })
+    expect(screen.getByText('Consultas concluídas sem pagamento registrado')).toBeInTheDocument()
+    expect(screen.getByText('Sem valor')).toBeInTheDocument()
+  })
+
   function show(overrides: Partial<ProductivitySummary>) {
     mockUseProductivitySummary.mockReturnValue({
       data: makeProductivitySummary(overrides),

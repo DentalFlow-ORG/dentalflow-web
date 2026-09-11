@@ -37,6 +37,9 @@ Status: **not executed**. Unit tests validate application decisions and mocked i
 
 ## Shared shell and marketing
 
+- [ ] Dashboard donut: compare mouse hover, touch legend selection/deselection and direct chart taps on iOS/Android. Verify no unwanted scrolling/focus rectangle and confirm passive touch listener behavior; jsdom callback tests do not certify touch cancellation.
+- [ ] Administrative user/clinic forms: Escape and outside-click dismissal must occur once, with correct focus restoration.
+
 - [ ] Production lazy chunks: direct entry, reload, offline/loading failure and recovery with browser back/forward navigation.
 - [ ] WebGL support/failure, reduced motion, intersection animations and offscreen cleanup across supported browsers.
 - [ ] Cookie consent persistence and browser storage restrictions; inspect focus and screen-reader announcements in global alerts and confirmation dialogs.

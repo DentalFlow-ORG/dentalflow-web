@@ -120,11 +120,12 @@ describe('useDashboardPage', () => {
   it('sorts appointments with a missing startTime first', async () => {
     mockListAppointments.mockResolvedValue([
       makeAppointment({ id: '1', status: 'CONFIRMED', startTime: '09:00' }),
-      makeAppointment({ id: '2', status: 'CONFIRMED', startTime: undefined }),
+      makeAppointment({ id: '2', status: 'CONFIRMED', startTime: null }),
+      makeAppointment({ id: '3', status: 'PENDING', startTime: null }),
     ])
     const { result } = renderHook(() => useDashboardPage())
     await waitFor(() => expect(result.current.isLoading).toBe(false))
-    expect(result.current.upcomingAppointments.map((a) => a.id)).toEqual(['2', '1'])
+    expect(result.current.upcomingAppointments.map((a) => a.id)).toEqual(['2', '3', '1'])
   })
 
   it('deduplicates active dentist names, falling back for a missing profile', async () => {
