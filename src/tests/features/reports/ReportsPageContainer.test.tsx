@@ -607,6 +607,45 @@ describe('ReportsPageContainer — filter interactions', () => {
 })
 
 describe('ReportsPageContainer — filter round trips', () => {
+  it.each([
+    { title: 'Relatório de agendamentos', service: 'exportAppointmentsReport' },
+    { title: 'Relatório de estoque', service: 'exportInventoryReport' },
+    { title: 'Relatório de notas fiscais', service: 'exportInvoicesReport' },
+  ] as const)('downloads the approved preview for $title', async ({ title, service }) => {
+    const services = await import('@/features/reports/services/reports.service')
+    render(<ReportsPageContainer />)
+    const section = screen.getByRole('heading', { name: title }).closest('section')
+    if (!section) throw new Error('Missing report section')
+    const report = within(section)
+    await preview(report)
+    await userEvent.click(await report.findByRole('button', { name: /baixar csv/i }))
+    expect(services[service]).toHaveBeenCalledWith(
+      title === 'Relatório de estoque'
+        ? {}
+        : {
+            startDate: '2026-05-07',
+            endDate: '2026-06-06',
+          },
+    )
+  })
+
+  it('removes the finance type filter when all types are selected again', async () => {
+    const { getFinanceReportPreview } = await import('@/features/reports/services/reports.service')
+    render(<ReportsPageContainer />)
+    const section = screen.getByRole('heading', { name: 'Relatório financeiro' }).closest('section')
+    if (!section) throw new Error('Missing report section')
+    const report = within(section)
+    await userEvent.click(report.getByRole('combobox', { name: 'Tipo' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Despesa' }))
+    await userEvent.click(report.getByRole('combobox', { name: 'Tipo' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Todos os tipos' }))
+    await preview(report)
+    expect(getFinanceReportPreview).toHaveBeenCalledWith({
+      startDate: '2026-05-07',
+      endDate: '2026-06-06',
+      type: undefined,
+    })
+  })
   async function preview(report: ReturnType<typeof within>) {
     const refresh = report.queryByRole('button', { name: 'Nova prévia' })
     if (refresh) await userEvent.click(refresh)

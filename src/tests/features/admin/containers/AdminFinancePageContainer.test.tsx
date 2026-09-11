@@ -311,6 +311,48 @@ function makeSummary(kpiOverrides: Partial<AdminFinanceSummary['kpis']> = {}): A
 }
 
 describe('AdminFinancePageContainer — chart interactions', () => {
+  it('shows subscription identity/date fallbacks and inactive plans', () => {
+    const subscription = makeSubscription({
+      clinic: { id: 'clinic-no-email', name: 'Clínica sem email', email: null },
+      currentPeriodStart: null,
+      createdAt: '2026-06-12T12:00:00Z',
+    })
+    mockUseAdminFinancePage.mockReturnValue(
+      makeDefaultHookState({
+        summary: makeSummary(),
+        subscriptions: [subscription],
+        subscriptionsTotal: 1,
+        plans: [makePlan({ isActive: false })],
+      }),
+    )
+    render(<AdminFinancePageContainer />)
+    const row = screen.getByText('Clínica sem email').closest('tr')
+    expect(row).toHaveTextContent('clinic-no-email')
+    expect(row).toHaveTextContent('12/06/2026')
+    expect(screen.getByText('Inativo')).toBeInTheDocument()
+  })
+
+  it('clears the plan filter and forwards the subscription end date', async () => {
+    const setSubscriptionFilter = vi.fn()
+    mockUseAdminFinancePage.mockReturnValue(
+      makeDefaultHookState({
+        summary: makeSummary(),
+        setSubscriptionFilter,
+        subscriptionFilters: { page: 1, limit: 20, planId: 'plan-1' },
+        planOptions: [{ value: 'plan-1', label: 'Profissional' }],
+      }),
+    )
+    render(<AdminFinancePageContainer />)
+    const plan = screen
+      .getAllByRole('combobox')
+      .find((select) => within(select).queryByRole('option', { name: 'Profissional' }))
+    if (!plan) throw new Error('Missing plan filter')
+    await userEvent.selectOptions(plan, 'Todos')
+    expect(setSubscriptionFilter).toHaveBeenCalledWith('planId', undefined)
+    fireEvent.change(screen.getByLabelText('Criada até'), { target: { value: '12/06/2026' } })
+    fireEvent.blur(screen.getByLabelText('Criada até'))
+    expect(setSubscriptionFilter).toHaveBeenCalledWith('to', '2026-06-12')
+  })
   afterEach(() => {
     chartTheme.value = 'light'
   })
