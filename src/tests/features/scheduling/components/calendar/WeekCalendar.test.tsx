@@ -23,11 +23,81 @@ vi.mock('@/features/scheduling/components/calendar/CalendarAppointmentCard', () 
 import { WeekCalendar } from '@/features/scheduling/components/calendar/WeekCalendar'
 import { getBrazilWeekStart } from '@/features/scheduling/utils/time'
 import { DEFAULT_APPT_DATE, makeAppointment } from '@/test-utils/factories/appointment.factory'
-import { makeAvailability } from '@/test-utils/factories/availability.factory'
+import {
+  makeAvailability,
+  makeAvailabilityException,
+} from '@/test-utils/factories/availability.factory'
 
 const weekStart = getBrazilWeekStart(DEFAULT_APPT_DATE)
 
 describe('WeekCalendar — toolbar navigation', () => {
+  it('does not change weeks when the date input is cleared', () => {
+    const onWeekChange = vi.fn()
+    render(
+      <WeekCalendar
+        appointments={[]}
+        weekStart={weekStart}
+        onWeekChange={onWeekChange}
+        onAppointmentClick={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Selecionar data'), { target: { value: '' } })
+    expect(onWeekChange).not.toHaveBeenCalled()
+  })
+
+  it('shows holidays, special working hours and outside-routine slots without losing appointments', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-05-26T15:00:00Z'))
+    try {
+      const onAppointmentClick = vi.fn()
+      const appointment = {
+        ...makeAppointment({ patientName: 'Consulta incompleta' }),
+        startTime: undefined,
+      } as unknown as ReturnType<typeof makeAppointment>
+      render(
+        <WeekCalendar
+          appointments={[appointment]}
+          weekStart={weekStart}
+          onWeekChange={vi.fn()}
+          onAppointmentClick={onAppointmentClick}
+          profileAvailability={[
+            makeAvailability({
+              dayOfWeek: 2,
+              startTime: '08:00',
+              endTime: '12:00',
+              isActive: true,
+            }),
+          ]}
+          profileExceptions={[
+            makeAvailabilityException({
+              exceptionDate: '2026-05-27',
+              isDayOff: true,
+              reason: 'Feriado local',
+            }),
+            makeAvailabilityException({
+              id: 'special',
+              exceptionDate: '2026-05-28',
+              isDayOff: false,
+              startTime: '18:00',
+              endTime: '20:00',
+            }),
+          ]}
+        />,
+      )
+      expect(screen.getByText('Folga: Feriado local')).toBeInTheDocument()
+      expect(screen.getByText('Especial: 18:00 - 20:00')).toBeInTheDocument()
+      expect(
+        screen.getAllByTitle('Fora da rotina de atendimento deste dia').length,
+      ).toBeGreaterThan(0)
+      fireEvent.click(screen.getByRole('button', { name: 'Consulta incompleta' }))
+      expect(onAppointmentClick).toHaveBeenCalledWith(
+        expect.objectContaining({ id: appointment.id }),
+      )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('calls onWeekChange with the previous week', async () => {
     const onWeekChange = vi.fn()
     render(

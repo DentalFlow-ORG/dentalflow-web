@@ -280,14 +280,13 @@ describe('payment editing workflow', () => {
       expect.objectContaining({ title: 'Valor obrigatório' }),
     )
     const [estimated, paid] = screen.getAllByPlaceholderText('Ex: 250,00')
-    await user.type(estimated, '250,00')
-    await user.type(paid, '125,50')
+    fireEvent.change(estimated, { target: { value: '250,00' } })
+    fireEvent.change(paid, { target: { value: '125,50' } })
     await user.click(screen.getAllByRole('combobox')[1])
     await user.click(screen.getByRole('option', { name: 'PIX' }))
-    await user.type(
-      screen.getByPlaceholderText('Observações sobre o pagamento...'),
-      '  Primeira parcela  ',
-    )
+    fireEvent.change(screen.getByPlaceholderText('Observações sobre o pagamento...'), {
+      target: { value: '  Primeira parcela  ' },
+    })
     await user.click(screen.getByRole('button', { name: 'Salvar pagamento parcial' }))
     await waitFor(() =>
       expect(mockShowAlert).toHaveBeenLastCalledWith(expect.objectContaining({ title: 'Erro' })),

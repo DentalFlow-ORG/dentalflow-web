@@ -8,6 +8,10 @@ vi.mock('@tanstack/react-router', async () => {
   const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
+vi.mock('@/lib/brazil-timezone', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/brazil-timezone')>()),
+  brazilTodayIso: () => '2026-06-04',
+}))
 
 const baseHookState = {
   allAppointments: [],
@@ -80,40 +84,146 @@ vi.mock('@/features/scheduling/components/appointments/AppointmentTable', () => 
 }))
 
 vi.mock('@/features/scheduling/components/mobile/MobileAgendaTimeline', () => ({
-  MobileAgendaTimeline: () => <div data-testid="mobile-timeline" />,
+  MobileAgendaTimeline: ({
+    selectedDate,
+    onSelectedDateChange,
+    onCreateAppointment,
+  }: {
+    selectedDate: string
+    onSelectedDateChange: (date: string) => void
+    onCreateAppointment: () => void
+  }) => (
+    <div data-testid="mobile-timeline">
+      <span>{selectedDate}</span>
+      <button type="button" onClick={() => onSelectedDateChange('2026-06-03')}>
+        Select Wednesday
+      </button>
+      <button type="button" onClick={onCreateAppointment}>
+        Create from timeline
+      </button>
+    </div>
+  ),
 }))
 
 vi.mock('@/features/scheduling/components/mobile/MobileAgendaList', () => ({
-  MobileAgendaList: () => <div data-testid="mobile-list" />,
+  MobileAgendaList: ({
+    selectedDate,
+    onCreateAppointment,
+  }: { selectedDate: string; onCreateAppointment: () => void }) => (
+    <div data-testid="mobile-list">
+      <span>{selectedDate}</span>
+      <button type="button" onClick={onCreateAppointment}>
+        Create from list
+      </button>
+    </div>
+  ),
 }))
 
 vi.mock('@/features/scheduling/components/appointments/AppointmentDrawer', () => ({
-  AppointmentDrawer: ({ appointment }: { appointment: unknown }) =>
-    appointment ? <div data-testid="drawer">drawer-open</div> : null,
+  AppointmentDrawer: ({ appointment, onClose }: { appointment: unknown; onClose: () => void }) =>
+    appointment ? (
+      <div data-testid="drawer">
+        drawer-open
+        <button type="button" onClick={onClose}>
+          Close drawer
+        </button>
+      </div>
+    ) : null,
 }))
 
 vi.mock('@/features/scheduling/components/appointments/CancelAppointmentDialog', () => ({
-  CancelAppointmentDialog: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="cancel-dialog">cancel-open</div> : null,
+  CancelAppointmentDialog: ({ open, onCancel }: { open: boolean; onCancel: () => void }) =>
+    open ? (
+      <div data-testid="cancel-dialog">
+        cancel-open
+        <button type="button" onClick={onCancel}>
+          Dismiss cancellation
+        </button>
+      </div>
+    ) : null,
 }))
 
 vi.mock('@/features/scheduling/components/appointments/EditAppointmentModal', () => ({
-  EditAppointmentModal: ({ appointment }: { appointment: unknown }) =>
-    appointment ? <div data-testid="edit-modal">edit-open</div> : null,
+  EditAppointmentModal: ({
+    appointment,
+    onClose,
+  }: { appointment: unknown; onClose: () => void }) =>
+    appointment ? (
+      <div data-testid="edit-modal">
+        edit-open
+        <button type="button" onClick={onClose}>
+          Close editor
+        </button>
+      </div>
+    ) : null,
 }))
 
 vi.mock('@/features/scheduling/components/appointments/CreateAppointmentModal', () => ({
-  CreateAppointmentModal: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="create-modal">create-open</div> : null,
+  CreateAppointmentModal: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
+    open ? (
+      <div data-testid="create-modal">
+        create-open
+        <button type="button" onClick={onClose}>
+          Close creator
+        </button>
+      </div>
+    ) : null,
 }))
 
 import { AppointmentsPageContainer } from '@/features/scheduling/containers/AppointmentsPageContainer'
 
 beforeEach(() => {
+  vi.clearAllMocks()
   mockHookState = { ...baseHookState }
 })
 
 describe('AppointmentsPageContainer', () => {
+  it('starts at the first day when opening a week that does not contain today', () => {
+    mockHookState = { ...mockHookState, weekStart: new Date(2026, 5, 8) }
+    render(<AppointmentsPageContainer />)
+    expect(screen.getByText('2026-06-08')).toBeInTheDocument()
+  })
+
+  it('preserves the selected mobile day across views and chooses an appropriate day after week changes', async () => {
+    const { rerender } = render(<AppointmentsPageContainer />)
+    expect(screen.getByText('2026-06-04')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Select Wednesday' }))
+    mockHookState = { ...mockHookState, view: 'table' }
+    rerender(<AppointmentsPageContainer />)
+    expect(screen.getByText('2026-06-03')).toBeInTheDocument()
+    mockHookState = { ...mockHookState, weekStart: new Date(2026, 5, 8) }
+    rerender(<AppointmentsPageContainer />)
+    expect(screen.getByText('2026-06-08')).toBeInTheDocument()
+    mockHookState = { ...mockHookState, weekStart: new Date(2026, 5, 1) }
+    rerender(<AppointmentsPageContainer />)
+    expect(screen.getByText('2026-06-04')).toBeInTheDocument()
+  })
+
+  it('opens creation from both mobile views and clears dismissed modal targets', async () => {
+    mockHookState = {
+      ...mockHookState,
+      drawerAppointment: { id: 'a' } as never,
+      cancelTarget: { patientName: 'Ana' },
+      editTarget: { id: 'a' } as never,
+      isCreating: true,
+    }
+    const { rerender } = render(<AppointmentsPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: 'Create from timeline' }))
+    expect(mockHookState.setIsCreating).toHaveBeenLastCalledWith(true)
+    mockHookState = { ...mockHookState, view: 'table' }
+    rerender(<AppointmentsPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: 'Create from list' }))
+    expect(mockHookState.setIsCreating).toHaveBeenCalledTimes(2)
+    await userEvent.click(screen.getByRole('button', { name: 'Close drawer' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Dismiss cancellation' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Close editor' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Close creator' }))
+    expect(mockHookState.setDrawerAppointment).toHaveBeenLastCalledWith(null)
+    expect(mockHookState.setCancelTarget).toHaveBeenLastCalledWith(null)
+    expect(mockHookState.setEditTarget).toHaveBeenLastCalledWith(null)
+    expect(mockHookState.setIsCreating).toHaveBeenLastCalledWith(false)
+  })
+
   it('renders the KPI cards and toolbar', () => {
     render(<AppointmentsPageContainer />)
     expect(screen.getByTestId('kpi-cards')).toBeInTheDocument()

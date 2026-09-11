@@ -8,6 +8,10 @@ vi.mock('@tanstack/react-router', async () => {
   const m = await import('@/test-utils/mocks/router')
   return m.createRouterMock()
 })
+vi.mock('@/lib/brazil-timezone', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/brazil-timezone')>()),
+  brazilTodayIso: () => '2026-06-04',
+}))
 
 const baseHookState = {
   ownProfile: { id: 'profile-1' } as { id: string } | null,
@@ -69,11 +73,23 @@ vi.mock('@/features/scheduling/components/availability/ExceptionManager', () => 
 }))
 
 vi.mock('@/features/scheduling/components/mobile/MobileAgendaTimeline', () => ({
-  MobileAgendaTimeline: () => <div data-testid="mobile-timeline" />,
+  MobileAgendaTimeline: ({
+    selectedDate,
+    onSelectedDateChange,
+  }: { selectedDate: string; onSelectedDateChange: (date: string) => void }) => (
+    <div data-testid="mobile-timeline">
+      <span>{selectedDate}</span>
+      <button type="button" onClick={() => onSelectedDateChange('2026-06-03')}>
+        Select Wednesday
+      </button>
+    </div>
+  ),
 }))
 
 vi.mock('@/features/scheduling/components/mobile/MobileAgendaList', () => ({
-  MobileAgendaList: () => <div data-testid="mobile-list" />,
+  MobileAgendaList: ({ selectedDate }: { selectedDate: string }) => (
+    <div data-testid="mobile-list">{selectedDate}</div>
+  ),
 }))
 
 vi.mock('@/features/scheduling/components/shared/GoogleCalendarButton', () => ({
@@ -89,17 +105,53 @@ vi.mock('@/features/scheduling/components/shared/ViewToggle', () => ({
 }))
 
 vi.mock('@/features/scheduling/components/appointments/AppointmentDrawer', () => ({
-  AppointmentDrawer: ({ appointment }: { appointment: unknown }) =>
-    appointment ? <div data-testid="drawer">drawer-open</div> : null,
+  AppointmentDrawer: ({ appointment, onClose }: { appointment: unknown; onClose: () => void }) =>
+    appointment ? (
+      <div data-testid="drawer">
+        drawer-open
+        <button type="button" onClick={onClose}>
+          Close drawer
+        </button>
+      </div>
+    ) : null,
 }))
 
 import { SchedulePageContainer } from '@/features/scheduling/containers/SchedulePageContainer'
 
 beforeEach(() => {
+  vi.clearAllMocks()
   mockHookState = { ...baseHookState }
 })
 
 describe('SchedulePageContainer', () => {
+  it('starts at the first day when the displayed week does not contain today', () => {
+    mockHookState = { ...mockHookState, weekStart: new Date(2026, 5, 8) }
+    render(<SchedulePageContainer />)
+    expect(screen.getByText('2026-06-08')).toBeInTheDocument()
+  })
+
+  it('preserves the selected day across views and chooses today or the first day after a week change', async () => {
+    const { rerender } = render(<SchedulePageContainer />)
+    expect(screen.getByText('2026-06-04')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Select Wednesday' }))
+    mockHookState = { ...mockHookState, view: 'table' }
+    rerender(<SchedulePageContainer />)
+    expect(screen.getByText('2026-06-03')).toBeInTheDocument()
+    mockHookState = { ...mockHookState, weekStart: new Date(2026, 5, 8) }
+    rerender(<SchedulePageContainer />)
+    expect(screen.getByText('2026-06-08')).toBeInTheDocument()
+    mockHookState = { ...mockHookState, weekStart: new Date(2026, 5, 1) }
+    rerender(<SchedulePageContainer />)
+    expect(screen.getByText('2026-06-04')).toBeInTheDocument()
+  })
+
+  it('clears the active appointment when the drawer closes', async () => {
+    mockHookState = { ...mockHookState, drawerAppointment: { id: 'a' } as never }
+    render(<SchedulePageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: 'Close drawer' }))
+    expect(mockHookState.setDrawerAppointment).toHaveBeenLastCalledWith(null)
+  })
+
   it('shows a loading card while bootstrapping', () => {
     mockHookState = { ...baseHookState, isBootstrapping: true }
     render(<SchedulePageContainer />)

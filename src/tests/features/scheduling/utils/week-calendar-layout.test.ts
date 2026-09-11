@@ -92,6 +92,26 @@ describe('isSlotInsideWorkingRanges', () => {
 // ── computeDayLayout ──────────────────────────────────────────────────────────
 
 describe('computeDayLayout', () => {
+  it('keeps ordering deterministic with incomplete runtime times and durations', () => {
+    const appointments = [
+      { ...makeAppt({ id: 'a' }), startTime: undefined, durationMinutes: undefined },
+      {
+        ...makeAppt({ id: 'b' }),
+        startTime: undefined,
+        endTime: undefined,
+        durationMinutes: undefined,
+      },
+      makeAppt({ id: 'c' }),
+    ] as unknown as Appointment[]
+    const forward = computeDayLayout(appointments)
+    const reverse = computeDayLayout([...appointments].reverse())
+    expect(forward).toEqual(reverse)
+    expect(forward.map(({ id }) => id)).toEqual(['a', 'b', 'c'])
+    expect(forward.find(({ id }) => id === 'c')).toEqual(
+      expect.objectContaining({ colCount: 2, colIndex: 1 }),
+    )
+  })
+
   it('returns empty array for no appointments', () => {
     expect(computeDayLayout([])).toEqual([])
   })
@@ -245,6 +265,25 @@ describe('getDayWorkingRanges', () => {
 // ── getDayStatus ──────────────────────────────────────────────────────────────
 
 describe('getDayStatus', () => {
+  it('falls back to regular availability for a working exception without special times', () => {
+    const exception = makeAvailabilityException({
+      exceptionDate: '2026-05-27',
+      isDayOff: false,
+      startTime: null,
+      endTime: null,
+      reason: null,
+    })
+    expect(getDayStatus(WED, undefined, [exception])).toEqual({
+      isWorking: true,
+      kind: 'working',
+      reason: null,
+      timeRange: null,
+    })
+    expect(getDayWorkingRanges(WED, undefined, [exception])).toEqual([
+      { start: DEFAULT_START_MINUTES, end: DEFAULT_END_MINUTES },
+    ])
+  })
+
   it('marks day as dayOff when exception isDayOff', () => {
     const ex = makeAvailabilityException({
       exceptionDate: '2026-05-27',

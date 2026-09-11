@@ -74,6 +74,51 @@ function makeProfile(overrides: Partial<ProfileListItem> = {}): ProfileListItem 
 }
 
 describe('useAppointmentsPage', () => {
+  it('searches patient name, email and phone while handling absent contacts', async () => {
+    const named = makeAppointment({
+      id: 'name',
+      patientName: 'Maria Lima',
+      patientEmail: null,
+      patientPhone: null,
+    })
+    const contacted = makeAppointment({
+      id: 'contact',
+      patientName: 'João',
+      patientEmail: 'joao@example.com',
+      patientPhone: '11987654321',
+    })
+    mockListAppointments.mockResolvedValue([named, contacted])
+    const { result } = renderHook(() => useAppointmentsPage())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    for (const [query, expected] of [
+      ['MARIA', named],
+      ['example.com', contacted],
+      ['987654321', contacted],
+    ] as const) {
+      act(() => result.current.setSearchQuery(query))
+      await waitFor(() => expect(result.current.appointments).toEqual([expected]))
+    }
+    act(() => result.current.clearAll())
+    await waitFor(() => expect(result.current.appointments).toEqual([named, contacted]))
+  })
+
+  it('combines status and professional filters and restores the full list on clear', async () => {
+    const matching = makeAppointment({ id: 'match', profileId: 'prof-1', status: 'CONFIRMED' })
+    const pending = makeAppointment({ id: 'pending', profileId: 'prof-1', status: 'PENDING' })
+    const other = makeAppointment({ id: 'other', profileId: 'prof-2', status: 'CONFIRMED' })
+    mockListAppointments.mockResolvedValue([matching, pending, other])
+    const { result } = renderHook(() => useAppointmentsPage())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    act(() => {
+      result.current.setFilter('status', 'CONFIRMED')
+      result.current.setFilter('profileId', 'prof-1')
+    })
+    expect(result.current.appointments).toEqual([matching])
+    expect(result.current.filteredCount).toBe(1)
+    act(() => result.current.clearAll())
+    expect(result.current.appointments).toEqual([matching, pending, other])
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
     resetRouterMocks()

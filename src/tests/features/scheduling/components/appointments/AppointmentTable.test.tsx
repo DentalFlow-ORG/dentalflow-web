@@ -1,6 +1,6 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, within } from '@/test-utils/render-utils'
 
 import { AppointmentTable } from '@/features/scheduling/components/appointments/AppointmentTable'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
@@ -35,6 +35,28 @@ describe('AppointmentTable — empty state', () => {
 })
 
 describe('AppointmentTable — rows', () => {
+  it('keeps mobile actions and unrelated keys from opening details', async () => {
+    const onRowClick = vi.fn()
+    const onStatusChange = vi.fn()
+    render(
+      <AppointmentTable
+        appointments={[makeAppointment({ patientName: 'Ana Souza' })]}
+        isActionLoading={false}
+        onRowClick={onRowClick}
+        onStatusChange={onStatusChange}
+        onCancelRequest={vi.fn()}
+      />,
+    )
+    const [row, card] = screen.getAllByRole('button', { name: /abrir detalhes de ana souza/i })
+    await userEvent.click(within(row).getByText('Pendente'))
+    const confirm = within(card).getByRole('button', { name: /confirmar agendamento/i })
+    fireEvent.keyDown(confirm, { key: 'Enter' })
+    fireEvent.keyDown(card, { key: 'Tab' })
+    await userEvent.click(confirm)
+    expect(onRowClick).not.toHaveBeenCalled()
+    expect(onStatusChange).toHaveBeenCalledExactlyOnceWith('appt-1', 'CONFIRMED')
+  })
+
   it('renders patient name, optional email, professional fallback, and service', () => {
     const appt = makeAppointment({
       patientName: 'Ana Souza',
