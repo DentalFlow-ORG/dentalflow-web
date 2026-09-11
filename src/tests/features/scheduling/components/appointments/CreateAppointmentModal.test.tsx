@@ -1,6 +1,6 @@
 import { CreateAppointmentModal } from '@/features/scheduling/components/appointments/CreateAppointmentModal'
 import type { ProfileListItem } from '@/features/scheduling/types/profile.types'
-import { fireEvent, render, screen, waitFor, within } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen, waitFor, within } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -79,12 +79,6 @@ vi.mock('@/components/common/global-alerts-context', () => ({
   useGlobalAlerts: () => ({ showAlert: mockShowAlert }),
 }))
 
-// Stub phone validation so tests don't need perfectly formatted numbers
-vi.mock('@/lib/field-formatters', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('@/lib/field-formatters')>()
-  return { ...mod, isValidWhatsappPhoneBR: () => true }
-})
-
 // Replace the calendar-popover DatePickerInput with a plain input so tests
 // can set the date with a simple fireEvent.change.
 vi.mock('@/components/common/DatePickerInput', () => ({
@@ -127,7 +121,7 @@ const MOCK_APPOINTMENT = {
   id: 'appt-1',
   patientName: 'Maria Silva',
   patientEmail: null,
-  patientPhone: '11999999999',
+  patientPhone: '11987654321',
   status: 'PENDING',
   appointmentDate: '2030-12-31',
   startTime: '10:00:00',
@@ -171,7 +165,7 @@ async function fillRequiredFields() {
     target: { value: 'Maria Silva' },
   })
   fireEvent.change(screen.getByLabelText(/Telefone/i), {
-    target: { value: '11999999999' },
+    target: { value: '11987654321' },
   })
   // Mocked DatePickerInput calls onValueChange directly with the typed ISO value.
   fireEvent.change(screen.getByTestId('date-picker-input'), {
@@ -201,6 +195,105 @@ async function selectAvatarFile(mimeType = 'image/jpeg') {
   // Wait for crop modal to close and widget to show "Alterar foto" (photo is set)
   await waitFor(() => screen.getByRole('button', { name: /Alterar foto do paciente/i }))
 }
+
+describe('CreateAppointmentModal — form lifecycle', () => {
+  it('rejects an invalid phone before persisting the appointment', async () => {
+    renderModal()
+    await fillRequiredFields()
+    fireEvent.change(screen.getByLabelText(/Telefone/i), { target: { value: '123' } })
+    submitForm()
+    expect(mockShowAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Telefone obrigatório' }),
+    )
+    expect(mockCreateAppointment).not.toHaveBeenCalled()
+  })
+
+  it('rejects a past date even when the slots service returns availability', async () => {
+    renderModal()
+    await fillRequiredFields()
+    fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2000-01-01' } })
+    await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
+    submitForm()
+    expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Data inválida' }))
+    expect(mockCreateAppointment).not.toHaveBeenCalled()
+  })
+
+  it('keeps a failed draft available for retry and disables controls during submission', async () => {
+    let rejectCreate!: (error: Error) => void
+    mockCreateAppointment.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectCreate = reject
+        }),
+    )
+    const { onCreated, onClose } = renderModal()
+    await fillRequiredFields()
+    submitForm()
+    expect(screen.getByLabelText(/Nome do paciente/i)).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+    await act(async () => rejectCreate(new Error('Serviço indisponível')))
+    expect(mockShowAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ description: 'Serviço indisponível', tone: 'error' }),
+    )
+    expect(screen.getByLabelText(/Nome do paciente/i)).toHaveValue('Maria Silva')
+    expect(onCreated).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+    submitForm()
+    await waitFor(() => expect(onCreated).toHaveBeenCalledOnce())
+    expect(mockCreateAppointment).toHaveBeenCalledTimes(2)
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('discards the draft and avatar when dismissed and reopened', async () => {
+    const onClose = vi.fn()
+    const props = { fixedProfile: FIXED_PROFILE, onClose, onCreated: vi.fn() }
+    const { rerender } = render(<CreateAppointmentModal {...props} open />)
+    await fillRequiredFields()
+    await selectAvatarFile()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(onClose).toHaveBeenCalledOnce()
+    rerender(<CreateAppointmentModal {...props} open={false} />)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    rerender(<CreateAppointmentModal {...props} open />)
+    expect(screen.getByLabelText(/Nome do paciente/i)).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Adicionar foto do paciente' })).toBeInTheDocument()
+    expect(mockCreateAppointment).not.toHaveBeenCalled()
+  })
+
+  it('selects a dentist, suggests the service price and preserves or restores a manual estimate', async () => {
+    mockGetProfile.mockResolvedValue({
+      id: 'prof-1',
+      services: [
+        { id: 's1', name: 'Limpeza', priceFrom: 100, isActive: true },
+        { id: 's2', name: 'Avaliação', priceFrom: null, isActive: true },
+        { id: 'inactive', name: 'Inativo', priceFrom: 50, isActive: false },
+      ],
+    })
+    render(<CreateAppointmentModal open onClose={vi.fn()} onCreated={vi.fn()} />)
+    const profile = screen.getByRole('combobox', { name: 'Profissional' })
+    await waitFor(() => expect(profile).toBeEnabled())
+    await userEvent.click(profile)
+    await userEvent.click(await screen.findByRole('option', { name: 'Dr. Silva' }))
+    const service = screen.getByRole('combobox', { name: /Serviço/ })
+    await waitFor(() => expect(service).toBeEnabled())
+    await userEvent.click(service)
+    expect(screen.queryByRole('option', { name: /Inativo/ })).not.toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('option', { name: /Limpeza/ }))
+    const amount = screen.getByLabelText(/Valor previsto/)
+    expect(amount).toHaveValue('100,00')
+    fireEvent.change(amount, { target: { value: '80,00' } })
+    await userEvent.click(service)
+    await userEvent.click(await screen.findByRole('option', { name: 'Avaliação' }))
+    expect(amount).toHaveValue('80,00')
+    await userEvent.click(service)
+    await userEvent.click(await screen.findByRole('option', { name: /Limpeza/ }))
+    await userEvent.click(screen.getByRole('button', { name: /Restaurar valor do serviço/ }))
+    expect(amount).toHaveValue('100,00')
+    await userEvent.click(service)
+    await userEvent.click(await screen.findByRole('option', { name: 'Avaliação' }))
+    expect(amount).toHaveValue('')
+  })
+})
 
 // ── Photo upload section — UI rendering ───────────────────────────────────────
 

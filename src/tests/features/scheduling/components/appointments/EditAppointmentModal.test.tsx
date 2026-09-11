@@ -2,7 +2,7 @@ import userEvent from '@testing-library/user-event'
 
 import { EditAppointmentModal } from '@/features/scheduling/components/appointments/EditAppointmentModal'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
-import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 
 const mockUpdateAppointment = vi.fn()
 const mockGetAvailableSlots = vi.fn()
@@ -25,11 +25,6 @@ const mockShowAlert = vi.fn()
 vi.mock('@/components/common/global-alerts-context', () => ({
   useGlobalAlerts: () => ({ showAlert: mockShowAlert }),
 }))
-
-vi.mock('@/lib/field-formatters', async (importOriginal) => {
-  const mod = await importOriginal<typeof import('@/lib/field-formatters')>()
-  return { ...mod, isValidWhatsappPhoneBR: () => true }
-})
 
 vi.mock('@/lib/brazil-timezone', async (importOriginal) => {
   const mod = await importOriginal<typeof import('@/lib/brazil-timezone')>()
@@ -64,7 +59,7 @@ const FUTURE_APPOINTMENT = makeAppointment({
   serviceId: 'svc-1',
   patientName: 'Maria Silva',
   patientEmail: 'maria@example.com',
-  patientPhone: '11999999999',
+  patientPhone: '11987654321',
   appointmentDate: '2030-12-31',
   startTime: '1970-01-01T10:00:00.000Z',
   estimatedAmountCents: 10000,
@@ -73,7 +68,7 @@ const FUTURE_APPOINTMENT = makeAppointment({
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockUpdateAppointment.mockResolvedValue(FUTURE_APPOINTMENT)
+  mockUpdateAppointment.mockReset().mockResolvedValue(FUTURE_APPOINTMENT)
   mockGetAvailableSlots.mockResolvedValue([SLOT])
   mockListAvailability.mockResolvedValue([])
   mockListAvailabilityExceptions.mockResolvedValue([])
@@ -98,6 +93,110 @@ function renderModal(
   )
   return { onClose, onUpdated }
 }
+
+describe('EditAppointmentModal — form lifecycle', () => {
+  it('submits edited future appointment fields and disables controls until completion', async () => {
+    let resolveUpdate!: (appointment: typeof FUTURE_APPOINTMENT) => void
+    mockUpdateAppointment.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveUpdate = resolve
+        }),
+    )
+    const { onClose, onUpdated } = renderModal()
+    await screen.findByRole('button', { name: '10:00' })
+    fireEvent.change(screen.getByLabelText('Paciente'), { target: { value: '  Ana Silva  ' } })
+    fireEvent.change(screen.getByLabelText(/E-mail/), { target: { value: 'ana@example.com' } })
+    fireEvent.change(screen.getByLabelText(/Telefone/), { target: { value: '21987654321' } })
+    fireEvent.change(screen.getByLabelText(/Observações/), { target: { value: '  Retorno  ' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(screen.getByRole('button', { name: 'Salvando...' })).toBeDisabled()
+    expect(screen.getByLabelText('Paciente')).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+    expect(onUpdated).not.toHaveBeenCalled()
+    await act(async () => resolveUpdate(FUTURE_APPOINTMENT))
+    expect(mockUpdateAppointment).toHaveBeenCalledWith(
+      'appt-1',
+      expect.objectContaining({
+        patientName: 'Ana Silva',
+        patientEmail: 'ana@example.com',
+        patientPhone: '(21) 98765-4321',
+        notes: 'Retorno',
+        estimatedAmountCents: 10000,
+      }),
+    )
+    expect(onUpdated).toHaveBeenCalledWith(FUTURE_APPOINTMENT)
+    expect(onClose).toHaveBeenCalledOnce()
+    expect(mockShowAlert).toHaveBeenCalledWith({ title: 'Agendamento atualizado', tone: 'success' })
+  })
+
+  it('rejects an invalid WhatsApp phone before calling the API', async () => {
+    renderModal()
+    await screen.findByRole('button', { name: '10:00' })
+    fireEvent.change(screen.getByLabelText(/Telefone/), { target: { value: '123' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(mockShowAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Telefone obrigatório' }),
+    )
+    expect(mockUpdateAppointment).not.toHaveBeenCalled()
+  })
+
+  it('rejects a date before today even if a slot is supplied', async () => {
+    renderModal()
+    fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2019-12-31' } })
+    await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Data inválida' }))
+    expect(mockUpdateAppointment).not.toHaveBeenCalled()
+  })
+
+  it('preserves edits on a non-Error failure and allows retry', async () => {
+    mockUpdateAppointment.mockRejectedValueOnce('offline')
+    const { onClose } = renderModal()
+    await screen.findByRole('button', { name: '10:00' })
+    fireEvent.change(screen.getByLabelText('Paciente'), { target: { value: 'Ana Silva' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(mockShowAlert).toHaveBeenCalledWith({
+      title: 'Erro ao atualizar agendamento',
+      description: undefined,
+      tone: 'error',
+    })
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Paciente')).toHaveValue('Ana Silva')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(mockUpdateAppointment).toHaveBeenCalledTimes(2)
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('resets unsaved fields when another appointment is selected and accepts nullable fields', async () => {
+    const { rerender } = render(
+      <EditAppointmentModal
+        appointment={FUTURE_APPOINTMENT}
+        onClose={vi.fn()}
+        onUpdated={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Paciente'), { target: { value: 'Unsaved edit' } })
+    const next = makeAppointment({
+      ...FUTURE_APPOINTMENT,
+      id: 'next',
+      patientName: 'Bruno',
+      patientEmail: null,
+      patientPhone: null,
+      notes: null,
+      estimatedAmountCents: null,
+      serviceId: null,
+      profile: undefined,
+    })
+    rerender(<EditAppointmentModal appointment={next} onClose={vi.fn()} onUpdated={vi.fn()} />)
+    expect(screen.getByLabelText('Paciente')).toHaveValue('Bruno')
+    expect(screen.getByLabelText(/E-mail/)).toHaveValue('')
+    expect(screen.getByLabelText(/Telefone/)).toHaveValue('')
+    expect(screen.getByLabelText(/Observações/)).toHaveValue('')
+    expect(screen.getByText('Profissional não informado')).toBeInTheDocument()
+    await screen.findByRole('button', { name: '10:00' })
+  })
+})
 
 describe('EditAppointmentModal', () => {
   it('renders nothing when there is no appointment', () => {
