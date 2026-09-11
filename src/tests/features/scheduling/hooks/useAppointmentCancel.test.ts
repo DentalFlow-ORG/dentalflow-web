@@ -173,6 +173,29 @@ describe('cancel target cleared', () => {
 // ─── alerts ───────────────────────────────────────────────────────────────────
 
 describe('alerts', () => {
+  it('keeps cancellation retryable after a non-Error rejection', async () => {
+    vi.mocked(cancelAppointment)
+      .mockRejectedValueOnce(null)
+      .mockResolvedValueOnce(makeAppointment({ status: 'CANCELED' }))
+    const { result } = renderHookWithCancel(makeAppointment())
+    await act(() => result.current.handleCancelConfirm('Paciente solicitou'))
+    expect(mockShowAlert).toHaveBeenLastCalledWith({
+      title: 'Erro ao cancelar agendamento',
+      description: undefined,
+      tone: 'error',
+    })
+    expect(setAppointments).not.toHaveBeenCalled()
+    expect(setCancelTarget).not.toHaveBeenCalled()
+    expect(setIsActionLoading).toHaveBeenLastCalledWith(false)
+    await act(() => result.current.handleCancelConfirm('Paciente solicitou'))
+    expect(cancelAppointment).toHaveBeenCalledTimes(2)
+    expect(setCancelTarget).toHaveBeenLastCalledWith(null)
+    expect(mockShowAlert).toHaveBeenLastCalledWith({
+      title: 'Agendamento cancelado',
+      tone: 'success',
+    })
+  })
+
   it('shows a success alert when the cancel succeeds', async () => {
     vi.mocked(cancelAppointment).mockResolvedValue(makeAppointment())
     const { result } = renderHookWithCancel(makeAppointment({ id: 'appt-1' }))

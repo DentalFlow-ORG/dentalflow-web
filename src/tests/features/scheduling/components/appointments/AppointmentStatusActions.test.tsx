@@ -125,6 +125,27 @@ describe('AppointmentStatusActions — CONFIRMED (time-sensitive)', () => {
 // ── allowedTransitions (DENTIST restrictions) ─────────────────────────────────
 
 describe('AppointmentStatusActions — allowedTransitions', () => {
+  it.each([
+    ['Concluir consulta', 'COMPLETED'],
+    ['Não compareceu', 'NO_SHOW'],
+  ] as const)('dispatches %s only after loading ends', async (label, status) => {
+    const onStatusChange = vi.fn()
+    const props = {
+      appointment: makeAppointment({ status: 'CONFIRMED', appointmentDate: '2020-01-01' }),
+      allowedTransitions: ['COMPLETED', 'NO_SHOW'] as ('COMPLETED' | 'NO_SHOW')[],
+      onStatusChange,
+      onCancelRequest: vi.fn(),
+    }
+    const user = userEvent.setup()
+    const { rerender } = render(<AppointmentStatusActions {...props} isLoading />)
+    expect(screen.queryByRole('button', { name: /Cancelar/i })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: label }))
+    expect(onStatusChange).not.toHaveBeenCalled()
+    rerender(<AppointmentStatusActions {...props} isLoading={false} />)
+    await user.click(screen.getByRole('button', { name: label }))
+    expect(onStatusChange).toHaveBeenCalledExactlyOnceWith('appt-1', status)
+  })
+
   it('hides Confirmar when CONFIRMED is not in allowedTransitions', () => {
     render(
       <AppointmentStatusActions

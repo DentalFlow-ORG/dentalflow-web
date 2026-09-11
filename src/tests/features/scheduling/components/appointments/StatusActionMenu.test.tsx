@@ -31,6 +31,27 @@ describe('StatusActionMenu — terminal statuses', () => {
 // ── PENDING ───────────────────────────────────────────────────────────────────
 
 describe('StatusActionMenu — PENDING', () => {
+  it.each([
+    ['Concluir consulta', 'COMPLETED'],
+    ['Não compareceu', 'NO_SHOW'],
+  ] as const)('dispatches %s only after loading ends', async (label, status) => {
+    const onStatusChange = vi.fn()
+    const props = {
+      appointment: makeAppointment({ status: 'CONFIRMED', appointmentDate: '2020-01-01' }),
+      allowedTransitions: ['COMPLETED', 'NO_SHOW'] as AppointmentStatus[],
+      onStatusChange,
+      onCancelRequest: vi.fn(),
+    }
+    const user = userEvent.setup()
+    const { rerender } = render(<StatusActionMenu {...props} isLoading />)
+    expect(screen.queryByRole('button', { name: /Cancelar/i })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: label }))
+    expect(onStatusChange).not.toHaveBeenCalled()
+    rerender(<StatusActionMenu {...props} isLoading={false} />)
+    await user.click(screen.getByRole('button', { name: label }))
+    expect(onStatusChange).toHaveBeenCalledExactlyOnceWith('appt-1', status)
+  })
+
   it('renders Confirmar and Cancelar buttons', () => {
     render(
       <StatusActionMenu

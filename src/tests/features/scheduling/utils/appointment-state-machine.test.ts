@@ -136,6 +136,18 @@ describe('canTransitionTo — time guard for COMPLETED and NO_SHOW', () => {
 // ── getAvailableTransitions ───────────────────────────────────────────────────
 
 describe('getAvailableTransitions', () => {
+  it('uses the current clock when options are omitted and honors an empty role allowlist', () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(AFTER_SLOT)
+      const appointment = makeAppointment({ status: 'CONFIRMED' })
+      expect(getAvailableTransitions(appointment)).toEqual(['COMPLETED', 'NO_SHOW', 'CANCELED'])
+      expect(getAvailableTransitions(appointment, { roleAllowedTargets: [] })).toEqual([])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('returns CONFIRMED and CANCELED for a PENDING appointment', () => {
     const result = getAvailableTransitions(makeAppointment({ status: 'PENDING' }), {
       now: AFTER_SLOT,

@@ -107,6 +107,25 @@ describe('drawer sync', () => {
 // ─── alerts ───────────────────────────────────────────────────────────────────
 
 describe('alerts', () => {
+  it('preserves appointments and permits retry after a non-Error rejection', async () => {
+    vi.mocked(updateAppointmentStatus)
+      .mockRejectedValueOnce(null)
+      .mockResolvedValueOnce(makeAppointment({ status: 'CONFIRMED' }))
+    const { result } = renderHookWithDrawer()
+    await act(() => result.current.handleStatusChange('appt-1', 'CONFIRMED'))
+    expect(mockShowAlert).toHaveBeenLastCalledWith({
+      title: 'Erro ao atualizar status',
+      description: undefined,
+      tone: 'error',
+    })
+    expect(setAppointments).not.toHaveBeenCalled()
+    expect(setDrawerAppointment).not.toHaveBeenCalled()
+    expect(setIsActionLoading).toHaveBeenLastCalledWith(false)
+    await act(() => result.current.handleStatusChange('appt-1', 'CONFIRMED'))
+    expect(updateAppointmentStatus).toHaveBeenCalledTimes(2)
+    expect(mockShowAlert).toHaveBeenLastCalledWith({ title: 'Status atualizado', tone: 'success' })
+  })
+
   it('shows a success alert when the status update succeeds', async () => {
     vi.mocked(updateAppointmentStatus).mockResolvedValue(makeAppointment())
     const { result } = renderHookWithDrawer()
