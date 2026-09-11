@@ -179,11 +179,7 @@ export function CategoryManagerModal({
       <Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
-          <Dialog.Content
-            className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
-            onEscapeKeyDown={onClose}
-            onInteractOutside={onClose}
-          >
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none">
             <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-5">
               <div className="min-w-0">
                 <Dialog.Title className="text-base font-semibold text-foreground">

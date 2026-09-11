@@ -55,6 +55,14 @@ function defaultProps(overrides: Partial<Parameters<typeof ProductDetailsDrawer>
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('ProductDetailsDrawer', () => {
+  it('dismisses the product details once with Escape', async () => {
+    const props = defaultProps()
+    render(<ProductDetailsDrawer {...props} />)
+    await userEvent.keyboard('{Escape}')
+    expect(props.onClose).toHaveBeenCalledOnce()
+    expect(props.onEdit).not.toHaveBeenCalled()
+    expect(props.onMove).not.toHaveBeenCalled()
+  })
   beforeEach(() => {
     vi.clearAllMocks()
   })

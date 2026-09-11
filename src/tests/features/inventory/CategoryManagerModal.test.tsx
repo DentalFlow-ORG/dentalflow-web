@@ -62,6 +62,13 @@ function defaultProps(overrides: Partial<Parameters<typeof CategoryManagerModal>
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('CategoryManagerModal', () => {
+  it('dismisses the category manager once with Escape', async () => {
+    const props = defaultProps()
+    render(<CategoryManagerModal {...props} />)
+    await userEvent.keyboard('{Escape}')
+    expect(props.onClose).toHaveBeenCalledOnce()
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
   beforeEach(() => {
     vi.clearAllMocks()
     mockCreate.mockResolvedValue(buildCategory() as never)

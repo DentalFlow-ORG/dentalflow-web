@@ -45,8 +45,6 @@ export function ProductDetailsDrawer({
           aria-labelledby="product-details-title"
           aria-describedby={undefined}
           className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-muted shadow-2xl shadow-black/15 animate-in slide-in-from-right duration-200 focus:outline-none"
-          onEscapeKeyDown={onClose}
-          onInteractOutside={onClose}
         >
           {/*
             Dialog.Title must always be in Dialog.Content — even during the close animation
