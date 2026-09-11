@@ -5,6 +5,11 @@ import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 import { act, fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 
 const mockUpdateAppointment = vi.fn()
+vi.mock('@/features/scheduling/utils/appointment-form-utils', async (importOriginal) => {
+  const mod =
+    await importOriginal<typeof import('@/features/scheduling/utils/appointment-form-utils')>()
+  return { ...mod, getCurrentTimeInputValue: () => '12:00' }
+})
 const mockGetAvailableSlots = vi.fn()
 const mockListAvailability = vi.fn()
 const mockListAvailabilityExceptions = vi.fn()
@@ -95,6 +100,105 @@ function renderModal(
 }
 
 describe('EditAppointmentModal — form lifecycle', () => {
+  it.each(['profile', 'slots'])(
+    'settles a failed %s lookup without leaving loading controls stuck',
+    async (lookup) => {
+      if (lookup === 'profile') mockGetProfile.mockRejectedValueOnce(new Error('offline'))
+      else mockGetAvailableSlots.mockRejectedValueOnce(new Error('offline'))
+      renderModal()
+      if (lookup === 'profile') {
+        await waitFor(() =>
+          expect(screen.getByRole('combobox', { name: /Serviço/ })).toBeDisabled(),
+        )
+        expect(await screen.findByRole('button', { name: '10:00' })).toBeInTheDocument()
+      } else
+        expect(
+          await screen.findByText('Nenhum horário disponível para esta data.'),
+        ).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Cancelar' })).toBeEnabled()
+    },
+  )
+
+  it('recalculates service estimates, restores manual changes and clears optional fields on save', async () => {
+    mockGetProfile.mockResolvedValue({
+      id: 'prof-1',
+      services: [SERVICE, { ...SERVICE, id: 'unpriced', name: 'Avaliação', priceFrom: null }],
+    })
+    renderModal({
+      appointment: makeAppointment({
+        ...FUTURE_APPOINTMENT,
+        estimatedAmountCents: null,
+        patientEmail: null,
+        notes: null,
+      }),
+    })
+    const amount = screen.getByLabelText(/Valor previsto/)
+    await waitFor(() => expect(amount).toHaveValue('100,00'))
+    fireEvent.change(amount, { target: { value: '80,00' } })
+    await userEvent.click(screen.getByRole('button', { name: /Restaurar valor do serviço/ }))
+    expect(amount).toHaveValue('100,00')
+    const service = screen.getByRole('combobox', { name: /Serviço/ })
+    await userEvent.click(service)
+    await userEvent.click(await screen.findByRole('option', { name: 'Avaliação' }))
+    expect(amount).toHaveValue('')
+    await userEvent.click(service)
+    await userEvent.click(await screen.findByRole('option', { name: 'Sem serviço' }))
+    expect(amount).toHaveValue('')
+    await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(mockUpdateAppointment).toHaveBeenCalledWith(
+      'appt-1',
+      expect.objectContaining({
+        serviceId: undefined,
+        estimatedAmountCents: undefined,
+        patientEmail: undefined,
+        notes: undefined,
+      }),
+    )
+  })
+  it.each(['11:00', '13:00'])(
+    'validates a same-day slot at %s against the current time',
+    async (time) => {
+      mockGetAvailableSlots.mockResolvedValue([{ ...SLOT, time }])
+      renderModal()
+      fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2020-01-01' } })
+      await userEvent.click(await screen.findByRole('button', { name: time }))
+      await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+      if (time === '11:00') {
+        expect(mockShowAlert).toHaveBeenCalledWith(
+          expect.objectContaining({ title: 'Horário inválido' }),
+        )
+        expect(mockUpdateAppointment).not.toHaveBeenCalled()
+      } else expect(mockUpdateAppointment).toHaveBeenCalledOnce()
+    },
+  )
+  it.each(['resolve', 'reject'])(
+    'ignores an obsolete slot request that settles with %s after a date change',
+    async (outcome) => {
+      let resolveOld!: (slots: (typeof SLOT)[]) => void
+      let rejectOld!: (error: Error) => void
+      mockGetAvailableSlots
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve, reject) => {
+              resolveOld = resolve
+              rejectOld = reject
+            }),
+        )
+        .mockResolvedValue([{ ...SLOT, time: '11:00' }])
+      renderModal()
+      await waitFor(() => expect(mockGetAvailableSlots).toHaveBeenCalledOnce())
+      fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2031-01-01' } })
+      await screen.findByRole('button', { name: '11:00' })
+      await act(async () => {
+        if (outcome === 'resolve') resolveOld([SLOT])
+        else rejectOld(new Error('obsolete request'))
+      })
+      expect(screen.getByRole('button', { name: '11:00' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '10:00' })).not.toBeInTheDocument()
+    },
+  )
+
   it('submits edited future appointment fields and disables controls until completion', async () => {
     let resolveUpdate!: (appointment: typeof FUTURE_APPOINTMENT) => void
     mockUpdateAppointment.mockImplementationOnce(

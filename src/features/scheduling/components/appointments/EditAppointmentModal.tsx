@@ -128,15 +128,25 @@ export function EditAppointmentModal({
       setIsLoadingSlots(false)
       return
     }
+    let isCurrent = true
     setIsLoadingSlots(true)
     getAvailableSlots({
       profileId: appointment.profileId,
       date: form.appointmentDate,
       serviceId: form.serviceId || undefined,
     })
-      .then(setSlots)
-      .catch(() => setSlots([]))
-      .finally(() => setIsLoadingSlots(false))
+      .then((nextSlots) => {
+        if (isCurrent) setSlots(nextSlots)
+      })
+      .catch(() => {
+        if (isCurrent) setSlots([])
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoadingSlots(false)
+      })
+    return () => {
+      isCurrent = false
+    }
   }, [appointment, form.appointmentDate, form.serviceId])
 
   if (!appointment) return null

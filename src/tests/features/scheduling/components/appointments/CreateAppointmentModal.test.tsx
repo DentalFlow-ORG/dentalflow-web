@@ -5,6 +5,16 @@ import userEvent from '@testing-library/user-event'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
+vi.mock('@/lib/brazil-timezone', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('@/lib/brazil-timezone')>()
+  return { ...mod, brazilTodayIso: () => '2020-01-01' }
+})
+vi.mock('@/features/scheduling/utils/appointment-form-utils', async (importOriginal) => {
+  const mod =
+    await importOriginal<typeof import('@/features/scheduling/utils/appointment-form-utils')>()
+  return { ...mod, getCurrentTimeInputValue: () => '12:00' }
+})
+
 const mockCreateAppointment = vi.fn()
 const mockGetAvailableSlots = vi.fn()
 const mockListAvailability = vi.fn()
@@ -197,6 +207,91 @@ async function selectAvatarFile(mimeType = 'image/jpeg') {
 }
 
 describe('CreateAppointmentModal — form lifecycle', () => {
+  it('keeps the professional selector usable after a failed profile list request', async () => {
+    mockListProfiles.mockRejectedValueOnce(new Error('offline'))
+    render(<CreateAppointmentModal open onClose={vi.fn()} onCreated={vi.fn()} />)
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: 'Profissional' })).toBeEnabled(),
+    )
+    expect(screen.getByText('Selecione um profissional para ver os horários')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Criar agendamento' })).toBeDisabled()
+  })
+
+  it('settles a failed service lookup without blocking manual appointment entry', async () => {
+    mockGetProfile.mockRejectedValueOnce(new Error('offline'))
+    renderModal()
+    await fillRequiredFields()
+    expect(screen.getByRole('combobox', { name: /Serviço/ })).toBeDisabled()
+    fireEvent.change(screen.getByLabelText(/Observações/), { target: { value: '  Retorno  ' } })
+    submitForm()
+    await waitFor(() =>
+      expect(mockCreateAppointment).toHaveBeenCalledWith(
+        expect.objectContaining({ notes: 'Retorno', serviceId: undefined }),
+      ),
+    )
+  })
+
+  it('handles a failed slot lookup and reloads slots for a different date', async () => {
+    mockGetAvailableSlots.mockRejectedValueOnce(new Error('offline'))
+    renderModal()
+    fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2030-12-30' } })
+    expect(await screen.findByText('Nenhum horário disponível para esta data.')).toBeInTheDocument()
+    fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2030-12-31' } })
+    expect(await screen.findByRole('button', { name: '10:00' })).toBeEnabled()
+  })
+  it('does not create an appointment for a whitespace-only patient name', async () => {
+    renderModal()
+    await fillRequiredFields()
+    fireEvent.change(screen.getByLabelText(/Nome do paciente/i), { target: { value: '   ' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Criar agendamento' }))
+    expect(mockCreateAppointment).not.toHaveBeenCalled()
+  })
+
+  it.each(['11:00', '13:00'])(
+    'validates a same-day slot at %s against the current time',
+    async (time) => {
+      renderModal()
+      await fillRequiredFields()
+      mockGetAvailableSlots.mockResolvedValue([{ ...MOCK_SLOT, time }])
+      fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2020-01-01' } })
+      await userEvent.click(await screen.findByRole('button', { name: time }))
+      submitForm()
+      if (time === '11:00') {
+        expect(mockShowAlert).toHaveBeenCalledWith(
+          expect.objectContaining({ title: 'Horário inválido' }),
+        )
+        expect(mockCreateAppointment).not.toHaveBeenCalled()
+      } else await waitFor(() => expect(mockCreateAppointment).toHaveBeenCalledOnce())
+    },
+  )
+  it.each(['resolve', 'reject'])(
+    'ignores an obsolete slot request that settles with %s after a date change',
+    async (outcome) => {
+      let resolveOld!: (slots: (typeof MOCK_SLOT)[]) => void
+      let rejectOld!: (error: Error) => void
+      mockGetAvailableSlots
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve, reject) => {
+              resolveOld = resolve
+              rejectOld = reject
+            }),
+        )
+        .mockResolvedValue([{ ...MOCK_SLOT, time: '11:00' }])
+      renderModal()
+      fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2030-12-30' } })
+      await waitFor(() => expect(mockGetAvailableSlots).toHaveBeenCalledOnce())
+      fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2030-12-31' } })
+      await screen.findByRole('button', { name: '11:00' })
+      await act(async () => {
+        if (outcome === 'resolve') resolveOld([MOCK_SLOT])
+        else rejectOld(new Error('obsolete request'))
+      })
+      expect(screen.getByRole('button', { name: '11:00' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '10:00' })).not.toBeInTheDocument()
+    },
+  )
+
   it('rejects an invalid phone before persisting the appointment', async () => {
     renderModal()
     await fillRequiredFields()

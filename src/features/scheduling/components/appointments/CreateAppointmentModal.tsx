@@ -159,15 +159,25 @@ export function CreateAppointmentModal({
       setIsLoadingSlots(false)
       return
     }
+    let isCurrent = true
     setIsLoadingSlots(true)
     getAvailableSlots({
       profileId: form.profileId,
       date: form.appointmentDate,
       serviceId: form.serviceId || undefined,
     })
-      .then(setSlots)
-      .catch(() => setSlots([]))
-      .finally(() => setIsLoadingSlots(false))
+      .then((nextSlots) => {
+        if (isCurrent) setSlots(nextSlots)
+      })
+      .catch(() => {
+        if (isCurrent) setSlots([])
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoadingSlots(false)
+      })
+    return () => {
+      isCurrent = false
+    }
   }, [form.profileId, form.appointmentDate, form.serviceId])
 
   function set(field: keyof FormState, value: string) {
@@ -187,7 +197,7 @@ export function CreateAppointmentModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.profileId || !form.patientName || !form.appointmentDate || !form.startTime) {
+    if (!form.profileId || !form.patientName.trim() || !form.appointmentDate || !form.startTime) {
       return
     }
     if (!isValidWhatsappPhoneBR(form.patientPhone)) {
