@@ -1,4 +1,4 @@
-import { render, screen, userEvent } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen, userEvent } from '@/test-utils/render-utils'
 import { vi } from 'vitest'
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -68,6 +68,130 @@ describe('CategoryManagerModal', () => {
     await userEvent.keyboard('{Escape}')
     expect(props.onClose).toHaveBeenCalledOnce()
     expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('validates the trimmed name and custom color before creating', async () => {
+    render(<CategoryManagerModal {...defaultProps()} />)
+    fireEvent.change(screen.getByLabelText(/Nome da categoria/i), { target: { value: '   ' } })
+    await userEvent.click(screen.getByRole('button', { name: /Cadastrar categoria/i }))
+    expect(screen.getByText('O nome da categoria é obrigatório.')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(/Nome da categoria/i), {
+      target: { value: '  Resinas  ' },
+    })
+    fireEvent.change(screen.getByRole('textbox', { name: /Cor/i }), { target: { value: '#XYZ' } })
+    await userEvent.click(screen.getByRole('button', { name: /Cadastrar categoria/i }))
+    expect(screen.getByText(/Cor inválida/)).toBeInTheDocument()
+    expect(mockCreate).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByRole('textbox', { name: /Cor/i }), {
+      target: { value: '#123abc' },
+    })
+    await userEvent.click(screen.getByRole('button', { name: /Cadastrar categoria/i }))
+    expect(mockCreate).toHaveBeenCalledWith({ name: 'Resinas', color: '#123abc' })
+    expect(screen.getByLabelText(/Nome da categoria/i)).toHaveValue('')
+  })
+
+  it.each([false, true])(
+    'preserves a failed category save and retries (editing=%s)',
+    async (editing) => {
+      const service = editing ? mockUpdate : mockCreate
+      service.mockRejectedValueOnce(new Error('offline'))
+      const props = defaultProps()
+      render(<CategoryManagerModal {...props} />)
+      if (editing)
+        await userEvent.click(screen.getByRole('button', { name: 'Editar categoria Descartáveis' }))
+      fireEvent.change(screen.getByLabelText(/Nome da categoria/i), {
+        target: { value: 'Resinas' },
+      })
+      const name = editing ? 'Salvar alterações' : 'Cadastrar categoria'
+      await userEvent.click(screen.getByRole('button', { name }))
+      expect(
+        screen.getByText(
+          editing
+            ? 'Não foi possível atualizar a categoria.'
+            : 'Não foi possível cadastrar a categoria.',
+        ),
+      ).toBeInTheDocument()
+      expect(screen.getByLabelText(/Nome da categoria/i)).toHaveValue('Resinas')
+      expect(props.onCategoriesChanged).not.toHaveBeenCalled()
+      await userEvent.click(screen.getByRole('button', { name }))
+      expect(service).toHaveBeenCalledTimes(2)
+      expect(props.onCategoriesChanged).toHaveBeenCalledOnce()
+      expect(screen.getByLabelText(/Nome da categoria/i)).toHaveValue('')
+    },
+  )
+
+  it.each([
+    new ApiError('Serviço indisponível', 503, null),
+    new ApiError('', 500, null),
+    new Error('offline'),
+  ])('keeps a failed deletion open and supports retry: %s', async (error) => {
+    mockDelete.mockRejectedValueOnce(error)
+    const props = defaultProps()
+    render(<CategoryManagerModal {...props} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir categoria Descartáveis' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir categoria' }))
+    expect(
+      screen.getByText(
+        error instanceof ApiError && error.message
+          ? error.message
+          : 'Não foi possível excluir a categoria.',
+      ),
+    ).toBeInTheDocument()
+    expect(props.onCategoriesChanged).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir categoria' }))
+    expect(mockDelete).toHaveBeenCalledTimes(2)
+    expect(screen.queryByRole('heading', { name: 'Excluir categoria' })).not.toBeInTheDocument()
+    expect(props.onCategoriesChanged).toHaveBeenCalledOnce()
+  })
+
+  it('clears the edit form when that category is deleted and blocks duplicate deletion', async () => {
+    let resolve!: () => void
+    mockDelete.mockReturnValueOnce(
+      new Promise((yes) => {
+        resolve = () => yes(undefined)
+      }),
+    )
+    render(
+      <CategoryManagerModal
+        {...defaultProps({ categories: [buildCategory({ productCount: 0 })] })}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Editar categoria Descartáveis' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir categoria Descartáveis' }))
+    const confirm = screen.getByRole('button', { name: 'Excluir categoria' })
+    await userEvent.click(confirm)
+    expect(confirm).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+    await userEvent.click(confirm)
+    expect(mockDelete).toHaveBeenCalledOnce()
+    await act(async () => resolve())
+    expect(screen.getByLabelText(/Nome da categoria/i)).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Cadastrar categoria' })).toBeInTheDocument()
+  })
+
+  it('dismisses only the nested confirmation on Escape', async () => {
+    const props = defaultProps()
+    render(<CategoryManagerModal {...props} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir categoria Descartáveis' }))
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByRole('heading', { name: 'Excluir categoria' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Gerenciar categorias' })).toBeInTheDocument()
+    expect(props.onClose).not.toHaveBeenCalled()
+    expect(mockDelete).not.toHaveBeenCalled()
+  })
+
+  it('resets editing and errors after closing and reopening the manager', async () => {
+    mockUpdate.mockRejectedValueOnce(new Error('offline'))
+    const props = defaultProps()
+    const { rerender } = render(<CategoryManagerModal {...props} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Editar categoria Descartáveis' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(screen.getByText('Não foi possível atualizar a categoria.')).toBeInTheDocument()
+    rerender(<CategoryManagerModal {...props} open={false} />)
+    rerender(<CategoryManagerModal {...props} />)
+    expect(screen.getByLabelText(/Nome da categoria/i)).toHaveValue('')
+    expect(screen.queryByText('Não foi possível atualizar a categoria.')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cadastrar categoria' })).toBeInTheDocument()
   })
   beforeEach(() => {
     vi.clearAllMocks()
@@ -233,13 +357,14 @@ describe('CategoryManagerModal', () => {
 
   it('renders category names in the list', () => {
     const categories = [
-      buildCategory({ id: 'cat-1', name: 'Descartáveis' }),
+      buildCategory({ id: 'cat-1', name: 'Descartáveis', productCount: 1 }),
       buildCategory({ id: 'cat-2', name: 'Anestésicos' }),
     ]
     render(<CategoryManagerModal {...defaultProps({ categories })} />)
 
     expect(screen.getByText('Descartáveis')).toBeInTheDocument()
     expect(screen.getByText('Anestésicos')).toBeInTheDocument()
+    expect(screen.getByText('1 produto')).toBeInTheDocument()
   })
 
   it('renders the empty state when there are no categories', () => {
