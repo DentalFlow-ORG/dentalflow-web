@@ -58,6 +58,54 @@ async function renderLoaded() {
 }
 
 describe('useFiscalInvoicesPage — initial load', () => {
+  it.each(['success', 'failure'] as const)(
+    'ignores an obsolete filter %s after a newer search finishes',
+    async (outcome) => {
+      const { result } = await renderLoaded()
+      let resolve!: (value: unknown) => void
+      let reject!: (error: Error) => void
+      mockListInvoices.mockReturnValueOnce(
+        new Promise((yes, no) => {
+          resolve = yes
+          reject = no
+        }),
+      )
+      act(() => result.current.setFilter('customer', 'Ana'))
+      const currentInvoice = makeInvoice({ id: 'current', customerName: 'Beatriz' })
+      mockListInvoices.mockResolvedValueOnce({ data: [currentInvoice], total: 1 })
+      act(() => result.current.setFilter('customer', 'Beatriz'))
+      await waitFor(() => expect(result.current.invoices).toEqual([currentInvoice]))
+      await act(async () => {
+        if (outcome === 'success') resolve({ data: [makeInvoice()], total: 25 })
+        else reject(new Error('Falha da pesquisa antiga'))
+      })
+      expect(result.current.invoices).toEqual([currentInvoice])
+      expect(result.current.total).toBe(1)
+      expect(mockShowAlert).not.toHaveBeenCalled()
+    },
+  )
+  it.each(['success', 'failure'] as const)(
+    'ignores a late initial %s after leaving the page',
+    async (outcome) => {
+      let resolve!: (value: unknown) => void
+      let reject!: (error: Error) => void
+      mockListInvoices.mockReturnValueOnce(
+        new Promise((yes, no) => {
+          resolve = yes
+          reject = no
+        }),
+      )
+      const { result, unmount } = renderHook(() => useFiscalInvoicesPage())
+      unmount()
+      await act(async () => {
+        if (outcome === 'success') resolve({ data: [makeInvoice()], total: 1 })
+        else reject(new Error('late failure'))
+      })
+      expect(mockShowAlert).not.toHaveBeenCalled()
+      expect(result.current.invoices).toEqual([])
+      expect(result.current.loadError).toBeNull()
+    },
+  )
   it.each([new Error('Serviço indisponível'), null])(
     'reports a reload failure and supports retry: %s',
     async (error) => {

@@ -116,18 +116,24 @@ export function useFiscalInvoicesPage() {
       isInitialLoad.current = false
       return
     }
+    let isCurrent = true
     listInvoices(filters)
       .then((response) => {
+        if (!isCurrent) return
         setInvoices(response.data)
         setTotal(response.total)
       })
       .catch((error: unknown) => {
+        if (!isCurrent) return
         showAlert({
           title: 'Erro ao carregar notas fiscais',
           description: getErrorMessage(error, 'Não foi possível carregar as notas fiscais.'),
           tone: 'error',
         })
       })
+    return () => {
+      isCurrent = false
+    }
   }, [filters, showAlert])
 
   function handleActionError(error: unknown, fallback: string): never {
