@@ -45,6 +45,28 @@ describe('AppointmentDrawer — closed state', () => {
 })
 
 describe('AppointmentDrawer — header', () => {
+  it('dismisses with Escape and can reopen with a different patient', async () => {
+    const onClose = vi.fn()
+    const props = {
+      isActionLoading: false,
+      onClose,
+      onStatusChange: vi.fn(),
+      onCancelRequest: vi.fn(),
+    }
+    const { rerender } = render(<AppointmentDrawer {...props} appointment={makeAppointment()} />)
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalled()
+    rerender(<AppointmentDrawer {...props} appointment={null} />)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    rerender(
+      <AppointmentDrawer
+        {...props}
+        appointment={makeAppointment({ id: 'other', patientName: 'Outro paciente' })}
+      />,
+    )
+    expect(screen.getByRole('dialog', { name: 'Outro paciente' })).toBeInTheDocument()
+  })
+
   it('renders patient name, initials, date, and status/payment badges', () => {
     const appt = makeAppointment({ patientName: 'Ana Souza' })
     render(

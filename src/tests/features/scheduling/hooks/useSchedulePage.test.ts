@@ -155,6 +155,19 @@ describe('useSchedulePage', () => {
   })
 
   describe('Google Calendar actions', () => {
+    it('reports a single synchronized appointment', async () => {
+      mockSyncGoogleCalendar.mockResolvedValue({ synced: 1 })
+      const { result } = renderHook(() => useSchedulePage())
+      await waitFor(() => expect(result.current.isBootstrapping).toBe(false))
+      await act(() => result.current.handleSyncGoogleCalendar())
+      expect(mockShowAlert).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          description: '1 agendamento sincronizado.',
+          tone: 'success',
+        }),
+      )
+    })
+
     it('handleConnectGoogleCalendar redirects to the returned URL', async () => {
       mockCreateGoogleCalendarConnectUrl.mockResolvedValue({ url: 'https://accounts.google.com/x' })
       const assignSpy = vi.fn()
