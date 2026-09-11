@@ -6,7 +6,7 @@ import {
   deleteFinancialTransaction,
   updateFinancialTransaction,
 } from '@/features/finance/services/finance.service'
-import { makeTransaction } from '@/test-utils/factories/finance.factory'
+import { makeCategory, makeTransaction } from '@/test-utils/factories/finance.factory'
 import { act, renderHook } from '@/test-utils/render-utils'
 
 const showAlert = vi.hoisted(() => vi.fn())
@@ -20,6 +20,24 @@ vi.mock('@/features/finance/services/finance.service', () => ({
 }))
 const submit = () => new Event('submit', { cancelable: true }) as unknown as FormEvent
 beforeEach(() => vi.resetAllMocks())
+
+it('clears an incompatible category when changing transaction type in create and edit forms', () => {
+  const income = [makeCategory()]
+  const expenses = [makeCategory({ id: 'expense', type: 'EXPENSE' })]
+  const { result } = renderHook(() => useFinanceTransactions(vi.fn(), income, expenses))
+  act(() => {
+    result.current.setTransaction('categoryId', 'cat-1')
+    result.current.handleOpenEdit(makeTransaction())
+  })
+  act(() => {
+    result.current.setTransaction('type', 'EXPENSE')
+    result.current.setEditField('type', 'EXPENSE')
+  })
+  expect(result.current.transactionCategories).toEqual(expenses)
+  expect(result.current.transactionForm.categoryId).toBe('')
+  expect(result.current.editForm.categoryId).toBe('')
+  expect(result.current.editForm.description).toBe('Consulta João')
+})
 
 it.each(['categoryId', 'amount', 'description'] as const)(
   'requires %s before creating or updating a transaction',

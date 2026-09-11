@@ -83,6 +83,18 @@ describe('useFinancePage', () => {
     vi.clearAllMocks()
   })
 
+  it('presents an unknown load failure and recovers on reload', async () => {
+    setupDefaultMocks()
+    vi.mocked(listFinancialCategories).mockRejectedValueOnce(null)
+    const { result } = renderHook(() => useFinancePage())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.loadError).toBe('Não foi possível carregar o financeiro.')
+    act(() => result.current.load())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.loadError).toBeNull()
+    expect(result.current.summary).toEqual(makeSummary())
+  })
+
   it.each([new Error('Página indisponível'), null])(
     'retains loaded transactions when pagination fails: %s',
     async (error) => {

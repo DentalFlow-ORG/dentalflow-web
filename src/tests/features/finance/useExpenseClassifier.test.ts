@@ -17,6 +17,30 @@ beforeEach(() => {
 })
 
 describe('useExpenseClassifier', () => {
+  it.each([
+    new Error('Classificação indisponível'),
+    new ApiError('Serviço indisponível', 503, null),
+  ])(
+    'presents a service error without treating it as a plan or quota block and allows retry: %s',
+    async (error) => {
+      mockClassifyExpense
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce({ suggestedCategoryId: 'cat-1' })
+      const { result } = renderHook(() => useExpenseClassifier(vi.fn()))
+      await act(async () => result.current.handleClassify('tx-1'))
+      expect(result.current.getState('tx-1')).toMatchObject({
+        error: error.message,
+        isClassifying: false,
+        isPlanBlocked: false,
+        isQuotaExceeded: false,
+      })
+      await act(async () => result.current.handleClassify('tx-1'))
+      expect(result.current.getState('tx-1')).toMatchObject({
+        error: null,
+        result: { suggestedCategoryId: 'cat-1' },
+      })
+    },
+  )
   it('returns the initial state for an untouched transaction', () => {
     const { result } = renderHook(() => useExpenseClassifier(vi.fn()))
     expect(result.current.getState('tx-1')).toEqual({

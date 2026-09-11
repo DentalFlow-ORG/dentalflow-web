@@ -1,4 +1,4 @@
-import { waitFor } from '@testing-library/react'
+import { act, waitFor } from '@testing-library/react'
 
 import { renderHook } from '@/test-utils/render-utils'
 
@@ -16,6 +16,20 @@ beforeEach(() => {
 })
 
 describe('useAiAssistantFinance', () => {
+  it('ignores a saved-analysis failure after unmount', async () => {
+    let reject!: (reason: Error) => void
+    mockGetLatestFinanceAnalysis.mockReturnValueOnce(
+      new Promise((_, fail) => {
+        reject = fail
+      }),
+    )
+    const { result, unmount } = renderHook(() => useAiAssistantFinance('2026-06-01', '2026-06-30'))
+    unmount()
+    await act(async () => reject(new Error('late failure')))
+    expect(result.current.savedAnalysis).toBeNull()
+    expect(result.current.quota).toBeNull()
+    expect(mockAnalyzeFinanceWithAi).not.toHaveBeenCalled()
+  })
   it('starts with isLoadingInitial true and no saved analysis', () => {
     mockGetLatestFinanceAnalysis.mockReturnValue(new Promise(() => {}))
     const { result } = renderHook(() => useAiAssistantFinance('2026-06-01', '2026-06-30'))
