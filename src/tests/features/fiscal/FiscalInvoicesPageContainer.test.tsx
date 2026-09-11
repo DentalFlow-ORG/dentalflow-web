@@ -1,6 +1,6 @@
 import userEvent from '@testing-library/user-event'
 
-import { act, fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen, waitFor, within } from '@/test-utils/render-utils'
 
 vi.mock('@tanstack/react-router', async () => {
   const m = await import('@/test-utils/mocks/router')
@@ -147,6 +147,41 @@ beforeEach(() => {
 })
 
 describe('FiscalInvoicesPageContainer — form persistence', () => {
+  it('forwards status and competence filters and preserves them while paging', async () => {
+    let filters = { page: 1, limit: 10, customer: 'João' }
+    const setFilters = vi.fn((update: (current: typeof filters) => typeof filters) => {
+      filters = update(filters)
+    })
+    const setFilter = vi.fn()
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({
+        invoices: [makeInvoice()],
+        total: 60,
+        totalPages: 6,
+        filters,
+        setFilters,
+        setFilter,
+      }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    const status = screen
+      .getAllByRole('combobox')
+      .find((select) => within(select).queryByRole('option', { name: 'Rascunho' }))
+    if (!status) throw new Error('Missing invoice status filter')
+    await userEvent.selectOptions(status, 'DRAFT')
+    expect(setFilter).toHaveBeenCalledWith('status', 'DRAFT')
+    fireEvent.change(screen.getByLabelText('Competência até'), { target: { value: '12/06/2026' } })
+    fireEvent.blur(screen.getByLabelText('Competência até'))
+    expect(setFilter).toHaveBeenCalledWith('to', '2026-06-12')
+    fireEvent.click(screen.getByTitle('Próxima página'))
+    expect(filters).toEqual({ page: 2, limit: 10, customer: 'João' })
+    const size = screen
+      .getAllByRole('combobox')
+      .find((select) => within(select).queryByRole('option', { name: '50' }))
+    if (!size) throw new Error('Missing page size selector')
+    await userEvent.selectOptions(size, '50')
+    expect(filters).toEqual({ page: 1, limit: 50, customer: 'João' })
+  })
   it.each([false, true])(
     'saves a %s editing invoice and resets the next draft',
     async (editing) => {
