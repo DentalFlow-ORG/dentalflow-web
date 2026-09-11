@@ -211,19 +211,71 @@ vi.mock('@/components/common/global-alerts-context', () => ({
   useGlobalAlerts: () => ({ showAlert: vi.fn() }),
 }))
 
+const chartTheme = vi.hoisted(() => ({ value: 'light' }))
 vi.mock('@/features/theme/useTheme', () => ({
-  useTheme: () => ({ theme: 'light' }),
+  useTheme: () => ({ theme: chartTheme.value }),
 }))
 
-vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  BarChart: () => null,
-  Bar: () => null,
-  CartesianGrid: () => null,
-  XAxis: () => null,
-  YAxis: () => null,
-  Tooltip: () => null,
-}))
+// Recharts owns pointer geometry. This double delivers its public tooltip
+// contract on hover while retaining the application's data and formatters.
+vi.mock('recharts', async () => {
+  const { cloneElement, createContext, useContext, useState } = await import('react')
+  type Datum = { label: string; value: number }
+  const Chart = createContext<{ data: Datum[]; active: Datum | null }>({ data: [], active: null })
+  return {
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    BarChart: ({ data, children }: { data: Datum[]; children: React.ReactNode }) => {
+      const [active, setActive] = useState<Datum | null>(null)
+      return (
+        <Chart.Provider value={{ data, active }}>
+          <div role="group" aria-label="Gráfico financeiro">
+            {data.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onMouseEnter={() => setActive(item)}
+                onMouseLeave={() => setActive(null)}
+              >
+                {item.label}
+              </button>
+            ))}
+            {children}
+          </div>
+        </Chart.Provider>
+      )
+    },
+    Bar: () => null,
+    CartesianGrid: () => null,
+    XAxis: () => null,
+    YAxis: ({ tickFormatter }: { tickFormatter: (value: number) => string }) => (
+      <div aria-label="Escala">
+        {useContext(Chart).data.map((item) => (
+          <span key={item.label}>{tickFormatter(item.value)}</span>
+        ))}
+      </div>
+    ),
+    Tooltip: ({
+      content,
+    }: {
+      content: React.ReactElement<{
+        active: boolean
+        label?: string
+        payload?: { value: number }[]
+      }>
+    }) => {
+      const { active } = useContext(Chart)
+      return (
+        <div role="tooltip">
+          {cloneElement(content, {
+            active: !!active,
+            label: active?.label,
+            payload: active ? [{ value: active.value }] : undefined,
+          })}
+        </div>
+      )
+    },
+  }
+})
 
 const mockUseAdminFinancePage = vi.fn()
 vi.mock('@/features/admin/hooks/useAdminFinancePage', () => ({
@@ -257,6 +309,59 @@ function makeSummary(kpiOverrides: Partial<AdminFinanceSummary['kpis']> = {}): A
     recentlyCanceledSubscriptions: [],
   }
 }
+
+describe('AdminFinancePageContainer — chart interactions', () => {
+  afterEach(() => {
+    chartTheme.value = 'light'
+  })
+
+  it.each(['light', 'dark'])(
+    'formats revenue and subscription tooltips in %s mode and dismisses on mouse leave',
+    async (theme) => {
+      chartTheme.value = theme
+      const plan: AdminFinanceSummary['subscriptionsByPlan'][number] = {
+        planId: 'pro',
+        planName: 'Profissional',
+        activeSubscriptions: 2,
+        trialSubscriptions: 0,
+        canceledSubscriptions: 0,
+        pastDueSubscriptions: 0,
+        totalSubscriptions: 2,
+        subscriberCount: 2,
+        estimatedMrr: 12345,
+        estimatedArr: 148140,
+        currency: 'BRL',
+      }
+      mockUseAdminFinancePage.mockReturnValue(
+        makeDefaultHookState({
+          summary: {
+            ...makeSummary(),
+            subscriptionsByPlan: [
+              plan,
+              { ...plan, planId: 'empty', planName: 'Sem receita', estimatedMrr: 0 },
+            ],
+            statusDistribution: [
+              { status: 'ACTIVE', count: 2 },
+              { status: 'CANCELED', count: 0 },
+            ],
+          },
+        }),
+      )
+      render(<AdminFinancePageContainer />)
+      const [revenue, status] = screen.getAllByRole('group', { name: 'Gráfico financeiro' })
+      expect(within(revenue).queryByRole('button', { name: 'Sem receita' })).not.toBeInTheDocument()
+      expect(within(revenue).getByLabelText('Escala')).toHaveTextContent('R$ 123,45')
+      expect(within(revenue).getByRole('tooltip')).toBeEmptyDOMElement()
+      await userEvent.hover(within(revenue).getByRole('button', { name: 'Profissional' }))
+      expect(within(revenue).getByRole('tooltip')).toHaveTextContent('ReceitaR$ 123,45')
+      await userEvent.unhover(within(revenue).getByRole('button', { name: 'Profissional' }))
+      expect(within(revenue).getByRole('tooltip')).toBeEmptyDOMElement()
+      await userEvent.hover(within(status).getByRole('button'))
+      expect(within(status).getByRole('tooltip')).toHaveTextContent('Assinaturas2')
+      expect(within(status).getByLabelText('Escala')).toHaveTextContent('2')
+    },
+  )
+})
 
 function makeSubscription(
   overrides: Partial<AdminFinanceSubscription> = {},

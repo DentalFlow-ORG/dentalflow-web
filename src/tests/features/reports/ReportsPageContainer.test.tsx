@@ -1,4 +1,4 @@
-import { render, screen, userEvent, waitFor, within } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, userEvent, waitFor, within } from '@/test-utils/render-utils'
 
 import { ReportsPageContainer } from '@/features/reports/containers/ReportsPageContainer'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
@@ -603,5 +603,150 @@ describe('ReportsPageContainer — filter interactions', () => {
       { status?: string },
     ]
     expect(callArgs.status).toBeDefined()
+  })
+})
+
+describe('ReportsPageContainer — filter round trips', () => {
+  async function preview(report: ReturnType<typeof within>) {
+    const refresh = report.queryByRole('button', { name: 'Nova prévia' })
+    if (refresh) await userEvent.click(refresh)
+    await userEvent.click(report.getByRole('button', { name: /pré-visualizar relatório/i }))
+  }
+  it.each([
+    {
+      title: 'Relatório financeiro',
+      service: 'getFinanceReportPreview',
+      status: 'Pago',
+      value: 'PAID',
+    },
+    {
+      title: 'Relatório de agendamentos',
+      service: 'getAppointmentsReportPreview',
+      status: 'Concluído',
+      value: 'COMPLETED',
+    },
+    {
+      title: 'Relatório de estoque',
+      service: 'getInventoryReportPreview',
+      status: 'Zerado',
+      value: 'EMPTY',
+    },
+    {
+      title: 'Relatório de notas fiscais',
+      service: 'getInvoicesReportPreview',
+      status: 'Emitido',
+      value: 'ISSUED',
+    },
+  ] as const)(
+    'applies and clears status for $title without changing other reports',
+    async ({ title, service, status, value }) => {
+      const services = await import('@/features/reports/services/reports.service')
+      render(<ReportsPageContainer />)
+      const section = screen.getByRole('heading', { name: title }).closest('section')
+      if (!section) throw new Error('Missing report section')
+      const report = within(section)
+      await userEvent.click(report.getByRole('combobox', { name: 'Status' }))
+      await userEvent.click(await screen.findByRole('option', { name: status }))
+      await preview(report)
+      expect(services[service]).toHaveBeenLastCalledWith(expect.objectContaining({ status: value }))
+      await userEvent.click(report.getByRole('combobox', { name: 'Status' }))
+      await userEvent.click(await screen.findByRole('option', { name: 'Todos os status' }))
+      await preview(report)
+      expect(services[service]).toHaveBeenLastCalledWith(
+        expect.objectContaining({ status: undefined }),
+      )
+      await userEvent.click(report.getByRole('combobox', { name: 'Status' }))
+      await userEvent.click(await screen.findByRole('option', { name: status }))
+      await userEvent.click(report.getByRole('button', { name: /limpar filtros/i }))
+      expect(report.getByRole('combobox', { name: 'Status' })).toHaveTextContent('Todos os status')
+      await preview(report)
+      expect(services[service]).toHaveBeenLastCalledWith(
+        title === 'Relatório de estoque'
+          ? {}
+          : {
+              startDate: '2026-05-07',
+              endDate: '2026-06-06',
+            },
+      )
+    },
+  )
+
+  it.each([
+    { title: 'Relatório financeiro', service: 'getFinanceReportPreview' },
+    { title: 'Relatório de agendamentos', service: 'getAppointmentsReportPreview' },
+    { title: 'Relatório de notas fiscais', service: 'getInvoicesReportPreview' },
+  ] as const)(
+    'passes edited and cleared period boundaries for $title',
+    async ({ title, service }) => {
+      const services = await import('@/features/reports/services/reports.service')
+      render(<ReportsPageContainer />)
+      const section = screen.getByRole('heading', { name: title }).closest('section')
+      if (!section) throw new Error('Missing report section')
+      const report = within(section)
+      const start = report.getByLabelText(/inicial/i)
+      const end = report.getByLabelText(/final/i)
+      for (const [input, value] of [
+        [start, '01/05/2026'],
+        [end, '31/05/2026'],
+      ] as const) {
+        fireEvent.change(input, { target: { value } })
+        fireEvent.blur(input)
+      }
+      await preview(report)
+      expect(services[service]).toHaveBeenLastCalledWith({
+        startDate: '2026-05-01',
+        endDate: '2026-05-31',
+      })
+      for (const input of [start, end]) {
+        fireEvent.change(input, { target: { value: '' } })
+        fireEvent.blur(input)
+      }
+      await preview(report)
+      expect(services[service]).toHaveBeenLastCalledWith({
+        startDate: undefined,
+        endDate: undefined,
+      })
+    },
+  )
+
+  it('renders missing dentist and estimate fallbacks and excludes dates beyond the period', async () => {
+    mockListAppointments.mockResolvedValue([
+      makeAppointment({
+        profileId: 'missing',
+        profile: undefined,
+        appointmentDate: '2026-05-20',
+        status: 'COMPLETED',
+        estimatedAmountCents: null,
+      }),
+      makeAppointment({
+        id: 'future',
+        profileId: 'future',
+        profile: { id: 'future', displayName: 'Fora do período', userId: null },
+        appointmentDate: '2026-07-01',
+      }),
+    ])
+    render(<ReportsPageContainer />)
+    const row = (await screen.findByText('Profissional não informado')).closest('tr')
+    expect(row).toHaveTextContent('R$ 0,00')
+    expect(row).toHaveTextContent('100%')
+    expect(screen.queryByText('Fora do período')).not.toBeInTheDocument()
+  })
+
+  it('settles the production loading state after a failed request', async () => {
+    mockListAppointments.mockRejectedValueOnce(new Error('offline'))
+    render(<ReportsPageContainer />)
+    expect(await screen.findByText('Nenhuma produção no período')).toBeInTheDocument()
+  })
+
+  it('supports a plan change from the upgrade notice to reports and back', async () => {
+    mockGetCachedBillingStatus.mockReturnValue({ planKey: 'starter' })
+    const { rerender } = render(<ReportsPageContainer />)
+    expect(screen.queryByRole('heading', { name: 'Relatório financeiro' })).not.toBeInTheDocument()
+    mockGetCachedBillingStatus.mockReturnValue({ planKey: 'professional' })
+    rerender(<ReportsPageContainer />)
+    expect(await screen.findByRole('heading', { name: 'Relatório financeiro' })).toBeInTheDocument()
+    mockGetCachedBillingStatus.mockReturnValue({ planKey: 'starter' })
+    rerender(<ReportsPageContainer />)
+    expect(screen.queryByRole('heading', { name: 'Relatório financeiro' })).not.toBeInTheDocument()
   })
 })
