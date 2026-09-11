@@ -87,6 +87,24 @@ const summaryEmpty: FinanceSummary = {
 }
 
 describe('IncomeExpensesChart', () => {
+  it('identifies a later best period and presents a break-even latest result', () => {
+    render(
+      <IncomeExpensesChart
+        summary={makeSummary([{ netProfit: -100 }, { netProfit: 500 }, { netProfit: 0 }])}
+      />,
+    )
+    expect(screen.getByText('Melhor período').parentElement).toHaveTextContent('500,00')
+    expect(screen.getByText('Último resultado').parentElement).toHaveTextContent('0,00')
+    expect(screen.getByText('Maior pressão').parentElement).toHaveTextContent('-R$ 100,00')
+  })
+
+  it('renders a tooltip without optional date and color data', () => {
+    tooltipState.active = true
+    tooltipState.payload = [{ name: 'income', value: 120 }]
+    render(<IncomeExpensesChart summary={summaryWithData} />)
+    expect(screen.getByText('R$ 120,00')).toBeInTheDocument()
+    expect(screen.queryByText(/undefined|NaN/)).not.toBeInTheDocument()
+  })
   it('allows toggling series while keeping at least one series visible', async () => {
     render(<IncomeExpensesChart summary={summaryWithData} />)
     const income = screen.getByRole('button', { name: 'Entradas' })

@@ -93,6 +93,11 @@ function getSelects() {
 }
 
 describe('TransactionForm', () => {
+  it('passes an optional due date to the transaction draft', () => {
+    const { onChange } = renderForm()
+    fireEvent.change(screen.getByLabelText(/Vencimento/), { target: { value: '2026-07-15' } })
+    expect(onChange).toHaveBeenCalledWith('dueDate', '2026-07-15')
+  })
   // ── Section labels ─────────────────────────────────────────────────────────
 
   it('renders the Classificação section label', () => {

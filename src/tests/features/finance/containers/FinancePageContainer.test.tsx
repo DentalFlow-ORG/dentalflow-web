@@ -133,13 +133,29 @@ it('filters pending receivables from the KPI and clears those filters from the e
     1,
     20,
   )
-  await user.click(firstButton('Limpar filtros'))
+  const transactions = document.getElementById('finance-transactions')!
+  await user.click(within(transactions).getAllByRole('button', { name: 'Limpar filtros' })[0])
   await screen.findAllByText('Nenhuma movimentação encontrada.')
   expect(listFinancialTransactions).toHaveBeenLastCalledWith(
     expect.objectContaining({ type: undefined, status: undefined, categoryId: undefined }),
     1,
     20,
   )
+})
+
+it('edits expenses with expense categories rather than income categories', async () => {
+  vi.mocked(listFinancialTransactions).mockResolvedValue({
+    data: [makeTransaction({ type: 'EXPENSE', categoryId: 'cat-2' })],
+    total: 1,
+    page: 1,
+    limit: 20,
+  })
+  const user = await openFinance()
+  await user.click(firstButton('Editar lançamento'))
+  const dialog = within(screen.getByRole('dialog'))
+  await user.click(dialog.getByRole('combobox', { name: 'Categoria' }))
+  expect(screen.getByRole('option', { name: 'Materiais' })).toBeInTheDocument()
+  expect(screen.queryByRole('option', { name: 'Consultas' })).not.toBeInTheDocument()
 })
 
 it.each(['Editar categoria', 'Editar lançamento', 'Editar despesa fixa'])(

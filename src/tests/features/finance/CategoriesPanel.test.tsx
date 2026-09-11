@@ -107,10 +107,11 @@ describe('CategoriesPanel', () => {
 
   // ── Actions ────────────────────────────────────────────────────────────────
 
-  it('edit button calls onEdit with the category', () => {
-    const { onEdit } = renderPanel([incomeCategory])
+  it('edit button preserves a category without an optional color', () => {
+    const category = { ...incomeCategory, color: null }
+    const { onEdit } = renderPanel([category])
     screen.getByRole('button', { name: 'Editar categoria' }).click()
-    expect(onEdit).toHaveBeenCalledWith(incomeCategory)
+    expect(onEdit).toHaveBeenCalledWith(category)
   })
 
   it('delete button calls onDelete for non-default categories', () => {

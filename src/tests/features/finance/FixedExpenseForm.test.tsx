@@ -92,6 +92,13 @@ function getSelects() {
 }
 
 describe('FixedExpenseForm', () => {
+  it('normalizes the entered amount and passes the chosen recurrence day', () => {
+    const { onChange } = renderForm()
+    fireEvent.change(screen.getByLabelText('Valor'), { target: { value: '123456' } })
+    expect(onChange).toHaveBeenCalledWith('amount', '1.234,56')
+    fireEvent.change(screen.getByLabelText('Dia'), { target: { value: '31' } })
+    expect(onChange).toHaveBeenCalledWith('dueDay', '31')
+  })
   // ── Section labels ─────────────────────────────────────────────────────────
 
   it('renders the Identificação section label', () => {

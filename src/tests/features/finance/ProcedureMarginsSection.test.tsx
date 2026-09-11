@@ -273,6 +273,62 @@ it('service name span has truncate class for overflow safety', () => {
 })
 
 describe('ProcedureMarginsSection — cost data and ordering', () => {
+  it('preserves available revenue while refreshing and prevents duplicate refreshes', () => {
+    const { onLoad } = renderSection({ ...successState, isLoading: true })
+    const refresh = screen.getByRole('button', { name: 'Atualizar' })
+    expect(
+      within(screen.getByTestId('service-list')).getByText('Clareamento dental'),
+    ).toBeInTheDocument()
+    expect(refresh).toBeDisabled()
+    fireEvent.click(refresh)
+    expect(onLoad).not.toHaveBeenCalled()
+  })
+
+  it.each([false, true])(
+    'handles a cost limitation with cost data available: %s',
+    (costDataAvailable) => {
+      renderSection({
+        ...successState,
+        data: { ...mockData, costDataAvailable, limitation: 'Custos de materiais incompletos' },
+      })
+      if (costDataAvailable)
+        expect(screen.queryByText('Custos de materiais incompletos')).not.toBeInTheDocument()
+      else expect(screen.getByText('Custos de materiais incompletos')).toBeInTheDocument()
+      expect(
+        within(screen.getByTestId('service-list')).getByText('Clareamento dental'),
+      ).toBeInTheDocument()
+    },
+  )
+
+  it('ranks a later higher margin first and keeps missing margins last', () => {
+    renderSection({
+      ...successState,
+      data: {
+        ...mockData,
+        costDataAvailable: true,
+        items: [
+          serviceA,
+          { ...serviceB, marginPercent: 20 },
+          {
+            ...serviceA,
+            serviceId: 'high-margin',
+            serviceName: 'Maior retorno',
+            marginPercent: 50,
+          },
+        ],
+      },
+    })
+    fireEvent.change(screen.getByRole('combobox', { name: 'Ordenar procedimentos' }), {
+      target: { value: 'margin' },
+    })
+    const list = within(screen.getByTestId('service-list'))
+    expect(
+      list
+        .getAllByText(/^(Clareamento dental|Ortodontia|Maior retorno)$/)
+        .map((node) => node.textContent),
+    ).toEqual(['Maior retorno', 'Ortodontia', 'Clareamento dental'])
+    expect(screen.getByText('Maior margem (est.)').parentElement).toHaveTextContent('Maior retorno')
+  })
   const items = [
     {
       ...serviceA,

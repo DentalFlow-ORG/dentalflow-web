@@ -225,8 +225,6 @@ export function ProcedureMarginsSection({ state, onLoad }: Props) {
         )
       case 'name':
         return copy.sort((a, b) => a.serviceName.localeCompare(b.serviceName, 'pt-BR'))
-      default:
-        return copy
     }
   }, [data, sortKey])
 

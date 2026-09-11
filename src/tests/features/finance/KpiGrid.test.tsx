@@ -22,6 +22,18 @@ function makeSummary(kpis: Partial<FinanceSummary['kpis']> = {}): FinanceSummary
 }
 
 describe('KpiGrid', () => {
+  it('shows a negative margin and keeps zero receivables accessible to the collection filter', () => {
+    const onPendingReceivablesClick = vi.fn()
+    render(
+      <KpiGrid
+        summary={makeSummary({ profitMargin: -25, pendingReceivables: 0 })}
+        onPendingReceivablesClick={onPendingReceivablesClick}
+      />,
+    )
+    expect(screen.getByText('-25.0%')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /recebíveis pendentes/i }))
+    expect(onPendingReceivablesClick).toHaveBeenCalledOnce()
+  })
   // ── Labels ────────────────────────────────────────────────────────────────
 
   it('renders all 6 KPI labels', () => {

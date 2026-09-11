@@ -119,6 +119,21 @@ function renderTable(
 }
 
 describe('TransactionsTable', () => {
+  it('keeps service details and uncategorized transactions visible while refreshing', () => {
+    renderTable(
+      [
+        {
+          ...incomeTransaction,
+          category: null,
+          service: { id: 'service-1', name: 'Avaliação inicial' },
+        },
+      ],
+      { isLoading: true },
+    )
+    expect(screen.getByRole('status', { name: 'Carregando movimentações' })).toBeInTheDocument()
+    expect(screen.getAllByText(/Sem categoria/)).toHaveLength(2)
+    expect(screen.getAllByText(/Avaliação inicial/)).toHaveLength(2)
+  })
   // ── Key fields ────────────────────────────────────────────────────────────
 
   it('renders transaction description', () => {
@@ -183,14 +198,16 @@ describe('TransactionsTable', () => {
     const { onEdit } = renderTable([incomeTransaction])
     const editButtons = screen.getAllByRole('button', { name: 'Editar lançamento' })
     // First button is mobile card, second is desktop table
-    editButtons[0].click()
+    for (const button of editButtons) fireEvent.click(button)
+    expect(onEdit).toHaveBeenCalledTimes(2)
     expect(onEdit).toHaveBeenCalledWith(incomeTransaction)
   })
 
   it('delete button calls onDelete with the transaction', () => {
     const { onDelete } = renderTable([incomeTransaction])
     const deleteButtons = screen.getAllByRole('button', { name: 'Cancelar lançamento' })
-    deleteButtons[0].click()
+    for (const button of deleteButtons) fireEvent.click(button)
+    expect(onDelete).toHaveBeenCalledTimes(2)
     expect(onDelete).toHaveBeenCalledWith(incomeTransaction)
   })
 
