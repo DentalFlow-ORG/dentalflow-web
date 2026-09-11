@@ -59,6 +59,18 @@ const accessDenied = makeAccessDeniedBillingStatus()
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('ProtectedAppRoute', () => {
+  it('does not expose role-restricted content when the authenticated user is missing', () => {
+    setMockAuthState({ isBootstrapping: false, isAuthenticated: true, user: null })
+    renderWithProviders(
+      <ProtectedAppRoute allowedRoles={['OWNER']}>
+        <div>Owner financial records</div>
+      </ProtectedAppRoute>,
+    )
+    expect(screen.queryByText('Owner financial records')).not.toBeInTheDocument()
+    expect(screen.getByTestId('navigate')).toHaveAttribute('data-to', '/app')
+    expect(mockGetCurrentBillingStatus).not.toHaveBeenCalled()
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
     setMockPathname('/app')
