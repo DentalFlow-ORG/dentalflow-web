@@ -142,7 +142,7 @@ function mapBackendOdontogramSuggestions(
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type DictationState = 'idle' | 'recording' | 'processing' | 'success' | 'error'
+type DictationState = 'idle' | 'requesting' | 'recording' | 'processing' | 'success' | 'error'
 
 type Props = {
   recordId: string
@@ -279,6 +279,7 @@ export function VoiceDictationCard({
   // Set to true when the processing phase is aborted (by timeout or reset) so
   // a still-running processAudio does not overwrite state afterwards.
   const processingAbortedRef = useRef(false)
+  const processingGenerationRef = useRef(0)
   // Advances processingStep to 3 after ~6 s of API wait (simulates the
   // transcription→classification handoff without any server-side events).
   const processingStepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -318,6 +319,7 @@ export function VoiceDictationCard({
   }, [])
 
   const reset = useCallback(() => {
+    processingGenerationRef.current += 1
     stopTimer()
     if (stopFallbackTimerRef.current) {
       clearTimeout(stopFallbackTimerRef.current)
@@ -361,6 +363,8 @@ export function VoiceDictationCard({
       // navigated away). Bail out early so we never fire an API call or update
       // state on an unmounted component.
       if (!isMountedRef.current) return
+
+      const generation = ++processingGenerationRef.current
 
       // Reset the abort flag and step counter for this new processing session.
       processingAbortedRef.current = false
@@ -406,6 +410,7 @@ export function VoiceDictationCard({
 
       try {
         const audioBase64 = await blobToBase64(blob)
+        if (generation !== processingGenerationRef.current) return
         // Check after the async conversion — unmount or abort may have happened.
         if (!isMountedRef.current || processingAbortedRef.current) {
           clearProcessingTimeout()
@@ -454,6 +459,8 @@ export function VoiceDictationCard({
           mimeType,
           durationSeconds: Math.max(1, Math.round(durationSeconds)),
         })
+        // An expired request must not clear timers or replace a newer recording.
+        if (generation !== processingGenerationRef.current) return
         clearStepTimer()
         // Check after the API call — unmount, reset, or timeout may have fired.
         if (!isMountedRef.current || processingAbortedRef.current) {
@@ -489,6 +496,7 @@ export function VoiceDictationCard({
         setSelectedOdontogramTeeth(new Set(oSuggestions.map((s) => s.toothNumber)))
         setState('success')
       } catch (err: unknown) {
+        if (generation !== processingGenerationRef.current) return
         clearStepTimer()
         clearProcessingTimeout()
         // If the timeout or a reset already handled the error path, ignore this.
@@ -566,6 +574,7 @@ export function VoiceDictationCard({
     }
 
     try {
+      setState('requesting')
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       // Permission may settle after navigation; do not start or retain a microphone.
       if (!isMountedRef.current) {
@@ -593,6 +602,7 @@ export function VoiceDictationCard({
       }
 
       recorder.onstop = () => {
+        if (mediaRecorderRef.current !== recorder) return
         // Cancel the fallback safety timer — onstop arrived as expected.
         if (stopFallbackTimerRef.current) {
           clearTimeout(stopFallbackTimerRef.current)
@@ -807,7 +817,7 @@ export function VoiceDictationCard({
       )}
 
       {/* ── Idle ── */}
-      {!readOnly && state === 'idle' && (
+      {!readOnly && (state === 'idle' || state === 'requesting') && (
         <div className="flex flex-col items-center gap-4 py-2 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/5 ring-1 ring-primary/10">
             <Mic className="h-6 w-6 text-primary/60" aria-hidden="true" />
@@ -815,9 +825,14 @@ export function VoiceDictationCard({
           <p className="max-w-50 text-xs leading-relaxed text-muted-foreground">
             Grave a consulta e a IA organiza o conteúdo nos campos corretos do prontuário.
           </p>
-          <Button type="button" className="min-h-11 w-full" onClick={() => void startRecording()}>
+          <Button
+            type="button"
+            className="min-h-11 w-full"
+            disabled={state === 'requesting'}
+            onClick={() => void startRecording()}
+          >
             <Mic className="h-4 w-4" aria-hidden="true" />
-            Gravar consulta
+            {state === 'requesting' ? 'Solicitando microfone...' : 'Gravar consulta'}
           </Button>
         </div>
       )}
