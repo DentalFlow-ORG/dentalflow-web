@@ -26,6 +26,29 @@ beforeEach(() => {
 })
 
 describe('useClinicalTemplates — load', () => {
+  it.each(['success', 'failure'] as const)(
+    'discards a late load %s after unmount',
+    async (outcome) => {
+      let resolve!: (value: unknown[]) => void
+      let reject!: (reason: Error) => void
+      mockListClinicalTemplates.mockReturnValueOnce(
+        new Promise((yes, no) => {
+          resolve = yes
+          reject = no
+        }),
+      )
+      const { result, unmount } = renderHook(() => useClinicalTemplates())
+      unmount()
+      await act(async () => {
+        if (outcome === 'success') resolve([{ id: 'late' }])
+        else reject(new Error('late failure'))
+      })
+      expect(result.current.templates).toEqual([])
+      expect(result.current.error).toBeNull()
+      expect(mockShowAlert).not.toHaveBeenCalled()
+    },
+  )
+
   it('loads templates on mount', async () => {
     mockListClinicalTemplates.mockResolvedValue([{ id: 't1', name: 'Modelo' }])
     const { result } = renderHook(() => useClinicalTemplates())
@@ -92,7 +115,10 @@ describe('useClinicalTemplates — create', () => {
 
 describe('useClinicalTemplates — update', () => {
   it('replaces the matching template and shows a success alert', async () => {
-    mockListClinicalTemplates.mockResolvedValue([{ id: 't1', name: 'Antigo' }])
+    mockListClinicalTemplates.mockResolvedValue([
+      { id: 't1', name: 'Antigo' },
+      { id: 't2', name: 'Preservado' },
+    ])
     const { result } = renderHook(() => useClinicalTemplates())
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
@@ -103,7 +129,10 @@ describe('useClinicalTemplates — update', () => {
     })
 
     expect(updated).toEqual({ id: 't1', name: 'Atualizado' })
-    expect(result.current.templates).toEqual([{ id: 't1', name: 'Atualizado' }])
+    expect(result.current.templates).toEqual([
+      { id: 't1', name: 'Atualizado' },
+      { id: 't2', name: 'Preservado' },
+    ])
     expect(mockShowAlert).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Modelo atualizado.', tone: 'success' }),
     )

@@ -39,6 +39,33 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+describe.each([
+  ['record', useClinicalRecord, mockGetClinicalRecord],
+  ['appointment', useClinicalRecordByAppointment, mockGetClinicalRecordByAppointment],
+] as const)('clinical load stale errors: %s', (_, useRecord, getRecord) => {
+  it('keeps the current record after a previous identifier request fails', async () => {
+    let reject!: (reason: Error) => void
+    getRecord
+      .mockReturnValueOnce(
+        new Promise((_, fail) => {
+          reject = fail
+        }),
+      )
+      .mockResolvedValueOnce(makeRecord({ id: 'current' }))
+    const { result, rerender } = renderHook(({ id }) => useRecord(id), {
+      initialProps: { id: 'old' },
+    })
+    rerender({ id: 'current' })
+    await waitFor(() => expect(result.current.record?.id).toBe('current'))
+    await act(async () => {
+      reject(new Error('late failure'))
+    })
+    expect(result.current.record?.id).toBe('current')
+    expect(result.current.error).toBeNull()
+    expect(result.current.isLoading).toBe(false)
+  })
+})
+
 describe('useClinicalRecord — load', () => {
   it('loads the record on mount', async () => {
     mockGetClinicalRecord.mockResolvedValue(makeRecord())

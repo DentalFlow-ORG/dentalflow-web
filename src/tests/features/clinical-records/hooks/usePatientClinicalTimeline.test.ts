@@ -1,4 +1,4 @@
-import { waitFor } from '@testing-library/react'
+import { act, waitFor } from '@testing-library/react'
 
 import { renderHook } from '@/test-utils/render-utils'
 
@@ -74,5 +74,30 @@ describe('usePatientClinicalTimeline', () => {
     unmount()
     resolve({ records: [{ id: 'r1' }] })
     expect(result.current.records).toEqual([])
+  })
+
+  it('ignores a previous patient request failure after the current patient loads', async () => {
+    let reject!: (reason: Error) => void
+    mockGetPatientClinicalTimeline
+      .mockReturnValueOnce(
+        new Promise((_, fail) => {
+          reject = fail
+        }),
+      )
+      .mockResolvedValueOnce({ records: [{ id: 'current-patient-record' }] })
+    const { result, rerender } = renderHook(
+      ({ identifier }) => usePatientClinicalTimeline(identifier),
+      {
+        initialProps: { identifier: 'old-patient' },
+      },
+    )
+    rerender({ identifier: 'current-patient' })
+    await waitFor(() => expect(result.current.records).toEqual([{ id: 'current-patient-record' }]))
+    await act(async () => {
+      reject(new Error('late failure'))
+    })
+    expect(result.current.records).toEqual([{ id: 'current-patient-record' }])
+    expect(result.current.error).toBeNull()
+    expect(result.current.isLoading).toBe(false)
   })
 })

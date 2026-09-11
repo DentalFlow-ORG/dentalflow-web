@@ -1,4 +1,4 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
 
 import type {
@@ -200,6 +200,10 @@ vi.mock('@/features/clinical-records/components/PatientHistoryPanel', () => ({
   PatientHistoryPanel: () => <div data-testid="history-panel" />,
 }))
 
+const dictationSuggestions = vi.hoisted(() => ({
+  value: [{ toothNumber: '21', condition: 'caries', note: 'nota' }],
+  fields: { anamnesis: 'Ditado de anamnese' } as Record<string, string>,
+}))
 vi.mock('@/features/clinical-records/components/VoiceDictationCard', () => ({
   VoiceDictationCard: ({
     onApplyFields,
@@ -211,15 +215,10 @@ vi.mock('@/features/clinical-records/components/VoiceDictationCard', () => ({
     ) => void
   }) => (
     <div data-testid="voice-dictation">
-      <button type="button" onClick={() => onApplyFields({ anamnesis: 'Ditado de anamnese' })}>
+      <button type="button" onClick={() => onApplyFields(dictationSuggestions.fields)}>
         dictate-fields
       </button>
-      <button
-        type="button"
-        onClick={() =>
-          onApplyOdontogram([{ toothNumber: '21', condition: 'caries', note: 'nota' }])
-        }
-      >
+      <button type="button" onClick={() => onApplyOdontogram(dictationSuggestions.value)}>
         dictate-odontogram
       </button>
     </div>
@@ -288,6 +287,8 @@ function baseState() {
 describe('ClinicalRecordEditorContainer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    dictationSuggestions.value = [{ toothNumber: '21', condition: 'caries', note: 'nota' }]
+    dictationSuggestions.fields = { anamnesis: 'Ditado de anamnese' }
     mockUseClinicalRecord.mockReturnValue(defaultRecordHookState())
     mockUseClinicalTemplates.mockReturnValue({ templates: [] })
     mockUseClinicalRecordAutosave.mockReturnValue({
@@ -425,6 +426,23 @@ describe('ClinicalRecordEditorContainer', () => {
     expect(field).toHaveValue('Dor')
   })
 
+  it.each([
+    ['evolucao', 'Evolução clínica'],
+    ['diagnostico', 'Diagnóstico'],
+    ['plano', 'Plano clínico'],
+    ['odontograma', 'Odontograma'],
+    ['imagens', 'Imagens e anexos'],
+    ['notas-privadas', 'Notas privadas (não imprimíveis)'],
+  ])('collapses and reopens the %s section without losing its contents', async (id, title) => {
+    render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+    const toggle = screen.getByRole('button', { name: `toggle-${title}` })
+    const wasOpen = screen.queryByTestId(`section-body-${id}`) !== null
+    await userEvent.click(toggle)
+    expect(screen.queryByTestId(`section-body-${id}`) !== null).toBe(!wasOpen)
+    await userEvent.click(toggle)
+    expect(screen.queryByTestId(`section-body-${id}`) !== null).toBe(wasOpen)
+  })
+
   it('applies a matching template and opens the target section', async () => {
     const template: ClinicalTemplate = {
       id: 'tpl-1',
@@ -473,6 +491,16 @@ describe('ClinicalRecordEditorContainer', () => {
     expect(screen.getByLabelText('Anamnese')).toHaveValue('Ditado de anamnese')
   })
 
+  it('applies a dictated chief complaint without opening unrelated sections', async () => {
+    dictationSuggestions.fields = { chiefComplaint: 'Dor ao mastigar' }
+    render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+    await userEvent.click(screen.getByRole('button', { name: 'dictate-fields' }))
+    expect(screen.getByLabelText('Queixa principal')).toHaveValue('Dor ao mastigar')
+    expect(screen.queryByTestId('section-body-anamnese')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'sticky-save' }))
+    expect(mockSave).toHaveBeenCalledWith({ chiefComplaint: 'Dor ao mastigar' })
+  })
+
   it('applies dictation odontogram suggestions and opens the odontogram section', async () => {
     render(<ClinicalRecordEditorContainer recordId="rec-1" />)
     await userEvent.click(screen.getByRole('button', { name: 'dictate-odontogram' }))
@@ -503,6 +531,27 @@ describe('ClinicalRecordEditorContainer', () => {
     await vi.waitFor(() => expect(mockShowAlert).toHaveBeenCalled())
     expect(mockShowAlert).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Odontograma não salvo' }),
+    )
+  })
+
+  it('preserves existing conditions while applying the remaining dictated teeth without notes', async () => {
+    const teeth = { '11': { condition: 'caries' }, '21': { condition: 'restoration' } }
+    mockGetOdontogram.mockResolvedValue({ data: { teeth } })
+    dictationSuggestions.value = [
+      { toothNumber: '11', condition: 'missing', note: '' },
+      { toothNumber: '21', condition: 'missing', note: '' },
+      { toothNumber: '22', condition: 'caries', note: '' },
+    ]
+    render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+    await act(async () => {})
+    await userEvent.click(screen.getByRole('button', { name: 'dictate-odontogram' }))
+    expect(mockUpsertOdontogram).toHaveBeenCalledWith('ana@clinica.com', 'Ana Martins', {
+      teeth: { ...teeth, '22': { condition: 'caries', notes: undefined } },
+    })
+    expect(mockShowAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: 'Não aplicado: dentes 11, 21 já possuem condição registrada.',
+      }),
     )
   })
 
@@ -560,5 +609,76 @@ describe('ClinicalRecordEditorContainer', () => {
     )
     render(<ClinicalRecordEditorContainer recordId="rec-1" />)
     expect(mockGetOdontogram).toHaveBeenCalledWith('Ana Martins')
+  })
+
+  it('preserves the loaded patient odontogram when saving a draft and reports a save failure', async () => {
+    const data = { teeth: { '11': { condition: 'caries' } } }
+    mockGetOdontogram.mockResolvedValue({ data })
+    render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+    await act(async () => {})
+    mockUpsertOdontogram.mockRejectedValueOnce(new Error('offline'))
+    await userEvent.click(screen.getByRole('button', { name: 'sticky-save' }))
+    expect(mockSave).toHaveBeenCalledWith({})
+    expect(mockUpsertOdontogram).toHaveBeenCalledWith('ana@clinica.com', 'Ana Martins', data)
+    expect(mockShowAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: 'Não foi possível salvar o odontograma durante o salvamento do rascunho.',
+      }),
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'sticky-save' }))
+    expect(mockUpsertOdontogram).toHaveBeenCalledTimes(2)
+    expect(mockShowAlert).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the editor usable when the optional odontogram cannot load', async () => {
+    mockGetOdontogram.mockRejectedValue(new Error('offline'))
+    render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+    await userEvent.type(screen.getByLabelText('Queixa principal'), 'Dor')
+    await userEvent.click(screen.getByRole('button', { name: 'sticky-save' }))
+    expect(mockSave).toHaveBeenCalledWith({ chiefComplaint: 'Dor' })
+    expect(mockUpsertOdontogram).not.toHaveBeenCalled()
+  })
+
+  it('ignores an odontogram load that completes after leaving the editor', async () => {
+    let resolve!: (value: unknown) => void
+    mockGetOdontogram.mockReturnValue(
+      new Promise((done) => {
+        resolve = done
+      }),
+    )
+    const { unmount } = render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+    unmount()
+    await act(async () => {
+      resolve({ data: { teeth: { '11': { condition: 'caries' } } } })
+    })
+    expect(mockUpsertOdontogram).not.toHaveBeenCalled()
+    expect(mockShowAlert).not.toHaveBeenCalled()
+  })
+
+  it('limits repeated odontogram failure alerts and allows another warning after ten seconds', async () => {
+    vi.useFakeTimers()
+    try {
+      mockUpsertOdontogram.mockRejectedValue(new Error('offline'))
+      const { unmount } = render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'mark-tooth' }))
+      })
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'mark-tooth-21' }))
+      })
+      expect(mockShowAlert).toHaveBeenCalledTimes(1)
+      await act(async () => {
+        vi.advanceTimersByTime(10_000)
+      })
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'mark-tooth' }))
+      })
+      expect(mockShowAlert).toHaveBeenCalledTimes(2)
+      expect(mockUpsertOdontogram).toHaveBeenCalledTimes(3)
+      unmount()
+      expect(vi.getTimerCount()).toBe(0)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
