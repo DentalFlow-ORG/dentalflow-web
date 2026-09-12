@@ -190,6 +190,24 @@ describe('ListToolbar', () => {
     expect(onFilterChange).toHaveBeenCalledWith('status', null)
   })
 
+  it('closes the filter popover when Aplicar is pressed, keeping the active filter', async () => {
+    const onFilterChange = vi.fn()
+    render(
+      <ListToolbar
+        searchQuery=""
+        onSearchChange={vi.fn()}
+        filterDefs={FILTER_DEFS}
+        activeFilters={{ status: 'active' }}
+        onFilterChange={onFilterChange}
+        onClearAll={vi.fn()}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /filtros/i }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Aplicar' }))
+    expect(screen.queryByRole('button', { name: 'Aplicar' })).not.toBeInTheDocument()
+    expect(onFilterChange).not.toHaveBeenCalled()
+  })
+
   it('renders an active-filter badge and removes it on click', async () => {
     const onFilterChange = vi.fn()
     render(

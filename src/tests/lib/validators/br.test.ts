@@ -45,7 +45,9 @@ describe('isValidCPF', () => {
     expect(isValidCPF('11111111111')).toBe(false)
   })
   it('rejects CPF with wrong first check digit', () => {
-    expect(isValidCPF('12345678908')).toBe(false)
+    // 123.456.789-09 is valid; only the first check digit (0 -> 1) is corrupted here,
+    // so validation must stop before the second check digit is computed.
+    expect(isValidCPF('12345678919')).toBe(false)
   })
   it('rejects CPF with wrong second check digit', () => {
     expect(isValidCPF('12345678900')).toBe(false)
@@ -99,6 +101,12 @@ describe('isValidCNPJ', () => {
   })
   it('rejects empty string', () => {
     expect(isValidCNPJ('')).toBe(false)
+  })
+  it('accepts a CNPJ whose first check-digit remainder is below 2 (mod-11 edge case, digit is 0)', () => {
+    expect(isValidCNPJ('10000000000307')).toBe(true)
+  })
+  it('accepts a CNPJ whose second check-digit remainder is below 2 (mod-11 edge case, digit is 0)', () => {
+    expect(isValidCNPJ('10000000000650')).toBe(true)
   })
 })
 

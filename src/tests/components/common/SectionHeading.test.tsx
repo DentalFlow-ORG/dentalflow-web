@@ -10,8 +10,8 @@ describe('SectionHeading', () => {
   })
 
   it('does not render a description when omitted', () => {
-    render(<SectionHeading eyebrow="Recursos" title="Título" />)
-    expect(screen.queryByText(/leading-7/)).not.toBeInTheDocument()
+    const { container } = render(<SectionHeading eyebrow="Recursos" title="Título" />)
+    expect(container.querySelector('p.mt-5')).not.toBeInTheDocument()
   })
 
   it('renders the description when provided', () => {
@@ -29,5 +29,17 @@ describe('SectionHeading', () => {
   it('applies dark tone classes', () => {
     render(<SectionHeading eyebrow="Recursos" title="Título" tone="dark" />)
     expect(screen.getByRole('heading', { name: 'Título' })).toHaveClass('text-white')
+  })
+
+  it('applies the dark tone to the description as well', () => {
+    render(
+      <SectionHeading
+        eyebrow="Recursos"
+        title="Título"
+        description="Descrição da seção"
+        tone="dark"
+      />,
+    )
+    expect(screen.getByText('Descrição da seção')).toHaveClass('text-slate-300')
   })
 })

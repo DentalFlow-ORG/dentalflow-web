@@ -97,6 +97,13 @@ describe('PasswordResetModal', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
+  it('dismisses exactly once with Escape', async () => {
+    const onClose = vi.fn()
+    renderModal({ onClose })
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
   it('resets the form fields each time it reopens', () => {
     const { rerender } = renderModal({ open: false })
     rerender(

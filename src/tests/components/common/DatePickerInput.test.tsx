@@ -128,4 +128,26 @@ describe('DatePickerInput', () => {
     render(<DatePickerInput defaultValue="2026-06-15" placeholder="Data" />)
     expect(screen.getByLabelText('Data')).toHaveValue('15/06/2026')
   })
+
+  it('does not commit a typed date that falls before minValue', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DatePickerInput placeholder="Data" minValue="2026-06-10" onValueChange={onValueChange} />,
+    )
+    await userEvent.type(screen.getByLabelText('Data'), '05062026')
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  it('does not commit a typed date rejected by disabledDate', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DatePickerInput
+        placeholder="Data"
+        disabledDate={(value) => value === '2026-06-20'}
+        onValueChange={onValueChange}
+      />,
+    )
+    await userEvent.type(screen.getByLabelText('Data'), '20062026')
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
 })

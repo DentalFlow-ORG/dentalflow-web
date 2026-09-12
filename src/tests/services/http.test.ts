@@ -146,6 +146,15 @@ describe('non-402 server errors', () => {
       status: 403,
     })
   })
+
+  it('falls back to the generic message when the status has no mapping and the body has no message', async () => {
+    mockFetch.mockResolvedValue(makeJsonResponse(418, {}))
+    await expect(apiRequest('/test')).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 418,
+      message: 'Erro ao comunicar com o servidor.',
+    })
+  })
 })
 
 // ── Network errors ────────────────────────────────────────────────────────────

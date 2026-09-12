@@ -138,6 +138,35 @@ describe('GlobalAlertsProvider', () => {
   })
 })
 
+// ── Identifier fallback ───────────────────────────────────────────────────────
+
+describe('GlobalAlertsProvider — id generation without crypto.randomUUID', () => {
+  it('still gives concurrent alerts distinct ids and dismisses them independently', () => {
+    // Browsers outside a secure context expose no crypto.randomUUID; the provider
+    // falls back to a timestamp/random id so alerts stay individually addressable.
+    vi.stubGlobal('crypto', {})
+    try {
+      const { result } = renderHook(() => useGlobalAlerts(), { wrapper })
+      let first = ''
+      let second = ''
+      act(() => {
+        first = result.current.showAlert({ title: 'Primeiro', durationMs: 0 })
+        second = result.current.showAlert({ title: 'Segundo', durationMs: 0 })
+      })
+      expect(first).not.toBe(second)
+      expect(screen.getAllByRole('status')).toHaveLength(2)
+
+      act(() => {
+        result.current.dismissAlert(first)
+      })
+      expect(screen.queryByText('Primeiro')).not.toBeInTheDocument()
+      expect(screen.getByText('Segundo')).toBeInTheDocument()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+})
+
 // ── useGlobalAlerts ───────────────────────────────────────────────────────────
 
 describe('useGlobalAlerts', () => {

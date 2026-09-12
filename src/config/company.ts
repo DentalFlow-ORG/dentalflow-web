@@ -134,7 +134,7 @@ export const companyStatus = {
 // Adicione aqui apenas campos que não devem chegar à produção com valores de
 // desenvolvimento acidentais (e.g., API keys esquecidas no formato de test).
 
-type PlaceholderCheck = {
+export type PlaceholderCheck = {
   field: keyof typeof companyInfo
   isPlaceholder: (value: string) => boolean
   hint: string
@@ -160,8 +160,11 @@ export const socialLinks = {
   whatsapp: null as string | null,
 } as const
 
-export function validateCompanyConfig(): void {
-  const failures = PLACEHOLDER_CHECKS.filter(({ field, isPlaceholder }) =>
+// `checks` defaults to the registry above and exists so the placeholder guard can
+// be exercised while that registry is intentionally empty. Production callers
+// (main.tsx) pass no argument.
+export function validateCompanyConfig(checks: PlaceholderCheck[] = PLACEHOLDER_CHECKS): void {
+  const failures = checks.filter(({ field, isPlaceholder }) =>
     isPlaceholder(companyInfo[field] as string),
   )
 

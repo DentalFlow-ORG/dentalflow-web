@@ -166,6 +166,14 @@ describe('formatDateBR — stable Brazilian display format', () => {
     const iso = '2026-06-01T00:00:00.000Z'
     expect(formatDateBR(formatDateInputValue(iso))).toBe('01/06/2026')
   })
+
+  it.each([null, undefined, ''])('returns an empty string for the absent value %p', (value) => {
+    expect(formatDateBR(value)).toBe('')
+  })
+
+  it('returns an empty string when the value is not an ISO date', () => {
+    expect(formatDateBR('01/06/2026')).toBe('')
+  })
 })
 
 // ── getBrazilWeekStart — string-input week helper ─────────────────────────────

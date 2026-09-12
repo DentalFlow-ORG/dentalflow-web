@@ -160,3 +160,19 @@ describe('MonthPickerInput — disabled', () => {
     expect(screen.getByRole('button', { name: /abrir seletor de mês/i })).toBeDisabled()
   })
 })
+
+// ── Malformed and partial input ───────────────────────────────────────────────
+
+describe('MonthPickerInput — malformed and partial input', () => {
+  it('falls back to the placeholder label when the value is not an ISO month', () => {
+    render(<MonthPickerInput value="2026" placeholder="Selecionar mês" />)
+    expect(screen.getByRole('textbox')).toHaveAccessibleName('Selecionar mês')
+  })
+
+  it('does not emit a month while the typed value is still incomplete', async () => {
+    const onValueChange = vi.fn()
+    render(<MonthPickerInput onValueChange={onValueChange} />)
+    await userEvent.type(screen.getByRole('textbox'), '0620')
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+})
