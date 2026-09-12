@@ -469,3 +469,100 @@ describe('AiAssistantCard — teaser', () => {
     expect(screen.queryByRole('button', { name: /copiar/i })).not.toBeInTheDocument()
   })
 })
+
+describe('AiAssistantCard — section tones', () => {
+  function renderTone(tone: 'positive' | 'neutral' | 'warning' | 'danger') {
+    render(
+      <AiAssistantCard
+        {...baseProps}
+        onGenerate={vi.fn()}
+        canGenerate
+        initialResult={makeResult({
+          sections: [{ title: `Seção ${tone}`, content: 'detalhe', tone }],
+        })}
+      />,
+    )
+  }
+
+  it('styles a positive section in emerald', () => {
+    renderTone('positive')
+    expect(screen.getByText('Seção positive').closest('.rounded-lg')).toHaveClass('bg-emerald-50')
+  })
+
+  it('styles a warning section in amber', () => {
+    renderTone('warning')
+    expect(screen.getByText('Seção warning').closest('.rounded-lg')).toHaveClass('bg-amber-50')
+  })
+
+  it('styles a danger section in red', () => {
+    renderTone('danger')
+    expect(screen.getByText('Seção danger').closest('.rounded-lg')).toHaveClass('bg-red-50')
+  })
+
+  it('styles a neutral section with the muted default', () => {
+    renderTone('neutral')
+    expect(screen.getByText('Seção neutral').closest('.rounded-lg')).toHaveClass('bg-muted')
+  })
+})
+
+const NL = String.fromCharCode(10)
+
+describe('AiAssistantCard — copy to clipboard', () => {
+  it('copies every section and shows the copied confirmation', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    })
+    render(
+      <AiAssistantCard
+        {...baseProps}
+        onGenerate={vi.fn()}
+        canGenerate
+        initialResult={makeResult()}
+      />,
+    )
+    await userEvent.click(await screen.findByRole('button', { name: /copiar/i }))
+    expect(writeText).toHaveBeenCalledWith(
+      `Receita${NL}Receita cresceu 10%.${NL}${NL}Despesas${NL}Despesas estáveis.`,
+    )
+    expect(await screen.findByRole('button', { name: /copiado!/i })).toBeInTheDocument()
+  })
+
+  it('stays silent when the clipboard is unavailable', async () => {
+    const writeText = vi.fn().mockRejectedValue(new Error('denied'))
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    })
+    render(
+      <AiAssistantCard
+        {...baseProps}
+        onGenerate={vi.fn()}
+        canGenerate
+        initialResult={makeResult()}
+      />,
+    )
+    const button = await screen.findByRole('button', { name: /copiar/i })
+    await userEvent.click(button)
+    await waitFor(() => expect(writeText).toHaveBeenCalled())
+    expect(screen.queryByRole('button', { name: /copiado!/i })).not.toBeInTheDocument()
+  })
+})
+
+describe('AiAssistantCard — generate guard', () => {
+  it('does not generate while the quota is exhausted', async () => {
+    const onGenerate = vi.fn()
+    render(
+      <AiAssistantCard
+        {...baseProps}
+        onGenerate={onGenerate}
+        canGenerate
+        quota={makeQuota({ remaining: 0, blockedReason: 'Limite mensal atingido.' })}
+      />,
+    )
+    const button = screen.getByRole('button', { name: /gerar análise/i })
+    await userEvent.click(button)
+    expect(onGenerate).not.toHaveBeenCalled()
+  })
+})

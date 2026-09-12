@@ -12,8 +12,22 @@ vi.mock('@/features/auth/hooks/useAuth', async () => {
 })
 
 vi.mock('@/features/billing/components/PricingCard', () => ({
-  PricingCard: ({ plan }: { plan: { slug: string; name: string } }) => (
-    <div data-testid={`pricing-card-${plan.slug}`}>{plan.name}</div>
+  PricingCard: ({
+    plan,
+    isRecommended,
+    isCurrentPlan,
+  }: {
+    plan: { slug: string; name: string }
+    isRecommended?: boolean
+    isCurrentPlan?: boolean
+  }) => (
+    <div
+      data-testid={`pricing-card-${plan.slug}`}
+      data-recommended={String(Boolean(isRecommended))}
+      data-current={String(Boolean(isCurrentPlan))}
+    >
+      {plan.name}
+    </div>
   ),
 }))
 
@@ -190,5 +204,64 @@ describe('SubscriptionPageContainer', () => {
     render(<SubscriptionPageContainer />)
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar cancelamento' }))
     expect(handleCancelConfirm).toHaveBeenCalledOnce()
+  })
+  it('closes the cancel confirm dialog when the user keeps the subscription', async () => {
+    const setShowCancelDialog = vi.fn()
+    mockUseSubscriptionPage.mockReturnValue(
+      baseHookState({ showCancelDialog: true, setShowCancelDialog }),
+    )
+    render(<SubscriptionPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: 'Manter assinatura' }))
+    expect(setShowCancelDialog).toHaveBeenCalledWith(false)
+  })
+
+  it('recommends the only plan on offer when it carries analytics', () => {
+    mockUseSubscriptionPage.mockReturnValue(
+      baseHookState({
+        plans: [makeBillingPlan({ slug: 'premium', name: 'Premium', hasAnalytics: true })],
+      }),
+    )
+    render(<SubscriptionPageContainer />)
+    expect(screen.getByTestId('pricing-card-premium')).toHaveAttribute('data-recommended', 'true')
+  })
+
+  it('does not recommend a lone plan without analytics', () => {
+    mockUseSubscriptionPage.mockReturnValue(
+      baseHookState({
+        plans: [makeBillingPlan({ slug: 'starter', name: 'Starter', hasAnalytics: false })],
+      }),
+    )
+    render(<SubscriptionPageContainer />)
+    expect(screen.getByTestId('pricing-card-starter')).toHaveAttribute('data-recommended', 'false')
+  })
+
+  it('does not mark a plan as current while billing access is not allowed', () => {
+    mockUseSubscriptionPage.mockReturnValue(
+      baseHookState({
+        plans: [makeBillingPlan({ slug: 'starter', name: 'Starter' })],
+        billingStatus: makeBillingStatus({
+          accessAllowed: false,
+          planKey: 'starter',
+          billingInterval: 'annual',
+        }),
+      }),
+    )
+    render(<SubscriptionPageContainer />)
+    expect(screen.getByTestId('pricing-card-starter')).toHaveAttribute('data-current', 'false')
+  })
+
+  it('does not mark a plan as current when the billed interval differs', () => {
+    mockUseSubscriptionPage.mockReturnValue(
+      baseHookState({
+        plans: [makeBillingPlan({ slug: 'starter', name: 'Starter' })],
+        billingStatus: makeBillingStatus({
+          accessAllowed: true,
+          planKey: 'starter',
+          billingInterval: 'monthly',
+        }),
+      }),
+    )
+    render(<SubscriptionPageContainer />)
+    expect(screen.getByTestId('pricing-card-starter')).toHaveAttribute('data-current', 'false')
   })
 })

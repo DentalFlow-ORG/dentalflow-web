@@ -1,6 +1,6 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen } from '@/test-utils/render-utils'
+import { fireEvent, render, screen } from '@/test-utils/render-utils'
 
 vi.mock('@tanstack/react-router', async () => {
   const m = await import('@/test-utils/mocks/router')
@@ -354,5 +354,67 @@ describe('PricingCard', () => {
       'href',
       '/funcionalidades',
     )
+  })
+  it('renders no tagline for a plan with neither a description nor a known slug', () => {
+    const { container } = render(
+      <PricingCard
+        {...baseProps}
+        plan={makePlan({ slug: 'enterprise', description: null })}
+        ctaState={makeCtaState()}
+      />,
+    )
+    expect(
+      screen.queryByText('Para organizar sua operação sem complexidade.'),
+    ).not.toBeInTheDocument()
+    expect(container.querySelector('svg')).toBeInTheDocument()
+  })
+
+  it('shows the yearly unavailability copy when a YEARLY interval has no price', () => {
+    render(
+      <PricingCard
+        {...baseProps}
+        billingInterval="YEARLY"
+        plan={makePlan({ hasYearlyPrice: false })}
+        ctaState={makeCtaState()}
+        isAvailable={false}
+      />,
+    )
+    expect(screen.getByText('Sem preço anual disponível.')).toBeInTheDocument()
+  })
+
+  it('treats the current plan as active when no billing status is loaded yet', () => {
+    render(
+      <PricingCard
+        {...baseProps}
+        plan={makePlan()}
+        ctaState={makeCtaState()}
+        isCurrentPlan
+        billingStatus={null}
+      />,
+    )
+    expect(screen.getByText('Ativa')).toBeInTheDocument()
+  })
+
+  it('boosts the trial rocket on click and stops the boost once the animation ends', async () => {
+    const { container } = render(
+      <PricingCard
+        {...baseProps}
+        plan={makePlan()}
+        ctaState={makeCtaState({
+          primary: {
+            label: 'Iniciar teste grátis',
+            helperText: '7 dias grátis.',
+            actionType: 'start_trial',
+            disabled: false,
+            variant: 'default',
+          },
+        })}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /escolher professional/i }))
+    const rocket = container.querySelector('.df-rocket-boost')
+    expect(rocket).toBeInTheDocument()
+    fireEvent.animationEnd(rocket as Element, { animationName: 'df-rocket-boost' })
+    expect(container.querySelector('.df-rocket-boost')).not.toBeInTheDocument()
   })
 })

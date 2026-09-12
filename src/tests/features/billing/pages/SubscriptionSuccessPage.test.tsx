@@ -282,3 +282,65 @@ describe('missing session_id', () => {
     expect(mockSyncCheckoutSession).not.toHaveBeenCalled()
   })
 })
+
+// ── Subscription summary presentation ─────────────────────────────────────────
+
+describe('subscription summary', () => {
+  async function renderConfirmed(status: Parameters<typeof makeBillingStatus>[0]) {
+    mockSyncCheckoutSession.mockResolvedValue(makeBillingStatus(status))
+    render(<SubscriptionSuccessPage />)
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Assinatura confirmada' })).toBeInTheDocument(),
+    )
+  }
+
+  it('labels an annual billing cycle', async () => {
+    await renderConfirmed({ accessAllowed: true, billingInterval: 'annual' })
+    expect(screen.getByText('Anual')).toBeInTheDocument()
+  })
+
+  it('labels a monthly billing cycle', async () => {
+    await renderConfirmed({ accessAllowed: true, billingInterval: 'monthly' })
+    expect(screen.getByText('Mensal')).toBeInTheDocument()
+  })
+
+  it('falls back for an undefined billing cycle and an unnamed plan', async () => {
+    await renderConfirmed({ accessAllowed: true, billingInterval: null, planName: null })
+    expect(screen.getAllByText('Não definido').length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('shows the trial end date as the next renewal while trialing', async () => {
+    await renderConfirmed({
+      accessAllowed: true,
+      status: 'trialing',
+      trialEndsAt: '2026-07-15T15:00:00.000Z',
+      currentPeriodEnd: '2026-12-31T15:00:00.000Z',
+    })
+    expect(screen.getByText(/15 de julho de 2026/)).toBeInTheDocument()
+    expect(screen.queryByText(/dezembro/)).not.toBeInTheDocument()
+  })
+
+  it('shows the period end as the next renewal outside a trial', async () => {
+    await renderConfirmed({
+      accessAllowed: true,
+      status: 'active',
+      trialEndsAt: '2026-07-15T15:00:00.000Z',
+      currentPeriodEnd: '2026-12-31T15:00:00.000Z',
+    })
+    expect(screen.getByText(/31 de dezembro de 2026/)).toBeInTheDocument()
+  })
+
+  it('falls back when there is no renewal date', async () => {
+    await renderConfirmed({ accessAllowed: true, status: 'active', currentPeriodEnd: null })
+    expect(screen.getAllByText('Não definido').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('falls back rather than crashing on an unparseable renewal date', async () => {
+    await renderConfirmed({
+      accessAllowed: true,
+      status: 'active',
+      currentPeriodEnd: 'not-a-date',
+    })
+    expect(screen.getAllByText('Não definido').length).toBeGreaterThanOrEqual(1)
+  })
+})
