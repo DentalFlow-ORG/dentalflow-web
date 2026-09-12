@@ -402,7 +402,7 @@ export function PatientsAttentionContainer() {
       )}
 
       {/* Main content */}
-      {!isLoading && (isLoading || allItems.length > 0) && (
+      {!isLoading && allItems.length > 0 && (
         <>
           {/* KPI row */}
           {summary && (

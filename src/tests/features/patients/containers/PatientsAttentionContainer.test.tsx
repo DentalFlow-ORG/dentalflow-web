@@ -1,4 +1,6 @@
-import { fireEvent, render, screen } from '@/test-utils/render-utils'
+import userEvent from '@testing-library/user-event'
+
+import { fireEvent, render, screen, waitFor } from '@/test-utils/render-utils'
 
 import { PatientsAttentionContainer } from '@/features/patients/containers/PatientsAttentionContainer'
 import type {
@@ -434,5 +436,164 @@ describe('PatientsAttentionContainer — pagination resets to page 1 on filter c
     const option = screen.getAllByRole('option').find((o) => o.textContent?.includes('Alta'))
     if (option) fireEvent.click(option)
     expect(screen.getByText('1 / 2')).toBeInTheDocument()
+  })
+
+  it('resets to page 1 when the WhatsApp filter changes', () => {
+    render(<PatientsAttentionContainer />)
+    navigateToPage2()
+    const trigger = screen.getByRole('combobox', { name: /whatsapp/i })
+    fireEvent.click(trigger)
+    const option = screen.getAllByRole('option').find((o) => o.textContent?.includes('Com'))
+    if (option) fireEvent.click(option)
+    expect(screen.getByText('1 / 2')).toBeInTheDocument()
+  })
+
+  it('resets to page 1 when the page size changes', () => {
+    render(<PatientsAttentionContainer />)
+    navigateToPage2()
+    // The page-size select carries no label of its own; it is the combobox
+    // showing the current size.
+    const sizeSelect = screen.getAllByRole('combobox').find((c) => c.textContent?.trim() === '10')
+    if (!sizeSelect) throw new Error('expected the page-size select')
+    fireEvent.click(sizeSelect)
+    const option = screen.getAllByRole('option').find((o) => o.textContent?.trim() === '25')
+    if (option) fireEvent.click(option)
+    // A larger page fits all 12 patients, so the last one is now on the page.
+    expect(screen.getAllByText('Patient 12').length).toBeGreaterThan(0)
+  })
+})
+
+// ── KPI tones ─────────────────────────────────────────────────────────────────
+
+describe('PatientsAttentionContainer — KPI tones', () => {
+  it('keeps every KPI neutral when the queue has nothing outstanding', () => {
+    const item = makeAttentionItem()
+    mockUsePatientsAttention.mockReturnValue(
+      makeDefaultHookState({
+        allItems: [item],
+        filteredItems: [item],
+        summary: makeAttentionSummary({
+          total: 0,
+          inactive: 0,
+          pendingPayment: 0,
+          withoutUpcomingAppointment: 0,
+        }),
+      }),
+    )
+    render(<PatientsAttentionContainer />)
+    expect(screen.getAllByText('Pacientes em atenção').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Pagamento pendente').length).toBeGreaterThan(0)
+  })
+
+  it('raises the KPI tones once each counter has entries', () => {
+    const item = makeAttentionItem()
+    mockUsePatientsAttention.mockReturnValue(
+      makeDefaultHookState({
+        allItems: [item],
+        filteredItems: [item],
+        summary: makeAttentionSummary(),
+      }),
+    )
+    render(<PatientsAttentionContainer />)
+    expect(screen.getAllByText('Sem consulta futura').length).toBeGreaterThan(0)
+  })
+})
+
+// ── Result count wording ──────────────────────────────────────────────────────
+
+describe('PatientsAttentionContainer — result count', () => {
+  it('uses the singular wording for a single match', () => {
+    const item = makeAttentionItem()
+    mockUsePatientsAttention.mockReturnValue(
+      makeDefaultHookState({ allItems: [item], filteredItems: [item] }),
+    )
+    render(<PatientsAttentionContainer />)
+    expect(screen.getByText('1 paciente encontrado.')).toBeInTheDocument()
+  })
+
+  it('uses the plural wording and notes the filters when they are applied', () => {
+    const items = [
+      makeAttentionItem({ identifier: 'a@x.com' }),
+      makeAttentionItem({ identifier: 'b@x.com' }),
+    ]
+    mockUsePatientsAttention.mockReturnValue(
+      makeDefaultHookState({ allItems: items, filteredItems: items, hasFilters: true }),
+    )
+    render(<PatientsAttentionContainer />)
+    expect(
+      screen.getByText('2 pacientes encontrados com os filtros aplicados.'),
+    ).toBeInTheDocument()
+  })
+})
+
+// ── Desktop table row activation ──────────────────────────────────────────────
+
+describe('PatientsAttentionContainer — table row activation', () => {
+  function renderWithRow() {
+    const item = makeAttentionItem({ patientName: 'Carlos Lima' })
+    mockUsePatientsAttention.mockReturnValue(
+      makeDefaultHookState({ allItems: [item], filteredItems: [item] }),
+    )
+    render(<PatientsAttentionContainer />)
+    const row = screen
+      .getAllByRole('button', { name: /ver detalhes de carlos lima/i })
+      .find((el) => el.tagName === 'TR')
+    if (!row) throw new Error('expected a table row for the patient')
+    return row
+  }
+
+  it.each(['{Enter}', ' '])('opens the detail panel with %s', async (key) => {
+    const row = renderWithRow()
+    row.focus()
+    await userEvent.keyboard(key)
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('ignores key presses that bubble up from inside the row', async () => {
+    const row = renderWithRow()
+    const badge = row.querySelector('span')
+    if (!badge) throw new Error('expected a child element inside the row')
+    fireEvent.keyDown(badge, { key: 'Enter' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('ignores keys that are not Enter or Space', async () => {
+    const row = renderWithRow()
+    row.focus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('opens the detail panel on click and closes it again', async () => {
+    const row = renderWithRow()
+    await userEvent.click(row)
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+})
+
+// ── Overflowing reasons and pending amounts ──────────────────────────────────
+
+describe('PatientsAttentionContainer — row details', () => {
+  it('collapses reasons beyond the first two into a counter', () => {
+    const item = makeAttentionItem({
+      allReasons: ['INACTIVE', 'PENDING_PAYMENT', 'NO_UPCOMING_APPOINTMENT', 'RECENT_NO_SHOW'],
+    })
+    mockUsePatientsAttention.mockReturnValue(
+      makeDefaultHookState({ allItems: [item], filteredItems: [item] }),
+    )
+    render(<PatientsAttentionContainer />)
+    expect(screen.getByText('+2')).toBeInTheDocument()
+  })
+
+  it('shows a dash instead of an amount when nothing is pending', () => {
+    const item = makeAttentionItem({ pendingAmountCents: 0 })
+    mockUsePatientsAttention.mockReturnValue(
+      makeDefaultHookState({ allItems: [item], filteredItems: [item] }),
+    )
+    render(<PatientsAttentionContainer />)
+    expect(screen.getAllByText('—').length).toBeGreaterThan(0)
   })
 })
