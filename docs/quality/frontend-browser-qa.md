@@ -1,6 +1,16 @@
-# Frontend browser QA — continuation from 2f21c07
+# Frontend browser QA checklist
 
-Status: **not executed**. Unit tests validate application decisions and mocked integration boundaries; they do not certify the browser behaviors below. Record browser/version, viewport, role, plan, fixture identifiers and evidence for each execution. Use synthetic patient data.
+Standing checklist for the frontend behavior that unit tests cannot certify.
+Unit tests validate application decisions and mocked integration boundaries;
+they do not prove the browser behavior below. See
+[the coverage policy](frontend-coverage-policy.md) for why these areas are
+excluded from the coverage floors.
+
+Record browser/version, viewport, role, plan, fixture identifiers and evidence
+for each execution. Use synthetic patient data. Re-run the affected section
+whenever the corresponding code changes.
+
+**Last executed: never.**
 
 ## Clinical records
 

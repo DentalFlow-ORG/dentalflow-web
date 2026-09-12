@@ -126,7 +126,8 @@ Tests use Vitest and React Testing Library.
 
 - Frontend architecture, agent guidance and Definition of Done: `AGENTS.md`
 - Claude Code session rules: `CLAUDE.md`
-- Frontend quality, coverage policy and testing expectations: `docs/quality/`
+- Coverage policy, thresholds and documented exceptions: `docs/quality/frontend-coverage-policy.md`
+- Browser QA checklist for behavior unit tests cannot certify: `docs/quality/frontend-browser-qa.md`
 - Role and scheduling model: `docs/roles-and-scheduling.md`
 - Theme rules: `docs/design/theme-rules.md`
 - Button and card guidelines: `docs/design/button-and-card-theme-guidelines.md`
