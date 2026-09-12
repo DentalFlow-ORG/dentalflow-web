@@ -15,7 +15,6 @@ type ConfirmDialogProps = {
   tone?: 'destructive' | 'warning'
   isConfirming?: boolean
   confirmDisabled?: boolean
-  trigger?: ReactNode
   children?: ReactNode
   onConfirm: () => void
   onCancel: () => void
@@ -31,7 +30,6 @@ export function ConfirmDialog({
   tone = 'destructive',
   isConfirming = false,
   confirmDisabled = false,
-  trigger,
   children,
   onConfirm,
   onCancel,
@@ -40,7 +38,6 @@ export function ConfirmDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      {trigger && <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content

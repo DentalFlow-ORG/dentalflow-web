@@ -68,8 +68,8 @@ function getDaysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate()
 }
 
+// Callers always pass Number() of a length-checked digit string, so the value is
+// always finite; no non-finite guard is reachable here.
 function clamp(value: number, min: number, max: number) {
-  if (!Number.isFinite(value)) return min
-
   return Math.min(Math.max(value, min), max)
 }

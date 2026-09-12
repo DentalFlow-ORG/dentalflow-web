@@ -32,21 +32,15 @@ function FooterNavLink({ to, children }: { to: string; children: ReactNode }) {
 function FooterHrefLink({
   href,
   children,
-  external,
   icon,
 }: {
   href: string
   children: ReactNode
-  external?: boolean
-  icon?: ReactNode
+  icon: ReactNode
 }) {
   return (
-    <a
-      href={href}
-      className={cn(footerLinkBase)}
-      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-    >
-      {icon ?? <FooterChevron />}
+    <a href={href} className={cn(footerLinkBase)}>
+      {icon}
       {children}
     </a>
   )
