@@ -1,9 +1,8 @@
 import { centsToMoneyInput, parseMoneyInputToCents } from '@/lib/money-input'
-import { formatCurrencyBR } from '@/lib/number-formatters'
 
-export function formatCents(cents: number): string {
-  return formatCurrencyBR(cents / 100) ?? 'R$ 0,00'
-}
+// Currency formatting is a single shared rule; the inventory module re-exports
+// the same helper. Do not re-implement the cents-to-BRL conversion here.
+export { formatCurrencyBRLCents as formatCents } from '@/lib/number-formatters'
 
 export function formatInvoiceDate(value?: string | null): string {
   if (!value) return '-'

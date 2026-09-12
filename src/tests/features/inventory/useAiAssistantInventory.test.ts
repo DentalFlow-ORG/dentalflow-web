@@ -92,4 +92,20 @@ describe('useAiAssistantInventory', () => {
     expect(result.current.savedAnalysis).toEqual(analysisData)
     expect(result.current.visibility).toBe('FULL')
   })
+  it('does not clear state when the initial load fails after unmount', async () => {
+    let reject!: (reason: Error) => void
+    mockGetLatest.mockReturnValue(
+      new Promise((_, r) => {
+        reject = r
+      }),
+    )
+    const { result, unmount } = renderHook(() => useAiAssistantInventory())
+    unmount()
+    await act(async () => {
+      reject(new Error('offline'))
+      await Promise.resolve()
+    })
+    expect(result.current.isLoadingInitial).toBe(true)
+    expect(result.current.savedAnalysis).toBeNull()
+  })
 })

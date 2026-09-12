@@ -1,6 +1,6 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen, waitFor } from '@/test-utils/render-utils'
+import { act, render, screen, waitFor } from '@/test-utils/render-utils'
 
 vi.mock('@/components/ui/select', () => ({
   Select: ({
@@ -216,5 +216,35 @@ describe('AuditLogsTab', () => {
     await userEvent.click(clearButton)
 
     expect(screen.queryByRole('button', { name: /limpar filtros/i })).not.toBeInTheDocument()
+  })
+  it('does not apply a response that resolves after the tab unmounts', async () => {
+    let resolve!: (value: ReturnType<typeof makeResult>) => void
+    mockListAuditLogs.mockReturnValue(
+      new Promise((r) => {
+        resolve = r
+      }),
+    )
+    const { unmount } = render(<AuditLogsTab />)
+    unmount()
+    await act(async () => {
+      resolve(makeResult())
+    })
+    expect(screen.queryByText('USER_LOGIN_SUCCESS')).not.toBeInTheDocument()
+  })
+
+  it('does not surface a failure that rejects after the tab unmounts', async () => {
+    let reject!: (reason: Error) => void
+    mockListAuditLogs.mockReturnValue(
+      new Promise((_, r) => {
+        reject = r
+      }),
+    )
+    const { unmount } = render(<AuditLogsTab />)
+    unmount()
+    await act(async () => {
+      reject(new Error('Falha ao carregar os logs.'))
+      await Promise.resolve()
+    })
+    expect(screen.queryByText('Falha ao carregar os logs.')).not.toBeInTheDocument()
   })
 })
