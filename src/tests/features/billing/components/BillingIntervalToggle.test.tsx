@@ -34,6 +34,37 @@ describe('BillingIntervalToggle', () => {
     expect(onChange).toHaveBeenCalledWith('YEARLY')
   })
 
+  it('switches back to monthly when the monthly option is clicked', async () => {
+    const onChange = vi.fn()
+    render(<BillingIntervalToggle value="YEARLY" onChange={onChange} showMonthly showYearly />)
+    await userEvent.click(screen.getByRole('radio', { name: 'Mensal' }))
+    expect(onChange).toHaveBeenCalledWith('MONTHLY')
+  })
+
+  it('highlights the yearly discount badge while yearly is the selected interval', () => {
+    const { rerender } = render(
+      <BillingIntervalToggle
+        value="MONTHLY"
+        onChange={vi.fn()}
+        showMonthly
+        showYearly
+        discountPercent={20}
+      />,
+    )
+    expect(screen.getByText('-20%')).not.toHaveClass('bg-emerald-500')
+
+    rerender(
+      <BillingIntervalToggle
+        value="YEARLY"
+        onChange={vi.fn()}
+        showMonthly
+        showYearly
+        discountPercent={20}
+      />,
+    )
+    expect(screen.getByText('-20%')).toHaveClass('bg-emerald-500', 'text-white')
+  })
+
   it('shows the monthly promo badge and message when hasMonthlyPromo is true', () => {
     render(
       <BillingIntervalToggle
