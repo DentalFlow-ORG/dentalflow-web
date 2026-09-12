@@ -55,7 +55,7 @@ src/
   hooks/
   lib/
   services/
-  test/
+  test-utils/
   tests/
 ```
 
@@ -83,11 +83,38 @@ DentalFlow should feel premium, clean, modern, trustworthy, responsive, and
 business-oriented. Reuse existing shared components and design conventions
 before creating new patterns.
 
+## Commands
+
+This project uses **Bun**.
+
+```bash
+bun install                   # install dependencies
+bun run dev                   # start the Vite dev server
+bun run build                 # tsc -b && vite build (authoritative type gate)
+bun run preview               # preview the production build
+
+bun run typecheck             # tsc -b --noEmit
+bun run test                  # full Vitest run
+bun run test:watch            # Vitest in watch mode
+bun run test:coverage         # full run with v8 coverage
+bun run test:coverage:report  # per-file uncovered lines, branches and functions
+
+bun run check                 # Biome + unused-file check
+bun run check:biome           # Biome lint + format check
+bun run check:write           # auto-fix Biome issues
+bun run check:unused          # unused-file check
+bun run knip                  # dead code and unused exports
+bun run knip:production       # production-only dead code pass
+```
+
+Run `typecheck`, `test`, `build` and `check` before considering a change done.
+See the Definition of Done in `AGENTS.md` for the full requirements.
+
 ## Testing
 
 Tests use Vitest and React Testing Library.
 
-- Shared test utilities live in `src/test/` (render-utils, setup, TestProviders).
+- Shared test utilities live in `src/test-utils/` (`render-utils`, `setup`, `TestProviders`, `factories/`, `mocks/`).
 - Test suites live in `src/tests/`, mirroring the source tree. Use `@/` aliases for all imports inside test files.
 - Prefer behavior tests over brittle snapshots.
 - Mock hooks or services when testing UI that depends on auth, routing, or API
@@ -97,7 +124,9 @@ Tests use Vitest and React Testing Library.
 
 ## Documentation
 
-- Frontend architecture and agent guidance: `AGENTS.md`
+- Frontend architecture, agent guidance and Definition of Done: `AGENTS.md`
+- Claude Code session rules: `CLAUDE.md`
+- Frontend quality, coverage policy and testing expectations: `docs/quality/`
 - Role and scheduling model: `docs/roles-and-scheduling.md`
 - Theme rules: `docs/design/theme-rules.md`
 - Button and card guidelines: `docs/design/button-and-card-theme-guidelines.md`

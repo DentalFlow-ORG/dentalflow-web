@@ -48,7 +48,7 @@ src/
   hooks/
   lib/
   services/
-  test/
+  test-utils/
   tests/
 ```
 
@@ -64,7 +64,7 @@ src/
 - `src/hooks`: cross-feature reusable hooks that do not belong to any single feature, such as `useListFilter` and `useIsMobile`.
 - `src/services`: cross-feature infrastructure services such as HTTP clients.
 - `src/lib`: framework-agnostic utilities.
-- `src/test`: shared test setup and helpers for Vitest and React Testing Library (render-utils, setup, TestProviders). Do not move these.
+- `src/test-utils`: shared test setup and helpers for Vitest and React Testing Library (`render-utils`, `setup`, `TestProviders`, `factories/`, `mocks/`). Do not move these.
 - `src/tests`: all test suites, mirroring the source tree. Use `@/` aliases for all imports — no relative imports across feature boundaries.
 
 ### Feature Directory Responsibilities
@@ -130,12 +130,98 @@ If the backend moves to HTTP-only cookies, keep components unchanged and update 
 ## Testing Rules
 
 - Use Vitest and React Testing Library for behavior-focused tests.
-- Prefer `src/test/render-utils` for component tests (`renderWithProviders`, `screen`, `userEvent`, etc.).
+- Prefer `src/test-utils/render-utils` for component tests (`render`, `screen`, `within`, etc.), and the shared factories in `src/test-utils/factories` and mocks in `src/test-utils/mocks`.
 - All test files belong in `src/tests/`, mirroring the source tree. Do not colocate test files beside source files.
 - Use `@/` aliases for all imports inside test files — no relative cross-directory imports.
 - Mock feature hooks or services when testing UI behavior that depends on auth, routing, or backend state.
 - Add tests for new components, hooks, services, and utilities when they contain branching logic, state transitions, validation, or API integration behavior.
 - Avoid brittle visual snapshots, long Tailwind class assertions, and tests that only duplicate static markup.
+
+## Definition of Done
+
+A change is **not complete** until everything below is true. This applies to every
+agent (Claude, Codex) and to human contributors.
+
+### New feature rule
+
+Whenever you create or change a **page, route, modal, drawer, hook, service,
+business helper, or interactive component**, you must add or update meaningful
+tests in the same change. A feature without tests is unfinished work, not a
+feature that is "pending tests".
+
+A feature is complete only when:
+
+- meaningful tests exist for the new behavior
+- `bun run typecheck` passes
+- `bun run check:biome` passes
+- the focused tests for the touched areas pass
+- coverage of the touched files is not reduced
+- `bun run build` passes when types, routing or bundling are affected
+
+### New screen tests
+
+For a new screen (page or container), cover every item that applies:
+
+- normal rendering with representative data
+- loading state
+- error state, including retry
+- empty state
+- primary user interaction
+- form validation, including rejected input
+- successful submit and the exact payload sent
+- failed submit and its recovery
+- role visibility (which roles see the screen and its actions)
+- permission restrictions (hidden and disabled actions)
+- responsive behavior where it is testable in jsdom
+- nullable or missing data in the response
+- plan gating when the screen is plan-restricted
+- navigation triggered by the screen
+
+### Bug rule
+
+When fixing a bug, add a regression test **first or alongside** the fix, and
+confirm it fails before the fix and passes after. A bug fix without a failing-then-
+passing test is not proven.
+
+### Reuse rule
+
+Before creating a new component, hook, helper or constant:
+
+1. Search `src/components/common`, `src/components/ui`, `src/hooks`, `src/lib`
+   and the feature's own folders for an existing abstraction.
+2. Reuse the existing one when the **semantics** match, not merely the markup.
+3. Never duplicate a domain rule (role checks, status maps, currency/date/phone
+   and CPF/CNPJ/CEP formatting, validation). Those live in one place.
+
+Do not create a generic abstraction for a single consumer, and do not merge two
+things that only look alike.
+
+### Dead-code rule
+
+After replacing or refactoring functionality, remove the code it superseded once
+you have proven no consumer remains — production imports, test imports, route
+registration, lazy and dynamic imports, and config usage. Then run:
+
+```
+bun run check:unused
+bun run knip
+bun run knip:production
+```
+
+Investigate every finding before acting. Do not delete a reported export that is
+an intentional public API or a test seam; do not keep genuinely dead code merely
+because a tool did not flag it.
+
+### Quality rule
+
+Do not report work as complete before running the relevant commands from the
+Validation Sequence below, plus coverage when test files changed. Report failures
+honestly instead of describing them as unrelated.
+
+### Git rule
+
+Do not commit, push, merge, switch branches, or rewrite history unless the user
+explicitly asks. Never add `Co-Authored-By` trailers.
 
 ## UI / UX Guidelines
 

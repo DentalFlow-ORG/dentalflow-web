@@ -31,6 +31,13 @@ bun run build
 bun run check
 ```
 
+When test files changed, also run coverage for the touched areas:
+
+```
+bun run test:coverage           # full run, writes coverage/coverage-final.json
+bun run test:coverage:report    # per-file uncovered lines, branches and functions
+```
+
 - `bun run typecheck` (`tsc --noEmit`) is fast but misses some strict checks.
 - `bun run build` (`tsc -b`) is the authoritative TypeScript gate — it catches unused type imports and composite project errors.
 - `bun run check` runs Biome (lint + format) and the unused-files check.
@@ -47,6 +54,33 @@ bun run lint           # lint only
 ```
 
 Do not add `eslint-disable` or `biome-ignore` comments. Fix the underlying issue instead.
+
+## Definition of Done
+
+`AGENTS.md` holds the authoritative "Definition of Done" for this repository.
+Follow it in full; the rules below are the parts that most often get skipped.
+
+- **Tests ship with the change.** Creating or changing a page, route, modal,
+  drawer, hook, service, business helper or interactive component requires
+  meaningful tests in the same change. "Tests pending" is an unfinished change.
+- **New screens** are covered for rendering, loading, error, empty state, user
+  interaction, form validation, successful and failed submit, role visibility,
+  permission restrictions, nullable data, plan gating and navigation — each
+  wherever it applies.
+- **Bugs get a regression test** written first or alongside the fix, failing
+  before the fix and passing after it.
+- **Reuse before creating.** Search `src/components/common`, `src/components/ui`,
+  `src/hooks`, `src/lib` and the feature's own folders first, and reuse when the
+  semantics match. Never duplicate a domain rule (roles, status maps, currency,
+  date, phone, CPF/CNPJ/CEP, validation).
+- **Remove what you replaced** once no consumer remains, then run
+  `bun run check:unused`, `bun run knip` and `bun run knip:production`. Investigate
+  each finding — intentional public APIs and test seams stay.
+- **Never fake coverage.** Do not add coverage-ignore directives or tests that
+  cannot fail. An untestable branch gets a written justification instead.
+
+Tests live in `src/tests/`, mirroring the source tree; shared helpers, factories
+and mocks live in `src/test-utils/`.
 
 ## Off-Limits Areas
 
