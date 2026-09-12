@@ -204,6 +204,62 @@ describe('usePatientAvatar — update() cache write-through', () => {
   })
 })
 
+// ── Obsolete responses and missing identifier ────────────────────────────────
+
+describe('usePatientAvatar — obsolete responses', () => {
+  it('discards a fetch that resolves after the hook is unmounted', async () => {
+    let resolveFetch: ((value: { avatarUrl: string | null }) => void) | undefined
+    mockGet.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveFetch = resolve
+      }),
+    )
+
+    const { unmount } = renderHook(() => usePatientAvatar(ID))
+    unmount()
+
+    await act(async () => {
+      resolveFetch?.({ avatarUrl: 'late-photo' })
+    })
+
+    // The late response must not be cached, so a fresh mount refetches.
+    mockGet.mockResolvedValueOnce({ avatarUrl: 'current-photo' })
+    const { result } = renderHook(() => usePatientAvatar(ID))
+    await waitFor(() => expect(result.current.avatarUrl).toBe('current-photo'))
+  })
+
+  it('discards a fetch that rejects after the hook is unmounted', async () => {
+    let rejectFetch: ((reason: unknown) => void) | undefined
+    mockGet.mockReturnValueOnce(
+      new Promise((_resolve, reject) => {
+        rejectFetch = reject
+      }),
+    )
+
+    const { unmount } = renderHook(() => usePatientAvatar(ID))
+    unmount()
+
+    await act(async () => {
+      rejectFetch?.(new Error('too late'))
+    })
+
+    mockGet.mockResolvedValueOnce({ avatarUrl: 'current-photo' })
+    const { result } = renderHook(() => usePatientAvatar(ID))
+    await waitFor(() => expect(result.current.avatarUrl).toBe('current-photo'))
+  })
+
+  it('ignores update() while there is no identifier to save against', async () => {
+    const { result } = renderHook(() => usePatientAvatar(null))
+
+    await act(async () => {
+      await result.current.update('photo')
+    })
+
+    expect(mockUpsert).not.toHaveBeenCalled()
+    expect(result.current.isSaving).toBe(false)
+  })
+})
+
 // ── Cache helper functions ────────────────────────────────────────────────────
 
 describe('getCachedPatientAvatar', () => {

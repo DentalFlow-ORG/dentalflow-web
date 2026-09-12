@@ -306,6 +306,44 @@ describe('PatientAvatarWidget — source picker interactions', () => {
   })
 })
 
+// ── Picker keyboard and capture fallbacks ────────────────────────────────────
+
+describe('PatientAvatarWidget — picker fallbacks', () => {
+  it('keeps the source picker open for keys other than Escape', async () => {
+    const user = userEvent.setup()
+    render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
+
+    await user.keyboard('{ArrowDown}')
+    await user.keyboard('a')
+
+    expect(screen.getByRole('menu', { name: /Selecionar origem da foto/i })).toBeInTheDocument()
+  })
+
+  it('falls back to a capture input when the browser exposes no mediaDevices', async () => {
+    // The component tests with `'mediaDevices' in navigator`, so the property
+    // has to be absent rather than merely undefined.
+    const original = Object.getOwnPropertyDescriptor(navigator, 'mediaDevices')
+    Reflect.deleteProperty(navigator, 'mediaDevices')
+    const clickSpy = vi
+      .spyOn(HTMLInputElement.prototype, 'click')
+      .mockImplementation(() => undefined)
+
+    try {
+      const user = userEvent.setup()
+      render(<PatientAvatarWidget name="Ana" onUpload={vi.fn()} />)
+      await user.click(screen.getByRole('button', { name: /adicionar foto do paciente/i }))
+      await user.click(screen.getByRole('menuitem', { name: /Tirar foto/i }))
+
+      expect(screen.queryByTestId('camera-preview-modal')).not.toBeInTheDocument()
+      expect(clickSpy).toHaveBeenCalled()
+    } finally {
+      clickSpy.mockRestore()
+      if (original) Object.defineProperty(navigator, 'mediaDevices', original)
+    }
+  })
+})
+
 // ── File validation ───────────────────────────────────────────────────────────
 
 describe('PatientAvatarWidget — file validation', () => {
@@ -322,6 +360,19 @@ describe('PatientAvatarWidget — file validation', () => {
       expect(onError).toHaveBeenCalledWith(expect.stringMatching(/formato inválido/i))
     })
     expect(onUpload).not.toHaveBeenCalled()
+  })
+
+  it('ignores a file dialog the user cancelled without selecting anything', async () => {
+    const onUpload = vi.fn()
+    const onError = vi.fn()
+    render(<PatientAvatarWidget name="Ana" onUpload={onUpload} onError={onError} />)
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    fireEvent.change(fileInput, { target: { files: [] } })
+
+    expect(onError).not.toHaveBeenCalled()
+    expect(onUpload).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('avatar-crop-modal')).not.toBeInTheDocument()
   })
 
   it('calls onError when the file is too large', async () => {

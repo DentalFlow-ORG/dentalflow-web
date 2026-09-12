@@ -192,6 +192,34 @@ describe('PatientsPageContainer — patient list', () => {
     expect(screen.getByRole('heading', { name: /pacientes cadastrados/i })).toBeInTheDocument()
   })
 
+  it('uses the singular form for a patient with one appointment and one cancellation', () => {
+    const patient = makePatient({ totalAppointments: 1, canceledAppointments: 1 })
+    mockUsePatientsPage.mockReturnValue(
+      makeDefaultHookState({
+        patients: [patient],
+        filteredPatients: [patient],
+        paginatedPatients: [patient],
+      }),
+    )
+    render(<PatientsPageContainer />)
+    expect(screen.getByText('1 consulta')).toBeInTheDocument()
+    expect(screen.getByText('1 cancelada')).toBeInTheDocument()
+  })
+
+  it('uses the plural form for a patient with several appointments and cancellations', () => {
+    const patient = makePatient({ totalAppointments: 4, canceledAppointments: 2 })
+    mockUsePatientsPage.mockReturnValue(
+      makeDefaultHookState({
+        patients: [patient],
+        filteredPatients: [patient],
+        paginatedPatients: [patient],
+      }),
+    )
+    render(<PatientsPageContainer />)
+    expect(screen.getByText('4 consultas')).toBeInTheDocument()
+    expect(screen.getByText('2 canceladas')).toBeInTheDocument()
+  })
+
   it('renders patient name in the list', () => {
     const patient = makePatient({ patientName: 'Bruno Lima' })
     mockUsePatientsPage.mockReturnValue(
