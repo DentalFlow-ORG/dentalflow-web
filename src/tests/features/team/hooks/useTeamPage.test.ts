@@ -228,6 +228,9 @@ describe('useTeamPage', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     act(() => result.current.setFilter('status', 'inactive'))
     expect(result.current.members.map((m) => m.id)).toEqual(['m2'])
+
+    act(() => result.current.setFilter('status', 'active'))
+    expect(result.current.members.map((m) => m.id)).toEqual(['m1'])
   })
 
   it('clears search and filters via clearAll', async () => {

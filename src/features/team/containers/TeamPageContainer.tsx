@@ -19,6 +19,7 @@ import { ClinicMemberPasswordModal } from '../components/ClinicMemberPasswordMod
 import { TeamMemberCards } from '../components/TeamMemberCards'
 import { TeamMembersTable } from '../components/TeamMembersTable'
 import { useTeamPage } from '../hooks/useTeamPage'
+import type { MemberListItem } from '../types/team.types'
 import { computeTeamKpis } from './TeamPageContainer.utils'
 
 export function TeamPageContainer() {
@@ -56,6 +57,14 @@ export function TeamPageContainer() {
     handlePasswordSuccess,
     handleDeleteConfirm,
   } = useTeamPage()
+
+  // Shared by the mobile cards and the desktop table, which both render and are
+  // shown or hidden by CSS.
+  const openPasswordModal = (member: MemberListItem) =>
+    setPasswordTarget({ id: member.id, name: `${member.firstName} ${member.lastName}` })
+
+  const openDeleteDialog = (member: MemberListItem) =>
+    setDeleteTarget({ id: member.id, name: `${member.firstName} ${member.lastName}` })
 
   const kpis = computeTeamKpis(allMembers, usage)
 
@@ -154,35 +163,15 @@ export function TeamPageContainer() {
                   <TeamMemberCards
                     members={members}
                     onEdit={setEditTarget}
-                    onPassword={(member) =>
-                      setPasswordTarget({
-                        id: member.id,
-                        name: `${member.firstName} ${member.lastName}`,
-                      })
-                    }
-                    onDelete={(member) =>
-                      setDeleteTarget({
-                        id: member.id,
-                        name: `${member.firstName} ${member.lastName}`,
-                      })
-                    }
+                    onPassword={openPasswordModal}
+                    onDelete={openDeleteDialog}
                   />
 
                   <TeamMembersTable
                     members={members}
                     onEdit={setEditTarget}
-                    onPassword={(member) =>
-                      setPasswordTarget({
-                        id: member.id,
-                        name: `${member.firstName} ${member.lastName}`,
-                      })
-                    }
-                    onDelete={(member) =>
-                      setDeleteTarget({
-                        id: member.id,
-                        name: `${member.firstName} ${member.lastName}`,
-                      })
-                    }
+                    onPassword={openPasswordModal}
+                    onDelete={openDeleteDialog}
                   />
 
                   <Pagination

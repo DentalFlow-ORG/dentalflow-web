@@ -98,6 +98,17 @@ describe('TeamPageContainer', () => {
     expect(screen.getByText(/limite de 5 usuários ativos atingido/i)).toBeInTheDocument()
   })
 
+  it('names the plan by its slug when the plan has no display name', () => {
+    mockUseTeamPage.mockReturnValue(
+      makeState({
+        hasReachedUserLimit: true,
+        usage: makeUsage({ limit: 5, used: 5, remaining: 0, planName: null, planSlug: 'starter' }),
+      }),
+    )
+    render(<TeamPageContainer />)
+    expect(screen.getByText(/para o plano starter/i)).toBeInTheDocument()
+  })
+
   it('does not show the warning banner when under the limit', () => {
     mockUseTeamPage.mockReturnValue(makeState({ hasReachedUserLimit: false }))
     render(<TeamPageContainer />)
