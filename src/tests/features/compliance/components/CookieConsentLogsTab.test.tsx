@@ -149,6 +149,23 @@ describe('CookieConsentLogsTab', () => {
     })
   })
 
+  it('returns to all sources when the select goes back to the catch-all option', async () => {
+    mockListCookieConsents.mockResolvedValue(makeResult())
+    render(<CookieConsentLogsTab />)
+    await screen.findAllByText('Banner')
+
+    const select = screen.getAllByRole('combobox')[0]
+    await userEvent.selectOptions(select, 'preferences')
+    await waitFor(() => {
+      expect(mockListCookieConsents.mock.calls.at(-1)?.[0].source).toBe('preferences')
+    })
+
+    await userEvent.selectOptions(select, '__ALL__')
+    await waitFor(() => {
+      expect(mockListCookieConsents.mock.calls.at(-1)?.[0].source).toBe('')
+    })
+  })
+
   it('filters by dateFrom via the native date input and resets to page 1', async () => {
     mockListCookieConsents.mockResolvedValue(makeResult())
     render(<CookieConsentLogsTab />)

@@ -155,6 +155,23 @@ describe('AuditLogsTab', () => {
     })
   })
 
+  it('returns to all actions when the select goes back to the catch-all option', async () => {
+    mockListAuditLogs.mockResolvedValue(makeResult())
+    render(<AuditLogsTab />)
+    await screen.findAllByText('USER_LOGIN_SUCCESS')
+
+    const select = screen.getAllByRole('combobox')[0]
+    await userEvent.selectOptions(select, 'USER_CREATED')
+    await waitFor(() => {
+      expect(mockListAuditLogs.mock.calls.at(-1)?.[0].action).toBe('USER_CREATED')
+    })
+
+    await userEvent.selectOptions(select, '__ALL__')
+    await waitFor(() => {
+      expect(mockListAuditLogs.mock.calls.at(-1)?.[0].action).toBe('')
+    })
+  })
+
   it('filters by dateFrom/dateTo via DatePickerInput', async () => {
     mockListAuditLogs.mockResolvedValue(makeResult())
     render(<AuditLogsTab />)

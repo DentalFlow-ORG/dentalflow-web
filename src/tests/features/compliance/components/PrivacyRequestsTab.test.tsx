@@ -153,6 +153,40 @@ describe('PrivacyRequestsTab', () => {
     })
   })
 
+  it('returns to all statuses when the select goes back to the catch-all option', async () => {
+    mockListPrivacyRequests.mockResolvedValue(makeResult())
+    render(<PrivacyRequestsTab />)
+    await screen.findAllByText('Ana Silva')
+
+    const selects = screen.getAllByRole('combobox')
+    await userEvent.selectOptions(selects[0], 'COMPLETED')
+    await waitFor(() => {
+      expect(mockListPrivacyRequests.mock.calls.at(-1)?.[0].status).toBe('COMPLETED')
+    })
+
+    await userEvent.selectOptions(selects[0], '__ALL__')
+    await waitFor(() => {
+      expect(mockListPrivacyRequests.mock.calls.at(-1)?.[0].status).toBe('')
+    })
+  })
+
+  it('returns to all request types when the select goes back to the catch-all option', async () => {
+    mockListPrivacyRequests.mockResolvedValue(makeResult())
+    render(<PrivacyRequestsTab />)
+    await screen.findAllByText('Ana Silva')
+
+    const selects = screen.getAllByRole('combobox')
+    await userEvent.selectOptions(selects[1], 'PORTABILITY')
+    await waitFor(() => {
+      expect(mockListPrivacyRequests.mock.calls.at(-1)?.[0].requestType).toBe('PORTABILITY')
+    })
+
+    await userEvent.selectOptions(selects[1], '__ALL__')
+    await waitFor(() => {
+      expect(mockListPrivacyRequests.mock.calls.at(-1)?.[0].requestType).toBe('')
+    })
+  })
+
   it('shows a "Limpar filtros" button once a filter is active, and clears it', async () => {
     mockListPrivacyRequests.mockResolvedValue(makeResult())
     render(<PrivacyRequestsTab />)
