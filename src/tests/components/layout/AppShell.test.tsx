@@ -7,7 +7,7 @@ import {
   makeOwnerUser,
 } from '@/test-utils/factories/user.factory'
 import { mockLogout, resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
-import { mockNavigate, resetRouterMocks } from '@/test-utils/mocks/router'
+import { mockNavigate, resetRouterMocks, setMockPathname } from '@/test-utils/mocks/router'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -22,8 +22,13 @@ vi.mock('@/features/auth/hooks/useAuth', async () => {
   return authMock.createUseAuthMock()
 })
 
+const themeState = { theme: 'light' as 'light' | 'dark' }
+const mockSetTheme = vi.fn((next: 'light' | 'dark') => {
+  themeState.theme = next
+})
+
 vi.mock('@/features/theme/useTheme', () => ({
-  useTheme: () => ({ theme: 'light' as const, setTheme: vi.fn() }),
+  useTheme: () => ({ theme: themeState.theme, setTheme: mockSetTheme }),
 }))
 
 vi.mock('@/components/brand/BrandLink', () => ({
@@ -42,6 +47,8 @@ beforeEach(() => {
   resetAuthMocks()
   resetRouterMocks()
   localStorage.clear()
+  themeState.theme = 'light'
+  mockSetTheme.mockClear()
 })
 
 // ─── Render ───────────────────────────────────────────────────────────────────
@@ -302,5 +309,142 @@ describe('Mobile More Sheet', () => {
 
     await userEvent.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+// ─── Theme toggle ─────────────────────────────────────────────────────────────
+
+describe('theme toggle', () => {
+  it('offers to switch to dark while the light theme is active', async () => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell()
+
+    const toggle = screen.getByRole('button', { name: 'Tema claro' })
+    fireEvent.click(toggle)
+
+    expect(mockSetTheme).toHaveBeenCalledWith('dark')
+  })
+
+  it('offers to switch back to light while the dark theme is active', () => {
+    themeState.theme = 'dark'
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell()
+
+    const toggle = screen.getByRole('button', { name: 'Tema escuro' })
+    expect(screen.queryByRole('button', { name: 'Tema claro' })).not.toBeInTheDocument()
+
+    fireEvent.click(toggle)
+    expect(mockSetTheme).toHaveBeenCalledWith('light')
+  })
+})
+
+// ─── Sidebar group persistence ────────────────────────────────────────────────
+
+describe('sidebar group persistence', () => {
+  it('restores the groups a previous session left open', () => {
+    localStorage.setItem('dentalflow.sidebar.groups', JSON.stringify({ Gestão: true }))
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell(makeBillingStatus({ planKey: 'professional' }))
+
+    // Equipe only renders while the Gestão group is expanded.
+    expect(screen.getAllByRole('link', { name: 'Equipe' }).length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Gestão' })).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('persists a group the user expands', () => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell(makeBillingStatus({ planKey: 'professional' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Gestão' }))
+
+    const stored = JSON.parse(localStorage.getItem('dentalflow.sidebar.groups') ?? '{}')
+    expect(stored.Gestão).toBe(true)
+  })
+
+  it('ignores unreadable stored group state and starts collapsed', () => {
+    localStorage.setItem('dentalflow.sidebar.groups', 'not-json')
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell(makeBillingStatus({ planKey: 'professional' }))
+
+    expect(screen.getByRole('button', { name: 'Gestão' })).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('highlights a group that contains the current route', () => {
+    setMockPathname('/app/equipe')
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell(makeBillingStatus({ planKey: 'professional' }))
+
+    expect(screen.getByText('Gestão')).toHaveClass('text-sidebar-primary')
+  })
+})
+
+// ─── Absent user ──────────────────────────────────────────────────────────────
+
+describe('absent authenticated user', () => {
+  it('falls back to a generic name and renders no role navigation', () => {
+    setMockAuthState({ user: null, isAuthenticated: false })
+    renderShell()
+
+    expect(screen.getByText('Usuário')).toBeInTheDocument()
+    expect(screen.queryAllByRole('link', { name: 'Pacientes' })).toHaveLength(0)
+    expect(screen.getByTestId('shell-child')).toBeInTheDocument()
+  })
+})
+
+// ─── Role without a mobile nav configuration ──────────────────────────────────
+
+describe('role without mobile primary routes', () => {
+  it('renders no primary mobile nav for a role the mobile map does not configure', () => {
+    // MOBILE_PRIMARY_ROUTES_BY_ROLE is a Partial map; PATIENT is a valid
+    // AuthUserRole with no entry, so every visible item must fall to the
+    // secondary "Mais" sheet instead of the primary bar.
+    setMockAuthState({ user: makeOwnerUser({ role: 'PATIENT' }), isAuthenticated: true })
+    renderShell()
+
+    // No navigation item admits PATIENT, so the shell still frames its content
+    // but offers neither a primary bar nor the secondary sheet.
+    expect(screen.getByTestId('shell-child')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Mais' })).not.toBeInTheDocument()
+    expect(screen.queryAllByRole('link')).toHaveLength(0)
+  })
+})
+
+// ─── Pinned footer item ───────────────────────────────────────────────────────
+
+describe('pinned footer navigation', () => {
+  it('marks the pinned settings item as the current page on its own route', () => {
+    setMockPathname('/app/configuracoes')
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell()
+
+    const settingsLinks = screen.getAllByRole('link', { name: 'Configurações' })
+    expect(settingsLinks.some((link) => link.getAttribute('aria-current') === 'page')).toBe(true)
+    expect(settingsLinks.some((link) => link.className.includes('text-sidebar-primary'))).toBe(true)
+  })
+})
+
+// ─── Trial banner day counts ──────────────────────────────────────────────────
+
+describe('TrialBanner remaining days', () => {
+  // The banner rounds up, so a trial ending in N-and-a-bit days reads as N + 1.
+  function renderTrialEndingIn(days: number) {
+    const endsAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    renderShell(makeBillingStatus({ status: 'trialing', trialEndsAt: endsAt }))
+  }
+
+  it('uses the singular form on the last day', () => {
+    renderTrialEndingIn(0.5)
+    expect(screen.getByText(/Teste grátis ativo · 1 dia restante$/)).toBeInTheDocument()
+  })
+
+  it('uses the plural form with more than one day left', () => {
+    renderTrialEndingIn(4.5)
+    expect(screen.getByText(/Teste grátis ativo · 5 dias restantes$/)).toBeInTheDocument()
+  })
+
+  it('says the trial expires today once the end date has passed', () => {
+    renderTrialEndingIn(-1)
+    expect(screen.getByText(/Teste grátis ativo · expira hoje$/)).toBeInTheDocument()
   })
 })
