@@ -6,16 +6,19 @@ a threshold moves.
 
 ## Current measurement
 
-Measured on `dev/yago` with `bun run test:coverage`: **391 suites / 5,569 tests**.
+Measured on `dev/yago` with `bun run test:coverage`: **399 suites / 5,679 tests**.
 
 | Metric | Covered / total | Coverage | Threshold |
 | --- | ---: | ---: | ---: |
-| Statements | 9552 / 9913 | 96.35% | 96.2% |
-| Branches | 7919 / 8207 | 96.49% | 96.3% |
-| Functions | 3270 / 3374 | 96.91% | 96.7% |
-| Lines | 8778 / 9063 | 96.85% | 96.7% |
+| Statements | 9580 / 9912 | 96.65% | 96.5% |
+| Branches | 7975 / 8205 | 97.19% | 97.0% |
+| Functions | 3281 / 3373 | 97.27% | 97.1% |
+| Lines | 8798 / 9062 | 97.08% | 96.9% |
 
-85 of 512 measured files are below 100%.
+71 of 512 measured files are below 100%. Every remaining gap is classified
+below; none of them is open product behavior. Statement coverage moves by a
+statement or two between runs, which is why the floors sit a little under the
+measured figures rather than flush against them.
 
 ## Commands
 
@@ -52,7 +55,7 @@ mock, not the product.
 
 | Area | Why it cannot be unit-tested honestly |
 | --- | --- |
-| `marketing/components/landing/DentalArchScene`, `FlowOrbitScene`, `FlowOrbit`, `DentalArch` | Three.js geometry, materials, renderer frames and WebGL lighting need a real canvas and GPU. |
+| `marketing/components/landing/DentalArchScene`, `FlowOrbitScene`, `FlowOrbit`, `DentalArch`, `DentalArchSection` | Three.js geometry, materials, renderer frames and WebGL lighting need a real canvas and GPU, plus the lazy/WebGL-support fallbacks that choose between the scene and its poster. |
 | `marketing/components/AnimatedImpactSection`, `ProductShowcaseSection`, `DataMigrationSection`, `VideoSection`, `LandingIntegrationsSection`, `Reveal` | GSAP timelines, scroll-driven and IntersectionObserver animation, and frame timing. |
 | `patients/components/AvatarCropModal`, `CameraPreviewModal` | `getUserMedia`, camera tracks, canvas crop fidelity, real image decoding and `ResizeObserver` geometry. |
 | `clinical-records/components/VoiceDictationCard` | Microphone permissions, `MediaRecorder` encoding and its event sequencing. |
@@ -61,6 +64,22 @@ mock, not the product.
 These are covered instead by the manual browser pass in
 [`frontend-browser-qa.md`](frontend-browser-qa.md). Keep that
 checklist current when this code changes.
+
+#### Filling a jsdom gap instead of mocking the product
+
+Where jsdom simply omits a standard DOM class, define it in
+`src/test-utils/setup.ts` rather than stubbing the component. `AnimationEvent`
+is defined there for exactly this reason: without it React never dispatches
+`onAnimationEnd`, so a component that cleans up after a CSS animation could not
+be exercised through its own handler. That is filling in the environment, not
+replacing the code under test — it is not a licence to mock away WebGL,
+`MediaRecorder` or `getUserMedia`, whose *behavior* (not just their presence) is
+what the tests would have to fake.
+
+The suite also sets `testTimeout`/`hookTimeout` to 20s. Individual tests finish
+far faster; the headroom exists because a few fake-timer suites exceed the 5s
+default under v8 coverage instrumentation with the full suite in flight, and
+failing for load rather than for behavior is not a useful signal.
 
 ### E — branches unreachable by construction
 
@@ -78,15 +97,59 @@ against its callers rather than assumed:
 | `reports/components/ReportPreviewPanel` catch | `toLocaleString` returns `"Invalid Date"` for an invalid date rather than throwing. |
 | `reports/containers/ReportsPageContainer` zero-total completion rate | Every map entry is inserted only after its total is incremented. |
 | `patients/containers/PatientsAttentionContainer` and `PatientsPageContainer` no-filter empty states | `filteredItems` derives from `allItems` through the filters, so an empty filtered list with no active filter contradicts the enclosing non-empty guard. |
+| `clinical-records/containers/ClinicalRecordEditorContainer` template and dictation edit guards | The template panel and `VoiceDictationCard` render only inside `canEditClinicalContent && ...`, so their handlers cannot be invoked for a locked record. The save-draft and odontogram guards *are* reachable -- the action bar and odontogram render for a locked record -- and are tested. |
+| `clinical-records/containers/ClinicalRecordEditorContainer` section-content `default` arm | `sectionHasContent` switches over a closed section-id union. |
+| `clinical-records/containers/ClinicalRecordEditorContainer` unknown template category | `ClinicalTemplate.category` is a union and `fieldMap` covers every member. |
+| `clinical-records/components/OdontogramSection` read-only guards | In read-only mode the chart receives `onSelect={undefined}` and the multi-condition panel is not rendered, so no tooth can be selected and the three mutators cannot be reached. |
+| `clinical-records/components/ImageAttachmentPanel` `navigator`/`window` guard, delete-confirm guard and timer cleanup | jsdom and browsers both define `navigator`/`window`; the confirm dialog renders only with a pending id; the description timer is always assigned before its cleanup runs. |
+| `clinical-records/containers/ClinicalRecordPrintContainer` `!data` guard | A resolved load always sets `data`; a failure sets `error`, which is checked first. |
+| `clinical-records/hooks/useClinicalRecordAutosave` timer cleanup guard | The effect returns its cleanup only after assigning `timerRef.current`, and never nulls it. |
+| `clinical-records/utils/parse-dictation-odontogram` and `components/odontogram/OdontogramLegend` label/class fallbacks | Both maps are keyed by `ODONTOGRAM_CONDITION_OPTIONS`; `src/tests/features/clinical-records/utils/odontogram-display-contract.test.ts` asserts they stay complete. |
+| `components/common/AiAssistantCard` generate guard, copy guard and format `catch` blocks | The generate button is `disabled` whenever a reason exists and is replaced by the loading block while running; the copy button renders only with a result; `toLocaleString` and `String.split` do not throw. |
+| `billing/components/PricingCard` promotional-price fallback and `getButtonIcon` `null` | The launch block renders only when `promotionalPriceMonthly != null`; `start_trial` is handled by the rocket branch, and the remaining four action types are all matched. |
+| `billing/pages/SubscriptionSuccessPage` `cancelled` guard in `runCheck` | The effect cleanup clears the retry timeout, so a scheduled retry cannot run after cancellation. |
+| `compliance` tabs' `(result?.data.length ?? 0)` fallback | `data` is null only when `error` is set, and `!error` short-circuits first. |
+| `compliance/components/PrivacyRequestsTab` request-type fallbacks | `requestType` is a union and the filter list is built from the label map's own keys. |
+| `dashboard/containers/ProductivityCenter` priority and stock-status fallbacks | `ProductivityAction.priority` and `criticalProducts[].status` are closed unions the maps cover in full. The payment-status map *is* keyed by a plain string and its fallback is tested. |
+| `dashboard/components/TodayAppointmentsChart` inactive-legend guards | The legend button is `disabled` for a zero-count row. |
+| `finance/components/ColorPicker`, `TransactionsTable`, `ExpenseClassifyAction` label fallbacks | Keyed by `CATEGORY_COLORS` or a source union; `src/tests/features/finance/finance-display.test.ts` asserts the maps stay complete. |
+| `finance/components/IncomeExpensesChart` last-point and series-label fallbacks | The empty dataset returns early, and tooltip keys come from the chart's own three declared series. |
+| `finance/containers/FinancePageContainer` `typeof document` guard | `document` always exists in the browser and in jsdom. |
+| `notifications/components/AppointmentNotificationActions` slug fallback | Rendered slugs come from `TEMPLATES_BY_STATUS`; `src/tests/features/notifications/notifications-display.test.ts` asserts every one has a label. |
+| `admin/components/UserFormModal` empty `clinicId` | Submission is blocked earlier when a clinic-scoped role has no clinic selected. |
+| `inventory/components/StockMovementModal` `!product` guard and `?? 0` fallbacks | The dialog's `open` is `product !== null`; the quantity guards return before the fallbacks are reached. The negative-quantity guard *is* reachable and is tested. |
+| `inventory/components/CategoryManagerModal` and `fiscal/containers/FiscalInvoicesPageContainer` confirm guards | Each confirmation renders only once its target is set. |
+| `scheduling/components/availability/ExceptionManager` and `ExceptionEditModal` guards | The edit modal renders only with a selected exception, and Radix's `onEscapeKeyDown`/`onPointerDownOutside` already prevent dismissal while saving, so the second guard never sees a pending state. |
+| `scheduling/components/availability/ExceptionForm` reason fallback | The reason field is always rendered, so `FormData.get` never returns null. |
+| `scheduling/components/appointments/AppointmentClinicalSection` and `AppointmentServiceValueSection` guards | Each button renders only when its value is present; `restoredPrice` is a formatted string, so a zero price is still truthy. |
+| `scheduling/components/mobile/MobileAgendaTimeline` end-time fallback | `formatWallTime` never returns an empty string; a missing end time is announced explicitly. |
+| `scheduling/utils/week-calendar-layout` exception time guard | `specialExceptions` is already filtered on `startTime && endTime`. |
+| `settings/containers/SettingsPageContainer` empty-name payload guard | `validateClinicProfile` rejects a blank name before the payload is built. |
+| `marketing/pages/IntegrationsPage` logo and status-label fallbacks | Every `integrationCards` entry defines both; asserted by the page's content-contract tests. |
+| `marketing/components/RoleSwitcher` empty-list guard | `ROLE_KEYS` has four entries and the filter removes at most one. |
+| `marketing/config/features` unresolved feature id | Every configured card feature id resolves to a public commercial feature; asserted by the `getPlanCardFeatures` tests. |
+| `marketing/pages/FaqPage` unresolved group index | The three groups index every entry of `faqItems` exactly once; asserted by the page's group-contract test. |
+| `marketing/components/FeatureMockups` blue and slate dot variants | `MockupRow.dot` shares `ChipVariant` with `MockupChip`; no mockup currently passes those two members for a dot. |
+| `marketing/hooks/useDropdownNav` `headerRef` guard | `PublicHeader` always attaches the ref before a dropdown can be opened. |
 
 An E classification is a claim about the code, not a preference. If you change
 the surrounding code, re-check the claim.
 
 ### D — non-behavioral declarations
 
-Static type-only modules and app bootstrap composition (`src/App.tsx`,
-`src/app/RootRoute.tsx`), whose behavior is covered through the router and
-provider tests rather than by re-asserting their JSX.
+- Static type-only modules (`features/inventory/types/inventory.types.ts`) and
+  app bootstrap composition (`src/App.tsx`, `src/app/RootRoute.tsx`,
+  `src/main.tsx`), whose behavior is covered through the router and provider
+  tests rather than by re-asserting their JSX.
+- No-op callback props passed to a child that cannot invoke them in that
+  context: the read-only appointment drawer's `onStatusChange` and
+  `onCancelRequest` in `dashboard/containers/DashboardPageContainer`,
+  `DentistHomePageContainer` and `scheduling/containers/SchedulePageContainer`,
+  and the notification drawer's `onSent`. They exist to satisfy a required
+  prop, not to do anything.
+- `clinical-records/hooks/useUnsavedChangesGuard`'s `shouldBlockFn`, a constant
+  `() => true` handed to TanStack Router's `useBlocker`; activation is driven by
+  the `disabled` flag, which is tested.
 
 ## What is *not* an acceptable reason to leave something uncovered
 

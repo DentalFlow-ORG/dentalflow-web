@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { render, screen, userEvent } from '@/test-utils/render-utils'
 
+import { faqItems } from '@/features/marketing/data/public-content'
 import { FaqPage } from '@/features/marketing/pages/FaqPage'
 
 vi.mock('@tanstack/react-router', () => ({
@@ -72,5 +73,23 @@ describe('FaqPage', () => {
       'href',
       '/planos',
     )
+  })
+})
+
+// The page maps hard-coded indices into faqItems and renders nothing for an
+// index that does not resolve. That fallback is unreachable only while the
+// groups and the content stay in step.
+describe('FaqPage group contract', () => {
+  it('renders every FAQ entry exactly once across the three groups', () => {
+    render(<FaqPage />)
+    const questions = screen
+      .getAllByRole('button')
+      .map((b) => b.textContent?.trim())
+      .filter(Boolean)
+    expect(questions).toHaveLength(faqItems.length)
+    expect(new Set(questions).size).toBe(faqItems.length)
+    for (const item of faqItems) {
+      expect(screen.getByRole('button', { name: item.question })).toBeInTheDocument()
+    }
   })
 })

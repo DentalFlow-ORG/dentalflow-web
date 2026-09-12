@@ -136,6 +136,17 @@ If the backend moves to HTTP-only cookies, keep components unchanged and update 
 - Mock feature hooks or services when testing UI behavior that depends on auth, routing, or backend state.
 - Add tests for new components, hooks, services, and utilities when they contain branching logic, state transitions, validation, or API integration behavior.
 - Avoid brittle visual snapshots, long Tailwind class assertions, and tests that only duplicate static markup.
+- Coverage floors live in `vite.config.ts` and are documented in
+  [`docs/quality/frontend-coverage-policy.md`](docs/quality/frontend-coverage-policy.md).
+  Never lower a floor to make a run pass, and never add a coverage-ignore
+  directive — the repository contains none.
+- Leaving a branch uncovered requires classifying it in that policy as E
+  (unreachable by construction, with the caller or type that proves it) or F
+  (real browser behavior jsdom cannot certify, with an entry in
+  [`docs/quality/frontend-browser-qa.md`](docs/quality/frontend-browser-qa.md)).
+  Anything else is open work, not an exception.
+- Where a map has a `?? raw` fallback that is unreachable only because the map is
+  complete, pin it with a contract test rather than claiming it in prose.
 
 ## Definition of Done
 

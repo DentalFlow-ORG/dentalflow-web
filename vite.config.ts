@@ -21,6 +21,12 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./src/test-utils/setup.ts"],
+    // The default 5s is enough per test in isolation, but not under v8
+    // coverage instrumentation with the full suite in flight — a handful of
+    // fake-timer/user-event suites then exceed it and fail for load rather
+    // than for behavior. This is headroom, not a slower expectation.
+    testTimeout: 20_000,
+    hookTimeout: 20_000,
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
@@ -41,10 +47,10 @@ export default defineConfig({
       // docs/quality/frontend-coverage-policy.md. Raise these floors when that
       // list shrinks; never lower them to make a run pass.
       thresholds: {
-        statements: 96.2,
-        branches: 96.3,
-        functions: 96.7,
-        lines: 96.7,
+        statements: 96.5,
+        branches: 97.0,
+        functions: 97.1,
+        lines: 96.9,
       },
     },
   },

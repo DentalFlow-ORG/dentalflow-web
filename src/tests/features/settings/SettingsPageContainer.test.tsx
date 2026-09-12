@@ -841,4 +841,14 @@ describe('SettingsPageContainer — nullable and optional data', () => {
     expect(screen.queryByText('Mensal')).not.toBeInTheDocument()
     expect(screen.queryByText('Anual')).not.toBeInTheDocument()
   })
+  it('shows no subscription summary when the account has no billing status', async () => {
+    mockGetCurrentBillingStatus.mockResolvedValue(null)
+    render(<SettingsPageContainer />)
+    await waitFor(() => expect(screen.queryByText('Carregando plano...')).not.toBeInTheDocument())
+    expect(screen.queryByText('Professional')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Não foi possível carregar as informações do plano.'),
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('Plano e cobrança')).toBeInTheDocument()
+  })
 })
