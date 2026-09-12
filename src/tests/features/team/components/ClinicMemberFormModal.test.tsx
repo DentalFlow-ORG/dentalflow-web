@@ -351,6 +351,68 @@ describe('ClinicMemberFormModal — accessibility and layout', () => {
 })
 
 describe('ClinicMemberFormModal — interactions', () => {
+  it('validates a phone, clears its error on editing and saves an inactive assistant', async () => {
+    const member = makeMember({ isActive: false })
+    vi.mocked(updateClinicMember).mockResolvedValue(member)
+    renderModal({ initialData: member })
+    await userEvent.type(screen.getByLabelText(/telefone/i), '123')
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    expect(screen.getByText('Informe um telefone válido com DDD.')).toBeInTheDocument()
+    expect(updateClinicMember).not.toHaveBeenCalled()
+    await userEvent.clear(screen.getByLabelText(/telefone/i))
+    await userEvent.type(screen.getByLabelText(/telefone/i), '11987654321')
+    expect(screen.queryByText('Informe um telefone válido com DDD.')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /assistente/i }))
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.click(screen.getByRole('option', { name: /^Ativo$/ }))
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    expect(updateClinicMember).toHaveBeenCalledWith(
+      member.id,
+      expect.objectContaining({ role: 'ASSISTANT', phone: '11987654321', isActive: true }),
+    )
+  })
+
+  it('shows a generic save failure and succeeds on retry', async () => {
+    const member = makeMember()
+    vi.mocked(updateClinicMember).mockRejectedValueOnce('offline').mockResolvedValueOnce(member)
+    const { onSuccess } = renderModal({ initialData: member })
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    expect(screen.getByText('Erro ao salvar usuário.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    expect(onSuccess).toHaveBeenCalledOnce()
+  })
+
+  it.each([new Error('Horários indisponíveis'), 'offline'])(
+    'presents availability load failures: %s',
+    async (error) => {
+      vi.mocked(listAvailability).mockRejectedValueOnce(error)
+      renderModal({
+        initialData: makeMember({
+          profile: {
+            id: 'profile-1',
+            userId: 'member-1',
+            slug: 'ana',
+            displayName: 'Ana',
+            isPublished: false,
+          },
+        }),
+      })
+      expect(
+        await screen.findByText(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível carregar os horários do profissional.',
+        ),
+      ).toBeInTheDocument()
+    },
+  )
+
+  it('dismisses exactly once with Escape', async () => {
+    const { onClose } = renderModal()
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
   it('cancel button calls onClose', async () => {
     const user = userEvent.setup()
     const onClose = vi.fn()

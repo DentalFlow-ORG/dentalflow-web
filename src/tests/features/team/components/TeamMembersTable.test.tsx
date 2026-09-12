@@ -66,6 +66,36 @@ const MEMBERS: MemberListItem[] = [
 ]
 
 describe('TeamMembersTable', () => {
+  it('ignores unrelated keys, avoids duplicate nested activation and forwards password/deactivation actions', async () => {
+    const onEdit = vi.fn()
+    const onPassword = vi.fn()
+    const onDelete = vi.fn()
+    render(
+      <TeamMembersTable
+        members={[MEMBERS[0]]}
+        onEdit={onEdit}
+        onPassword={onPassword}
+        onDelete={onDelete}
+      />,
+    )
+    const row = screen.getByRole('button', { name: /editar ana silva/i })
+    row.focus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(onEdit).not.toHaveBeenCalled()
+    within(row)
+      .getByRole('button', { name: /^editar$/i })
+      .focus()
+    await userEvent.keyboard('{Enter}')
+    expect(onEdit).toHaveBeenCalledExactlyOnceWith(MEMBERS[0])
+    await userEvent.click(screen.getByRole('button', { name: /mais ações/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Alterar senha' }))
+    expect(onPassword).toHaveBeenCalledExactlyOnceWith(MEMBERS[0])
+    await userEvent.click(screen.getByRole('button', { name: /mais ações/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Desativar' }))
+    expect(onDelete).toHaveBeenCalledExactlyOnceWith(MEMBERS[0])
+    expect(onEdit).toHaveBeenCalledTimes(1)
+  })
+
   it('renders members with role and status badges', () => {
     render(
       <TeamMembersTable
