@@ -781,3 +781,64 @@ describe('SettingsPageContainer — IA e Limites section', () => {
     expect(link).toHaveAttribute('href', '/app/estoque')
   })
 })
+
+// ── Nullable profile and subscription presentation ───────────────────────────
+
+describe('SettingsPageContainer — nullable and optional data', () => {
+  it('marks timezone and country as unset when the profile omits them', async () => {
+    mockGetClinicProfile.mockResolvedValue(
+      makeClinicProfile({ timezone: undefined, country: undefined }),
+    )
+    render(<SettingsPageContainer />)
+    expect((await screen.findAllByText('Não informado')).length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('falls back to a generic label when a connected calendar reports no summary', async () => {
+    mockGetGoogleCalendarStatus.mockResolvedValue({
+      connected: true,
+      calendarSummary: null,
+      connectedAt: '2026-01-15T10:00:00.000Z',
+    })
+    render(<SettingsPageContainer />)
+    expect((await screen.findAllByText('Conectado')).length).toBeGreaterThan(0)
+  })
+
+  it('labels an annual subscription and shows its renewal date', async () => {
+    mockGetCurrentBillingStatus.mockResolvedValue({
+      status: 'active' as const,
+      planName: 'Professional',
+      billingInterval: 'annual' as const,
+      currentPeriodEnd: '2027-03-10T00:00:00.000Z',
+      trialEndsAt: null,
+    })
+    render(<SettingsPageContainer />)
+    expect(await screen.findByText('Anual')).toBeInTheDocument()
+    expect(screen.getByText(/Renova em/)).toBeInTheDocument()
+  })
+
+  it('shows the trial end date while the subscription is trialing', async () => {
+    mockGetCurrentBillingStatus.mockResolvedValue({
+      status: 'trialing' as const,
+      planName: 'Professional',
+      billingInterval: 'monthly' as const,
+      currentPeriodEnd: null,
+      trialEndsAt: '2026-10-01T00:00:00.000Z',
+    })
+    render(<SettingsPageContainer />)
+    expect(await screen.findByText(/Teste até/)).toBeInTheDocument()
+  })
+
+  it('omits the interval badge when the subscription reports no interval', async () => {
+    mockGetCurrentBillingStatus.mockResolvedValue({
+      status: 'active' as const,
+      planName: 'Professional',
+      billingInterval: null,
+      currentPeriodEnd: null,
+      trialEndsAt: null,
+    })
+    render(<SettingsPageContainer />)
+    await screen.findByText('Professional')
+    expect(screen.queryByText('Mensal')).not.toBeInTheDocument()
+    expect(screen.queryByText('Anual')).not.toBeInTheDocument()
+  })
+})
