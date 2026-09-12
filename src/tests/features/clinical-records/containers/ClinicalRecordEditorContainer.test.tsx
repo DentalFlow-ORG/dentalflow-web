@@ -681,4 +681,53 @@ describe('ClinicalRecordEditorContainer', () => {
       vi.useRealTimers()
     }
   })
+  // ── Record-lock guards ──────────────────────────────────────────────────────
+  // A record that is no longer a DRAFT must not be mutable. The action bar and
+  // the odontogram still render for a locked record (so the user can print or
+  // read it), so their handlers are the last line of defence and must no-op.
+  describe('record-lock guards', () => {
+    for (const status of ['COMPLETED', 'LOCKED', 'CANCELED'] as const) {
+      it(`does not save a draft from the action bar for a ${status} record`, async () => {
+        mockUseClinicalRecord.mockReturnValue(
+          defaultRecordHookState({ record: makeRecord({ status }) }),
+        )
+        render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+        await act(async () => {
+          fireEvent.click(screen.getByRole('button', { name: 'actions-save' }))
+        })
+        expect(mockSave).not.toHaveBeenCalled()
+        expect(mockCancelPendingAutosave).not.toHaveBeenCalled()
+        expect(mockUpsertOdontogram).not.toHaveBeenCalled()
+      })
+
+      it(`does not persist odontogram changes for a ${status} record`, async () => {
+        mockUseClinicalRecord.mockReturnValue(
+          defaultRecordHookState({ record: makeRecord({ status }) }),
+        )
+        render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+        await act(async () => {
+          fireEvent.click(screen.getByRole('button', { name: 'mark-tooth' }))
+        })
+        expect(mockUpsertOdontogram).not.toHaveBeenCalled()
+        expect(mockShowAlert).not.toHaveBeenCalled()
+      })
+    }
+
+    it('hides the template and dictation tools for a locked record', () => {
+      mockUseClinicalRecord.mockReturnValue(
+        defaultRecordHookState({ record: makeRecord({ status: 'LOCKED' }) }),
+      )
+      render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+      expect(screen.queryByTestId('template-panel')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('voice-dictation')).not.toBeInTheDocument()
+    })
+
+    it('still saves a draft from the action bar for a DRAFT record', async () => {
+      render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'actions-save' }))
+      })
+      expect(mockSave).toHaveBeenCalledTimes(1)
+    })
+  })
 })

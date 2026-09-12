@@ -112,4 +112,19 @@ describe('PublicHeader', () => {
     const { container } = render(<PublicHeader isScrolled />)
     expect(container.querySelector('header')).toHaveClass('bg-white/95')
   })
+  it('highlights an open dropdown trigger differently on a dark hero', async () => {
+    render(<PublicHeader isDarkHero />)
+    const trigger = screen.getByRole('button', { name: /produto/i })
+    expect(trigger).toHaveClass('text-white/80')
+    await userEvent.click(trigger)
+    expect(trigger).toHaveClass('bg-white/15', 'text-white')
+    expect(trigger).not.toHaveClass('bg-slate-100')
+  })
+
+  it('highlights an open dropdown trigger with the light styling off a dark hero', async () => {
+    render(<PublicHeader />)
+    const trigger = screen.getByRole('button', { name: /produto/i })
+    await userEvent.click(trigger)
+    expect(trigger).toHaveClass('bg-slate-100', 'text-primary')
+  })
 })

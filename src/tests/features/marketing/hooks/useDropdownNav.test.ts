@@ -146,3 +146,46 @@ describe('useDropdownNav — Escape key', () => {
     expect(result.current.isMobileOpen).toBe(false)
   })
 })
+
+describe('useDropdownNav — click outside', () => {
+  it('closes the open dropdown when a mousedown lands outside the header', () => {
+    const header = document.createElement('header')
+    const outside = document.createElement('div')
+    document.body.append(header, outside)
+    try {
+      const { result } = renderHook(() => useDropdownNav())
+      act(() => {
+        result.current.headerRef.current = header
+        result.current.toggleDropdown('produto')
+      })
+      expect(result.current.openDropdown).toBe('produto')
+      act(() => {
+        outside.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+      })
+      expect(result.current.openDropdown).toBeNull()
+    } finally {
+      header.remove()
+      outside.remove()
+    }
+  })
+
+  it('keeps the dropdown open when the mousedown lands inside the header', () => {
+    const header = document.createElement('header')
+    const inside = document.createElement('button')
+    header.append(inside)
+    document.body.append(header)
+    try {
+      const { result } = renderHook(() => useDropdownNav())
+      act(() => {
+        result.current.headerRef.current = header
+        result.current.toggleDropdown('produto')
+      })
+      act(() => {
+        inside.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+      })
+      expect(result.current.openDropdown).toBe('produto')
+    } finally {
+      header.remove()
+    }
+  })
+})

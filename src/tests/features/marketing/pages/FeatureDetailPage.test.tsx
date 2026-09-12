@@ -18,9 +18,14 @@ vi.mock('@/features/marketing/components/PublicLayout', () => ({
   PublicLayout: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
 
+const reveal = vi.hoisted(() => ({ isVisible: true }))
 vi.mock('@/features/marketing/hooks/useRevealOnScroll', () => ({
-  useRevealOnScroll: () => ({ ref: { current: null }, isVisible: true }),
+  useRevealOnScroll: () => ({ ref: { current: null }, isVisible: reveal.isVisible }),
 }))
+
+beforeEach(() => {
+  reveal.isVisible = true
+})
 
 vi.mock('@/features/marketing/components/FeatureMockups', () => ({
   FeatureMockup: () => <div data-testid="feature-mockup" />,
@@ -167,5 +172,13 @@ describe('FeatureDetailPage — final CTA', () => {
         name: new RegExp(agenda.title.toLowerCase(), 'i'),
       }),
     ).toBeInTheDocument()
+  })
+})
+
+describe('FeatureDetailPage — before the reveal animation runs', () => {
+  it('renders the hero and closing CTA in their pre-reveal hidden state', () => {
+    reveal.isVisible = false
+    render(<FeatureDetailPage content={agenda} />)
+    expect(document.querySelectorAll('.opacity-0').length).toBeGreaterThan(0)
   })
 })

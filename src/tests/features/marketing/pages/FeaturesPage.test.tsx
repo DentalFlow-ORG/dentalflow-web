@@ -16,9 +16,14 @@ vi.mock('@/features/marketing/hooks/usePageMeta', () => ({
   usePageMeta: () => {},
 }))
 
+const reveal = vi.hoisted(() => ({ isVisible: true }))
 vi.mock('@/features/marketing/hooks/useRevealOnScroll', () => ({
-  useRevealOnScroll: () => ({ ref: { current: null }, isVisible: true }),
+  useRevealOnScroll: () => ({ ref: { current: null }, isVisible: reveal.isVisible }),
 }))
+
+beforeEach(() => {
+  reveal.isVisible = true
+})
 
 vi.mock('@/features/marketing/components/AvailabilityIndicator', () => ({
   AvailabilityIndicator: ({ available }: { available: boolean }) => (
@@ -78,5 +83,13 @@ describe('FeaturesPage', () => {
   it('renders a "Saiba mais" link for categories with a detail route', () => {
     render(<FeaturesPage />)
     expect(screen.getAllByText(/saiba mais →/i).length).toBeGreaterThan(0)
+  })
+})
+
+describe('FeaturesPage — before the reveal animation runs', () => {
+  it('renders the hero and closing CTA in their pre-reveal hidden state', () => {
+    reveal.isVisible = false
+    render(<FeaturesPage />)
+    expect(document.querySelectorAll('.opacity-0').length).toBeGreaterThan(0)
   })
 })

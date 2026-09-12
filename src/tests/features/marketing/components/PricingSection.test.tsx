@@ -7,9 +7,14 @@ vi.mock('@tanstack/react-router', async () => {
   return m.createRouterMock()
 })
 
+const reveal = vi.hoisted(() => ({ isVisible: true }))
 vi.mock('@/features/marketing/hooks/useRevealOnScroll', () => ({
-  useRevealOnScroll: () => ({ ref: { current: null }, isVisible: true }),
+  useRevealOnScroll: () => ({ ref: { current: null }, isVisible: reveal.isVisible }),
 }))
+
+beforeEach(() => {
+  reveal.isVisible = true
+})
 
 const NOTE_TEXT = 'Plano anual sujeito à disponibilidade no momento da contratação.'
 
@@ -58,6 +63,36 @@ describe('PricingSection', () => {
     expect(ctaLinks).toHaveLength(3)
     for (const link of ctaLinks) {
       expect(link).toHaveAttribute('href', '/acessar')
+    }
+  })
+})
+
+describe('PricingSection — before the reveal animation runs', () => {
+  beforeEach(() => {
+    reveal.isVisible = false
+  })
+
+  it('still renders every plan so the content is available without animation', () => {
+    render(<PricingSection />)
+    expect(screen.getByRole('heading', { name: 'Starter' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Professional' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Premium' })).toBeInTheDocument()
+  })
+
+  it('holds the section in its hidden pre-reveal state', () => {
+    const { container } = render(<PricingSection />)
+    expect(container.querySelectorAll('.opacity-0').length).toBeGreaterThan(0)
+    expect(container.querySelectorAll('.translate-y-0').length).toBe(0)
+  })
+
+  it('does not stagger transition delays until the section is revealed', () => {
+    const { container } = render(<PricingSection />)
+    const delayed = Array.from(
+      container.querySelectorAll<HTMLElement>('[style*="transition-delay"]'),
+    )
+    expect(delayed.length).toBeGreaterThan(0)
+    for (const el of delayed) {
+      expect(el.style.transitionDelay).toBe('0ms')
     }
   })
 })
