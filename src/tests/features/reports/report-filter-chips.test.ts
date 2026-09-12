@@ -158,3 +158,26 @@ describe('getInvoicesFilterChips', () => {
     expect(chips).toContainEqual({ key: 'status', label: 'Status: Pronto para emitir' })
   })
 })
+
+// ── Unmapped status values ────────────────────────────────────────────────────
+//
+// The appointment, inventory and invoice filters type `status` as a plain
+// string, so a status the label maps do not know about still has to produce a
+// readable chip instead of "Status: undefined".
+
+describe('unmapped status values', () => {
+  it('falls back to the raw appointment status', () => {
+    const chips = getAppointmentsFilterChips({ status: 'RESCHEDULED' }, DEFAULTS)
+    expect(chips).toContainEqual({ key: 'status', label: 'Status: RESCHEDULED' })
+  })
+
+  it('falls back to the raw inventory status', () => {
+    const chips = getInventoryFilterChips({ status: 'DISCONTINUED' })
+    expect(chips).toContainEqual({ key: 'status', label: 'Status: DISCONTINUED' })
+  })
+
+  it('falls back to the raw invoice status', () => {
+    const chips = getInvoicesFilterChips({ status: 'REJECTED' }, DEFAULTS)
+    expect(chips).toContainEqual({ key: 'status', label: 'Status: REJECTED' })
+  })
+})

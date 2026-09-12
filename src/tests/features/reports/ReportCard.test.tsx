@@ -157,6 +157,29 @@ describe('ReportCard — export button', () => {
       ),
     )
   })
+
+  it('falls back to a generic message when the export rejects with a non-Error', async () => {
+    const onExport = vi.fn(() => Promise.reject('offline'))
+    renderCard({ onExport })
+    fireEvent.click(screen.getByRole('button', { name: /exportar csv/i }))
+    await waitFor(() =>
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Erro ao exportar',
+          description: 'Não foi possível gerar o relatório.',
+        }),
+      ),
+    )
+  })
+
+  it('re-enables the export button after a failure so the user can retry', async () => {
+    const onExport = vi.fn(() => Promise.reject(new Error('Falha na rede.')))
+    renderCard({ onExport })
+    const button = screen.getByRole('button', { name: /exportar csv/i })
+    fireEvent.click(button)
+    await waitFor(() => expect(mockShowAlert).toHaveBeenCalled())
+    await waitFor(() => expect(button).toBeEnabled())
+  })
 })
 
 // ── Disabled state ────────────────────────────────────────────────────────────
