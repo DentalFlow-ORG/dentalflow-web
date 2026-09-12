@@ -115,3 +115,38 @@ describe('SchedulingToolbar — Google Calendar hidden when no role', () => {
     expect(screen.getByRole('button', { name: /Conectar Google Agenda/i })).toBeInTheDocument()
   })
 })
+
+// The Google Calendar handlers are optional props (only the OWNER container
+// supplies them). The toolbar substitutes no-ops so the buttons stay inert
+// instead of throwing when a caller renders the controls without them.
+describe('SchedulingToolbar — Google Calendar handlers omitted', () => {
+  it('keeps the connect button inert', async () => {
+    const user = userEvent.setup()
+    render(<SchedulingToolbar {...baseProps} canManageGoogleCalendar />)
+    const connect = screen.getByRole('button', { name: /Google/i })
+    await user.click(connect)
+    expect(connect).toBeInTheDocument()
+  })
+
+  it('keeps the sync and disconnect buttons inert when connected', async () => {
+    const user = userEvent.setup()
+    render(
+      <SchedulingToolbar
+        {...baseProps}
+        canManageGoogleCalendar
+        googleCalendar={{
+          connected: true,
+          calendarSummary: 'Agenda da clínica',
+          connectedAt: null,
+          lastSyncedAt: null,
+        }}
+      />,
+    )
+    const sync = screen.getByRole('button', { name: 'Sincronizar com Google Agenda' })
+    const disconnect = screen.getByRole('button', { name: 'Desconectar Google Agenda' })
+    await user.click(sync)
+    await user.click(disconnect)
+    expect(sync).toBeEnabled()
+    expect(disconnect).toBeEnabled()
+  })
+})

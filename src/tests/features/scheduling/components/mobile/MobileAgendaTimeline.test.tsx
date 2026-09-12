@@ -332,3 +332,25 @@ describe('MobileAgendaTimeline — loading state', () => {
     expect(screen.queryByText(/Nenhuma consulta agendada/i)).not.toBeInTheDocument()
   })
 })
+
+describe('MobileAgendaTimeline — accessible label without an end time', () => {
+  // formatWallTime never returns an empty string, so the label always renders a
+  // range; a missing end time is announced explicitly rather than omitted.
+  it('announces the missing end time instead of dropping the range', () => {
+    const appt = makeAppointment({
+      appointmentDate: DEFAULT_APPT_DATE,
+      startTime: '09:00',
+      endTime: null,
+    })
+    render(
+      <MobileAgendaTimeline
+        appointments={[appt]}
+        weekStart={WEEK_START}
+        onAppointmentClick={vi.fn()}
+      />,
+    )
+    const label = screen.getByRole('button', { name: /Test Patient/ }).getAttribute('aria-label')
+    expect(label).toContain('09:00')
+    expect(label).toContain('Hora não informada')
+  })
+})

@@ -347,4 +347,18 @@ describe('StockMovementModal', () => {
 
     expect(screen.queryByRole('heading', { name: /Movimentar estoque/i })).not.toBeInTheDocument()
   })
+  // The number input carries required/min=0, so a browser blocks these before
+  // the handler runs. Submitting the form directly bypasses that native guard
+  // and proves the component does not depend on it alone.
+  it('rejects a negative final quantity even when native validation is bypassed', async () => {
+    render(<StockMovementModal {...defaultProps()} />)
+    await userEvent.click(screen.getByRole('radio', { name: /Ajuste/i }))
+    const input = screen.getByRole('spinbutton', { name: /Quantidade final/i })
+    fireEvent.change(input, { target: { value: '-1' } })
+    await act(async () => {
+      fireEvent.submit(input.closest('form') as HTMLFormElement)
+    })
+    expect(screen.getByText('Informe a quantidade final do ajuste.')).toBeInTheDocument()
+    expect(mockCreateMovement).not.toHaveBeenCalled()
+  })
 })

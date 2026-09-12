@@ -166,3 +166,30 @@ it('does not let an older CEP response overwrite the address for a newer CEP', a
   await act(async () => resolveOld(address))
   expect(screen.getByLabelText(/^Logradouro/)).toHaveValue('Avenida Paulista')
 })
+
+it('ignores a CEP lookup that fails after the postal code changed again', async () => {
+  let rejectFirst!: (reason: Error) => void
+  vi.mocked(fetchAddressByCep)
+    .mockReturnValueOnce(
+      new Promise((_, reject) => {
+        rejectFirst = reject
+      }),
+    )
+    .mockResolvedValueOnce(address)
+  await open()
+  change(/^CEP/, '01001000')
+  await tick()
+  expect(fetchAddressByCep).toHaveBeenCalledExactlyOnceWith('01001-000')
+
+  // The user corrects the CEP while the first lookup is still in flight.
+  change(/^CEP/, '01310930')
+  await act(async () => {
+    rejectFirst(new CepNotFoundError())
+    await Promise.resolve()
+  })
+  expect(screen.queryByText('CEP não encontrado.')).not.toBeInTheDocument()
+
+  await tick()
+  expect(screen.getByLabelText(/^Cidade/)).toHaveValue('São Paulo')
+  expect(screen.queryByText('CEP não encontrado.')).not.toBeInTheDocument()
+})

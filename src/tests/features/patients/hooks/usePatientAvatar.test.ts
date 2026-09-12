@@ -333,3 +333,37 @@ describe('setCachedPatientAvatar — usePatientAvatar hook benefits from pre-war
     expect(mockGet).not.toHaveBeenCalled()
   })
 })
+
+describe('usePatientAvatar — update failure', () => {
+  it('surfaces a friendly error, leaves the avatar untouched and clears the saving flag', async () => {
+    mockUpsert.mockRejectedValue(new Error('500'))
+    const { result } = renderHook(() => usePatientAvatar(ID))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    await expect(
+      act(async () => {
+        await result.current.update('base64new')
+      }),
+    ).rejects.toThrow('Não foi possível salvar a foto.')
+
+    expect(result.current.isSaving).toBe(false)
+    expect(result.current.avatarUrl).toBe('base64abc')
+    expect(getCachedPatientAvatar(ID)).toBe('base64abc')
+  })
+
+  it('does not cache a failed save so the next attempt still reaches the API', async () => {
+    mockUpsert.mockRejectedValueOnce(new Error('500')).mockResolvedValueOnce(undefined)
+    const { result } = renderHook(() => usePatientAvatar(ID))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    await act(async () => {
+      await result.current.update('base64new').catch(() => {})
+    })
+    await act(async () => {
+      await result.current.update('base64new')
+    })
+
+    expect(mockUpsert).toHaveBeenCalledTimes(2)
+    expect(result.current.avatarUrl).toBe('base64new')
+  })
+})
