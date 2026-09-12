@@ -117,6 +117,28 @@ describe('form validation', () => {
     expect(mockCompleteProfile).not.toHaveBeenCalled()
   })
 
+  it('leaves the responsible name empty when the user has no stored name parts', () => {
+    setMockAuthState({
+      isBootstrapping: false,
+      isAuthenticated: true,
+      user: makeOwnerUser({ isProfileComplete: false, firstName: undefined, lastName: undefined }),
+    })
+    renderWithProviders(<CompleteProfilePage />)
+    expect(screen.getByLabelText('Responsável')).toHaveValue('')
+  })
+
+  it('shows an inline error when the clinic name is too short', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<CompleteProfilePage />)
+
+    await user.type(screen.getByLabelText('Nome da clínica'), 'C')
+    await user.click(screen.getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: /Concluir cadastro/i }))
+
+    expect(screen.getByText('Informe o nome da clínica.')).toBeInTheDocument()
+    expect(mockCompleteProfile).not.toHaveBeenCalled()
+  })
+
   it('shows an inline error when terms are not accepted', () => {
     // fireEvent.submit bypasses native checkbox required — exercises the JS guard
     const { container } = renderWithProviders(<CompleteProfilePage />)
@@ -191,5 +213,21 @@ describe('submit behavior', () => {
 
     await waitFor(() => expect(screen.getByText('Servidor indisponível')).toBeInTheDocument())
     expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ tone: 'error' }))
+  })
+})
+
+// ── Non-Error rejection ───────────────────────────────────────────────────────
+
+describe('unexpected rejection', () => {
+  it('falls back to a generic message when completeProfile rejects with a non-Error', async () => {
+    mockCompleteProfile.mockRejectedValueOnce('offline')
+    const user = userEvent.setup()
+    renderWithProviders(<CompleteProfilePage />)
+
+    await user.type(screen.getByLabelText('Nome da clínica'), 'Clínica Teste')
+    await user.click(screen.getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: /Concluir cadastro/i }))
+
+    expect(await screen.findByText('Não foi possível concluir o perfil agora.')).toBeInTheDocument()
   })
 })

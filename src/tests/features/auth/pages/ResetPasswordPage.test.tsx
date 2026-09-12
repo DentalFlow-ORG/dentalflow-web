@@ -74,6 +74,19 @@ describe('ResetPasswordPage', () => {
     expect(await screen.findByText('Token expirado ou inválido.')).toBeInTheDocument()
   })
 
+  it('falls back to a generic message when the reset rejects with a non-Error', async () => {
+    mockResetPassword.mockRejectedValue('offline')
+    const user = userEvent.setup()
+    renderWithProviders(<ResetPasswordPage />)
+
+    await user.type(screen.getByLabelText('Nova senha'), 'NewStr0ng@Pass!')
+    await user.click(screen.getByRole('button', { name: /Redefinir senha/i }))
+
+    expect(
+      await screen.findByText('Não foi possível redefinir a senha. Tente novamente.'),
+    ).toBeInTheDocument()
+  })
+
   describe('PasswordRequirements', () => {
     it('shows requirements when password field is focused', async () => {
       const user = userEvent.setup()
