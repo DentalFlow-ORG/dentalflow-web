@@ -172,4 +172,12 @@ describe('ClinicalRecordHeader', () => {
       expect.objectContaining({ title: 'Foto inválida', description: 'Arquivo inválido' }),
     )
   })
+
+  it('renders the creation timestamp in Sao Paulo, not UTC', () => {
+    // createdAt/updatedAt are DateTime instants, not @db.Date values: 02:30Z
+    // on the 15th is still the 14th in Brazil. Slicing the ISO prefix reported
+    // the UTC day and showed these a day late.
+    render(<ClinicalRecordHeader record={makeRecord({ createdAt: '2026-10-15T02:30:00.000Z' })} />)
+    expect(screen.getByText(/14\/10\/2026/)).toBeInTheDocument()
+  })
 })

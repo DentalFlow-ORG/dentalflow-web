@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { Calendar, ChevronRight } from 'lucide-react'
 
-import { formatDateBR } from '@/lib/date-time-formatters'
+import { formatTimestampDateBR } from '@/lib/date-time-formatters'
 
 import type { ClinicalRecord } from '../types/clinical-record.types'
 import { ClinicalRecordStatusBadge } from './ClinicalRecordStatusBadge'
@@ -46,7 +46,7 @@ export function ClinicalRecordListItem({ record }: Props) {
           )}
           <div className="flex items-center gap-1 pt-0.5 text-xs text-muted-foreground/50">
             <Calendar className="h-3 w-3 shrink-0" aria-hidden="true" />
-            <span>{formatDateBR(record.createdAt.slice(0, 10))}</span>
+            <span>{formatTimestampDateBR(record.createdAt)}</span>
           </div>
         </div>
         <ChevronRight
@@ -89,7 +89,7 @@ export function ClinicalRecordListItem({ record }: Props) {
         {/* Date */}
         <div className="flex w-24 shrink-0 items-center justify-end gap-1 text-xs text-muted-foreground">
           <Calendar className="h-3 w-3 shrink-0" aria-hidden="true" />
-          <span className="whitespace-nowrap">{formatDateBR(record.createdAt.slice(0, 10))}</span>
+          <span className="whitespace-nowrap">{formatTimestampDateBR(record.createdAt)}</span>
         </div>
 
         {/* Open indicator */}

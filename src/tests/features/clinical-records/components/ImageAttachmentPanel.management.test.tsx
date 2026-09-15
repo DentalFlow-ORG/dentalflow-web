@@ -227,3 +227,15 @@ it('retains edited text on a failed caption save and cancels pending saves on un
   await act(async () => vi.advanceTimersByTimeAsync(800))
   expect(updateAttachmentDescription).toHaveBeenCalledTimes(1)
 })
+
+it('renders the attachment date in Sao Paulo, not UTC', async () => {
+  // createdAt is a DateTime instant, not a @db.Date value: 02:30Z on the 15th
+  // is still the 14th in Brazil. Slicing the ISO prefix reported the UTC day.
+  vi.mocked(listAttachments).mockResolvedValue([
+    makeAttachment({ createdAt: '2026-10-15T02:30:00.000Z' }),
+  ])
+
+  await openPanel()
+
+  expect(screen.getByText(/14\/10\/2026/)).toBeInTheDocument()
+})

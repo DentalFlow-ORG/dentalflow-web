@@ -3,7 +3,7 @@ import { Calendar, Clock, Stethoscope, Tag } from 'lucide-react'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { PatientAvatarWidget } from '@/features/patients/components/PatientAvatarWidget'
 import { usePatientAvatar } from '@/features/patients/hooks/usePatientAvatar'
-import { formatDateBR } from '@/lib/date-time-formatters'
+import { formatDateBR, formatTimestampDateBR } from '@/lib/date-time-formatters'
 import { formatPhoneBR } from '@/lib/field-formatters'
 
 import type { ClinicalRecord } from '../types/clinical-record.types'
@@ -108,7 +108,7 @@ export function ClinicalRecordHeader({ record, readOnly = false }: Props) {
             {record.createdByUser.firstName} {record.createdByUser.lastName}
           </span>
           {' em '}
-          {formatDateBR(record.createdAt.slice(0, 10))}
+          {formatTimestampDateBR(record.createdAt)}
           {record.updatedByUser && (
             <>
               {' · '}Atualizado por{' '}
@@ -116,7 +116,7 @@ export function ClinicalRecordHeader({ record, readOnly = false }: Props) {
                 {record.updatedByUser.firstName} {record.updatedByUser.lastName}
               </span>
               {' em '}
-              {formatDateBR(record.updatedAt.slice(0, 10))}
+              {formatTimestampDateBR(record.updatedAt)}
             </>
           )}
         </p>

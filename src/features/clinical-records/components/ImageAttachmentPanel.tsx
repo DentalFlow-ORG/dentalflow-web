@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
-import { formatDateBR } from '@/lib/date-time-formatters'
+import { formatTimestampDateBR } from '@/lib/date-time-formatters'
 import { cn } from '@/lib/utils'
 
 import {
@@ -490,10 +490,7 @@ function AttachmentCard({
       ? `data:${attachment.mimeType ?? 'image/jpeg'};base64,${attachment.dataBase64}`
       : null
 
-  const meta = [
-    formatDateBR(attachment.createdAt.slice(0, 10)),
-    formatFileSize(attachment.sizeBytes),
-  ]
+  const meta = [formatTimestampDateBR(attachment.createdAt), formatFileSize(attachment.sizeBytes)]
     .filter(Boolean)
     .join(' · ')
 
