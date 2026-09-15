@@ -136,7 +136,7 @@ describe('StatusActionMenu — CONFIRMED (time-sensitive)', () => {
   })
 
   it('renders Concluir, Não veio, and Cancelar after the slot has started', () => {
-    vi.setSystemTime(new Date('2026-05-26T11:00:00')) // 11:00 > 10:00 slot
+    vi.setSystemTime(new Date('2026-05-26T11:00:00-03:00')) // 11:00 > 10:00 slot
     render(
       <StatusActionMenu
         appointment={makeAppointment({ status: 'CONFIRMED' })}
@@ -151,7 +151,7 @@ describe('StatusActionMenu — CONFIRMED (time-sensitive)', () => {
   })
 
   it('renders only Cancelar before the slot starts', () => {
-    vi.setSystemTime(new Date('2026-05-26T09:00:00')) // 09:00 < 10:00 slot
+    vi.setSystemTime(new Date('2026-05-26T09:00:00-03:00')) // 09:00 < 10:00 slot
     render(
       <StatusActionMenu
         appointment={makeAppointment({ status: 'CONFIRMED' })}

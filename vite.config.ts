@@ -3,6 +3,14 @@ import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
 import path from "node:path"
 
+// Tests run in UTC, never the developer's zone. Brazil-facing formatting is
+// asserted against America/Sao_Paulo explicitly, so on a Sao_Paulo machine an
+// implementation that forgot to set a timeZone would still produce the right
+// answer and the test would pass for the wrong reason. Pinning UTC makes that
+// class of bug fail. Production behaviour is unaffected: this only sets the
+// timezone of the test process.
+process.env.TZ = "UTC"
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {

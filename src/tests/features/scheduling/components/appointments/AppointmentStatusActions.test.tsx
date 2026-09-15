@@ -92,7 +92,7 @@ describe('AppointmentStatusActions — CONFIRMED (time-sensitive)', () => {
   })
 
   it('renders Concluir, Não compareceu and Cancelar after the slot has started', () => {
-    vi.setSystemTime(new Date('2026-05-26T11:00:00'))
+    vi.setSystemTime(new Date('2026-05-26T11:00:00-03:00'))
     render(
       <AppointmentStatusActions
         appointment={makeAppointment({ status: 'CONFIRMED' })}
@@ -107,7 +107,7 @@ describe('AppointmentStatusActions — CONFIRMED (time-sensitive)', () => {
   })
 
   it('renders only Cancelar before the slot starts', () => {
-    vi.setSystemTime(new Date('2026-05-26T09:00:00'))
+    vi.setSystemTime(new Date('2026-05-26T09:00:00-03:00'))
     render(
       <AppointmentStatusActions
         appointment={makeAppointment({ status: 'CONFIRMED' })}
