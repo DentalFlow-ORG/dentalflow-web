@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BrandLink } from '@/components/brand/BrandLink'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
+import { BRAZIL_TZ } from '@/lib/brazil-timezone'
 import { cn } from '@/lib/utils'
 
 import { clearBillingStatusCache, setCachedBillingStatus } from '../services/billing-status-cache'
@@ -646,7 +647,11 @@ function SubscriptionSummary({ status }: { status: CurrentBillingStatus }) {
     { icon: Package, label: 'Plano', value: status.planName ?? 'Não definido' },
     { icon: RefreshCw, label: 'Ciclo', value: formatBillingInterval(status.billingInterval) },
     { icon: CheckCircle2, label: 'Status', value: getStatusLabel(status.status) },
-    { icon: Calendar, label: 'Próxima renovação', value: formatDate(renewalDate) },
+    {
+      icon: Calendar,
+      label: status.cancelAtPeriodEnd ? 'Acesso até' : 'Próxima renovação',
+      value: formatDate(renewalDate),
+    },
   ]
 
   return (
@@ -787,6 +792,7 @@ function formatDate(iso: string | null): string {
   if (!iso) return 'Não definido'
   try {
     return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: BRAZIL_TZ,
       day: '2-digit',
       month: 'long',
       year: 'numeric',

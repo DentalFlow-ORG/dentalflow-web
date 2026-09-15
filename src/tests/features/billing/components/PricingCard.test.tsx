@@ -109,6 +109,54 @@ describe('PricingCard', () => {
     expect(screen.getByText(/próxima cobrança/i)).toBeInTheDocument()
   })
 
+  function currentPlanStatus(overrides: Partial<CurrentBillingStatus> = {}) {
+    return {
+      hasSubscription: true,
+      status: 'active',
+      planKey: 'professional',
+      planName: 'Professional',
+      billingInterval: 'monthly',
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      trialEndsAt: null,
+      currentPeriodEnd: '2026-10-15T18:45:51.000Z',
+      cancelAtPeriodEnd: false,
+      accessAllowed: true,
+      requiresPlanSelection: false,
+      requiresPayment: false,
+      message: '',
+      ...overrides,
+    } as CurrentBillingStatus
+  }
+
+  it('calls the date "Acesso até" once a cancellation is scheduled', () => {
+    render(
+      <PricingCard
+        {...baseProps}
+        plan={makePlan()}
+        ctaState={makeCtaState()}
+        isCurrentPlan
+        billingStatus={currentPlanStatus({ cancelAtPeriodEnd: true })}
+      />,
+    )
+    expect(screen.getByText(/acesso até/i)).toBeInTheDocument()
+    expect(screen.queryByText(/próxima cobrança/i)).not.toBeInTheDocument()
+  })
+
+  it('renders the period end in Sao Paulo, not UTC', () => {
+    // 02:30Z on the 15th is still the 14th in Brazil.
+    render(
+      <PricingCard
+        {...baseProps}
+        plan={makePlan()}
+        ctaState={makeCtaState()}
+        isCurrentPlan
+        billingStatus={currentPlanStatus({ currentPeriodEnd: '2026-10-15T02:30:00.000Z' })}
+      />,
+    )
+    expect(screen.getByText(/14\/10\/2026/)).toBeInTheDocument()
+  })
+
   it('shows the "Recomendado" badge when isRecommended and not current', () => {
     render(<PricingCard {...baseProps} plan={makePlan()} ctaState={makeCtaState()} isRecommended />)
     expect(screen.getByText('Recomendado')).toBeInTheDocument()

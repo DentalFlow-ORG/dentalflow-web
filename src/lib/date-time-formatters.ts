@@ -55,6 +55,29 @@ export function formatDateBR(value: string | null | undefined) {
   return `${match[3]}/${match[2]}/${match[1]}`
 }
 
+/**
+ * Formats an instant (an ISO timestamp, e.g. a Stripe period end) as the
+ * calendar date in Brazil, DD/MM/YYYY.
+ *
+ * Distinct from formatDateBR, which takes a semantic date-only value and is
+ * correct for those. Passing an instant to it reports the UTC calendar day:
+ * 2026-10-15T02:30:00Z is still 14/10 in Sao Paulo, so any instant falling
+ * between 00:00 and 02:59 UTC was rendered a day late.
+ */
+export function formatTimestampDateBR(value: string | null | undefined) {
+  if (!value) return ''
+
+  const instant = new Date(value)
+  if (Number.isNaN(instant.getTime())) return ''
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: BRAZIL_TZ,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(instant)
+}
+
 export function safeFormatDateBR(value: DateInputValue, fallback = 'Data não informada') {
   const inputValue = formatDateInputValue(value)
   return inputValue ? formatDateBR(inputValue) : fallback

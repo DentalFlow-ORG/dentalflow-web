@@ -3,7 +3,7 @@ import { ArrowRight, BadgeCheck, CheckCircle2, Loader2, Rocket } from 'lucide-re
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { formatDateBR } from '@/lib/date-time-formatters'
+import { formatTimestampDateBR } from '@/lib/date-time-formatters'
 import { formatCurrencyBR } from '@/lib/number-formatters'
 import { cn } from '@/lib/utils'
 
@@ -127,7 +127,8 @@ export function PricingCard({
             )}
             {billingStatus?.currentPeriodEnd && isCurrentPlan && (
               <p className="mt-2 text-xs font-medium text-muted-foreground">
-                Próxima cobrança: {formatDateBR(billingStatus.currentPeriodEnd)}
+                {billingStatus.cancelAtPeriodEnd ? 'Acesso até' : 'Próxima cobrança'}:{' '}
+                {formatTimestampDateBR(billingStatus.currentPeriodEnd)}
               </p>
             )}
           </>

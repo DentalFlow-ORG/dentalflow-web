@@ -816,6 +816,33 @@ describe('SettingsPageContainer — nullable and optional data', () => {
     expect(screen.getByText(/Renova em/)).toBeInTheDocument()
   })
 
+  it('renders the renewal date in Sao Paulo, not UTC', async () => {
+    // Midnight UTC on the 10th is still the 9th in Brazil.
+    mockGetCurrentBillingStatus.mockResolvedValue({
+      status: 'active' as const,
+      planName: 'Professional',
+      billingInterval: 'annual' as const,
+      currentPeriodEnd: '2027-03-10T00:00:00.000Z',
+      trialEndsAt: null,
+    })
+    render(<SettingsPageContainer />)
+    expect(await screen.findByText(/09\/03\/2027/)).toBeInTheDocument()
+  })
+
+  it('calls the date "Acesso até" once a cancellation is scheduled', async () => {
+    mockGetCurrentBillingStatus.mockResolvedValue({
+      status: 'active' as const,
+      planName: 'Professional',
+      billingInterval: 'monthly' as const,
+      currentPeriodEnd: '2026-10-15T18:45:51.000Z',
+      trialEndsAt: null,
+      cancelAtPeriodEnd: true,
+    })
+    render(<SettingsPageContainer />)
+    expect(await screen.findByText(/Acesso até/)).toBeInTheDocument()
+    expect(screen.queryByText(/Renova em/)).not.toBeInTheDocument()
+  })
+
   it('shows the trial end date while the subscription is trialing', async () => {
     mockGetCurrentBillingStatus.mockResolvedValue({
       status: 'trialing' as const,

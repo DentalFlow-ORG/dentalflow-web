@@ -112,6 +112,7 @@ describe('CurrentSubscriptionCard', () => {
       />,
     )
     expect(screen.getByText('Teste até')).toBeInTheDocument()
+    expect(screen.queryByText('Acesso até')).not.toBeInTheDocument()
     expect(screen.getByText(/seu teste grátis termina em/i)).toBeInTheDocument()
   })
 
@@ -133,10 +134,53 @@ describe('CurrentSubscriptionCard', () => {
     render(
       <CurrentSubscriptionCard
         {...baseProps}
-        billingStatus={makeBillingStatus({ status: 'active', currentPeriodEnd: '2026-07-01' })}
+        billingStatus={makeBillingStatus({
+          status: 'active',
+          cancelAtPeriodEnd: false,
+          currentPeriodEnd: '2026-07-01T18:45:51.000Z',
+        })}
       />,
     )
     expect(screen.getByText('Próxima cobrança')).toBeInTheDocument()
+    expect(screen.queryByText('Acesso até')).not.toBeInTheDocument()
+    expect(screen.getByText('01/07/2026')).toBeInTheDocument()
+  })
+
+  it('calls the date "Acesso até" once a cancellation is scheduled', () => {
+    // No charge falls on that date, so "Próxima cobrança" contradicted the
+    // cancellation notice rendered directly beneath it.
+    render(
+      <CurrentSubscriptionCard
+        {...baseProps}
+        billingStatus={makeBillingStatus({
+          status: 'active',
+          cancelAtPeriodEnd: true,
+          accessAllowed: true,
+          currentPeriodEnd: '2026-10-15T18:45:51.000Z',
+        })}
+      />,
+    )
+    expect(screen.getByText('Acesso até')).toBeInTheDocument()
+    expect(screen.queryByText('Próxima cobrança')).not.toBeInTheDocument()
+    // The rest of the scheduled-cancellation presentation must survive.
+    expect(screen.getByText(/o acesso continua até/i)).toBeInTheDocument()
+    expect(screen.getByText('Cancelamento agendado')).toBeInTheDocument()
+    expect(screen.getByText('Liberado')).toBeInTheDocument()
+    expect(screen.getAllByText(/15\/10\/2026/).length).toBeGreaterThan(0)
+  })
+
+  it('renders the period end in Sao Paulo, not UTC', () => {
+    // 02:30Z on the 15th is still the 14th in Brazil.
+    render(
+      <CurrentSubscriptionCard
+        {...baseProps}
+        billingStatus={makeBillingStatus({
+          status: 'active',
+          currentPeriodEnd: '2026-10-15T02:30:00.000Z',
+        })}
+      />,
+    )
+    expect(screen.getByText('14/10/2026')).toBeInTheDocument()
   })
 
   it('does not show the trial info box when access is not allowed even while trialing', () => {

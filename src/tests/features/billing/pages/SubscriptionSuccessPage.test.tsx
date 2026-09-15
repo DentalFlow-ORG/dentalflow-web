@@ -89,6 +89,47 @@ describe('confirmed state', () => {
       ).not.toBeInTheDocument(),
     )
   })
+
+  it('labels the date "Próxima renovação" while the subscription renews', async () => {
+    mockSyncCheckoutSession.mockResolvedValue(
+      makeBillingStatus({
+        accessAllowed: true,
+        status: 'active',
+        cancelAtPeriodEnd: false,
+        currentPeriodEnd: '2026-10-15T18:45:51.000Z',
+      }),
+    )
+    render(<SubscriptionSuccessPage />)
+    await waitFor(() => expect(screen.getByText('Próxima renovação')).toBeInTheDocument())
+    expect(screen.queryByText('Acesso até')).not.toBeInTheDocument()
+  })
+
+  it('labels the date "Acesso até" once a cancellation is scheduled', async () => {
+    mockSyncCheckoutSession.mockResolvedValue(
+      makeBillingStatus({
+        accessAllowed: true,
+        status: 'active',
+        cancelAtPeriodEnd: true,
+        currentPeriodEnd: '2026-10-15T18:45:51.000Z',
+      }),
+    )
+    render(<SubscriptionSuccessPage />)
+    await waitFor(() => expect(screen.getByText('Acesso até')).toBeInTheDocument())
+    expect(screen.queryByText('Próxima renovação')).not.toBeInTheDocument()
+  })
+
+  it('renders the renewal date in Sao Paulo, not UTC', async () => {
+    // 02:30Z on the 15th is still the 14th in Brazil.
+    mockSyncCheckoutSession.mockResolvedValue(
+      makeBillingStatus({
+        accessAllowed: true,
+        status: 'active',
+        currentPeriodEnd: '2026-10-15T02:30:00.000Z',
+      }),
+    )
+    render(<SubscriptionSuccessPage />)
+    await waitFor(() => expect(screen.getByText('14 de outubro de 2026')).toBeInTheDocument())
+  })
 })
 
 // ── Sync error ────────────────────────────────────────────────────────────────

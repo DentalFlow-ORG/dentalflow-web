@@ -3,7 +3,7 @@ import { AlertCircle, CalendarDays, ExternalLink, Loader2, type LucideIcon, X } 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
-import { formatDateBR } from '@/lib/date-time-formatters'
+import { formatTimestampDateBR } from '@/lib/date-time-formatters'
 
 import type { CurrentBillingStatus } from '../types/billing.types'
 import { BillingStatusBadge } from './BillingStatusBadge'
@@ -77,7 +77,7 @@ export function CurrentSubscriptionCard({
               }
             />
             <StatusInfo
-              label={billingStatus.status === 'trialing' ? 'Teste até' : 'Próxima cobrança'}
+              label={periodDateLabel(billingStatus)}
               value={
                 billingStatus.status === 'trialing'
                   ? formatNullableDate(billingStatus.trialEndsAt)
@@ -176,5 +176,15 @@ function InfoBox({
 }
 
 function formatNullableDate(value: string | null) {
-  return value ? formatDateBR(value) : 'Não definida'
+  return value ? formatTimestampDateBR(value) : 'Não definida'
+}
+
+/**
+ * A scheduled cancellation means no charge falls on the period end, so calling
+ * it the next billing date contradicts the cancellation notice shown below it.
+ */
+function periodDateLabel(billingStatus: CurrentBillingStatus) {
+  if (billingStatus.status === 'trialing') return 'Teste até'
+  if (billingStatus.cancelAtPeriodEnd) return 'Acesso até'
+  return 'Próxima cobrança'
 }

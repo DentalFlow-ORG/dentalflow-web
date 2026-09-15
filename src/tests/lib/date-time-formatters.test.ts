@@ -5,6 +5,7 @@ import {
   formatDateInputValue,
   formatDateLongBR,
   formatTimeInputValue,
+  formatTimestampDateBR,
   formatWeekDayHeader,
   formatWeekRangeLabel,
   getBrazilWeekStart,
@@ -365,5 +366,44 @@ describe('formatWeekRangeLabel', () => {
     const label = formatWeekRangeLabel(new Date(2026, 5, 1), new Date(2026, 5, 7))
     expect(label).toContain('-')
     expect(label).toContain('2026')
+  })
+})
+
+// ── formatTimestampDateBR — instants rendered in Sao Paulo ───────────────────
+//
+// currentPeriodEnd and trialEndsAt arrive as UTC instants, not calendar dates.
+// Sao Paulo is UTC-3, so any instant between 00:00 and 02:59 UTC still belongs
+// to the previous Brazilian day. Slicing the ISO prefix (what formatDateBR
+// does, correctly, for date-only values) reported those a day late.
+
+describe('formatTimestampDateBR — instants in America/Sao_Paulo', () => {
+  it.each([
+    ['2026-10-15T02:30:00Z', '14/10/2026'],
+    ['2026-10-15T00:10:00Z', '14/10/2026'],
+    ['2026-11-01T01:00:00Z', '31/10/2026'],
+    ['2026-10-15T18:45:51Z', '15/10/2026'],
+  ])('renders %s as %s', (instant, expected) => {
+    expect(formatTimestampDateBR(instant)).toBe(expected)
+  })
+
+  it('renders the same instant identically whatever the host offset notation', () => {
+    // 02:30Z and 23:30-03:00 are the same moment; both are 14/10 in Brazil.
+    expect(formatTimestampDateBR('2026-10-14T23:30:00-03:00')).toBe('14/10/2026')
+    expect(formatTimestampDateBR('2026-10-15T02:30:00Z')).toBe('14/10/2026')
+  })
+
+  it.each([null, undefined, ''])('returns an empty string for %s', (value) => {
+    expect(formatTimestampDateBR(value)).toBe('')
+  })
+
+  it('returns an empty string for an unparseable value', () => {
+    expect(formatTimestampDateBR('not-a-date')).toBe('')
+  })
+
+  it('leaves the semantic date-only path untouched', () => {
+    // Guard against "fixing" formatDateBR instead of adding a second formatter:
+    // date-only values carry no timezone and must not be shifted.
+    expect(formatDateBR('2026-10-15')).toBe('15/10/2026')
+    expect(formatDateBR('2026-11-01')).toBe('01/11/2026')
   })
 })

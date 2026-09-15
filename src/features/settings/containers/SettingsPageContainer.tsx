@@ -41,6 +41,7 @@ import {
   syncGoogleCalendar,
 } from '@/features/scheduling/services/calendar-integrations.service'
 import type { GoogleCalendarStatus } from '@/features/scheduling/types/calendar-integration.types'
+import { formatTimestampDateBR } from '@/lib/date-time-formatters'
 import { formatCepBR, formatPhoneBR, formatUf, onlyDigits } from '@/lib/field-formatters'
 import { isValidBrazilianPhone, isValidCEP, isValidUF } from '@/lib/validators/br'
 import { CepNotFoundError, fetchAddressByCep } from '@/services/cep/cep.service'
@@ -637,12 +638,8 @@ function BillingSection() {
       : status?.billingInterval === 'monthly'
         ? 'Mensal'
         : null
-  const renewalDate = status?.currentPeriodEnd
-    ? new Date(status.currentPeriodEnd).toLocaleDateString('pt-BR')
-    : null
-  const trialDate = status?.trialEndsAt
-    ? new Date(status.trialEndsAt).toLocaleDateString('pt-BR')
-    : null
+  const renewalDate = formatTimestampDateBR(status?.currentPeriodEnd) || null
+  const trialDate = formatTimestampDateBR(status?.trialEndsAt) || null
 
   return (
     <div className="space-y-3">
@@ -674,7 +671,10 @@ function BillingSection() {
             <span className="text-xs text-muted-foreground">· Teste até {trialDate}</span>
           )}
           {status.status === 'active' && renewalDate && (
-            <span className="text-xs text-muted-foreground">· Renova em {renewalDate}</span>
+            <span className="text-xs text-muted-foreground">
+              {status.cancelAtPeriodEnd ? '· Acesso até ' : '· Renova em '}
+              {renewalDate}
+            </span>
           )}
         </div>
       ) : null}
