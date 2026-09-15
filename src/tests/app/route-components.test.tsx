@@ -27,19 +27,40 @@ function getFactory(component: unknown): LazyFactory {
   return payload._result
 }
 
+// Resolving these imports is the expensive part: they pull in real page
+// modules with large dependency graphs (charts, 3D, media). Measured under
+// coverage, the first entry took 17.7s and DashboardPage 7.1s while most took
+// under 200ms — the first import of any shared dependency is billed to
+// whichever test happens to trigger it. Paying that inside a per-test budget
+// made the slowest entries flaky under parallel load, timing out at 30s.
+//
+// So resolve everything once, up front, and keep the per-route assertions
+// synchronous. The same imports still run for real, each route still reports
+// its own failure, and no individual test carries shared start-up cost.
+const resolutions = new Map<string, { default: unknown } | Error>()
+
+beforeAll(async () => {
+  for (const [name, component] of entries) {
+    try {
+      resolutions.set(name, await getFactory(component)())
+    } catch (error) {
+      resolutions.set(name, error instanceof Error ? error : new Error(String(error)))
+    }
+  }
+}, 180_000)
+
 describe('route-components', () => {
   it('exports at least one lazy route component', () => {
     expect(entries.length).toBeGreaterThan(0)
   })
 
-  // These import real page modules with large dependency graphs (charts, 3D,
-  // media), so they need more than the default per-test budget.
-  it.each(entries)(
-    '%s resolves to a renderable component',
-    async (_name, component) => {
-      const resolved = await getFactory(component)()
-      expect(typeof resolved.default).toBe('function')
-    },
-    30_000,
-  )
+  it('resolves every exported route component', () => {
+    expect(resolutions.size).toBe(entries.length)
+  })
+
+  it.each(entries)('%s resolves to a renderable component', (name) => {
+    const resolution = resolutions.get(name)
+    if (resolution instanceof Error) throw resolution
+    expect(typeof resolution?.default).toBe('function')
+  })
 })
