@@ -25,7 +25,6 @@ export function makeBillingPlan(overrides?: Partial<BillingPlan>): BillingPlan {
     trialEligible: true,
     annualDiscountPercent: null,
     maxProfiles: null,
-    maxLeadsPerMonth: null,
     maxServicesPerProfile: null,
     hasAppointments: true,
     hasAnalytics: true,

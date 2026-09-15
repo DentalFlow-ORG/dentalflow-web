@@ -65,12 +65,17 @@ describe('FeaturesPage', () => {
     )
   })
 
-  it('renders all 4 additional modules', () => {
+  it('renders all 3 additional modules', () => {
     render(<FeaturesPage />)
     expect(screen.getByRole('link', { name: /controle de estoque/i })).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: /crm de leads/i }).length).toBeGreaterThan(0)
     expect(screen.getByRole('link', { name: /whatsapp e notificações/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /controle fiscal/i })).toBeInTheDocument()
+  })
+
+  it('does not render the retired leads card', () => {
+    // It linked to /funcionalidades/leads, a route that no longer exists.
+    render(<FeaturesPage />)
+    expect(screen.queryByText(/crm de leads/i)).not.toBeInTheDocument()
   })
 
   it('renders the plan comparison table with all 3 plan columns', () => {

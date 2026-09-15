@@ -22,7 +22,7 @@ import { usePageMeta } from '../hooks/usePageMeta'
 export function LandingPage() {
   usePageMeta(
     'DentalFlow | Sistema para clínicas odontológicas',
-    'Centralize agenda, pacientes, financeiro, estoque, leads e IA em uma plataforma moderna para clínicas odontológicas. 7 dias grátis.',
+    'Centralize agenda, pacientes, prontuários, financeiro, estoque e IA em uma plataforma moderna para clínicas odontológicas. 7 dias grátis.',
   )
 
   const location = useLocation()

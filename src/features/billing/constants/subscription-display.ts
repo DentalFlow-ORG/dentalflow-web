@@ -10,7 +10,6 @@ const COMPARISON_FEATURE_IDS = [
   'clinic-agenda',
   'clinical-records',
   'patients-register',
-  'crm-leads',
   'clinic-finance',
   'inventory-control',
   'management-reports',

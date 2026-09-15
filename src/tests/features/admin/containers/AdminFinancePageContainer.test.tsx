@@ -462,7 +462,6 @@ function makePlan(overrides: Partial<AdminFinancePlan> = {}): AdminFinancePlan {
     priceMonthly: 9900,
     priceYearly: 99000,
     maxProfiles: 5,
-    maxLeadsPerMonth: null,
     maxServicesPerProfile: null,
     hasAppointments: true,
     hasAnalytics: true,

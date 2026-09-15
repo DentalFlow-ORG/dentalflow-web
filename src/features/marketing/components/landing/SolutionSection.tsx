@@ -20,7 +20,7 @@ type FlowStep = { icon: LucideIcon; label: string; description: string }
 
 // The patient journey, end to end, inside one platform.
 const FLOW_STEPS: FlowStep[] = [
-  { icon: UserPlus, label: 'Captação', description: 'Leads e contatos organizados' },
+  { icon: UserPlus, label: 'Cadastro', description: 'Pacientes e contatos organizados' },
   { icon: CalendarDays, label: 'Agendamento', description: 'Agenda única da equipe' },
   { icon: MessageCircle, label: 'Confirmação', description: 'Lembretes via WhatsApp' },
   { icon: Stethoscope, label: 'Atendimento', description: 'Prontuário e histórico' },

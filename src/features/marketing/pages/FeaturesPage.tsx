@@ -9,7 +9,6 @@ import {
   FileText,
   MessageCircle,
   Package,
-  Target,
   TrendingUp,
   Users,
   Zap,
@@ -40,7 +39,7 @@ type FeatureModule = {
   icon: typeof CalendarDays
 }
 
-const FEATURED_MODULES: FeatureModule[] = [
+export const FEATURED_MODULES: FeatureModule[] = [
   {
     id: 'agenda',
     label: 'Agenda inteligente',
@@ -64,8 +63,8 @@ const FEATURED_MODULES: FeatureModule[] = [
   },
   {
     id: 'pacientes',
-    label: 'Pacientes e leads',
-    description: 'Cadastro centralizado, histórico de relacionamento e CRM de leads.',
+    label: 'Gestão de pacientes',
+    description: 'Cadastro centralizado, histórico de atendimentos e dados de contato.',
     href: '/funcionalidades/pacientes',
     icon: Users,
   },
@@ -85,20 +84,13 @@ const FEATURED_MODULES: FeatureModule[] = [
   },
 ]
 
-const OTHER_MODULES: FeatureModule[] = [
+export const OTHER_MODULES: FeatureModule[] = [
   {
     id: 'estoque',
     label: 'Controle de estoque',
     description: 'Produtos, movimentações e alertas de reposição.',
     href: '/funcionalidades/estoque',
     icon: Package,
-  },
-  {
-    id: 'leads',
-    label: 'CRM de leads',
-    description: 'Acompanhe potenciais pacientes do primeiro contato à conversão.',
-    href: '/funcionalidades/leads',
-    icon: Target,
   },
   {
     id: 'whatsapp',

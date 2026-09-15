@@ -69,7 +69,6 @@ export type AdminFinancePlan = {
   priceMonthly: number
   priceYearly: number
   maxProfiles: number | null
-  maxLeadsPerMonth: number | null
   maxServicesPerProfile: number | null
   hasAppointments: boolean
   hasAnalytics: boolean

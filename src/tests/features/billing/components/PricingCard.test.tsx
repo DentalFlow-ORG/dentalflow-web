@@ -25,7 +25,6 @@ function makePlan(overrides: Partial<BillingPlan> = {}): BillingPlan {
     trialEligible: true,
     annualDiscountPercent: 15,
     maxProfiles: 5,
-    maxLeadsPerMonth: 100,
     maxServicesPerProfile: 50,
     hasAppointments: true,
     hasAnalytics: true,

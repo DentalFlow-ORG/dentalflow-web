@@ -31,7 +31,7 @@ describe('SolutionSection', () => {
   it('renders every step of the patient journey flow', () => {
     renderSection()
     for (const label of [
-      'Captação',
+      'Cadastro',
       'Agendamento',
       'Confirmação',
       'Atendimento',

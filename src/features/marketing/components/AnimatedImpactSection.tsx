@@ -80,7 +80,7 @@ const IMPACT_METRICS: ImpactMetric[] = [
     displaySuffix: ' fluxo',
     label: 'centralizado para toda a operação da clínica',
     description:
-      'Agenda, pacientes, financeiro, estoque, leads e IA no mesmo ambiente — sem alternar entre sistemas, abas e anotações desconectadas.',
+      'Agenda, pacientes, prontuários, financeiro, estoque e IA no mesmo ambiente — sem alternar entre sistemas, abas e anotações desconectadas.',
   },
 ]
 

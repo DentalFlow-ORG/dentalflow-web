@@ -22,7 +22,6 @@ export type BillingPlan = {
   trialEligible: boolean
   annualDiscountPercent: number | null
   maxProfiles: number | null
-  maxLeadsPerMonth: number | null
   maxServicesPerProfile: number | null
   hasAppointments: boolean
   hasAnalytics: boolean
