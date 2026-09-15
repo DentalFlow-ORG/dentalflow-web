@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'dev/**']
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+
+    env:
+      # The suite never reaches a real service: every network call is mocked
+      # and `src/services/http.ts` only needs the variable to be present. No
+      # real credential belongs in this file, and no Stripe key is required.
+      VITE_API_URL: http://localhost:3000/api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Type check
+        run: bun run typecheck
+
+      # `check` composes Biome and the unused-file scan, so it is one step
+      # rather than two.
+      - name: Format, lint and unused files
+        run: bun run check
+
+      - name: Unused exports and dependencies
+        run: bun run knip
+
+      # Coverage floors live in vite.config.ts and fail this step on
+      # regression. The suite runs in UTC — vite.config.ts pins TZ so that
+      # Brazil-facing assertions cannot pass merely because the machine is
+      # already in America/Sao_Paulo, and src/tests/lib/test-timezone.test.ts
+      # fails here if that pin is ever removed.
+      - name: Tests with coverage
+        run: bun run test:coverage
+
+      - name: Build
+        run: bun run build
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
