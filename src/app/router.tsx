@@ -59,6 +59,7 @@ import {
   TermsOfUsePage,
   WhatsappFeaturePage,
 } from '@/app/route-components'
+import { NotFoundPage } from '@/components/common/NotFoundPage'
 import { AdminRoute } from '@/features/admin/components/AdminRoute'
 import { ProtectedAppRoute } from '@/features/auth/components/ProtectedAppRoute'
 import type { AuthMode } from '@/features/auth/types'
@@ -601,6 +602,7 @@ export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
   scrollRestoration: true,
+  defaultNotFoundComponent: NotFoundPage,
 })
 
 declare module '@tanstack/react-router' {
