@@ -4,6 +4,11 @@ vi.mock('@/services/http', () => ({
   apiRequest: vi.fn(),
 }))
 
+const mockGetAccessToken = vi.fn(() => 'session-abc')
+vi.mock('@/features/auth/utils/session-storage', () => ({
+  getAccessToken: () => mockGetAccessToken(),
+}))
+
 import {
   listAuditLogs,
   listCookieConsents,
@@ -44,7 +49,8 @@ describe('listPrivacyRequests', () => {
       page: 1,
       limit: 20,
     })
-    expect(mockApiRequest).toHaveBeenCalledWith('/privacy/requests?page=1&limit=20')
+    const [path] = mockApiRequest.mock.calls[0]
+    expect(path).toBe('/privacy/requests?page=1&limit=20')
   })
 })
 
@@ -96,5 +102,37 @@ describe('listCookieConsents', () => {
     const [path] = mockApiRequest.mock.calls[0]
     expect(path).not.toContain('source')
     expect(path).not.toContain('policyVersion')
+  })
+})
+
+/**
+ * These three calls omitted the session token while every other service passed
+ * it, so the whole Compliance screen answered 401. The tabs then rendered their
+ * empty state, telling an administrator there were no LGPD data-subject
+ * requests when the query had in fact been rejected.
+ */
+describe('compliance requests are authenticated', () => {
+  it.each([
+    [
+      'listPrivacyRequests',
+      () =>
+        listPrivacyRequests({
+          status: '',
+          requestType: '',
+          requesterType: '',
+          search: '',
+          page: 1,
+          limit: 20,
+        }),
+    ],
+    ['listAuditLogs', () => listAuditLogs({ action: '', page: 1, limit: 20 })],
+    ['listCookieConsents', () => listCookieConsents({ source: '', page: 1, limit: 20 })],
+  ] as const)('%s sends the session token', async (_name, call) => {
+    mockGetAccessToken.mockReturnValue('session-abc')
+
+    await call()
+
+    const [, options] = mockApiRequest.mock.calls[0]
+    expect(options?.accessToken).toBe('session-abc')
   })
 })

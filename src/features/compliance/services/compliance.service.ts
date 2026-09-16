@@ -1,3 +1,4 @@
+import { getAccessToken } from '@/features/auth/utils/session-storage'
 import { apiRequest } from '@/services/http'
 
 import type {
@@ -24,11 +25,15 @@ function buildParams(filters: Record<string, unknown>): string {
 export function listPrivacyRequests(
   filters: PrivacyRequestFilters,
 ): Promise<PaginatedResponse<PrivacyRequest>> {
-  return apiRequest<PaginatedResponse<PrivacyRequest>>(`/privacy/requests${buildParams(filters)}`)
+  return apiRequest<PaginatedResponse<PrivacyRequest>>(`/privacy/requests${buildParams(filters)}`, {
+    accessToken: getAccessToken(),
+  })
 }
 
 export function listAuditLogs(filters: AuditLogFilters): Promise<PaginatedResponse<AuditLogEntry>> {
-  return apiRequest<PaginatedResponse<AuditLogEntry>>(`/audit-logs${buildParams(filters)}`)
+  return apiRequest<PaginatedResponse<AuditLogEntry>>(`/audit-logs${buildParams(filters)}`, {
+    accessToken: getAccessToken(),
+  })
 }
 
 export function listCookieConsents(
@@ -36,5 +41,6 @@ export function listCookieConsents(
 ): Promise<PaginatedResponse<CookieConsentLog>> {
   return apiRequest<PaginatedResponse<CookieConsentLog>>(
     `/privacy/cookie-consents${buildParams(filters)}`,
+    { accessToken: getAccessToken() },
   )
 }
