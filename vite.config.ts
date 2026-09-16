@@ -1,7 +1,10 @@
 import { defineConfig } from "vitest/config"
 import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
+import fs from "node:fs"
 import path from "node:path"
+
+import { assertApiOriginAllowedByCsp } from "./config/csp-api-origin"
 
 // Tests run in UTC, never the developer's zone. Brazil-facing formatting is
 // asserted against America/Sao_Paulo explicitly, so on a Sao_Paulo machine an
@@ -11,7 +14,23 @@ import path from "node:path"
 // timezone of the test process.
 process.env.TZ = "UTC"
 
-export default defineConfig({
+// A production build is the last point at which the configured API origin and
+// the CSP can still be compared; after deploy a mismatch is invisible except as
+// every request failing.
+function assertDeploymentConfigIsCoherent() {
+  const apiUrl = process.env.VITE_API_URL
+  if (!apiUrl) return
+  const vercelConfig = JSON.parse(fs.readFileSync("./vercel.json", "utf8")) as {
+    headers?: { headers?: { key: string; value: string }[] }[]
+  }
+  const csp = vercelConfig.headers
+    ?.flatMap((entry) => entry.headers ?? [])
+    .find((header) => header.key === "Content-Security-Policy")?.value
+  if (!csp) return
+  assertApiOriginAllowedByCsp(apiUrl, csp)
+}
+
+const baseConfig = defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     rolldownOptions: {
@@ -62,4 +81,9 @@ export default defineConfig({
       },
     },
   },
+})
+
+export default defineConfig(({ command }) => {
+  if (command === "build") assertDeploymentConfigIsCoherent()
+  return baseConfig
 })
