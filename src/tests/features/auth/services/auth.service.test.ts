@@ -32,6 +32,21 @@ it('starts Google OAuth at the configured API origin', () => {
   expect(getGoogleOAuthStartUrl()).toBe('https://api.dentalflow.test/auth/google')
 })
 
+it.each(['', undefined])('refuses to build a Google OAuth URL when VITE_API_URL is %p', (value) => {
+  // Interpolating the raw variable produced "undefined/auth/google": a URL
+  // that looks plausible and fails at the far end rather than at the point of
+  // misconfiguration. The shared guard makes it fail here instead.
+  vi.stubEnv('VITE_API_URL', value as string)
+
+  expect(() => getGoogleOAuthStartUrl()).toThrow('VITE_API_URL não está configurada.')
+})
+
+it('never yields a URL containing the literal "undefined"', () => {
+  vi.stubEnv('VITE_API_URL', 'https://api.dentalflow.test')
+
+  expect(getGoogleOAuthStartUrl()).not.toContain('undefined')
+})
+
 // ── login ─────────────────────────────────────────────────────────────────────
 
 describe('login', () => {

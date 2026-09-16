@@ -12,6 +12,10 @@ vi.mock('@/config/env', () => ({
       return mockApiUrl
     },
   },
+  requireApiUrl: () => {
+    if (!mockApiUrl) throw new Error('VITE_API_URL não está configurada.')
+    return mockApiUrl
+  },
 }))
 
 // Stub session-storage and auth-events defensively — only used in the 401

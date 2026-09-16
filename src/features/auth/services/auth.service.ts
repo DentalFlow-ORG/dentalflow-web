@@ -1,3 +1,4 @@
+import { requireApiUrl } from '@/config/env'
 import { apiRequest } from '@/services/http'
 
 import type {
@@ -44,7 +45,7 @@ export function completeProfile(payload: CompleteProfilePayload) {
 }
 
 export function getGoogleOAuthStartUrl() {
-  return `${import.meta.env.VITE_API_URL}/auth/google`
+  return `${requireApiUrl()}/auth/google`
 }
 
 export function logout() {

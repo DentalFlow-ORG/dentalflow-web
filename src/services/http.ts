@@ -1,4 +1,4 @@
-import { env } from '@/config/env'
+import { env, requireApiUrl } from '@/config/env'
 import { notifySessionExpired } from '@/features/auth/utils/auth-events'
 import { clearSession } from '@/features/auth/utils/session-storage'
 
@@ -47,9 +47,7 @@ export async function apiRequest<TResponse>(
   path: string,
   options: ApiRequestOptions = {},
 ): Promise<TResponse> {
-  if (!env.apiUrl) {
-    throw new Error('VITE_API_URL não está configurada.')
-  }
+  requireApiUrl()
 
   const {
     accessToken,

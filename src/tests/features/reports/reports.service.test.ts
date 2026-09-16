@@ -22,6 +22,10 @@ vi.mock('@/config/env', () => ({
       return mockApiUrl
     },
   },
+  requireApiUrl: () => {
+    if (!mockApiUrl) throw new Error('VITE_API_URL não está configurada.')
+    return mockApiUrl
+  },
 }))
 
 vi.mock('@/features/auth/utils/session-storage', () => ({
