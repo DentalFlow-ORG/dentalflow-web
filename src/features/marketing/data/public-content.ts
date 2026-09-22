@@ -83,10 +83,9 @@ export const integrationCards: IntegrationCard[] = [
   {
     name: 'WhatsApp Cloud API',
     category: 'Comunicação com pacientes',
-    benefit:
-      'Lembretes e confirmações enviados automaticamente — sem ligações manuais da recepção.',
+    benefit: 'A equipe envia mensagens de consulta e acompanha o histórico em um só lugar.',
     description:
-      'Notificações de consulta, lembretes e confirmações via WhatsApp. Requer conta Business aprovada pela Meta e configuração de templates. Nosso suporte orienta o processo.',
+      'Envio manual de mensagens via WhatsApp, com consentimento e limite do plano. Requer conta Business e templates aprovados pela Meta; o envio deve ser configurado.',
     where: 'Notificações e lembretes de consultas.',
     logoSrc: '/brands/integrations/whatsapp-business.svg',
     logoAlt: 'Logo do WhatsApp',
@@ -249,9 +248,9 @@ export const roleContents: Record<string, RoleContent> = {
       },
       {
         icon: MessageCircle,
-        title: 'Confirmações automáticas via WhatsApp',
+        title: 'Mensagens de consulta via WhatsApp',
         description:
-          'Lembretes e confirmações de consultas enviados automaticamente, reduzindo faltas sem esforço manual.',
+          'A recepção envia mensagens de consulta com consentimento e acompanha o histórico, após configurar o WhatsApp.',
       },
       {
         icon: Users,
@@ -290,9 +289,9 @@ export const roleContents: Record<string, RoleContent> = {
       {
         step: 3,
         icon: MessageCircle,
-        title: 'Lembretes automáticos',
+        title: 'Envio de lembretes pela equipe',
         description:
-          'Confirmações enviadas via WhatsApp sem ligação manual. Menos faltas sem esforço.',
+          'A equipe escolhe o template e envia a mensagem pelo WhatsApp configurado, respeitando consentimento e cota.',
       },
     ],
     finalCta: {
@@ -1015,12 +1014,12 @@ export const featureDetailContents: Record<string, FeatureDetailContent> = {
       {
         title: 'Lembretes via WhatsApp',
         description:
-          'Notificações automáticas de confirmação de consulta para pacientes, reduzindo faltas sem esforço manual.',
+          'A equipe pode enviar mensagens de consulta aos pacientes pelo WhatsApp configurado, com consentimento e cota disponíveis.',
         icon: MessageCircle,
       },
     ],
     benefits: [
-      'Redução de faltas com lembretes automáticos',
+      'Apoio à confirmação de consultas com mensagens enviadas pela equipe',
       'Recepção com menos retrabalho e mais agilidade',
       'Visão clara da ocupação da agenda da clínica',
       'Cada dentista acompanha seus próprios horários',
@@ -1223,7 +1222,7 @@ export const featureDetailContents: Record<string, FeatureDetailContent> = {
     eyebrow: 'Notificações e lembretes',
     hero: 'Menos faltas. Pacientes sempre informados.',
     heroSub:
-      'Configure lembretes, confirmações de consulta e notificações de pós-atendimento via WhatsApp. Reduza faltas e retrabalho da recepção com automações estruturadas.',
+      'Gerencie consentimentos e envie mensagens de consulta via WhatsApp. A equipe seleciona o template disponível e acompanha o histórico de envio.',
     problemTitle: 'O problema de confirmar consultas manualmente',
     problems: [
       'Confirmar consultas por telefone consome horas da recepção todo dia',
@@ -1236,66 +1235,67 @@ export const featureDetailContents: Record<string, FeatureDetailContent> = {
       {
         title: 'Lembrete de consulta',
         description:
-          'Notificação automática enviada com antecedência para o paciente lembrar do horário marcado.',
+          'A equipe envia o template disponível para lembrar o paciente do horário marcado.',
         icon: MessageCircle,
       },
       {
         title: 'Confirmação de presença',
         description:
-          'Paciente recebe notificação e pode confirmar ou reagendar pelo próprio WhatsApp.',
+          'A equipe entra em contato com o paciente e registra a confirmação ou remarcação na agenda.',
         icon: CheckCircle2,
       },
       {
-        title: 'Notificação de pagamento pendente',
+        title: 'Histórico de mensagens',
         description:
-          'Aviso automático para pacientes com consultas realizadas e pagamento ainda em aberto.',
+          'Consulte as mensagens enviadas e os status recebidos do provedor para acompanhar o contato.',
         icon: CreditCard,
       },
       {
-        title: 'Pós-consulta e retorno',
+        title: 'Consentimento e limites',
         description:
-          'Mensagem automática de acompanhamento após o atendimento e lembrete de retorno agendado.',
+          'Verifique o consentimento do paciente e a cota disponível antes de enviar uma mensagem.',
         icon: UserCheck,
       },
     ],
     benefits: [
-      'Redução de faltas com lembretes automatizados',
+      'Mensagens de consulta organizadas em um só lugar',
       'Recepção com menos tempo em ligações de confirmação',
       'Pacientes mais engajados e informados',
-      'Processo de cobrança mais eficiente',
+      'Visibilidade do histórico e dos limites de envio',
     ],
     workflow: [
       {
         step: 1,
         title: 'Consulta agendada',
-        description: 'Ao registrar a consulta, o sistema programa automaticamente os lembretes.',
+        description: 'A equipe abre a consulta e verifica os dados de contato e o consentimento.',
       },
       {
         step: 2,
         title: 'Lembrete enviado',
-        description: 'O paciente recebe a notificação via WhatsApp com os dados da consulta.',
+        description: 'A equipe seleciona o template e solicita o envio pelo WhatsApp configurado.',
       },
       {
         step: 3,
-        title: 'Confirmação recebida',
-        description: 'O paciente confirma ou a recepção registra a situação no sistema.',
+        title: 'Envio acompanhado',
+        description: 'O histórico mostra o envio e os status de entrega recebidos do provedor.',
       },
       {
         step: 4,
         title: 'Status atualizado',
-        description: 'A agenda reflete o status de confirmação e o gestor acompanha em tempo real.',
+        description:
+          'Após falar com o paciente, a recepção atualiza a situação da consulta na agenda.',
       },
     ],
     roles: [
       {
         role: 'Secretária / Recepção',
-        value: 'Monitora confirmações e gerencia o fluxo de notificações',
+        value: 'Envia mensagens e registra as confirmações na agenda',
       },
-      { role: 'Gestor', value: 'Configura templates, frequência e tipos de notificação' },
-      { role: 'Paciente', value: 'Recebe e responde notificações no próprio WhatsApp' },
+      { role: 'Gestor', value: 'Acompanha consentimentos, histórico e limites de envio' },
+      { role: 'Paciente', value: 'Recebe mensagens e combina alterações com a equipe da clínica' },
     ],
     planNote: 'Disponível nos planos Professional e Premium.',
     disclaimer:
-      'O envio de notificações via WhatsApp requer conta Business aprovada pela Meta e configuração de templates. O suporte do DentalFlow orienta o processo de configuração.',
+      'O envio requer configuração externa, templates aprovados, consentimento e cota do plano. Não há agendamento automático de lembretes nem confirmação ou remarcação automática por respostas no WhatsApp.',
   },
 }
