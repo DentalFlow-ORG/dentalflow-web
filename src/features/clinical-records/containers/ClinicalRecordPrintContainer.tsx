@@ -59,7 +59,9 @@ export function ClinicalRecordPrintContainer({ recordId }: Props) {
         setData(printData)
 
         const identifier = printData.record.patientEmail ?? printData.record.patientName
-        const odontogram = await getOdontogram(identifier).catch(() => null)
+        const odontogram = await getOdontogram(identifier, printData.record.patientId).catch(
+          () => null,
+        )
         if (isCurrent && odontogram) setOdontogramData(odontogram.data)
       } catch {
         if (isCurrent) setError('Não foi possível carregar os dados para impressão.')

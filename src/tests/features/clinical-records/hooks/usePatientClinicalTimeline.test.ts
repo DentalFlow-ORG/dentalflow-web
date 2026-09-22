@@ -10,10 +10,50 @@ vi.mock('@/features/clinical-records/services/clinical-records.service', () => (
 import { usePatientClinicalTimeline } from '@/features/clinical-records/hooks/usePatientClinicalTimeline'
 
 beforeEach(() => {
-  vi.clearAllMocks()
+  vi.resetAllMocks()
+})
+
+it.each([
+  ['A', 'B'],
+  ['B', 'A'],
+])('clears timeline %s immediately while %s loads', async (first, second) => {
+  mockGetPatientClinicalTimeline
+    .mockResolvedValueOnce({ records: [{ id: first }] })
+    .mockImplementationOnce(() => new Promise(() => {}))
+  const { result, rerender } = renderHook(
+    ({ id }) => usePatientClinicalTimeline('same@household.test', id),
+    { initialProps: { id: first } },
+  )
+  await waitFor(() => expect(result.current.records).toEqual([{ id: first }]))
+  rerender({ id: second })
+  expect(result.current.records).toEqual([])
+  expect(result.current.isLoading).toBe(true)
 })
 
 describe('usePatientClinicalTimeline', () => {
+  it.each([
+    ['A', 'B'],
+    ['B', 'A'],
+  ])('ignores late %s after %s loads with the same contacts', async (first, second) => {
+    let finish!: (value: unknown) => void
+    mockGetPatientClinicalTimeline
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve
+        }),
+      )
+      .mockResolvedValueOnce({ records: [{ id: second }] })
+    const { result, rerender } = renderHook(
+      ({ id }) => usePatientClinicalTimeline('same@household.test', id),
+      { initialProps: { id: first } },
+    )
+    rerender({ id: second })
+    await waitFor(() => expect(result.current.records).toEqual([{ id: second }]))
+    await act(async () => {
+      finish({ records: [{ id: first }] })
+    })
+    expect(result.current.records).toEqual([{ id: second }])
+  })
   it('stays idle (not loading, empty) when identifier is null', () => {
     const { result } = renderHook(() => usePatientClinicalTimeline(null))
     expect(result.current.isLoading).toBe(false)

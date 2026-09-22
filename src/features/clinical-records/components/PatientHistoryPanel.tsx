@@ -19,12 +19,13 @@ type Props = {
   currentRecordId: string
   /** Patient identifier: `patientEmail ?? patientName` — same convention as odontogram. */
   identifier: string
+  patientId?: string | null
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function PatientHistoryPanel({ currentRecordId, identifier }: Props) {
-  const { records, isLoading, error } = usePatientClinicalTimeline(identifier)
+export function PatientHistoryPanel({ currentRecordId, identifier, patientId }: Props) {
+  const { records, isLoading, error } = usePatientClinicalTimeline(identifier, patientId)
   const [showAll, setShowAll] = useState(false)
 
   // Filter out the record currently being edited, then sort most-recent-first.

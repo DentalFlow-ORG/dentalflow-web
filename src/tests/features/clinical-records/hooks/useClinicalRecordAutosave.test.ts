@@ -15,6 +15,7 @@ function makeDraftRecord(overrides: Partial<ClinicalRecord> = {}): ClinicalRecor
     clinicId: 'clinic-1',
     appointmentId: null,
     profileId: 'prof-1',
+    patientId: null,
     patientName: 'Test Patient',
     patientEmail: null,
     patientPhone: null,

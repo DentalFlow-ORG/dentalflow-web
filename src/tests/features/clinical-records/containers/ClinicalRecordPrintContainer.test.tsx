@@ -27,6 +27,7 @@ function makeRecord(overrides: Partial<ClinicalRecord> = {}): ClinicalRecord {
     clinicId: 'clinic-1',
     appointmentId: null,
     profileId: 'prof-1',
+    patientId: null,
     patientName: 'Ana Martins',
     patientEmail: 'ana@clinica.com',
     patientPhone: '11987654321',
@@ -273,7 +274,7 @@ describe('ClinicalRecordPrintContainer', () => {
     mockGetClinicalRecordPrintData.mockResolvedValue(makePrintData())
     mockGetOdontogram.mockResolvedValue(null)
     render(<ClinicalRecordPrintContainer recordId="rec-1" />)
-    await waitFor(() => expect(mockGetOdontogram).toHaveBeenCalledWith('ana@clinica.com'))
+    await waitFor(() => expect(mockGetOdontogram).toHaveBeenCalledWith('ana@clinica.com', null))
   })
 
   it('falls back to patientName as the odontogram identifier when there is no email', async () => {
@@ -282,7 +283,7 @@ describe('ClinicalRecordPrintContainer', () => {
     )
     mockGetOdontogram.mockResolvedValue(null)
     render(<ClinicalRecordPrintContainer recordId="rec-1" />)
-    await waitFor(() => expect(mockGetOdontogram).toHaveBeenCalledWith('Ana Martins'))
+    await waitFor(() => expect(mockGetOdontogram).toHaveBeenCalledWith('Ana Martins', null))
   })
 
   it('renders the appointment date and status label when there is an appointment', async () => {

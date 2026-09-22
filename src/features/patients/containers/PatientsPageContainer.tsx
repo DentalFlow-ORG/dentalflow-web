@@ -223,10 +223,11 @@ function PatientDetailPanel({
   const { appointments, isLoading } = usePatientHistory(patient)
   const { records: clinicalRecords, isLoading: isLoadingTimeline } = usePatientClinicalTimeline(
     canViewClinicalTimeline ? (patient?.identifier ?? null) : null,
+    patient?.patientId,
   )
 
   const identifier = patient?.patientEmail ?? patient?.patientName ?? null
-  const { avatarUrl, isSaving, update } = usePatientAvatar(identifier)
+  const { avatarUrl, isSaving, update } = usePatientAvatar(identifier, patient?.patientId)
 
   const handleAvatarChange = async (base64: string | null) => {
     try {
@@ -624,7 +625,7 @@ export function PatientsPageContainer() {
               ) : (
                 paginatedPatients.map((patient) => (
                   <PatientMobileCard
-                    key={patient.identifier}
+                    key={patient.patientId ?? patient.identifier}
                     patient={patient}
                     onOpenDetails={setSelectedPatient}
                   />
@@ -674,7 +675,7 @@ export function PatientsPageContainer() {
                   ) : (
                     paginatedPatients.map((patient) => (
                       <tr
-                        key={patient.identifier}
+                        key={patient.patientId ?? patient.identifier}
                         role="button"
                         tabIndex={0}
                         aria-label={`Ver detalhes de ${patient.patientName}`}

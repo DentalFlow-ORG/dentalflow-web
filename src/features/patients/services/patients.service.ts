@@ -11,25 +11,39 @@ export function listPatients(search?: string) {
   })
 }
 
-export function getPatientHistory(identifier: string) {
+/**
+ * `patientId` is the identity the API keys on. `identifier` is sent alongside
+ * it only so records that predate the identity migration still resolve; the
+ * API ignores it whenever a patientId is present.
+ */
+function patientQuery(identifier: string, patientId?: string | null) {
+  const query = `identifier=${encodeURIComponent(identifier)}`
+  return patientId ? `${query}&patientId=${encodeURIComponent(patientId)}` : query
+}
+
+export function getPatientHistory(identifier: string, patientId?: string | null) {
   return apiRequest<PatientHistoryResponse>(
-    `/patients/history?identifier=${encodeURIComponent(identifier)}`,
+    `/patients/history?${patientQuery(identifier, patientId)}`,
     { method: 'GET', accessToken: getAccessToken() },
   )
 }
 
-export function getPatientAvatar(identifier: string) {
+export function getPatientAvatar(identifier: string, patientId?: string | null) {
   return apiRequest<{ avatarUrl: string | null }>(
-    `/patients/avatar?identifier=${encodeURIComponent(identifier)}`,
+    `/patients/avatar?${patientQuery(identifier, patientId)}`,
     { method: 'GET', accessToken: getAccessToken() },
   )
 }
 
-export function upsertPatientAvatar(identifier: string, avatarBase64: string | null) {
+export function upsertPatientAvatar(
+  identifier: string,
+  avatarBase64: string | null,
+  patientId?: string | null,
+) {
   return apiRequest<void>('/patients/avatar', {
     method: 'PUT',
     accessToken: getAccessToken(),
-    body: JSON.stringify({ identifier, avatarBase64 }),
+    body: JSON.stringify({ identifier, avatarBase64, patientId: patientId ?? undefined }),
     headers: { 'Content-Type': 'application/json' },
   })
 }

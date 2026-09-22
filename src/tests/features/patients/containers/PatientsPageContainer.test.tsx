@@ -54,6 +54,7 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 
 function makePatient(overrides: Partial<PatientSummary> = {}): PatientSummary {
   return {
+    patientId: null,
     identifier: 'paciente@email.com',
     patientName: 'Ana Souza',
     patientEmail: 'ana@email.com',
@@ -656,5 +657,37 @@ describe('PatientsPageContainer — detail interactions', () => {
       }),
     )
     expect(mockUpdateAvatar).toHaveBeenCalledExactlyOnceWith('cropped-photo')
+  })
+})
+
+// ── Two patients sharing one contact identifier ───────────────────────────────
+
+describe('PatientsPageContainer — household sharing an email address', () => {
+  it('renders both patients as separate rows', () => {
+    // Regression: rows were keyed on the contact identifier, which a household
+    // shares, so React saw duplicate keys and could reconcile a row onto the
+    // wrong patient. Identity is the key now.
+    const marta = makePatient({
+      patientId: 'patient-a',
+      identifier: 'familia@email.com',
+      patientName: 'Marta Lima',
+    })
+    const pedro = makePatient({
+      patientId: 'patient-b',
+      identifier: 'familia@email.com',
+      patientName: 'Pedro Lima',
+    })
+    mockUsePatientsPage.mockReturnValue(
+      makeDefaultHookState({
+        patients: [marta, pedro],
+        filteredPatients: [marta, pedro],
+        paginatedPatients: [marta, pedro],
+      }),
+    )
+
+    render(<PatientsPageContainer />)
+
+    expect(screen.getAllByText('Marta Lima').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Pedro Lima').length).toBeGreaterThan(0)
   })
 })

@@ -129,6 +129,7 @@ const FIXED_PROFILE: ProfileListItem = {
 
 const MOCK_APPOINTMENT = {
   id: 'appt-1',
+  patientId: 'patient-created',
   patientName: 'Maria Silva',
   patientEmail: null,
   patientPhone: '11987654321',
@@ -533,7 +534,11 @@ describe('avatar upload on appointment creation', () => {
     await fillRequiredFields()
     submitForm()
     await waitFor(() => {
-      expect(mockUpsertPatientAvatar).toHaveBeenCalledWith('Maria Silva', 'base64mock')
+      expect(mockUpsertPatientAvatar).toHaveBeenCalledWith(
+        'Maria Silva',
+        'base64mock',
+        'patient-created',
+      )
     })
   })
 
@@ -544,7 +549,11 @@ describe('avatar upload on appointment creation', () => {
     await fillRequiredFields()
     submitForm()
     await waitFor(() => {
-      expect(mockUpsertPatientAvatar).toHaveBeenCalledWith('maria@example.com', 'base64mock')
+      expect(mockUpsertPatientAvatar).toHaveBeenCalledWith(
+        'maria@example.com',
+        'base64mock',
+        'patient-created',
+      )
     })
   })
 

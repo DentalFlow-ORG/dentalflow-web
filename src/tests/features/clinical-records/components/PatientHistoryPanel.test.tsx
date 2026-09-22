@@ -9,7 +9,7 @@ vi.mock('@tanstack/react-router', async () => {
 
 const mockUseTimeline = vi.fn()
 vi.mock('@/features/clinical-records/hooks/usePatientClinicalTimeline', () => ({
-  usePatientClinicalTimeline: (identifier: string) => mockUseTimeline(identifier),
+  usePatientClinicalTimeline: (...args: unknown[]) => mockUseTimeline(...args),
 }))
 
 import { PatientHistoryPanel } from '@/features/clinical-records/components/PatientHistoryPanel'
@@ -31,6 +31,25 @@ function makeRecord(overrides: Partial<ClinicalRecord> = {}): ClinicalRecord {
 }
 
 describe('PatientHistoryPanel', () => {
+  it('passes each stable identity despite identical contacts', () => {
+    mockUseTimeline.mockReturnValue({ records: [], isLoading: false, error: null })
+    const { rerender } = render(
+      <PatientHistoryPanel
+        currentRecordId="current"
+        identifier="same@example.test"
+        patientId="A"
+      />,
+    )
+    expect(mockUseTimeline).toHaveBeenLastCalledWith('same@example.test', 'A')
+    rerender(
+      <PatientHistoryPanel
+        currentRecordId="current"
+        identifier="same@example.test"
+        patientId="B"
+      />,
+    )
+    expect(mockUseTimeline).toHaveBeenLastCalledWith('same@example.test', 'B')
+  })
   it('shows a loading indicator', () => {
     mockUseTimeline.mockReturnValue({ records: [], isLoading: true, error: null })
     render(<PatientHistoryPanel currentRecordId="current" identifier="ana@clinica.com" />)

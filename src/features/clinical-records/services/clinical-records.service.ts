@@ -93,9 +93,19 @@ export function getClinicalRecordPrintData(id: string) {
   })
 }
 
-export function getPatientClinicalTimeline(identifier: string) {
+/**
+ * `patientId` is the identity the API keys on. `identifier` is sent alongside
+ * it only so records that predate the identity migration still resolve; the
+ * API ignores it whenever a patientId is present.
+ */
+function patientQuery(identifier: string, patientId?: string | null) {
+  const query = `identifier=${encodeURIComponent(identifier)}`
+  return patientId ? `${query}&patientId=${encodeURIComponent(patientId)}` : query
+}
+
+export function getPatientClinicalTimeline(identifier: string, patientId?: string | null) {
   return apiRequest<PatientClinicalTimeline>(
-    `${BASE}/patient-timeline?identifier=${encodeURIComponent(identifier)}`,
+    `${BASE}/patient-timeline?${patientQuery(identifier, patientId)}`,
     { method: 'GET', accessToken: getAccessToken() },
   )
 }
@@ -149,17 +159,27 @@ export function removeAttachment(recordId: string, attachmentId: string) {
 
 // Odontogram
 
-export function getOdontogram(identifier: string) {
+export function getOdontogram(identifier: string, patientId?: string | null) {
   return apiRequest<OdontogramRecord | null>(
-    `${BASE}/odontogram?identifier=${encodeURIComponent(identifier)}`,
+    `${BASE}/odontogram?${patientQuery(identifier, patientId)}`,
     { method: 'GET', accessToken: getAccessToken() },
   )
 }
 
-export function upsertOdontogram(identifier: string, patientName: string, data: OdontogramData) {
+export function upsertOdontogram(
+  identifier: string,
+  patientName: string,
+  data: OdontogramData,
+  patientId?: string | null,
+) {
   return apiRequest<OdontogramRecord>(`${BASE}/odontogram`, {
     method: 'POST',
     accessToken: getAccessToken(),
-    body: JSON.stringify({ identifier, patientName, data }),
+    body: JSON.stringify({
+      identifier,
+      patientName,
+      data,
+      patientId: patientId ?? undefined,
+    }),
   })
 }

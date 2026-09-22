@@ -18,6 +18,10 @@ vi.mock('@/features/patients/services/patients.service', () => ({
 const mockSetCachedAvatar = vi.fn()
 vi.mock('@/features/patients/hooks/usePatientAvatar', () => ({
   setCachedPatientAvatar: (...args: unknown[]) => mockSetCachedAvatar(...args),
+  // The pre-warm keys on identity so two patients sharing an email address do
+  // not overwrite each other's cached avatar.
+  patientAvatarCacheKey: (identifier: string | null, patientId?: string | null) =>
+    patientId ?? identifier,
 }))
 
 import { listPatients } from '@/features/patients/services/patients.service'
@@ -26,6 +30,7 @@ const mockListPatients = vi.mocked(listPatients)
 
 function makePatient(overrides: Partial<PatientSummary> = {}): PatientSummary {
   return {
+    patientId: null,
     identifier: 'a@clinica.com',
     patientName: 'Ana',
     patientEmail: 'a@clinica.com',

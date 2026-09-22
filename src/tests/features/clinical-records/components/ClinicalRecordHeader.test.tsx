@@ -2,8 +2,12 @@ import userEvent from '@testing-library/user-event'
 
 import { render, screen } from '@/test-utils/render-utils'
 
+const mockAvatarIdentity = vi.fn()
 vi.mock('@/features/patients/hooks/usePatientAvatar', () => ({
-  usePatientAvatar: () => ({ avatarUrl: null, isSaving: false, update: mockUpdate }),
+  usePatientAvatar: (...args: unknown[]) => {
+    mockAvatarIdentity(...args)
+    return { avatarUrl: null, isSaving: false, update: mockUpdate }
+  },
 }))
 
 vi.mock('@/features/patients/components/PatientAvatarWidget', () => ({
@@ -67,6 +71,12 @@ function makeRecord(overrides: Partial<ClinicalRecord> = {}): ClinicalRecord {
 }
 
 describe('ClinicalRecordHeader', () => {
+  it('passes stable identity when patients share contacts', () => {
+    const { rerender } = render(<ClinicalRecordHeader record={makeRecord({ patientId: 'A' })} />)
+    expect(mockAvatarIdentity).toHaveBeenLastCalledWith('ana@clinica.com', 'A')
+    rerender(<ClinicalRecordHeader record={makeRecord({ patientId: 'B' })} />)
+    expect(mockAvatarIdentity).toHaveBeenLastCalledWith('ana@clinica.com', 'B')
+  })
   beforeEach(() => {
     mockShowAlert.mockClear()
     mockUpdate.mockClear()

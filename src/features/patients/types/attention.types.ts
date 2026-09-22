@@ -8,6 +8,7 @@ export type AttentionReason =
 export type AttentionPriority = 'HIGH' | 'MEDIUM' | 'LOW'
 
 export type PatientAttentionItem = {
+  patientId?: string | null
   identifier: string
   patientName: string
   patientEmail: string | null

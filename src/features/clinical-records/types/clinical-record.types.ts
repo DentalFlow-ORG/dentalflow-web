@@ -49,6 +49,11 @@ export type ClinicalRecord = {
   clinicId: string
   appointmentId: string | null
   profileId: string
+  /**
+   * Stable clinical identity. Null for records that predate the identity
+   * migration; those still resolve through the patient contact fields.
+   */
+  patientId: string | null
   patientName: string
   patientEmail: string | null
   patientPhone: string | null
@@ -132,6 +137,7 @@ export type PrintData = {
 }
 
 export type CreateClinicalRecordDto = {
+  patientId?: string
   appointmentId?: string
   profileId: string
   patientName: string

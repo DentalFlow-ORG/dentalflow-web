@@ -1,4 +1,10 @@
 export interface PatientSummary {
+  /**
+   * Stable clinical identity. Null for rows that predate the identity
+   * migration and have not been assigned one yet; those still resolve through
+   * `identifier`. Always prefer this when it is present.
+   */
+  patientId: string | null
   identifier: string
   patientName: string
   patientEmail: string | null

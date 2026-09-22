@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { ApiError } from '@/services/http'
 
 import { getPatientsAttention } from '../services/attention.service'
-import { batchGetPatientAvatars } from '../services/patients.service'
+import { batchGetPatientAvatars, getPatientAvatar } from '../services/patients.service'
 import type {
   AttentionPriority,
   AttentionReason,
@@ -55,20 +55,43 @@ export function usePatientsAttention() {
   const [reasonFilter, setReasonFilter] = useState<AttentionReasonFilter>('ALL')
   const [priorityFilter, setPriorityFilter] = useState<AttentionPriorityFilter>('ALL')
   const [whatsappFilter, setWhatsappFilter] = useState<WhatsAppFilter>('ALL')
+  const generation = useRef(0)
 
   const load = useCallback(() => {
+    const request = ++generation.current
     dispatch({ type: 'loading' })
     getPatientsAttention()
       .then((data) => {
+        if (request !== generation.current) return
         dispatch({ type: 'success', data })
 
-        const identifiers = [...new Set(data.items.map((item) => item.identifier))]
+        const identifiers = [
+          ...new Set(data.items.filter((item) => !item.patientId).map((item) => item.identifier)),
+        ]
 
         // Populate immediately from the session cache (warmed by the patient list).
         const fromCache: Record<string, string | null> = {}
         for (const id of identifiers) {
           const cached = getCachedPatientAvatar(id)
           if (cached !== undefined) fromCache[id] = cached
+        }
+        for (const item of data.items) {
+          if (!item.patientId) continue
+          const patientId = item.patientId
+          const cached = getCachedPatientAvatar(patientId)
+          if (cached !== undefined) fromCache[patientId] = cached
+          else {
+            getPatientAvatar(item.identifier, patientId)
+              .then((response) => {
+                if (request !== generation.current) return
+                setCachedPatientAvatar(patientId, response.avatarUrl)
+                setAvatarsByIdentifier((previous) => ({
+                  ...previous,
+                  [patientId]: response.avatarUrl,
+                }))
+              })
+              .catch(() => {})
+          }
         }
         setAvatarsByIdentifier(fromCache)
 
@@ -78,6 +101,7 @@ export function usePatientsAttention() {
 
         batchGetPatientAvatars(missing)
           .then((res) => {
+            if (request !== generation.current) return
             for (const [id, url] of Object.entries(res.avatars)) {
               setCachedPatientAvatar(id, url)
             }
@@ -88,6 +112,7 @@ export function usePatientsAttention() {
           })
       })
       .catch((err) => {
+        if (request !== generation.current) return
         const message =
           err instanceof ApiError
             ? err.message
@@ -99,6 +124,9 @@ export function usePatientsAttention() {
 
   useEffect(() => {
     load()
+    return () => {
+      generation.current += 1
+    }
   }, [load])
 
   const filteredItems = useMemo<PatientAttentionItem[]>(() => {

@@ -24,7 +24,7 @@ export function ClinicalRecordHeader({ record, readOnly = false }: Props) {
   const { showAlert } = useGlobalAlerts()
 
   const identifier = record.patientEmail ?? record.patientName
-  const { avatarUrl, isSaving, update } = usePatientAvatar(identifier)
+  const { avatarUrl, isSaving, update } = usePatientAvatar(identifier, record.patientId)
 
   const handleAvatarChange = async (base64: string | null) => {
     try {

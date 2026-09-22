@@ -5,7 +5,7 @@ import { ApiError } from '@/services/http'
 
 import { listPatients } from '../services/patients.service'
 import type { PatientSummary } from '../types/patients.types'
-import { setCachedPatientAvatar } from './usePatientAvatar'
+import { patientAvatarCacheKey, setCachedPatientAvatar } from './usePatientAvatar'
 
 type FetchState = { patients: PatientSummary[]; isLoading: boolean; error: string | null }
 type FetchAction =
@@ -49,7 +49,12 @@ export function usePatientsPage() {
           // Pre-warm the session cache so that opening a patient's detail panel or
           // clinical record serves the avatar instantly without a separate fetch.
           for (const patient of response.data) {
-            setCachedPatientAvatar(patient.identifier, patient.avatarUrl ?? null)
+            // Keyed on identity, so two patients sharing an email address
+            // pre-warm separate entries instead of overwriting each other.
+            setCachedPatientAvatar(
+              patientAvatarCacheKey(patient.identifier, patient.patientId) as string,
+              patient.avatarUrl ?? null,
+            )
           }
           dispatch({ type: 'success', patients: response.data })
         })

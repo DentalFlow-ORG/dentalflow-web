@@ -57,6 +57,7 @@ function makeRecord(status: ClinicalRecordStatus = 'DRAFT'): ClinicalRecord {
     clinicId: 'clinic-1',
     appointmentId: null,
     profileId: 'prof-1',
+    patientId: null,
     patientName: 'João Silva',
     patientEmail: null,
     patientPhone: null,

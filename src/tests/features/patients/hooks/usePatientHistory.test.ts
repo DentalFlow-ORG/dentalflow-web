@@ -19,6 +19,7 @@ const mockGetHistory = vi.mocked(getPatientHistory)
 
 function makePatient(overrides: Partial<PatientSummary> = {}): PatientSummary {
   return {
+    patientId: null,
     identifier: 'a@clinica.com',
     patientName: 'Ana',
     patientEmail: 'a@clinica.com',

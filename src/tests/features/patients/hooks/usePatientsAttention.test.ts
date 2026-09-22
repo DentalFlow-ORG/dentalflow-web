@@ -21,13 +21,35 @@ vi.mock('@/features/patients/services/attention.service', () => ({
 
 vi.mock('@/features/patients/services/patients.service', () => ({
   batchGetPatientAvatars: vi.fn(),
+  getPatientAvatar: vi.fn(),
 }))
 
 import { getPatientsAttention } from '@/features/patients/services/attention.service'
-import { batchGetPatientAvatars } from '@/features/patients/services/patients.service'
+import {
+  batchGetPatientAvatars,
+  getPatientAvatar,
+} from '@/features/patients/services/patients.service'
 
 const mockGetAttention = vi.mocked(getPatientsAttention)
 const mockBatchAvatars = vi.mocked(batchGetPatientAvatars)
+
+it('keeps identical-contact stable Patients in separate avatar entries', async () => {
+  const response = makeResponse(['same@example.test', 'same@example.test'])
+  response.items = response.items.map((item, index) => ({
+    ...item,
+    patientId: index === 0 ? 'A' : 'B',
+  }))
+  mockGetAttention.mockResolvedValue(response)
+  vi.mocked(getPatientAvatar).mockImplementation(async (_identifier, id) => ({
+    avatarUrl: `photo-${id}`,
+  }))
+  const { result } = renderHook(() => usePatientsAttention())
+  await waitFor(() =>
+    expect(result.current.avatarsByIdentifier).toEqual({ A: 'photo-A', B: 'photo-B' }),
+  )
+  expect(mockBatchAvatars).not.toHaveBeenCalled()
+  expect(result.current.allItems).toHaveLength(2)
+})
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -73,6 +95,81 @@ beforeEach(() => {
 // ── Batch avatar loading ───────────────────────────────────────────────────────
 
 describe('usePatientsAttention — avatar batch loading', () => {
+  it('uses stable cache entries and ignores the shared contact cache', async () => {
+    const response = makeResponse(['same@example.test'])
+    response.items[0].patientId = 'A'
+    setCachedPatientAvatar('A', 'own-photo')
+    setCachedPatientAvatar('same@example.test', 'other-photo')
+    mockGetAttention.mockResolvedValue(response)
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(result.current.avatarsByIdentifier).toEqual({ A: 'own-photo' }))
+    expect(getPatientAvatar).not.toHaveBeenCalled()
+  })
+
+  it.each(['success', 'failure'])('ignores an obsolete attention response: %s', async (outcome) => {
+    let finish!: (value: AttentionResponse) => void
+    let fail!: (reason: Error) => void
+    mockGetAttention
+      .mockReturnValueOnce(
+        new Promise((resolve, reject) => {
+          finish = resolve
+          fail = reject
+        }),
+      )
+      .mockResolvedValueOnce(makeResponse(['current']))
+    const { result } = renderHook(() => usePatientsAttention())
+    act(() => result.current.refresh())
+    await waitFor(() => expect(result.current.allItems[0]?.identifier).toBe('current'))
+    await act(async () => {
+      if (outcome === 'success') finish(makeResponse(['old']))
+      else fail(new Error('late failure'))
+    })
+    expect(result.current.allItems[0]?.identifier).toBe('current')
+    expect(result.current.error).toBeNull()
+    expect(mockShowAlert).not.toHaveBeenCalled()
+  })
+
+  it('ignores obsolete stable and legacy avatar requests after refresh', async () => {
+    const response = makeResponse(['same@example.test', 'legacy'])
+    response.items[0].patientId = 'A'
+    let finishStable!: (value: { avatarUrl: string }) => void
+    let finishLegacy!: (value: { avatars: Record<string, string> }) => void
+    vi.mocked(getPatientAvatar).mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishStable = resolve
+      }),
+    )
+    mockBatchAvatars.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishLegacy = resolve
+      }),
+    )
+    mockGetAttention.mockResolvedValueOnce(response).mockResolvedValueOnce(makeResponse([]))
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(mockBatchAvatars).toHaveBeenCalled())
+    act(() => result.current.refresh())
+    await waitFor(() => expect(result.current.allItems).toEqual([]))
+    await act(async () => {
+      finishStable({ avatarUrl: 'old-stable' })
+      finishLegacy({ avatars: { legacy: 'old-legacy' } })
+    })
+    expect(result.current.avatarsByIdentifier).toEqual({})
+  })
+
+  it('keeps stable avatar failures empty and retryable', async () => {
+    const response = makeResponse(['same@example.test'])
+    response.items[0].patientId = 'A'
+    mockGetAttention.mockResolvedValue(response)
+    vi.mocked(getPatientAvatar)
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce({ avatarUrl: 'recovered' })
+    const { result } = renderHook(() => usePatientsAttention())
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.avatarsByIdentifier).toEqual({})
+    act(() => result.current.refresh())
+    await waitFor(() => expect(result.current.avatarsByIdentifier).toEqual({ A: 'recovered' }))
+  })
+
   it('calls batchGetPatientAvatars once after data loads when no identifiers are cached', async () => {
     const { result } = renderHook(() => usePatientsAttention())
 

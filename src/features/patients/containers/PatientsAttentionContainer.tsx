@@ -550,10 +550,10 @@ export function PatientsAttentionContainer() {
               ) : (
                 paginatedItems.map((item) => (
                   <AttentionMobileCard
-                    key={item.identifier}
+                    key={item.patientId ?? item.identifier}
                     item={item}
                     onSelect={setSelectedItem}
-                    avatarUrl={avatarsByIdentifier[item.identifier]}
+                    avatarUrl={avatarsByIdentifier[item.patientId ?? item.identifier]}
                   />
                 ))
               )}
@@ -605,7 +605,7 @@ export function PatientsAttentionContainer() {
                   ) : (
                     paginatedItems.map((item) => (
                       <tr
-                        key={item.identifier}
+                        key={item.patientId ?? item.identifier}
                         role="button"
                         tabIndex={0}
                         aria-label={`Ver detalhes de ${item.patientName}`}
@@ -623,7 +623,7 @@ export function PatientsAttentionContainer() {
                           <PatientIdentityBadge
                             name={item.patientName}
                             email={item.patientEmail}
-                            avatarUrl={avatarsByIdentifier[item.identifier]}
+                            avatarUrl={avatarsByIdentifier[item.patientId ?? item.identifier]}
                             size="md"
                           />
                         </td>
@@ -707,7 +707,11 @@ export function PatientsAttentionContainer() {
       <AttentionDetailPanel
         item={selectedItem}
         onClose={() => setSelectedItem(null)}
-        avatarUrl={selectedItem ? avatarsByIdentifier[selectedItem.identifier] : undefined}
+        avatarUrl={
+          selectedItem
+            ? avatarsByIdentifier[selectedItem.patientId ?? selectedItem.identifier]
+            : undefined
+        }
       />
     </AppPage>
   )

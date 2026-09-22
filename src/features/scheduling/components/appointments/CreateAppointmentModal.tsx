@@ -253,7 +253,7 @@ export function CreateAppointmentModal({
       handleClose()
 
       if (avatarToUpload) {
-        upsertPatientAvatar(avatarIdentifier, avatarToUpload).catch(() => {
+        upsertPatientAvatar(avatarIdentifier, avatarToUpload, appointment.patientId).catch(() => {
           showAlert({
             title: 'Atenção',
             description: 'Agendamento criado, mas a foto do paciente não pôde ser salva.',

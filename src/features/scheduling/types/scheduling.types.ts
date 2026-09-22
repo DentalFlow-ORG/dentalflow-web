@@ -40,6 +40,7 @@ type AppointmentPatient = {
 }
 
 export type Appointment = {
+  patientId?: string | null
   id: string
   clinicId: string
   profileId: string
@@ -100,6 +101,7 @@ export type AvailabilityException = {
 }
 
 export type CreateAppointmentDto = {
+  patientId?: string
   profileId: string
   serviceId?: string
   patientUserId?: string

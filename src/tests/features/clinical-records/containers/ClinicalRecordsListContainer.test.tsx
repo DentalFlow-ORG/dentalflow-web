@@ -68,6 +68,7 @@ function makeRecord(overrides: Partial<ClinicalRecord> = {}): ClinicalRecord {
     clinicId: 'clinic-1',
     appointmentId: null,
     profileId: 'prof-1',
+    patientId: null,
     patientName: 'Ana Martins',
     patientEmail: 'ana@clinica.com',
     patientPhone: null,
