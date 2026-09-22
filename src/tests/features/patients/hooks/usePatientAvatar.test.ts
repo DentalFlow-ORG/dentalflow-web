@@ -2,6 +2,7 @@ import {
   __resetAvatarCache,
   getCachedPatientAvatar,
   getMissingPatientAvatarIdentifiers,
+  patientAvatarCacheKey,
   setCachedPatientAvatar,
   usePatientAvatar,
 } from '@/features/patients/hooks/usePatientAvatar'
@@ -21,6 +22,100 @@ import {
 
 const mockGet = vi.mocked(getPatientAvatar)
 const mockUpsert = vi.mocked(upsertPatientAvatar)
+
+describe('stable identity while switching patients', () => {
+  it('does not alter the current Patient when a previous save fails late', async () => {
+    let fail!: (reason: Error) => void
+    mockUpsert.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        fail = reject
+      }),
+    )
+    mockGet.mockResolvedValueOnce({ avatarUrl: 'A' }).mockResolvedValueOnce({ avatarUrl: 'B' })
+    const { result, rerender } = renderHook(({ id }) => usePatientAvatar(ID, id), {
+      initialProps: { id: 'A' },
+    })
+    await waitFor(() => expect(result.current.avatarUrl).toBe('A'))
+    let saving!: Promise<void>
+    act(() => {
+      saving = result.current.update('failed-photo')
+    })
+    const rejection = expect(saving).rejects.toThrow('Não foi possível salvar a foto.')
+    rerender({ id: 'B' })
+    await waitFor(() => expect(result.current.avatarUrl).toBe('B'))
+    await act(async () => {
+      fail(new Error('late failure'))
+      await rejection
+    })
+    expect(result.current.avatarUrl).toBe('B')
+    expect(result.current.isSaving).toBe(false)
+    expect(getCachedPatientAvatar('A')).toBe('A')
+  })
+  it.each([
+    ['A', 'B'],
+    ['B', 'A'],
+  ])('ignores late avatar %s after %s loads', async (first, second) => {
+    let finish!: (value: { avatarUrl: string }) => void
+    mockGet
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve
+        }),
+      )
+      .mockResolvedValueOnce({ avatarUrl: second })
+    const { result, rerender } = renderHook(({ id }) => usePatientAvatar(ID, id), {
+      initialProps: { id: first },
+    })
+    rerender({ id: second })
+    await waitFor(() => expect(result.current.avatarUrl).toBe(second))
+    await act(async () => {
+      finish({ avatarUrl: first })
+    })
+    expect(result.current.avatarUrl).toBe(second)
+  })
+  it.each([
+    ['A', 'B'],
+    ['B', 'A'],
+  ])('clears %s while %s loads', async (first, second) => {
+    mockGet
+      .mockResolvedValueOnce({ avatarUrl: first })
+      .mockImplementationOnce(() => new Promise(() => {}))
+    const { result, rerender } = renderHook(({ id }) => usePatientAvatar(ID, id), {
+      initialProps: { id: first },
+    })
+    await waitFor(() => expect(result.current.avatarUrl).toBe(first))
+    rerender({ id: second })
+    expect(result.current.avatarUrl).toBeNull()
+    expect(result.current.isLoading).toBe(true)
+  })
+
+  it('does not apply a previous patient save after switching', async () => {
+    let finish!: () => void
+    mockUpsert.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve
+        }),
+    )
+    mockGet.mockResolvedValueOnce({ avatarUrl: 'A' }).mockResolvedValueOnce({ avatarUrl: 'B' })
+    const { result, rerender } = renderHook(({ id }) => usePatientAvatar(ID, id), {
+      initialProps: { id: 'A' },
+    })
+    await waitFor(() => expect(result.current.avatarUrl).toBe('A'))
+    let saving!: Promise<void>
+    act(() => {
+      saving = result.current.update('A updated')
+    })
+    rerender({ id: 'B' })
+    await waitFor(() => expect(result.current.avatarUrl).toBe('B'))
+    await act(async () => {
+      finish()
+      await saving
+    })
+    expect(result.current.avatarUrl).toBe('B')
+    expect(getCachedPatientAvatar('A')).toBe('A updated')
+  })
+})
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -45,7 +140,7 @@ describe('usePatientAvatar — initial fetch', () => {
 
     expect(result.current.avatarUrl).toBe('base64abc')
     expect(mockGet).toHaveBeenCalledTimes(1)
-    expect(mockGet).toHaveBeenCalledWith(ID)
+    expect(mockGet).toHaveBeenCalledWith(ID, undefined)
   })
 
   it('returns avatarUrl: null when identifier is null — no fetch', async () => {
@@ -365,5 +460,62 @@ describe('usePatientAvatar — update failure', () => {
 
     expect(mockUpsert).toHaveBeenCalledTimes(2)
     expect(result.current.avatarUrl).toBe('base64new')
+  })
+})
+
+// ── Shared contact details must not share an avatar ───────────────────────────
+
+describe('usePatientAvatar — two patients sharing an email address', () => {
+  const SHARED = 'familia@example.com'
+
+  it('does not serve one patient cached photo to the other on first render', () => {
+    // Regression: the patient list pre-warms the cache, and the synchronous
+    // initial state used to read it by the raw identifier. A household sharing
+    // one address would flash the wrong person's photo before the effect
+    // corrected it.
+    setCachedPatientAvatar(patientAvatarCacheKey(SHARED, 'patient-a') as string, 'photo-a')
+
+    const { result } = renderHook(() => usePatientAvatar(SHARED, 'patient-b'))
+
+    expect(result.current.avatarUrl).not.toBe('photo-a')
+  })
+
+  it('serves each patient their own pre-warmed photo', () => {
+    setCachedPatientAvatar(patientAvatarCacheKey(SHARED, 'patient-a') as string, 'photo-a')
+    setCachedPatientAvatar(patientAvatarCacheKey(SHARED, 'patient-b') as string, 'photo-b')
+
+    const a = renderHook(() => usePatientAvatar(SHARED, 'patient-a'))
+    const b = renderHook(() => usePatientAvatar(SHARED, 'patient-b'))
+
+    expect(a.result.current.avatarUrl).toBe('photo-a')
+    expect(b.result.current.avatarUrl).toBe('photo-b')
+  })
+
+  it('refetches when patientId changes even though the identifier does not', async () => {
+    mockGet.mockResolvedValue({ avatarUrl: 'photo-a' })
+    const { rerender } = renderHook(
+      ({ patientId }: { patientId: string }) => usePatientAvatar(SHARED, patientId),
+      { initialProps: { patientId: 'patient-a' } },
+    )
+    await waitFor(() => expect(mockGet).toHaveBeenCalledWith(SHARED, 'patient-a'))
+
+    rerender({ patientId: 'patient-b' })
+
+    await waitFor(() => expect(mockGet).toHaveBeenCalledWith(SHARED, 'patient-b'))
+  })
+
+  it('saves against the identity, not the shared address', async () => {
+    const { result } = renderHook(() => usePatientAvatar(SHARED, 'patient-b'))
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    await act(async () => {
+      await result.current.update('photo-b')
+    })
+
+    expect(mockUpsert).toHaveBeenCalledWith(SHARED, 'photo-b', 'patient-b')
+    // The other patient's cache entry is untouched.
+    expect(
+      getCachedPatientAvatar(patientAvatarCacheKey(SHARED, 'patient-a') as string),
+    ).toBeUndefined()
   })
 })
