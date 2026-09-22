@@ -18,6 +18,10 @@ vi.mock('@tanstack/react-router', async () => {
 })
 
 const mockGetBillingStatus = vi.fn()
+const mockFetchBillingStatus = vi.fn()
+vi.mock('@/features/billing/services/billing.service', () => ({
+  getCurrentBillingStatus: () => mockFetchBillingStatus(),
+}))
 vi.mock('@/features/billing/services/billing-status-cache', () => ({
   getCachedBillingStatus: () => mockGetBillingStatus(),
 }))
@@ -193,11 +197,34 @@ describe('premium gate', () => {
     expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument()
   })
 
-  it('shows recording UI when planKey is null (admin / cache miss — fail open)', () => {
+  it('waits for authoritative plan status when the cache is empty', async () => {
     mockGetBillingStatus.mockReturnValue(null)
+    mockFetchBillingStatus.mockResolvedValue({ planKey: 'premium', accessAllowed: true })
     renderCard()
-    expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Gravar consulta/i })).not.toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument()
   })
+
+  it('allows retry after a plan lookup failure without recording first', async () => {
+    mockGetBillingStatus.mockReturnValue(null)
+    mockFetchBillingStatus
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce({ planKey: 'premium', accessAllowed: true })
+    renderCard()
+    await userEvent.click(await screen.findByRole('button', { name: /Verificar plano novamente/i }))
+    expect(await screen.findByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument()
+  })
+
+  it.each(['professional', 'future-plan'])(
+    'does not unlock recording for %s returned by the API',
+    async (planKey) => {
+      mockGetBillingStatus.mockReturnValue(null)
+      mockFetchBillingStatus.mockResolvedValue({ planKey, accessAllowed: true })
+      renderCard()
+      expect(await screen.findByRole('link', { name: /Ver planos/i })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Gravar consulta/i })).not.toBeInTheDocument()
+    },
+  )
 })
 
 // ── 2. Read-only state ────────────────────────────────────────────────────────

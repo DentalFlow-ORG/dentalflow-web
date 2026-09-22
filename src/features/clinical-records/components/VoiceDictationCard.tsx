@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { PlanUpgradePrompt } from '@/components/common/PlanUpgradePrompt'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
-import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
+import { useClinicalDictationAccess } from '@/features/clinical-records/hooks/useClinicalDictationAccess'
 import { cn } from '@/lib/utils'
 
 import { dictateClinicalRecord } from '../services/clinical-dictation.service'
@@ -210,10 +210,7 @@ export function VoiceDictationCard({
 }: Props) {
   const { showAlert } = useGlobalAlerts()
 
-  // Plan gate — lock for starter/professional; unlock for premium or null (admin/cache miss).
-  // Backend enforces the real check; this is defense-in-depth UX only.
-  const planKey = getCachedBillingStatus()?.planKey
-  const isLocked = planKey === 'starter' || planKey === 'professional'
+  const access = useClinicalDictationAccess()
 
   const [state, setState] = useState<DictationState>('idle')
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
@@ -796,7 +793,18 @@ export function VoiceDictationCard({
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
-  if (isLocked) return <LockedState />
+  if (access.isLoading) return <p role="status">Verificando disponibilidade do ditado…</p>
+  if (access.error) {
+    return (
+      <div role="alert">
+        <p>Não foi possível verificar seu plano.</p>
+        <Button variant="outline" onClick={access.retry}>
+          Verificar plano novamente
+        </Button>
+      </div>
+    )
+  }
+  if (!access.allowed) return <LockedState />
 
   return (
     <div className="rounded-xl border border-border bg-card p-5">
