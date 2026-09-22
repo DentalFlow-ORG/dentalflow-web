@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@/test-utils/render-utils'
+import { act, renderHook, waitFor } from '@/test-utils/render-utils'
 
 import { usePatientHistory } from '@/features/patients/hooks/usePatientHistory'
 import type { PatientAppointment, PatientSummary } from '@/features/patients/types/patients.types'
@@ -67,7 +67,7 @@ describe('usePatientHistory', () => {
     expect(result.current.isLoading).toBe(true)
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.appointments).toHaveLength(1)
-    expect(mockGetHistory).toHaveBeenCalledWith('a@clinica.com')
+    expect(mockGetHistory).toHaveBeenCalledWith('a@clinica.com', null)
   })
 
   it('shows an ApiError message and falls back to empty appointments on failure', async () => {
@@ -106,7 +106,7 @@ describe('usePatientHistory', () => {
     expect(result.current.isLoading).toBe(true)
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.appointments[0].id).toBe('b1')
-    expect(mockGetHistory).toHaveBeenCalledWith('b@clinica.com')
+    expect(mockGetHistory).toHaveBeenCalledWith('b@clinica.com', null)
   })
 
   it('discards a stale response when the patient changes before it resolves', async () => {
@@ -137,5 +137,91 @@ describe('usePatientHistory', () => {
     mockGetHistory.mockImplementation(() => new Promise(() => {}))
     const { unmount } = renderHook(() => usePatientHistory(makePatient()))
     expect(() => unmount()).not.toThrow()
+  })
+})
+
+// ── Two patients sharing one contact identifier ───────────────────────────────
+
+describe('usePatientHistory — two patients sharing an email address', () => {
+  it.each([
+    ['A', 'B'],
+    ['B', 'A'],
+  ])('isolates %s and %s through loading and a late response', async (first, second) => {
+    let finish!: (value: { appointments: PatientAppointment[] }) => void
+    mockGetHistory
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve
+        }),
+      )
+      .mockResolvedValueOnce({ appointments: [makeAppointment({ id: second })] })
+    const { result, rerender } = renderHook(
+      ({ id }) =>
+        usePatientHistory(
+          makePatient({ patientId: id, identifier: 'same@example.test', patientName: 'Same Name' }),
+        ),
+      { initialProps: { id: first } },
+    )
+    rerender({ id: second })
+    expect(result.current.appointments).toEqual([])
+    await waitFor(() => expect(result.current.appointments[0]?.id).toBe(second))
+    await act(async () => {
+      finish({ appointments: [makeAppointment({ id: first })] })
+    })
+    expect(result.current.appointments[0]?.id).toBe(second)
+  })
+  const SHARED = 'familia@clinica.com'
+
+  const marta = makePatient({
+    patientId: 'patient-a',
+    identifier: SHARED,
+    patientName: 'Marta Lima',
+  })
+  const pedro = makePatient({
+    patientId: 'patient-b',
+    identifier: SHARED,
+    patientName: 'Pedro Lima',
+  })
+
+  it('does not show one patient appointments under the other while loading', async () => {
+    // Regression: the cached history was keyed on the contact identifier, which
+    // a household shares. Switching patients kept the previous person's
+    // appointments on screen with isLoading already false, so they read as the
+    // new patient's real history.
+    mockGetHistory.mockResolvedValue({ appointments: [makeAppointment({ id: 'appt-marta' })] })
+    const { result, rerender } = renderHook(
+      ({ patient }: { patient: PatientSummary }) => usePatientHistory(patient),
+      { initialProps: { patient: marta } },
+    )
+    await waitFor(() => expect(result.current.appointments).toHaveLength(1))
+
+    let resolvePedro: (value: { appointments: PatientAppointment[] }) => void = () => {}
+    mockGetHistory.mockReturnValue(
+      new Promise((resolve) => {
+        resolvePedro = resolve
+      }),
+    )
+    rerender({ patient: pedro })
+
+    // Pedro's request is still in flight: Marta's appointments must be gone.
+    expect(result.current.appointments).toEqual([])
+    expect(result.current.isLoading).toBe(true)
+
+    resolvePedro({ appointments: [makeAppointment({ id: 'appt-pedro' })] })
+    await waitFor(() => expect(result.current.appointments).toHaveLength(1))
+    expect(result.current.appointments[0].id).toBe('appt-pedro')
+  })
+
+  it('refetches with the new identity even though the identifier is unchanged', async () => {
+    mockGetHistory.mockResolvedValue({ appointments: [] })
+    const { rerender } = renderHook(
+      ({ patient }: { patient: PatientSummary }) => usePatientHistory(patient),
+      { initialProps: { patient: marta } },
+    )
+    await waitFor(() => expect(mockGetHistory).toHaveBeenCalledWith(SHARED, 'patient-a'))
+
+    rerender({ patient: pedro })
+
+    await waitFor(() => expect(mockGetHistory).toHaveBeenCalledWith(SHARED, 'patient-b'))
   })
 })

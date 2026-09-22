@@ -181,11 +181,14 @@ vi.mock('@/features/clinical-records/components/ImageAttachmentPanel', () => ({
 
 vi.mock('@/features/clinical-records/components/OdontogramSection', () => ({
   OdontogramSection: ({
+    data,
     onChange,
   }: {
+    data: { teeth: Record<string, unknown> }
     onChange: (data: { teeth: Record<string, unknown> }) => void
   }) => (
     <div data-testid="odontogram-section">
+      <pre data-testid="chart-data">{JSON.stringify(data)}</pre>
       <button type="button" onClick={() => onChange({ teeth: { '11': { condition: 'caries' } } })}>
         mark-tooth
       </button>
@@ -301,7 +304,7 @@ describe('ClinicalRecordEditorContainer', () => {
       proceed: mockProceed,
       reset: mockReset,
     })
-    mockGetOdontogram.mockResolvedValue(null)
+    mockGetOdontogram.mockReset().mockResolvedValue(null)
     mockUpsertOdontogram.mockResolvedValue(undefined)
   })
 
@@ -309,6 +312,70 @@ describe('ClinicalRecordEditorContainer', () => {
     mockUseClinicalRecord.mockReturnValue(defaultRecordHookState({ isLoading: true }))
     render(<ClinicalRecordEditorContainer recordId="rec-1" />)
     expect(screen.getByRole('status')).toHaveTextContent('Carregando prontuário...')
+  })
+
+  it.each([
+    ['A', 'B'],
+    ['B', 'A'],
+  ])('never displays or saves %s chart under %s while loading', async (first, second) => {
+    const firstRecord = makeRecord({ id: `record-${first}`, patientId: first })
+    const secondRecord = makeRecord({ id: `record-${second}`, patientId: second })
+    const chart = { teeth: { '11': { condition: 'caries', notes: first } } }
+    mockUseClinicalRecord.mockReturnValue(defaultRecordHookState({ record: firstRecord }))
+    mockGetOdontogram
+      .mockResolvedValueOnce({ data: chart })
+      .mockImplementationOnce(() => new Promise(() => {}))
+    const { rerender } = render(<ClinicalRecordEditorContainer recordId={firstRecord.id} />)
+    await act(async () => {})
+    expect(screen.getByTestId('chart-data')).toHaveTextContent(first)
+    mockUseClinicalRecord.mockReturnValue(defaultRecordHookState({ record: secondRecord }))
+    rerender(<ClinicalRecordEditorContainer recordId={secondRecord.id} />)
+    expect(screen.queryByTestId('chart-data')).not.toHaveTextContent(first)
+    await act(async () => {
+      fireEvent.click(screen.getByText('actions-save'))
+    })
+    expect(mockUpsertOdontogram).not.toHaveBeenCalledWith(
+      secondRecord.patientEmail,
+      secondRecord.patientName,
+      chart,
+      second,
+    )
+  })
+
+  it.each([
+    ['A', 'B'],
+    ['B', 'A'],
+  ])('discards late chart %s after switching to %s', async (first, second) => {
+    let finish!: (value: unknown) => void
+    const firstRecord = makeRecord({ id: `record-${first}`, patientId: first })
+    const secondRecord = makeRecord({ id: `record-${second}`, patientId: second })
+    const currentChart = { teeth: { '21': { condition: 'caries', notes: second } } }
+    mockGetOdontogram
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve
+        }),
+      )
+      .mockResolvedValueOnce({ data: currentChart })
+    mockUseClinicalRecord.mockReturnValue(defaultRecordHookState({ record: firstRecord }))
+    const { rerender } = render(<ClinicalRecordEditorContainer recordId={firstRecord.id} />)
+    mockUseClinicalRecord.mockReturnValue(defaultRecordHookState({ record: secondRecord }))
+    rerender(<ClinicalRecordEditorContainer recordId={secondRecord.id} />)
+    await act(async () => {})
+    await act(async () => {
+      finish({ data: { teeth: { '11': { condition: 'caries', notes: first } } } })
+    })
+    expect(screen.getByTestId('chart-data')).toHaveTextContent(second)
+    expect(screen.getByTestId('chart-data')).not.toHaveTextContent(first)
+    await act(async () => {
+      fireEvent.click(screen.getByText('actions-save'))
+    })
+    expect(mockUpsertOdontogram).toHaveBeenCalledWith(
+      secondRecord.patientEmail,
+      secondRecord.patientName,
+      currentChart,
+      second,
+    )
   })
 
   it('shows an error message', () => {
@@ -546,9 +613,12 @@ describe('ClinicalRecordEditorContainer', () => {
     render(<ClinicalRecordEditorContainer recordId="rec-1" />)
     await act(async () => {})
     await userEvent.click(screen.getByRole('button', { name: 'dictate-odontogram' }))
-    expect(mockUpsertOdontogram).toHaveBeenCalledWith('ana@clinica.com', 'Ana Martins', {
-      teeth: { ...teeth, '22': { condition: 'caries', notes: undefined } },
-    })
+    expect(mockUpsertOdontogram).toHaveBeenCalledWith(
+      'ana@clinica.com',
+      'Ana Martins',
+      { teeth: { ...teeth, '22': { condition: 'caries', notes: undefined } } },
+      null,
+    )
     expect(mockShowAlert).toHaveBeenCalledWith(
       expect.objectContaining({
         description: 'Não aplicado: dentes 11, 21 já possuem condição registrada.',
@@ -609,7 +679,7 @@ describe('ClinicalRecordEditorContainer', () => {
       defaultRecordHookState({ record: makeRecord({ patientEmail: null }) }),
     )
     render(<ClinicalRecordEditorContainer recordId="rec-1" />)
-    expect(mockGetOdontogram).toHaveBeenCalledWith('Ana Martins')
+    expect(mockGetOdontogram).toHaveBeenCalledWith('Ana Martins', null)
   })
 
   it('preserves the loaded patient odontogram when saving a draft and reports a save failure', async () => {
@@ -620,7 +690,7 @@ describe('ClinicalRecordEditorContainer', () => {
     mockUpsertOdontogram.mockRejectedValueOnce(new Error('offline'))
     await userEvent.click(screen.getByRole('button', { name: 'sticky-save' }))
     expect(mockSave).toHaveBeenCalledWith({})
-    expect(mockUpsertOdontogram).toHaveBeenCalledWith('ana@clinica.com', 'Ana Martins', data)
+    expect(mockUpsertOdontogram).toHaveBeenCalledWith('ana@clinica.com', 'Ana Martins', data, null)
     expect(mockShowAlert).toHaveBeenCalledWith(
       expect.objectContaining({
         description: 'Não foi possível salvar o odontograma durante o salvamento do rascunho.',
@@ -661,6 +731,7 @@ describe('ClinicalRecordEditorContainer', () => {
     try {
       mockUpsertOdontogram.mockRejectedValue(new Error('offline'))
       const { unmount } = render(<ClinicalRecordEditorContainer recordId="rec-1" />)
+      await act(async () => {})
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: 'mark-tooth' }))
       })

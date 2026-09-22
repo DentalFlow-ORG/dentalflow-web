@@ -6,27 +6,37 @@ import { ApiError } from '@/services/http'
 import { getPatientHistory } from '../services/patients.service'
 import type { PatientAppointment, PatientSummary } from '../types/patients.types'
 
+/**
+ * Key the loaded history belongs to.
+ *
+ * A household shares one contact identifier, so two patients can present the
+ * same one. Keying on identity keeps the previous patient's appointments from
+ * being shown as the next patient's history while their request is in flight.
+ */
+function historyKey(patient: PatientSummary): string {
+  return patient.patientId ?? patient.identifier
+}
+
 export function usePatientHistory(patient: PatientSummary | null) {
   const { showAlert } = useGlobalAlerts()
   const [history, setHistory] = useState<{
-    identifier: string
+    key: string
     appointments: PatientAppointment[]
   } | null>(null)
 
-  const appointments =
-    patient && history?.identifier === patient.identifier ? history.appointments : []
-  const isLoading = !!patient && history?.identifier !== patient.identifier
+  const appointments = patient && history?.key === historyKey(patient) ? history.appointments : []
+  const isLoading = !!patient && history?.key !== historyKey(patient)
 
   useEffect(() => {
     if (!patient) return
 
-    const identifier = patient.identifier
+    const key = historyKey(patient)
     let isCurrent = true
 
-    getPatientHistory(identifier)
+    getPatientHistory(patient.identifier, patient.patientId)
       .then((response) => {
         if (isCurrent) {
-          setHistory({ identifier, appointments: response.appointments })
+          setHistory({ key, appointments: response.appointments })
         }
       })
       .catch((error) => {
@@ -34,7 +44,7 @@ export function usePatientHistory(patient: PatientSummary | null) {
 
         const message = error instanceof ApiError ? error.message : 'Erro ao carregar histórico.'
         showAlert({ title: 'Erro', description: message, tone: 'error' })
-        setHistory({ identifier, appointments: [] })
+        setHistory({ key, appointments: [] })
       })
 
     return () => {

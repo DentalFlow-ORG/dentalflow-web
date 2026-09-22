@@ -90,6 +90,10 @@ const TEMPLATE_SECTION_MAP: Partial<Record<string, SectionId>> = {
 // ── Container ──────────────────────────────────────────────────────────────────
 
 export function ClinicalRecordEditorContainer({ recordId }: Props) {
+  return <ClinicalRecordEditorSession key={recordId} recordId={recordId} />
+}
+
+function ClinicalRecordEditorSession({ recordId }: Props) {
   const navigate = useNavigate()
   const { showAlert } = useGlobalAlerts()
   const {
@@ -112,8 +116,15 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
   const odontogramAlertResetRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [draft, setDraft] = useState<UpdateClinicalRecordDto>({})
-  const [odontogramData, setOdontogramData] = useState<OdontogramData>({ teeth: {} })
+  const [loadedOdontogramData, setOdontogramData] = useState<OdontogramData>({ teeth: {} })
   const [odontogramLoaded, setOdontogramLoaded] = useState(false)
+  const [odontogramOwner, setOdontogramOwner] = useState<string | null>(null)
+  const activePatientKey =
+    record?.id === recordId
+      ? `${record.id}:${record.patientId ?? record.patientEmail ?? record.patientName}`
+      : null
+  const chartIsCurrent = odontogramLoaded && odontogramOwner === activePatientKey
+  const odontogramData: OdontogramData = chartIsCurrent ? loadedOdontogramData : { teeth: {} }
 
   // Section expand/collapse — initialized with DRAFT defaults.
   // A one-shot effect below adjusts these once the record loads for non-DRAFT records
@@ -137,25 +148,26 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
   // Load the patient-level odontogram once the record is available.
   useEffect(() => {
-    if (!record || odontogramLoaded) return
+    if (!record || !activePatientKey || chartIsCurrent) return
     const identifier = record.patientEmail ?? record.patientName
     let isCurrent = true
 
-    getOdontogram(identifier)
+    getOdontogram(identifier, record.patientId)
       .then((data) => {
-        if (isCurrent && data) setOdontogramData(data.data)
+        if (isCurrent) {
+          setOdontogramData(data?.data ?? { teeth: {} })
+          setOdontogramOwner(activePatientKey)
+          setOdontogramLoaded(true)
+        }
       })
       .catch(() => {
         /* odontogram is optional — ignore load errors */
-      })
-      .finally(() => {
-        if (isCurrent) setOdontogramLoaded(true)
       })
 
     return () => {
       isCurrent = false
     }
-  }, [record, odontogramLoaded])
+  }, [record, activePatientKey, chartIsCurrent])
 
   // For non-DRAFT records: auto-expand sections that have content so the
   // reviewer immediately sees what was documented without extra interaction.
@@ -190,7 +202,7 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
 
   // ── Early returns ────────────────────────────────────────────────────────────
 
-  if (isLoading) {
+  if (isLoading || (record && record.id !== recordId)) {
     return (
       <AppPage>
         <LoadingCard message="Carregando prontuário..." />
@@ -322,21 +334,23 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
     if (!canEditClinicalContent) return
     cancelPendingAutosave()
     await save(draft)
-    if (Object.keys(odontogramData.teeth).length > 0) {
-      upsertOdontogram(identifier, record.patientName, odontogramData).catch(() => {
-        showAlert({
-          title: 'Odontograma não salvo',
-          description: 'Não foi possível salvar o odontograma durante o salvamento do rascunho.',
-          tone: 'warning',
-        })
-      })
+    if (chartIsCurrent && Object.keys(odontogramData.teeth).length > 0) {
+      upsertOdontogram(identifier, record.patientName, odontogramData, record.patientId).catch(
+        () => {
+          showAlert({
+            title: 'Odontograma não salvo',
+            description: 'Não foi possível salvar o odontograma durante o salvamento do rascunho.',
+            tone: 'warning',
+          })
+        },
+      )
     }
   }
 
   const handleOdontogramChange = (data: OdontogramData) => {
-    if (!canEditClinicalContent) return
+    if (!canEditClinicalContent || !chartIsCurrent) return
     setOdontogramData(data)
-    upsertOdontogram(identifier, record.patientName, data).catch(() => {
+    upsertOdontogram(identifier, record.patientName, data, record.patientId).catch(() => {
       if (!odontogramAlertShownRef.current) {
         odontogramAlertShownRef.current = true
         showAlert({
@@ -704,7 +718,11 @@ export function ClinicalRecordEditorContainer({ recordId }: Props) {
         </div>
 
         {/* ── Patient history ──────────────────────────────────────────────── */}
-        <PatientHistoryPanel currentRecordId={record.id} identifier={identifier} />
+        <PatientHistoryPanel
+          currentRecordId={record.id}
+          identifier={identifier}
+          patientId={record.patientId}
+        />
       </AppPage>
 
       {/* ── Unsaved-changes navigation guard ────────────────────────────────── */}
