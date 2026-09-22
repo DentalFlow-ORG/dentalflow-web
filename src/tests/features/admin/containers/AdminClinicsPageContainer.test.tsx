@@ -469,36 +469,21 @@ describe('AdminClinicsPageContainer — row interactions', () => {
     return { clinic, setEditTarget, setDeleteTarget }
   }
 
-  it('opens edit when clicking a table row', async () => {
-    const { setEditTarget, clinic } = renderWithClinic()
-    const [row] = screen.getAllByRole('button', { name: 'Editar Clínica Norte' })
-    await userEvent.click(row)
-    expect(setEditTarget).toHaveBeenCalledWith(clinic)
-  })
-
-  it.each(['{Enter}', ' '])('opens edit with %s when the row itself has focus', async (key) => {
-    const { setEditTarget, clinic } = renderWithClinic()
-    const [row] = screen.getAllByRole('button', { name: 'Editar Clínica Norte' })
-    row.focus()
-    await userEvent.keyboard(key)
-    expect(setEditTarget).toHaveBeenCalledWith(clinic)
-  })
-
-  it('ignores unrelated keys and activates the nested edit button only once', async () => {
-    const { setEditTarget, clinic } = renderWithClinic()
-    const [row, editButton] = screen.getAllByRole('button', { name: 'Editar Clínica Norte' })
-    row.focus()
-    await userEvent.keyboard('{ArrowDown}')
+  it('keeps unsupported clinic mutations unavailable', async () => {
+    const { setEditTarget, setDeleteTarget } = renderWithClinic()
+    for (const button of screen.getAllByRole('button', { name: /editar|excluir|nova clínica/i })) {
+      expect(button).toBeDisabled()
+    }
     expect(setEditTarget).not.toHaveBeenCalled()
-    editButton.focus()
-    await userEvent.keyboard('{Enter}')
-    expect(setEditTarget).toHaveBeenCalledExactlyOnceWith(clinic)
+    expect(setDeleteTarget).not.toHaveBeenCalled()
   })
 
-  it('opens delete confirmation via the icon button without triggering row navigation', async () => {
-    const { setDeleteTarget, setEditTarget } = renderWithClinic()
-    await userEvent.click(screen.getByRole('button', { name: 'Excluir Clínica Norte' }))
-    expect(setDeleteTarget).toHaveBeenCalledWith({ id: 'clinic-1', name: 'Clínica Norte' })
+  it('keeps a table row read-only for pointer and keyboard interactions', async () => {
+    const { setEditTarget } = renderWithClinic()
+    const row = screen.getByRole('row', { name: /Clínica Norte/ })
+    await userEvent.click(row)
+    row.focus()
+    await userEvent.keyboard('{Enter} ')
     expect(setEditTarget).not.toHaveBeenCalled()
   })
 
@@ -508,12 +493,12 @@ describe('AdminClinicsPageContainer — row interactions', () => {
   })
 
   it('renders mobile-card actions that mirror the desktop row actions', async () => {
-    const { setEditTarget, setDeleteTarget, clinic } = renderWithClinic()
+    const { setEditTarget, setDeleteTarget } = renderWithClinic()
     await userEvent.click(screen.getAllByRole('button', { name: /^editar$/i })[0])
-    expect(setEditTarget).toHaveBeenCalledWith(clinic)
+    expect(setEditTarget).not.toHaveBeenCalled()
 
     await userEvent.click(screen.getByRole('button', { name: /^excluir$/i }))
-    expect(setDeleteTarget).toHaveBeenCalledWith({ id: 'clinic-1', name: 'Clínica Norte' })
+    expect(setDeleteTarget).not.toHaveBeenCalled()
   })
 })
 
@@ -562,21 +547,21 @@ describe('AdminClinicsPageContainer — modal wiring', () => {
     mockUseClinicsHealth.mockReturnValue(makeDefaultHealthState())
   })
 
-  it('opens the create-clinic modal from the header button', async () => {
+  it('does not open unsupported creation from the header', async () => {
     const setCreateOpen = vi.fn()
     mockUseAdminClinicsPage.mockReturnValue(makeDefaultHookState({ setCreateOpen }))
     render(<AdminClinicsPageContainer />)
     await userEvent.click(screen.getAllByRole('button', { name: /nova clínica/i })[0])
-    expect(setCreateOpen).toHaveBeenCalledWith(true)
+    expect(setCreateOpen).not.toHaveBeenCalled()
   })
 
-  it('calls setCreateOpen(true) from the empty-state button too', async () => {
+  it('does not open unsupported creation from the empty state', async () => {
     const setCreateOpen = vi.fn()
     mockUseAdminClinicsPage.mockReturnValue(makeDefaultHookState({ setCreateOpen }))
     render(<AdminClinicsPageContainer />)
     const buttons = screen.getAllByRole('button', { name: /nova clínica/i })
     await userEvent.click(buttons[buttons.length - 1])
-    expect(setCreateOpen).toHaveBeenCalledWith(true)
+    expect(setCreateOpen).not.toHaveBeenCalled()
   })
 
   it('renders the create modal dialog when createOpen is true', () => {

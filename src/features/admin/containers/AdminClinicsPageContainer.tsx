@@ -23,16 +23,9 @@ import type { AdminClinic } from '../types/admin.types'
 type AdminClinicMobileCardProps = {
   clinic: AdminClinic
   formatDate: (value?: string) => string
-  onEdit: (clinic: AdminClinic) => void
-  onDelete: (target: { id: string; name: string }) => void
 }
 
-function AdminClinicMobileCard({
-  clinic,
-  formatDate,
-  onEdit,
-  onDelete,
-}: AdminClinicMobileCardProps) {
+function AdminClinicMobileCard({ clinic, formatDate }: AdminClinicMobileCardProps) {
   const isActive = clinic.isActive !== false
 
   return (
@@ -60,14 +53,14 @@ function AdminClinicMobileCard({
         </dl>
 
         <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
-          <Button variant="outline" className="w-full" onClick={() => onEdit(clinic)}>
+          <Button variant="outline" className="w-full" disabled>
             <Pencil className="h-4 w-4" aria-hidden="true" />
             Editar
           </Button>
           <Button
             variant="ghost"
             className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/40 dark:hover:text-red-300"
-            onClick={() => onDelete({ id: clinic.id, name: clinic.name })}
+            disabled
           >
             <Trash2 className="h-4 w-4" aria-hidden="true" />
             Excluir
@@ -122,9 +115,9 @@ export function AdminClinicsPageContainer() {
       <HomeDashboardHeader
         eyebrow="Administração"
         title="Clínicas da plataforma"
-        description="Gerencie os tenants da plataforma e mantenha a base de clínicas organizada."
+        description="Consulte as clínicas e os sinais de operação. Cadastro, edição e exclusão administrativa não estão disponíveis."
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
+          <Button disabled>
             <Plus className="h-4 w-4" aria-hidden="true" />
             Nova clínica
           </Button>
@@ -169,9 +162,9 @@ export function AdminClinicsPageContainer() {
             <HomeEmptyState
               icon={Building2}
               title="Nenhuma clínica encontrada"
-              description="Adicione a primeira clínica da plataforma."
+              description="As clínicas aparecem após o cadastro do responsável."
               action={
-                <Button onClick={() => setCreateOpen(true)}>
+                <Button disabled>
                   <Plus className="h-4 w-4" aria-hidden="true" />
                   Nova clínica
                 </Button>
@@ -203,8 +196,6 @@ export function AdminClinicsPageContainer() {
                         key={clinic.id}
                         clinic={clinic}
                         formatDate={formatDate}
-                        onEdit={setEditTarget}
-                        onDelete={setDeleteTarget}
                       />
                     ))}
                   </div>
@@ -232,21 +223,7 @@ export function AdminClinicsPageContainer() {
                           const isActive = clinic.isActive !== false
 
                           return (
-                            <tr
-                              key={clinic.id}
-                              role="button"
-                              tabIndex={0}
-                              aria-label={`Editar ${clinic.name}`}
-                              className="cursor-pointer transition-colors hover:bg-muted/60 focus-visible:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-                              onClick={() => setEditTarget(clinic)}
-                              onKeyDown={(event) => {
-                                if (event.target !== event.currentTarget) return
-                                if (event.key === 'Enter' || event.key === ' ') {
-                                  event.preventDefault()
-                                  setEditTarget(clinic)
-                                }
-                              }}
-                            >
+                            <tr key={clinic.id} className="transition-colors hover:bg-muted/60">
                               <td className="px-4 py-3">
                                 <p className="font-semibold text-foreground">{clinic.name}</p>
                                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -262,16 +239,13 @@ export function AdminClinicsPageContainer() {
                                 {formatDate(clinic.createdAt)}
                               </td>
                               <td className="px-4 py-3">
-                                <div
-                                  className="flex items-center justify-end gap-1"
-                                  onClick={(event) => event.stopPropagation()}
-                                >
+                                <div className="flex items-center justify-end gap-1">
                                   <Button
                                     size="icon-sm"
                                     variant="ghost"
                                     aria-label={`Editar ${clinic.name}`}
                                     title="Editar"
-                                    onClick={() => setEditTarget(clinic)}
+                                    disabled
                                   >
                                     <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                                   </Button>
@@ -281,9 +255,7 @@ export function AdminClinicsPageContainer() {
                                     aria-label={`Excluir ${clinic.name}`}
                                     title="Excluir"
                                     className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/40 dark:hover:text-red-300"
-                                    onClick={() =>
-                                      setDeleteTarget({ id: clinic.id, name: clinic.name })
-                                    }
+                                    disabled
                                   >
                                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                                   </Button>
