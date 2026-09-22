@@ -3,5 +3,6 @@
   "entry": ["src/app/router.tsx!", "src/app/route-components.tsx!"],
   "project": ["src/**/*.{ts,tsx,css}!", "scripts/**/*.{js,cjs,mjs,ts}", "*.{js,cjs,mjs,ts}"],
   "ignore": ["src/test-utils/**"],
-  "includeEntryExports": true
+  "includeEntryExports": true,
+  "tags": ["-testContract"]
 }

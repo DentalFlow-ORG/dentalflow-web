@@ -1,6 +1,7 @@
 import { COOKIE_POLICY_VERSION as CONFIG_COOKIE_VERSION } from '@/config/company'
 import type { CookieConsent } from '../types/cookie-consent.types'
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export const COOKIE_CONSENT_KEY = 'dentalflow_cookie_consent_v1'
 /** Fonte canônica: companyInfo.cookiePolicyVersion em src/config/company.ts */
 export const COOKIE_POLICY_VERSION = CONFIG_COOKIE_VERSION

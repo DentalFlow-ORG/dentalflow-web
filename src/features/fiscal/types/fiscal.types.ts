@@ -87,6 +87,7 @@ export type ServiceInvoice = {
   events?: FiscalInvoiceEvent[]
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export type FiscalInvoiceEvent = {
   id: string
   eventType: string

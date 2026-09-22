@@ -53,6 +53,7 @@ export function rotateLeft(rotation: RotationDegrees): RotationDegrees {
   return 0
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function computeRotatedDimensions(
   naturalW: number,
   naturalH: number,

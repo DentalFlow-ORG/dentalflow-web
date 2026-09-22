@@ -31,6 +31,7 @@ export type BillingPlan = {
   campaign: BillingPlanCampaign
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export type BillingPlanCampaign = {
   enabled: boolean
   promotionalPriceMonthly: number | null

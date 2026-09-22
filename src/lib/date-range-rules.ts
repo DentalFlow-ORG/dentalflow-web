@@ -2,18 +2,22 @@ import { brazilDaysAgo, brazilTodayIso } from './brazil-timezone'
 
 const MAX_REPORT_MONTHS = 12
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function todayIso(): string {
   return brazilTodayIso()
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function isFutureDate(iso: string): boolean {
   return iso > todayIso()
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function isEndBeforeStart(start: string, end: string): boolean {
   return Boolean(start && end && end < start)
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function rangeExceedsMonths(start: string, end: string, maxMonths: number): boolean {
   if (!start || !end) return false
   const [sy, sm, sd] = start.split('-').map(Number)

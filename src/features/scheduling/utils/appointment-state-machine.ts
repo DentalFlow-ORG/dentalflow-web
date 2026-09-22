@@ -3,6 +3,7 @@ import { formatWallTime, isoDateToString } from './time'
 
 // Mirrors the server-side state machine in appointments.service.ts.
 // Any change here must be reflected there and vice-versa.
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export const APPOINTMENT_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
   PENDING: ['CONFIRMED', 'CANCELED'],
   CONFIRMED: ['COMPLETED', 'NO_SHOW', 'CANCELED'],
@@ -27,6 +28,7 @@ function buildAppointmentDateTime(appointment: Appointment): Date {
  * Returns true if transitioning this appointment to `target` is currently
  * valid, considering both the state machine and the appointment's date/time.
  */
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function canTransitionTo(
   appointment: Appointment,
   target: AppointmentStatus,

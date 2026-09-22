@@ -55,6 +55,7 @@ export function brazilDaysAgo(days: number, now = new Date()): string {
  * Brazil calendar date as 'YYYY-MM-DD'. Overflowing days (e.g. Jan 31 + 1 month)
  * normalise to the next month — same behaviour as the native Date APIs.
  */
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function brazilAddMonths(isoDate: string, months: number): string {
   const [y, m, d] = isoDate.split('-').map(Number)
   return brazilTodayIso(new Date(Date.UTC(y, m - 1 + months, d, 12, 0, 0)))

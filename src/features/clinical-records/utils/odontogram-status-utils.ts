@@ -95,6 +95,7 @@ export const ODONTOGRAM_CONDITION_BUTTON_CLASSES: Record<string, string> = {
   watch: 'bg-yellow-50  border-yellow-200  text-yellow-800',
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export const ODONTOGRAM_TOOTH_TOKENS: Record<
   string,
   { fill: string; stroke: string; text: string; dot: string }
@@ -150,6 +151,7 @@ export function getToothKind(toothNumber: number): ToothKind {
  * `OdontogramData | null`. Returns null for any malformed, non-object, or
  * null/undefined input without throwing, so callers do not need to guard.
  */
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function normalizeOdontogramSnapshot(value: unknown): OdontogramData | null {
   if (value === null || value === undefined) return null
   if (typeof value !== 'object' || Array.isArray(value)) return null

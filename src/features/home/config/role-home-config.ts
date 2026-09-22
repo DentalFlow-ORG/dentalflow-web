@@ -51,6 +51,7 @@ export const ROLE_HOME_ROUTES = {
  * block redesigns that page — this avoids a confusing half-state where the label
  * changes but the content does not.
  */
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export const ROLE_HOME_LABELS = {
   ADMIN: 'Painel administrativo',
   OWNER: 'Minha clínica',
@@ -70,12 +71,13 @@ export const ROLE_HOME_LABELS = {
  * - hidden      Not visible and not accessible (route denied or nav hidden).
  * - future      Planned but not yet implemented in the frontend.
  */
-export type RoleFeatureAccess = 'editable' | 'read-only' | 'plan-gated' | 'hidden' | 'future'
+type RoleFeatureAccess = 'editable' | 'read-only' | 'plan-gated' | 'hidden' | 'future'
 
 /**
  * High-level features tracked in the dashboard/home matrix.
  * Add new entries as features are built; remove 'future' entries when shipped.
  */
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export type HomeFeature =
   | 'home' // The role's own dashboard/home page
   | 'clinicAgenda' // Clinic-wide appointments (/app/agendamentos)
@@ -245,6 +247,7 @@ export function getRoleHomeRoute(role: AuthUserRole): string {
 }
 
 /** Returns the intended home label for the given role. */
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function getRoleHomeLabel(role: AuthUserRole): string {
   return ROLE_HOME_LABELS[role]
 }
@@ -253,6 +256,7 @@ export function getRoleHomeLabel(role: AuthUserRole): string {
  * Returns the intended access level for a given role + feature combination.
  * For dashboard/home rendering guidance only — enforce access via route guards.
  */
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function getRoleFeatureAccess(role: AuthUserRole, feature: HomeFeature): RoleFeatureAccess {
   return ROLE_FEATURE_MATRIX[role][feature]
 }

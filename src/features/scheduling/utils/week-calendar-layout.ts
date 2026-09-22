@@ -8,10 +8,13 @@ import {
   wallTimeToMinutes,
 } from './time'
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export const SLOT_MINUTES = 30
 export const SLOT_HEIGHT_PX = 80
 export const PX_PER_MINUTE = SLOT_HEIGHT_PX / SLOT_MINUTES
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export const DEFAULT_START_MINUTES = wallTimeToMinutes(BUSINESS_START_TIME)
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export const DEFAULT_END_MINUTES = wallTimeToMinutes(BUSINESS_END_TIME)
 
 export type PositionedAppointment = Appointment & {

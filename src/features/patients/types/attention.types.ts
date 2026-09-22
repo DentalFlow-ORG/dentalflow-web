@@ -23,6 +23,7 @@ export type PatientAttentionItem = {
   hasWhatsappConsent: boolean
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export type AttentionSummary = {
   total: number
   inactive: number

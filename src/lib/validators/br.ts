@@ -13,6 +13,7 @@ export function normalizeDigits(value: string): string {
 
 // ── CPF ───────────────────────────────────────────────────────────────────────
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function isValidCPF(value: string): boolean {
   const d = normalizeDigits(value)
   if (d.length !== 11) return false
@@ -31,6 +32,7 @@ export function isValidCPF(value: string): boolean {
   return rem === Number.parseInt(d[10])
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function formatCPF(value: string): string {
   const d = normalizeDigits(value).slice(0, 11)
   if (d.length <= 3) return d
@@ -61,6 +63,7 @@ export function isValidCNPJ(value: string): boolean {
   return d2 === Number.parseInt(d[13])
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function formatCNPJ(value: string): string {
   const d = normalizeDigits(value).slice(0, 14)
   if (d.length <= 2) return d
@@ -85,6 +88,7 @@ export function isValidCEP(value: string): boolean {
   return normalizeDigits(value).length === 8
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function formatCEP(value: string): string {
   const d = normalizeDigits(value).slice(0, 8)
   if (d.length <= 5) return d
@@ -93,6 +97,7 @@ export function formatCEP(value: string): string {
 
 // ── UF ────────────────────────────────────────────────────────────────────────
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export const VALID_UFS = new Set([
   'AC',
   'AL',
@@ -171,6 +176,7 @@ export function isValidBrazilianPhone(value: string): boolean {
   return true
 }
 
+/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
 export function formatBrazilianPhone(value: string): string {
   const d = normalizeDigits(value).slice(0, 11)
   if (d.length <= 2) return d
