@@ -22,6 +22,13 @@ const productionCsp = (() => {
 })()
 
 describe('connectSrcOrigins', () => {
+  it('permits the existing CEP provider without wildcard network access', () => {
+    const origins = connectSrcOrigins(productionCsp)
+    expect(origins).toContain('https://viacep.com.br')
+    expect(origins).not.toContain('*')
+    expect(origins).not.toContain('https:')
+  })
+
   it('reads the origins the policy actually permits', () => {
     expect(connectSrcOrigins(productionCsp)).toContain("'self'")
   })
