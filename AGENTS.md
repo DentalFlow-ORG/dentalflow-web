@@ -103,15 +103,24 @@ src/
 
 ### Current Backend Contract
 
-Until the backend provides an official OpenAPI/Swagger contract, the frontend assumes:
+The sibling `../dentalflow-api` is the implementation authority. Read its
+AGENTS.md before backend edits. Current source-derived contracts and local setup:
+[documentation index](docs/README.md) and [API reference](docs/integrations/source-reference.md).
+No official OpenAPI/generated client exists yet. The current auth contract includes:
 
 - `POST /auth/login`
 - `POST /auth/register`
 - `GET /auth/me`
+- `POST /auth/refresh` using the HttpOnly refresh cookie
 - `POST /auth/logout`
 - `Authorization: Bearer <accessToken>` for authenticated requests.
 
-If the backend moves to HTTP-only cookies, keep components unchanged and update only `src/services/http.ts`, `src/features/auth/services`, and session handling.
+Access tokens are memory-only. Refresh tokens already rotate through an HttpOnly
+cookie; requests include credentials. Production uses Secure/SameSite=None and
+Origin validation for refresh/logout. Logout also requires Bearer authentication.
+Keep HTTP/session behavior in the existing services/provider boundaries.
+Update the relevant RF/RN/RNF and canonical documentation when behavior changes;
+never add machine-specific paths, secrets or duplicate backend rules here.
 
 ## Component Rules
 

@@ -14,12 +14,19 @@
 
 | Variant | Uso | Hover light | Hover dark |
 |---------|-----|------------|-----------|
-| `default` | CTA primário, formulários | `hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20` | `dark:hover:shadow-lg dark:hover:shadow-primary/35` |
+| `default` | CTA primário, formulários | Slate escuro, borda e sombra | Slate claro, texto escuro e sombra |
 | `outline` | Ações secundárias, cards | `hover:border-primary/35 hover:bg-primary/10 hover:text-primary` | `dark:hover:bg-primary/15 dark:hover:border-primary/60` |
 | `ghost` | Ações inline, ícones neutros | `hover:bg-muted hover:text-primary` | `dark:hover:bg-muted dark:hover:text-foreground` |
 | `dangerGhost` | Ícones de deletar/remover inline | `hover:bg-red-50 hover:text-red-700` | `dark:hover:bg-red-900/40 dark:hover:text-red-300` |
-| `destructive` | Ações destrutivas explícitas | `hover:bg-destructive/20` | `dark:hover:bg-destructive/40` |
+| `destructive` | Ações destrutivas explícitas | `hover:bg-destructive/25` | `dark:hover:bg-destructive/45` |
 | `secondary` | Ação verde (confirmar, salvar) | `hover:bg-[#0f9f72]` | (sem override, funciona nos dois modos) |
+| `accent` | Destaque índigo | `hover:bg-[#4f46e5]` | Conforme variante compartilhada |
+| `link` | Ação textual | Sublinhado | Conforme tokens |
+| `inverse` | Ação sobre fundo escuro | Branco translúcido | Conforme variante compartilhada |
+
+Reconciliado em 2026-09-20. A fonte exata é `src/components/ui/button-variants.ts`;
+não copie classes desta tabela para componentes. A proibição de cores avulsas
+não elimina as escolhas centralizadas já existentes nas variantes.
 
 ---
 

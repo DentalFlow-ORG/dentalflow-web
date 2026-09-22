@@ -5,7 +5,8 @@
 | Área | Tema |
 |------|------|
 | Qualquer rota que **não** começa com `/app` | **Sempre claro** (forçado) |
-| Rotas `/app` e `/app/*` | Respeita a preferência salva do usuário (claro ou escuro) |
+| Rotas operacionais `/app` e `/app/*` | Respeita a preferência salva do usuário (claro ou escuro) |
+| `/app/assinatura` e subrotas sem acesso de billing confirmado | Claro; com acesso confirmado, permite preferência salva |
 
 ## Como funciona tecnicamente
 
@@ -13,12 +14,16 @@ A regra é aplicada centralmente em `src/features/theme/ThemeProvider.tsx`.
 
 O `ThemeProvider` usa `useRouterState` do TanStack Router para observar o `pathname` atual. A cada navegação:
 
-- Se `pathname.startsWith('/app')` → aplica a preferência do usuário (`dark` ou `light`)
+- Se `pathname.startsWith('/app')` e `shouldForceLightTheme(pathname)` é false → aplica a preferência do usuário (`dark` ou `light`)
 - Caso contrário → remove a classe `dark` do `document.documentElement`
+
+`force-light-routes.ts` e `billing-theme-override.ts` definem a exceção de
+onboarding/billing. A preferência continua preservada. Revisão de código: 2026-09-20.
 
 A remoção é feita via `queueMicrotask`, garantindo que rode **depois** de todos os `useLayoutEffect` de componentes filhos — incluindo o `useForceLightTheme` já existente em algumas páginas públicas.
 
-A preferência do usuário (`localStorage['dentalflow.theme']`) **nunca é apagada**. Ela só não é aplicada fora de `/app`.
+A preferência do usuário (`localStorage['dentalflow.theme']`) **nunca é apagada**.
+Ela não é aplicada nas rotas forçadas para claro, incluindo a exceção de billing acima.
 
 ## ThemeToggle
 

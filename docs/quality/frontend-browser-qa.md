@@ -12,6 +12,16 @@ whenever the corresponding code changes.
 
 **Last executed: never.**
 
+## Stable Patient identity — mandatory release acceptance
+
+- [ ] Create/select Patient A and Patient B with different IDs and identical household email, name and phone. Open A and fully load history, clinical timeline, odontogram and avatar.
+- [ ] Throttle the network, switch to B and inspect the entire loading interval. No A content may appear under B. Try editing/saving the chart before B loads: no A chart may be submitted for B. Repeat B → A.
+- [ ] Allow A's delayed read and avatar-save responses to complete after B loads. B must remain unchanged. Repeat in the reverse direction and verify each Patient's persisted chart and avatar.
+- [ ] Verify separate attention rows and photos for both Patients.
+- [ ] Complete login, session reload, appointment creation, clinical-record completion, billing-page navigation and logout. Record evidence before accepting the release.
+
+Automated PostgreSQL/component regressions supplement this scenario; they do not mark it passed.
+
 ## Clinical records
 
 - [ ] Chrome, Edge and Safari: allow/deny microphone permission, missing device, device busy and permission resolved after navigation. Confirm recording indicators stop and the microphone is released.

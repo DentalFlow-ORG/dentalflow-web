@@ -6,6 +6,18 @@ measurable business outcomes.
 
 This repository contains only the frontend application.
 
+The sibling [dentalflow-api](../dentalflow-api/README.md) provides the NestJS API
+for this same product. Start with the [documentation index](docs/README.md),
+[two-repository setup](docs/development/workspace.md),
+[current architecture](docs/architecture/system.md),
+[feature/requirement inventory](docs/requirements/functional.md) and
+[production audit](docs/audit-report.md).
+
+Current boundaries: patient lists derive from appointments; fiscal issuance is
+local simulation; WhatsApp supports manual sends but has no reminder scheduler;
+the PATIENT role is Google onboarding, not a patient portal. See the inventory
+before treating marketing copy or a database field as a completed capability.
+
 ## Stack
 
 - React

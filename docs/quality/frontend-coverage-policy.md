@@ -6,7 +6,9 @@ a threshold moves.
 
 ## Current measurement
 
-Measured on `dev/yago` with `bun run test:coverage`: **399 suites / 5,679 tests**.
+Historical baseline: **399 suites / 5,679 tests**. Current audit execution and
+updated counts are recorded in [audit-report.md](../audit-report.md), so this
+policy does not maintain a second live test-count source. Thresholds below remain unchanged.
 
 | Metric | Covered / total | Coverage | Threshold |
 | --- | ---: | ---: | ---: |
@@ -15,8 +17,9 @@ Measured on `dev/yago` with `bun run test:coverage`: **399 suites / 5,679 tests*
 | Functions | 3281 / 3373 | 97.27% | 97.1% |
 | Lines | 8798 / 9062 | 97.08% | 96.9% |
 
-71 of 512 measured files are below 100%. Every remaining gap is classified
-below; none of them is open product behavior. Statement coverage moves by a
+At that historical baseline, 71 of 512 measured files were below 100%. The
+classification below must be rechecked when touched files change; it is not a
+blanket waiver for new gaps. Statement coverage moves by a
 statement or two between runs, which is why the floors sit a little under the
 measured figures rather than flush against them.
 

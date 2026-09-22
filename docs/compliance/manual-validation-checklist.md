@@ -1,26 +1,28 @@
 # Checklist de Validação Manual — Compliance DentalFlow
 
-**Versão:** 2026-05-15
+**Versão:** 2026-09-20 — checklist manual; nenhuma caixa comprova execução nesta auditoria
 **Uso:** Execute este checklist antes de colocar em produção qualquer funcionalidade de compliance.
 
 ---
 
 ## 0. Bloqueadores de Deploy — Execute Antes de Qualquer Outra Coisa
 
-Estes itens devem ser resolvidos **antes** de qualquer deploy em produção.
-Um build com qualquer destes pendentes falhará ou publicará dados fictícios.
+Revise estes itens antes da operação comercial e registre evidências.
+O build não verifica formalização empresarial nem substitui revisão jurídica.
 
 ### 0.1 Placeholders Jurídicos (`src/config/company.ts`)
 
-O app detecta automaticamente placeholders e lança erro no build de produção.
-Verifique executando `bun run build` — se falhar com `[company.ts]`, resolva os itens abaixo.
+Atualmente PLACEHOLDER_CHECKS está vazio e companyStatus tem quatro flags false.
+A validação ocorre na inicialização do navegador e emite aviso para dados
+provisórios; não bloqueia o build. Confirme manualmente os itens aplicáveis abaixo
+com o responsável jurídico, incluindo eventuais regras específicas de nomeação do DPO.
 
 - [ ] `documentNumber` preenchido com CNPJ real (formato `XX.XXX.XXX/XXXX-XX`)
       → Obter da Receita Federal; confirmar que corresponde à razão social cadastrada
 - [ ] `address` preenchido com endereço comercial completo
       → Logradouro, número, complemento, bairro, cidade, UF, CEP
 - [ ] `dpoName` preenchido com nome completo do Encarregado de Proteção de Dados
-      → Obrigatório pelo LGPD Art. 41 §1; deve ser publicado e acessível aos titulares
+      → Confirmar responsabilidade, contato público e exigências aplicáveis com a revisão jurídica
 - [ ] `phone` preenchido com número de suporte real
 - [ ] `legalName` confirmado: corresponde exatamente à razão social no CNPJ
 
@@ -44,10 +46,10 @@ Verifique executando `bun run build` — se falhar com `[company.ts]`, resolva o
 
 ```powershell
 # No diretório dentalflow-web:
-Set-Location "C:\Users\yagos\DevelopmentProjects\dentalflow-web"
+Set-Location ../dentalflow-web
 bun run build
-# Esperado: build concluído SEM erro "[company.ts] placeholders"
-# Se falhar: preencher os campos indicados no erro e repetir
+# Esperado: TypeScript e bundling aprovados.
+# Verificar companyStatus e dados legais separadamente; o build não os certifica.
 ```
 
 ---
