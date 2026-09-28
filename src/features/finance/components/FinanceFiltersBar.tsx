@@ -55,6 +55,7 @@ export function FinanceFiltersBar({
           <DatePickerInput
             id="financeTo"
             value={filters.to}
+            minValue={filters.from}
             onValueChange={(value) => onChange('to', value)}
           />
         </FormField>

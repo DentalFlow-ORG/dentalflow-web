@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 
 import { CATEGORY_COLORS } from '../constants/finance-display'
+import { CATEGORY_NAME_REQUIRED_MESSAGE } from '../constants/finance-form'
 import {
   createFinancialCategory,
   deleteFinancialCategory,
@@ -59,7 +60,7 @@ export function useFinanceCategories(reload: () => void) {
     setCategoryError(null)
 
     if (!categoryForm.name.trim()) {
-      setCategoryError('O nome da categoria e obrigatorio.')
+      setCategoryError(CATEGORY_NAME_REQUIRED_MESSAGE)
       return
     }
 
@@ -73,7 +74,7 @@ export function useFinanceCategories(reload: () => void) {
       await createFinancialCategory(dto)
       showAlert({
         title: 'Categoria criada',
-        description: `"${dto.name}" foi adicionada as categorias.`,
+        description: `"${dto.name}" foi adicionada às categorias.`,
         tone: 'success',
       })
       setCategoryForm(emptyCategoryForm)
@@ -91,7 +92,7 @@ export function useFinanceCategories(reload: () => void) {
     setCategoryEditError(null)
 
     if (!categoryEditForm.name.trim()) {
-      setCategoryEditError('O nome da categoria e obrigatorio.')
+      setCategoryEditError(CATEGORY_NAME_REQUIRED_MESSAGE)
       return
     }
 
@@ -104,7 +105,7 @@ export function useFinanceCategories(reload: () => void) {
       })
       showAlert({
         title: 'Categoria atualizada',
-        description: 'As alteracoes foram salvas.',
+        description: 'As alterações foram salvas.',
         tone: 'success',
       })
       setEditingCategory(null)
@@ -130,11 +131,11 @@ export function useFinanceCategories(reload: () => void) {
       reload()
     } catch (err) {
       showAlert({
-        title: 'Nao foi possivel remover',
+        title: 'Não foi possível remover',
         description:
           err instanceof Error
             ? err.message
-            : 'Verifique se a categoria possui lancamentos vinculados.',
+            : 'Verifique se a categoria possui lançamentos vinculados.',
         tone: 'error',
       })
       setDeletingCategory(null)

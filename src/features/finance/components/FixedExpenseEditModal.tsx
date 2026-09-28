@@ -1,5 +1,6 @@
 import { Loader2, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
+import { financeFieldErrors } from '../utils/finance-form-rules'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { formatMoneyInputFromDigits } from '@/lib/money-input'
 
+import { FINANCE_FIELD_LIMITS, FINANCE_MAX_AMOUNT_CENTS } from '../constants/finance-form'
 import type {
   FinancialCategory,
   FixedExpense,
@@ -43,6 +45,8 @@ export function FixedExpenseEditModal({
   onSubmit: (event: React.FormEvent) => void
   onClose: () => void
 }) {
+  const fieldErrors = financeFieldErrors(form, error)
+
   return (
     <Dialog.Root open={expense !== null} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
@@ -68,17 +72,25 @@ export function FixedExpenseEditModal({
             Atualize os dados da despesa fixa recorrente.
           </Dialog.Description>
 
-          <form className="flex min-h-0 flex-col" onSubmit={onSubmit}>
+          <form noValidate className="flex min-h-0 flex-col" onSubmit={onSubmit}>
             <div className="app-scrollbar min-h-0 overflow-y-auto px-6 py-5">
               <div className="space-y-4">
                 {error && <InlineFeedback>{error}</InlineFeedback>}
 
-                <FormField label="Categoria" htmlFor="editFeCategory">
+                <FormField
+                  label="Categoria"
+                  htmlFor="editFeCategory"
+                  error={fieldErrors.categoryId}
+                >
                   <Select
                     value={form.categoryId}
                     onValueChange={(value) => onChange('categoryId', value)}
                   >
-                    <SelectTrigger id="editFeCategory">
+                    <SelectTrigger
+                      id="editFeCategory"
+                      aria-invalid={Boolean(fieldErrors.categoryId)}
+                      aria-describedby={fieldErrors.categoryId ? 'editFeCategory-error' : undefined}
+                    >
                       <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
                     <SelectContent>
@@ -91,24 +103,38 @@ export function FixedExpenseEditModal({
                   </Select>
                 </FormField>
 
-                <FormField label="Descrição" htmlFor="editFeDescription">
+                <FormField
+                  label="Descrição"
+                  htmlFor="editFeDescription"
+                  error={fieldErrors.description}
+                >
                   <TextInput
                     id="editFeDescription"
+                    aria-invalid={Boolean(fieldErrors.description)}
+                    aria-describedby={
+                      fieldErrors.description ? 'editFeDescription-error' : undefined
+                    }
+                    placeholder="Ex.: aluguel da clínica"
                     value={form.description}
-                    maxLength={160}
+                    maxLength={FINANCE_FIELD_LIMITS.description}
                     onChange={(event) => onChange('description', event.target.value)}
                   />
                 </FormField>
 
                 <div className="grid items-start gap-4 sm:grid-cols-3">
-                  <FormField label="Valor" htmlFor="editFeAmount">
+                  <FormField label="Valor" htmlFor="editFeAmount" error={fieldErrors.amount}>
                     <TextInput
                       id="editFeAmount"
+                      aria-invalid={Boolean(fieldErrors.amount)}
+                      aria-describedby={fieldErrors.amount ? 'editFeAmount-error' : undefined}
                       inputMode="numeric"
-                      placeholder="0,00"
+                      placeholder="R$ 0,00"
                       value={form.amount}
                       onChange={(event) =>
-                        onChange('amount', formatMoneyInputFromDigits(event.target.value))
+                        onChange(
+                          'amount',
+                          formatMoneyInputFromDigits(event.target.value, FINANCE_MAX_AMOUNT_CENTS),
+                        )
                       }
                     />
                   </FormField>
@@ -129,30 +155,40 @@ export function FixedExpenseEditModal({
                       </SelectContent>
                     </Select>
                   </FormField>
-                  <FormField label="Dia" htmlFor="editFeDueDay">
+                  <FormField label="Dia" htmlFor="editFeDueDay" error={fieldErrors.dueDay}>
                     <TextInput
                       id="editFeDueDay"
-                      type="number"
-                      min="1"
-                      max="31"
+                      aria-invalid={Boolean(fieldErrors.dueDay)}
+                      aria-describedby={fieldErrors.dueDay ? 'editFeDueDay-error' : undefined}
+                      inputMode="numeric"
+                      maxLength={2}
                       placeholder="1–31"
                       value={form.dueDay}
-                      onChange={(event) => onChange('dueDay', event.target.value)}
+                      onChange={(event) =>
+                        onChange('dueDay', event.target.value.replace(/\D/g, ''))
+                      }
                     />
                   </FormField>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <FormField label="Início" htmlFor="editFeStartDate">
+                  <FormField label="Início" htmlFor="editFeStartDate" error={fieldErrors.startDate}>
                     <DatePickerInput
                       id="editFeStartDate"
+                      invalid={Boolean(fieldErrors.startDate)}
                       value={form.startDate}
                       onValueChange={(value) => onChange('startDate', value)}
                     />
                   </FormField>
-                  <FormField label="Fim" htmlFor="editFeEndDate" optional>
+                  <FormField
+                    label="Fim"
+                    htmlFor="editFeEndDate"
+                    error={fieldErrors.endDate}
+                    optional
+                  >
                     <DatePickerInput
                       id="editFeEndDate"
+                      invalid={Boolean(fieldErrors.endDate)}
                       value={form.endDate}
                       onValueChange={(value) => onChange('endDate', value)}
                     />

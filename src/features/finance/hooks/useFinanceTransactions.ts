@@ -4,6 +4,7 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { centsToMoneyInput, parseMoneyInputToCents } from '@/lib/money-input'
 
+import { FINANCE_REQUIRED_FIELDS_MESSAGE } from '../constants/finance-form'
 import {
   createFinancialTransaction,
   deleteFinancialTransaction,
@@ -14,6 +15,7 @@ import type {
   FinancialTransaction,
   TransactionFormState,
 } from '../types/finance.types'
+import { hasRequiredFinanceFields } from '../utils/finance-form-rules'
 
 const emptyTransactionForm: TransactionFormState = {
   type: 'INCOME',
@@ -61,8 +63,8 @@ export function useFinanceTransactions(
     event.preventDefault()
     setTransactionError(null)
 
-    if (!transactionForm.categoryId || !transactionForm.amount || !transactionForm.description) {
-      setTransactionError('Categoria, valor e descricao sao obrigatorios.')
+    if (!hasRequiredFinanceFields(transactionForm)) {
+      setTransactionError(FINANCE_REQUIRED_FIELDS_MESSAGE)
       return
     }
 
@@ -78,14 +80,14 @@ export function useFinanceTransactions(
         status: transactionForm.status,
       })
       showAlert({
-        title: 'Movimentacao criada',
-        description: 'O lancamento foi registrado no financeiro.',
+        title: 'Movimentação criada',
+        description: 'O lançamento foi registrado no financeiro.',
         tone: 'success',
       })
       setTransactionForm(emptyTransactionForm)
       reload()
     } catch (err) {
-      setTransactionError(err instanceof Error ? err.message : 'Erro ao salvar movimentacao.')
+      setTransactionError(err instanceof Error ? err.message : 'Erro ao salvar movimentação.')
     } finally {
       setIsSavingTransaction(false)
     }
@@ -121,8 +123,8 @@ export function useFinanceTransactions(
     if (!editingTransaction) return
     setEditError(null)
 
-    if (!editForm.categoryId || !editForm.amount || !editForm.description) {
-      setEditError('Categoria, valor e descricao sao obrigatorios.')
+    if (!hasRequiredFinanceFields(editForm)) {
+      setEditError(FINANCE_REQUIRED_FIELDS_MESSAGE)
       return
     }
 
@@ -138,14 +140,14 @@ export function useFinanceTransactions(
         status: editForm.status,
       })
       showAlert({
-        title: 'Movimentacao atualizada',
-        description: 'O lancamento foi atualizado com sucesso.',
+        title: 'Movimentação atualizada',
+        description: 'O lançamento foi atualizado com sucesso.',
         tone: 'success',
       })
       setEditingTransaction(null)
       reload()
     } catch (err) {
-      setEditError(err instanceof Error ? err.message : 'Erro ao atualizar movimentacao.')
+      setEditError(err instanceof Error ? err.message : 'Erro ao atualizar movimentação.')
     } finally {
       setIsUpdating(false)
     }
@@ -157,7 +159,7 @@ export function useFinanceTransactions(
     try {
       await deleteFinancialTransaction(deletingTransaction.id)
       showAlert({
-        title: 'Lancamento cancelado',
+        title: 'Lançamento cancelado',
         description: `"${deletingTransaction.description}" foi cancelado.`,
         tone: 'success',
       })
@@ -165,8 +167,8 @@ export function useFinanceTransactions(
       reload()
     } catch (err) {
       showAlert({
-        title: 'Erro ao cancelar lancamento',
-        description: err instanceof Error ? err.message : 'Nao foi possivel cancelar.',
+        title: 'Erro ao cancelar lançamento',
+        description: err instanceof Error ? err.message : 'Não foi possível cancelar.',
         tone: 'error',
       })
     } finally {

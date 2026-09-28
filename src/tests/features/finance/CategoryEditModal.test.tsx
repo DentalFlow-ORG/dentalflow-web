@@ -51,6 +51,13 @@ function renderModal(overrides: Partial<Parameters<typeof CategoryEditModal>[0]>
 }
 
 describe('CategoryEditModal', () => {
+  it('associates a rejected blank name with the editable field', () => {
+    renderModal({ form: { ...FORM, name: '' }, error: 'Corrija os campos.' })
+    expect(screen.getByLabelText('Nome')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText('Nome')).toHaveAccessibleDescription(
+      'Informe o nome da categoria.',
+    )
+  })
   it('closes once when Escape is pressed', async () => {
     const onClose = vi.fn()
     renderModal({ onClose })

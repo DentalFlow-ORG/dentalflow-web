@@ -77,6 +77,19 @@ function renderModal(overrides: Partial<Parameters<typeof TransactionEditModal>[
 }
 
 describe('TransactionEditModal', () => {
+  it('shows field-specific errors after an incomplete edit is rejected', () => {
+    renderModal({
+      form: { ...FORM, categoryId: '', amount: '', description: '', transactionDate: '' },
+      error: 'Corrija os campos.',
+    })
+    expect(screen.getByText('Selecione uma categoria.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Valor')).toHaveAccessibleDescription(
+      'Informe um valor maior que zero.',
+    )
+    expect(screen.getByLabelText('Descrição')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText('Descrição')).toHaveAccessibleDescription('Informe a descrição.')
+    expect(screen.getByText('Informe a data do lançamento.')).toBeInTheDocument()
+  })
   it('closes once when Escape is pressed', async () => {
     const onClose = vi.fn()
     renderModal({ onClose })

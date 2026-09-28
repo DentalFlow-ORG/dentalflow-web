@@ -22,7 +22,7 @@ const submit = () => new Event('submit', { cancelable: true }) as unknown as For
 const filters = { from: '2026-12-01', to: '2026-12-31', groupBy: 'day' as const }
 beforeEach(() => vi.resetAllMocks())
 
-it.each(['categoryId', 'amount', 'description'] as const)(
+it.each(['categoryId', 'amount', 'description', 'startDate'] as const)(
   'requires %s on create and edit',
   async (missing) => {
     const { result } = renderHook(() => useFinanceFixedExpenses(vi.fn(), filters))
@@ -36,9 +36,11 @@ it.each(['categoryId', 'amount', 'description'] as const)(
     act(() => result.current.setFixedExpenseEditField(missing, ''))
     await act(async () => result.current.handleCreateFixedExpense(submit()))
     await act(async () => result.current.handleUpdateFixedExpense(submit()))
-    expect(result.current.fixedExpenseError).toBe('Categoria, valor e descricao sao obrigatorios.')
+    expect(result.current.fixedExpenseError).toBe(
+      'Informe a categoria, um valor maior que zero, a descrição e a data.',
+    )
     expect(result.current.fixedExpenseEditError).toBe(
-      'Categoria, valor e descricao sao obrigatorios.',
+      'Informe a categoria, um valor maior que zero, a descrição e a data.',
     )
     expect(createFixedExpense).not.toHaveBeenCalled()
     expect(updateFixedExpense).not.toHaveBeenCalled()
@@ -94,7 +96,7 @@ it.each([new Error('Falha'), null])(
       expect.objectContaining({
         tone: 'error',
         description:
-          failure instanceof Error ? failure.message : 'Nao foi possivel alterar o status.',
+          failure instanceof Error ? failure.message : 'Não foi possível alterar o status.',
       }),
     )
     expect(result.current.togglingFixedExpense?.id).toBe('exp-1')
@@ -105,10 +107,49 @@ it.each([new Error('Falha'), null])(
       expect.objectContaining({
         tone: 'error',
         description:
-          failure instanceof Error ? failure.message : 'Nao foi possivel gerar a despesa.',
+          failure instanceof Error ? failure.message : 'Não foi possível gerar a despesa.',
       }),
     )
     expect(result.current.generatingExpenseId).toBeNull()
     expect(reload).not.toHaveBeenCalled()
   },
 )
+
+it.each(['0', '32', ''])('rejects the due day %j on create', async (dueDay) => {
+  const { result } = renderHook(() => useFinanceFixedExpenses(vi.fn(), filters))
+  act(() => {
+    result.current.setFixedExpense('categoryId', 'cat-1')
+    result.current.setFixedExpense('amount', '12,50')
+    result.current.setFixedExpense('description', 'Aluguel')
+    result.current.setFixedExpense('dueDay', dueDay)
+  })
+  await act(async () => result.current.handleCreateFixedExpense(submit()))
+  expect(result.current.fixedExpenseError).toBe('Informe um dia de vencimento entre 1 e 31.')
+  expect(createFixedExpense).not.toHaveBeenCalled()
+})
+
+it('rejects an end date before the start date on edit', async () => {
+  const { result } = renderHook(() => useFinanceFixedExpenses(vi.fn(), filters))
+  act(() => result.current.handleOpenEditFixedExpense(makeFixedExpense()))
+  act(() => {
+    result.current.setFixedExpenseEditField('startDate', '2026-06-10')
+    result.current.setFixedExpenseEditField('endDate', '2026-06-09')
+  })
+  await act(async () => result.current.handleUpdateFixedExpense(submit()))
+  expect(result.current.fixedExpenseEditError).toBe(
+    'A data de término não pode ser anterior à data de início.',
+  )
+  expect(updateFixedExpense).not.toHaveBeenCalled()
+})
+
+it('rejects an invalid due day on edit and allows correcting it', async () => {
+  const { result } = renderHook(() => useFinanceFixedExpenses(vi.fn(), filters))
+  act(() => result.current.handleOpenEditFixedExpense(makeFixedExpense()))
+  act(() => result.current.setFixedExpenseEditField('dueDay', '32'))
+  await act(async () => result.current.handleUpdateFixedExpense(submit()))
+  expect(result.current.fixedExpenseEditError).toBe('Informe um dia de vencimento entre 1 e 31.')
+  expect(updateFixedExpense).not.toHaveBeenCalled()
+  act(() => result.current.setFixedExpenseEditField('dueDay', '15'))
+  await act(async () => result.current.handleUpdateFixedExpense(submit()))
+  expect(updateFixedExpense).toHaveBeenCalledWith('exp-1', expect.objectContaining({ dueDay: 15 }))
+})

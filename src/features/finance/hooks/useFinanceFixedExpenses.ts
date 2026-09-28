@@ -5,6 +5,11 @@ import { brazilTodayIso } from '@/lib/brazil-timezone'
 import { centsToMoneyInput, parseMoneyInputToCents } from '@/lib/money-input'
 
 import {
+  FINANCE_REQUIRED_FIELDS_MESSAGE,
+  FIXED_EXPENSE_DUE_DAY_MESSAGE,
+  FIXED_EXPENSE_END_DATE_MESSAGE,
+} from '../constants/finance-form'
+import {
   createFixedExpense,
   generateFixedExpenseOccurrence,
   updateFixedExpense,
@@ -15,6 +20,11 @@ import type {
   FixedExpenseEditFormState,
   FixedExpenseFormState,
 } from '../types/finance.types'
+import {
+  hasRequiredFinanceFields,
+  isEndDateOnOrAfterStart,
+  isValidDueDay,
+} from '../utils/finance-form-rules'
 
 const emptyFixedExpenseForm: FixedExpenseFormState = {
   categoryId: '',
@@ -81,8 +91,12 @@ export function useFinanceFixedExpenses(reload: () => void, filters: FinanceFilt
     event.preventDefault()
     setFixedExpenseError(null)
 
-    if (!fixedExpenseForm.categoryId || !fixedExpenseForm.amount || !fixedExpenseForm.description) {
-      setFixedExpenseError('Categoria, valor e descricao sao obrigatorios.')
+    if (!hasRequiredFinanceFields(fixedExpenseForm)) {
+      setFixedExpenseError(FINANCE_REQUIRED_FIELDS_MESSAGE)
+      return
+    }
+    if (!isValidDueDay(fixedExpenseForm.dueDay)) {
+      setFixedExpenseError(FIXED_EXPENSE_DUE_DAY_MESSAGE)
       return
     }
 
@@ -116,12 +130,16 @@ export function useFinanceFixedExpenses(reload: () => void, filters: FinanceFilt
     if (!editingFixedExpense) return
     setFixedExpenseEditError(null)
 
-    if (
-      !fixedExpenseEditForm.categoryId ||
-      !fixedExpenseEditForm.amount ||
-      !fixedExpenseEditForm.description
-    ) {
-      setFixedExpenseEditError('Categoria, valor e descricao sao obrigatorios.')
+    if (!hasRequiredFinanceFields(fixedExpenseEditForm)) {
+      setFixedExpenseEditError(FINANCE_REQUIRED_FIELDS_MESSAGE)
+      return
+    }
+    if (!isValidDueDay(fixedExpenseEditForm.dueDay)) {
+      setFixedExpenseEditError(FIXED_EXPENSE_DUE_DAY_MESSAGE)
+      return
+    }
+    if (!isEndDateOnOrAfterStart(fixedExpenseEditForm.startDate, fixedExpenseEditForm.endDate)) {
+      setFixedExpenseEditError(FIXED_EXPENSE_END_DATE_MESSAGE)
       return
     }
 
@@ -138,7 +156,7 @@ export function useFinanceFixedExpenses(reload: () => void, filters: FinanceFilt
       })
       showAlert({
         title: 'Despesa fixa atualizada',
-        description: 'As alteracoes foram salvas com sucesso.',
+        description: 'As alterações foram salvas com sucesso.',
         tone: 'success',
       })
       setEditingFixedExpense(null)
@@ -168,7 +186,7 @@ export function useFinanceFixedExpenses(reload: () => void, filters: FinanceFilt
     } catch (err) {
       showAlert({
         title: 'Erro ao alterar status',
-        description: err instanceof Error ? err.message : 'Nao foi possivel alterar o status.',
+        description: err instanceof Error ? err.message : 'Não foi possível alterar o status.',
         tone: 'error',
       })
     } finally {
@@ -181,15 +199,15 @@ export function useFinanceFixedExpenses(reload: () => void, filters: FinanceFilt
     try {
       await generateFixedExpenseOccurrence(expense.id, filters.from.slice(0, 7))
       showAlert({
-        title: 'Lancamento gerado',
-        description: `${expense.description} foi adicionada ao periodo atual.`,
+        title: 'Lançamento gerado',
+        description: `${expense.description} foi adicionada ao período atual.`,
         tone: 'success',
       })
       reload()
     } catch (err) {
       showAlert({
-        title: 'Erro ao gerar lancamento',
-        description: err instanceof Error ? err.message : 'Nao foi possivel gerar a despesa.',
+        title: 'Erro ao gerar lançamento',
+        description: err instanceof Error ? err.message : 'Não foi possível gerar a despesa.',
         tone: 'error',
       })
     } finally {

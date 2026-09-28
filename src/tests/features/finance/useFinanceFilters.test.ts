@@ -78,6 +78,54 @@ describe('useFinanceFilters', () => {
     expect(result.current.transactionsPage).toBe(1)
   })
 
+  // Regression: clearing a date left `from`/`to` undefined and crashed the page.
+  it('keeps the previous date when a period boundary is cleared', () => {
+    const { result } = renderHook(() => useFinanceFilters())
+    const { from, to } = result.current.filters
+
+    act(() => {
+      result.current.setFilter('from', '')
+    })
+    act(() => {
+      result.current.setFilter('to', '')
+    })
+    expect(result.current.filters.from).toBe(from)
+    expect(result.current.filters.to).toBe(to)
+  })
+
+  it('moves the end date forward when the start date is set after it', () => {
+    const { result } = renderHook(() => useFinanceFilters())
+    act(() => {
+      result.current.setFilter('to', '2026-03-10')
+    })
+    act(() => {
+      result.current.setFilter('from', '2026-03-20')
+    })
+    expect(result.current.filters).toMatchObject({ from: '2026-03-20', to: '2026-03-20' })
+  })
+
+  it('moves the start date back when the end date is set before it', () => {
+    const { result } = renderHook(() => useFinanceFilters())
+    act(() => {
+      result.current.setFilter('from', '2026-03-10')
+    })
+    act(() => {
+      result.current.setFilter('to', '2026-03-01')
+    })
+    expect(result.current.filters).toMatchObject({ from: '2026-03-01', to: '2026-03-01' })
+  })
+
+  it('keeps an ordered range unchanged', () => {
+    const { result } = renderHook(() => useFinanceFilters())
+    act(() => {
+      result.current.setFilter('from', '2026-03-01')
+    })
+    act(() => {
+      result.current.setFilter('to', '2026-03-31')
+    })
+    expect(result.current.filters).toMatchObject({ from: '2026-03-01', to: '2026-03-31' })
+  })
+
   // ── Pagination ────────────────────────────────────────────────────────────
 
   it('setTransactionsPage updates the page', () => {

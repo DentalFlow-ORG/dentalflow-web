@@ -77,6 +77,28 @@ function renderModal(overrides: Partial<Parameters<typeof FixedExpenseEditModal>
 }
 
 describe('FixedExpenseEditModal', () => {
+  it('shows errors for rejected financial values and invalid recurring dates', () => {
+    renderModal({
+      form: {
+        ...FORM,
+        categoryId: '',
+        amount: '',
+        description: '',
+        dueDay: '32',
+        endDate: '2026-05-01',
+      },
+      error: 'Corrija os campos.',
+    })
+    expect(screen.getByText('Selecione uma categoria.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Valor')).toHaveAccessibleDescription(
+      'Informe um valor maior que zero.',
+    )
+    expect(screen.getByLabelText('Descrição')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByText('Informe um dia de vencimento entre 1 e 31.')).toBeInTheDocument()
+    expect(
+      screen.getByText('A data de término não pode ser anterior à data de início.'),
+    ).toBeInTheDocument()
+  })
   it('closes once when Escape is pressed', async () => {
     const onClose = vi.fn()
     renderModal({ onClose })
@@ -113,7 +135,7 @@ describe('FixedExpenseEditModal', () => {
     renderModal()
     expect(screen.getByText('Editar despesa fixa')).toBeInTheDocument()
     expect(screen.getByLabelText('Descrição')).toHaveValue('Aluguel')
-    expect(screen.getByLabelText('Dia')).toHaveValue(5)
+    expect(screen.getByLabelText('Dia')).toHaveValue('5')
   })
 
   it('shows the error message when provided', () => {

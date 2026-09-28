@@ -52,6 +52,11 @@ const defaultForm: FixedExpenseFormState = {
   startDate: '2026-06-01',
 }
 
+it('shows the missing category error for a rejected recurring expense', () => {
+  renderForm({ form: { ...defaultForm, categoryId: '' }, error: 'Corrija os campos.' })
+  expect(screen.getByText('Selecione uma categoria.')).toBeInTheDocument()
+})
+
 const categories: FinancialCategory[] = [
   {
     id: 'cat-1',
@@ -193,7 +198,7 @@ describe('FixedExpenseForm', () => {
 
   it('calls onSubmit when form is submitted', () => {
     const { onSubmit } = renderForm()
-    fireEvent.submit(screen.getByRole('button', { name: /salvar despesa fixa/i }).closest('form')!)
+    fireEvent.click(screen.getByRole('button', { name: /salvar despesa fixa/i }))
     expect(onSubmit).toHaveBeenCalledTimes(1)
   })
 })

@@ -1,4 +1,5 @@
 import { Loader2, Scale } from 'lucide-react'
+import { financeFieldErrors } from '../utils/finance-form-rules'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { formatMoneyInputFromDigits } from '@/lib/money-input'
 
+import { FINANCE_FIELD_LIMITS, FINANCE_MAX_AMOUNT_CENTS } from '../constants/finance-form'
 import type {
   FinancialCategory,
   FixedExpenseFormState,
@@ -38,6 +40,8 @@ export function FixedExpenseForm({
   ) => void
   onSubmit: (event: React.FormEvent) => void
 }) {
+  const fieldErrors = financeFieldErrors(form, error)
+
   return (
     <PanelCard>
       <div className="mb-5 flex items-center gap-3">
@@ -49,19 +53,23 @@ export function FixedExpenseForm({
           <p className="text-sm text-muted-foreground">Cadastre custos recorrentes da clínica.</p>
         </div>
       </div>
-      <form className="space-y-5" onSubmit={onSubmit}>
+      <form noValidate className="space-y-5" onSubmit={onSubmit}>
         {error && <InlineFeedback>{error}</InlineFeedback>}
 
         <div className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Identificação
           </p>
-          <FormField label="Categoria" htmlFor="fixedCategory">
+          <FormField label="Categoria" htmlFor="fixedCategory" error={fieldErrors.categoryId}>
             <Select
               value={form.categoryId}
               onValueChange={(value) => onChange('categoryId', value)}
             >
-              <SelectTrigger id="fixedCategory">
+              <SelectTrigger
+                id="fixedCategory"
+                aria-invalid={Boolean(fieldErrors.categoryId)}
+                aria-describedby={fieldErrors.categoryId ? 'fixedCategory-error' : undefined}
+              >
                 <SelectValue placeholder="Selecione a categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -73,11 +81,13 @@ export function FixedExpenseForm({
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Descrição" htmlFor="fixedDescription">
+          <FormField label="Descrição" htmlFor="fixedDescription" error={fieldErrors.description}>
             <TextInput
               id="fixedDescription"
+              aria-invalid={Boolean(fieldErrors.description)}
+              aria-describedby={fieldErrors.description ? 'fixedDescription-error' : undefined}
               value={form.description}
-              maxLength={160}
+              maxLength={FINANCE_FIELD_LIMITS.description}
               placeholder="Ex.: aluguel da clínica"
               onChange={(event) => onChange('description', event.target.value)}
             />
@@ -89,14 +99,19 @@ export function FixedExpenseForm({
             Recorrência
           </p>
           <div className="grid items-start gap-4 sm:grid-cols-3">
-            <FormField label="Valor" htmlFor="fixedAmount">
+            <FormField label="Valor" htmlFor="fixedAmount" error={fieldErrors.amount}>
               <TextInput
                 id="fixedAmount"
+                aria-invalid={Boolean(fieldErrors.amount)}
+                aria-describedby={fieldErrors.amount ? 'fixedAmount-error' : undefined}
                 inputMode="numeric"
-                placeholder="0,00"
+                placeholder="R$ 0,00"
                 value={form.amount}
                 onChange={(event) =>
-                  onChange('amount', formatMoneyInputFromDigits(event.target.value))
+                  onChange(
+                    'amount',
+                    formatMoneyInputFromDigits(event.target.value, FINANCE_MAX_AMOUNT_CENTS),
+                  )
                 }
               />
             </FormField>
@@ -115,21 +130,23 @@ export function FixedExpenseForm({
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label="Dia" htmlFor="fixedDueDay">
+            <FormField label="Dia" htmlFor="fixedDueDay" error={fieldErrors.dueDay}>
               <TextInput
                 id="fixedDueDay"
-                type="number"
-                min="1"
-                max="31"
+                aria-invalid={Boolean(fieldErrors.dueDay)}
+                aria-describedby={fieldErrors.dueDay ? 'fixedDueDay-error' : undefined}
+                inputMode="numeric"
+                maxLength={2}
                 placeholder="1–31"
                 value={form.dueDay}
-                onChange={(event) => onChange('dueDay', event.target.value)}
+                onChange={(event) => onChange('dueDay', event.target.value.replace(/\D/g, ''))}
               />
             </FormField>
           </div>
-          <FormField label="Início" htmlFor="fixedStartDate">
+          <FormField label="Início" htmlFor="fixedStartDate" error={fieldErrors.startDate}>
             <DatePickerInput
               id="fixedStartDate"
+              invalid={Boolean(fieldErrors.startDate)}
               value={form.startDate}
               onValueChange={(value) => onChange('startDate', value)}
             />

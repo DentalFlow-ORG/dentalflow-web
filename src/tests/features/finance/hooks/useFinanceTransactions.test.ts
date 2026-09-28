@@ -39,7 +39,7 @@ it('clears an incompatible category when changing transaction type in create and
   expect(result.current.editForm.description).toBe('Consulta João')
 })
 
-it.each(['categoryId', 'amount', 'description'] as const)(
+it.each(['categoryId', 'amount', 'description', 'transactionDate'] as const)(
   'requires %s before creating or updating a transaction',
   async (missing) => {
     const { result } = renderHook(() => useFinanceTransactions(vi.fn(), [], []))
@@ -53,8 +53,12 @@ it.each(['categoryId', 'amount', 'description'] as const)(
     act(() => result.current.setEditField(missing, ''))
     await act(async () => result.current.handleCreateTransaction(submit()))
     await act(async () => result.current.handleUpdateTransaction(submit()))
-    expect(result.current.transactionError).toBe('Categoria, valor e descricao sao obrigatorios.')
-    expect(result.current.editError).toBe('Categoria, valor e descricao sao obrigatorios.')
+    expect(result.current.transactionError).toBe(
+      'Informe a categoria, um valor maior que zero, a descrição e a data.',
+    )
+    expect(result.current.editError).toBe(
+      'Informe a categoria, um valor maior que zero, a descrição e a data.',
+    )
     expect(createFinancialTransaction).not.toHaveBeenCalled()
     expect(updateFinancialTransaction).not.toHaveBeenCalled()
   },
@@ -81,7 +85,7 @@ it.each([new Error('Falha'), null])(
     })
     await act(async () => result.current.handleCreateTransaction(submit()))
     expect(result.current.transactionError).toBe(
-      failure instanceof Error ? failure.message : 'Erro ao salvar movimentacao.',
+      failure instanceof Error ? failure.message : 'Erro ao salvar movimentação.',
     )
     expect(result.current.transactionForm.amount).toBe('12,50')
     expect(result.current.isSavingTransaction).toBe(false)
@@ -100,7 +104,7 @@ it.each([new Error('Conflito'), null])(
     act(() => result.current.handleOpenEdit(makeTransaction({ dueDate: '2026-12-10' })))
     await act(async () => result.current.handleUpdateTransaction(submit()))
     expect(result.current.editError).toBe(
-      failure instanceof Error ? failure.message : 'Erro ao atualizar movimentacao.',
+      failure instanceof Error ? failure.message : 'Erro ao atualizar movimentação.',
     )
     expect(result.current.editingTransaction).not.toBeNull()
     expect(result.current.isUpdating).toBe(false)
@@ -123,7 +127,7 @@ it.each([new Error('Falha'), null])(
     expect(showAlert).toHaveBeenCalledWith(
       expect.objectContaining({
         tone: 'error',
-        description: failure instanceof Error ? failure.message : 'Nao foi possivel cancelar.',
+        description: failure instanceof Error ? failure.message : 'Não foi possível cancelar.',
       }),
     )
     expect(result.current.deletingTransaction?.id).toBe('txn-1')
@@ -131,3 +135,34 @@ it.each([new Error('Falha'), null])(
     expect(reload).not.toHaveBeenCalled()
   },
 )
+
+it.each([
+  ['a whitespace-only description', { description: '   ' }],
+  ['a zero amount', { amount: '0,00' }],
+])('rejects %s before creating or updating a transaction', async (_case, override) => {
+  const { result } = renderHook(() => useFinanceTransactions(vi.fn(), [], []))
+  act(() => {
+    result.current.setTransaction('categoryId', 'cat-1')
+    result.current.setTransaction('amount', '12,50')
+    result.current.setTransaction('description', 'Consulta')
+    for (const [field, value] of Object.entries(override)) {
+      result.current.setTransaction(field as 'amount' | 'description', value)
+    }
+    result.current.handleOpenEdit(makeTransaction())
+  })
+  act(() => {
+    for (const [field, value] of Object.entries(override)) {
+      result.current.setEditField(field as 'amount' | 'description', value)
+    }
+  })
+  await act(async () => result.current.handleCreateTransaction(submit()))
+  await act(async () => result.current.handleUpdateTransaction(submit()))
+  expect(result.current.transactionError).toBe(
+    'Informe a categoria, um valor maior que zero, a descrição e a data.',
+  )
+  expect(result.current.editError).toBe(
+    'Informe a categoria, um valor maior que zero, a descrição e a data.',
+  )
+  expect(createFinancialTransaction).not.toHaveBeenCalled()
+  expect(updateFinancialTransaction).not.toHaveBeenCalled()
+})

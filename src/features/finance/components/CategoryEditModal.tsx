@@ -1,5 +1,6 @@
 import { Loader2, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
+import { financeFieldErrors } from '../utils/finance-form-rules'
 
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+import { FINANCE_FIELD_LIMITS } from '../constants/finance-form'
 import type {
   CategoryFormState,
   FinancialCategory,
@@ -36,6 +38,8 @@ export function CategoryEditModal({
   onSubmit: (event: React.FormEvent) => void
   onClose: () => void
 }) {
+  const fieldErrors = financeFieldErrors(form, error)
+
   return (
     <Dialog.Root open={category !== null} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
@@ -61,7 +65,7 @@ export function CategoryEditModal({
             Atualize o nome, tipo e cor da categoria financeira.
           </Dialog.Description>
 
-          <form className="space-y-4 px-6 py-5" onSubmit={onSubmit}>
+          <form noValidate className="space-y-4 px-6 py-5" onSubmit={onSubmit}>
             {error && <InlineFeedback>{error}</InlineFeedback>}
 
             <FormField label="Tipo" htmlFor="editCatType">
@@ -79,11 +83,14 @@ export function CategoryEditModal({
               </Select>
             </FormField>
 
-            <FormField label="Nome" htmlFor="editCatName">
+            <FormField label="Nome" htmlFor="editCatName" error={fieldErrors.name}>
               <TextInput
                 id="editCatName"
+                aria-invalid={Boolean(fieldErrors.name)}
+                aria-describedby={fieldErrors.name ? 'editCatName-error' : undefined}
+                placeholder="Ex.: Marketing, Equipamentos..."
                 value={form.name}
-                maxLength={80}
+                maxLength={FINANCE_FIELD_LIMITS.categoryName}
                 onChange={(event) => onChange('name', event.target.value)}
               />
             </FormField>

@@ -1,4 +1,5 @@
 import { Loader2, Plus } from 'lucide-react'
+import { financeFieldErrors } from '../utils/finance-form-rules'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { formatMoneyInputFromDigits } from '@/lib/money-input'
 
+import { FINANCE_FIELD_LIMITS, FINANCE_MAX_AMOUNT_CENTS } from '../constants/finance-form'
 import type {
   FinancialCategory,
   FinancialTransactionStatus,
@@ -36,6 +38,8 @@ export function TransactionForm({
   onChange: <K extends keyof TransactionFormState>(field: K, value: TransactionFormState[K]) => void
   onSubmit: (event: React.FormEvent) => void
 }) {
+  const fieldErrors = financeFieldErrors(form, error)
+
   return (
     <PanelCard>
       <div className="mb-5 flex items-center gap-3">
@@ -47,7 +51,7 @@ export function TransactionForm({
           <p className="text-sm text-muted-foreground">Registre entradas ou despesas manuais.</p>
         </div>
       </div>
-      <form className="space-y-5" onSubmit={onSubmit}>
+      <form noValidate className="space-y-5" onSubmit={onSubmit}>
         {error && <InlineFeedback>{error}</InlineFeedback>}
 
         <div className="space-y-3">
@@ -85,12 +89,16 @@ export function TransactionForm({
               </Select>
             </FormField>
           </div>
-          <FormField label="Categoria" htmlFor="transactionCategory">
+          <FormField label="Categoria" htmlFor="transactionCategory" error={fieldErrors.categoryId}>
             <Select
               value={form.categoryId}
               onValueChange={(value) => onChange('categoryId', value)}
             >
-              <SelectTrigger id="transactionCategory">
+              <SelectTrigger
+                id="transactionCategory"
+                aria-invalid={Boolean(fieldErrors.categoryId)}
+                aria-describedby={fieldErrors.categoryId ? 'transactionCategory-error' : undefined}
+              >
                 <SelectValue placeholder="Selecione a categoria" />
               </SelectTrigger>
               <SelectContent>
@@ -109,20 +117,26 @@ export function TransactionForm({
             Valor e datas
           </p>
           <div className="grid items-start gap-4 sm:grid-cols-3">
-            <FormField label="Valor" htmlFor="transactionAmount">
+            <FormField label="Valor" htmlFor="transactionAmount" error={fieldErrors.amount}>
               <TextInput
                 id="transactionAmount"
+                aria-invalid={Boolean(fieldErrors.amount)}
+                aria-describedby={fieldErrors.amount ? 'transactionAmount-error' : undefined}
                 inputMode="numeric"
-                placeholder="0,00"
+                placeholder="R$ 0,00"
                 value={form.amount}
                 onChange={(event) =>
-                  onChange('amount', formatMoneyInputFromDigits(event.target.value))
+                  onChange(
+                    'amount',
+                    formatMoneyInputFromDigits(event.target.value, FINANCE_MAX_AMOUNT_CENTS),
+                  )
                 }
               />
             </FormField>
-            <FormField label="Data" htmlFor="transactionDate">
+            <FormField label="Data" htmlFor="transactionDate" error={fieldErrors.transactionDate}>
               <DatePickerInput
                 id="transactionDate"
+                invalid={Boolean(fieldErrors.transactionDate)}
                 value={form.transactionDate}
                 onValueChange={(value) => onChange('transactionDate', value)}
               />
@@ -135,11 +149,19 @@ export function TransactionForm({
               />
             </FormField>
           </div>
-          <FormField label="Descrição" htmlFor="transactionDescription">
+          <FormField
+            label="Descrição"
+            htmlFor="transactionDescription"
+            error={fieldErrors.description}
+          >
             <TextInput
               id="transactionDescription"
+              aria-invalid={Boolean(fieldErrors.description)}
+              aria-describedby={
+                fieldErrors.description ? 'transactionDescription-error' : undefined
+              }
               value={form.description}
-              maxLength={160}
+              maxLength={FINANCE_FIELD_LIMITS.description}
               placeholder="Ex.: pagamento de clareamento"
               onChange={(event) => onChange('description', event.target.value)}
             />

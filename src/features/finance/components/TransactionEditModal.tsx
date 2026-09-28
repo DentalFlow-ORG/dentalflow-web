@@ -1,5 +1,6 @@
 import { Loader2, X } from 'lucide-react'
 import { Dialog } from 'radix-ui'
+import { financeFieldErrors } from '../utils/finance-form-rules'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput } from '@/components/common/FormField'
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { formatMoneyInputFromDigits } from '@/lib/money-input'
 
+import { FINANCE_FIELD_LIMITS, FINANCE_MAX_AMOUNT_CENTS } from '../constants/finance-form'
 import type {
   FinancialCategory,
   FinancialTransaction,
@@ -41,6 +43,8 @@ export function TransactionEditModal({
   onSubmit: (event: React.FormEvent) => void
   onClose: () => void
 }) {
+  const fieldErrors = financeFieldErrors(form, error)
+
   return (
     <Dialog.Root open={transaction !== null} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
@@ -66,7 +70,7 @@ export function TransactionEditModal({
             Atualize os dados do lançamento financeiro selecionado.
           </Dialog.Description>
 
-          <form className="flex min-h-0 flex-col" onSubmit={onSubmit}>
+          <form noValidate className="flex min-h-0 flex-col" onSubmit={onSubmit}>
             <div className="app-scrollbar min-h-0 overflow-y-auto px-6 py-5">
               <div className="space-y-4">
                 {error && <InlineFeedback>{error}</InlineFeedback>}
@@ -105,12 +109,20 @@ export function TransactionEditModal({
                   </FormField>
                 </div>
 
-                <FormField label="Categoria" htmlFor="editTxCategory">
+                <FormField
+                  label="Categoria"
+                  htmlFor="editTxCategory"
+                  error={fieldErrors.categoryId}
+                >
                   <Select
                     value={form.categoryId}
                     onValueChange={(value) => onChange('categoryId', value)}
                   >
-                    <SelectTrigger id="editTxCategory">
+                    <SelectTrigger
+                      id="editTxCategory"
+                      aria-invalid={Boolean(fieldErrors.categoryId)}
+                      aria-describedby={fieldErrors.categoryId ? 'editTxCategory-error' : undefined}
+                    >
                       <SelectValue placeholder="Selecione a categoria" />
                     </SelectTrigger>
                     <SelectContent>
@@ -123,30 +135,45 @@ export function TransactionEditModal({
                   </Select>
                 </FormField>
 
-                <FormField label="Descrição" htmlFor="editTxDescription">
+                <FormField
+                  label="Descrição"
+                  htmlFor="editTxDescription"
+                  error={fieldErrors.description}
+                >
                   <TextInput
                     id="editTxDescription"
+                    aria-invalid={Boolean(fieldErrors.description)}
+                    aria-describedby={
+                      fieldErrors.description ? 'editTxDescription-error' : undefined
+                    }
+                    placeholder="Ex.: pagamento de clareamento"
                     value={form.description}
-                    maxLength={160}
+                    maxLength={FINANCE_FIELD_LIMITS.description}
                     onChange={(event) => onChange('description', event.target.value)}
                   />
                 </FormField>
 
                 <div className="grid items-end gap-4 sm:grid-cols-3">
-                  <FormField label="Valor" htmlFor="editTxAmount">
+                  <FormField label="Valor" htmlFor="editTxAmount" error={fieldErrors.amount}>
                     <TextInput
                       id="editTxAmount"
+                      aria-invalid={Boolean(fieldErrors.amount)}
+                      aria-describedby={fieldErrors.amount ? 'editTxAmount-error' : undefined}
                       inputMode="numeric"
-                      placeholder="0,00"
+                      placeholder="R$ 0,00"
                       value={form.amount}
                       onChange={(event) =>
-                        onChange('amount', formatMoneyInputFromDigits(event.target.value))
+                        onChange(
+                          'amount',
+                          formatMoneyInputFromDigits(event.target.value, FINANCE_MAX_AMOUNT_CENTS),
+                        )
                       }
                     />
                   </FormField>
-                  <FormField label="Data" htmlFor="editTxDate">
+                  <FormField label="Data" htmlFor="editTxDate" error={fieldErrors.transactionDate}>
                     <DatePickerInput
                       id="editTxDate"
+                      invalid={Boolean(fieldErrors.transactionDate)}
                       value={form.transactionDate}
                       onValueChange={(value) => onChange('transactionDate', value)}
                     />

@@ -25,11 +25,11 @@ it('rejects whitespace-only names on create and edit without calling the API', a
   const { result } = renderHook(() => useFinanceCategories(vi.fn()))
   act(() => result.current.setCategory('name', '   '))
   await act(async () => result.current.handleCreateCategory(submit()))
-  expect(result.current.categoryError).toBe('O nome da categoria e obrigatorio.')
+  expect(result.current.categoryError).toBe('O nome da categoria é obrigatório.')
   act(() => result.current.handleOpenEditCategory(makeCategory({ color: null })))
   act(() => result.current.setCategoryEdit('name', '   '))
   await act(async () => result.current.handleUpdateCategory(submit()))
-  expect(result.current.categoryEditError).toBe('O nome da categoria e obrigatorio.')
+  expect(result.current.categoryEditError).toBe('O nome da categoria é obrigatório.')
   expect(createFinancialCategory).not.toHaveBeenCalled()
   expect(updateFinancialCategory).not.toHaveBeenCalled()
 })
@@ -96,7 +96,7 @@ it.each([new Error('Categoria em uso'), null])(
         description:
           failure instanceof Error
             ? failure.message
-            : 'Verifique se a categoria possui lancamentos vinculados.',
+            : 'Verifique se a categoria possui lançamentos vinculados.',
       }),
     )
     expect(result.current.deletingCategory).toBeNull()

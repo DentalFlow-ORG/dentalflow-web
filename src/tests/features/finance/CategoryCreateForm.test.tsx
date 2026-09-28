@@ -47,6 +47,13 @@ function renderForm(overrides: Partial<Parameters<typeof CategoryCreateForm>[0]>
 }
 
 describe('CategoryCreateForm', () => {
+  it('associates an empty category name with its validation message', () => {
+    renderForm({ error: 'Corrija os campos.' })
+    expect(screen.getByLabelText('Nome')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText('Nome')).toHaveAccessibleDescription(
+      'Informe o nome da categoria.',
+    )
+  })
   // ── Section label ──────────────────────────────────────────────────────────
 
   it('renders the Identificação visual section label', () => {
@@ -137,7 +144,7 @@ describe('CategoryCreateForm', () => {
 
   it('calls onSubmit when form is submitted', () => {
     const { onSubmit } = renderForm()
-    fireEvent.submit(screen.getByRole('button', { name: /criar categoria/i }).closest('form')!)
+    fireEvent.click(screen.getByRole('button', { name: /criar categoria/i }))
     expect(onSubmit).toHaveBeenCalledTimes(1)
   })
 })

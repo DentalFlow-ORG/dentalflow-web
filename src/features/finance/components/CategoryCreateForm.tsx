@@ -1,4 +1,5 @@
 import { Layers, Loader2 } from 'lucide-react'
+import { financeFieldErrors } from '../utils/finance-form-rules'
 
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
@@ -12,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+import { FINANCE_FIELD_LIMITS } from '../constants/finance-form'
 import type { CategoryFormState, FinancialTransactionType } from '../types/finance.types'
 import { ColorPicker } from './ColorPicker'
 
@@ -28,6 +30,8 @@ export function CategoryCreateForm({
   onChange: <K extends keyof CategoryFormState>(field: K, value: CategoryFormState[K]) => void
   onSubmit: (event: React.FormEvent) => void
 }) {
+  const fieldErrors = financeFieldErrors(form, error)
+
   return (
     <PanelCard>
       <div className="mb-5 flex items-center gap-3">
@@ -41,7 +45,7 @@ export function CategoryCreateForm({
           </p>
         </div>
       </div>
-      <form className="space-y-5" onSubmit={onSubmit}>
+      <form noValidate className="space-y-5" onSubmit={onSubmit}>
         {error && <InlineFeedback>{error}</InlineFeedback>}
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -59,11 +63,13 @@ export function CategoryCreateForm({
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Nome" htmlFor="catName">
+          <FormField label="Nome" htmlFor="catName" error={fieldErrors.name}>
             <TextInput
               id="catName"
+              aria-invalid={Boolean(fieldErrors.name)}
+              aria-describedby={fieldErrors.name ? 'catName-error' : undefined}
               value={form.name}
-              maxLength={80}
+              maxLength={FINANCE_FIELD_LIMITS.categoryName}
               placeholder="Ex.: Marketing, Equipamentos..."
               onChange={(event) => onChange('name', event.target.value)}
             />

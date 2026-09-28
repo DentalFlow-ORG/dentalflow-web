@@ -92,7 +92,27 @@ function getSelects() {
   return screen.getAllByRole('combobox')
 }
 
+it('shows the missing category error for a rejected new transaction', () => {
+  renderForm({ form: { ...defaultForm, categoryId: '' }, error: 'Corrija os campos.' })
+  expect(screen.getByText('Selecione uma categoria.')).toBeInTheDocument()
+})
+
+it('associates rejected amount and description with accessible field errors', () => {
+  renderForm({ error: 'Corrija os campos.' })
+  expect(screen.getByLabelText('Valor')).toHaveAttribute('aria-invalid', 'true')
+  expect(screen.getByLabelText('Valor')).toHaveAccessibleDescription(
+    'Informe um valor maior que zero.',
+  )
+  expect(screen.getByLabelText('Descrição')).toHaveAccessibleDescription('Informe a descrição.')
+})
+
 describe('TransactionForm', () => {
+  it('caps the amount at the finance maximum of R$ 99.999.999,99', () => {
+    const { onChange } = renderForm()
+    fireEvent.change(screen.getByLabelText('Valor'), { target: { value: '999999999999' } })
+    expect(onChange).toHaveBeenLastCalledWith('amount', '99.999.999,99')
+  })
+
   it('passes an optional due date to the transaction draft', () => {
     const { onChange } = renderForm()
     fireEvent.change(screen.getByLabelText(/Vencimento/), { target: { value: '2026-07-15' } })
@@ -217,7 +237,7 @@ describe('TransactionForm', () => {
 
   it('calls onSubmit when form is submitted', () => {
     const { onSubmit } = renderForm()
-    fireEvent.submit(screen.getByRole('button', { name: /salvar lançamento/i }).closest('form')!)
+    fireEvent.click(screen.getByRole('button', { name: /salvar lançamento/i }))
     expect(onSubmit).toHaveBeenCalledTimes(1)
   })
 })
