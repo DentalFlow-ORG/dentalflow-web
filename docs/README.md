@@ -26,6 +26,7 @@ The source is authoritative. “Implemented” means there is a connected code p
 | Release gates, incident/backup procedures | [Production readiness](deployment/production-readiness.md) |
 | Competitors, automation, AI, plans and rejected ideas | [Product decisions and roadmap](product/decisions.md) |
 | Document classification, changes and validation results | [Audit report](audit-report.md) |
+| Uncommitted form-hardening takeover, contract decisions and QA routes | [Form hardening](quality/form-hardening-takeover.md) |
 
 Existing specialist documents remain canonical for [coverage policy](quality/frontend-coverage-policy.md), [browser QA](quality/frontend-browser-qa.md), [theme](design/theme-rules.md), [buttons/cards](design/button-and-card-theme-guidelines.md), [Google login](auth/google-oauth.md), [roles](roles-and-scheduling.md), [privacy inventory](compliance/lgpd-compliance-inventory.md), [retention](compliance/data-retention-policy.md), [Calendar privacy](compliance/google-calendar-privacy.md), [billing transparency](compliance/billing-consumer-protection.md), and [manual compliance QA](compliance/manual-validation-checklist.md).
 

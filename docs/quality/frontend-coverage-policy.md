@@ -138,6 +138,23 @@ against its callers rather than assumed:
 An E classification is a claim about the code, not a preference. If you change
 the surrounding code, re-check the claim.
 
+Form-hardening additions (2026-09-28), without changing instrumentation or floors:
+
+| Location | Classification / proof |
+| --- | --- |
+| `fiscal/utils/fiscal-profile-completeness` null-coalescing fallbacks for profile fields and missing tax-regime branch | E: `FiscalProfileCompletenessFields` picks non-null strings and the closed `FiscalTaxRegime` union from `FiscalProfilePayload`. The whole profile may be null and is tested. Blank draft address/name fields are tested; a null individual field or empty tax-regime string contradicts that response type. Backend draft transforms preserve the non-null persisted string representation. |
+| `scheduling/components/availability/ExceptionForm` date `FormData.get` fallback | E: the create form always renders a named DatePicker hidden input. Empty string is a real validation case and is tested; absence of that input is not a supported rendered state. |
+| Raw phone paste length, real caret/delete behavior and browser unload protection | F: jsdom does not enforce all browser maxLength/paste/caret/native-unload behavior. Tests explicitly assert raw-input capacity, normalization, dirty state and blocker activation; desktop/mobile execution is tracked in [browser QA](frontend-browser-qa.md). |
+| `components/common/ConfirmDialog` pending `onOpenChange` guard | E: the pending Escape/outside handlers call preventDefault before Radix can request close; Cancel/Confirm are disabled while pending. The guarded close path remains defensive; the actual dismissal behavior is tested. |
+| `admin/components/ClinicFormModal` duplicate submit guards | E for normal UI invocation: the form controls and shared confirmation are disabled/inert during save; both entry points share the synchronous ref. Feature tests cover pending controls and failure/retry; no direct invocation of an inaccessible callback is used to inflate coverage. |
+| `fiscal/components/InvoiceForm` isSaving return and `fiscal/containers/FiscalInvoicesPageContainer` submit/target guards | E: the invoice submit button is disabled while saving and the child guard protects the parent callback; simulation/cancel confirmations render only with a selected target. The separate cross-row mark-ready guard is reachable and is tested with two invoices. |
+| `scheduling/components/appointments/AppointmentPaymentSection` duplicate and null-confirm-target guards | E for rendered UI: all mutation buttons/shared confirmation are disabled while pending; confirmation exists only with pendingClearing. Selected-status, primary keyboard, dedicated, cancel and retry paths are tested rather than calling hidden handlers. |
+| `scheduling/components/appointments/CreateAppointmentModal` selected Patient ID fallback | E: validateAppointmentForm returns an error before payload creation whenever existing-patient mode lacks selectedPatient.patientId. Tests prove no mutation for missing selection and exact-ID use after selection. |
+| `scheduling/components/availability/AvailabilityManager` delete-target guard and weekday fallback | E: confirmation opens only with deleteTarget. CreateAvailabilityDto constrains weekday to integer 0..6; `constants/availability-display.test.ts` pins one nonempty label for every accepted day. |
+| `clinical-records/components/ImageAttachmentPanel` JPEG data URL split fallback | E: native canvas.toDataURL returns a data URL (including a comma) or throws; encoding failures are caught by the image pipeline. Actual browser encoding/size behavior remains F in browser QA. |
+
+The full source scan and regression evidence are recorded in the [form-hardening takeover](form-hardening-takeover.md). Unclassified uncovered behavior is not automatically an exception merely because the global floor passes.
+
 ### D — non-behavioral declarations
 
 - Static type-only modules (`features/inventory/types/inventory.types.ts`) and
@@ -175,9 +192,11 @@ Do not add one silently. An exception requires:
 
 ## Retained dead-code findings
 
-`bun run knip` passes. `bun run knip:production` exits non-zero with a stable,
-reviewed set of **24 exports and 5 exported types**. These are kept
-deliberately; do not delete them to make the command green.
+As verified during the 2026-09-28 form takeover, both `bun run knip` and
+`bun run knip:production` pass. Knip still emits advisory configuration/tag
+hints. The historical contract seams below document why test-used APIs were
+retained; some former formatter exports have since been consolidated into
+`field-formatters.ts`. This table is not a current failing-findings count.
 
 | Retained symbols | Why |
 | --- | --- |

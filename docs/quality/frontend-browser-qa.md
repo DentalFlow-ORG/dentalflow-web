@@ -12,6 +12,19 @@ whenever the corresponding code changes.
 
 **Last executed: never.**
 
+## Form hardening acceptance — 2026-09-28
+
+Follow the route/preparation/steps/expected-results matrix in the [takeover report](form-hardening-takeover.md). Record evidence here before marking acceptance complete.
+
+- [ ] On desktop and mobile, exercise phone/WhatsApp (+55, 0055, DDD 55), CPF/CNPJ, CEP, currency, ISS and quantity fields with typing, paste, backspace, Delete, select-all replacement and partial/invalid input.
+- [ ] In appointment payments, test pending/canceled via status selection, primary keyboard activation and dedicated actions. Cancel preserves settlement; confirmed success clears settlement; failure can retry; pending actions cannot duplicate or close accidentally.
+- [ ] In finance, reject/clear a date boundary and blur: the visible field must equal the active filter. Submit invalid create/edit forms and verify linked errors without browser validation popups.
+- [ ] In the clinical editor, fail chart load/save, retry without another edit, and navigate during debounce. Test internal navigation plus actual reload/tab close. Repeat the stable-Patient A/B scenario below with delayed requests.
+- [ ] Check clinical counter announcements with a screen reader: no missing description targets and no announcement on every keystroke.
+- [ ] Save an incomplete fiscal draft with empty CEP/UF; verify simulation is blocked until required data is valid. Verify local legal-validity wording and provider-key rejection.
+- [ ] Round-trip blank/zero/nonzero stock purchase price. Confirm blank stock adjustment is rejected and explicit zero is accepted.
+- [ ] Run the sensitive-action matrix with slow/failing requests. Record unavailable admin-clinic backend CRUD separately from tested frontend confirmation behavior.
+
 ## Stable Patient identity — mandatory release acceptance
 
 - [ ] Create/select Patient A and Patient B with different IDs and identical household email, name and phone. Open A and fully load history, clinical timeline, odontogram and avatar.

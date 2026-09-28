@@ -60,3 +60,5 @@ The frontend suite mirrors features under [src/tests/features](../../src/tests/f
 | RF-030–033 | Missing/planned features have no completion claim; route redirect/removal evidence only for the retired feature. |
 
 All endpoint-level method/payload/query/status/decorator evidence is generated in [source-reference.md](../integrations/source-reference.md). This avoids maintaining a second manually copied 204-route specification. Contract test and coverage outcomes are recorded in [the audit report](../audit-report.md).
+
+The 2026-09-28 [form-hardening takeover](../quality/form-hardening-takeover.md) records source/test evidence and exact QA routes for scheduling/explicit Patient selection, payment settlement clearing, clinical/odontogram recovery, nullable inventory price, fiscal draft/simulation and report status consistency. Its validation record distinguishes implemented UI behavior from browser/provider acceptance and the existing missing admin-clinic CRUD API. These are refinements to the existing requirements, not new product areas or a Patient identity migration.

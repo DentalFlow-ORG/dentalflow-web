@@ -37,3 +37,5 @@ Status vocabulary: **Currently satisfied** = source plus available local validat
 | RNF-031 Release operations | Tested migrations, rollback-compatible deployment, smoke tests, support ownership. | Production requirement: complete release checklist and record evidence per release. |
 
 Traceability: RNF-001–009 → RF-001–009 and RN-001–007; RNF-010/029 → RF-021–024 and RN-013–017; RNF-011/012 → RF-009–019 and RN-008–012; RNF-013–015/030 → RF-012–015/025–026 and RN-010/014–016; engineering RNFs apply across all features. The [release checklist](../deployment/production-readiness.md) assigns priorities and acceptance evidence.
+
+The [2026-09-28 form-hardening record](../quality/form-hardening-takeover.md) adds validation evidence for shared custom errors, aria-invalid/error associations, threshold-only clinical announcements, raw phone paste capacity and unsaved-change protection. Static control counts are search evidence, not WCAG or mobile-browser certification. Existing thresholds remain unchanged; disposable PostgreSQL supplies migration/integration evidence, without production data access.

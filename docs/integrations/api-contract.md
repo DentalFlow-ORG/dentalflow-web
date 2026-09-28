@@ -45,4 +45,12 @@ Static candidate matching is intentionally conservative and does not prove paylo
 
 ## Contract automation proposal
 
+### Form contract clarifications (2026-09-28)
+
+Appointment PAYMENT_PENDING/CANCELED clear paidAmount, paymentDate and paymentMethod. COMPLETED/CANCELED appointments reject normal editing. Explicit patientId reuses only that Patient; absent selection must not infer identity from contact attributes. Recognizable Brazilian phones are normalized to local digits on writes; legacy masked contacts remain compatible, without historical backfill or contact uniqueness.
+
+Fiscal profile drafts accept empty CEP/UF, while simulation/issuance requires completeness. Normal writable DTOs exclude fiscalProvider/fiscalProviderMode and the validation pipe rejects client attempts to provide them. Backend configuration supplies defaults; ordinary updates preserve routing. Local simulation remains without legal validity. Stock purchasePrice is nullable: clearing sends null, and explicit zero remains zero. The [takeover report](../quality/form-hardening-takeover.md) records tests, all affected phone columns, existing admin-clinic CRUD limitations and human QA routes.
+
+### Existing automation proposal
+
 Problem: independently maintained DTOs, UI types, plan maps and static marketing allow silent drift. Opportunity: a reviewed OpenAPI artifact from the existing Nest controllers/DTOs plus representative response contract tests. Start with auth, billing and appointments; keep handwritten service wrappers so UI remains unchanged. Add generated types/client only after error, cookie, download and pagination behavior is represented. Complexity medium; new tooling dependency and CI ownership require approval. A shared cross-repository business-logic package is rejected at this stage: it would couple releases without solving runtime validation.
