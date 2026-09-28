@@ -1,4 +1,4 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { render, screen, within } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
 
 vi.mock('@tanstack/react-router', async () => {
@@ -43,6 +43,7 @@ vi.mock('@/features/billing/hooks/useSubscriptionPage', async () => {
 })
 
 import { SubscriptionPageContainer } from '@/features/billing/containers/SubscriptionPageContainer'
+import type { BillingInterval } from '@/features/billing/types/billing.types'
 import { makeBillingPlan, makeBillingStatus } from '@/test-utils/factories/billing.factory'
 import { makeAssistantUser, makeOwnerUser } from '@/test-utils/factories/user.factory'
 import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
@@ -60,11 +61,12 @@ function defaultState() {
     isLoadingBillingStatus: false,
     plansError: null as string | null,
     billingStatusError: null as string | null,
-    billingInterval: 'YEARLY' as const,
+    billingInterval: 'YEARLY' as BillingInterval,
     setBillingInterval: vi.fn(),
     checkingOutPlanKey: null,
     startingTrialPlanKey: null,
-    changingPlanKey: null,
+    changingPlanKey: null as string | null,
+    pendingPlanChangeKey: null as string | null,
     isOpeningPortal: false,
     showCancelDialog: false,
     setShowCancelDialog: vi.fn(),
@@ -77,12 +79,28 @@ function defaultState() {
     handleStartTrial: vi.fn(),
     handleCheckout: vi.fn(),
     handleChangePlan: vi.fn(),
+    requestPlanChange: vi.fn(),
+    cancelPlanChange: vi.fn(),
+    confirmPlanChange: vi.fn(),
     handlePortal: vi.fn(),
     handleCancelConfirm: vi.fn(),
   }
 }
 
 describe('SubscriptionPageContainer', () => {
+  it('uses the catalogue plan name in cancellation when billing omits its display name', () => {
+    mockUseSubscriptionPage.mockReturnValue(
+      baseHookState({
+        plans: [makeBillingPlan({ slug: 'professional', name: 'Profissional do catálogo' })],
+        billingStatus: makeBillingStatus({ planKey: 'professional', planName: null }),
+        showCancelDialog: true,
+      }),
+    )
+    render(<SubscriptionPageContainer />)
+    expect(
+      within(screen.getByRole('dialog')).getByText('Profissional do catálogo'),
+    ).toBeInTheDocument()
+  })
   beforeEach(() => {
     resetAuthMocks()
     setMockAuthState({ user: makeOwnerUser() })
@@ -213,6 +231,75 @@ describe('SubscriptionPageContainer', () => {
     render(<SubscriptionPageContainer />)
     await userEvent.click(screen.getByRole('button', { name: 'Manter assinatura' }))
     expect(setShowCancelDialog).toHaveBeenCalledWith(false)
+  })
+
+  it('names the plan and the access-until date in the cancel dialog', () => {
+    mockUseSubscriptionPage.mockReturnValue(
+      baseHookState({
+        showCancelDialog: true,
+        billingStatus: makeBillingStatus({
+          planName: 'Profissional',
+          currentPeriodEnd: '2026-10-15T15:00:00.000Z',
+        }),
+      }),
+    )
+    render(<SubscriptionPageContainer />)
+    const dialog = screen.getByRole('dialog', { name: 'Cancelar assinatura' })
+    expect(within(dialog).getByText('Profissional')).toBeInTheDocument()
+    expect(within(dialog).getByText(/acesso ao plano até 15\/10\/2026/)).toBeInTheDocument()
+  })
+
+  it.each([
+    ['MONTHLY', 'mensal'],
+    ['YEARLY', 'anual'],
+  ] as const)(
+    'names the plan and %s interval before an immediate change',
+    (billingInterval, label) => {
+      mockUseSubscriptionPage.mockReturnValue(
+        baseHookState({
+          plans: [makeBillingPlan({ slug: 'premium', name: 'Premium' })],
+          pendingPlanChangeKey: 'premium',
+          billingStatus: makeBillingStatus({ planName: 'Essencial' }),
+          billingInterval,
+        }),
+      )
+      render(<SubscriptionPageContainer />)
+      const dialog = screen.getByRole('dialog', { name: 'Alterar plano da assinatura?' })
+      expect(within(dialog).getByText(`Premium · ${label}`)).toBeInTheDocument()
+      expect(
+        within(dialog).getByText(/do plano Essencial é aplicada imediatamente/),
+      ).toBeInTheDocument()
+    },
+  )
+
+  it('confirms or discards the pending plan change', async () => {
+    const confirmPlanChange = vi.fn()
+    const cancelPlanChange = vi.fn()
+    mockUseSubscriptionPage.mockReturnValue(
+      baseHookState({
+        plans: [makeBillingPlan({ slug: 'premium', name: 'Premium' })],
+        pendingPlanChangeKey: 'premium',
+        confirmPlanChange,
+        cancelPlanChange,
+      }),
+    )
+    render(<SubscriptionPageContainer />)
+    await userEvent.click(screen.getByRole('button', { name: 'Manter plano atual' }))
+    expect(cancelPlanChange).toHaveBeenCalledOnce()
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar alteração' }))
+    expect(confirmPlanChange).toHaveBeenCalledOnce()
+  })
+
+  it('shows the plan change as pending while Stripe processes it', () => {
+    mockUseSubscriptionPage.mockReturnValue(
+      baseHookState({
+        plans: [makeBillingPlan({ slug: 'premium', name: 'Premium' })],
+        pendingPlanChangeKey: 'premium',
+        changingPlanKey: 'premium',
+      }),
+    )
+    render(<SubscriptionPageContainer />)
+    expect(screen.getByRole('button', { name: /aguarde/i })).toBeDisabled()
   })
 
   it('recommends the only plan on offer when it carries analytics', () => {

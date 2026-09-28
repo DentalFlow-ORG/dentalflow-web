@@ -297,6 +297,58 @@ describe('useSubscriptionPage — handleChangePlan', () => {
   })
 })
 
+describe('useSubscriptionPage — plan change confirmation', () => {
+  it('only records the selected plan until the change is confirmed', async () => {
+    const { result } = await renderLoaded()
+    act(() => result.current.requestPlanChange('premium'))
+    expect(result.current.pendingPlanChangeKey).toBe('premium')
+    expect(mockChangeSubscriptionPlan).not.toHaveBeenCalled()
+  })
+
+  it('discards the selected plan when the owner keeps the current one', async () => {
+    const { result } = await renderLoaded()
+    act(() => result.current.requestPlanChange('premium'))
+    act(() => result.current.cancelPlanChange())
+    expect(result.current.pendingPlanChangeKey).toBeNull()
+    expect(mockChangeSubscriptionPlan).not.toHaveBeenCalled()
+  })
+
+  it('changes to the selected plan on confirmation and clears the pending selection', async () => {
+    mockChangeSubscriptionPlan.mockResolvedValue(makeBillingStatus({ planKey: 'premium' }))
+    const { result } = await renderLoaded()
+    act(() => result.current.requestPlanChange('premium'))
+    await act(async () => {
+      await result.current.confirmPlanChange()
+    })
+    expect(mockChangeSubscriptionPlan).toHaveBeenCalledWith({
+      planKey: 'premium',
+      billingInterval: result.current.billingInterval,
+    })
+    expect(result.current.pendingPlanChangeKey).toBeNull()
+  })
+
+  it('clears the pending selection when the confirmed change fails', async () => {
+    mockChangeSubscriptionPlan.mockRejectedValue(new Error('Cartão recusado'))
+    const { result } = await renderLoaded()
+    act(() => result.current.requestPlanChange('premium'))
+    await act(async () => {
+      await result.current.confirmPlanChange()
+    })
+    expect(result.current.pendingPlanChangeKey).toBeNull()
+    expect(mockShowAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Erro ao alterar plano', description: 'Cartão recusado' }),
+    )
+  })
+
+  it('does nothing when confirming without a selected plan', async () => {
+    const { result } = await renderLoaded()
+    await act(async () => {
+      await result.current.confirmPlanChange()
+    })
+    expect(mockChangeSubscriptionPlan).not.toHaveBeenCalled()
+  })
+})
+
 describe('useSubscriptionPage — handlePortal', () => {
   it('redirects to the portal URL on success', async () => {
     mockCreatePortalSession.mockResolvedValue({ url: 'https://stripe.test/portal' })

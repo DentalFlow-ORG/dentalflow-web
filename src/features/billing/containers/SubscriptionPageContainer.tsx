@@ -7,6 +7,7 @@ import { LoadingCard } from '@/components/common/LoadingCard'
 import { PanelCard } from '@/components/common/PanelCard'
 import { AppPage } from '@/components/layout/AppPage'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { formatTimestampDateBR } from '@/lib/date-time-formatters'
 
 import type { CommercialPlanKey } from '@/features/marketing/config/features'
 import { BillingIntervalToggle } from '../components/BillingIntervalToggle'
@@ -40,6 +41,7 @@ export function SubscriptionPageContainer() {
     checkingOutPlanKey,
     startingTrialPlanKey,
     changingPlanKey,
+    pendingPlanChangeKey,
     isOpeningPortal,
     showCancelDialog,
     setShowCancelDialog,
@@ -51,7 +53,9 @@ export function SubscriptionPageContainer() {
     showIntervalToggle,
     handleStartTrial,
     handleCheckout,
-    handleChangePlan,
+    requestPlanChange,
+    cancelPlanChange,
+    confirmPlanChange,
     handlePortal,
     handleCancelConfirm,
   } = useSubscriptionPage()
@@ -61,6 +65,10 @@ export function SubscriptionPageContainer() {
   const currentPlan = plans.find((plan) => plan.slug === billingStatus?.planKey)
   const currentPlanDisplayOrder = currentPlan?.displayOrder ?? null
   const hasMonthlyPromo = plans.some((p) => p.campaign.promotionReady)
+  const pendingPlan = plans.find((plan) => plan.slug === pendingPlanChangeKey)
+  const intervalLabel = billingInterval === 'MONTHLY' ? 'mensal' : 'anual'
+  const currentPlanName = billingStatus?.planName ?? currentPlan?.name
+  const accessUntil = formatTimestampDateBR(billingStatus?.currentPeriodEnd)
 
   return (
     <AppPage>
@@ -161,7 +169,7 @@ export function SubscriptionPageContainer() {
                   changingPlanKey={changingPlanKey}
                   onStartTrial={handleStartTrial}
                   onCheckout={handleCheckout}
-                  onChangePlan={handleChangePlan}
+                  onChangePlan={requestPlanChange}
                 />
               )
             })}
@@ -189,13 +197,31 @@ export function SubscriptionPageContainer() {
       <ConfirmDialog
         open={showCancelDialog}
         title="Cancelar assinatura"
-        description="Sua assinatura será cancelada ao fim do período de cobrança atual. Você continuará com acesso ao plano até essa data e não será cobrado no próximo ciclo."
+        subject={currentPlanName ?? undefined}
+        description={
+          accessUntil
+            ? `Sua assinatura será cancelada ao fim do período de cobrança atual. Você continuará com acesso ao plano até ${accessUntil} e não será cobrado no próximo ciclo.`
+            : 'Sua assinatura será cancelada ao fim do período de cobrança atual. Você continuará com acesso ao plano até essa data e não será cobrado no próximo ciclo.'
+        }
         confirmLabel="Confirmar cancelamento"
         cancelLabel="Manter assinatura"
         tone="warning"
         isConfirming={isCanceling}
         onConfirm={handleCancelConfirm}
         onCancel={() => setShowCancelDialog(false)}
+      />
+
+      <ConfirmDialog
+        open={pendingPlanChangeKey !== null}
+        title="Alterar plano da assinatura?"
+        subject={pendingPlan ? `${pendingPlan.name} · ${intervalLabel}` : undefined}
+        description={`A mudança${currentPlanName ? ` do plano ${currentPlanName}` : ''} é aplicada imediatamente na Stripe. A diferença de valor proporcional ao período restante será cobrada ou creditada na sua próxima fatura.`}
+        confirmLabel="Confirmar alteração"
+        cancelLabel="Manter plano atual"
+        tone="warning"
+        isConfirming={changingPlanKey !== null}
+        onConfirm={() => void confirmPlanChange()}
+        onCancel={cancelPlanChange}
       />
     </AppPage>
   )

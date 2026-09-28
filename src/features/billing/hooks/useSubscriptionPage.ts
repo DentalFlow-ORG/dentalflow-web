@@ -41,6 +41,9 @@ export function useSubscriptionPage() {
   const [checkingOutPlanKey, setCheckingOutPlanKey] = useState<string | null>(null)
   const [startingTrialPlanKey, setStartingTrialPlanKey] = useState<string | null>(null)
   const [changingPlanKey, setChangingPlanKey] = useState<string | null>(null)
+  // Plan changes are applied immediately by Stripe (with proration), so the
+  // selected plan waits here until the owner confirms it.
+  const [pendingPlanChangeKey, setPendingPlanChangeKey] = useState<string | null>(null)
   const [isOpeningPortal, setIsOpeningPortal] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [isCanceling, setIsCanceling] = useState(false)
@@ -138,7 +141,21 @@ export function useSubscriptionPage() {
       showAlert({ title: 'Erro ao alterar plano', description: msg, tone: 'error' })
     } finally {
       setChangingPlanKey(null)
+      setPendingPlanChangeKey(null)
     }
+  }
+
+  function requestPlanChange(planKey: string) {
+    setPendingPlanChangeKey(planKey)
+  }
+
+  function cancelPlanChange() {
+    setPendingPlanChangeKey(null)
+  }
+
+  async function confirmPlanChange() {
+    if (!pendingPlanChangeKey) return
+    await handleChangePlan(pendingPlanChangeKey)
   }
 
   async function handlePortal() {
@@ -202,6 +219,7 @@ export function useSubscriptionPage() {
     checkingOutPlanKey,
     startingTrialPlanKey,
     changingPlanKey,
+    pendingPlanChangeKey,
     isOpeningPortal,
     showCancelDialog,
     setShowCancelDialog,
@@ -214,6 +232,9 @@ export function useSubscriptionPage() {
     handleStartTrial,
     handleCheckout,
     handleChangePlan,
+    requestPlanChange,
+    cancelPlanChange,
+    confirmPlanChange,
     handlePortal,
     handleCancelConfirm,
   }
