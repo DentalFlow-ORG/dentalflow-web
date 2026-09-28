@@ -146,12 +146,6 @@ vi.mock('@/features/inventory/components/StockMovementModal', () => ({
 vi.mock('@/features/inventory/components/ProductDetailsDrawer', () => ({
   ProductDetailsDrawer: () => null,
 }))
-vi.mock('@/features/inventory/components/DeactivateProductDialog', () => ({
-  DeactivateProductDialog: () => null,
-}))
-vi.mock('@/features/inventory/components/ReactivateProductDialog', () => ({
-  ReactivateProductDialog: () => null,
-}))
 
 // ── Component ─────────────────────────────────────────────────────────────────
 

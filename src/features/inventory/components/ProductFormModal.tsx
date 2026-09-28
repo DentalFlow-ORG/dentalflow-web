@@ -24,6 +24,7 @@ import { ApiError } from '@/services/http'
 import { createStockProduct, updateStockProduct } from '../services/inventory.service'
 import type { StockCategory, StockProduct } from '../types/inventory.types'
 import { formatQuantity } from '../utils/inventory-format'
+import { parseQuantityInput, quantityToInput, sanitizeQuantityInput } from '../utils/quantity-input'
 
 type ProductFormState = {
   name: string
@@ -56,8 +57,8 @@ function productToForm(product: StockProduct): ProductFormState {
     name: product.name,
     categoryId: product.categoryId,
     unit: product.unit,
-    currentQuantity: String(product.currentQuantity),
-    minQuantity: product.minQuantity > 0 ? String(product.minQuantity) : '',
+    currentQuantity: quantityToInput(product.currentQuantity),
+    minQuantity: product.minQuantity > 0 ? quantityToInput(product.minQuantity) : '',
     purchasePrice: centsToMoneyInput(product.purchasePrice),
     supplier: product.supplier ?? '',
     // expiresAt arrives as ISO string ("2025-12-31T00:00:00.000Z") — slice to YYYY-MM-DD
@@ -86,6 +87,7 @@ export function ProductFormModal({
   const [form, setForm] = useState<ProductFormState>(EMPTY_FORM)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [invalidField, setInvalidField] = useState<keyof ProductFormState | null>(null)
 
   const isEditMode = product !== null
 
@@ -97,32 +99,33 @@ export function ProductFormModal({
   useEffect(() => {
     if (!open) return
     setError(null)
+    setInvalidField(null)
     setForm(product ? productToForm(product) : EMPTY_FORM)
   }, [open, product])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
+    setInvalidField(null)
 
     if (!form.name.trim()) {
+      setInvalidField('name')
       setError('O nome do produto é obrigatório.')
       return
     }
     if (!form.categoryId) {
+      setInvalidField('categoryId')
       setError('Selecione uma categoria para o produto.')
       return
     }
 
-    const parsedPrice = form.purchasePrice ? parseMoneyInputToCents(form.purchasePrice) : undefined
-
-    const parsedQtyValue = Number.parseFloat(form.currentQuantity)
-    const parsedQty =
-      !isEditMode && form.currentQuantity !== '' && !Number.isNaN(parsedQtyValue)
-        ? parsedQtyValue
-        : undefined
-
-    const parsedMinQtyValue = Number.parseFloat(form.minQuantity)
-    const parsedMinQty =
-      form.minQuantity !== '' && !Number.isNaN(parsedMinQtyValue) ? parsedMinQtyValue : undefined
+    const parsedPrice = form.purchasePrice ? parseMoneyInputToCents(form.purchasePrice) : null
+    const parsedQty = isEditMode ? null : parseQuantityInput(form.currentQuantity)
+    const parsedMinQty = parseQuantityInput(form.minQuantity)
+    if (form.minQuantity.trim() && parsedMinQty === null) {
+      setInvalidField('minQuantity')
+      setError('Informe uma quantidade mínima válida.')
+      return
+    }
 
     const unitValue = form.unit.trim() || 'unidade'
 
@@ -131,16 +134,18 @@ export function ProductFormModal({
 
     try {
       if (isEditMode && product) {
+        // Optional fields are sent as null when emptied so the API clears them;
+        // omitting them would keep the previous value.
         await updateStockProduct(product.id, {
           name: form.name.trim(),
           categoryId: form.categoryId,
           unit: unitValue,
-          minQuantity: parsedMinQty,
+          minQuantity: parsedMinQty ?? 0,
           purchasePrice: parsedPrice,
-          supplier: form.supplier.trim() || undefined,
+          supplier: form.supplier.trim() || null,
           expiresAt: form.expiresAt || null,
-          description: form.description.trim() || undefined,
-          notes: form.notes.trim() || undefined,
+          description: form.description.trim() || null,
+          notes: form.notes.trim() || null,
         })
         showAlert({ title: 'Produto atualizado com sucesso.', tone: 'success' })
       } else {
@@ -148,9 +153,9 @@ export function ProductFormModal({
           name: form.name.trim(),
           categoryId: form.categoryId,
           unit: unitValue,
-          currentQuantity: parsedQty,
-          minQuantity: parsedMinQty,
-          purchasePrice: parsedPrice,
+          currentQuantity: parsedQty ?? undefined,
+          minQuantity: parsedMinQty ?? undefined,
+          purchasePrice: parsedPrice ?? undefined,
           supplier: form.supplier.trim() || undefined,
           expiresAt: form.expiresAt || undefined,
           description: form.description.trim() || undefined,
@@ -206,13 +211,14 @@ export function ProductFormModal({
           {/* ── Form ── */}
           <form
             id="product-form"
+            noValidate
             className="flex flex-1 flex-col overflow-hidden"
             onSubmit={handleSubmit}
           >
             {/* Scrollable body */}
             <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto">
               <div className="space-y-6 px-6 py-5">
-                {error && <InlineFeedback>{error}</InlineFeedback>}
+                {error && !invalidField && <InlineFeedback>{error}</InlineFeedback>}
 
                 {categories.length === 0 && (
                   <InlineFeedback tone="warning">
@@ -227,9 +233,17 @@ export function ProductFormModal({
                     Identificação
                   </p>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <FormField label="Nome do produto" htmlFor="prodName" className="sm:col-span-2">
+                    <FormField
+                      label="Nome do produto"
+                      htmlFor="prodName"
+                      className="sm:col-span-2"
+                      error={invalidField === 'name' ? error : undefined}
+                    >
                       <TextInput
                         id="prodName"
+                        aria-invalid={invalidField === 'name'}
+                        aria-describedby={invalidField === 'name' ? 'prodName-error' : undefined}
+                        placeholder="Digite o nome do produto"
                         value={form.name}
                         maxLength={120}
                         required
@@ -237,12 +251,22 @@ export function ProductFormModal({
                         onChange={(e) => setField('name', e.target.value)}
                       />
                     </FormField>
-                    <FormField label="Categoria" htmlFor="prodCategory">
+                    <FormField
+                      label="Categoria"
+                      htmlFor="prodCategory"
+                      error={invalidField === 'categoryId' ? error : undefined}
+                    >
                       <Select
                         value={form.categoryId}
                         onValueChange={(v) => setField('categoryId', v)}
                       >
-                        <SelectTrigger id="prodCategory">
+                        <SelectTrigger
+                          id="prodCategory"
+                          aria-invalid={invalidField === 'categoryId'}
+                          aria-describedby={
+                            invalidField === 'categoryId' ? 'prodCategory-error' : undefined
+                          }
+                        >
                           <SelectValue placeholder="Selecione uma categoria" />
                         </SelectTrigger>
                         <SelectContent position="item-aligned">
@@ -300,24 +324,33 @@ export function ProductFormModal({
                       <FormField label="Quantidade atual" htmlFor="prodQty" optional>
                         <TextInput
                           id="prodQty"
-                          type="number"
-                          min="0"
-                          step="0.001"
+                          inputMode="decimal"
                           placeholder="0"
                           value={form.currentQuantity}
-                          onChange={(e) => setField('currentQuantity', e.target.value)}
+                          onChange={(e) =>
+                            setField('currentQuantity', sanitizeQuantityInput(e.target.value))
+                          }
                         />
                       </FormField>
                     )}
-                    <FormField label="Quantidade mínima" htmlFor="prodMinQty" optional>
+                    <FormField
+                      label="Quantidade mínima"
+                      htmlFor="prodMinQty"
+                      optional
+                      error={invalidField === 'minQuantity' ? error : undefined}
+                    >
                       <TextInput
                         id="prodMinQty"
-                        type="number"
-                        min="0"
-                        step="0.001"
+                        aria-invalid={invalidField === 'minQuantity'}
+                        aria-describedby={
+                          invalidField === 'minQuantity' ? 'prodMinQty-error' : undefined
+                        }
+                        inputMode="decimal"
                         placeholder="0"
                         value={form.minQuantity}
-                        onChange={(e) => setField('minQuantity', e.target.value)}
+                        onChange={(e) =>
+                          setField('minQuantity', sanitizeQuantityInput(e.target.value))
+                        }
                       />
                     </FormField>
                     <FormField label="Validade" htmlFor="prodExpiry" optional>
@@ -339,7 +372,7 @@ export function ProductFormModal({
                     <TextInput
                       id="prodPrice"
                       inputMode="numeric"
-                      placeholder="0,00"
+                      placeholder="R$ 0,00"
                       value={form.purchasePrice}
                       onChange={(e) =>
                         setField('purchasePrice', formatMoneyInputFromDigits(e.target.value))

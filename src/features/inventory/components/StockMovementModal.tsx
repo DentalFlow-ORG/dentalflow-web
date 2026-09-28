@@ -12,6 +12,7 @@ import { ApiError } from '@/services/http'
 import { createStockMovement } from '../services/inventory.service'
 import type { StockMovementType, StockProduct } from '../types/inventory.types'
 import { formatQuantity } from '../utils/inventory-format'
+import { parseQuantityInput, sanitizeQuantityInput } from '../utils/quantity-input'
 
 type MovementFormState = {
   type: StockMovementType
@@ -55,6 +56,7 @@ export function StockMovementModal({ product, onClose, onSuccess }: StockMovemen
   const [form, setForm] = useState<MovementFormState>(EMPTY_FORM)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [quantityInvalid, setQuantityInvalid] = useState(false)
 
   const isOpen = product !== null
   const isAdjustment = form.type === 'ADJUSTMENT'
@@ -63,6 +65,7 @@ export function StockMovementModal({ product, onClose, onSuccess }: StockMovemen
     if (!isOpen) {
       setForm(EMPTY_FORM)
       setError(null)
+      setQuantityInvalid(false)
     }
   }, [isOpen])
 
@@ -74,22 +77,27 @@ export function StockMovementModal({ product, onClose, onSuccess }: StockMovemen
       newQuantity: type === 'ADJUSTMENT' ? current.newQuantity : '',
     }))
     setError(null)
+    setQuantityInvalid(false)
   }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
+    setQuantityInvalid(false)
 
     if (!product) return
 
-    const parsedQuantity = parsePositiveNumber(form.quantity)
-    const parsedNewQuantity = parseNonNegativeNumber(form.newQuantity)
+    const parsedQuantity = parseQuantityInput(form.quantity)
+    // An empty adjustment must not silently mean "set the stock to zero".
+    const parsedNewQuantity = parseQuantityInput(form.newQuantity)
 
     if (isAdjustment) {
       if (parsedNewQuantity === null) {
+        setQuantityInvalid(true)
         setError('Informe a quantidade final do ajuste.')
         return
       }
     } else if (parsedQuantity === null || parsedQuantity <= 0) {
+      setQuantityInvalid(true)
       setError('Informe uma quantidade maior que zero.')
       return
     }
@@ -152,13 +160,14 @@ export function StockMovementModal({ product, onClose, onSuccess }: StockMovemen
           {/* ── Form ── */}
           <form
             id="movement-form"
+            noValidate
             className="flex flex-1 flex-col overflow-hidden"
             onSubmit={handleSubmit}
           >
             {/* Scrollable body */}
             <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto">
               <div className="space-y-6 px-6 py-5">
-                {error && <InlineFeedback>{error}</InlineFeedback>}
+                {error && !quantityInvalid && <InlineFeedback>{error}</InlineFeedback>}
 
                 {/* ── Produto ── */}
                 {product && (
@@ -232,32 +241,48 @@ export function StockMovementModal({ product, onClose, onSuccess }: StockMovemen
                     Quantidade
                   </p>
                   {isAdjustment ? (
-                    <FormField label="Quantidade final" htmlFor="stockMovementNewQuantity">
+                    <FormField
+                      label="Quantidade final"
+                      htmlFor="stockMovementNewQuantity"
+                      error={quantityInvalid ? error : undefined}
+                    >
                       <TextInput
                         id="stockMovementNewQuantity"
-                        type="number"
-                        min="0"
-                        step="0.001"
-                        required
+                        aria-invalid={quantityInvalid}
+                        aria-describedby={
+                          quantityInvalid ? 'stockMovementNewQuantity-error' : undefined
+                        }
+                        inputMode="decimal"
                         placeholder="0"
                         value={form.newQuantity}
                         onChange={(event) =>
-                          setForm((current) => ({ ...current, newQuantity: event.target.value }))
+                          setForm((current) => ({
+                            ...current,
+                            newQuantity: sanitizeQuantityInput(event.target.value),
+                          }))
                         }
                       />
                     </FormField>
                   ) : (
-                    <FormField label="Quantidade" htmlFor="stockMovementQuantity">
+                    <FormField
+                      label="Quantidade"
+                      htmlFor="stockMovementQuantity"
+                      error={quantityInvalid ? error : undefined}
+                    >
                       <TextInput
                         id="stockMovementQuantity"
-                        type="number"
-                        min="0"
-                        step="0.001"
-                        required
+                        aria-invalid={quantityInvalid}
+                        aria-describedby={
+                          quantityInvalid ? 'stockMovementQuantity-error' : undefined
+                        }
+                        inputMode="decimal"
                         placeholder="0"
                         value={form.quantity}
                         onChange={(event) =>
-                          setForm((current) => ({ ...current, quantity: event.target.value }))
+                          setForm((current) => ({
+                            ...current,
+                            quantity: sanitizeQuantityInput(event.target.value),
+                          }))
                         }
                       />
                     </FormField>
@@ -316,14 +341,4 @@ export function StockMovementModal({ product, onClose, onSuccess }: StockMovemen
       </Dialog.Portal>
     </Dialog.Root>
   )
-}
-
-function parsePositiveNumber(value: string) {
-  const parsed = Number(value.replace(',', '.'))
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
-}
-
-function parseNonNegativeNumber(value: string) {
-  const parsed = Number(value.replace(',', '.'))
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null
 }

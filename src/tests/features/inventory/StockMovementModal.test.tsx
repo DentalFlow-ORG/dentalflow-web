@@ -82,7 +82,7 @@ describe('StockMovementModal', () => {
   it('clears quantity and validation errors when reopened for another product', async () => {
     const props = defaultProps()
     const { rerender } = render(<StockMovementModal {...props} />)
-    fireEvent.change(screen.getByRole('spinbutton', { name: /^Quantidade$/i }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /^Quantidade$/i }), {
       target: { value: '0' },
     })
     await userEvent.click(screen.getByRole('button', { name: /Registrar movimentação/ }))
@@ -92,7 +92,7 @@ describe('StockMovementModal', () => {
       <StockMovementModal {...props} product={buildProduct({ id: 'prod-2', name: 'Resina' })} />,
     )
     expect(screen.getByText('Resina')).toBeInTheDocument()
-    expect(screen.getByRole('spinbutton', { name: /^Quantidade$/i })).toHaveValue(null)
+    expect(screen.getByRole('textbox', { name: /^Quantidade$/i })).toHaveValue('')
     expect(screen.queryByText('Informe uma quantidade maior que zero.')).not.toBeInTheDocument()
   })
 
@@ -104,7 +104,7 @@ describe('StockMovementModal', () => {
       await userEvent.click(
         screen.getByRole('radio', { name: type === 'OUT' ? /Saída/i : /Perda\/descarte/i }),
       )
-      fireEvent.change(screen.getByRole('spinbutton', { name: /^Quantidade$/i }), {
+      fireEvent.change(screen.getByRole('textbox', { name: /^Quantidade$/i }), {
         target: { value: '1.5' },
       })
       fireEvent.change(screen.getByLabelText(/Motivo/), { target: { value: '  Uso clínico  ' } })
@@ -122,18 +122,31 @@ describe('StockMovementModal', () => {
     },
   )
 
-  it.each(['', '-1'])(
-    'prevents native submission of invalid final quantity %s',
-    async (quantity) => {
-      render(<StockMovementModal {...defaultProps()} />)
-      await userEvent.click(screen.getByRole('radio', { name: /Ajuste/i }))
-      const input = screen.getByRole('spinbutton', { name: /Quantidade final/i })
-      fireEvent.change(input, { target: { value: quantity } })
-      await userEvent.click(screen.getByRole('button', { name: /Registrar movimentação/ }))
-      expect(input).toBeInvalid()
-      expect(mockCreateMovement).not.toHaveBeenCalled()
-    },
-  )
+  // Regression: an empty adjustment used to be parsed as 0 and zero the stock.
+  it('rejects an empty final quantity instead of treating it as zero', async () => {
+    render(<StockMovementModal {...defaultProps()} />)
+    await userEvent.click(screen.getByRole('radio', { name: /Ajuste/i }))
+    const input = screen.getByRole('textbox', { name: /Quantidade final/i })
+    fireEvent.change(input, { target: { value: '' } })
+    await userEvent.click(screen.getByRole('button', { name: /Registrar movimentação/ }))
+    expect(screen.getByText('Informe a quantidade final do ajuste.')).toBeInTheDocument()
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAccessibleDescription('Informe a quantidade final do ajuste.')
+    expect(mockCreateMovement).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['a minus sign', '-1', '1'],
+    ['scientific notation', '1e5', '15'],
+    ['more than 3 decimals', '2,12345', '2,123'],
+    ['a dot separator', '2.5', '2,5'],
+  ])('sanitizes %s in the quantity', async (_case, typed, expected) => {
+    render(<StockMovementModal {...defaultProps()} />)
+    const input = screen.getByRole('textbox', { name: /^Quantidade$/i })
+    fireEvent.change(input, { target: { value: typed } })
+    expect(input).toHaveValue(expected)
+    expect(input).toHaveAttribute('inputMode', 'decimal')
+  })
 
   it('accepts an explicit zero adjustment and blocks duplicate submission while saving', async () => {
     let resolve!: () => void
@@ -145,7 +158,7 @@ describe('StockMovementModal', () => {
     const props = defaultProps()
     render(<StockMovementModal {...props} />)
     await userEvent.click(screen.getByRole('radio', { name: /Ajuste/i }))
-    fireEvent.change(screen.getByRole('spinbutton', { name: /Quantidade final/i }), {
+    fireEvent.change(screen.getByRole('textbox', { name: /Quantidade final/i }), {
       target: { value: '0' },
     })
     const submit = screen.getByRole('button', { name: /Registrar movimentação/ })
@@ -169,7 +182,7 @@ describe('StockMovementModal', () => {
       mockCreateMovement.mockRejectedValueOnce(error)
       const props = defaultProps()
       render(<StockMovementModal {...props} />)
-      fireEvent.change(screen.getByRole('spinbutton', { name: /^Quantidade$/i }), {
+      fireEvent.change(screen.getByRole('textbox', { name: /^Quantidade$/i }), {
         target: { value: '2' },
       })
       await userEvent.click(screen.getByRole('button', { name: /Registrar movimentação/ }))
@@ -180,7 +193,7 @@ describe('StockMovementModal', () => {
             : 'Não foi possível registrar a movimentação. Tente novamente.',
         ),
       ).toBeInTheDocument()
-      expect(screen.getByRole('spinbutton', { name: /^Quantidade$/i })).toHaveValue(2)
+      expect(screen.getByRole('textbox', { name: /^Quantidade$/i })).toHaveValue('2')
       expect(props.onSuccess).not.toHaveBeenCalled()
       expect(props.onClose).not.toHaveBeenCalled()
       await userEvent.click(screen.getByRole('button', { name: /Registrar movimentação/ }))
@@ -261,10 +274,10 @@ describe('StockMovementModal', () => {
 
     await user.click(screen.getByRole('radio', { name: /Ajuste/i }))
 
-    // Use getByRole('spinbutton') to target the number input specifically,
+    // Use getByRole('textbox') to target the number input specifically,
     // not the radio whose label text contains "a quantidade final"
-    expect(screen.getByRole('spinbutton', { name: /Quantidade final/i })).toBeInTheDocument()
-    expect(screen.queryByRole('spinbutton', { name: /^Quantidade$/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: /Quantidade final/i })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: /^Quantidade$/i })).not.toBeInTheDocument()
   })
 
   // ── Submit payload ─────────────────────────────────────────────────────────
@@ -274,7 +287,7 @@ describe('StockMovementModal', () => {
     const user = userEvent.setup()
     render(<StockMovementModal {...defaultProps({ onSuccess })} />)
 
-    await user.type(screen.getByRole('spinbutton', { name: /^Quantidade$/i }), '5')
+    await user.type(screen.getByRole('textbox', { name: /^Quantidade$/i }), '5')
     await user.click(screen.getByRole('button', { name: /Registrar movimentação/i }))
 
     expect(mockCreateMovement).toHaveBeenCalledWith(
@@ -292,9 +305,9 @@ describe('StockMovementModal', () => {
     render(<StockMovementModal {...defaultProps({ onSuccess })} />)
 
     await user.click(screen.getByRole('radio', { name: /Ajuste/i }))
-    // Target the number input by spinbutton role, not by label text (which also
+    // Target the input by role, not by label text (which also
     // matches the "Define a quantidade final" description in the Ajuste card)
-    await user.type(screen.getByRole('spinbutton', { name: /Quantidade final/i }), '20')
+    await user.type(screen.getByRole('textbox', { name: /Quantidade final/i }), '20')
     await user.click(screen.getByRole('button', { name: /Registrar movimentação/i }))
 
     expect(mockCreateMovement).toHaveBeenCalledWith(
@@ -311,7 +324,7 @@ describe('StockMovementModal', () => {
     render(<StockMovementModal {...defaultProps()} />)
 
     // Type 0: bypasses the `required` HTML5 check but fails the JS `> 0` validation
-    await user.type(screen.getByRole('spinbutton', { name: /^Quantidade$/i }), '0')
+    await user.type(screen.getByRole('textbox', { name: /^Quantidade$/i }), '0')
     await user.click(screen.getByRole('button', { name: /Registrar movimentação/i }))
 
     expect(screen.getByText(/Informe uma quantidade maior que zero/i)).toBeInTheDocument()
@@ -347,14 +360,11 @@ describe('StockMovementModal', () => {
 
     expect(screen.queryByRole('heading', { name: /Movimentar estoque/i })).not.toBeInTheDocument()
   })
-  // The number input carries required/min=0, so a browser blocks these before
-  // the handler runs. Submitting the form directly bypasses that native guard
-  // and proves the component does not depend on it alone.
-  it('rejects a negative final quantity even when native validation is bypassed', async () => {
+  it('validates in the handler without relying on native browser validation', async () => {
     render(<StockMovementModal {...defaultProps()} />)
     await userEvent.click(screen.getByRole('radio', { name: /Ajuste/i }))
-    const input = screen.getByRole('spinbutton', { name: /Quantidade final/i })
-    fireEvent.change(input, { target: { value: '-1' } })
+    const input = screen.getByRole('textbox', { name: /Quantidade final/i })
+    expect(input).not.toBeRequired()
     await act(async () => {
       fireEvent.submit(input.closest('form') as HTMLFormElement)
     })

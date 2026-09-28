@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 
 import { ActionIconButton } from '@/components/common/ActionIconButton'
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -68,6 +69,7 @@ export function CategoryManagerModal({
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [invalidField, setInvalidField] = useState<'name' | 'color' | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const isEditMode = editingCategory !== null
@@ -96,16 +98,19 @@ export function CategoryManagerModal({
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
+    setInvalidField(null)
 
     const name = form.name.trim()
     const color = form.color.trim()
 
     if (!name) {
+      setInvalidField('name')
       setFormError('O nome da categoria é obrigatório.')
       return
     }
 
     if (color && !/^#[0-9A-Fa-f]{6}$/.test(color)) {
+      setInvalidField('color')
       setFormError('Cor inválida. Use o formato #RRGGBB ou selecione uma cor sugerida.')
       return
     }
@@ -114,29 +119,24 @@ export function CategoryManagerModal({
     setFormError(null)
 
     try {
-      const payload = {
-        name,
-        color: color || undefined,
-      }
-
       if (editingCategory) {
-        await updateStockCategory(editingCategory.id, payload)
+        // An emptied color is sent as null so the API really clears it.
+        await updateStockCategory(editingCategory.id, { name, color: color || null })
         showAlert({ title: 'Categoria atualizada com sucesso.', tone: 'success' })
         onCategoriesChanged({ refreshProducts: true })
       } else {
-        await createStockCategory(payload)
+        await createStockCategory({ name, color: color || undefined })
         showAlert({ title: 'Categoria cadastrada com sucesso.', tone: 'success' })
         onCategoriesChanged()
       }
 
       setForm(EMPTY_FORM)
       setEditingCategory(null)
-    } catch {
-      setFormError(
-        editingCategory
-          ? 'Não foi possível atualizar a categoria.'
-          : 'Não foi possível cadastrar a categoria.',
-      )
+    } catch (err) {
+      const fallback = editingCategory
+        ? 'Não foi possível atualizar a categoria.'
+        : 'Não foi possível cadastrar a categoria.'
+      setFormError(err instanceof ApiError && err.message ? err.message : fallback)
     } finally {
       setIsSaving(false)
     }
@@ -203,7 +203,7 @@ export function CategoryManagerModal({
 
             <div className="app-scrollbar flex-1 overflow-y-auto px-5 py-5 sm:px-6">
               <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-                <form className="space-y-4" onSubmit={handleSubmit}>
+                <form noValidate className="space-y-4" onSubmit={handleSubmit}>
                   <div>
                     <h3 className="text-sm font-semibold text-foreground">
                       {isEditMode ? 'Editar categoria' : 'Nova categoria'}
@@ -213,11 +213,19 @@ export function CategoryManagerModal({
                     </p>
                   </div>
 
-                  {formError && <InlineFeedback>{formError}</InlineFeedback>}
+                  {formError && !invalidField && <InlineFeedback>{formError}</InlineFeedback>}
 
-                  <FormField label="Nome da categoria" htmlFor="stockCategoryName">
+                  <FormField
+                    label="Nome da categoria"
+                    htmlFor="stockCategoryName"
+                    error={invalidField === 'name' ? formError : undefined}
+                  >
                     <TextInput
                       id="stockCategoryName"
+                      aria-invalid={Boolean(formError) && invalidField === 'name'}
+                      aria-describedby={
+                        formError && invalidField === 'name' ? 'stockCategoryName-error' : undefined
+                      }
                       value={form.name}
                       maxLength={CATEGORY_NAME_MAX_LENGTH}
                       required
@@ -228,9 +236,20 @@ export function CategoryManagerModal({
                     />
                   </FormField>
 
-                  <FormField label="Cor" htmlFor="stockCategoryColor" optional>
+                  <FormField
+                    label="Cor"
+                    htmlFor="stockCategoryColor"
+                    optional
+                    error={invalidField === 'color' ? formError : undefined}
+                  >
                     <TextInput
                       id="stockCategoryColor"
+                      aria-invalid={Boolean(formError) && invalidField === 'color'}
+                      aria-describedby={
+                        formError && invalidField === 'color'
+                          ? 'stockCategoryColor-error'
+                          : undefined
+                      }
                       value={form.color}
                       maxLength={20}
                       placeholder="#1E3A8A"
@@ -359,81 +378,19 @@ export function CategoryManagerModal({
         </Dialog.Portal>
       </Dialog.Root>
 
-      <DeleteCategoryDialog
-        category={deletingCategory}
-        isDeleting={isDeleting}
-        error={deleteError}
+      <ConfirmDialog
+        open={deletingCategory !== null}
+        title="Excluir categoria"
+        subject={deletingCategory?.name}
+        description="Tem certeza que deseja excluir esta categoria? Categorias com produtos vinculados não podem ser excluídas."
+        confirmLabel="Excluir categoria"
+        isConfirming={isDeleting}
         onCancel={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
-      />
+      >
+        {deleteError && <InlineFeedback tone="error">{deleteError}</InlineFeedback>}
+      </ConfirmDialog>
     </>
-  )
-}
-
-function DeleteCategoryDialog({
-  category,
-  isDeleting,
-  error,
-  onCancel,
-  onConfirm,
-}: {
-  category: StockCategory | null
-  isDeleting: boolean
-  error: string | null
-  onCancel: () => void
-  onConfirm: () => void
-}) {
-  return (
-    <Dialog.Root open={category !== null} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
-        <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-[61] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 focus:outline-none"
-          onEscapeKeyDown={onCancel}
-          onInteractOutside={onCancel}
-        >
-          <div className="px-8 pb-6 pt-8">
-            <div
-              className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 ring-8 ring-red-50"
-              aria-hidden="true"
-            >
-              <Trash2 className="h-7 w-7 text-red-600" aria-hidden="true" />
-            </div>
-
-            <Dialog.Title className="text-center text-xl font-bold text-foreground">
-              Excluir categoria
-            </Dialog.Title>
-
-            <Dialog.Description className="mt-2 text-center text-sm leading-6 text-muted-foreground">
-              Tem certeza que deseja excluir esta categoria? Categorias com produtos vinculados não
-              podem ser excluídas.
-            </Dialog.Description>
-
-            {category && (
-              <p className="mx-auto mt-3 w-fit rounded-md bg-red-50 px-3 py-1 text-sm font-semibold text-red-800">
-                {category.name}
-              </p>
-            )}
-
-            {error && (
-              <div className="mt-4">
-                <InlineFeedback tone="error">{error}</InlineFeedback>
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col-reverse gap-3 border-t border-red-100 bg-red-50/60 px-8 py-5 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isDeleting}>
-              Cancelar
-            </Button>
-            <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting}>
-              {isDeleting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-              {isDeleting ? 'Excluindo...' : 'Excluir categoria'}
-            </Button>
-          </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
   )
 }
 

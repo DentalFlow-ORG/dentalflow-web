@@ -70,17 +70,19 @@ describe('CategoryManagerModal', () => {
     expect(mockCreate).not.toHaveBeenCalled()
   })
 
-  it('validates the trimmed name and custom color before creating', async () => {
+  it.each(['', '   '])('validates blank name %j and custom color before creating', async (name) => {
     render(<CategoryManagerModal {...defaultProps()} />)
-    fireEvent.change(screen.getByLabelText(/Nome da categoria/i), { target: { value: '   ' } })
+    fireEvent.change(screen.getByLabelText(/Nome da categoria/i), { target: { value: name } })
     await userEvent.click(screen.getByRole('button', { name: /Cadastrar categoria/i }))
     expect(screen.getByText('O nome da categoria é obrigatório.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Nome da categoria/i)).toHaveAttribute('aria-invalid', 'true')
     fireEvent.change(screen.getByLabelText(/Nome da categoria/i), {
       target: { value: '  Resinas  ' },
     })
     fireEvent.change(screen.getByRole('textbox', { name: /Cor/i }), { target: { value: '#XYZ' } })
     await userEvent.click(screen.getByRole('button', { name: /Cadastrar categoria/i }))
     expect(screen.getByText(/Cor inválida/)).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: /Cor/i })).toHaveAttribute('aria-invalid', 'true')
     expect(mockCreate).not.toHaveBeenCalled()
     fireEvent.change(screen.getByRole('textbox', { name: /Cor/i }), {
       target: { value: '#123abc' },
@@ -340,6 +342,35 @@ describe('CategoryManagerModal', () => {
       category.id,
       expect.objectContaining({ name: 'Descartáveis v2' }),
     )
+  })
+
+  // Regression: an emptied color was sent as undefined and silently kept.
+  it('sends null to clear the color of an edited category', async () => {
+    const user = userEvent.setup()
+    const category = buildCategory({ color: '#1E3A8A' })
+    mockUpdate.mockResolvedValue(category as never)
+    render(<CategoryManagerModal {...defaultProps({ categories: [category] })} />)
+
+    await user.click(screen.getByRole('button', { name: `Editar categoria ${category.name}` }))
+    await user.clear(screen.getByRole('textbox', { name: /^Cor/i }))
+    await user.click(screen.getByRole('button', { name: /Salvar alterações/i }))
+
+    expect(mockUpdate).toHaveBeenCalledWith(category.id, { name: category.name, color: null })
+  })
+
+  it('shows the API reason when saving a category fails', async () => {
+    const user = userEvent.setup()
+    mockCreate.mockRejectedValueOnce(
+      new ApiError('Já existe uma categoria com esse nome.', 409, null),
+    )
+    render(<CategoryManagerModal {...defaultProps()} />)
+
+    await user.type(screen.getByLabelText(/Nome da categoria/i), 'Descartáveis')
+    await user.click(
+      screen.getByRole('button', { name: /Cadastrar categoria|Salvar categoria|Adicionar/i }),
+    )
+
+    expect(await screen.findByText('Já existe uma categoria com esse nome.')).toBeInTheDocument()
   })
 
   it('restores create mode when cancel edit is clicked', async () => {

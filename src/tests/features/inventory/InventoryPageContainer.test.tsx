@@ -44,10 +44,6 @@ vi.mock('@/features/inventory/components/CategoryManagerModal', () => ({
   CategoryManagerModal: ({ open }: { open: boolean }) =>
     open ? <div data-testid="category-manager-modal" /> : null,
 }))
-vi.mock('@/features/inventory/components/DeactivateProductDialog', () => ({
-  DeactivateProductDialog: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="deactivate-dialog" /> : null,
-}))
 vi.mock('@/features/inventory/components/InventoryAnalysisPanel', () => ({
   InventoryAnalysisPanel: () => <div data-testid="analysis-panel" />,
 }))
@@ -81,10 +77,6 @@ vi.mock('@/features/inventory/components/ProductDetailsDrawer', () => ({
 vi.mock('@/features/inventory/components/ProductFormModal', () => ({
   ProductFormModal: ({ open }: { open: boolean }) =>
     open ? <div data-testid="product-form-modal" /> : null,
-}))
-vi.mock('@/features/inventory/components/ReactivateProductDialog', () => ({
-  ReactivateProductDialog: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="reactivate-dialog" /> : null,
 }))
 vi.mock('@/features/inventory/components/StockAbnormalConsumptionSection', () => ({
   StockAbnormalConsumptionSection: () => <div data-testid="abnormal-consumption" />,
@@ -397,19 +389,93 @@ describe('InventoryPageContainer', () => {
     expect(handleDeactivateRequest).toHaveBeenCalledWith({ id: 'p1', name: 'Luva M' })
   })
 
-  it('opens the deactivate dialog when deactivatingProduct is set', () => {
-    mockUseInventoryPage.mockReturnValue(
-      makeDefaultState({ deactivatingProduct: { id: 'p1', name: 'Luva M' } }),
-    )
-    render(<InventoryPageContainer />)
-    expect(screen.getByTestId('deactivate-dialog')).toBeInTheDocument()
+  describe('deactivate confirmation (shared ConfirmDialog)', () => {
+    const product = { id: 'p1', name: 'Luva M' }
+
+    it('names the product and explains that history is kept', () => {
+      mockUseInventoryPage.mockReturnValue(makeDefaultState({ deactivatingProduct: product }))
+      render(<InventoryPageContainer />)
+      const dialog = screen.getByRole('dialog')
+      expect(dialog).toHaveTextContent('Desativar produto')
+      expect(dialog).toHaveTextContent('Luva M')
+      expect(dialog).toHaveTextContent('o histórico será preservado')
+    })
+
+    it('confirms and cancels through the page handlers', async () => {
+      const handleDeactivateConfirm = vi.fn()
+      const handleDeactivateCancel = vi.fn()
+      mockUseInventoryPage.mockReturnValue(
+        makeDefaultState({
+          deactivatingProduct: product,
+          handleDeactivateConfirm,
+          handleDeactivateCancel,
+        }),
+      )
+      render(<InventoryPageContainer />)
+      await userEvent.click(screen.getByRole('button', { name: 'Desativar produto' }))
+      expect(handleDeactivateConfirm).toHaveBeenCalledOnce()
+      await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+      expect(handleDeactivateCancel).toHaveBeenCalledOnce()
+    })
+
+    it('disables both actions while deactivating and ignores Escape', async () => {
+      const handleDeactivateCancel = vi.fn()
+      mockUseInventoryPage.mockReturnValue(
+        makeDefaultState({
+          deactivatingProduct: product,
+          isDeactivating: true,
+          handleDeactivateCancel,
+        }),
+      )
+      render(<InventoryPageContainer />)
+      expect(screen.getByRole('button', { name: /Aguarde/ })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+      await userEvent.keyboard('{Escape}')
+      expect(handleDeactivateCancel).not.toHaveBeenCalled()
+    })
+
+    it('keeps the dialog open with the error after a failure', () => {
+      mockUseInventoryPage.mockReturnValue(
+        makeDefaultState({
+          deactivatingProduct: product,
+          deactivateError: 'Não foi possível desativar o produto.',
+        }),
+      )
+      render(<InventoryPageContainer />)
+      expect(screen.getByRole('dialog')).toHaveTextContent('Não foi possível desativar o produto.')
+    })
+
+    it('does not render the dialog when no product is selected', () => {
+      render(<InventoryPageContainer />)
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
   })
 
-  it('opens the reactivate dialog when reactivatingProduct is set', () => {
-    mockUseInventoryPage.mockReturnValue(
-      makeDefaultState({ reactivatingProduct: { id: 'p1', name: 'Luva M' } }),
-    )
-    render(<InventoryPageContainer />)
-    expect(screen.getByTestId('reactivate-dialog')).toBeInTheDocument()
+  describe('reactivate confirmation (shared ConfirmDialog)', () => {
+    const product = { id: 'p1', name: 'Luva M' }
+
+    it('names the product and confirms through the page handler', async () => {
+      const handleReactivateConfirm = vi.fn()
+      mockUseInventoryPage.mockReturnValue(
+        makeDefaultState({ reactivatingProduct: product, handleReactivateConfirm }),
+      )
+      render(<InventoryPageContainer />)
+      expect(screen.getByRole('dialog')).toHaveTextContent('Luva M')
+      await userEvent.click(screen.getByRole('button', { name: 'Reativar produto' }))
+      expect(handleReactivateConfirm).toHaveBeenCalledOnce()
+    })
+
+    it('shows the pending state and the failure message', () => {
+      mockUseInventoryPage.mockReturnValue(
+        makeDefaultState({
+          reactivatingProduct: product,
+          isReactivating: true,
+          reactivateError: 'Falha ao reativar.',
+        }),
+      )
+      render(<InventoryPageContainer />)
+      expect(screen.getByRole('button', { name: /Aguarde/ })).toBeDisabled()
+      expect(screen.getByRole('dialog')).toHaveTextContent('Falha ao reativar.')
+    })
   })
 })

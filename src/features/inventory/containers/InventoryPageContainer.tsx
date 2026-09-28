@@ -1,8 +1,10 @@
 import { Package, Plus, Tags } from 'lucide-react'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
 import { FilteredEmptyState } from '@/components/common/FilteredEmptyState'
 import { FormField, TextInput } from '@/components/common/FormField'
+import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { ListPageShell } from '@/components/common/ListPageShell'
 import { PanelCard } from '@/components/common/PanelCard'
 import { PlanUpgradeNotice } from '@/components/common/PlanUpgradeNotice'
@@ -18,13 +20,11 @@ import {
 import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 
 import { CategoryManagerModal } from '../components/CategoryManagerModal'
-import { DeactivateProductDialog } from '../components/DeactivateProductDialog'
 import { InventoryAnalysisPanel } from '../components/InventoryAnalysisPanel'
 import { InventoryKpiGrid } from '../components/InventoryKpiGrid'
 import { InventoryProductTable } from '../components/InventoryProductTable'
 import { ProductDetailsDrawer } from '../components/ProductDetailsDrawer'
 import { ProductFormModal } from '../components/ProductFormModal'
-import { ReactivateProductDialog } from '../components/ReactivateProductDialog'
 import { StockAbnormalConsumptionSection } from '../components/StockAbnormalConsumptionSection'
 import { StockMovementModal } from '../components/StockMovementModal'
 import { StockPurchaseListSection } from '../components/StockPurchaseListSection'
@@ -122,6 +122,7 @@ export function InventoryPageContainer() {
             <TextInput
               id="stockSearch"
               placeholder="Buscar produto..."
+              maxLength={100}
               value={search}
               onChange={(event) => handleSearchChange(event.target.value)}
             />
@@ -300,23 +301,32 @@ export function InventoryPageContainer() {
         onReactivate={handleReactivateRequest}
       />
 
-      <DeactivateProductDialog
+      <ConfirmDialog
         open={deactivatingProduct !== null}
-        productName={deactivatingProduct?.name ?? ''}
-        isDeactivating={isDeactivating}
-        error={deactivateError}
+        title="Desativar produto"
+        subject={deactivatingProduct?.name}
+        description="Ele deixará de aparecer como produto ativo no estoque, mas o histórico será preservado."
+        confirmLabel="Desativar produto"
+        isConfirming={isDeactivating}
         onCancel={handleDeactivateCancel}
         onConfirm={handleDeactivateConfirm}
-      />
+      >
+        {deactivateError && <InlineFeedback tone="error">{deactivateError}</InlineFeedback>}
+      </ConfirmDialog>
 
-      <ReactivateProductDialog
+      <ConfirmDialog
         open={reactivatingProduct !== null}
-        productName={reactivatingProduct?.name ?? ''}
-        isReactivating={isReactivating}
-        error={reactivateError}
+        tone="warning"
+        title="Reativar produto"
+        subject={reactivatingProduct?.name}
+        description="Ele voltará a aparecer como produto ativo no estoque."
+        confirmLabel="Reativar produto"
+        isConfirming={isReactivating}
         onCancel={handleReactivateCancel}
         onConfirm={handleReactivateConfirm}
-      />
+      >
+        {reactivateError && <InlineFeedback tone="error">{reactivateError}</InlineFeedback>}
+      </ConfirmDialog>
     </AppPage>
   )
 }

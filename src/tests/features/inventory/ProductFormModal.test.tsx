@@ -131,6 +131,20 @@ describe('ProductFormModal', () => {
 
   // ── Create mode ────────────────────────────────────────────────────────────
 
+  it('rejects a partial minimum quantity and permits correction without losing the product', async () => {
+    render(<ProductFormModal {...defaultProps({ product: buildProduct() })} />)
+    const minimum = screen.getByLabelText(/Quantidade mínima/i)
+    fireEvent.change(minimum, { target: { value: ',' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(minimum).toHaveAttribute('aria-invalid', 'true')
+    expect(minimum).toHaveAccessibleDescription('Informe uma quantidade mínima válida.')
+    fireEvent.change(minimum, { target: { value: '0,5' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(mockUpdate).toHaveBeenCalledWith('prod-1', expect.objectContaining({ minQuantity: 0.5 }))
+    expect(screen.queryByText('Informe uma quantidade mínima válida.')).not.toBeInTheDocument()
+  })
+
   it('dismisses once with Escape without saving a product', async () => {
     const props = defaultProps()
     render(<ProductFormModal {...props} />)
@@ -139,11 +153,15 @@ describe('ProductFormModal', () => {
     expect(mockCreate).not.toHaveBeenCalled()
   })
 
-  it('rejects whitespace-only names and missing categories', async () => {
+  it.each(['', '   '])('rejects blank name %j and missing categories', async (name) => {
     render(<ProductFormModal {...defaultProps()} />)
-    fireEvent.change(screen.getByLabelText(/Nome do produto/i), { target: { value: '   ' } })
+    fireEvent.change(screen.getByLabelText(/Nome do produto/i), { target: { value: name } })
     await userEvent.click(screen.getByRole('button', { name: 'Cadastrar produto' }))
     expect(screen.getByText('O nome do produto é obrigatório.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Nome do produto/i)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText(/Nome do produto/i)).toHaveAccessibleDescription(
+      'O nome do produto é obrigatório.',
+    )
     fireEvent.change(screen.getByLabelText(/Nome do produto/i), { target: { value: 'Resina' } })
     await userEvent.click(screen.getByRole('button', { name: 'Cadastrar produto' }))
     expect(screen.getByText('Selecione uma categoria para o produto.')).toBeInTheDocument()
@@ -199,18 +217,19 @@ describe('ProductFormModal', () => {
     )
     expect(screen.getByLabelText(/Fornecedor/i)).toHaveValue('')
     expect(screen.getByLabelText(/Validade/i)).toHaveValue('')
-    expect(screen.getByLabelText(/Quantidade mínima/i)).toHaveValue(null)
+    expect(screen.getByLabelText(/Quantidade mínima/i)).toHaveValue('')
     await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
     expect(mockUpdate).toHaveBeenCalledWith('prod-1', {
       name: 'Luva cirúrgica',
       categoryId: 'cat-1',
       unit: 'cx',
-      minQuantity: undefined,
-      purchasePrice: undefined,
-      supplier: undefined,
+      // Emptied optional fields are sent as null so the API clears them.
+      minQuantity: 0,
+      purchasePrice: null,
+      supplier: null,
       expiresAt: null,
-      description: undefined,
-      notes: undefined,
+      description: null,
+      notes: null,
     })
   })
 

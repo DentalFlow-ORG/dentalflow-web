@@ -134,7 +134,8 @@ export type CreateStockCategoryPayload = {
 
 export type UpdateStockCategoryPayload = {
   name?: string
-  color?: string
+  /** null clears the color. */
+  color?: string | null
 }
 
 export type CreateStockProductPayload = {
@@ -151,16 +152,17 @@ export type CreateStockProductPayload = {
   isActive?: boolean
 }
 
+/** Optional text/price fields accept null to clear the stored value. */
 export type UpdateStockProductPayload = {
   name?: string
   categoryId?: string
-  description?: string
+  description?: string | null
   unit?: string
   minQuantity?: number
-  purchasePrice?: number // in cents
-  supplier?: string
+  purchasePrice?: number | null // in cents
+  supplier?: string | null
   expiresAt?: string | null // YYYY-MM-DD or null to clear
-  notes?: string
+  notes?: string | null
   isActive?: boolean
 }
 
