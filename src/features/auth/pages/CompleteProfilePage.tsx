@@ -7,12 +7,20 @@ import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
-import { isValidPersonName } from '@/lib/field-formatters'
 import { ApiError } from '@/services/http'
 
 import { AuthTextField } from '../components/AuthTextField'
 import { useAuth } from '../hooks/useAuth'
 import { splitFullName } from '../utils/name'
+import {
+  CLINIC_NAME_MAX_LENGTH,
+  RESPONSIBLE_NAME_MAX_LENGTH,
+  TERMS_REQUIRED_MESSAGE,
+  validateClinicName,
+  validateResponsibleName,
+} from '../utils/registration-validation'
+
+type FieldErrors = Partial<Record<'clinicName' | 'responsibleName' | 'terms', string>>
 
 export function CompleteProfilePage() {
   useForceLightTheme()
@@ -24,6 +32,7 @@ export function CompleteProfilePage() {
   const [responsibleName, setResponsibleName] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -50,20 +59,14 @@ export function CompleteProfilePage() {
     const normalizedName = responsibleName.trim()
     const normalizedClinic = clinicName.trim()
 
-    if (normalizedName.split(/\s+/).length < 2 || !isValidPersonName(normalizedName)) {
-      setError('Informe nome e sobrenome do responsável.')
-      return
-    }
-
-    if (normalizedClinic.length < 2) {
-      setError('Informe o nome da clínica.')
-      return
-    }
-
-    if (!acceptedTerms) {
-      setError('Você precisa aceitar os Termos de Uso e a Política de Privacidade.')
-      return
-    }
+    const errors: FieldErrors = {}
+    const clinicNameError = validateClinicName(normalizedClinic)
+    if (clinicNameError) errors.clinicName = clinicNameError
+    const responsibleNameError = validateResponsibleName(normalizedName)
+    if (responsibleNameError) errors.responsibleName = responsibleNameError
+    if (!acceptedTerms) errors.terms = TERMS_REQUIRED_MESSAGE
+    setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) return
 
     const { firstName, lastName } = splitFullName(normalizedName)
     setIsSubmitting(true)
@@ -114,6 +117,7 @@ export function CompleteProfilePage() {
         </aside>
 
         <form
+          noValidate
           onSubmit={handleSubmit}
           className="rounded-lg border border-slate-200 bg-white p-4 shadow-xl shadow-slate-950/10 sm:p-7"
         >
@@ -125,9 +129,12 @@ export function CompleteProfilePage() {
               name="clinicName"
               value={clinicName}
               autoComplete="organization"
-              minLength={2}
-              maxLength={100}
-              onChange={setClinicName}
+              maxLength={CLINIC_NAME_MAX_LENGTH}
+              error={fieldErrors.clinicName}
+              onChange={(value) => {
+                setClinicName(value)
+                setFieldErrors(({ clinicName: _cleared, ...rest }) => rest)
+              }}
             />
             <AuthTextField
               label="Responsável"
@@ -136,9 +143,12 @@ export function CompleteProfilePage() {
               name="responsibleName"
               value={responsibleName}
               autoComplete="name"
-              minLength={2}
-              maxLength={100}
-              onChange={setResponsibleName}
+              maxLength={RESPONSIBLE_NAME_MAX_LENGTH}
+              error={fieldErrors.responsibleName}
+              onChange={(value) => {
+                setResponsibleName(value)
+                setFieldErrors(({ responsibleName: _cleared, ...rest }) => rest)
+              }}
             />
           </div>
 
@@ -148,9 +158,13 @@ export function CompleteProfilePage() {
                 id={termsCheckboxId}
                 type="checkbox"
                 checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                onChange={(e) => {
+                  setAcceptedTerms(e.target.checked)
+                  setFieldErrors(({ terms: _cleared, ...rest }) => rest)
+                }}
+                aria-invalid={fieldErrors.terms ? true : undefined}
+                aria-describedby={fieldErrors.terms ? `${termsCheckboxId}-error` : undefined}
                 className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-primary"
-                required
               />
               <label htmlFor={termsCheckboxId} className="text-sm leading-6 text-slate-600">
                 Li e aceito os{' '}
@@ -174,6 +188,15 @@ export function CompleteProfilePage() {
                 .
               </label>
             </div>
+            {fieldErrors.terms && (
+              <span
+                id={`${termsCheckboxId}-error`}
+                role="alert"
+                className="mt-2 block text-xs leading-5 text-destructive"
+              >
+                {fieldErrors.terms}
+              </span>
+            )}
           </div>
 
           {error && (

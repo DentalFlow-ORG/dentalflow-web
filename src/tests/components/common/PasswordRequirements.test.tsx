@@ -1,6 +1,6 @@
 import { render, screen } from '@/test-utils/render-utils'
 
-import { PasswordRequirements } from '@/features/auth/components/PasswordRequirements'
+import { PasswordRequirements } from '@/components/common/PasswordRequirements'
 
 describe('PasswordRequirements', () => {
   it('renders nothing when not visible and password is empty', () => {

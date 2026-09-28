@@ -1,4 +1,5 @@
 import { formatPhoneBR } from '@/lib/field-formatters'
+import { EMAIL_MAX_LENGTH } from '@/lib/validators/email'
 
 import { FormField, TextInput } from './FormField'
 
@@ -37,6 +38,8 @@ export function UserNameFields({
           maxLength={50}
           value={firstName}
           placeholder="Ana"
+          // Staff type another person's data here: never autofill their own.
+          autoComplete="off"
           onChange={(event) => onFirstNameChange(event.target.value)}
         />
       </FormField>
@@ -49,6 +52,7 @@ export function UserNameFields({
           maxLength={50}
           value={lastName}
           placeholder="Martins"
+          autoComplete="off"
           onChange={(event) => onLastNameChange(event.target.value)}
         />
       </FormField>
@@ -66,10 +70,12 @@ export function UserEmailField({
       <TextInput
         id={`${fieldPrefix}email`}
         type="email"
+        inputMode="email"
         required
-        maxLength={254}
+        maxLength={EMAIL_MAX_LENGTH}
         value={email}
         placeholder="ana@clinica.com.br"
+        autoComplete="off"
         onChange={(event) => onEmailChange(event.target.value)}
       />
     </FormField>
@@ -90,11 +96,13 @@ export function UserPhoneField({
       <TextInput
         id={fieldId}
         type="tel"
-        maxLength={15}
+        inputMode="tel"
         value={formatPhoneBR(phone)}
         placeholder="(11) 99999-9999"
+        autoComplete="off"
         onChange={(event) => onPhoneChange(formatPhoneBR(event.target.value))}
         aria-invalid={Boolean(phoneError)}
+        aria-describedby={phoneError ? `${fieldId}-error` : undefined}
       />
     </FormField>
   )

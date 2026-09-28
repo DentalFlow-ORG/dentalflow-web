@@ -1,15 +1,31 @@
-import { isValidBrazilianPhone } from '@/lib/validators/br'
+import { isValidBrazilianPhone, normalizeDigits } from '@/lib/validators/br'
 
-export function onlyDigits(value: string) {
-  return value.replace(/\D/g, '')
+// Brazilian numbers are persisted as 10–11 digits (DDD + number). A pasted
+// international form such as "+55 11 98765-4321" carries the country code,
+// which is dropped so the local number is kept instead of being truncated.
+//
+// "55" alone is not proof of a country code: it is also the DDD of Rio Grande
+// do Sul, and masks re-run this on every keystroke. The prefix is only treated
+// as a country code when the input is explicitly international ("+" or "00")
+// or is a full 13-digit number (55 + DDD + 9 digits). Anything else keeps the
+// leading digits and drops the overflow, so an extra keystroke can never turn
+// a DDD 55 number into a different valid-looking one.
+function stripBrazilCountryCode(raw: string, digits: string) {
+  const isInternational = /^\s*(\+|00)/.test(raw)
+  if (isInternational && digits.startsWith('0055')) return digits.slice(4)
+  if (digits.startsWith('55') && (isInternational || digits.length === 13)) {
+    return digits.slice(2)
+  }
+  return digits
 }
 
 export function normalizePhoneBR(value: string | null | undefined) {
-  return onlyDigits(value ?? '')
+  const raw = value ?? ''
+  return stripBrazilCountryCode(raw, normalizeDigits(raw)).slice(0, 11)
 }
 
 export function formatPhoneBR(value: string) {
-  const digits = onlyDigits(value).slice(0, 11)
+  const digits = normalizePhoneBR(value)
 
   if (digits.length <= 2) return digits
   if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
@@ -20,8 +36,14 @@ export function formatPhoneBR(value: string) {
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
 }
 
+/** Formats canonical or legacy Brazilian contacts without truncating unfamiliar snapshots. */
+export function displayPhoneBR(value: string) {
+  const digits = stripBrazilCountryCode(value, normalizeDigits(value))
+  return digits.length === 10 || digits.length === 11 ? formatPhoneBR(digits) : value
+}
+
 export function formatCpfCnpjBR(value: string) {
-  const digits = onlyDigits(value).slice(0, 14)
+  const digits = normalizeDigits(value).slice(0, 14)
 
   if (digits.length <= 11) {
     if (digits.length <= 3) return digits
@@ -41,7 +63,7 @@ export function formatCpfCnpjBR(value: string) {
 }
 
 export function formatCepBR(value: string) {
-  const digits = onlyDigits(value).slice(0, 8)
+  const digits = normalizeDigits(value).slice(0, 8)
 
   if (digits.length <= 5) return digits
 
@@ -59,12 +81,10 @@ export function formatDecimalInput(value: string) {
   return value.replace(/[^\d,.]/g, '').replace(/([,.].*)[,.]/g, '$1')
 }
 
-export function isValidPhoneBR(value: string): boolean {
-  return isValidBrazilianPhone(value)
-}
-
+// WhatsApp needs a reachable DDD number: toll-free 0800 lines are rejected.
 export function isValidWhatsappPhoneBR(value: string): boolean {
-  return isValidPhoneBR(value)
+  const digits = normalizePhoneBR(value)
+  return !digits.startsWith('0') && isValidBrazilianPhone(digits)
 }
 
 export const WHATSAPP_PHONE_REQUIRED_MESSAGE = 'Informe um telefone com WhatsApp válido.'

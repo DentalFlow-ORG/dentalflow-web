@@ -43,6 +43,29 @@ describe('ForgotPasswordPage', () => {
     expect(mockForgotPassword).toHaveBeenCalledWith('owner@clinic.com')
   })
 
+  it('explains an invalid e-mail at the field instead of calling the API', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<ForgotPasswordPage />)
+    await user.type(screen.getByLabelText('E-mail profissional'), 'owner@clinic')
+    await user.click(screen.getByRole('button', { name: /Enviar instruções/i }))
+
+    expect(screen.getByLabelText('E-mail profissional')).toHaveAccessibleDescription(
+      'Informe um e-mail válido.',
+    )
+    expect(mockForgotPassword).not.toHaveBeenCalled()
+
+    await user.type(screen.getByLabelText('E-mail profissional'), '.com')
+    expect(screen.getByLabelText('E-mail profissional')).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('rejects an empty e-mail with the same message', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<ForgotPasswordPage />)
+    await user.click(screen.getByRole('button', { name: /Enviar instruções/i }))
+    expect(screen.getByText('Informe um e-mail válido.')).toBeInTheDocument()
+    expect(mockForgotPassword).not.toHaveBeenCalled()
+  })
+
   it('shows success message after submission', async () => {
     const user = userEvent.setup()
     renderWithProviders(<ForgotPasswordPage />)

@@ -2,7 +2,7 @@
  * Brazilian data validators — pure, testable, no side effects.
  *
  * All validators accept masked or unmasked input.
- * Format functions produce user-facing masked strings.
+ * Input masks live in `@/lib/field-formatters`.
  */
 
 // ── Normalisation ─────────────────────────────────────────────────────────────
@@ -32,15 +32,6 @@ export function isValidCPF(value: string): boolean {
   return rem === Number.parseInt(d[10])
 }
 
-/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
-export function formatCPF(value: string): string {
-  const d = normalizeDigits(value).slice(0, 11)
-  if (d.length <= 3) return d
-  if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`
-  if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`
-  return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`
-}
-
 // ── CNPJ ──────────────────────────────────────────────────────────────────────
 
 export function isValidCNPJ(value: string): boolean {
@@ -63,16 +54,6 @@ export function isValidCNPJ(value: string): boolean {
   return d2 === Number.parseInt(d[13])
 }
 
-/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
-export function formatCNPJ(value: string): string {
-  const d = normalizeDigits(value).slice(0, 14)
-  if (d.length <= 2) return d
-  if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`
-  if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`
-  if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`
-  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`
-}
-
 // ── CPF or CNPJ ───────────────────────────────────────────────────────────────
 
 export function isValidCpfOrCnpj(value: string): boolean {
@@ -86,13 +67,6 @@ export function isValidCpfOrCnpj(value: string): boolean {
 
 export function isValidCEP(value: string): boolean {
   return normalizeDigits(value).length === 8
-}
-
-/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
-export function formatCEP(value: string): string {
-  const d = normalizeDigits(value).slice(0, 8)
-  if (d.length <= 5) return d
-  return `${d.slice(0, 5)}-${d.slice(5)}`
 }
 
 // ── UF ────────────────────────────────────────────────────────────────────────
@@ -174,13 +148,4 @@ export function isValidBrazilianPhone(value: string): boolean {
   if (first < 2 || first > 8) return false
   if (/^(\d)\1+$/.test(number)) return false
   return true
-}
-
-/** @testContract Kept for focused behavior/contract tests; see production-hardening.md. */
-export function formatBrazilianPhone(value: string): string {
-  const d = normalizeDigits(value).slice(0, 11)
-  if (d.length <= 2) return d
-  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
-  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
-  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
 }

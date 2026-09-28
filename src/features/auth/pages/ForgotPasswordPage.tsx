@@ -2,9 +2,16 @@ import { Link } from '@tanstack/react-router'
 import { ArrowLeft, ArrowRight, Loader2, Mail } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 
+import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
 import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
+import {
+  EMAIL_MAX_LENGTH,
+  INVALID_EMAIL_MESSAGE,
+  isValidEmail,
+  normalizeEmail,
+} from '@/lib/validators/email'
 
 import { AuthHeader } from '../components/AuthHeader'
 import { forgotPassword } from '../services/auth.service'
@@ -15,14 +22,21 @@ export function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
+
+    if (!isValidEmail(email)) {
+      setEmailError(INVALID_EMAIL_MESSAGE)
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      await forgotPassword(email.trim().toLowerCase())
+      await forgotPassword(normalizeEmail(email))
       setSubmitted(true)
     } catch {
       setError('Não foi possível processar a solicitação. Tente novamente em instantes.')
@@ -74,24 +88,25 @@ export function ForgotPasswordPage() {
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="mt-7 space-y-5">
-                <div className="space-y-1.5">
-                  <label htmlFor="forgot-email" className="text-sm font-medium text-slate-700">
-                    E-mail profissional
-                  </label>
-                  <input
+              <form noValidate onSubmit={handleSubmit} className="mt-7 space-y-5">
+                <FormField label="E-mail profissional" htmlFor="forgot-email" error={emailError}>
+                  <TextInput
                     id="forgot-email"
                     type="email"
+                    inputMode="email"
                     name="email"
                     autoComplete="email"
-                    required
-                    maxLength={254}
+                    maxLength={EMAIL_MAX_LENGTH}
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      setEmailError(null)
+                    }}
                     placeholder="contato@clinica.com.br"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    aria-invalid={emailError ? true : undefined}
+                    aria-describedby={emailError ? 'forgot-email-error' : undefined}
                   />
-                </div>
+                </FormField>
 
                 {error && <InlineFeedback>{error}</InlineFeedback>}
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  MONEY_INPUT_MAX_CENTS,
   centsToMoneyInput,
   formatMoneyInputFromDigits,
   parseMoneyInputToCents,
@@ -41,6 +42,27 @@ describe('formatMoneyInputFromDigits', () => {
 
   it('returns "" for "0"', () => {
     expect(formatMoneyInputFromDigits('0')).toBe('')
+  })
+
+  it('accepts the default maximum of R$ 9.999.999,99', () => {
+    expect(formatMoneyInputFromDigits(String(MONEY_INPUT_MAX_CENTS))).toBe('9.999.999,99')
+  })
+
+  it('ignores a digit typed after the default maximum', () => {
+    expect(formatMoneyInputFromDigits('9.999.999,990')).toBe('9.999.999,99')
+  })
+
+  it('drops trailing digits until the value fits the maximum', () => {
+    expect(formatMoneyInputFromDigits('1000000000')).toBe('1.000.000,00')
+  })
+
+  it('ignores leading zeros when applying the maximum', () => {
+    expect(formatMoneyInputFromDigits('000123456')).toBe('1.234,56')
+  })
+
+  it('honours a caller-provided maximum', () => {
+    expect(formatMoneyInputFromDigits('9999999999', 9_999_999_999)).toBe('99.999.999,99')
+    expect(formatMoneyInputFromDigits('12345', 10_000)).toBe('12,34')
   })
 })
 

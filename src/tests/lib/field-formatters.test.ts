@@ -1,25 +1,29 @@
 import {
   WHATSAPP_PHONE_REQUIRED_MESSAGE,
+  displayPhoneBR,
   formatCepBR,
   formatCpfCnpjBR,
   formatDecimalInput,
   formatPhoneBR,
   formatUf,
   isValidPersonName,
-  isValidPhoneBR,
   isValidWhatsappPhoneBR,
   normalizePhoneBR,
-  onlyDigits,
 } from '@/lib/field-formatters'
 
-describe('onlyDigits', () => {
-  it('strips non-digit characters', () => {
-    expect(onlyDigits('(11) 98765-4321')).toBe('11987654321')
-  })
-
-  it('returns empty string when there are no digits', () => {
-    expect(onlyDigits('abc')).toBe('')
-  })
+describe('displayPhoneBR', () => {
+  it.each(['61999999999', '(61) 99999-9999', '+55 (61) 99999-9999'])(
+    'formats %s consistently',
+    (value) => {
+      expect(displayPhoneBR(value)).toBe('(61) 99999-9999')
+    },
+  )
+  it.each(['contato legado', '+44 123456789012', '123', ''])(
+    'preserves unrecognised snapshot %s',
+    (value) => {
+      expect(displayPhoneBR(value)).toBe(value)
+    },
+  )
 })
 
 describe('normalizePhoneBR', () => {
@@ -33,6 +37,28 @@ describe('normalizePhoneBR', () => {
 
   it('returns empty string for undefined', () => {
     expect(normalizePhoneBR(undefined)).toBe('')
+  })
+
+  it('drops a pasted +55 country code instead of truncating the local number', () => {
+    expect(normalizePhoneBR('+55 (11) 98765-4321')).toBe('11987654321')
+    expect(normalizePhoneBR('0055 11 98765-4321')).toBe('11987654321')
+  })
+
+  it('keeps an 11-digit number whose DDD is 55', () => {
+    expect(normalizePhoneBR('(55) 99876-5432')).toBe('55998765432')
+  })
+
+  it('drops the overflow digit typed after a full DDD 55 number instead of rewriting it', () => {
+    expect(normalizePhoneBR('(55) 99876-54321')).toBe('55998765432')
+    expect(normalizePhoneBR('(55) 3234-567890')).toBe('55323456789')
+  })
+
+  it('drops a country code on a pasted 13-digit number without the plus sign', () => {
+    expect(normalizePhoneBR('5561999998888')).toBe('61999998888')
+  })
+
+  it('caps the result at 11 digits', () => {
+    expect(normalizePhoneBR('119876543219999')).toBe('11987654321')
   })
 })
 
@@ -59,6 +85,14 @@ describe('formatPhoneBR', () => {
 
   it('strips non-digit characters before formatting', () => {
     expect(formatPhoneBR('(11) 98765-4321')).toBe('(11) 98765-4321')
+  })
+
+  it('formats a pasted international number as the local number', () => {
+    expect(formatPhoneBR('+55 11 98765-4321')).toBe('(11) 98765-4321')
+  })
+
+  it('keeps a DDD 55 number when one more digit is typed at the end', () => {
+    expect(formatPhoneBR('(55) 99876-54321')).toBe('(55) 99876-5432')
   })
 })
 
@@ -130,15 +164,22 @@ describe('formatDecimalInput', () => {
   })
 })
 
-describe('isValidPhoneBR / isValidWhatsappPhoneBR', () => {
-  it('accepts a valid mobile number', () => {
-    expect(isValidPhoneBR('11987654321')).toBe(true)
+describe('isValidWhatsappPhoneBR', () => {
+  it('accepts a valid mobile number, masked or not', () => {
     expect(isValidWhatsappPhoneBR('11987654321')).toBe(true)
+    expect(isValidWhatsappPhoneBR('(11) 98765-4321')).toBe(true)
   })
 
-  it('rejects an invalid number', () => {
-    expect(isValidPhoneBR('123')).toBe(false)
+  it('accepts a pasted number with the +55 country code', () => {
+    expect(isValidWhatsappPhoneBR('+55 11 98765-4321')).toBe(true)
+  })
+
+  it('rejects an incomplete number', () => {
     expect(isValidWhatsappPhoneBR('123')).toBe(false)
+  })
+
+  it('rejects a toll-free 0800 number, which cannot receive WhatsApp', () => {
+    expect(isValidWhatsappPhoneBR('08001234567')).toBe(false)
   })
 })
 

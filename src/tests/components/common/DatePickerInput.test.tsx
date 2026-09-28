@@ -15,9 +15,44 @@ function getDayCell(dayOfJune: number) {
 }
 
 describe('DatePickerInput', () => {
+  it('restores the active date after a rejected clear loses focus', async () => {
+    const onValueChange = vi.fn()
+    render(<DatePickerInput value="2026-06-15" placeholder="Data" onValueChange={onValueChange} />)
+    const input = screen.getByLabelText('Data')
+    await userEvent.clear(input)
+    await userEvent.tab()
+    expect(onValueChange).toHaveBeenCalledWith('')
+    expect(input).toHaveValue('15/06/2026')
+  })
+
   it('renders the placeholder when there is no value', () => {
     render(<DatePickerInput placeholder="Selecionar data" />)
     expect(screen.getByLabelText('Selecionar data')).toHaveValue('')
+  })
+
+  it('takes its accessible name from the visible label when it has an id', () => {
+    render(
+      <>
+        <label htmlFor="due-date">Vencimento</label>
+        <DatePickerInput id="due-date" placeholder="Selecionar data" />
+      </>,
+    )
+    expect(screen.getByLabelText('Vencimento')).toHaveAttribute('id', 'due-date')
+    expect(screen.queryByLabelText('Selecionar data')).not.toBeInTheDocument()
+  })
+
+  it('links an invalid field to its FormField error message', () => {
+    render(<DatePickerInput id="due-date" invalid />)
+    const input = screen.getByRole('textbox')
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAttribute('aria-describedby', 'due-date-error')
+  })
+
+  it('is not marked invalid by default', () => {
+    render(<DatePickerInput id="due-date" />)
+    const input = screen.getByRole('textbox')
+    expect(input).not.toHaveAttribute('aria-invalid')
+    expect(input).not.toHaveAttribute('aria-describedby')
   })
 
   it('renders a pre-filled value formatted as dd/mm/yyyy', () => {

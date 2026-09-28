@@ -36,8 +36,19 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const isDestructive = tone === 'destructive'
 
+  // Escape, outside click and the close request all funnel through
+  // onOpenChange. While the action is in flight the dialog must stay open so
+  // the pending state remains visible and the outcome is not hidden.
+  function handleOpenChange(isOpen: boolean) {
+    if (!isOpen && !isConfirming) onCancel()
+  }
+
+  function preventDismissWhileConfirming(event: Event) {
+    if (isConfirming) event.preventDefault()
+  }
+
   return (
-    <Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
@@ -45,8 +56,8 @@ export function ConfirmDialog({
             'fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15',
             'animate-in fade-in-0 zoom-in-[0.97] duration-150',
           )}
-          onEscapeKeyDown={onCancel}
-          onInteractOutside={onCancel}
+          onEscapeKeyDown={preventDismissWhileConfirming}
+          onInteractOutside={preventDismissWhileConfirming}
         >
           {/* Header */}
           <div className="px-8 pb-6 pt-8 text-center">

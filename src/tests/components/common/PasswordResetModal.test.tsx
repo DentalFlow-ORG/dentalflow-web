@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { render, screen } from '@/test-utils/render-utils'
 
 import { PasswordResetModal } from '@/components/common/PasswordResetModal'
+import { PASSWORD_POLICY_MESSAGE } from '@/lib/validators/password'
 
 function renderModal(overrides: Partial<React.ComponentProps<typeof PasswordResetModal>> = {}) {
   return render(
@@ -44,9 +45,35 @@ describe('PasswordResetModal', () => {
 
   it('shows an error when the password is shorter than 8 characters', async () => {
     renderModal()
-    await fillPasswords('short1', 'short1')
+    await fillPasswords('Sen@12', 'Sen@12')
     await userEvent.click(screen.getByRole('button', { name: 'Redefinir senha' }))
-    expect(await screen.findByText('A senha deve ter pelo menos 8 caracteres.')).toBeInTheDocument()
+    expect(await screen.findByText(PASSWORD_POLICY_MESSAGE)).toBeInTheDocument()
+  })
+
+  it('rejects a long password missing the complexity rules the API enforces', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined)
+    renderModal({ onSubmit })
+    await fillPasswords('password123', 'password123')
+    await userEvent.click(screen.getByRole('button', { name: 'Redefinir senha' }))
+    expect(await screen.findByText(PASSWORD_POLICY_MESSAGE)).toBeInTheDocument()
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('shows the password requirements checklist while typing', async () => {
+    renderModal()
+    await userEvent.type(screen.getByLabelText('Nova senha'), 'abc')
+    expect(screen.getByRole('list', { name: 'Requisitos de senha' })).toBeInTheDocument()
+  })
+
+  it('cannot be dismissed with Escape while the request is pending', async () => {
+    const onClose = vi.fn()
+    const onSubmit = vi.fn(() => new Promise<void>(() => {}))
+    renderModal({ onClose, onSubmit })
+    await fillPasswords('Senha@123', 'Senha@123')
+    await userEvent.click(screen.getByRole('button', { name: 'Redefinir senha' }))
+    expect(await screen.findByRole('button', { name: /salvando/i })).toBeDisabled()
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).not.toHaveBeenCalled()
   })
 
   it('caps typed input at 72 characters via the maxLength attribute', async () => {
@@ -58,18 +85,18 @@ describe('PasswordResetModal', () => {
 
   it('shows an error when passwords do not match', async () => {
     renderModal()
-    await fillPasswords('password123', 'password456')
+    await fillPasswords('Senha@123', 'Senha@456')
     await userEvent.click(screen.getByRole('button', { name: 'Redefinir senha' }))
-    expect(await screen.findByText('As senhas nao coincidem.')).toBeInTheDocument()
+    expect(await screen.findByText('As senhas não coincidem.')).toBeInTheDocument()
   })
 
   it('calls onSubmit and onSuccess with a valid matching password', async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined)
     const onSuccess = vi.fn()
     renderModal({ onSubmit, onSuccess })
-    await fillPasswords('password123', 'password123')
+    await fillPasswords('Senha@123', 'Senha@123')
     await userEvent.click(screen.getByRole('button', { name: 'Redefinir senha' }))
-    expect(onSubmit).toHaveBeenCalledWith('password123')
+    expect(onSubmit).toHaveBeenCalledWith('Senha@123')
     expect(await screen.findByRole('button', { name: 'Redefinir senha' })).toBeEnabled()
     expect(onSuccess).toHaveBeenCalledOnce()
   })
@@ -77,7 +104,7 @@ describe('PasswordResetModal', () => {
   it('shows the submitted error message when onSubmit rejects with an Error', async () => {
     const onSubmit = vi.fn().mockRejectedValue(new Error('Senha já utilizada.'))
     renderModal({ onSubmit })
-    await fillPasswords('password123', 'password123')
+    await fillPasswords('Senha@123', 'Senha@123')
     await userEvent.click(screen.getByRole('button', { name: 'Redefinir senha' }))
     expect(await screen.findByText('Senha já utilizada.')).toBeInTheDocument()
   })
@@ -85,7 +112,7 @@ describe('PasswordResetModal', () => {
   it('shows a generic error message when onSubmit rejects with a non-Error', async () => {
     const onSubmit = vi.fn().mockRejectedValue('some string error')
     renderModal({ onSubmit })
-    await fillPasswords('password123', 'password123')
+    await fillPasswords('Senha@123', 'Senha@123')
     await userEvent.click(screen.getByRole('button', { name: 'Redefinir senha' }))
     expect(await screen.findByText('Erro ao atualizar senha.')).toBeInTheDocument()
   })

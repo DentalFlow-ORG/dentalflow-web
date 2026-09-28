@@ -22,6 +22,8 @@ type DatePickerInputProps = {
   placeholder?: string
   required?: boolean
   disabled?: boolean
+  /** Marks the field invalid and links it to the FormField error (`${id}-error`). */
+  invalid?: boolean
   className?: string
   disabledDate?: (dateValue: string) => boolean
   onValueChange?: (value: string) => void
@@ -38,6 +40,7 @@ export function DatePickerInput({
   placeholder = 'Selecionar data',
   required = false,
   disabled = false,
+  invalid = false,
   className,
   disabledDate,
   onValueChange,
@@ -146,10 +149,18 @@ export function DatePickerInput({
           placeholder="DD/MM/AAAA"
           maxLength={10}
           onChange={(event) => handleManualChange(event.target.value)}
-          aria-label={placeholder}
+          onBlur={() =>
+            setDisplayDraft({ sourceValue: selectedValue, displayValue: externalDisplayValue })
+          }
+          // A visible <label htmlFor={id}> names the field; the placeholder is
+          // only a fallback name for standalone pickers without a label.
+          aria-label={id ? undefined : placeholder}
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid && id ? `${id}-error` : undefined}
           className={cn(
             'h-11 w-full rounded-md border border-input bg-background px-3 pr-11 text-sm font-medium text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground',
             'hover:border-primary/35 hover:bg-primary/5 focus:border-primary focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-70',
+            'aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/30',
             !displayValue && 'text-muted-foreground',
             className,
           )}

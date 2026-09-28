@@ -2,18 +2,29 @@ import { Link, useSearch } from '@tanstack/react-router'
 import { ArrowRight, CheckCircle2, KeyRound, Loader2 } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 
+import { FormField } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { PasswordInput } from '@/components/common/PasswordInput'
+import { PasswordRequirements } from '@/components/common/PasswordRequirements'
 import { Button } from '@/components/ui/button'
 import { useForceLightTheme } from '@/features/theme/useForceLightTheme'
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MISMATCH_MESSAGE,
+  PASSWORD_POLICY_MESSAGE,
+  meetsPasswordPolicy,
+} from '@/lib/validators/password'
 
 import { AuthHeader } from '../components/AuthHeader'
-import { PasswordRequirements } from '../components/PasswordRequirements'
 import { resetPassword } from '../services/auth.service'
 
 export function ResetPasswordPage() {
   useForceLightTheme()
   const { token } = useSearch({ from: '/recuperar-senha/redefinir' })
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [confirmError, setConfirmError] = useState<string | null>(null)
   const [passwordFocused, setPasswordFocused] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -23,6 +34,16 @@ export function ResetPasswordPage() {
     e.preventDefault()
     if (!token) return
     setError(null)
+
+    // Checked before the request: the reset token is single-use, so a
+    // policy failure must never cost the user their link.
+    const nextPasswordError = meetsPasswordPolicy(password) ? null : PASSWORD_POLICY_MESSAGE
+    const nextConfirmError =
+      !nextPasswordError && password !== confirmPassword ? PASSWORD_MISMATCH_MESSAGE : null
+    setPasswordError(nextPasswordError)
+    setConfirmError(nextConfirmError)
+    if (nextPasswordError || nextConfirmError) return
+
     setIsSubmitting(true)
 
     try {
@@ -117,28 +138,47 @@ export function ResetPasswordPage() {
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="mt-7 space-y-5">
-                <div className="space-y-1.5">
-                  <label htmlFor="new-password" className="text-sm font-medium text-slate-700">
-                    Nova senha
-                  </label>
-                  <input
+              <form noValidate onSubmit={handleSubmit} className="mt-7 space-y-5">
+                <FormField label="Nova senha" htmlFor="new-password" error={passwordError}>
+                  <PasswordInput
                     id="new-password"
-                    type="password"
                     name="password"
                     autoComplete="new-password"
-                    required
-                    minLength={8}
-                    maxLength={72}
+                    maxLength={PASSWORD_MAX_LENGTH}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      setPasswordError(null)
+                    }}
                     onFocus={() => setPasswordFocused(true)}
                     onBlur={() => setPasswordFocused(false)}
                     placeholder="Crie uma senha segura"
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    aria-invalid={passwordError ? true : undefined}
+                    aria-describedby={passwordError ? 'new-password-error' : undefined}
                   />
                   <PasswordRequirements password={password} visible={passwordFocused} />
-                </div>
+                </FormField>
+
+                <FormField
+                  label="Confirmar nova senha"
+                  htmlFor="confirm-password"
+                  error={confirmError}
+                >
+                  <PasswordInput
+                    id="confirm-password"
+                    name="confirmPassword"
+                    autoComplete="new-password"
+                    maxLength={PASSWORD_MAX_LENGTH}
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value)
+                      setConfirmError(null)
+                    }}
+                    placeholder="Repita a nova senha"
+                    aria-invalid={confirmError ? true : undefined}
+                    aria-describedby={confirmError ? 'confirm-password-error' : undefined}
+                  />
+                </FormField>
 
                 {error && <InlineFeedback>{error}</InlineFeedback>}
 

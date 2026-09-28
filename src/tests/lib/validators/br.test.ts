@@ -2,10 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   VALID_UFS,
-  formatBrazilianPhone,
-  formatCEP,
-  formatCNPJ,
-  formatCPF,
   isValidBrazilianPhone,
   isValidCEP,
   isValidCNPJ,
@@ -242,64 +238,5 @@ describe('isValidBrazilianPhone', () => {
   })
   it('rejects empty string', () => {
     expect(isValidBrazilianPhone('')).toBe(false)
-  })
-})
-
-// ── format functions ──────────────────────────────────────────────────────────
-
-describe('formatCPF', () => {
-  it('formats 11-digit CPF correctly', () => {
-    expect(formatCPF('12345678909')).toBe('123.456.789-09')
-  })
-  it('formats partial input (6 digits)', () => {
-    expect(formatCPF('123456')).toBe('123.456')
-  })
-  it('formats partial input (3 digits) as raw digits', () => {
-    expect(formatCPF('123')).toBe('123')
-  })
-  it('formats partial input (9 digits)', () => {
-    expect(formatCPF('123456789')).toBe('123.456.789')
-  })
-})
-
-describe('formatCNPJ', () => {
-  it('formats 14-digit CNPJ correctly', () => {
-    expect(formatCNPJ('11222333000181')).toBe('11.222.333/0001-81')
-  })
-  it('formats partial input (8 digits)', () => {
-    expect(formatCNPJ('11222333')).toBe('11.222.333')
-  })
-  it('formats partial input (2 digits) as raw digits', () => {
-    expect(formatCNPJ('11')).toBe('11')
-  })
-  it('formats partial input (5 digits)', () => {
-    expect(formatCNPJ('11222')).toBe('11.222')
-  })
-  it('formats partial input (12 digits)', () => {
-    expect(formatCNPJ('112223330001')).toBe('11.222.333/0001')
-  })
-})
-
-describe('formatCEP', () => {
-  it('formats 8-digit CEP correctly', () => {
-    expect(formatCEP('01310100')).toBe('01310-100')
-  })
-  it('formats partial input (4 digits)', () => {
-    expect(formatCEP('0131')).toBe('0131')
-  })
-})
-
-describe('formatBrazilianPhone', () => {
-  it('formats 11-digit mobile correctly', () => {
-    expect(formatBrazilianPhone('11987654321')).toBe('(11) 98765-4321')
-  })
-  it('formats 10-digit landline correctly', () => {
-    expect(formatBrazilianPhone('1132345678')).toBe('(11) 3234-5678')
-  })
-  it('formats partial input (2 digits) as raw digits', () => {
-    expect(formatBrazilianPhone('11')).toBe('11')
-  })
-  it('formats partial input (6 digits)', () => {
-    expect(formatBrazilianPhone('119876')).toBe('(11) 9876')
   })
 })

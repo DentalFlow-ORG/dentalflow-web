@@ -11,10 +11,16 @@ import {
 import { type FormEvent, useEffect, useId, useState } from 'react'
 
 import { InlineFeedback } from '@/components/common/InlineFeedback'
+import { PasswordRequirements } from '@/components/common/PasswordRequirements'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { env } from '@/config/env'
-import { isValidPersonName } from '@/lib/field-formatters'
+import { EMAIL_MAX_LENGTH, INVALID_EMAIL_MESSAGE, isValidEmail } from '@/lib/validators/email'
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_POLICY_MESSAGE,
+  meetsPasswordPolicy,
+} from '@/lib/validators/password'
 import { ApiError } from '@/services/http'
 
 import { cn } from '@/lib/utils'
@@ -23,8 +29,17 @@ import { useAuth } from '../hooks/useAuth'
 import { getGoogleOAuthStartUrl } from '../services/auth.service'
 import type { AuthMode } from '../types'
 import { splitFullName } from '../utils/name'
+import {
+  CLINIC_NAME_MAX_LENGTH,
+  RESPONSIBLE_NAME_MAX_LENGTH,
+  TERMS_REQUIRED_MESSAGE,
+  validateClinicName,
+  validateResponsibleName,
+} from '../utils/registration-validation'
 import { AuthTextField } from './AuthTextField'
-import { PasswordRequirements } from './PasswordRequirements'
+
+type FieldName = 'clinicName' | 'responsibleName' | 'email' | 'password' | 'terms'
+type FieldErrors = Partial<Record<FieldName, string>>
 
 type AuthFormProps = {
   mode: AuthMode
@@ -49,6 +64,7 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [passwordFocused, setPasswordFocused] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [googleError, setGoogleError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
@@ -57,6 +73,7 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
   useEffect(() => {
     if (mode === 'login' || mode === 'register') {
       setError(null)
+      setFieldErrors({})
       setGoogleError(null)
       setAcceptedTerms(false)
     }
@@ -84,20 +101,15 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
     const normalizedClinicName = clinicName.trim()
     const normalizedResponsibleName = responsibleName.trim()
 
-    if (!isLogin && normalizedResponsibleName.split(/\s+/).length < 2) {
-      showValidationError('Informe nome e sobrenome do responsável.')
-      return
-    }
-
-    if (!isLogin && !isValidPersonName(normalizedResponsibleName)) {
-      showValidationError('O nome do responsável não pode conter números ou caracteres especiais.')
-      return
-    }
-
-    if (!isLogin && !acceptedTerms) {
-      showValidationError(
-        'Você precisa aceitar os Termos de Uso e a Política de Privacidade para criar uma conta.',
-      )
+    const errors = validateFields()
+    setFieldErrors(errors)
+    const firstError = Object.values(errors)[0]
+    if (firstError) {
+      showAlert({
+        title: isLogin ? 'Dados incompletos' : 'Cadastro incompleto',
+        description: firstError,
+        tone: 'warning',
+      })
       return
     }
 
@@ -140,9 +152,31 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
     }
   }
 
-  const showValidationError = (message: string) => {
-    setError(message)
-    showAlert({ title: 'Cadastro incompleto', description: message, tone: 'warning' })
+  // Field order matches the form so the first message is the first field to fix.
+  const validateFields = (): FieldErrors => {
+    const errors: FieldErrors = {}
+    if (!isLogin) {
+      const clinicNameError = validateClinicName(clinicName)
+      if (clinicNameError) errors.clinicName = clinicNameError
+      const responsibleNameError = validateResponsibleName(responsibleName)
+      if (responsibleNameError) errors.responsibleName = responsibleNameError
+    }
+    if (!isValidEmail(email)) errors.email = INVALID_EMAIL_MESSAGE
+    if (isLogin) {
+      if (!password) errors.password = 'Informe sua senha.'
+    } else if (!meetsPasswordPolicy(password)) {
+      errors.password = PASSWORD_POLICY_MESSAGE
+    }
+    if (!isLogin && !acceptedTerms) errors.terms = TERMS_REQUIRED_MESSAGE
+    return errors
+  }
+
+  const clearFieldError = (field: FieldName) => {
+    setFieldErrors((current) => {
+      if (!current[field]) return current
+      const { [field]: _removed, ...rest } = current
+      return rest
+    })
   }
 
   return (
@@ -167,6 +201,7 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
         <form
           key={mode}
           className="space-y-5 animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+          noValidate
           onSubmit={handleSubmit}
         >
           {!isLogin && (
@@ -178,9 +213,12 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
                 name="clinicName"
                 value={clinicName}
                 autoComplete="organization"
-                minLength={2}
-                maxLength={100}
-                onChange={setClinicName}
+                maxLength={CLINIC_NAME_MAX_LENGTH}
+                error={fieldErrors.clinicName}
+                onChange={(value) => {
+                  setClinicName(value)
+                  clearFieldError('clinicName')
+                }}
               />
               <AuthTextField
                 label="Responsável"
@@ -189,9 +227,12 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
                 name="responsibleName"
                 value={responsibleName}
                 autoComplete="name"
-                minLength={2}
-                maxLength={100}
-                onChange={setResponsibleName}
+                maxLength={RESPONSIBLE_NAME_MAX_LENGTH}
+                error={fieldErrors.responsibleName}
+                onChange={(value) => {
+                  setResponsibleName(value)
+                  clearFieldError('responsibleName')
+                }}
               />
             </div>
           )}
@@ -204,8 +245,13 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
             name="email"
             value={email}
             autoComplete="email"
-            maxLength={254}
-            onChange={setEmail}
+            inputMode="email"
+            maxLength={EMAIL_MAX_LENGTH}
+            error={fieldErrors.email}
+            onChange={(value) => {
+              setEmail(value)
+              clearFieldError('email')
+            }}
           />
           <AuthTextField
             label="Senha"
@@ -215,9 +261,12 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
             name="password"
             value={password}
             autoComplete={isLogin ? 'current-password' : 'new-password'}
-            minLength={8}
-            maxLength={72}
-            onChange={setPassword}
+            maxLength={PASSWORD_MAX_LENGTH}
+            error={fieldErrors.password}
+            onChange={(value) => {
+              setPassword(value)
+              clearFieldError('password')
+            }}
             onFocus={() => setPasswordFocused(true)}
             onBlur={() => setPasswordFocused(false)}
           />
@@ -240,7 +289,9 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
                 'rounded-xl border p-4 transition-colors duration-200',
                 acceptedTerms
                   ? 'border-primary/30 bg-primary/5'
-                  : 'border-slate-200 bg-slate-50 hover:border-slate-300',
+                  : fieldErrors.terms
+                    ? 'border-destructive bg-destructive/5'
+                    : 'border-slate-200 bg-slate-50 hover:border-slate-300',
               )}
             >
               <div className="flex items-start gap-3">
@@ -248,9 +299,13 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
                   id={termsCheckboxId}
                   type="checkbox"
                   checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  onChange={(e) => {
+                    setAcceptedTerms(e.target.checked)
+                    clearFieldError('terms')
+                  }}
+                  aria-invalid={fieldErrors.terms ? true : undefined}
+                  aria-describedby={fieldErrors.terms ? `${termsCheckboxId}-error` : undefined}
                   className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                  required
                 />
                 <label
                   htmlFor={termsCheckboxId}
@@ -277,6 +332,15 @@ export function AuthForm({ mode, googleAuthStatus }: AuthFormProps) {
                   .
                 </label>
               </div>
+              {fieldErrors.terms && (
+                <span
+                  id={`${termsCheckboxId}-error`}
+                  role="alert"
+                  className="mt-2 block text-xs leading-5 text-destructive"
+                >
+                  {fieldErrors.terms}
+                </span>
+              )}
             </div>
           )}
 

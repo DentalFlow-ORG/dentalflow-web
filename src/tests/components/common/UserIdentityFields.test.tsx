@@ -69,6 +69,20 @@ describe('UserEmailField', () => {
 })
 
 describe('UserPhoneField', () => {
+  it.each(['+55 (61) 99999-9999', '0055 (61) 99999-9999'])(
+    'accepts the complete pasted phone %s',
+    async (raw) => {
+      const user = userEvent.setup()
+      const onPhoneChange = vi.fn()
+      render(<UserPhoneField phone="" onPhoneChange={onPhoneChange} />)
+      const input = screen.getByLabelText(/telefone/i) as HTMLInputElement
+      expect(input.maxLength === -1 || input.maxLength >= raw.length).toBe(true)
+      await user.click(screen.getByLabelText(/telefone/i))
+      await user.paste(raw)
+      expect(onPhoneChange).toHaveBeenLastCalledWith('(61) 99999-9999')
+    },
+  )
+
   it('renders the phone value formatted', () => {
     render(<UserPhoneField phone="11987654321" onPhoneChange={vi.fn()} />)
     expect(screen.getByLabelText(/telefone/i)).toHaveValue('(11) 98765-4321')
@@ -85,6 +99,12 @@ describe('UserPhoneField', () => {
     render(<UserPhoneField phone="" onPhoneChange={vi.fn()} phoneError="Telefone inválido" />)
     expect(screen.getByText('Telefone inválido')).toBeInTheDocument()
     expect(screen.getByLabelText(/telefone/i)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText(/telefone/i)).toHaveAccessibleDescription('Telefone inválido')
+  })
+
+  it('disables browser autofill so staff never fill in their own contact data', () => {
+    render(<UserPhoneField phone="" onPhoneChange={vi.fn()} />)
+    expect(screen.getByLabelText(/telefone/i)).toHaveAttribute('autocomplete', 'off')
   })
 
   it('does not mark the field invalid when there is no phoneError', () => {

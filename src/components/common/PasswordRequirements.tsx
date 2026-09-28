@@ -1,19 +1,6 @@
 import { CheckCircle2, Circle } from 'lucide-react'
 
-type Requirement = {
-  label: string
-  met: boolean
-}
-
-function getRequirements(password: string): Requirement[] {
-  return [
-    { label: 'Mínimo de 8 caracteres', met: password.length >= 8 },
-    { label: 'Letra maiúscula (A–Z)', met: /[A-Z]/.test(password) },
-    { label: 'Letra minúscula (a–z)', met: /[a-z]/.test(password) },
-    { label: 'Número (0–9)', met: /[0-9]/.test(password) },
-    { label: 'Caractere especial (!@#$…)', met: /[^a-zA-Z0-9]/.test(password) },
-  ]
-}
+import { getPasswordRequirements } from '@/lib/validators/password'
 
 type PasswordRequirementsProps = {
   password: string
@@ -23,7 +10,7 @@ type PasswordRequirementsProps = {
 export function PasswordRequirements({ password, visible }: PasswordRequirementsProps) {
   if (!visible && password.length === 0) return null
 
-  const requirements = getRequirements(password)
+  const requirements = getPasswordRequirements(password)
 
   return (
     <ul

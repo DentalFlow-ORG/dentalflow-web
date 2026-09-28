@@ -1,4 +1,5 @@
 import { AuthForm } from '@/features/auth/components/AuthForm'
+import { PASSWORD_POLICY_MESSAGE } from '@/lib/validators/password'
 import { ApiError } from '@/services/http'
 import { mockNavigate } from '@/test-utils/mocks/router'
 import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
@@ -131,7 +132,7 @@ describe('AuthForm', () => {
       await user.type(screen.getByLabelText('Nome da clínica'), 'Clínica Teste')
       await user.type(screen.getByLabelText('Responsável'), 'Pedro')
       await user.type(screen.getByLabelText('E-mail profissional'), 'pedro@clinica.com')
-      await user.type(screen.getByLabelText('Senha'), 'senha123')
+      await user.type(screen.getByLabelText('Senha'), 'Senha@123')
       // Check terms so native constraint validation passes and handleSubmit runs
       await user.click(screen.getByRole('checkbox'))
       await user.click(screen.getByRole('button', { name: /Criar acesso seguro/i }))
@@ -149,7 +150,7 @@ describe('AuthForm', () => {
       await user.type(screen.getByLabelText('Nome da clínica'), 'Clínica Teste')
       await user.type(screen.getByLabelText('Responsável'), 'Pedro Souza')
       await user.type(screen.getByLabelText('E-mail profissional'), 'pedro@clinica.com')
-      await user.type(screen.getByLabelText('Senha'), 'senha123')
+      await user.type(screen.getByLabelText('Senha'), 'Senha@123')
       // Skip checkbox — use fireEvent.submit to bypass native required validation
       // and exercise the JS validation path in handleSubmit
       fireEvent.submit(container.querySelector('form')!)
@@ -164,12 +165,107 @@ describe('AuthForm', () => {
     })
   })
 
+  describe('field-level validation mirrored from the API', () => {
+    async function fillValidRegister(user: ReturnType<typeof userEvent.setup>) {
+      await user.type(screen.getByLabelText('Nome da clínica'), 'Clínica Teste')
+      await user.type(screen.getByLabelText('Responsável'), 'Pedro Souza')
+      await user.type(screen.getByLabelText('E-mail profissional'), 'pedro@clinica.com')
+      await user.type(screen.getByLabelText('Senha'), 'Senha@123')
+      await user.click(screen.getByRole('checkbox'))
+    }
+
+    it('rejects a weak password at the password field before calling the API', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="register" />)
+      await fillValidRegister(user)
+      await user.clear(screen.getByLabelText('Senha'))
+      await user.type(screen.getByLabelText('Senha'), 'senhafraca1')
+      await user.click(screen.getByRole('button', { name: /Criar acesso seguro/i }))
+
+      const message = PASSWORD_POLICY_MESSAGE
+      expect(screen.getByLabelText('Senha')).toHaveAttribute('aria-invalid', 'true')
+      expect(screen.getByLabelText('Senha')).toHaveAccessibleDescription(message)
+      expect(mockRegister).not.toHaveBeenCalled()
+    })
+
+    it('rejects clinic name characters the API refuses with a pt-BR message', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="register" />)
+      await fillValidRegister(user)
+      await user.clear(screen.getByLabelText('Nome da clínica'))
+      await user.type(screen.getByLabelText('Nome da clínica'), 'Sorriso & Cia')
+      await user.click(screen.getByRole('button', { name: /Criar acesso seguro/i }))
+
+      expect(screen.getByLabelText('Nome da clínica')).toHaveAccessibleDescription(
+        'O nome da clínica deve conter apenas letras, números, espaços, apóstrofos, pontos e hífens.',
+      )
+      expect(mockRegister).not.toHaveBeenCalled()
+    })
+
+    it('rejects a one-letter first name, which the API refuses', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="register" />)
+      await fillValidRegister(user)
+      await user.clear(screen.getByLabelText('Responsável'))
+      await user.type(screen.getByLabelText('Responsável'), 'A Souza')
+      await user.click(screen.getByRole('button', { name: /Criar acesso seguro/i }))
+
+      expect(screen.getByLabelText('Responsável')).toHaveAccessibleDescription(
+        'O primeiro nome do responsável deve ter pelo menos 2 letras.',
+      )
+      expect(mockRegister).not.toHaveBeenCalled()
+    })
+
+    it('shows the terms message inline instead of the browser bubble', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="register" />)
+      await fillValidRegister(user)
+      await user.click(screen.getByRole('checkbox'))
+      await user.click(screen.getByRole('button', { name: /Criar acesso seguro/i }))
+
+      expect(screen.getByRole('checkbox')).toHaveAccessibleDescription(
+        'Você precisa aceitar os Termos de Uso e a Política de Privacidade para criar uma conta.',
+      )
+      await user.click(screen.getByRole('checkbox'))
+      expect(screen.getByRole('checkbox')).not.toHaveAttribute('aria-invalid')
+      expect(mockRegister).not.toHaveBeenCalled()
+    })
+
+    it('rejects an invalid e-mail on login and clears the error while typing', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="login" />)
+      await user.type(screen.getByLabelText('E-mail profissional'), 'ana@clinica')
+      await user.type(screen.getByLabelText('Senha'), 'qualquer')
+      await user.click(screen.getByRole('button', { name: /Entrar na plataforma/i }))
+
+      expect(screen.getByLabelText('E-mail profissional')).toHaveAccessibleDescription(
+        'Informe um e-mail válido.',
+      )
+      expect(mockLogin).not.toHaveBeenCalled()
+
+      await user.type(screen.getByLabelText('E-mail profissional'), '.com')
+      expect(screen.getByLabelText('E-mail profissional')).not.toHaveAttribute('aria-invalid')
+    })
+
+    it('keeps accepting legacy passwords on login, requiring only that one is typed', async () => {
+      const user = userEvent.setup()
+      renderWithProviders(<AuthForm mode="login" />)
+      await user.type(screen.getByLabelText('E-mail profissional'), 'ana@clinica.com')
+      await user.click(screen.getByRole('button', { name: /Entrar na plataforma/i }))
+      expect(screen.getByLabelText('Senha')).toHaveAccessibleDescription('Informe sua senha.')
+
+      await user.type(screen.getByLabelText('Senha'), 'antiga12')
+      await user.click(screen.getByRole('button', { name: /Entrar na plataforma/i }))
+      expect(mockLogin).toHaveBeenCalledWith({ email: 'ana@clinica.com', password: 'antiga12' })
+    })
+  })
+
   describe('successful submission', () => {
     async function fillRegister(user: ReturnType<typeof userEvent.setup>) {
       await user.type(screen.getByLabelText('Nome da clínica'), '  Clínica Teste  ')
       await user.type(screen.getByLabelText('Responsável'), '  Pedro  Souza Lima  ')
       await user.type(screen.getByLabelText('E-mail profissional'), '  Pedro@Clinica.COM  ')
-      await user.type(screen.getByLabelText('Senha'), 'senha123')
+      await user.type(screen.getByLabelText('Senha'), 'Senha@123')
       await user.click(screen.getByRole('checkbox'))
     }
 
@@ -178,10 +274,10 @@ describe('AuthForm', () => {
       renderWithProviders(<AuthForm mode="login" />)
 
       await user.type(screen.getByLabelText('E-mail profissional'), '  Ana@Clinica.COM  ')
-      await user.type(screen.getByLabelText('Senha'), 'senha123')
+      await user.type(screen.getByLabelText('Senha'), 'Senha@123')
       await user.click(screen.getByRole('button', { name: /Entrar na plataforma/i }))
 
-      expect(mockLogin).toHaveBeenCalledWith({ email: 'ana@clinica.com', password: 'senha123' })
+      expect(mockLogin).toHaveBeenCalledWith({ email: 'ana@clinica.com', password: 'Senha@123' })
       expect(mockShowAlert).toHaveBeenCalledWith(
         expect.objectContaining({ title: 'Acesso liberado', tone: 'success' }),
       )
@@ -200,7 +296,7 @@ describe('AuthForm', () => {
         firstName: 'Pedro',
         lastName: 'Souza Lima',
         email: 'pedro@clinica.com',
-        password: 'senha123',
+        password: 'Senha@123',
         acceptedTerms: true,
       })
       expect(mockShowAlert).toHaveBeenCalledWith(
@@ -216,7 +312,7 @@ describe('AuthForm', () => {
       await user.type(screen.getByLabelText('Nome da clínica'), 'Clínica Teste')
       await user.type(screen.getByLabelText('Responsável'), 'Pedro S0uza')
       await user.type(screen.getByLabelText('E-mail profissional'), 'pedro@clinica.com')
-      await user.type(screen.getByLabelText('Senha'), 'senha123')
+      await user.type(screen.getByLabelText('Senha'), 'Senha@123')
       await user.click(screen.getByRole('checkbox'))
       await user.click(screen.getByRole('button', { name: /Criar acesso seguro/i }))
 
@@ -254,7 +350,7 @@ describe('AuthForm', () => {
       await user.type(screen.getByLabelText('Nome da clínica'), 'Clínica Teste')
       await user.type(screen.getByLabelText('Responsável'), 'Pedro Souza')
       await user.type(screen.getByLabelText('E-mail profissional'), 'pedro@clinica.com')
-      await user.type(screen.getByLabelText('Senha'), 'senha123')
+      await user.type(screen.getByLabelText('Senha'), 'Senha@123')
       await user.click(screen.getByRole('checkbox'))
       await user.click(screen.getByRole('button', { name: /Criar acesso seguro/i }))
 
@@ -271,7 +367,7 @@ describe('AuthForm', () => {
       renderWithProviders(<AuthForm mode="login" />)
 
       await user.type(screen.getByLabelText('E-mail profissional'), 'ana@clinica.com')
-      await user.type(screen.getByLabelText('Senha'), 'senha123')
+      await user.type(screen.getByLabelText('Senha'), 'Senha@123')
       await user.click(screen.getByRole('button', { name: /Entrar na plataforma/i }))
 
       expect(await screen.findByText('Não foi possível autenticar agora.')).toBeInTheDocument()
@@ -283,7 +379,7 @@ describe('AuthForm', () => {
       renderWithProviders(<AuthForm mode="login" />)
 
       await user.type(screen.getByLabelText('E-mail profissional'), 'ana@clinica.com')
-      await user.type(screen.getByLabelText('Senha'), 'senha123')
+      await user.type(screen.getByLabelText('Senha'), 'Senha@123')
       const submit = screen.getByRole('button', { name: /Entrar na plataforma/i })
       await user.click(submit)
 

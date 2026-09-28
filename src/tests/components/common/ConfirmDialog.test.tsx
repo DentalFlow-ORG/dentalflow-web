@@ -1,6 +1,6 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen } from '@/test-utils/render-utils'
+import { act, fireEvent, render, screen } from '@/test-utils/render-utils'
 
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 
@@ -140,6 +140,59 @@ describe('ConfirmDialog', () => {
       />,
     )
     await userEvent.keyboard('{Escape}')
-    expect(onCancel).toHaveBeenCalled()
+    expect(onCancel).toHaveBeenCalledOnce()
+  })
+
+  it('ignores Escape while the action is confirming, keeping the pending state visible', async () => {
+    const onCancel = vi.fn()
+    render(
+      <ConfirmDialog
+        open
+        isConfirming
+        title="Excluir"
+        description="Confirma?"
+        onConfirm={vi.fn()}
+        onCancel={onCancel}
+      />,
+    )
+    await userEvent.keyboard('{Escape}')
+    expect(onCancel).not.toHaveBeenCalled()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /aguarde/i })).toBeDisabled()
+  })
+
+  it('ignores clicks outside the dialog while the action is confirming', async () => {
+    const onCancel = vi.fn()
+    render(
+      <ConfirmDialog
+        open
+        isConfirming
+        title="Excluir"
+        description="Confirma?"
+        onConfirm={vi.fn()}
+        onCancel={onCancel}
+      />,
+    )
+    // Radix attaches its outside-pointer listener on the next tick.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+    fireEvent.pointerDown(document.body)
+    expect(onCancel).not.toHaveBeenCalled()
+  })
+
+  it('calls onCancel when clicking outside an idle dialog', async () => {
+    const onCancel = vi.fn()
+    render(
+      <ConfirmDialog
+        open
+        title="Excluir"
+        description="Confirma?"
+        onConfirm={vi.fn()}
+        onCancel={onCancel}
+      />,
+    )
+    // Radix attaches its outside-pointer listener on the next tick.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+    fireEvent.pointerDown(document.body)
+    expect(onCancel).toHaveBeenCalledOnce()
   })
 })

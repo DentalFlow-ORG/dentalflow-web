@@ -4,9 +4,17 @@ import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MISMATCH_MESSAGE,
+  PASSWORD_POLICY_MESSAGE,
+  meetsPasswordPolicy,
+} from '@/lib/validators/password'
+
 import { FormField } from './FormField'
 import { InlineFeedback } from './InlineFeedback'
 import { PasswordInput } from './PasswordInput'
+import { PasswordRequirements } from './PasswordRequirements'
 
 type PasswordResetModalProps = {
   open: boolean
@@ -26,8 +34,6 @@ type FormState = {
 }
 
 const EMPTY_FORM: FormState = { password: '', confirm: '' }
-const PASSWORD_MIN_LENGTH = 8
-const PASSWORD_MAX_LENGTH = 72
 
 export function PasswordResetModal({
   open,
@@ -43,6 +49,7 @@ export function PasswordResetModal({
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [passwordFocused, setPasswordFocused] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -59,16 +66,12 @@ export function PasswordResetModal({
     event.preventDefault()
     setError(null)
 
-    if (form.password.length < PASSWORD_MIN_LENGTH) {
-      setError('A senha deve ter pelo menos 8 caracteres.')
-      return
-    }
-    if (form.password.length > PASSWORD_MAX_LENGTH) {
-      setError('A senha deve ter no maximo 72 caracteres.')
+    if (!meetsPasswordPolicy(form.password)) {
+      setError(PASSWORD_POLICY_MESSAGE)
       return
     }
     if (form.password !== form.confirm) {
-      setError('As senhas nao coincidem.')
+      setError(PASSWORD_MISMATCH_MESSAGE)
       return
     }
 
@@ -84,7 +87,7 @@ export function PasswordResetModal({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && !isSubmitting && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content
@@ -110,32 +113,31 @@ export function PasswordResetModal({
             </div>
           </div>
 
-          <form id={formId} onSubmit={handleSubmit}>
+          <form id={formId} noValidate onSubmit={handleSubmit}>
             <div className="space-y-4 px-6 py-5">
               {error && <InlineFeedback>{error}</InlineFeedback>}
 
               <FormField
                 label="Nova senha"
                 htmlFor={newPasswordId}
-                hint="Minimo 8 caracteres, maximo 72."
+                hint="De 8 a 72 caracteres, com maiúscula, minúscula, número e caractere especial."
               >
                 <PasswordInput
                   id={newPasswordId}
-                  required
-                  minLength={PASSWORD_MIN_LENGTH}
                   maxLength={PASSWORD_MAX_LENGTH}
                   value={form.password}
                   placeholder="Digite a nova senha"
                   autoComplete="new-password"
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
                   onChange={(event) => set('password', event.target.value)}
                 />
+                <PasswordRequirements password={form.password} visible={passwordFocused} />
               </FormField>
 
               <FormField label="Confirmar senha" htmlFor={confirmPasswordId}>
                 <PasswordInput
                   id={confirmPasswordId}
-                  required
-                  minLength={PASSWORD_MIN_LENGTH}
                   maxLength={PASSWORD_MAX_LENGTH}
                   value={form.confirm}
                   placeholder="Confirme a nova senha"

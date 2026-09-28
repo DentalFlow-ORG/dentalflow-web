@@ -147,10 +147,49 @@ describe('form validation', () => {
     })
     fireEvent.submit(container.querySelector('form')!)
 
-    expect(
-      screen.getByText('Você precisa aceitar os Termos de Uso e a Política de Privacidade.'),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('checkbox')).toHaveAccessibleDescription(
+      'Você precisa aceitar os Termos de Uso e a Política de Privacidade para criar uma conta.',
+    )
     expect(mockCompleteProfile).not.toHaveBeenCalled()
+  })
+
+  it('explains invalid characters instead of asking for a surname', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<CompleteProfilePage />)
+    const responsibleInput = screen.getByLabelText('Responsável')
+    await user.clear(responsibleInput)
+    await user.type(responsibleInput, 'Pedro S0uza')
+    await user.type(screen.getByLabelText('Nome da clínica'), 'Clínica Teste')
+    await user.click(screen.getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: /Concluir cadastro/i }))
+
+    expect(responsibleInput).toHaveAccessibleDescription(
+      'O nome do responsável não pode conter números ou caracteres especiais.',
+    )
+    expect(mockCompleteProfile).not.toHaveBeenCalled()
+  })
+
+  it('rejects clinic name characters the API refuses', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<CompleteProfilePage />)
+    await user.type(screen.getByLabelText('Nome da clínica'), 'Sorriso & Cia')
+    await user.click(screen.getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: /Concluir cadastro/i }))
+
+    expect(screen.getByLabelText('Nome da clínica')).toHaveAccessibleDescription(
+      'O nome da clínica deve conter apenas letras, números, espaços, apóstrofos, pontos e hífens.',
+    )
+    expect(mockCompleteProfile).not.toHaveBeenCalled()
+  })
+
+  it('clears a field error as soon as the field is edited', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<CompleteProfilePage />)
+    await user.type(screen.getByLabelText('Nome da clínica'), 'C')
+    await user.click(screen.getByRole('button', { name: /Concluir cadastro/i }))
+    expect(screen.getByLabelText('Nome da clínica')).toHaveAttribute('aria-invalid', 'true')
+    await user.type(screen.getByLabelText('Nome da clínica'), 'línica')
+    expect(screen.getByLabelText('Nome da clínica')).not.toHaveAttribute('aria-invalid')
   })
 })
 

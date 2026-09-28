@@ -29,6 +29,7 @@ function SelectTrigger({
         'hover:border-primary/35 hover:bg-primary/5 focus:border-primary focus:ring-3 focus:ring-primary/15',
         'disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-70',
         'data-[placeholder]:text-muted-foreground data-[size=default]:h-11 data-[size=sm]:h-9 data-[size=sm]:text-xs',
+        'aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/30',
         className,
       )}
       {...props}
