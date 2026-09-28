@@ -20,7 +20,8 @@ export type UpdateMemberDto = {
   lastName?: string
   email?: string
   role?: MemberRole
-  phone?: string
+  /** `null` clears the stored phone; omitted keeps it. */
+  phone?: string | null
   isActive?: boolean
 }
 

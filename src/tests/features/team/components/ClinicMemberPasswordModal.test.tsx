@@ -39,11 +39,11 @@ describe('ClinicMemberPasswordModal', () => {
         onSuccess={onSuccess}
       />,
     )
-    await userEvent.type(screen.getByLabelText('Nova senha'), 'password123')
-    await userEvent.type(screen.getByLabelText('Confirmar senha'), 'password123')
+    await userEvent.type(screen.getByLabelText('Nova senha'), 'Senha@123')
+    await userEvent.type(screen.getByLabelText('Confirmar senha'), 'Senha@123')
     await userEvent.click(screen.getByRole('button', { name: /redefinir senha/i }))
 
-    expect(mockUpdateClinicMemberPassword).toHaveBeenCalledWith('m1', { password: 'password123' })
+    expect(mockUpdateClinicMemberPassword).toHaveBeenCalledWith('m1', { password: 'Senha@123' })
     expect(await screen.findByRole('heading', { name: /redefinir senha/i })).toBeInTheDocument()
     expect(onSuccess).toHaveBeenCalledOnce()
   })

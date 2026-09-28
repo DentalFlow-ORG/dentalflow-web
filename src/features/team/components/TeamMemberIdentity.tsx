@@ -1,3 +1,4 @@
+import { displayPhoneBR } from '@/lib/field-formatters'
 import { cn } from '@/lib/utils'
 
 import type { MemberListItem } from '../types/team.types'
@@ -41,7 +42,9 @@ export function TeamMemberIdentity({
         </p>
         <p className="break-all text-xs text-muted-foreground">{member.email}</p>
         {showPhone && member.phone && (
-          <p className="break-words text-xs text-muted-foreground">{member.phone}</p>
+          <p className="break-words text-xs text-muted-foreground">
+            {displayPhoneBR(member.phone)}
+          </p>
         )}
       </div>
     </div>

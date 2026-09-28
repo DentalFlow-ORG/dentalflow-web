@@ -80,6 +80,30 @@ it('debounces a valid CEP, populates the returned address, and cancels obsolete 
   expect(screen.getByLabelText(/^UF/)).toHaveValue('SP')
 })
 
+it('never looks up the CEP of a saved profile on load, keeping the stored address', async () => {
+  profile = makeClinicProfile({
+    postalCode: '01001000',
+    addressLine1: 'Rua Antiga, 45',
+    city: 'Santos',
+    state: 'SP',
+  })
+  await open()
+  await tick()
+  expect(fetchAddressByCep).not.toHaveBeenCalled()
+  expect(screen.getByLabelText(/^Logradouro/)).toHaveValue('Rua Antiga, 45')
+  expect(screen.getByLabelText(/^Cidade/)).toHaveValue('Santos')
+})
+
+it('keeps the typed street and house number when the user changes the CEP', async () => {
+  profile = makeClinicProfile({ addressLine1: 'Rua das Flores, 120', city: 'Campinas' })
+  await open()
+  change(/^CEP/, '01001000')
+  await tick()
+  expect(fetchAddressByCep).toHaveBeenCalledExactlyOnceWith('01001-000')
+  expect(screen.getByLabelText(/^Logradouro/)).toHaveValue('Rua das Flores, 120')
+  expect(screen.getByLabelText(/^Cidade/)).toHaveValue('São Paulo')
+})
+
 it('preserves manually entered address values when a valid lookup omits them', async () => {
   vi.mocked(fetchAddressByCep).mockResolvedValue({ ...address, street: '', city: '', uf: '' })
   await open()
@@ -125,6 +149,7 @@ it('formats loaded values and submits trimmed optional profile fields without ch
   await act(async () => fireEvent.click(screen.getByRole('button', { name: /Salvar alterações/i })))
   expect(save).toHaveBeenCalledExactlyOnceWith({
     name: 'Clínica Teste',
+    email: null,
     phone: '21999994321',
     websiteUrl: 'https://clinica.test',
     addressLine1: 'Rua própria',
@@ -137,6 +162,83 @@ it('formats loaded values and submits trimmed optional profile fields without ch
     title: 'Perfil atualizado com sucesso.',
     tone: 'success',
   })
+})
+
+it('sends null for emptied optional fields so the stored values are cleared', async () => {
+  profile = makeClinicProfile({
+    email: 'contato@clinica.com',
+    phone: '11999991234',
+    websiteUrl: 'https://clinica.test',
+    addressLine1: 'Rua A, 1',
+    addressLine2: 'Sala 2',
+    city: 'Santos',
+    state: 'SP',
+    postalCode: '11010000',
+  })
+  await open()
+  for (const label of [
+    /^E-mail/,
+    /^Telefone/,
+    /^Site/,
+    /^Logradouro/,
+    /^Complemento/,
+    /^Cidade/,
+    /^UF/,
+    /^CEP/,
+  ]) {
+    change(label, '')
+  }
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: /Salvar alterações/i })))
+  expect(save).toHaveBeenCalledExactlyOnceWith({
+    name: 'Clínica Teste',
+    email: null,
+    phone: null,
+    websiteUrl: null,
+    addressLine1: null,
+    addressLine2: null,
+    city: null,
+    state: null,
+    postalCode: null,
+  })
+})
+
+it('lowercases the clinic e-mail before saving', async () => {
+  await open()
+  change(/^E-mail/, ' Contato@Clinica.COM ')
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: /Salvar alterações/i })))
+  expect(save.mock.calls[0][0].email).toBe('contato@clinica.com')
+})
+
+it.each(['javascript:alert(1)', 'ftp://clinica.test', 'https://'])(
+  'rejects a website that is not a valid http(s) URL: %s',
+  async (website) => {
+    await open()
+    change(/^Site/, website)
+    await act(async () =>
+      fireEvent.click(screen.getByRole('button', { name: /Salvar alterações/i })),
+    )
+    expect(screen.getByLabelText(/^Site/)).toHaveAccessibleDescription(
+      'Informe uma URL válida, começando com http:// ou https://.',
+    )
+    expect(save).not.toHaveBeenCalled()
+  },
+)
+
+it('accepts an http website, as the API does', async () => {
+  await open()
+  change(/^Site/, 'http://clinica.test')
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: /Salvar alterações/i })))
+  expect(save.mock.calls[0][0].websiteUrl).toBe('http://clinica.test')
+})
+
+it('mirrors the API length limits and mobile keyboards on the inputs', async () => {
+  await open()
+  expect(screen.getByLabelText(/^Nome da clínica/)).toHaveAttribute('maxLength', '100')
+  expect(screen.getByLabelText(/^Site/)).toHaveAttribute('maxLength', '200')
+  expect(screen.getByLabelText(/^Logradouro/)).toHaveAttribute('maxLength', '200')
+  expect(screen.getByLabelText(/^Cidade/)).toHaveAttribute('maxLength', '100')
+  expect(screen.getByLabelText(/^Telefone/)).toHaveAttribute('type', 'tel')
+  expect(screen.getByLabelText(/^CEP/)).toHaveAttribute('inputMode', 'numeric')
 })
 
 it('rejects an invalid phone and clears the accessible error when corrected', async () => {

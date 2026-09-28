@@ -545,6 +545,7 @@ function SubscriptionsSection({
           <TextInput
             id="subscriptionSearch"
             placeholder="Nome da clínica..."
+            maxLength={100}
             value={filters.search ?? ''}
             onChange={(event) => onFilterChange('search', event.target.value)}
           />
@@ -777,6 +778,7 @@ function StripeEventsSection({
           <TextInput
             id="stripeEventType"
             placeholder="customer.subscription.updated..."
+            maxLength={100}
             value={filters.type ?? ''}
             onChange={(event) => onFilterChange('type', event.target.value)}
           />

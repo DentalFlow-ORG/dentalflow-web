@@ -39,11 +39,11 @@ describe('UserPasswordModal', () => {
         onSuccess={onSuccess}
       />,
     )
-    await userEvent.type(screen.getByLabelText('Nova senha'), 'novaSenha123')
-    await userEvent.type(screen.getByLabelText('Confirmar senha'), 'novaSenha123')
+    await userEvent.type(screen.getByLabelText('Nova senha'), 'NovaSenha@123')
+    await userEvent.type(screen.getByLabelText('Confirmar senha'), 'NovaSenha@123')
     await userEvent.click(screen.getByRole('button', { name: 'Redefinir senha' }))
 
-    expect(mockUpdateAdminUserPassword).toHaveBeenCalledWith('u1', { password: 'novaSenha123' })
+    expect(mockUpdateAdminUserPassword).toHaveBeenCalledWith('u1', { password: 'NovaSenha@123' })
     expect(onSuccess).toHaveBeenCalledOnce()
   })
 

@@ -1,6 +1,6 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen, waitFor } from '@/test-utils/render-utils'
+import { render, screen, waitFor, within } from '@/test-utils/render-utils'
 
 const mockCreateAdminUser = vi.fn()
 const mockUpdateAdminUser = vi.fn()
@@ -47,6 +47,11 @@ vi.mock('@/components/ui/select', () => ({
 
 import { UserFormModal } from '@/features/admin/components/UserFormModal'
 import type { AdminUser } from '@/features/admin/types/admin.types'
+import { PASSWORD_POLICY_MESSAGE } from '@/lib/validators/password'
+
+function confirmDialog(title: string | RegExp) {
+  return within(screen.getByRole('dialog', { name: title }))
+}
 
 function makeUser(overrides: Partial<AdminUser> = {}): AdminUser {
   return {
@@ -77,7 +82,7 @@ async function fillCreateForm() {
   await userEvent.type(screen.getByLabelText('Nome'), 'João')
   await userEvent.type(screen.getByLabelText('Sobrenome'), 'Silva')
   await userEvent.type(screen.getByLabelText('E-mail'), 'joao@clinica.com')
-  await userEvent.type(screen.getByLabelText('Senha'), 'password123')
+  await userEvent.type(screen.getByLabelText('Senha'), 'Senha@123')
 }
 
 describe('UserFormModal — create mode', () => {
@@ -139,7 +144,7 @@ describe('UserFormModal — create mode', () => {
     await userEvent.type(screen.getByLabelText('Nome'), '  ')
     await userEvent.type(screen.getByLabelText('Sobrenome'), '  ')
     await userEvent.type(screen.getByLabelText('E-mail'), 'joao@clinica.com')
-    await userEvent.type(screen.getByLabelText('Senha'), 'password123')
+    await userEvent.type(screen.getByLabelText('Senha'), 'Senha@123')
     await userEvent.click(screen.getByRole('button', { name: 'Criar usuário' }))
     expect(
       await screen.findByText('Nome, sobrenome e e-mail são obrigatórios.'),
@@ -152,7 +157,7 @@ describe('UserFormModal — create mode', () => {
     await userEvent.type(screen.getByLabelText('Nome'), 'João123')
     await userEvent.type(screen.getByLabelText('Sobrenome'), 'Silva')
     await userEvent.type(screen.getByLabelText('E-mail'), 'joao@clinica.com')
-    await userEvent.type(screen.getByLabelText('Senha'), 'password123')
+    await userEvent.type(screen.getByLabelText('Senha'), 'Senha@123')
     await userEvent.click(screen.getByRole('button', { name: 'Criar usuário' }))
     expect(
       await screen.findByText('O nome não pode conter números ou caracteres especiais.'),
@@ -164,7 +169,7 @@ describe('UserFormModal — create mode', () => {
     await userEvent.type(screen.getByLabelText('Nome'), 'João')
     await userEvent.type(screen.getByLabelText('Sobrenome'), 'Silva123')
     await userEvent.type(screen.getByLabelText('E-mail'), 'joao@clinica.com')
-    await userEvent.type(screen.getByLabelText('Senha'), 'password123')
+    await userEvent.type(screen.getByLabelText('Senha'), 'Senha@123')
     await userEvent.click(screen.getByRole('button', { name: 'Criar usuário' }))
     expect(
       await screen.findByText('O sobrenome não pode conter números ou caracteres especiais.'),
@@ -176,24 +181,44 @@ describe('UserFormModal — create mode', () => {
     await userEvent.type(screen.getByLabelText('Nome'), 'João')
     await userEvent.type(screen.getByLabelText('Sobrenome'), 'Silva')
     await userEvent.type(screen.getByLabelText('E-mail'), 'joao@clinica.com')
-    await userEvent.type(screen.getByLabelText('Senha'), 'password123')
+    await userEvent.type(screen.getByLabelText('Senha'), 'Senha@123')
     await userEvent.type(screen.getByLabelText(/telefone/i), '123')
     await userEvent.click(screen.getByRole('button', { name: 'Criar usuário' }))
-    expect(
-      await screen.findByText(
-        'Telefone inválido. Informe um número com DDD e 10 ou 11 dígitos no total.',
-      ),
-    ).toBeInTheDocument()
+    const message = 'Telefone inválido. Informe um número com DDD e 10 ou 11 dígitos no total.'
+    expect(await screen.findByText(message)).toBeInTheDocument()
+    // The error is rendered at the phone field and linked to it.
+    expect(screen.getByLabelText(/telefone/i)).toHaveAccessibleDescription(message)
+    expect(screen.getByLabelText(/telefone/i)).toHaveAttribute('aria-invalid', 'true')
   })
 
-  it('shows an error when the password is shorter than 8 characters', async () => {
+  it.each([
+    ['shorter than 8 characters', 'Sen@12'],
+    ['without the complexity rules the API requires', 'password123'],
+  ])('rejects an initial password %s', async (_case, password) => {
     render(<UserFormModal open onClose={vi.fn()} onSuccess={vi.fn()} />)
     await userEvent.type(screen.getByLabelText('Nome'), 'João')
     await userEvent.type(screen.getByLabelText('Sobrenome'), 'Silva')
     await userEvent.type(screen.getByLabelText('E-mail'), 'joao@clinica.com')
-    await userEvent.type(screen.getByLabelText('Senha'), 'short1')
+    await userEvent.type(screen.getByLabelText('Senha'), password)
     await userEvent.click(screen.getByRole('button', { name: 'Criar usuário' }))
-    expect(await screen.findByText('A senha deve ter pelo menos 8 caracteres.')).toBeInTheDocument()
+    expect(await screen.findByText(PASSWORD_POLICY_MESSAGE)).toBeInTheDocument()
+    expect(mockCreateAdminUser).not.toHaveBeenCalled()
+  })
+
+  it('marks the initial password as a new password so the browser does not autofill the admin own', () => {
+    render(<UserFormModal open onClose={vi.fn()} onSuccess={vi.fn()} />)
+    expect(screen.getByLabelText('Senha')).toHaveAttribute('autocomplete', 'new-password')
+  })
+
+  it('rejects an invalid e-mail before calling the API', async () => {
+    render(<UserFormModal open onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await userEvent.type(screen.getByLabelText('Nome'), 'João')
+    await userEvent.type(screen.getByLabelText('Sobrenome'), 'Silva')
+    await userEvent.type(screen.getByLabelText('E-mail'), 'joao@clinica')
+    await userEvent.type(screen.getByLabelText('Senha'), 'Senha@123')
+    await userEvent.click(screen.getByRole('button', { name: 'Criar usuário' }))
+    expect(await screen.findByText('Informe um e-mail válido.')).toBeInTheDocument()
+    expect(mockCreateAdminUser).not.toHaveBeenCalled()
   })
 
   it('requires a clinic when the role requires one (default role DENTIST)', async () => {
@@ -211,10 +236,36 @@ describe('UserFormModal — create mode', () => {
     const [roleSelect] = screen.getAllByRole('combobox')
     await userEvent.selectOptions(roleSelect, 'ADMIN')
     await userEvent.click(screen.getByRole('button', { name: 'Criar usuário' }))
+    await userEvent.click(
+      confirmDialog('Confirmar criação de conta').getByRole('button', { name: 'Criar usuário' }),
+    )
     await waitFor(() => expect(mockCreateAdminUser).toHaveBeenCalled())
   })
 
-  it('creates a user with trimmed fields, digits-only phone, and clinicId', async () => {
+  it('asks for confirmation before creating a platform admin and cancels safely', async () => {
+    render(<UserFormModal open onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await fillCreateForm()
+    await userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'ADMIN')
+    await userEvent.click(screen.getByRole('button', { name: 'Criar usuário' }))
+    const dialog = confirmDialog('Confirmar criação de conta')
+    expect(dialog.getByText('A conta será criada com o papel Admin.')).toBeInTheDocument()
+    await userEvent.click(dialog.getByRole('button', { name: 'Cancelar' }))
+    expect(mockCreateAdminUser).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Nome')).toHaveValue('João')
+  })
+
+  it('does not ask for confirmation when creating a regular professional', async () => {
+    mockCreateAdminUser.mockResolvedValue(makeUser())
+    render(<UserFormModal open onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await screen.findByText('Clínica Demo')
+    await fillCreateForm()
+    await userEvent.selectOptions(screen.getAllByRole('combobox')[1], 'clinic-1')
+    await userEvent.click(screen.getByRole('button', { name: 'Criar usuário' }))
+    await waitFor(() => expect(mockCreateAdminUser).toHaveBeenCalled())
+    expect(screen.queryByRole('dialog', { name: /confirmar/i })).not.toBeInTheDocument()
+  })
+
+  it('creates a user with trimmed fields, lowercase e-mail, digits-only phone, and clinicId', async () => {
     const created = makeUser()
     mockCreateAdminUser.mockResolvedValue(created)
     const onSuccess = vi.fn()
@@ -222,8 +273,8 @@ describe('UserFormModal — create mode', () => {
     await screen.findByText('Clínica Demo')
     await userEvent.type(screen.getByLabelText('Nome'), '  João  ')
     await userEvent.type(screen.getByLabelText('Sobrenome'), '  Silva  ')
-    await userEvent.type(screen.getByLabelText('E-mail'), '  joao@clinica.com  ')
-    await userEvent.type(screen.getByLabelText('Senha'), 'password123')
+    await userEvent.type(screen.getByLabelText('E-mail'), '  Joao@Clinica.com  ')
+    await userEvent.type(screen.getByLabelText('Senha'), 'Senha@123')
     await userEvent.type(screen.getByLabelText(/telefone/i), '11987654321')
     const [, clinicSelect] = screen.getAllByRole('combobox')
     await userEvent.selectOptions(clinicSelect, 'clinic-2')
@@ -235,7 +286,7 @@ describe('UserFormModal — create mode', () => {
       firstName: 'João',
       lastName: 'Silva',
       email: 'joao@clinica.com',
-      password: 'password123',
+      password: 'Senha@123',
       role: 'DENTIST',
       phone: '11987654321',
       clinicId: 'clinic-2',
@@ -298,7 +349,7 @@ describe('UserFormModal — create mode', () => {
 })
 
 describe('UserFormModal — edit mode', () => {
-  it('preserves the clinic when changing between clinic roles and omits a missing phone', async () => {
+  it('preserves the clinic when changing between clinic roles after confirming', async () => {
     const user = makeUser({ phone: null })
     mockUpdateAdminUser.mockResolvedValue({ ...user, role: 'ASSISTANT' })
     const onSuccess = vi.fn()
@@ -307,13 +358,16 @@ describe('UserFormModal — edit mode', () => {
     await userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'ASSISTANT')
     expect(screen.getAllByRole('combobox')[1]).toHaveValue('clinic-1')
     await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    const dialog = confirmDialog('Confirmar alterações sensíveis')
+    expect(dialog.getByText('O papel muda de Profissional para Assistente.')).toBeInTheDocument()
+    await userEvent.click(dialog.getByRole('button', { name: 'Salvar alterações' }))
     await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce())
     expect(mockUpdateAdminUser).toHaveBeenCalledWith(
       user.id,
       expect.objectContaining({
         role: 'ASSISTANT',
         clinicId: 'clinic-1',
-        phone: undefined,
+        phone: null,
       }),
     )
   })
@@ -365,6 +419,11 @@ describe('UserFormModal — edit mode', () => {
     const statusSelect = selects[selects.length - 1]
     await userEvent.selectOptions(statusSelect, 'false')
     await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    const dialog = confirmDialog('Confirmar alterações sensíveis')
+    expect(
+      dialog.getByText('A conta será desativada e perderá o acesso à plataforma.'),
+    ).toBeInTheDocument()
+    await userEvent.click(dialog.getByRole('button', { name: 'Salvar alterações' }))
 
     await waitFor(() => expect(mockUpdateAdminUser).toHaveBeenCalled())
     expect(mockUpdateAdminUser).toHaveBeenCalledWith('u-1', {
@@ -398,6 +457,159 @@ describe('UserFormModal — edit mode', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
     expect(await screen.findByRole('button', { name: /salvando/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+  })
+
+  it('sends phone as null when the stored phone is cleared', async () => {
+    const user = makeUser({ clinicId: 'clinic-1' })
+    mockUpdateAdminUser.mockResolvedValue(user)
+    render(<UserFormModal open initialData={user} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await screen.findByText('Clínica Demo')
+    await userEvent.clear(screen.getByLabelText(/telefone/i))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    await waitFor(() => expect(mockUpdateAdminUser).toHaveBeenCalled())
+    expect(mockUpdateAdminUser.mock.calls[0][1].phone).toBeNull()
+  })
+
+  it('confirms a promotion to owner, explaining the extra access', async () => {
+    const user = makeUser({ clinicId: 'clinic-1' })
+    mockUpdateAdminUser.mockResolvedValue({ ...user, role: 'OWNER' })
+    render(<UserFormModal open initialData={user} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await screen.findByText('Clínica Demo')
+    await userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'OWNER')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    const dialog = confirmDialog('Confirmar alterações sensíveis')
+    expect(
+      dialog.getByText(
+        'O papel muda de Profissional para Proprietário. Este papel concede acesso administrativo ampliado.',
+      ),
+    ).toBeInTheDocument()
+    expect(mockUpdateAdminUser).not.toHaveBeenCalled()
+  })
+
+  it('confirms a login e-mail change showing the old and new address', async () => {
+    const user = makeUser({ clinicId: 'clinic-1' })
+    mockUpdateAdminUser.mockResolvedValue(user)
+    render(<UserFormModal open initialData={user} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await screen.findByText('Clínica Demo')
+    await userEvent.clear(screen.getByLabelText('E-mail'))
+    await userEvent.type(screen.getByLabelText('E-mail'), 'Ana.Nova@Clinica.com')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    const dialog = confirmDialog('Confirmar alterações sensíveis')
+    expect(
+      dialog.getByText('O e-mail de acesso muda de ana@clinica.com para ana.nova@clinica.com.'),
+    ).toBeInTheDocument()
+    await userEvent.click(dialog.getByRole('button', { name: 'Salvar alterações' }))
+    await waitFor(() => expect(mockUpdateAdminUser).toHaveBeenCalled())
+    expect(mockUpdateAdminUser.mock.calls[0][1].email).toBe('ana.nova@clinica.com')
+  })
+
+  it('confirms a clinic change, since moving clinics ends the user sessions', async () => {
+    const user = makeUser()
+    mockUpdateAdminUser.mockResolvedValue({ ...user, clinicId: 'clinic-2' })
+    render(<UserFormModal open initialData={user} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await screen.findByText('Clínica Demo')
+    await userEvent.selectOptions(screen.getAllByRole('combobox')[1], 'clinic-2')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    const dialog = confirmDialog('Confirmar alterações sensíveis')
+    expect(
+      dialog.getByText('A clínica vinculada muda de Clínica Demo para Clínica Norte.'),
+    ).toBeInTheDocument()
+    expect(mockUpdateAdminUser).not.toHaveBeenCalled()
+    await userEvent.click(dialog.getByRole('button', { name: 'Salvar alterações' }))
+    await waitFor(() => expect(mockUpdateAdminUser).toHaveBeenCalled())
+    expect(mockUpdateAdminUser.mock.calls[0][1].clinicId).toBe('clinic-2')
+  })
+
+  it('lists both the role and the first clinic when a clinic-less admin moves to a clinic role', async () => {
+    const user = makeUser({ role: 'ADMIN', clinicId: null, clinic: null })
+    mockUpdateAdminUser.mockResolvedValue(user)
+    render(<UserFormModal open initialData={user} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'DENTIST')
+    await screen.findByText('Clínica Norte')
+    await userEvent.selectOptions(screen.getAllByRole('combobox')[1], 'clinic-2')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    const dialog = confirmDialog('Confirmar alterações sensíveis')
+    expect(dialog.getByText(/O papel muda de .* para Profissional\./)).toBeInTheDocument()
+    expect(
+      dialog.getByText('A clínica vinculada muda de nenhuma clínica para Clínica Norte.'),
+    ).toBeInTheDocument()
+    expect(mockUpdateAdminUser).not.toHaveBeenCalled()
+  })
+
+  it('saves a name-only edit directly, without a sensitive-change confirmation', async () => {
+    const user = makeUser()
+    mockUpdateAdminUser.mockResolvedValue({ ...user, firstName: 'Ana Paula' })
+    render(<UserFormModal open initialData={user} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await screen.findByText('Clínica Demo')
+    await userEvent.clear(screen.getByLabelText('Nome'))
+    await userEvent.type(screen.getByLabelText('Nome'), 'Ana Paula')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    await waitFor(() => expect(mockUpdateAdminUser).toHaveBeenCalled())
+    expect(screen.queryByRole('dialog', { name: /confirmar/i })).not.toBeInTheDocument()
+  })
+
+  it('does not ask for confirmation when only the case of the e-mail changes', async () => {
+    const user = makeUser({ clinicId: 'clinic-1' })
+    mockUpdateAdminUser.mockResolvedValue(user)
+    render(<UserFormModal open initialData={user} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    await screen.findByText('Clínica Demo')
+    await userEvent.clear(screen.getByLabelText('E-mail'))
+    await userEvent.type(screen.getByLabelText('E-mail'), 'ANA@clinica.com')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    await waitFor(() => expect(mockUpdateAdminUser).toHaveBeenCalled())
+  })
+
+  it('keeps the form open with the API message when a confirmed change fails', async () => {
+    const user = makeUser({ clinicId: 'clinic-1' })
+    mockUpdateAdminUser.mockRejectedValue(new Error('Você não pode alterar o próprio papel.'))
+    const onSuccess = vi.fn()
+    render(<UserFormModal open initialData={user} onClose={vi.fn()} onSuccess={onSuccess} />)
+    await screen.findByText('Clínica Demo')
+    await userEvent.selectOptions(screen.getAllByRole('combobox')[0], 'OWNER')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    await userEvent.click(
+      confirmDialog('Confirmar alterações sensíveis').getByRole('button', {
+        name: 'Salvar alterações',
+      }),
+    )
+    expect(await screen.findByText('Você não pode alterar o próprio papel.')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: /confirmar/i })).not.toBeInTheDocument()
+    expect(onSuccess).not.toHaveBeenCalled()
+  })
+
+  it('locks the role and status fields when the admin edits their own account', () => {
+    const user = makeUser({ id: 'me', role: 'ADMIN', clinicId: null, clinic: null })
+    render(
+      <UserFormModal
+        open
+        initialData={user}
+        currentUserId="me"
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+      />,
+    )
+    const [roleSelect, statusSelect] = screen.getAllByRole('combobox')
+    expect(roleSelect).toBeDisabled()
+    expect(statusSelect).toBeDisabled()
+    expect(screen.getByText('Você não pode alterar o próprio papel.')).toBeInTheDocument()
+    expect(screen.getByText('Você não pode desativar a própria conta.')).toBeInTheDocument()
+  })
+
+  it('keeps the role editable for other users', () => {
+    const user = makeUser({ id: 'other' })
+    render(
+      <UserFormModal
+        open
+        initialData={user}
+        currentUserId="me"
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+      />,
+    )
+    expect(screen.getAllByRole('combobox')[0]).toBeEnabled()
   })
 
   it('resets the form and refetches clinics each time the modal reopens', () => {

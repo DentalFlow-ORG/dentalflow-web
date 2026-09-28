@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useListFilter } from '@/hooks/useListFilter'
 
 import { ADMIN_ROLE_LABEL, ADMIN_ROLE_TONE, USER_FILTER_DEFS } from '../constants/admin-display'
@@ -31,6 +32,7 @@ type PasswordTarget = { id: string; name: string }
 
 export function useAdminUsersPage() {
   const { showAlert } = useGlobalAlerts()
+  const { user: currentUser } = useAuth()
 
   const [allUsers, setAllUsers] = useState<AdminUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -118,14 +120,15 @@ export function useAdminUsersPage() {
       setDeleteTarget(null)
       setAllUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id))
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Erro ao excluir usuário.'
-      showAlert({ title: 'Erro ao excluir', description: msg, tone: 'error' })
+      const msg = err instanceof Error ? err.message : 'Erro ao desativar usuário.'
+      showAlert({ title: 'Erro ao desativar', description: msg, tone: 'error' })
     } finally {
       setIsDeleting(false)
     }
   }
 
   return {
+    currentUserId: currentUser?.id,
     users,
     allUsers,
     isLoading,

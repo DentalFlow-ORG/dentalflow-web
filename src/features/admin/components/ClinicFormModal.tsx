@@ -1,7 +1,8 @@
 import { Loader2 } from 'lucide-react'
 import { Dialog } from 'radix-ui'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { Button } from '@/components/ui/button'
@@ -45,11 +46,14 @@ export function ClinicFormModal({ open, initialData, onClose, onSuccess }: Clini
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [confirmStatusChange, setConfirmStatusChange] = useState(false)
+  const submittingRef = useRef(false)
 
   useEffect(() => {
     if (!open) return
     setForm(initialData ? buildInitialForm(initialData) : EMPTY_FORM)
     setError(null)
+    setConfirmStatusChange(false)
   }, [initialData, open])
 
   function set<K extends keyof FormState>(field: K, value: FormState[K]) {
@@ -58,6 +62,7 @@ export function ClinicFormModal({ open, initialData, onClose, onSuccess }: Clini
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
+    if (submittingRef.current) return
     setError(null)
 
     const name = form.name.trim()
@@ -65,6 +70,22 @@ export function ClinicFormModal({ open, initialData, onClose, onSuccess }: Clini
       setError('Informe um nome de clínica com pelo menos 2 caracteres.')
       return
     }
+
+    if (
+      initialData?.isActive !== undefined &&
+      initialData.isActive !== (form.isActive === 'true')
+    ) {
+      setConfirmStatusChange(true)
+      return
+    }
+    await saveClinic()
+  }
+
+  async function saveClinic() {
+    if (submittingRef.current) return
+    submittingRef.current = true
+    setError(null)
+    const name = form.name.trim()
 
     setIsSubmitting(true)
     try {
@@ -76,77 +97,107 @@ export function ClinicFormModal({ open, initialData, onClose, onSuccess }: Clini
         : await createAdminClinic({ name })
 
       onSuccess(result)
+      setConfirmStatusChange(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar clínica.')
     } finally {
       setIsSubmitting(false)
+      submittingRef.current = false
     }
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
-        <Dialog.Content
-          aria-labelledby="clinic-form-title"
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
-        >
-          <div className="border-b border-border px-6 py-5">
-            <Dialog.Title
-              id="clinic-form-title"
-              className="text-base font-semibold text-foreground"
-            >
-              {isEditMode ? 'Editar clínica' : 'Nova clínica'}
-            </Dialog.Title>
-            <Dialog.Description className="mt-0.5 text-sm text-muted-foreground">
-              {isEditMode
-                ? `Alterando dados de ${initialData!.name}`
-                : 'Cadastre uma nova clínica para vincular usuários e operações.'}
-            </Dialog.Description>
-          </div>
+    <>
+      <Dialog.Root
+        open={open}
+        onOpenChange={(isOpen) =>
+          !isOpen && !submittingRef.current && !confirmStatusChange && onClose()
+        }
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
+          <Dialog.Content
+            aria-labelledby="clinic-form-title"
+            className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
+          >
+            <div className="border-b border-border px-6 py-5">
+              <Dialog.Title
+                id="clinic-form-title"
+                className="text-base font-semibold text-foreground"
+              >
+                {isEditMode ? 'Editar clínica' : 'Nova clínica'}
+              </Dialog.Title>
+              <Dialog.Description className="mt-0.5 text-sm text-muted-foreground">
+                {isEditMode
+                  ? `Alterando dados de ${initialData!.name}`
+                  : 'Cadastre uma nova clínica para vincular usuários e operações.'}
+              </Dialog.Description>
+            </div>
 
-          <form id="clinic-form" onSubmit={handleSubmit}>
-            <div className="space-y-4 px-6 py-5">
-              {error && <InlineFeedback>{error}</InlineFeedback>}
+            <form id="clinic-form" noValidate onSubmit={handleSubmit}>
+              <div className="space-y-4 px-6 py-5">
+                {error && !confirmStatusChange && <InlineFeedback>{error}</InlineFeedback>}
 
-              <FormField label="Nome da clínica" htmlFor="clinicName">
-                <TextInput
-                  id="clinicName"
-                  required
-                  maxLength={120}
-                  value={form.name}
-                  onChange={(event) => set('name', event.target.value)}
-                  placeholder="Ex: Clínica DentalFlow"
-                />
-              </FormField>
-
-              {isEditMode && initialData?.isActive !== undefined && (
-                <FormField label="Status" htmlFor="clinicIsActive">
-                  <Select value={form.isActive} onValueChange={(value) => set('isActive', value)}>
-                    <SelectTrigger id="clinicIsActive">
-                      <SelectValue placeholder="Selecione o status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Ativa</SelectItem>
-                      <SelectItem value="false">Inativa</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <FormField label="Nome da clínica" htmlFor="clinicName">
+                  <TextInput
+                    id="clinicName"
+                    required
+                    maxLength={120}
+                    value={form.name}
+                    onChange={(event) => set('name', event.target.value)}
+                    placeholder="Ex: Clínica DentalFlow"
+                  />
                 </FormField>
-              )}
-            </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
-              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-                Cancelar
-              </Button>
-              <Button type="submit" form="clinic-form" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isSubmitting ? 'Salvando...' : isEditMode ? 'Salvar alterações' : 'Criar clínica'}
-              </Button>
-            </div>
-          </form>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+                {isEditMode && initialData?.isActive !== undefined && (
+                  <FormField label="Status" htmlFor="clinicIsActive">
+                    <Select value={form.isActive} onValueChange={(value) => set('isActive', value)}>
+                      <SelectTrigger id="clinicIsActive">
+                        <SelectValue placeholder="Selecione o status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Ativa</SelectItem>
+                        <SelectItem value="false">Inativa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                )}
+              </div>
+
+              <div className="flex flex-col-reverse gap-3 border-t border-border px-6 py-4 sm:flex-row sm:justify-end">
+                <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+                  Cancelar
+                </Button>
+                <Button type="submit" form="clinic-form" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {isSubmitting
+                    ? 'Salvando...'
+                    : isEditMode
+                      ? 'Salvar alterações'
+                      : 'Criar clínica'}
+                </Button>
+              </div>
+            </form>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+      <ConfirmDialog
+        open={confirmStatusChange}
+        title={form.isActive === 'false' ? 'Desativar clínica?' : 'Reativar clínica?'}
+        subject={initialData?.name}
+        description={
+          form.isActive === 'false'
+            ? 'A clínica será desativada e seus usuários perderão o acesso às operações.'
+            : 'A clínica será reativada e seus usuários poderão voltar a acessar as operações, conforme suas permissões.'
+        }
+        confirmLabel={form.isActive === 'false' ? 'Desativar clínica' : 'Reativar clínica'}
+        tone="warning"
+        isConfirming={isSubmitting}
+        onCancel={() => setConfirmStatusChange(false)}
+        onConfirm={saveClinic}
+      >
+        {error && <InlineFeedback>{error}</InlineFeedback>}
+      </ConfirmDialog>
+    </>
   )
 }

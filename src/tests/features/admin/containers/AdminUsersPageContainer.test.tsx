@@ -341,6 +341,30 @@ describe('AdminUsersPageContainer — row interactions', () => {
     expect(setDeleteTarget).toHaveBeenCalledWith({ id: 'user-1', name: 'Carlos Rocha' })
   })
 
+  it("disables deactivation of the signed-in admin's own account on the table and mobile card", async () => {
+    const user = makeAdminUser({ firstName: 'Carlos', lastName: 'Rocha' })
+    const setDeleteTarget = vi.fn()
+    mockUseAdminUsersPage.mockReturnValue(
+      makeDefaultHookState({
+        allUsers: [user],
+        users: [user],
+        filteredCount: 1,
+        currentUserId: user.id,
+        setDeleteTarget,
+      }),
+    )
+    render(<AdminUsersPageContainer />)
+
+    const tableButton = screen.getByRole('button', { name: 'Desativar Carlos Rocha' })
+    const cardButton = screen.getByRole('button', { name: /^desativar$/i })
+    for (const button of [tableButton, cardButton]) {
+      expect(button).toBeDisabled()
+      expect(button).toHaveAttribute('title', 'Você não pode desativar a própria conta.')
+    }
+    await userEvent.click(tableButton)
+    expect(setDeleteTarget).not.toHaveBeenCalled()
+  })
+
   it('shows a dash for clinic when the user has none', () => {
     renderWithUser({ clinic: null })
     const table = screen.getByRole('table')

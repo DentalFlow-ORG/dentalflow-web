@@ -28,6 +28,7 @@ type AdminUserMobileCardProps = {
   onEdit: (user: AdminUser) => void
   onPassword: (target: { id: string; name: string }) => void
   onDeactivate: (target: { id: string; name: string }) => void
+  isSelf: boolean
 }
 
 function AdminUserMobileCard({
@@ -38,6 +39,7 @@ function AdminUserMobileCard({
   onEdit,
   onPassword,
   onDeactivate,
+  isSelf,
 }: AdminUserMobileCardProps) {
   const fullName = `${user.firstName} ${user.lastName}`
 
@@ -89,6 +91,8 @@ function AdminUserMobileCard({
           <Button
             variant="ghost"
             className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/40 dark:hover:text-red-300"
+            disabled={isSelf}
+            title={isSelf ? 'Você não pode desativar a própria conta.' : undefined}
             onClick={() => onDeactivate({ id: user.id, name: fullName })}
           >
             <Trash2 className="h-4 w-4" aria-hidden="true" />
@@ -102,6 +106,7 @@ function AdminUserMobileCard({
 
 export function AdminUsersPageContainer() {
   const {
+    currentUserId,
     users,
     allUsers,
     isLoading,
@@ -235,6 +240,7 @@ export function AdminUsersPageContainer() {
                         onEdit={setEditTarget}
                         onPassword={setPasswordTarget}
                         onDeactivate={setDeleteTarget}
+                        isSelf={user.id === currentUserId}
                       />
                     ))}
                   </div>
@@ -338,7 +344,12 @@ export function AdminUsersPageContainer() {
                                   size="icon-sm"
                                   variant="ghost"
                                   aria-label={`Desativar ${user.firstName} ${user.lastName}`}
-                                  title="Desativar"
+                                  title={
+                                    user.id === currentUserId
+                                      ? 'Você não pode desativar a própria conta.'
+                                      : 'Desativar'
+                                  }
+                                  disabled={user.id === currentUserId}
                                   className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/40 dark:hover:text-red-300"
                                   onClick={() =>
                                     setDeleteTarget({
@@ -381,6 +392,7 @@ export function AdminUsersPageContainer() {
       <UserFormModal
         open={!!editTarget}
         initialData={editTarget ?? undefined}
+        currentUserId={currentUserId}
         onClose={() => setEditTarget(null)}
         onSuccess={handleEditSuccess}
       />

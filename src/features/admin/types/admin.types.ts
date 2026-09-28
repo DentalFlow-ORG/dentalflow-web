@@ -87,7 +87,8 @@ export type UpdateAdminUserDto = {
   firstName?: string
   lastName?: string
   email?: string
-  phone?: string
+  /** `null` clears the stored phone; omitted keeps it. */
+  phone?: string | null
   role?: UserRole
   isActive?: boolean
   clinicId?: string | null

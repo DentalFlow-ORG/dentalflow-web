@@ -2,9 +2,11 @@ import { Loader2 } from 'lucide-react'
 import { Dialog } from 'radix-ui'
 import { useEffect, useState } from 'react'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { FormField } from '@/components/common/FormField'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { PasswordInput } from '@/components/common/PasswordInput'
+import { PasswordRequirements } from '@/components/common/PasswordRequirements'
 import {
   UserEmailField,
   UserNameFields,
@@ -28,9 +30,16 @@ import type {
   Availability,
   AvailabilityException,
 } from '@/features/scheduling/types/scheduling.types'
-import { onlyDigits } from '@/lib/field-formatters'
+import { isValidPersonName, normalizePhoneBR } from '@/lib/field-formatters'
 import { isValidBrazilianPhone } from '@/lib/validators/br'
+import { INVALID_EMAIL_MESSAGE, isValidEmail, normalizeEmail } from '@/lib/validators/email'
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_POLICY_MESSAGE,
+  meetsPasswordPolicy,
+} from '@/lib/validators/password'
 
+import { TEAM_ROLE_LABEL } from '../constants/team-display'
 import { createMember, updateClinicMember } from '../services/team.service'
 import type { MemberListItem, MemberRole } from '../types/team.types'
 import { MemberTypeSelector } from './MemberTypeSelector'
@@ -62,6 +71,29 @@ const EMPTY_FORM: FormState = {
   isActive: 'true',
 }
 
+// Edits that change how the member signs in or what they can access. The
+// API ends the member's active sessions for each of them.
+function describeSensitiveChanges(form: FormState, member: MemberListItem): string[] {
+  const changes: string[] = []
+
+  if (form.role !== member.role) {
+    changes.push(
+      `O papel muda de ${TEAM_ROLE_LABEL[member.role]} para ${TEAM_ROLE_LABEL[form.role]}.`,
+    )
+  }
+
+  const email = normalizeEmail(form.email)
+  if (email !== normalizeEmail(member.email)) {
+    changes.push(`O e-mail de acesso muda de ${member.email} para ${email}.`)
+  }
+
+  if (member.isActive && form.isActive === 'false') {
+    changes.push('A conta será desativada e perderá o acesso à clínica.')
+  }
+
+  return changes
+}
+
 export function ClinicMemberFormModal({
   open,
   initialData,
@@ -75,6 +107,8 @@ export function ClinicMemberFormModal({
   const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [phoneError, setPhoneError] = useState<string | null>(null)
+  const [pendingChanges, setPendingChanges] = useState<string[] | null>(null)
+  const [passwordFocused, setPasswordFocused] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const profileId = initialData?.profile?.id
   const canManageAvailability = isEditMode && form.role === 'DENTIST' && Boolean(profileId)
@@ -83,6 +117,7 @@ export function ClinicMemberFormModal({
     if (!open) return
     setError(null)
     setPhoneError(null)
+    setPendingChanges(null)
     setForm(initialData ? buildInitialForm(initialData) : EMPTY_FORM)
   }, [initialData, open])
 
@@ -113,7 +148,7 @@ export function ClinicMemberFormModal({
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  async function handleSubmit(event: React.FormEvent) {
+  function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setError(null)
     setPhoneError(null)
@@ -123,28 +158,55 @@ export function ClinicMemberFormModal({
       return
     }
 
-    if (!isEditMode && form.password.length < 8) {
-      setError('A senha deve ter pelo menos 8 caracteres.')
+    if (!isValidPersonName(form.firstName)) {
+      setError('O nome não pode conter números ou caracteres especiais.')
       return
     }
 
-    const rawPhone = onlyDigits(form.phone)
+    if (!isValidPersonName(form.lastName)) {
+      setError('O sobrenome não pode conter números ou caracteres especiais.')
+      return
+    }
+
+    if (!isValidEmail(form.email)) {
+      setError(INVALID_EMAIL_MESSAGE)
+      return
+    }
+
+    if (!isEditMode && !meetsPasswordPolicy(form.password)) {
+      setError(PASSWORD_POLICY_MESSAGE)
+      return
+    }
+
+    const rawPhone = normalizePhoneBR(form.phone)
     if (rawPhone && !isValidBrazilianPhone(rawPhone)) {
       setPhoneError('Informe um telefone válido com DDD.')
       return
     }
 
+    const changes = initialData ? describeSensitiveChanges(form, initialData) : []
+    if (changes.length > 0) {
+      setPendingChanges(changes)
+      return
+    }
+
+    void persist()
+  }
+
+  async function persist() {
+    const rawPhone = normalizePhoneBR(form.phone)
     setIsSubmitting(true)
     try {
       if (isEditMode) {
         const member = await updateClinicMember(initialData!.id, {
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
-          email: form.email.trim(),
+          email: normalizeEmail(form.email),
           role: form.role,
-          phone: rawPhone || undefined,
+          phone: rawPhone || null,
           isActive: form.isActive === 'true',
         })
+        setPendingChanges(null)
         onSuccess(member)
         return
       }
@@ -152,13 +214,14 @@ export function ClinicMemberFormModal({
       const response = await createMember({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
-        email: form.email.trim(),
+        email: normalizeEmail(form.email),
         password: form.password,
         role: form.role,
         phone: rawPhone || undefined,
       })
       onSuccess(response.user)
     } catch (err) {
+      setPendingChanges(null)
       setError(err instanceof Error ? err.message : 'Erro ao salvar usuário.')
     } finally {
       setIsSubmitting(false)
@@ -166,7 +229,7 @@ export function ClinicMemberFormModal({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog.Root open={open} onOpenChange={(isOpen) => !isOpen && !isSubmitting && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-150" />
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-2xl max-h-[calc(100dvh-2rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150">
@@ -184,7 +247,12 @@ export function ClinicMemberFormModal({
 
           {/* Scrollable body */}
           <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto">
-            <form id="clinic-member-form" onSubmit={handleSubmit} className="space-y-6 px-6 py-5">
+            <form
+              id="clinic-member-form"
+              noValidate
+              onSubmit={handleSubmit}
+              className="space-y-6 px-6 py-5"
+            >
               {error && <InlineFeedback tone="error">{error}</InlineFeedback>}
 
               {/* Tipo de membro */}
@@ -245,17 +313,20 @@ export function ClinicMemberFormModal({
                   <FormField
                     label="Senha"
                     htmlFor="memberPassword"
-                    hint="Mínimo 8 caracteres, máximo 72."
+                    hint="De 8 a 72 caracteres, com maiúscula, minúscula, número e caractere especial."
                   >
                     <PasswordInput
                       id="memberPassword"
                       required
-                      minLength={8}
-                      maxLength={72}
+                      maxLength={PASSWORD_MAX_LENGTH}
                       value={form.password}
                       placeholder="Crie uma senha inicial"
+                      autoComplete="new-password"
+                      onFocus={() => setPasswordFocused(true)}
+                      onBlur={() => setPasswordFocused(false)}
                       onChange={(event) => set('password', event.target.value)}
                     />
+                    <PasswordRequirements password={form.password} visible={passwordFocused} />
                   </FormField>
                 </div>
               )}
@@ -319,6 +390,29 @@ export function ClinicMemberFormModal({
           </div>
         </Dialog.Content>
       </Dialog.Portal>
+
+      <ConfirmDialog
+        open={pendingChanges !== null}
+        tone="warning"
+        title="Confirmar alterações sensíveis"
+        subject={`${form.firstName.trim()} ${form.lastName.trim()}`.trim()}
+        description={
+          <>
+            {pendingChanges?.map((change) => (
+              <span key={change} className="block">
+                {change}
+              </span>
+            ))}
+            <span className="mt-2 block">
+              As sessões ativas deste membro serão encerradas e ele precisará entrar novamente.
+            </span>
+          </>
+        }
+        confirmLabel="Salvar alterações"
+        isConfirming={isSubmitting}
+        onConfirm={() => void persist()}
+        onCancel={() => setPendingChanges(null)}
+      />
     </Dialog.Root>
   )
 }

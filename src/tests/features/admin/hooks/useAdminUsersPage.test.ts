@@ -9,6 +9,10 @@ vi.mock('@/components/common/global-alerts-context', () => ({
 
 const mockListAdminUsers = vi.fn()
 const mockDeleteAdminUser = vi.fn()
+vi.mock('@/features/auth/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { id: 'admin-self' } }),
+}))
+
 vi.mock('@/features/admin/services/admin-users.service', () => ({
   listAdminUsers: (...args: unknown[]) => mockListAdminUsers(...args),
   deleteAdminUser: (...args: unknown[]) => mockDeleteAdminUser(...args),
@@ -166,7 +170,7 @@ describe('useAdminUsersPage', () => {
     act(() => result.current.setDeleteTarget({ id: '1', name: 'Ana' }))
     await act(async () => result.current.handleDeleteConfirm())
     expect(mockShowAlert).toHaveBeenCalledWith(
-      expect.objectContaining({ title: 'Erro ao excluir', description: 'sem permissão' }),
+      expect.objectContaining({ title: 'Erro ao desativar', description: 'sem permissão' }),
     )
     expect(result.current.allUsers).toHaveLength(1)
   })
@@ -178,7 +182,7 @@ describe('useAdminUsersPage', () => {
     act(() => result.current.setDeleteTarget({ id: '1', name: 'Ana' }))
     await act(async () => result.current.handleDeleteConfirm())
     expect(mockShowAlert).toHaveBeenCalledWith(
-      expect.objectContaining({ description: 'Erro ao excluir usuário.' }),
+      expect.objectContaining({ description: 'Erro ao desativar usuário.' }),
     )
   })
 

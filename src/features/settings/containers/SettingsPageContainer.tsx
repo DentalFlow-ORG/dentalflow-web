@@ -42,8 +42,9 @@ import {
 } from '@/features/scheduling/services/calendar-integrations.service'
 import type { GoogleCalendarStatus } from '@/features/scheduling/types/calendar-integration.types'
 import { formatTimestampDateBR } from '@/lib/date-time-formatters'
-import { formatCepBR, formatPhoneBR, formatUf, onlyDigits } from '@/lib/field-formatters'
-import { isValidBrazilianPhone, isValidCEP, isValidUF } from '@/lib/validators/br'
+import { formatCepBR, formatPhoneBR, formatUf, normalizePhoneBR } from '@/lib/field-formatters'
+import { isValidBrazilianPhone, isValidCEP, isValidUF, normalizeDigits } from '@/lib/validators/br'
+import { EMAIL_MAX_LENGTH, INVALID_EMAIL_MESSAGE, isValidEmail } from '@/lib/validators/email'
 import { CepNotFoundError, fetchAddressByCep } from '@/services/cep/cep.service'
 
 import { LEGAL_LINKS, ROLE_INFO, STATUS_INFO } from '../constants/settings-display'
@@ -97,6 +98,25 @@ function LinkRow({
   )
 }
 
+// Limits mirror the API UpdateClinicProfileDto.
+const CLINIC_NAME_MAX_LENGTH = 100
+const WEBSITE_MAX_LENGTH = 200
+const ADDRESS_MAX_LENGTH = 200
+const CITY_MAX_LENGTH = 100
+
+function isValidWebsiteUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return (url.protocol === 'http:' || url.protocol === 'https:') && Boolean(url.hostname)
+  } catch {
+    return false
+  }
+}
+
+function optionalText(value: string): string | null {
+  return value.trim() || null
+}
+
 type ClinicProfileErrors = {
   name?: string
   email?: string
@@ -118,14 +138,14 @@ function validateClinicProfile(form: {
   if (!form.name.trim()) {
     errors.name = 'Informe o nome da clínica.'
   }
-  if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-    errors.email = 'Informe um e-mail válido.'
+  if (form.email.trim() && !isValidEmail(form.email)) {
+    errors.email = INVALID_EMAIL_MESSAGE
   }
   if (form.phone.trim() && !isValidBrazilianPhone(form.phone)) {
     errors.phone = 'Informe um telefone válido com DDD.'
   }
-  if (form.websiteUrl.trim() && !/^https?:\/\/.+/.test(form.websiteUrl.trim())) {
-    errors.websiteUrl = 'Informe uma URL válida, começando com https://.'
+  if (form.websiteUrl.trim() && !isValidWebsiteUrl(form.websiteUrl.trim())) {
+    errors.websiteUrl = 'Informe uma URL válida, começando com http:// ou https://.'
   }
   if (form.state.trim() && !isValidUF(form.state)) {
     errors.state = 'Informe uma sigla de estado válida (ex: SP, RJ).'
@@ -155,6 +175,9 @@ function ClinicProfileSection() {
   const [errors, setErrors] = useState<ClinicProfileErrors>({})
   const [isCepLookingUp, setIsCepLookingUp] = useState(false)
   const [cepLookupError, setCepLookupError] = useState<string | null>(null)
+  // ViaCEP only runs after the user edits the CEP. Loading a saved profile
+  // must never rewrite the stored address behind the user's back.
+  const [cepEditedByUser, setCepEditedByUser] = useState(false)
 
   useEffect(() => {
     if (profile) {
@@ -175,7 +198,7 @@ function ClinicProfileSection() {
   const postalCode = form.postalCode
   useEffect(() => {
     setIsCepLookingUp(false)
-    if (!isValidCEP(postalCode)) return
+    if (!cepEditedByUser || !isValidCEP(postalCode)) return
     let cancelled = false
     const timer = setTimeout(async () => {
       setIsCepLookingUp(true)
@@ -185,7 +208,8 @@ function ClinicProfileSection() {
         if (cancelled) return
         setForm((prev) => ({
           ...prev,
-          addressLine1: address.street || prev.addressLine1,
+          // The street field also holds the house number, so a typed value is kept.
+          addressLine1: prev.addressLine1.trim() ? prev.addressLine1 : address.street,
           city: address.city || prev.city,
           state: address.uf || prev.state,
         }))
@@ -204,7 +228,7 @@ function ClinicProfileSection() {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [postalCode])
+  }, [postalCode, cepEditedByUser])
 
   function set(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -222,16 +246,19 @@ function ClinicProfileSection() {
     }
     setErrors({})
     setCepLookupError(null)
-    const payload: UpdateClinicProfilePayload = {}
-    if (form.name.trim()) payload.name = form.name.trim()
-    if (form.email.trim()) payload.email = form.email.trim()
-    if (form.phone.trim()) payload.phone = onlyDigits(form.phone)
-    if (form.websiteUrl.trim()) payload.websiteUrl = form.websiteUrl.trim()
-    if (form.addressLine1.trim()) payload.addressLine1 = form.addressLine1.trim()
-    if (form.addressLine2.trim()) payload.addressLine2 = form.addressLine2.trim()
-    if (form.city.trim()) payload.city = form.city.trim()
-    if (form.state.trim()) payload.state = form.state.trim()
-    if (form.postalCode.trim()) payload.postalCode = onlyDigits(form.postalCode)
+    // Every optional field is sent: an emptied field becomes null so the
+    // stored value is actually cleared instead of silently kept.
+    const payload: UpdateClinicProfilePayload = {
+      name: form.name.trim(),
+      email: optionalText(form.email.toLowerCase()),
+      phone: normalizePhoneBR(form.phone) || null,
+      websiteUrl: optionalText(form.websiteUrl),
+      addressLine1: optionalText(form.addressLine1),
+      addressLine2: optionalText(form.addressLine2),
+      city: optionalText(form.city),
+      state: optionalText(form.state),
+      postalCode: normalizeDigits(form.postalCode) || null,
+    }
     const ok = await save(payload)
     if (ok) {
       showAlert({ title: 'Perfil atualizado com sucesso.', tone: 'success' })
@@ -274,6 +301,8 @@ function ClinicProfileSection() {
               value={form.name}
               onChange={(e) => set('name', e.target.value)}
               placeholder="Ex: Odonto Saúde"
+              maxLength={CLINIC_NAME_MAX_LENGTH}
+              autoComplete="organization"
               aria-invalid={Boolean(errors.name)}
               aria-describedby={errors.name ? 'clinic-name-error' : undefined}
               disabled={isSaving}
@@ -284,6 +313,9 @@ function ClinicProfileSection() {
             <TextInput
               id="clinic-email"
               type="email"
+              inputMode="email"
+              autoComplete="email"
+              maxLength={EMAIL_MAX_LENGTH}
               value={form.email}
               onChange={(e) => set('email', e.target.value)}
               placeholder="contato@clinica.com.br"
@@ -296,6 +328,9 @@ function ClinicProfileSection() {
           <FormField label="Telefone" htmlFor="clinic-phone" error={errors.phone} optional>
             <TextInput
               id="clinic-phone"
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
               value={form.phone}
               onChange={(e) => set('phone', formatPhoneBR(e.target.value))}
               placeholder="(11) 99999-9999"
@@ -315,6 +350,8 @@ function ClinicProfileSection() {
             <TextInput
               id="clinic-website"
               type="url"
+              inputMode="url"
+              maxLength={WEBSITE_MAX_LENGTH}
               value={form.websiteUrl}
               onChange={(e) => set('websiteUrl', e.target.value)}
               placeholder="https://www.clinica.com.br"
@@ -343,6 +380,8 @@ function ClinicProfileSection() {
               value={form.addressLine1}
               onChange={(e) => set('addressLine1', e.target.value)}
               placeholder="Rua, número"
+              maxLength={ADDRESS_MAX_LENGTH}
+              autoComplete="address-line1"
               disabled={isSaving}
             />
           </FormField>
@@ -358,6 +397,8 @@ function ClinicProfileSection() {
               value={form.addressLine2}
               onChange={(e) => set('addressLine2', e.target.value)}
               placeholder="Sala, bloco, andar"
+              maxLength={ADDRESS_MAX_LENGTH}
+              autoComplete="address-line2"
               disabled={isSaving}
             />
           </FormField>
@@ -368,6 +409,8 @@ function ClinicProfileSection() {
               value={form.city}
               onChange={(e) => set('city', e.target.value)}
               placeholder="São Paulo"
+              maxLength={CITY_MAX_LENGTH}
+              autoComplete="address-level2"
               disabled={isSaving}
             />
           </FormField>
@@ -390,8 +433,14 @@ function ClinicProfileSection() {
               <div className="relative">
                 <TextInput
                   id="clinic-cep"
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  maxLength={9}
                   value={form.postalCode}
-                  onChange={(e) => set('postalCode', formatCepBR(e.target.value))}
+                  onChange={(e) => {
+                    setCepEditedByUser(true)
+                    set('postalCode', formatCepBR(e.target.value))
+                  }}
                   placeholder="00000-000"
                   aria-invalid={Boolean(errors.postalCode)}
                   aria-describedby={errors.postalCode ? 'clinic-cep-error' : undefined}
@@ -470,8 +519,8 @@ function CalendarSection() {
     }
   }
 
+  // The dialog stays open (and pending) until the request settles.
   async function handleDisconnectConfirmed() {
-    setShowDisconnectDialog(false)
     setIsActing(true)
     setActionError(null)
     try {
@@ -481,6 +530,7 @@ function CalendarSection() {
       setActionError('Não foi possível desconectar o Google Agenda.')
     } finally {
       setIsActing(false)
+      setShowDisconnectDialog(false)
     }
   }
 
@@ -510,8 +560,9 @@ function CalendarSection() {
     <>
       <ConfirmDialog
         open={showDisconnectDialog}
-        title="Desconectar Google Calendar?"
-        description="A sincronização com o Google Calendar será interrompida. Você poderá conectar novamente depois."
+        title="Desconectar Google Agenda?"
+        subject={status?.calendarSummary ?? undefined}
+        description="Os novos agendamentos deixarão de ser enviados para esta agenda, e os eventos já sincronizados pelo DentalFlow serão removidos do Google Agenda. Você poderá conectar novamente depois."
         confirmLabel="Desconectar"
         tone="destructive"
         isConfirming={isActing}

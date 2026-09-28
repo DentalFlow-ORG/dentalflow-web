@@ -686,6 +686,18 @@ describe('AdminFinancePageContainer — subscriptions section', () => {
     expect(setSubscriptionFilter).toHaveBeenCalledWith('search', expect.any(String))
   })
 
+  it('caps the admin finance search inputs at the 100 characters the API accepts', () => {
+    mockUseAdminFinancePage.mockReturnValue(
+      makeDefaultHookState({
+        summary: makeSummary(),
+        subscriptions: [makeSubscription()],
+        subscriptionsTotal: 1,
+      }),
+    )
+    render(<AdminFinancePageContainer />)
+    expect(screen.getByLabelText('Buscar clínica')).toHaveAttribute('maxLength', '100')
+  })
+
   it('calls setSubscriptionFilter when changing the status filter', async () => {
     const setSubscriptionFilter = vi.fn()
     mockUseAdminFinancePage.mockReturnValue(

@@ -4,15 +4,11 @@ import type { FilterDef } from '@/components/common/ListToolbar'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { useListFilter } from '@/hooks/useListFilter'
 
+import { TEAM_ROLE_LABEL } from '../constants/team-display'
 import { deleteClinicMember, listClinicMembers } from '../services/team.service'
 import type { MemberListItem, UserLimitUsage } from '../types/team.types'
 
 const PAGE_SIZE = 10
-
-const TEAM_ROLE_LABEL: Record<string, string> = {
-  DENTIST: 'Profissional',
-  ASSISTANT: 'Assistente',
-}
 
 const FILTER_DEFS: FilterDef[] = [
   {

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, userEvent, waitFor } from '@/test-utils/render-utils'
+import { fireEvent, render, screen, userEvent, waitFor, within } from '@/test-utils/render-utils'
 
 import {
   listAvailability,
@@ -7,6 +7,11 @@ import {
 import { ClinicMemberFormModal } from '@/features/team/components/ClinicMemberFormModal'
 import { createMember, updateClinicMember } from '@/features/team/services/team.service'
 import type { CreateMemberResponse, MemberListItem } from '@/features/team/types/team.types'
+import { PASSWORD_POLICY_MESSAGE } from '@/lib/validators/password'
+
+function sensitiveDialog() {
+  return within(screen.getByRole('dialog', { name: 'Confirmar alterações sensíveis' }))
+}
 
 vi.mock('@/features/team/services/team.service', () => ({
   createMember: vi.fn(),
@@ -116,7 +121,7 @@ describe('ClinicMemberFormModal — create mode', () => {
     await user.type(screen.getByLabelText('Nome'), 'Carlos')
     await user.type(screen.getByLabelText('Sobrenome'), 'Melo')
     await user.type(screen.getByLabelText('E-mail'), 'carlos@clinica.com')
-    await user.type(screen.getByLabelText('Senha'), 'senha123')
+    await user.type(screen.getByLabelText('Senha'), 'Senha@123')
     await user.click(screen.getByRole('button', { name: /criar membro/i }))
 
     await waitFor(() =>
@@ -124,7 +129,7 @@ describe('ClinicMemberFormModal — create mode', () => {
         firstName: 'Carlos',
         lastName: 'Melo',
         email: 'carlos@clinica.com',
-        password: 'senha123',
+        password: 'Senha@123',
         role: 'DENTIST',
         phone: undefined,
       }),
@@ -142,7 +147,7 @@ describe('ClinicMemberFormModal — create mode', () => {
     await user.type(screen.getByLabelText('Nome'), 'Carlos')
     await user.type(screen.getByLabelText('Sobrenome'), 'Melo')
     await user.type(screen.getByLabelText('E-mail'), 'carlos@clinica.com')
-    await user.type(screen.getByLabelText('Senha'), 'senha123')
+    await user.type(screen.getByLabelText('Senha'), 'Senha@123')
     await user.click(screen.getByRole('button', { name: /criar membro/i }))
 
     await waitFor(() => expect(createMember).toHaveBeenCalled())
@@ -198,7 +203,7 @@ describe('ClinicMemberFormModal — edit mode', () => {
         lastName: 'Silva',
         email: 'ana@clinica.com',
         role: 'DENTIST',
-        phone: undefined,
+        phone: null,
         isActive: true,
       }),
     )
@@ -366,6 +371,9 @@ describe('ClinicMemberFormModal — interactions', () => {
     await userEvent.click(screen.getByRole('combobox'))
     await userEvent.click(screen.getByRole('option', { name: /^Ativo$/ }))
     await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    // Changing the member type ends their sessions, so it must be confirmed.
+    expect(updateClinicMember).not.toHaveBeenCalled()
+    await userEvent.click(sensitiveDialog().getByRole('button', { name: 'Salvar alterações' }))
     expect(updateClinicMember).toHaveBeenCalledWith(
       member.id,
       expect.objectContaining({ role: 'ASSISTANT', phone: '11987654321', isActive: true }),
@@ -435,7 +443,7 @@ describe('ClinicMemberFormModal — interactions', () => {
     await user.type(screen.getByLabelText('Nome'), 'Carlos')
     await user.type(screen.getByLabelText('Sobrenome'), 'Melo')
     await user.type(screen.getByLabelText('E-mail'), 'carlos@clinica.com')
-    await user.type(screen.getByLabelText('Senha'), 'senha123')
+    await user.type(screen.getByLabelText('Senha'), 'Senha@123')
     await user.click(screen.getByRole('button', { name: /criar membro/i }))
 
     expect(await screen.findByText('E-mail já cadastrado.')).toBeInTheDocument()
@@ -456,7 +464,7 @@ describe('ClinicMemberFormModal — interactions', () => {
     await user.type(screen.getByLabelText('Nome'), 'Carlos')
     await user.type(screen.getByLabelText('Sobrenome'), 'Melo')
     await user.type(screen.getByLabelText('E-mail'), 'carlos@clinica.com')
-    await user.type(screen.getByLabelText('Senha'), 'senha123')
+    await user.type(screen.getByLabelText('Senha'), 'Senha@123')
     await user.click(screen.getByRole('button', { name: /criar membro/i }))
 
     expect(screen.getByRole('button', { name: /salvando/i })).toBeDisabled()
@@ -491,7 +499,141 @@ describe('ClinicMemberFormModal — interactions', () => {
     await user.type(screen.getByLabelText('Senha'), 'curta')
     await user.click(screen.getByRole('button', { name: /criar membro/i }))
 
-    expect(await screen.findByText('A senha deve ter pelo menos 8 caracteres.')).toBeInTheDocument()
+    expect(await screen.findByText(PASSWORD_POLICY_MESSAGE)).toBeInTheDocument()
     expect(createMember).not.toHaveBeenCalled()
+  })
+
+  it('rejects an initial password without the complexity rules the API requires', async () => {
+    renderModal()
+    await userEvent.type(screen.getByLabelText('Nome'), 'Carlos')
+    await userEvent.type(screen.getByLabelText('Sobrenome'), 'Melo')
+    await userEvent.type(screen.getByLabelText('E-mail'), 'carlos@clinica.com')
+    await userEvent.type(screen.getByLabelText('Senha'), 'senhafraca1')
+    await userEvent.click(screen.getByRole('button', { name: /criar membro/i }))
+    expect(await screen.findByText(PASSWORD_POLICY_MESSAGE)).toBeInTheDocument()
+    expect(createMember).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Senha')).toHaveAttribute('autocomplete', 'new-password')
+  })
+
+  it('rejects a malformed email using the shared policy before creating a member', async () => {
+    renderModal()
+    await userEvent.type(screen.getByLabelText('Nome'), 'Carlos')
+    await userEvent.type(screen.getByLabelText('Sobrenome'), 'Melo')
+    await userEvent.type(screen.getByLabelText('E-mail'), 'email-invalido')
+    await userEvent.type(screen.getByLabelText('Senha'), 'Senha@123')
+    await userEvent.click(screen.getByRole('button', { name: /criar membro/i }))
+    expect(await screen.findByText(/e-mail válido/i)).toBeInTheDocument()
+    expect(createMember).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['Nome', 'Carl0s', 'O nome não pode conter números ou caracteres especiais.'],
+    ['Sobrenome', 'Mel@', 'O sobrenome não pode conter números ou caracteres especiais.'],
+  ])('rejects invalid characters in %s like the API does', async (label, value, message) => {
+    renderModal()
+    await userEvent.type(screen.getByLabelText('Nome'), 'Carlos')
+    await userEvent.type(screen.getByLabelText('Sobrenome'), 'Melo')
+    await userEvent.clear(screen.getByLabelText(label))
+    await userEvent.type(screen.getByLabelText(label), value)
+    await userEvent.type(screen.getByLabelText('E-mail'), 'carlos@clinica.com')
+    await userEvent.type(screen.getByLabelText('Senha'), 'Senha@123')
+    await userEvent.click(screen.getByRole('button', { name: /criar membro/i }))
+    expect(await screen.findByText(message)).toBeInTheDocument()
+    expect(createMember).not.toHaveBeenCalled()
+  })
+
+  it('lowercases the e-mail before creating the member', async () => {
+    vi.mocked(createMember).mockResolvedValue({ user: makeMember(), profile: null })
+    renderModal()
+    await userEvent.type(screen.getByLabelText('Nome'), 'Carlos')
+    await userEvent.type(screen.getByLabelText('Sobrenome'), 'Melo')
+    await userEvent.type(screen.getByLabelText('E-mail'), ' Carlos@Clinica.COM ')
+    await userEvent.type(screen.getByLabelText('Senha'), 'Senha@123')
+    await userEvent.click(screen.getByRole('button', { name: /criar membro/i }))
+    await waitFor(() => expect(createMember).toHaveBeenCalled())
+    expect(vi.mocked(createMember).mock.calls[0][0].email).toBe('carlos@clinica.com')
+  })
+
+  it('sends phone as null when a stored phone is cleared', async () => {
+    const member = makeMember({ phone: '11987654321' })
+    vi.mocked(updateClinicMember).mockResolvedValue(member)
+    renderModal({ initialData: member })
+    await userEvent.clear(screen.getByLabelText(/telefone/i))
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    await waitFor(() => expect(updateClinicMember).toHaveBeenCalled())
+    expect(vi.mocked(updateClinicMember).mock.calls[0][1].phone).toBeNull()
+  })
+})
+
+describe('ClinicMemberFormModal — sensitive change confirmation', () => {
+  it('explains a member type change and cancels without saving', async () => {
+    renderModal({ initialData: makeMember() })
+    await userEvent.click(screen.getByRole('button', { name: /assistente/i }))
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    const dialog = sensitiveDialog()
+    expect(dialog.getByText('O papel muda de Profissional para Assistente.')).toBeInTheDocument()
+    expect(dialog.getByText(/sessões ativas deste membro serão encerradas/)).toBeInTheDocument()
+    await userEvent.click(dialog.getByRole('button', { name: 'Cancelar' }))
+    expect(updateClinicMember).not.toHaveBeenCalled()
+    expect(screen.getByText('Editar membro')).toBeInTheDocument()
+  })
+
+  it('shows the old and new login e-mail before saving', async () => {
+    const member = makeMember()
+    vi.mocked(updateClinicMember).mockResolvedValue(member)
+    const { onSuccess } = renderModal({ initialData: member })
+    await userEvent.clear(screen.getByLabelText('E-mail'))
+    await userEvent.type(screen.getByLabelText('E-mail'), 'ana.nova@clinica.com')
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    const dialog = sensitiveDialog()
+    expect(
+      dialog.getByText('O e-mail de acesso muda de ana@clinica.com para ana.nova@clinica.com.'),
+    ).toBeInTheDocument()
+    await userEvent.click(dialog.getByRole('button', { name: 'Salvar alterações' }))
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce())
+    expect(vi.mocked(updateClinicMember).mock.calls[0][1].email).toBe('ana.nova@clinica.com')
+  })
+
+  it('confirms deactivating a member', async () => {
+    const member = makeMember()
+    vi.mocked(updateClinicMember).mockResolvedValue({ ...member, isActive: false })
+    renderModal({ initialData: member })
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.click(screen.getByRole('option', { name: /^Inativo$/ }))
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    expect(
+      sensitiveDialog().getByText('A conta será desativada e perderá o acesso à clínica.'),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the dialog pending while saving and reports a failure in the form', async () => {
+    let reject!: (reason: unknown) => void
+    vi.mocked(updateClinicMember).mockReturnValue(
+      new Promise<MemberListItem>((_resolve, r) => {
+        reject = r
+      }),
+    )
+    renderModal({ initialData: makeMember() })
+    await userEvent.click(screen.getByRole('button', { name: /assistente/i }))
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    await userEvent.click(sensitiveDialog().getByRole('button', { name: 'Salvar alterações' }))
+    expect(sensitiveDialog().getByRole('button', { name: /aguarde/i })).toBeDisabled()
+    reject(new Error('Não foi possível alterar o membro.'))
+    expect(await screen.findByText('Não foi possível alterar o membro.')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('dialog', { name: 'Confirmar alterações sensíveis' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('saves ordinary edits without asking for confirmation', async () => {
+    vi.mocked(updateClinicMember).mockResolvedValue(makeMember())
+    renderModal({ initialData: makeMember() })
+    await userEvent.clear(screen.getByLabelText('Nome'))
+    await userEvent.type(screen.getByLabelText('Nome'), 'Anna')
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }))
+    await waitFor(() => expect(updateClinicMember).toHaveBeenCalled())
+    expect(
+      screen.queryByRole('dialog', { name: 'Confirmar alterações sensíveis' }),
+    ).not.toBeInTheDocument()
   })
 })

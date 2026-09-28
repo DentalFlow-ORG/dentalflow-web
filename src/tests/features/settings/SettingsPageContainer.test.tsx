@@ -1,4 +1,4 @@
-import { render, screen, userEvent, waitFor, within } from '@/test-utils/render-utils'
+import { act, render, screen, userEvent, waitFor, within } from '@/test-utils/render-utils'
 
 import { SettingsPageContainer } from '@/features/settings/containers/SettingsPageContainer'
 import { makeClinicProfile } from '@/test-utils/factories/settings.factory'
@@ -335,8 +335,13 @@ describe('SettingsPageContainer — disconnect confirmation', () => {
     const disconnectBtn = screen.getByRole('button', { name: /desconectar/i })
     await user.click(disconnectBtn)
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByText('Desconectar Google Calendar?')).toBeInTheDocument()
+    const dialog = screen.getByRole('dialog', { name: 'Desconectar Google Agenda?' })
+    // The dialog names the calendar being disconnected.
+    expect(within(dialog).getByText('clinica@gmail.com')).toBeInTheDocument()
+    // Disconnecting deletes the events DentalFlow synced (calendar-integrations
+    // service), so the dialog must not promise they are kept.
+    expect(dialog).toHaveTextContent('serão removidos do Google Agenda')
+    expect(dialog).not.toHaveTextContent('permanecem')
     expect(mockDisconnectGoogleCalendar).not.toHaveBeenCalled()
   })
 
@@ -369,6 +374,32 @@ describe('SettingsPageContainer — disconnect confirmation', () => {
     await user.click(confirmBtn)
 
     expect(mockDisconnectGoogleCalendar).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the dialog open and pending until the disconnect settles', async () => {
+    let resolveDisconnect!: (value: unknown) => void
+    mockDisconnectGoogleCalendar.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDisconnect = resolve
+      }),
+    )
+    const user = userEvent.setup()
+    render(<SettingsPageContainer />)
+    await waitFor(() => {
+      expect(screen.getByText('clinica@gmail.com')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByRole('button', { name: /desconectar/i }))
+    const dialog = screen.getByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: /desconectar/i }))
+
+    expect(within(dialog).getByRole('button', { name: /aguarde/i })).toBeDisabled()
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    await act(async () => resolveDisconnect({ connected: false, calendarSummary: null }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByText('Não conectado')).toBeInTheDocument()
   })
 })
 

@@ -1,6 +1,6 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen } from '@/test-utils/render-utils'
+import { render, screen, within } from '@/test-utils/render-utils'
 
 const mockCreateAdminClinic = vi.fn()
 const mockUpdateAdminClinic = vi.fn()
@@ -130,6 +130,40 @@ describe('ClinicFormModal — create mode', () => {
 })
 
 describe('ClinicFormModal — edit mode', () => {
+  it('cancels a status change without calling the API', async () => {
+    render(
+      <ClinicFormModal open initialData={makeClinic()} onClose={vi.fn()} onSuccess={vi.fn()} />,
+    )
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'false')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    const dialog = screen.getByRole('dialog', { name: 'Desativar clínica?' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
+    expect(mockUpdateAdminClinic).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog', { name: 'Desativar clínica?' })).not.toBeInTheDocument()
+  })
+
+  it('keeps a failed reactivation confirmation available for retry', async () => {
+    mockUpdateAdminClinic
+      .mockRejectedValueOnce(new Error('Falha temporária'))
+      .mockResolvedValueOnce(makeClinic())
+    render(
+      <ClinicFormModal
+        open
+        initialData={makeClinic({ isActive: false })}
+        onClose={vi.fn()}
+        onSuccess={vi.fn()}
+      />,
+    )
+    await userEvent.selectOptions(screen.getByRole('combobox'), 'true')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    const dialog = screen.getByRole('dialog', { name: 'Reativar clínica?' })
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Reativar clínica' }))
+    expect(await screen.findByText('Falha temporária')).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Reativar clínica' }))
+    expect(mockUpdateAdminClinic).toHaveBeenCalledTimes(2)
+    expect(screen.queryByRole('dialog', { name: 'Reativar clínica?' })).not.toBeInTheDocument()
+  })
+
   beforeEach(() => {
     mockCreateAdminClinic.mockReset()
     mockUpdateAdminClinic.mockReset()
@@ -172,6 +206,11 @@ describe('ClinicFormModal — edit mode', () => {
     await userEvent.type(screen.getByLabelText('Nome da clínica'), 'Clínica Y')
     await userEvent.selectOptions(screen.getByRole('combobox'), 'false')
     await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    expect(mockUpdateAdminClinic).not.toHaveBeenCalled()
+    const confirmation = await screen.findByRole('dialog', { name: 'Desativar clínica?' })
+    expect(confirmation).toHaveTextContent('Clínica X')
+    await userEvent.click(within(confirmation).getByRole('button', { name: 'Desativar clínica' }))
 
     await screen.findByRole('button', { name: 'Salvar alterações' })
     expect(mockUpdateAdminClinic).toHaveBeenCalledWith('c-1', {
