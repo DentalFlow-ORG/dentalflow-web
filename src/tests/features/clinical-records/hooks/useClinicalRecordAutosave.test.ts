@@ -48,16 +48,169 @@ function makeDraftRecord(overrides: Partial<ClinicalRecord> = {}): ClinicalRecor
 }
 
 const DEBOUNCE_MS = 1000
+// Stable references: a new draft object per render would reschedule autosave.
+const STABLE_DRAFT: UpdateClinicalRecordDto = { diagnosis: 'x' }
+const EMPTY_DRAFT: UpdateClinicalRecordDto = {}
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('useClinicalRecordAutosave', () => {
+  it('keeps waiting for the newer request after an older request settles', async () => {
+    const record = makeDraftRecord()
+    const setDraft = vi.fn()
+    let finishFirst!: () => void
+    let finishSecond!: () => void
+    const saveQuiet = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            finishFirst = resolve
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            finishSecond = resolve
+          }),
+      )
+    const { result, rerender } = renderHook(
+      ({ draft }) =>
+        useClinicalRecordAutosave({
+          draft,
+          setDraft,
+          record,
+          canAutosave: true,
+          saveQuiet,
+          debounceMs: DEBOUNCE_MS,
+        }),
+      { initialProps: { draft: { diagnosis: 'First finding' } } },
+    )
+    await act(() => vi.advanceTimersByTimeAsync(DEBOUNCE_MS))
+    rerender({ draft: { diagnosis: 'Updated finding' } })
+    await act(() => vi.advanceTimersByTimeAsync(DEBOUNCE_MS))
+    await act(async () => finishFirst())
+    let finished = false
+    const waiting = result.current.waitForAutosaveInFlight().then(() => {
+      finished = true
+    })
+    await act(async () => {})
+    expect(finished).toBe(false)
+    expect(setDraft).not.toHaveBeenCalled()
+    await act(async () => {
+      finishSecond()
+      await waiting
+    })
+    expect(finished).toBe(true)
+    expect(result.current.autosaveStatus).toBe('saved')
+    expect(saveQuiet).toHaveBeenNthCalledWith(2, { diagnosis: 'Updated finding' })
+  })
   beforeEach(() => {
     vi.useFakeTimers()
   })
 
   afterEach(() => {
     vi.useRealTimers()
+  })
+
+  it('exposes the API validation message of a failed autosave and clears it after a success', async () => {
+    const record = makeDraftRecord()
+    const saveQuiet = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('Queixa principal deve ter no máximo 500 caracteres.'))
+      .mockResolvedValue(undefined)
+    const setDraft = vi.fn()
+    const { result, rerender } = renderHook(
+      ({ draft }) =>
+        useClinicalRecordAutosave({
+          draft,
+          setDraft,
+          record,
+          canAutosave: true,
+          saveQuiet,
+          debounceMs: DEBOUNCE_MS,
+        }),
+      { initialProps: { draft: { chiefComplaint: 'x'.repeat(501) } } },
+    )
+    await act(() => vi.advanceTimersByTimeAsync(DEBOUNCE_MS))
+    expect(result.current.autosaveStatus).toBe('error')
+    expect(result.current.autosaveError).toBe('Queixa principal deve ter no máximo 500 caracteres.')
+
+    rerender({ draft: { chiefComplaint: 'Dor' } })
+    await act(() => vi.advanceTimersByTimeAsync(DEBOUNCE_MS))
+    expect(result.current.autosaveStatus).toBe('saved')
+    expect(result.current.autosaveError).toBeNull()
+  })
+
+  it('leaves the message empty when the failure carries no text', async () => {
+    const record = makeDraftRecord()
+    const saveQuiet = vi.fn().mockRejectedValue('offline')
+    const setDraft = vi.fn()
+    const { result } = renderHook(() =>
+      useClinicalRecordAutosave({
+        draft: STABLE_DRAFT,
+        setDraft,
+        record,
+        canAutosave: true,
+        saveQuiet,
+        debounceMs: DEBOUNCE_MS,
+      }),
+    )
+    await act(() => vi.advanceTimersByTimeAsync(DEBOUNCE_MS))
+    expect(result.current.autosaveStatus).toBe('error')
+    expect(result.current.autosaveError).toBeNull()
+  })
+
+  it.each(['resolves', 'rejects'] as const)(
+    'lets callers wait until an in-flight save %s',
+    async (outcome) => {
+      const record = makeDraftRecord()
+      let settle!: () => void
+      const saveQuiet = vi.fn(
+        () =>
+          new Promise<void>((resolve, reject) => {
+            settle = outcome === 'resolves' ? resolve : () => reject(new Error('falha'))
+          }),
+      )
+      const setDraft = vi.fn()
+      const { result } = renderHook(() =>
+        useClinicalRecordAutosave({
+          draft: STABLE_DRAFT,
+          setDraft,
+          record,
+          canAutosave: true,
+          saveQuiet,
+          debounceMs: DEBOUNCE_MS,
+        }),
+      )
+      await act(() => vi.advanceTimersByTimeAsync(DEBOUNCE_MS))
+      let waited = false
+      const waiting = result.current.waitForAutosaveInFlight().then(() => {
+        waited = true
+      })
+      await act(async () => {})
+      expect(waited).toBe(false)
+      await act(async () => {
+        settle()
+        await waiting
+      })
+      expect(waited).toBe(true)
+    },
+  )
+
+  it('resolves immediately when no autosave is in flight', async () => {
+    const setDraft = vi.fn()
+    const { result } = renderHook(() =>
+      useClinicalRecordAutosave({
+        draft: EMPTY_DRAFT,
+        setDraft,
+        record: makeDraftRecord(),
+        canAutosave: true,
+        saveQuiet: vi.fn(),
+        debounceMs: DEBOUNCE_MS,
+      }),
+    )
+    await expect(result.current.waitForAutosaveInFlight()).resolves.toBeUndefined()
   })
 
   it('clears the saved indicator after saving a real stateful draft', async () => {

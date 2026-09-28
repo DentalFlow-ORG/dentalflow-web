@@ -32,9 +32,12 @@ import { ImageAttachmentPanel } from '../components/ImageAttachmentPanel'
 import { OdontogramSection } from '../components/OdontogramSection'
 import { PatientHistoryPanel } from '../components/PatientHistoryPanel'
 import { VoiceDictationCard } from '../components/VoiceDictationCard'
+import { CLINICAL_FIELD_LABELS } from '../constants/clinical-field-labels'
+import { CLINICAL_FIELD_MAX_LENGTH } from '../constants/clinical-record-limits'
 import { useClinicalRecord } from '../hooks/useClinicalRecord'
 import { type AutosaveStatus, useClinicalRecordAutosave } from '../hooks/useClinicalRecordAutosave'
 import { useClinicalTemplates } from '../hooks/useClinicalTemplates'
+import { useOdontogramAutosave } from '../hooks/useOdontogramAutosave'
 import { useUnsavedChangesGuard } from '../hooks/useUnsavedChangesGuard'
 import { getOdontogram, upsertOdontogram } from '../services/clinical-records.service'
 import type { ClinicalDictationFieldKey } from '../types/clinical-dictation.types'
@@ -119,11 +122,19 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
   const [loadedOdontogramData, setOdontogramData] = useState<OdontogramData>({ teeth: {} })
   const [odontogramLoaded, setOdontogramLoaded] = useState(false)
   const [odontogramOwner, setOdontogramOwner] = useState<string | null>(null)
+  // Set when loading the chart failed for the active patient; editing stays
+  // disabled until a reload succeeds, so no click is silently ignored.
+  const [odontogramLoadError, setOdontogramLoadError] = useState<string | null>(null)
+  const [odontogramReloadToken, setOdontogramReloadToken] = useState(0)
+  const [odontogramLoadedToken, setOdontogramLoadedToken] = useState(0)
   const activePatientKey =
     record?.id === recordId
       ? `${record.id}:${record.patientId ?? record.patientEmail ?? record.patientName}`
       : null
-  const chartIsCurrent = odontogramLoaded && odontogramOwner === activePatientKey
+  const chartIsCurrent =
+    odontogramLoaded &&
+    odontogramOwner === activePatientKey &&
+    odontogramLoadedToken === odontogramReloadToken
   const odontogramData: OdontogramData = chartIsCurrent ? loadedOdontogramData : { teeth: {} }
 
   // Section expand/collapse — initialized with DRAFT defaults.
@@ -133,17 +144,45 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
   const sectionInitRef = useRef(false)
 
   // Autosave wiring — only fires for DRAFT records with pending changes.
-  const { autosaveStatus, cancelPendingAutosave } = useClinicalRecordAutosave({
-    draft,
-    setDraft,
-    record,
-    canAutosave: record?.status === 'DRAFT',
-    saveQuiet,
-  })
+  const { autosaveStatus, autosaveError, cancelPendingAutosave, waitForAutosaveInFlight } =
+    useClinicalRecordAutosave({
+      draft,
+      setDraft,
+      record,
+      canAutosave: record?.status === 'DRAFT',
+      saveQuiet,
+    })
 
-  // Navigation guard — warns before leaving when there are unsaved draft changes.
+  // Odontogram persistence — debounced and serialized so typing a tooth note
+  // sends one request after a pause and an older chart never overwrites a newer one.
+  const {
+    scheduleSave: scheduleOdontogramSave,
+    flushSave: flushOdontogramSave,
+    retry: retryOdontogramSave,
+    saveState: odontogramSaveState,
+    isDirty: odontogramIsDirty,
+  } = useOdontogramAutosave({
+    onError: () => {
+      if (odontogramAlertShownRef.current) return
+      odontogramAlertShownRef.current = true
+      showAlert({
+        title: 'Odontograma não salvo',
+        description: 'Não foi possível salvar o odontograma. Verifique sua conexão.',
+        tone: 'warning',
+      })
+      if (odontogramAlertResetRef.current) clearTimeout(odontogramAlertResetRef.current)
+      odontogramAlertResetRef.current = setTimeout(() => {
+        odontogramAlertShownRef.current = false
+      }, 10_000)
+    },
+  })
+  const [confirmComplete, setConfirmComplete] = useState(false)
+  const [isCompleting, setIsCompleting] = useState(false)
+
+  // Navigation guard — warns before leaving when there are unsaved draft
+  // changes or odontogram edits not yet persisted (debouncing, saving or failed).
   const { isBlocked, proceed, reset } = useUnsavedChangesGuard({
-    isDirty: record?.status === 'DRAFT' && Object.keys(draft).length > 0,
+    isDirty: (record?.status === 'DRAFT' && Object.keys(draft).length > 0) || odontogramIsDirty,
   })
 
   // Load the patient-level odontogram once the record is available.
@@ -152,22 +191,30 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
     const identifier = record.patientEmail ?? record.patientName
     let isCurrent = true
 
+    setOdontogramLoadError(null)
     getOdontogram(identifier, record.patientId)
       .then((data) => {
         if (isCurrent) {
           setOdontogramData(data?.data ?? { teeth: {} })
           setOdontogramOwner(activePatientKey)
           setOdontogramLoaded(true)
+          setOdontogramLoadedToken(odontogramReloadToken)
         }
       })
-      .catch(() => {
-        /* odontogram is optional — ignore load errors */
+      .catch((err: unknown) => {
+        if (!isCurrent) return
+        setOdontogramLoadError(
+          err instanceof Error && err.message
+            ? err.message
+            : 'Não foi possível carregar o odontograma.',
+        )
       })
 
     return () => {
       isCurrent = false
     }
-  }, [record, activePatientKey, chartIsCurrent])
+    // odontogramReloadToken re-runs the load after a failure.
+  }, [record, activePatientKey, chartIsCurrent, odontogramReloadToken])
 
   // For non-DRAFT records: auto-expand sections that have content so the
   // reviewer immediately sees what was documented without extra interaction.
@@ -323,7 +370,18 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
     if (!targetField) return
 
     const current = field(targetField)
-    setField(targetField)(current ? `${current}\n\n${template.content}` : template.content)
+    const next = current ? `${current}\n\n${template.content}` : template.content
+    const maxLength = CLINICAL_FIELD_MAX_LENGTH[targetField]
+    if (maxLength !== undefined && next.length > maxLength) {
+      // Never truncate clinical text: leave the field untouched and explain why.
+      showAlert({
+        title: 'Modelo não aplicado',
+        description: `O campo "${CLINICAL_FIELD_LABELS[targetField as ClinicalDictationFieldKey]}" ultrapassaria o limite de ${maxLength.toLocaleString('pt-BR')} caracteres. Resuma o texto atual antes de aplicar o modelo.`,
+        tone: 'warning',
+      })
+      return
+    }
+    setField(targetField)(next)
 
     // Open the target section so the user sees the inserted text.
     const targetSection = TEMPLATE_SECTION_MAP[template.category]
@@ -334,36 +392,18 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
     if (!canEditClinicalContent) return
     cancelPendingAutosave()
     await save(draft)
-    if (chartIsCurrent && Object.keys(odontogramData.teeth).length > 0) {
-      upsertOdontogram(identifier, record.patientName, odontogramData, record.patientId).catch(
-        () => {
-          showAlert({
-            title: 'Odontograma não salvo',
-            description: 'Não foi possível salvar o odontograma durante o salvamento do rascunho.',
-            tone: 'warning',
-          })
-        },
-      )
-    }
+    await flushOdontogramSave()
   }
 
   const handleOdontogramChange = (data: OdontogramData) => {
     if (!canEditClinicalContent || !chartIsCurrent) return
     setOdontogramData(data)
-    upsertOdontogram(identifier, record.patientName, data, record.patientId).catch(() => {
-      if (!odontogramAlertShownRef.current) {
-        odontogramAlertShownRef.current = true
-        showAlert({
-          title: 'Odontograma não salvo',
-          description: 'Não foi possível salvar o odontograma. Verifique sua conexão.',
-          tone: 'warning',
-        })
-        if (odontogramAlertResetRef.current) clearTimeout(odontogramAlertResetRef.current)
-        odontogramAlertResetRef.current = setTimeout(() => {
-          odontogramAlertShownRef.current = false
-        }, 10_000)
-      }
-    })
+    // Bind the save to this record's patient now, so a queued save can never
+    // be written to a different patient.
+    const { patientName, patientId } = record
+    scheduleOdontogramSave(data, (chart) =>
+      upsertOdontogram(identifier, patientName, chart, patientId),
+    )
   }
 
   // Merges dictation suggestions into the draft fields.
@@ -372,8 +412,8 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
   const handleApplyDictationFields = (
     fields: Partial<Record<ClinicalDictationFieldKey, string>>,
     modes?: Partial<Record<ClinicalDictationFieldKey, FieldApplyMode>>,
-  ) => {
-    if (!canEditClinicalContent) return
+  ): boolean => {
+    if (!canEditClinicalContent) return false
 
     // Snapshot current field values (draft overrides applied on top of record)
     const currentValues: Record<string, string> = {}
@@ -383,11 +423,29 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
 
     const { draftPatch, targetSection } = applyDictationFields(fields, currentValues, modes)
 
+    const overLimit = Object.entries(draftPatch).filter(([key, value]) => {
+      const maxLength = CLINICAL_FIELD_MAX_LENGTH[key as keyof UpdateClinicalRecordDto]
+      return maxLength !== undefined && typeof value === 'string' && value.length > maxLength
+    })
+    if (overLimit.length > 0) {
+      // Never truncate clinical text: apply nothing and name the fields.
+      const labels = overLimit
+        .map(([key]) => `"${CLINICAL_FIELD_LABELS[key as ClinicalDictationFieldKey]}"`)
+        .join(', ')
+      showAlert({
+        title: 'Ditado não aplicado',
+        description: `O texto ultrapassaria o limite de caracteres em ${labels}. Use "Substituir tudo" ou edite o texto antes de aplicar.`,
+        tone: 'warning',
+      })
+      return false
+    }
+
     for (const [key, value] of Object.entries(draftPatch)) {
       setField(key as keyof UpdateClinicalRecordDto)(value as string)
     }
 
     if (targetSection) openSection(targetSection)
+    return true
   }
 
   // Applies odontogram marking suggestions from dictation.
@@ -426,7 +484,36 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
     }
   }
 
-  const handleComplete = () => saveAndComplete(draft)
+  // Completing makes the record read-only, so it is confirmed first and the
+  // required evolution is checked before any request is sent.
+  const handleComplete = () => {
+    if (!field('clinicalEvolution').trim()) {
+      openSection('evolucao')
+      showAlert({
+        title: 'Evolução clínica obrigatória',
+        description: 'Preencha a evolução clínica antes de concluir o atendimento.',
+        tone: 'warning',
+      })
+      return
+    }
+    setConfirmComplete(true)
+  }
+
+  const handleConfirmComplete = async () => {
+    setIsCompleting(true)
+    try {
+      // Stop the debounced autosave and let any in-flight PATCH settle, so it
+      // cannot race the complete call and hit a read-only record.
+      cancelPendingAutosave()
+      await waitForAutosaveInFlight()
+      await flushOdontogramSave()
+      await saveAndComplete(draft)
+    } finally {
+      setIsCompleting(false)
+      setConfirmComplete(false)
+    }
+  }
+
   const handleLock = () => lock()
   const handleCancel = () => cancel()
   const handleRestore = () => restore()
@@ -485,7 +572,9 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
             onRestore={handleRestore}
             onPrint={handlePrint}
           />
-          {canEditClinicalContent && <AutosaveIndicator status={autosaveStatus} />}
+          {canEditClinicalContent && (
+            <AutosaveIndicator status={autosaveStatus} errorMessage={autosaveError} />
+          )}
         </div>
 
         {/* ── Main content grid ────────────────────────────────────────────── */}
@@ -506,6 +595,7 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
                 label="Queixa principal"
                 value={field('chiefComplaint')}
                 onChange={setField('chiefComplaint')}
+                maxLength={CLINICAL_FIELD_MAX_LENGTH.chiefComplaint}
                 placeholder="Principal motivo da consulta, em palavras do paciente..."
                 readOnly={isReadOnly}
                 rows={4}
@@ -527,6 +617,7 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
                 hideLabel
                 value={field('clinicalEvolution')}
                 onChange={setField('clinicalEvolution')}
+                maxLength={CLINICAL_FIELD_MAX_LENGTH.clinicalEvolution}
                 placeholder="Achados clínicos, evolução do caso, exame intraoral, condição periodontal, achados radiográficos relevantes, resposta do paciente..."
                 readOnly={isReadOnly}
                 rows={8}
@@ -548,6 +639,7 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
                 hideLabel
                 value={field('anamnesis')}
                 onChange={setField('anamnesis')}
+                maxLength={CLINICAL_FIELD_MAX_LENGTH.anamnesis}
                 placeholder="Histórico médico geral, alergias medicamentosas e alimentares, medicamentos em uso (nome e dosagem), condições sistêmicas (diabetes, hipertensão, coagulopatia), hábitos (tabagismo, bruxismo), histórico odontológico relevante..."
                 readOnly={isReadOnly}
                 rows={8}
@@ -569,6 +661,7 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
                 hideLabel
                 value={field('diagnosis')}
                 onChange={setField('diagnosis')}
+                maxLength={CLINICAL_FIELD_MAX_LENGTH.diagnosis}
                 placeholder="Diagnóstico clínico ou hipótese diagnóstica, CID correspondente se aplicável, dentes e regiões envolvidos, achados clínicos e radiográficos que embasam o diagnóstico..."
                 readOnly={isReadOnly}
                 rows={6}
@@ -593,6 +686,7 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
                   hint="Nesta consulta"
                   value={field('proceduresPerformed')}
                   onChange={setField('proceduresPerformed')}
+                  maxLength={CLINICAL_FIELD_MAX_LENGTH.proceduresPerformed}
                   placeholder="Técnica anestésica utilizada, materiais e instrumentos, dentes tratados (numeração), etapas executadas e observações do procedimento..."
                   readOnly={isReadOnly}
                   rows={5}
@@ -603,6 +697,7 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
                   hint="Próximas etapas"
                   value={field('treatmentPlan')}
                   onChange={setField('treatmentPlan')}
+                  maxLength={CLINICAL_FIELD_MAX_LENGTH.treatmentPlan}
                   placeholder="Sequência de tratamento proposta: prioridades, fases, estimativa de sessões, necessidade de encaminhamento especializado..."
                   readOnly={isReadOnly}
                   rows={5}
@@ -612,6 +707,7 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
                   label="Prescrição / Medicamentos"
                   value={field('prescription')}
                   onChange={setField('prescription')}
+                  maxLength={CLINICAL_FIELD_MAX_LENGTH.prescription}
                   placeholder="Ex: Amoxicilina 500mg — 1 cápsula 8/8h por 7 dias com alimento. Dipirona 500mg — 1 comprimido se necessário (máx. 4x/dia, intervalo mínimo 6h)..."
                   readOnly={isReadOnly}
                   rows={4}
@@ -621,6 +717,7 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
                   label="Recomendações ao paciente"
                   value={field('recommendations')}
                   onChange={setField('recommendations')}
+                  maxLength={CLINICAL_FIELD_MAX_LENGTH.recommendations}
                   placeholder="Cuidados pós-consulta, higiene oral, restrições alimentares, sinais de alerta para retorno imediato, data do próximo atendimento programado..."
                   readOnly={isReadOnly}
                   rows={4}
@@ -638,12 +735,53 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
               onToggle={() => toggleSection('odontograma')}
             >
               {/* showTitle={false}: ClinicalSection header already says "Odontograma" */}
+              {odontogramLoadError && !chartIsCurrent && (
+                <div
+                  role="alert"
+                  className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+                >
+                  <span>
+                    Não foi possível carregar o odontograma. Ele fica somente leitura até carregar.
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setOdontogramReloadToken((token) => token + 1)}
+                  >
+                    Tentar novamente
+                  </Button>
+                </div>
+              )}
               <OdontogramSection
                 data={odontogramData}
                 onChange={handleOdontogramChange}
-                readOnly={isReadOnly}
+                // Until the active patient's chart has loaded, clicks would be
+                // discarded, so the chart is shown read-only instead.
+                readOnly={isReadOnly || !chartIsCurrent}
                 showTitle={false}
               />
+              {odontogramSaveState === 'error' && (
+                <div
+                  role="alert"
+                  className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200"
+                >
+                  <span>Alterações do odontograma não salvas.</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void retryOdontogramSave()}
+                  >
+                    Tentar salvar novamente
+                  </Button>
+                </div>
+              )}
+              {(odontogramSaveState === 'pending' || odontogramSaveState === 'saving') && (
+                <p className="mt-2 text-xs text-muted-foreground" role="status">
+                  Salvando odontograma...
+                </p>
+              )}
             </ClinicalSection>
 
             {/* ── Imagens e anexos ─────────────────────────────────────────── */}
@@ -679,6 +817,7 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
                   hideLabel
                   value={isReadOnly ? (record.privateNotes ?? '') : field('privateNotes')}
                   onChange={setField('privateNotes')}
+                  maxLength={CLINICAL_FIELD_MAX_LENGTH.privateNotes}
                   placeholder="Observações internas, contexto do caso, anotações do profissional — não aparecem no documento impresso..."
                   readOnly={isReadOnly}
                   rows={3}
@@ -725,6 +864,20 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
         />
       </AppPage>
 
+      {/* ── Complete confirmation ───────────────────────────────────────────── */}
+      <ConfirmDialog
+        open={confirmComplete}
+        title="Concluir atendimento"
+        description="O prontuário será salvo e ficará somente leitura em definitivo. Depois de concluído, o registro não poderá mais ser editado."
+        subject={record.patientName}
+        confirmLabel="Concluir atendimento"
+        cancelLabel="Continuar editando"
+        tone="warning"
+        isConfirming={isCompleting}
+        onConfirm={handleConfirmComplete}
+        onCancel={() => setConfirmComplete(false)}
+      />
+
       {/* ── Unsaved-changes navigation guard ────────────────────────────────── */}
       {/* Portal-based overlay — position in the tree does not affect layout.  */}
       <ConfirmDialog
@@ -744,7 +897,13 @@ function ClinicalRecordEditorSession({ recordId }: Props) {
 // ── AutosaveIndicator ─────────────────────────────────────────────────────────
 // Full-text version shown next to the main action bar.
 
-function AutosaveIndicator({ status }: { status: AutosaveStatus }) {
+function AutosaveIndicator({
+  status,
+  errorMessage,
+}: {
+  status: AutosaveStatus
+  errorMessage: string | null
+}) {
   if (status === 'idle') return null
 
   return (
@@ -768,7 +927,11 @@ function AutosaveIndicator({ status }: { status: AutosaveStatus }) {
         <>
           <AlertCircle className="h-3 w-3 text-amber-500" aria-hidden="true" />
           <span className="text-amber-600 dark:text-amber-400">
-            Falha ao salvar — use &ldquo;Salvar agora&rdquo;
+            {errorMessage ? (
+              <>Falha ao salvar: {errorMessage}</>
+            ) : (
+              <>Falha ao salvar — use &ldquo;Salvar agora&rdquo;</>
+            )}
           </span>
         </>
       )}

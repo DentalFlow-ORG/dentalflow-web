@@ -63,3 +63,68 @@ describe('ClinicalSectionField', () => {
     expect(screen.getByLabelText('Queixa')).toHaveAttribute('rows', '8')
   })
 })
+
+describe('ClinicalSectionField — length limit', () => {
+  it('enforces the maxLength on the textarea', () => {
+    render(
+      <ClinicalSectionField label="Queixa principal" value="" maxLength={500} onChange={vi.fn()} />,
+    )
+    expect(screen.getByLabelText('Queixa principal')).toHaveAttribute('maxLength', '500')
+  })
+
+  it('hides the counter while the text is well below the limit', () => {
+    render(
+      <ClinicalSectionField
+        label="Queixa principal"
+        value={'a'.repeat(399)}
+        maxLength={500}
+        onChange={vi.fn()}
+      />,
+    )
+    expect(screen.queryByText(/caracteres/)).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Queixa principal')).not.toHaveAttribute('aria-describedby')
+  })
+
+  it('shows a counter linked to the field once it nears the limit', () => {
+    render(
+      <ClinicalSectionField
+        label="Queixa principal"
+        value={'a'.repeat(400)}
+        maxLength={500}
+        onChange={vi.fn()}
+      />,
+    )
+    const counter = screen.getByText('400/500 caracteres')
+    expect(counter).not.toHaveAttribute('aria-live')
+    expect(screen.getByLabelText('Queixa principal')).toHaveAttribute(
+      'aria-describedby',
+      counter.id,
+    )
+  })
+
+  it('flags the limit when it is reached', () => {
+    render(
+      <ClinicalSectionField
+        label="Anamnese"
+        value={'a'.repeat(10_000)}
+        maxLength={10_000}
+        onChange={vi.fn()}
+      />,
+    )
+    expect(screen.getByText('10.000/10.000 caracteres — limite atingido')).toBeInTheDocument()
+  })
+
+  it('does not enforce the limit or show a counter in read-only mode', () => {
+    render(
+      <ClinicalSectionField
+        label="Anamnese"
+        value={'a'.repeat(10_000)}
+        maxLength={10_000}
+        onChange={vi.fn()}
+        readOnly
+      />,
+    )
+    expect(screen.getByLabelText('Anamnese')).not.toHaveAttribute('maxLength')
+    expect(screen.queryByText(/caracteres/)).not.toBeInTheDocument()
+  })
+})

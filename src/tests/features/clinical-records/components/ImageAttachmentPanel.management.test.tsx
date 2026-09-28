@@ -222,6 +222,8 @@ it('retains edited text on a failed caption save and cancels pending saves on un
   expect(screen.getByRole('textbox')).toHaveValue('Manter legenda')
   expect(screen.queryByText('Salvando...')).not.toBeInTheDocument()
   expect(screen.queryByText('Salvo')).not.toBeInTheDocument()
+  // The failure is reported instead of silently returning to idle.
+  expect(screen.getByRole('alert')).toHaveTextContent('Não foi possível salvar a legenda.')
   fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Não enviar' } })
   view.unmount()
   await act(async () => vi.advanceTimersByTimeAsync(800))
@@ -238,4 +240,32 @@ it('renders the attachment date in Sao Paulo, not UTC', async () => {
   await openPanel()
 
   expect(screen.getByText(/14\/10\/2026/)).toBeInTheDocument()
+})
+
+it('limits the caption to the 500-character API limit with a counter near the limit', async () => {
+  await openPanel()
+  const caption = screen.getByRole('textbox', { name: 'Legenda da imagem radiografia.jpg' })
+  expect(caption).toHaveAttribute('maxLength', '500')
+  expect(screen.queryByText(/caracteres/)).not.toBeInTheDocument()
+  fireEvent.change(caption, { target: { value: 'a'.repeat(500) } })
+  expect(screen.getByText('500/500 caracteres — limite atingido')).toBeInTheDocument()
+})
+
+it('keeps the remove confirmation open and disabled while the removal is pending', async () => {
+  let finish!: () => void
+  vi.mocked(removeAttachment).mockReturnValue(
+    new Promise<void>((resolve) => {
+      finish = resolve
+    }),
+  )
+  await openPanel()
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: 'Remover' }))
+  await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Remover' }))
+  const dialog = screen.getByRole('dialog')
+  expect(within(dialog).getByRole('button', { name: /aguarde/i })).toBeDisabled()
+  expect(within(dialog).getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+  await act(async () => finish())
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  expect(screen.queryByRole('img', { name: 'radiografia.jpg' })).not.toBeInTheDocument()
 })

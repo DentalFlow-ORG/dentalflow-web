@@ -6,7 +6,9 @@ import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { formatTimestampDateBR } from '@/lib/date-time-formatters'
 import { cn } from '@/lib/utils'
+import { ApiError } from '@/services/http'
 
+import { ATTACHMENT_CAPTION_MAX_LENGTH } from '../constants/clinical-record-limits'
 import {
   addAttachmentMetadata,
   listAttachments,
@@ -14,13 +16,22 @@ import {
   updateAttachmentDescription,
 } from '../services/clinical-records.service'
 import type { ClinicalRecordAttachment } from '../types/clinical-record.types'
+import {
+  CLINICAL_IMAGE_TOO_LARGE_MESSAGE,
+  ClinicalImageError,
+  type EncodeJpeg,
+  base64SizeBytes,
+  fitImageToBase64Limit,
+  isHeicImage,
+  toAttachmentFileName,
+} from '../utils/clinical-image-compression'
+import { CharacterLimitCounter } from './CharacterLimitCounter'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-const MAX_OUTPUT_DIMENSION = 1200
 const MAX_THUMBNAIL_DIMENSION = 200
-const JPEG_QUALITY = 0.82
+const THUMBNAIL_JPEG_QUALITY = 0.82
 const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB original
 const CAPTION_DEBOUNCE_MS = 800
 
@@ -78,6 +89,7 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
   const [isLoading, setIsLoading] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [isRemoving, setIsRemoving] = useState(false)
   const [previewAttachment, setPreviewAttachment] = useState<ClinicalRecordAttachment | null>(null)
 
   useEffect(() => {
@@ -105,7 +117,8 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
     }
   }, [recordId, showAlert])
 
-  // compressImage — unchanged from original implementation
+  // compressImage — re-encodes the image as JPEG, lowering quality and then
+  // size until the payload fits the API base64 limit.
   const compressImage = (
     file: File,
   ): Promise<{ dataBase64: string; thumbnailBase64: string; sizeBytes: number }> =>
@@ -117,19 +130,29 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
         const canvas = document.createElement('canvas')
         const thumb = document.createElement('canvas')
 
-        const ratio = Math.min(
-          MAX_OUTPUT_DIMENSION / img.width,
-          MAX_OUTPUT_DIMENSION / img.height,
-          1,
-        )
-        canvas.width = Math.round(img.width * ratio)
-        canvas.height = Math.round(img.height * ratio)
         const ctx = canvas.getContext('2d')
         if (!ctx) {
-          reject(new Error('Não foi possível processar a imagem.'))
+          reject(new ClinicalImageError('Não foi possível processar a imagem.'))
           return
         }
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+        let drawnDimension: number | null = null
+        const encode: EncodeJpeg = (maxDimension, quality) => {
+          if (drawnDimension !== maxDimension) {
+            const ratio = Math.min(maxDimension / img.width, maxDimension / img.height, 1)
+            canvas.width = Math.round(img.width * ratio)
+            canvas.height = Math.round(img.height * ratio)
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+            drawnDimension = maxDimension
+          }
+          return canvas.toDataURL('image/jpeg', quality).split(',')[1] ?? ''
+        }
+
+        const fitted = fitImageToBase64Limit(encode)
+        if (!fitted) {
+          reject(new ClinicalImageError(CLINICAL_IMAGE_TOO_LARGE_MESSAGE))
+          return
+        }
 
         const tRatio = Math.min(
           MAX_THUMBNAIL_DIMENSION / img.width,
@@ -140,20 +163,21 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
         thumb.height = Math.round(img.height * tRatio)
         const tCtx = thumb.getContext('2d')
         if (!tCtx) {
-          reject(new Error('Não foi possível processar a miniatura da imagem.'))
+          reject(new ClinicalImageError('Não foi possível processar a miniatura da imagem.'))
           return
         }
         tCtx.drawImage(img, 0, 0, thumb.width, thumb.height)
+        const thumbnailBase64 = thumb.toDataURL('image/jpeg', THUMBNAIL_JPEG_QUALITY).split(',')[1]
 
-        const dataBase64 = canvas.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1]
-        const thumbnailBase64 = thumb.toDataURL('image/jpeg', JPEG_QUALITY).split(',')[1]
-        const sizeBytes = Math.round((dataBase64.length * 3) / 4)
-
-        resolve({ dataBase64, thumbnailBase64, sizeBytes })
+        resolve({
+          dataBase64: fitted.dataBase64,
+          thumbnailBase64,
+          sizeBytes: base64SizeBytes(fitted.dataBase64),
+        })
       }
       img.onerror = () => {
         URL.revokeObjectURL(objectUrl)
-        reject(new Error('Não foi possível ler a imagem.'))
+        reject(new ClinicalImageError('Não foi possível ler a imagem.'))
       }
       img.src = objectUrl
     })
@@ -168,7 +192,9 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       showAlert({
         title: 'Formato inválido',
-        description: 'Envie apenas imagens JPEG, PNG ou WebP.',
+        description: isHeicImage(file)
+          ? 'Fotos HEIC não são aceitas. Envie a imagem em JPEG, PNG ou WebP — no iPhone, ative Ajustes > Câmera > Formatos > "Mais Compatível".'
+          : 'Envie apenas imagens JPEG, PNG ou WebP.',
         tone: 'error',
       })
       e.currentTarget.value = ''
@@ -187,10 +213,12 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
     setIsUploading(true)
     try {
       const { dataBase64, thumbnailBase64, sizeBytes } = await compressImage(file)
+      // The uploaded data is always JPEG after compression, so the declared
+      // type and file extension describe the re-encoded image.
       const created = await addAttachmentMetadata(recordId, {
-        fileName: file.name,
-        fileType: file.type,
-        mimeType: file.type,
+        fileName: toAttachmentFileName(file.name),
+        fileType: 'image/jpeg',
+        mimeType: 'image/jpeg',
         sizeBytes,
         dataBase64,
         thumbnailBase64,
@@ -201,10 +229,13 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
         description: 'A imagem foi salva no prontuário.',
         tone: 'success',
       })
-    } catch {
+    } catch (err: unknown) {
       showAlert({
         title: 'Erro ao enviar',
-        description: 'Não foi possível salvar a imagem. Tente novamente.',
+        description:
+          err instanceof ClinicalImageError || err instanceof ApiError
+            ? err.message
+            : 'Não foi possível salvar a imagem. Tente novamente.',
         tone: 'error',
       })
     } finally {
@@ -387,9 +418,12 @@ export function ImageAttachmentPanel({ recordId, readOnly = false, showTitle = t
         confirmLabel="Remover"
         cancelLabel="Cancelar"
         tone="destructive"
-        isConfirming={false}
-        onConfirm={() => {
-          if (confirmDeleteId) void handleRemove(confirmDeleteId)
+        isConfirming={isRemoving}
+        onConfirm={async () => {
+          if (!confirmDeleteId) return
+          setIsRemoving(true)
+          await handleRemove(confirmDeleteId)
+          setIsRemoving(false)
           setConfirmDeleteId(null)
         }}
         onCancel={() => setConfirmDeleteId(null)}
@@ -454,7 +488,7 @@ function AttachmentCard({
   onRemove?: () => void
 }) {
   const [description, setDescription] = useState(attachment.description ?? '')
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isFirstRender = useRef(true)
 
@@ -475,7 +509,8 @@ function AttachmentCard({
         setSaveState('saved')
         setTimeout(() => setSaveState('idle'), 1500)
       } catch {
-        setSaveState('idle')
+        // Keep the typed caption and tell the user it was not persisted.
+        setSaveState('error')
       }
     }, CAPTION_DEBOUNCE_MS)
 
@@ -546,14 +581,28 @@ function AttachmentCard({
             placeholder={readOnly ? '—' : 'Adicionar legenda...'}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            maxLength={readOnly ? undefined : ATTACHMENT_CAPTION_MAX_LENGTH}
+            aria-label={`Legenda da imagem ${attachment.fileName}`}
             className="w-full rounded border-0 bg-transparent p-0 text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
             readOnly={readOnly}
           />
+          {!readOnly && (
+            <CharacterLimitCounter
+              length={description.length}
+              maxLength={ATTACHMENT_CAPTION_MAX_LENGTH}
+              className="mt-0.5 text-[10px]"
+            />
+          )}
           {!readOnly && saveState === 'saving' && (
             <p className="mt-0.5 text-[10px] text-muted-foreground">Salvando...</p>
           )}
           {!readOnly && saveState === 'saved' && (
             <p className="mt-0.5 text-[10px] text-emerald-500">Salvo</p>
+          )}
+          {!readOnly && saveState === 'error' && (
+            <p role="alert" className="mt-0.5 text-[10px] text-destructive">
+              Não foi possível salvar a legenda. Edite o texto para tentar novamente.
+            </p>
           )}
         </div>
 

@@ -110,3 +110,32 @@ describe('OdontogramToothDetailsPanel', () => {
     expect(screen.getByLabelText('Observações do dente')).toHaveValue('Sensibilidade ao frio')
   })
 })
+
+describe('OdontogramToothDetailsPanel — notes limit', () => {
+  it('does not impose a client-only tooth notes limit', () => {
+    render(
+      <OdontogramToothDetailsPanel
+        toothNumber={11}
+        tooth={{ notes: 'a'.repeat(2000) }}
+        onSetCondition={vi.fn()}
+        onSetNotes={vi.fn()}
+      />,
+    )
+    expect(screen.getByLabelText('Observações do dente')).not.toHaveAttribute('maxLength')
+    expect(screen.queryByText(/caracteres/)).not.toBeInTheDocument()
+  })
+
+  it('does not limit or count notes in read-only mode', () => {
+    render(
+      <OdontogramToothDetailsPanel
+        toothNumber={11}
+        tooth={{ notes: 'a'.repeat(2000) }}
+        readOnly
+        onSetCondition={vi.fn()}
+        onSetNotes={vi.fn()}
+      />,
+    )
+    expect(screen.getByLabelText('Observações do dente')).not.toHaveAttribute('maxLength')
+    expect(screen.queryByText(/caracteres/)).not.toBeInTheDocument()
+  })
+})

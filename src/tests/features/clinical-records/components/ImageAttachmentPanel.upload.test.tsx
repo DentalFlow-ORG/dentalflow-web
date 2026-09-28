@@ -3,6 +3,7 @@ import {
   addAttachmentMetadata,
   listAttachments,
 } from '@/features/clinical-records/services/clinical-records.service'
+import { ApiError } from '@/services/http'
 import { makeAttachment } from '@/test-utils/factories/attachment.factory'
 import {
   act,
@@ -213,4 +214,84 @@ it('keeps mutation controls hidden if a record becomes read-only during an initi
   expect(screen.queryByRole('button', { name: 'Enviar imagem' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Remover' })).not.toBeInTheDocument()
   expect(screen.getByRole('textbox')).toHaveAttribute('readonly')
+})
+
+it('lowers JPEG quality and then size until the image fits the API base64 limit', async () => {
+  // Large encodings for the first two sizes; the 800px encoding at quality 0.72 fits.
+  vi.mocked(HTMLCanvasElement.prototype.toDataURL).mockImplementation(function (
+    this: HTMLCanvasElement,
+    _type?: string,
+    quality?: number,
+  ) {
+    const fits = this.width <= 800 && (quality ?? 1) <= 0.72
+    return `data:image/jpeg;base64,${fits ? 'aW1hZ2U=' : 'a'.repeat(130_000)}`
+  })
+  await selectImage()
+  await act(async () => image.onload())
+  expect(addAttachmentMetadata).toHaveBeenCalledWith(
+    'record-1',
+    expect.objectContaining({ dataBase64: 'aW1hZ2U=', sizeBytes: 6 }),
+  )
+  expect(drawImage).toHaveBeenCalledWith(image, 0, 0, 800, 400)
+})
+
+it('explains when even the smallest legible encoding is too large, without uploading', async () => {
+  vi.mocked(HTMLCanvasElement.prototype.toDataURL).mockReturnValue(
+    `data:image/jpeg;base64,${'a'.repeat(130_000)}`,
+  )
+  await selectImage()
+  await act(async () => image.onload())
+  expect(addAttachmentMetadata).not.toHaveBeenCalled()
+  expect(showAlert).toHaveBeenCalledWith(
+    expect.objectContaining({
+      title: 'Erro ao enviar',
+      description: expect.stringContaining('Não foi possível reduzir a imagem'),
+    }),
+  )
+})
+
+it('declares the re-encoded JPEG type and a safe .jpg name for PNG uploads', async () => {
+  const view = renderWithProviders(<ImageAttachmentPanel recordId="record-1" />)
+  await screen.findByRole('button', { name: 'Enviar imagem' })
+  const input = view.container.querySelector<HTMLInputElement>('input[type="file"]:not([capture])')
+  if (!input) throw new Error('Expected the native image input')
+  fireEvent.change(input, {
+    target: { files: [new File(['image'], `${'x'.repeat(300)}.png`, { type: 'image/png' })] },
+  })
+  await act(async () => image.onload())
+  const payload = vi.mocked(addAttachmentMetadata).mock.calls[0][1]
+  expect(payload).toMatchObject({ fileType: 'image/jpeg', mimeType: 'image/jpeg' })
+  expect(payload.fileName).toHaveLength(180)
+  expect(payload.fileName.endsWith('.jpg')).toBe(true)
+})
+
+it('shows the API message when the server rejects the image', async () => {
+  vi.mocked(addAttachmentMetadata).mockRejectedValueOnce(
+    new ApiError('Imagem deve ser enviada em formato base64 valido.', 400, null),
+  )
+  await selectImage()
+  await act(async () => image.onload())
+  expect(showAlert).toHaveBeenCalledWith(
+    expect.objectContaining({
+      title: 'Erro ao enviar',
+      description: 'Imagem deve ser enviada em formato base64 valido.',
+    }),
+  )
+})
+
+it('explains how to avoid HEIC photos instead of a generic format error', async () => {
+  const view = renderWithProviders(<ImageAttachmentPanel recordId="record-1" />)
+  await screen.findByRole('button', { name: 'Enviar imagem' })
+  const input = view.container.querySelector<HTMLInputElement>('input[capture]')
+  if (!input) throw new Error('Expected the camera input')
+  fireEvent.change(input, {
+    target: { files: [new File(['image'], 'IMG_0001.HEIC', { type: 'image/heic' })] },
+  })
+  expect(addAttachmentMetadata).not.toHaveBeenCalled()
+  expect(showAlert).toHaveBeenCalledWith(
+    expect.objectContaining({
+      title: 'Formato inválido',
+      description: expect.stringContaining('Fotos HEIC não são aceitas'),
+    }),
+  )
 })

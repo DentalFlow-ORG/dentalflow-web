@@ -1,12 +1,14 @@
 import { AlertCircle, CheckCircle2, Loader2, Mic, RotateCcw, Square } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { PlanUpgradePrompt } from '@/components/common/PlanUpgradePrompt'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { useClinicalDictationAccess } from '@/features/clinical-records/hooks/useClinicalDictationAccess'
 import { cn } from '@/lib/utils'
 
+import { CLINICAL_FIELD_LABELS } from '../constants/clinical-field-labels'
 import { dictateClinicalRecord } from '../services/clinical-dictation.service'
 import type {
   ClinicalDictationFieldKey,
@@ -45,18 +47,6 @@ const PROCESSING_STEPS = [
 ] as const
 
 type ProcessingStep = 0 | 1 | 2 | 3
-
-const DICTATION_FIELD_LABELS: Record<ClinicalDictationFieldKey, string> = {
-  chiefComplaint: 'Queixa principal',
-  anamnesis: 'Anamnese',
-  clinicalEvolution: 'Evolução clínica',
-  diagnosis: 'Diagnóstico',
-  proceduresPerformed: 'Procedimentos realizados',
-  treatmentPlan: 'Plano de tratamento',
-  prescription: 'Prescrição',
-  recommendations: 'Recomendações',
-  privateNotes: 'Notas privadas',
-}
 
 // Human-readable labels for each apply mode, shown on the per-field mode buttons.
 const APPLY_MODE_LABELS: Record<FieldApplyMode, string> = {
@@ -159,11 +149,13 @@ type Props = {
    * Receives the fields the dentist chose to apply (already formatted) and
    * the per-field apply modes (append / replace) chosen in the review UI.
    * The container is responsible for computing the final field values.
+   * Returning `false` means nothing was applied (e.g. a field would exceed its
+   * length limit); the review stays open so the dentist can adjust the text.
    */
   onApplyFields: (
     fields: Partial<Record<ClinicalDictationFieldKey, string>>,
     modes: Partial<Record<ClinicalDictationFieldKey, FieldApplyMode>>,
-  ) => void
+  ) => boolean | undefined
   /**
    * Optional. Called when the dentist applies odontogram marking suggestions.
    * Receives only the suggestions whose checkboxes were selected.
@@ -248,6 +240,10 @@ export function VoiceDictationCard({
   const [selectedOdontogramTeeth, setSelectedOdontogramTeeth] = useState<Set<string>>(new Set())
   // Inline warning shown when apply is attempted but no valid content remains.
   const [applyWarning, setApplyWarning] = useState<string | null>(null)
+  // Pending confirmation before throwing away reviewed dictation suggestions.
+  const [confirmDiscardAction, setConfirmDiscardAction] = useState<'discard' | 'rerecord' | null>(
+    null,
+  )
   // Per-field apply mode: 'append' (default, safe) or 'replace'.
   // Initialized for each suggested field when the success state is reached.
   const [fieldModes, setFieldModes] = useState<
@@ -700,7 +696,7 @@ export function VoiceDictationCard({
       return
     }
 
-    if (hasValidFields) onApplyFields(toApply, fieldModes)
+    if (hasValidFields && onApplyFields(toApply, fieldModes) === false) return
     if (hasValidOdontogram) onApplyOdontogram!(oToApply)
 
     showAlert({
@@ -1025,10 +1021,10 @@ export function VoiceDictationCard({
                                   toggleFieldSelection(key)
                                   setApplyWarning(null)
                                 }}
-                                aria-label={`Selecionar campo ${DICTATION_FIELD_LABELS[key]}`}
+                                aria-label={`Selecionar campo ${CLINICAL_FIELD_LABELS[key]}`}
                               />
                               <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                                {DICTATION_FIELD_LABELS[key]}
+                                {CLINICAL_FIELD_LABELS[key]}
                               </span>
                               {/* "Já possui conteúdo" badge — visible when field already has text */}
                               {hasExisting && (
@@ -1046,7 +1042,7 @@ export function VoiceDictationCard({
                               <div
                                 className="flex flex-wrap gap-1 px-3 pb-1.5"
                                 role="group"
-                                aria-label={`Modo de aplicação para ${DICTATION_FIELD_LABELS[key]}`}
+                                aria-label={`Modo de aplicação para ${CLINICAL_FIELD_LABELS[key]}`}
                               >
                                 {(['append', 'replace', 'edit'] as FieldApplyMode[]).map((mode) => (
                                   <button
@@ -1070,6 +1066,7 @@ export function VoiceDictationCard({
                             {/* Editable textarea — always visible for review/editing */}
                             <div className="px-3 pb-3">
                               <textarea
+                                placeholder={`Revise o texto de ${CLINICAL_FIELD_LABELS[key].toLowerCase()}`}
                                 value={editableFields[key] ?? ''}
                                 onChange={(e) => {
                                   setEditableFields((prev) => ({ ...prev, [key]: e.target.value }))
@@ -1081,7 +1078,7 @@ export function VoiceDictationCard({
                                   'w-full resize-y rounded-md border border-border bg-card px-3 py-2 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15',
                                   !isSelected && 'cursor-not-allowed opacity-50',
                                 )}
-                                aria-label={`Conteúdo sugerido para ${DICTATION_FIELD_LABELS[key]}`}
+                                aria-label={`Conteúdo sugerido para ${CLINICAL_FIELD_LABELS[key]}`}
                               />
                             </div>
                           </div>
@@ -1184,7 +1181,12 @@ export function VoiceDictationCard({
                   <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                   Aplicar campos selecionados
                 </Button>
-                <Button type="button" variant="outline" className="min-h-11 w-full" onClick={reset}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-11 w-full"
+                  onClick={() => setConfirmDiscardAction('rerecord')}
+                >
                   <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                   Gravar novamente
                 </Button>
@@ -1192,7 +1194,7 @@ export function VoiceDictationCard({
                   type="button"
                   variant="outline"
                   className="min-h-11 w-full"
-                  onClick={handleDiscard}
+                  onClick={() => setConfirmDiscardAction('discard')}
                 >
                   Descartar
                 </Button>
@@ -1273,6 +1275,21 @@ export function VoiceDictationCard({
           )}
         </div>
       )}
+
+      {/* ── Discard confirmation — the reviewed suggestions cannot be recovered ── */}
+      <ConfirmDialog
+        open={confirmDiscardAction !== null}
+        title={confirmDiscardAction === 'rerecord' ? 'Gravar novamente?' : 'Descartar sugestões?'}
+        description="As sugestões do ditado e as edições feitas na revisão serão perdidas. Os campos do prontuário não serão alterados."
+        confirmLabel={confirmDiscardAction === 'rerecord' ? 'Gravar novamente' : 'Descartar'}
+        cancelLabel="Continuar revisando"
+        tone="warning"
+        onConfirm={() => {
+          setConfirmDiscardAction(null)
+          handleDiscard()
+        }}
+        onCancel={() => setConfirmDiscardAction(null)}
+      />
     </div>
   )
 }

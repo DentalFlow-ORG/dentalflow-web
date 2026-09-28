@@ -222,3 +222,24 @@ describe('OdontogramSection — multi-select mode', () => {
     expect(screen.queryByText(/aplicar condição/i)).not.toBeInTheDocument()
   })
 })
+
+describe('OdontogramSection — general notes limit', () => {
+  it('does not impose a client-only clinical notes limit', () => {
+    render(<OdontogramSection data={makeData({ notes: 'a'.repeat(1700) })} onChange={vi.fn()} />)
+    expect(screen.getByLabelText('Observações gerais do odontograma')).not.toHaveAttribute(
+      'maxLength',
+    )
+    expect(screen.queryByText(/caracteres/)).not.toBeInTheDocument()
+  })
+
+  it('does not count general notes in read-only mode', () => {
+    render(
+      <OdontogramSection
+        data={makeData({ notes: 'a'.repeat(1700) })}
+        onChange={vi.fn()}
+        readOnly
+      />,
+    )
+    expect(screen.queryByText(/caracteres/)).not.toBeInTheDocument()
+  })
+})

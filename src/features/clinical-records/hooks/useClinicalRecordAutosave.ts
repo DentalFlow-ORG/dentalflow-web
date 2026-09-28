@@ -19,7 +19,11 @@ type Props = {
 
 type Return = {
   autosaveStatus: AutosaveStatus
+  /** API message of the last failed autosave (e.g. a validation error), if any. */
+  autosaveError: string | null
   cancelPendingAutosave: () => void
+  /** Resolves once an autosave request already in flight has settled. */
+  waitForAutosaveInFlight: () => Promise<void>
 }
 
 // ── Hook ───────────────────────────────────────────────────────────────────────
@@ -43,6 +47,8 @@ export function useClinicalRecordAutosave({
   debounceMs = 1500,
 }: Props): Return {
   const [autosaveStatus, setAutosaveStatus] = useState<AutosaveStatus>('idle')
+  const [autosaveError, setAutosaveError] = useState<string | null>(null)
+  const inFlightRef = useRef<Promise<void> | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -64,9 +70,19 @@ export function useClinicalRecordAutosave({
 
     timerRef.current = setTimeout(async () => {
       setAutosaveStatus('saving')
+      const request = saveQuiet(draftSnapshot)
+      const settled = request.then(
+        () => undefined,
+        () => undefined,
+      )
+      inFlightRef.current = settled
+      void settled.finally(() => {
+        if (inFlightRef.current === settled) inFlightRef.current = null
+      })
       try {
-        await saveQuiet(draftSnapshot)
+        await request
         if (!isCurrent) return
+        setAutosaveError(null)
 
         // Only clear the draft if the user has not typed again since this save
         // was scheduled — safe by object reference equality.
@@ -79,8 +95,9 @@ export function useClinicalRecordAutosave({
           // still needs to expire. Preserve any newer pending/saving status.
           setAutosaveStatus((s) => (s === 'saved' ? 'idle' : s))
         }, 2500)
-      } catch {
+      } catch (err: unknown) {
         if (!isCurrent) return
+        setAutosaveError(err instanceof Error && err.message ? err.message : null)
         setAutosaveStatus('error')
       }
     }, debounceMs)
@@ -105,5 +122,9 @@ export function useClinicalRecordAutosave({
     setAutosaveStatus('idle')
   }, [])
 
-  return { autosaveStatus, cancelPendingAutosave }
+  const waitForAutosaveInFlight = useCallback(async () => {
+    if (inFlightRef.current) await inFlightRef.current
+  }, [])
+
+  return { autosaveStatus, autosaveError, cancelPendingAutosave, waitForAutosaveInFlight }
 }

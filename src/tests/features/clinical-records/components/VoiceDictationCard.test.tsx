@@ -7,7 +7,7 @@ import {
   latestRecorder,
   resetMediaRecorder,
 } from '@/test-utils/mocks/clinical-media'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -145,7 +145,9 @@ function renderCard(
   props: Partial<{
     recordId: string
     readOnly: boolean
-    onApplyFields: (fields: Partial<Record<ClinicalDictationFieldKey, string>>) => void
+    onApplyFields: (
+      fields: Partial<Record<ClinicalDictationFieldKey, string>>,
+    ) => boolean | undefined
   }> = {},
 ) {
   const onApplyFields = props.onApplyFields ?? vi.fn()
@@ -335,11 +337,39 @@ describe('discard action', () => {
 
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: /Descartar/i }))
+    const dialog = screen.getByRole('dialog', { name: 'Descartar sugestões?' })
+    expect(dialog).toHaveTextContent('serão perdidas')
+    await user.click(within(dialog).getByRole('button', { name: 'Descartar' }))
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument(),
     )
     expect(screen.queryByText(/Transcrição/i)).not.toBeInTheDocument()
+  })
+
+  it('keeps the reviewed suggestions when the discard confirmation is cancelled', async () => {
+    await reachSuccessState()
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /Descartar/i }))
+    await user.click(screen.getByRole('button', { name: 'Continuar revisando' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument()
+  })
+
+  it('keeps the review open when the editor refuses to apply the fields', async () => {
+    const onApplyFields = vi.fn().mockReturnValue(false)
+    await reachSuccessState(onApplyFields)
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /Aplicar campos selecionados/i }))
+
+    expect(onApplyFields).toHaveBeenCalledOnce()
+    expect(screen.getByRole('button', { name: /Aplicar campos selecionados/i })).toBeInTheDocument()
+    expect(mockShowAlert).not.toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Sugestões aplicadas' }),
+    )
   })
 })
 
@@ -1266,6 +1296,8 @@ describe('editable field review', () => {
     const user = userEvent.setup()
 
     await user.click(screen.getByRole('button', { name: /Gravar novamente/i }))
+    const dialog = screen.getByRole('dialog', { name: 'Gravar novamente?' })
+    await user.click(within(dialog).getByRole('button', { name: 'Gravar novamente' }))
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument(),
@@ -1278,6 +1310,7 @@ describe('editable field review', () => {
     const user = userEvent.setup()
 
     await user.click(screen.getByRole('button', { name: /Descartar/i }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Descartar' }))
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument(),
@@ -1904,6 +1937,7 @@ describe('conflict-aware review', () => {
     await user.click(screen.getByRole('button', { name: /Substituir tudo/i }))
     // Discard resets all state including modes
     await user.click(screen.getByRole('button', { name: /Descartar/i }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Descartar' }))
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /Gravar consulta/i })).toBeInTheDocument(),
     )

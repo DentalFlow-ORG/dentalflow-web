@@ -2,6 +2,9 @@ import { useId } from 'react'
 
 import { cn } from '@/lib/utils'
 
+import { CHARACTER_COUNTER_THRESHOLD } from '../constants/clinical-record-limits'
+import { CharacterLimitCounter } from './CharacterLimitCounter'
+
 type Props = {
   label: string
   /** Optional subtitle shown below the label — provides brief guidance for the field. */
@@ -11,6 +14,8 @@ type Props = {
   placeholder?: string
   readOnly?: boolean
   rows?: number
+  /** API length limit for this field; enforced on input with a counter near the limit. */
+  maxLength?: number
   className?: string
   /**
    * When true, the label and hint are rendered as `sr-only` — visually hidden
@@ -29,10 +34,14 @@ export function ClinicalSectionField({
   placeholder,
   readOnly = false,
   rows = 4,
+  maxLength,
   className,
   hideLabel = false,
 }: Props) {
   const fieldId = useId()
+  const counterId = `${fieldId}-counter`
+  const showCounter =
+    maxLength !== undefined && !readOnly && value.length >= maxLength * CHARACTER_COUNTER_THRESHOLD
 
   return (
     <div className={cn('space-y-1.5', className)}>
@@ -52,11 +61,16 @@ export function ClinicalSectionField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={readOnly ? undefined : placeholder}
         readOnly={readOnly}
+        maxLength={readOnly ? undefined : maxLength}
+        aria-describedby={showCounter ? counterId : undefined}
         className={cn(
           'w-full rounded-md border border-border px-3 py-2 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/15 resize-y bg-card',
           readOnly && 'cursor-default bg-muted text-muted-foreground',
         )}
       />
+      {showCounter && (
+        <CharacterLimitCounter id={counterId} length={value.length} maxLength={maxLength} />
+      )}
     </div>
   )
 }

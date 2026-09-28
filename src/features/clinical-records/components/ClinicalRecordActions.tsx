@@ -12,9 +12,11 @@ type Props = {
   isSaving: boolean
   onSaveDraft: () => void
   onComplete: () => void
-  onLock: () => void
-  onCancel: () => void
-  onRestore: () => void
+  // Status transitions resolve when the request settles; the confirmation
+  // dialog stays open (showing its pending state) until then.
+  onLock: () => Promise<void>
+  onCancel: () => Promise<void>
+  onRestore: () => Promise<void>
   onPrint: () => void
 }
 
@@ -121,9 +123,9 @@ export function ClinicalRecordActions({
         cancelLabel="Cancelar"
         tone="warning"
         isConfirming={isSaving}
-        onConfirm={() => {
+        onConfirm={async () => {
+          await onLock()
           setConfirmLock(false)
-          onLock()
         }}
         onCancel={() => setConfirmLock(false)}
       />
@@ -140,9 +142,9 @@ export function ClinicalRecordActions({
         cancelLabel="Manter prontuário"
         tone="destructive"
         isConfirming={isSaving}
-        onConfirm={() => {
+        onConfirm={async () => {
+          await onCancel()
           setConfirmCancel(false)
-          onCancel()
         }}
         onCancel={() => setConfirmCancel(false)}
       />
@@ -157,9 +159,9 @@ export function ClinicalRecordActions({
         cancelLabel="Fechar"
         tone="warning"
         isConfirming={isSaving}
-        onConfirm={() => {
+        onConfirm={async () => {
+          await onRestore()
           setConfirmRestore(false)
-          onRestore()
         }}
         onCancel={() => setConfirmRestore(false)}
       />

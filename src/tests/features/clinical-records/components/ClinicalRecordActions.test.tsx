@@ -1,4 +1,4 @@
-import { renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
+import { act, renderWithProviders, screen, userEvent } from '@/test-utils/render-utils'
 import { within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 
@@ -354,4 +354,36 @@ describe('ClinicalRecordActions — isSaving', () => {
     render(makeProps('DRAFT', { isSaving: true }))
     expect(screen.getByRole('button', { name: /Imprimir prontuário/i })).not.toBeDisabled()
   })
+})
+
+// ── Confirmation stays open while the transition runs ──────────────────────────
+// Closing the dialog before the request resolved hid the pending state; the
+// dialog now closes only once the status change has settled.
+
+describe('ClinicalRecordActions — pending status transitions', () => {
+  it.each([
+    ['COMPLETED', /Bloquear prontuário/i, 'Bloquear definitivamente', 'onLock'],
+    ['DRAFT', /Cancelar prontuário/i, 'Confirmar cancelamento', 'onCancel'],
+    ['CANCELED', /Restaurar prontuário/i, 'Restaurar prontuário', 'onRestore'],
+  ] as const)(
+    'keeps the %s dialog open until %s resolves',
+    async (status, trigger, confirmLabel, handler) => {
+      let finish!: () => void
+      const pending = vi.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            finish = resolve
+          }),
+      )
+      const user = userEvent.setup()
+      render(makeProps(status, { [handler]: pending }))
+      await user.click(screen.getByRole('button', { name: trigger }))
+      const dialog = screen.getByRole('dialog')
+      await user.click(within(dialog).getByRole('button', { name: confirmLabel }))
+      expect(pending).toHaveBeenCalledOnce()
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+      await act(async () => finish())
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    },
+  )
 })
