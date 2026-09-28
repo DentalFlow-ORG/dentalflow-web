@@ -23,6 +23,7 @@ import type {
   InvoicePayload,
   ServiceInvoice,
 } from '../types/fiscal.types'
+import { buildInvoiceRequest } from '../utils/invoice-request'
 
 const PAGE_SIZE = 10
 
@@ -183,10 +184,10 @@ export function useFiscalInvoicesPage() {
   async function saveInvoice(payload: InvoicePayload, invoice?: ServiceInvoice | null) {
     try {
       if (invoice) {
-        await updateInvoice(invoice.id, payload)
+        await updateInvoice(invoice.id, buildInvoiceRequest(payload, 'update'))
         showAlert({ title: 'Nota fiscal atualizada.', tone: 'success' })
       } else {
-        await createInvoice(payload)
+        await createInvoice(buildInvoiceRequest(payload, 'create'))
         showAlert({ title: 'Nota salva como rascunho.', tone: 'success' })
       }
       load()

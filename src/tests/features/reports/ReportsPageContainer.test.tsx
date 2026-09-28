@@ -547,7 +547,7 @@ describe('ReportsPageContainer — filter interactions', () => {
       .closest('section') as HTMLElement
 
     await userEvent.click(within(financeSection).getByRole('combobox', { name: /^tipo$/i }))
-    await userEvent.click(await screen.findByRole('option', { name: 'Receita' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Entrada' }))
 
     await userEvent.click(
       within(financeSection).getByRole('button', { name: /pré-visualizar relatório/i }),
@@ -636,7 +636,7 @@ describe('ReportsPageContainer — filter round trips', () => {
     if (!section) throw new Error('Missing report section')
     const report = within(section)
     await userEvent.click(report.getByRole('combobox', { name: 'Tipo' }))
-    await userEvent.click(await screen.findByRole('option', { name: 'Despesa' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Saída' }))
     await userEvent.click(report.getByRole('combobox', { name: 'Tipo' }))
     await userEvent.click(await screen.findByRole('option', { name: 'Todos os tipos' }))
     await preview(report)
@@ -667,13 +667,13 @@ describe('ReportsPageContainer — filter round trips', () => {
     {
       title: 'Relatório de estoque',
       service: 'getInventoryReportPreview',
-      status: 'Zerado',
+      status: 'Sem estoque',
       value: 'EMPTY',
     },
     {
       title: 'Relatório de notas fiscais',
       service: 'getInvoicesReportPreview',
-      status: 'Emitido',
+      status: 'Emitida',
       value: 'ISSUED',
     },
   ] as const)(

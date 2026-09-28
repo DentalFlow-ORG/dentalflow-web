@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { formatCepBR, formatCpfCnpjBR } from '@/lib/field-formatters'
 
 import { AppointmentInvoicePickerModal } from '../components/AppointmentInvoicePickerModal'
 import { FiscalInvoiceFiltersBar } from '../components/FiscalInvoiceFiltersBar'
@@ -20,9 +21,12 @@ import { FiscalSummaryKpiGrid } from '../components/FiscalSummaryKpiGrid'
 import { InvoiceDetails } from '../components/InvoiceDetails'
 import { InvoiceForm } from '../components/InvoiceForm'
 import { InvoiceList } from '../components/InvoiceList'
+import { INVOICE_FIELD_LIMITS } from '../constants/invoice-field-limits'
 import { useFiscalInvoicesPage } from '../hooks/useFiscalInvoicesPage'
 import { getAppointmentInvoiceDraft } from '../services/fiscal.service'
 import type { FiscalProfilePayload, InvoicePayload, ServiceInvoice } from '../types/fiscal.types'
+import { getMissingFiscalProfileFields } from '../utils/fiscal-profile-completeness'
+import { toInvoiceFormContact } from '../utils/invoice-request'
 
 type ActiveWorkspace = 'profile' | 'form' | 'details' | 'none'
 
@@ -58,8 +62,6 @@ const emptyProfileForm: FiscalProfilePayload = {
   addressState: '',
   addressZipCode: '',
   cityIbgeCode: '',
-  fiscalProvider: 'LOCAL',
-  fiscalProviderMode: 'LOCAL',
 }
 
 export function FiscalInvoicesPageContainer() {
@@ -77,6 +79,10 @@ export function FiscalInvoicesPageContainer() {
   const [cancelReason, setCancelReason] = useState('')
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [simulateTarget, setSimulateTarget] = useState<ServiceInvoice | null>(null)
+  const [isSimulating, setIsSimulating] = useState(false)
+  const [pendingInvoiceId, setPendingInvoiceId] = useState<string | null>(null)
+  const [isInvoiceSaving, setIsInvoiceSaving] = useState(false)
   const [isProfileSaving, setIsProfileSaving] = useState(false)
   const [isLoadingDraft, setIsLoadingDraft] = useState(false)
   const [draftLoadError, setDraftLoadError] = useState<string | null>(null)
@@ -114,6 +120,9 @@ export function FiscalInvoicesPageContainer() {
   const activeWorkspaceLabel = getActiveWorkspaceLabel(activeWorkspace)
   const isFiscalConfigurationIncomplete =
     summary?.configurationPending ?? (profile ? !profile.isConfigured : false)
+  // Mirrors the API issuing guard: a draft profile can be saved incomplete,
+  // but simulating needs the required fiscal data.
+  const missingFiscalFields = getMissingFiscalProfileFields(profile)
 
   function scrollToWorkspace() {
     window.requestAnimationFrame(() => {
@@ -131,7 +140,7 @@ export function FiscalInvoicesPageContainer() {
             legalName: profile.legalName,
             tradeName: profile.tradeName ?? '',
             documentType: profile.documentType,
-            documentNumber: profile.documentNumber,
+            documentNumber: formatCpfCnpjBR(profile.documentNumber),
             municipalRegistration: profile.municipalRegistration ?? '',
             stateRegistration: profile.stateRegistration ?? '',
             taxRegime: profile.taxRegime,
@@ -145,10 +154,8 @@ export function FiscalInvoicesPageContainer() {
             addressNeighborhood: profile.addressNeighborhood,
             addressCity: profile.addressCity,
             addressState: profile.addressState,
-            addressZipCode: profile.addressZipCode,
+            addressZipCode: formatCepBR(profile.addressZipCode),
             cityIbgeCode: profile.cityIbgeCode ?? '',
-            fiscalProvider: profile.fiscalProvider,
-            fiscalProviderMode: profile.fiscalProviderMode,
           }
         : emptyProfileForm,
     )
@@ -163,9 +170,8 @@ export function FiscalInvoicesPageContainer() {
       invoice
         ? {
             customerName: invoice.customerName,
-            customerDocument: invoice.customerDocument ?? '',
+            ...toInvoiceFormContact(invoice.customerDocument, invoice.customerPhone),
             customerEmail: invoice.customerEmail ?? '',
-            customerPhone: invoice.customerPhone ?? '',
             serviceDescription: invoice.serviceDescription,
             serviceCode: invoice.serviceCode ?? '',
             amountCents: invoice.amountCents,
@@ -195,7 +201,8 @@ export function FiscalInvoicesPageContainer() {
       setInvoiceForm({
         ...emptyInvoiceForm,
         ...result.draft,
-        customerDocument: '',
+        customerEmail: result.draft.customerEmail ?? '',
+        ...toInvoiceFormContact(null, result.draft.customerPhone ?? null),
         serviceCode: '',
         notes: '',
       })
@@ -212,6 +219,8 @@ export function FiscalInvoicesPageContainer() {
   }
 
   async function submitInvoice() {
+    if (isInvoiceSaving) return
+    setIsInvoiceSaving(true)
     try {
       await saveInvoice(invoiceForm, editingInvoice)
       setIsInvoiceFormOpen(false)
@@ -221,6 +230,35 @@ export function FiscalInvoicesPageContainer() {
       setAppointmentWarnings(null)
     } catch {
       // O hook já exibe o alerta em português; manter o formulário aberto ajuda na correção.
+    } finally {
+      setIsInvoiceSaving(false)
+    }
+  }
+
+  async function handleMarkReady(invoice: ServiceInvoice) {
+    if (pendingInvoiceId) return
+    setPendingInvoiceId(invoice.id)
+    try {
+      await markReady(invoice)
+    } catch {
+      // O hook já exibe o alerta em português.
+    } finally {
+      setPendingInvoiceId(null)
+    }
+  }
+
+  async function confirmSimulate() {
+    if (!simulateTarget) return
+    setIsSimulating(true)
+    setPendingInvoiceId(simulateTarget.id)
+    try {
+      await simulateIssue(simulateTarget)
+      setSimulateTarget(null)
+    } catch {
+      // O hook já exibe o alerta em português.
+    } finally {
+      setIsSimulating(false)
+      setPendingInvoiceId(null)
     }
   }
 
@@ -417,6 +455,11 @@ export function FiscalInvoicesPageContainer() {
                 <div>
                   <FiscalProfileForm
                     form={profileForm}
+                    savedIdentity={
+                      profile
+                        ? { documentNumber: profile.documentNumber, taxRegime: profile.taxRegime }
+                        : null
+                    }
                     onChange={setProfileForm}
                     onCancel={() => {
                       setIsProfileFormOpen(false)
@@ -448,8 +491,9 @@ export function FiscalInvoicesPageContainer() {
                           Já existe uma nota vinculada a esta consulta
                         </p>
                         <p className="mt-1 leading-6">
-                          Salvar irá criar uma nova nota separada. A nota existente não será
-                          alterada. Certifique-se de que uma duplicidade é intencional.
+                          Uma consulta só pode ter uma nota ativa, por isso o salvamento será
+                          recusado. Para gerar outra nota, cancele a nota existente ou edite-a na
+                          lista abaixo.
                         </p>
                       </InlineFeedback>
                     </div>
@@ -457,6 +501,7 @@ export function FiscalInvoicesPageContainer() {
                   <InvoiceForm
                     form={invoiceForm}
                     editing={!!editingInvoice}
+                    isSaving={isInvoiceSaving}
                     onChange={setInvoiceForm}
                     onCancel={() => {
                       setIsInvoiceFormOpen(false)
@@ -495,16 +540,15 @@ export function FiscalInvoicesPageContainer() {
             totalPages={totalPages}
             total={total}
             limit={filters.limit}
+            pendingInvoiceId={pendingInvoiceId}
             onViewDetails={(invoice) => {
               void openInvoiceDetails(invoice)
             }}
             onEdit={openInvoiceForm}
             onMarkReady={(invoice) => {
-              void markReady(invoice).catch(() => undefined)
+              void handleMarkReady(invoice)
             }}
-            onSimulate={(invoice) => {
-              void simulateIssue(invoice).catch(() => undefined)
-            }}
+            onSimulate={setSimulateTarget}
             onCancel={setCancelTarget}
             onPageChange={(page) => setFilters((current) => ({ ...current, page }))}
             onPageSizeChange={(limit) => setFilters((current) => ({ ...current, page: 1, limit }))}
@@ -515,6 +559,7 @@ export function FiscalInvoicesPageContainer() {
       <ConfirmDialog
         open={!!cancelTarget}
         title="Cancelar nota fiscal"
+        subject={cancelTarget ? describeInvoice(cancelTarget) : undefined}
         description="A nota será cancelada apenas no controle interno. Nenhuma NFS-e real será cancelada."
         confirmLabel="Cancelar nota"
         cancelLabel="Voltar"
@@ -531,6 +576,7 @@ export function FiscalInvoicesPageContainer() {
             <TextInput
               id="cancelReason"
               value={cancelReason}
+              maxLength={INVOICE_FIELD_LIMITS.cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="Ex.: erro nos dados do tomador, duplicidade ou cancelamento solicitado"
             />
@@ -539,6 +585,27 @@ export function FiscalInvoicesPageContainer() {
             Esse motivo será registrado no histórico da nota.
           </p>
         </div>
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={!!simulateTarget}
+        tone="warning"
+        title="Simular emissão da nota?"
+        subject={simulateTarget ? describeInvoice(simulateTarget) : undefined}
+        description="A nota passará para o status Simulada e não poderá mais ser editada. A simulação é local e não gera uma NFS-e com validade fiscal."
+        confirmLabel="Simular emissão"
+        cancelLabel="Voltar"
+        isConfirming={isSimulating}
+        confirmDisabled={missingFiscalFields.length > 0}
+        onCancel={() => setSimulateTarget(null)}
+        onConfirm={confirmSimulate}
+      >
+        {missingFiscalFields.length > 0 && (
+          <p className="text-sm leading-6 text-destructive" role="alert">
+            Complete os dados fiscais da clínica antes de simular. Falta:{' '}
+            {missingFiscalFields.join(', ')}.
+          </p>
+        )}
       </ConfirmDialog>
 
       <AppointmentInvoicePickerModal
@@ -551,6 +618,11 @@ export function FiscalInvoicesPageContainer() {
       />
     </AppPage>
   )
+}
+
+function describeInvoice(invoice: ServiceInvoice) {
+  const number = invoice.invoiceNumber ? `Nota nº ${invoice.invoiceNumber} · ` : ''
+  return `${number}${invoice.customerName}`
 }
 
 function getActiveWorkspaceLabel(activeWorkspace: ActiveWorkspace) {

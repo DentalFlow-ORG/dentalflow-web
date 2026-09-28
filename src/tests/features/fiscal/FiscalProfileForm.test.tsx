@@ -63,10 +63,43 @@ function makeForm(overrides: Partial<FiscalProfilePayload> = {}): FiscalProfileP
     addressState: '',
     addressZipCode: '',
     cityIbgeCode: '',
-    fiscalProvider: 'LOCAL',
-    fiscalProviderMode: 'LOCAL',
     ...overrides,
   }
+}
+
+const VALID_ADDRESS = {
+  addressZipCode: '01310-100',
+  addressStreet: 'Av. Paulista',
+  addressNumber: '1000',
+  addressNeighborhood: 'Bela Vista',
+  addressCity: 'São Paulo',
+  addressState: 'SP',
+} satisfies Partial<FiscalProfilePayload>
+
+// Keeps the form state like a real container so user edits flow back as props.
+function renderStatefulForm(
+  initial: FiscalProfilePayload,
+  onChangeSpy: (form: FiscalProfilePayload) => void = vi.fn(),
+) {
+  function Form() {
+    const [form, setForm] = useState(initial)
+    return (
+      <FiscalProfileForm
+        form={form}
+        onChange={(next) => {
+          onChangeSpy(next)
+          setForm(next)
+        }}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />
+    )
+  }
+  return render(<Form />)
+}
+
+function typeCep(value: string) {
+  fireEvent.change(screen.getByLabelText('CEP'), { target: { value } })
 }
 
 function renderForm(
@@ -291,8 +324,7 @@ describe('FiscalProfileForm — actions', () => {
       form: makeForm({
         legalName: 'Clínica Ltda',
         documentNumber: '11.222.333/0001-81',
-        addressZipCode: '01310-100',
-        addressState: 'SP',
+        ...VALID_ADDRESS,
       }),
     })
     fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
@@ -338,10 +370,16 @@ describe('FiscalProfileForm — field validation', () => {
     expect(screen.getByText('Informe a razão social.')).toBeInTheDocument()
   })
 
-  it('shows "Informe um CNPJ válido com 14 dígitos." when documentNumber is empty', () => {
-    renderForm()
+  it('saves a draft with only the legal name, leaving CNPJ, CEP and UF blank', () => {
+    const onSubmit = vi.fn()
+    renderForm({ onSubmit, form: makeForm({ legalName: 'Clínica Ltda' }) })
     clickSave()
-    expect(screen.getByText('Informe um CNPJ válido com 14 dígitos.')).toBeInTheDocument()
+    expect(onSubmit).toHaveBeenCalledOnce()
+    expect(screen.queryByText('Informe um CNPJ válido com 14 dígitos.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Informe um CEP com 8 dígitos.')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('Informe uma sigla de estado válida (ex: SP, RJ).'),
+    ).not.toBeInTheDocument()
   })
 
   it('shows "Informe um CNPJ válido com 14 dígitos." when documentNumber has fewer digits', () => {
@@ -350,22 +388,10 @@ describe('FiscalProfileForm — field validation', () => {
     expect(screen.getByText('Informe um CNPJ válido com 14 dígitos.')).toBeInTheDocument()
   })
 
-  it('shows "Informe um CEP com 8 dígitos." when zip is empty', () => {
-    renderForm()
-    clickSave()
-    expect(screen.getByText('Informe um CEP com 8 dígitos.')).toBeInTheDocument()
-  })
-
   it('shows "Informe um CEP com 8 dígitos." when zip has fewer digits', () => {
     renderForm({ form: makeForm({ addressZipCode: '01310' }) })
     clickSave()
     expect(screen.getByText('Informe um CEP com 8 dígitos.')).toBeInTheDocument()
-  })
-
-  it('shows "Informe uma sigla de estado válida (ex: SP, RJ)." when state is empty', () => {
-    renderForm()
-    clickSave()
-    expect(screen.getByText('Informe uma sigla de estado válida (ex: SP, RJ).')).toBeInTheDocument()
   })
 
   it('shows "Informe uma sigla de estado válida (ex: SP, RJ)." when state has 1 letter', () => {
@@ -394,7 +420,7 @@ describe('FiscalProfileForm — field validation', () => {
   })
 
   it('invalid CNPJ input has aria-invalid=true', () => {
-    renderForm()
+    renderForm({ form: makeForm({ documentNumber: '12.345.678/0001' }) })
     clickSave()
     expect(screen.getByLabelText('CNPJ')).toHaveAttribute('aria-invalid', 'true')
   })
@@ -406,8 +432,7 @@ describe('FiscalProfileForm — field validation', () => {
       form: makeForm({
         legalName: 'Clínica Ltda',
         documentNumber: '11.222.333/0001-81',
-        addressZipCode: '01310-100',
-        addressState: 'SP',
+        ...VALID_ADDRESS,
         issRate: 0,
       }),
     })
@@ -422,8 +447,7 @@ describe('FiscalProfileForm — field validation', () => {
       form: makeForm({
         legalName: 'Clínica Ltda',
         documentNumber: '11.222.333/0001-81',
-        addressZipCode: '01310-100',
-        addressState: 'SP',
+        ...VALID_ADDRESS,
         issRate: null,
       }),
     })
@@ -553,12 +577,13 @@ describe('FiscalProfileForm — CEP auto-lookup', () => {
         }),
       )
       function Form() {
-        const [form, setForm] = useState(makeForm({ addressZipCode: '01310-100' }))
+        const [form, setForm] = useState(makeForm())
         return (
           <FiscalProfileForm form={form} onChange={setForm} onCancel={vi.fn()} onSubmit={vi.fn()} />
         )
       }
       render(<Form />)
+      typeCep('01310-100')
       await act(async () => vi.advanceTimersByTimeAsync(400))
       const zip = screen.getByLabelText('CEP')
       expect(zip.parentElement?.querySelector('svg')).toBeInTheDocument()
@@ -574,17 +599,20 @@ describe('FiscalProfileForm — CEP auto-lookup', () => {
   })
   it('preserves manually entered address fields when CEP data omits them', async () => {
     mockFetchAddressByCep.mockResolvedValueOnce({ street: '', neighborhood: '', city: '', uf: '' })
-    const { props } = renderForm({
-      form: makeForm({
-        addressZipCode: '01310-100',
+    const onChange = vi.fn()
+    renderStatefulForm(
+      makeForm({
         addressStreet: 'Rua digitada',
         addressNeighborhood: 'Bairro digitado',
         addressCity: 'Santos',
         addressState: 'SP',
       }),
-    })
+      onChange,
+    )
+    typeCep('01310-100')
+    await waitFor(() => expect(mockFetchAddressByCep).toHaveBeenCalledWith('01310-100'))
     await waitFor(() =>
-      expect(props.onChange).toHaveBeenCalledWith(
+      expect(onChange).toHaveBeenLastCalledWith(
         expect.objectContaining({
           addressStreet: 'Rua digitada',
           addressNeighborhood: 'Bairro digitado',
@@ -597,7 +625,7 @@ describe('FiscalProfileForm — CEP auto-lookup', () => {
 
   it('clears the corrected field error without hiding other validation errors', () => {
     function Form() {
-      const [form, setForm] = useState(makeForm())
+      const [form, setForm] = useState(makeForm({ documentNumber: '12.345.678/0001' }))
       return (
         <FiscalProfileForm form={form} onChange={setForm} onCancel={vi.fn()} onSubmit={vi.fn()} />
       )
@@ -615,8 +643,7 @@ describe('FiscalProfileForm — CEP auto-lookup', () => {
       form: makeForm({
         legalName: 'Clínica Dental',
         documentNumber: '11.222.333/0001-81',
-        addressZipCode: '01310-100',
-        addressState: 'SP',
+        ...VALID_ADDRESS,
         tradeName: undefined,
         municipalRegistration: undefined,
         stateRegistration: undefined,
@@ -650,7 +677,7 @@ describe('FiscalProfileForm — CEP auto-lookup', () => {
             uf: 'SP',
           })
         function Form() {
-          const [form, setForm] = useState(makeForm({ addressZipCode: '01310-100' }))
+          const [form, setForm] = useState(makeForm())
           return (
             <FiscalProfileForm
               form={form}
@@ -661,6 +688,7 @@ describe('FiscalProfileForm — CEP auto-lookup', () => {
           )
         }
         render(<Form />)
+        typeCep('01310-100')
         await act(async () => vi.advanceTimersByTimeAsync(400))
         fireEvent.change(screen.getByLabelText('CEP'), { target: { value: '11010-000' } })
         await act(async () => vi.advanceTimersByTimeAsync(400))
@@ -701,7 +729,8 @@ describe('FiscalProfileForm — CEP auto-lookup', () => {
       uf: 'SP',
     })
     const onChange = vi.fn()
-    renderForm({ onChange, form: makeForm({ addressZipCode: '01310-100' }) })
+    renderStatefulForm(makeForm(), onChange)
+    typeCep('01310-100')
 
     await waitFor(() => expect(mockFetchAddressByCep).toHaveBeenCalledWith('01310-100'), {
       timeout: 2000,
@@ -720,7 +749,8 @@ describe('FiscalProfileForm — CEP auto-lookup', () => {
 
   it('shows "CEP não encontrado." when the CEP lookup returns CepNotFoundError', async () => {
     mockFetchAddressByCep.mockRejectedValue(new CepNotFoundError())
-    renderForm({ form: makeForm({ addressZipCode: '01310-100' }) })
+    renderStatefulForm(makeForm())
+    typeCep('01310-100')
     expect(
       await screen.findByText('CEP não encontrado.', {}, { timeout: 2000 }),
     ).toBeInTheDocument()
@@ -728,7 +758,8 @@ describe('FiscalProfileForm — CEP auto-lookup', () => {
 
   it('shows a generic error when the CEP lookup fails for another reason', async () => {
     mockFetchAddressByCep.mockRejectedValue(new Error('network'))
-    renderForm({ form: makeForm({ addressZipCode: '01310-100' }) })
+    renderStatefulForm(makeForm())
+    typeCep('01310-100')
     expect(
       await screen.findByText('Não foi possível consultar o CEP.', {}, { timeout: 2000 }),
     ).toBeInTheDocument()
@@ -736,20 +767,257 @@ describe('FiscalProfileForm — CEP auto-lookup', () => {
 
   it('clears a prior CEP lookup error as soon as the zip field changes again', async () => {
     mockFetchAddressByCep.mockRejectedValue(new CepNotFoundError())
-    const { rerender } = renderForm({ form: makeForm({ addressZipCode: '01310-100' }) })
+    renderStatefulForm(makeForm())
+    typeCep('01310-100')
     expect(
       await screen.findByText('CEP não encontrado.', {}, { timeout: 2000 }),
     ).toBeInTheDocument()
 
-    fireEvent.change(screen.getByLabelText('CEP'), { target: { value: '02000-000' } })
-    rerender(
-      <FiscalProfileForm
-        form={makeForm({ addressZipCode: '02000-000' })}
-        onChange={vi.fn()}
-        onCancel={vi.fn()}
-        onSubmit={vi.fn()}
-      />,
-    )
+    typeCep('02000-00')
     expect(screen.queryByText('CEP não encontrado.')).not.toBeInTheDocument()
   }, 10000)
+
+  it('does not look up the CEP of a saved profile when the form is loaded', async () => {
+    const onChange = vi.fn()
+    renderForm({
+      onChange,
+      form: makeForm({ ...VALID_ADDRESS, addressStreet: 'Rua Salva', addressNumber: '42' }),
+    })
+    await new Promise((r) => setTimeout(r, 500))
+    expect(mockFetchAddressByCep).not.toHaveBeenCalled()
+    expect(onChange).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Rua')).toHaveValue('Rua Salva')
+  })
+})
+
+// ── QA remediation: required address, ISS decimals, IBGE, sensitive changes ──
+
+describe('FiscalProfileForm — incomplete draft', () => {
+  it('saves a profile with a blank address and lists what issuance still needs', () => {
+    const onSubmit = vi.fn()
+    renderForm({
+      onSubmit,
+      form: makeForm({ legalName: 'Clínica Ltda', documentNumber: '11.222.333/0001-81' }),
+    })
+    expect(screen.getByTestId('fiscal-profile-incomplete')).toHaveTextContent(
+      'falta preencher: rua, número, bairro, cidade, UF, CEP.',
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+    expect(screen.getByLabelText('Rua')).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('treats whitespace-only address values as still missing for issuance', () => {
+    renderForm({
+      form: makeForm({
+        legalName: 'Clínica Ltda',
+        documentNumber: '11.222.333/0001-81',
+        ...VALID_ADDRESS,
+        addressCity: '   ',
+      }),
+    })
+    expect(screen.getByTestId('fiscal-profile-incomplete')).toHaveTextContent(
+      'falta preencher: cidade.',
+    )
+  })
+
+  it('hides the incomplete notice once every issuance field is filled', () => {
+    renderForm({
+      form: makeForm({
+        legalName: 'Clínica Ltda',
+        documentNumber: '11.222.333/0001-81',
+        ...VALID_ADDRESS,
+      }),
+    })
+    expect(screen.queryByTestId('fiscal-profile-incomplete')).not.toBeInTheDocument()
+  })
+
+  it('mirrors the backend length limits on text inputs', () => {
+    renderForm()
+    expect(screen.getByLabelText('Razão social')).toHaveAttribute('maxLength', '150')
+    expect(screen.getByLabelText(/Inscrição municipal/)).toHaveAttribute('maxLength', '30')
+    expect(screen.getByLabelText(/Complemento/)).toHaveAttribute('maxLength', '100')
+  })
+})
+
+describe('FiscalProfileForm — ISS rate typing', () => {
+  it('keeps the decimal comma while typing so "2,5" can be entered', () => {
+    const onChange = vi.fn()
+    renderStatefulForm(makeForm(), onChange)
+    const input = screen.getByLabelText(/Alíquota de ISS/)
+    fireEvent.change(input, { target: { value: '2,' } })
+    expect(input).toHaveValue('2,')
+    fireEvent.change(input, { target: { value: '2,5' } })
+    expect(input).toHaveValue('2,5')
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ issRate: 2.5 }))
+  })
+
+  it('limits the rate to two decimal places', () => {
+    renderStatefulForm(makeForm())
+    const input = screen.getByLabelText(/Alíquota de ISS/)
+    fireEvent.change(input, { target: { value: '2,555' } })
+    expect(input).toHaveValue('2,55')
+  })
+
+  it('accepts a dot as the decimal separator and shows it as a comma', () => {
+    renderStatefulForm(makeForm())
+    const input = screen.getByLabelText(/Alíquota de ISS/)
+    fireEvent.change(input, { target: { value: '3.75' } })
+    expect(input).toHaveValue('3,75')
+  })
+
+  it('rejects a rate above 100', () => {
+    const onSubmit = vi.fn()
+    renderForm({
+      onSubmit,
+      form: makeForm({
+        legalName: 'Clínica Ltda',
+        documentNumber: '11.222.333/0001-81',
+        ...VALID_ADDRESS,
+        issRate: 100.01,
+      }),
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByText('Informe uma alíquota válida entre 0 e 100.')).toBeInTheDocument()
+  })
+
+  it('accepts the 100 boundary', () => {
+    const onSubmit = vi.fn()
+    renderForm({
+      onSubmit,
+      form: makeForm({
+        legalName: 'Clínica Ltda',
+        documentNumber: '11.222.333/0001-81',
+        ...VALID_ADDRESS,
+        issRate: 100,
+      }),
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
+})
+
+describe('FiscalProfileForm — IBGE code', () => {
+  it('rejects a code with fewer than 7 digits', () => {
+    const onSubmit = vi.fn()
+    renderForm({
+      onSubmit,
+      form: makeForm({
+        legalName: 'Clínica Ltda',
+        documentNumber: '11.222.333/0001-81',
+        ...VALID_ADDRESS,
+        cityIbgeCode: '355030',
+      }),
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByText('O código IBGE deve conter 7 dígitos.')).toBeInTheDocument()
+  })
+
+  it('accepts a 7-digit code', () => {
+    const onSubmit = vi.fn()
+    renderForm({
+      onSubmit,
+      form: makeForm({
+        legalName: 'Clínica Ltda',
+        documentNumber: '11.222.333/0001-81',
+        ...VALID_ADDRESS,
+        cityIbgeCode: '3550308',
+      }),
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
+
+  it('keeps only digits in the IBGE code', () => {
+    renderStatefulForm(makeForm())
+    const input = screen.getByLabelText(/Código IBGE/)
+    fireEvent.change(input, { target: { value: '35a50-308' } })
+    expect(input).toHaveValue('3550308')
+  })
+})
+
+describe('FiscalProfileForm — sensitive changes', () => {
+  const savedForm = makeForm({
+    legalName: 'Clínica Ltda',
+    documentNumber: '11.222.333/0001-81',
+    ...VALID_ADDRESS,
+  })
+  const savedIdentity = {
+    documentNumber: '11222333000181',
+    taxRegime: 'SIMPLES_NACIONAL' as const,
+  }
+
+  it('saves directly when neither the CNPJ nor the tax regime changed', () => {
+    const onSubmit = vi.fn()
+    render(
+      <FiscalProfileForm
+        form={{ ...savedForm, tradeName: 'Novo nome fantasia' }}
+        savedIdentity={savedIdentity}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('does not ask for confirmation when creating the first profile', () => {
+    const onSubmit = vi.fn()
+    render(
+      <FiscalProfileForm
+        form={savedForm}
+        savedIdentity={null}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
+
+  it('asks for confirmation before saving a changed CNPJ and cancels safely', () => {
+    const onSubmit = vi.fn()
+    render(
+      <FiscalProfileForm
+        form={{ ...savedForm, documentNumber: '11.444.777/0001-61' }}
+        savedIdentity={savedIdentity}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveTextContent('11.222.333/0001-81')
+    expect(dialog).toHaveTextContent('11.444.777/0001-61')
+    expect(onSubmit).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Revisar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('saves a changed tax regime only after confirmation', () => {
+    const onSubmit = vi.fn()
+    render(
+      <FiscalProfileForm
+        form={{ ...savedForm, taxRegime: 'LUCRO_PRESUMIDO' }}
+        savedIdentity={savedIdentity}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Salvar dados fiscais/ }))
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      'o regime tributário de Simples Nacional para Lucro Presumido',
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar alteração' }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+  })
 })

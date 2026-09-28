@@ -1,6 +1,7 @@
 import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { FormField, TextInput } from '@/components/common/FormField'
 import { PanelCard } from '@/components/common/PanelCard'
 import { Button } from '@/components/ui/button'
@@ -12,65 +13,133 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { formatCepBR, formatCpfCnpjBR, formatDecimalInput, formatUf } from '@/lib/field-formatters'
-import { isValidCEP, isValidCNPJ, isValidUF } from '@/lib/validators/br'
+import { isValidCEP, isValidCNPJ, isValidUF, normalizeDigits } from '@/lib/validators/br'
 import { CepNotFoundError, fetchAddressByCep } from '@/services/cep/cep.service'
 
+import { FISCAL_PROFILE_FIELD_LIMITS, TAX_REGIME_LABEL } from '../constants/fiscal-profile'
 import type { FiscalProfilePayload } from '../types/fiscal.types'
+import { getMissingFiscalProfileFields } from '../utils/fiscal-profile-completeness'
 
-type FiscalProfileErrors = {
-  legalName?: string
-  documentNumber?: string
-  addressZipCode?: string
-  addressState?: string
-  issRate?: string
-}
+type FiscalProfileErrorField =
+  | 'legalName'
+  | 'documentNumber'
+  | 'addressZipCode'
+  | 'addressState'
+  | 'issRate'
+  | 'cityIbgeCode'
 
+type FiscalProfileErrors = Partial<Record<FiscalProfileErrorField, string>>
+
+/** Identity data of a profile that was already saved; changing it needs confirmation. */
+export type SavedFiscalIdentity = Pick<FiscalProfilePayload, 'documentNumber' | 'taxRegime'>
+
+// A fiscal profile may be saved as an incomplete draft: only the legal name is
+// required to save, and any filled field must be well formed. Completeness
+// (CNPJ, full address, CEP, UF) is enforced before an invoice is marked ready
+// or simulated — see getMissingFiscalProfileFields and the API issuing guard.
 function validateFiscalProfile(form: FiscalProfilePayload): FiscalProfileErrors {
   const errors: FiscalProfileErrors = {}
   if (!form.legalName.trim()) {
     errors.legalName = 'Informe a razão social.'
   }
-  if (!form.documentNumber.trim() || !isValidCNPJ(form.documentNumber)) {
+  if (form.documentNumber.trim() && !isValidCNPJ(form.documentNumber)) {
     errors.documentNumber = 'Informe um CNPJ válido com 14 dígitos.'
   }
-  if (!form.addressZipCode.trim() || !isValidCEP(form.addressZipCode)) {
+  if (form.addressZipCode.trim() && !isValidCEP(form.addressZipCode)) {
     errors.addressZipCode = 'Informe um CEP com 8 dígitos.'
   }
-  if (!form.addressState.trim() || !isValidUF(form.addressState)) {
+  if (form.addressState.trim() && !isValidUF(form.addressState)) {
     errors.addressState = 'Informe uma sigla de estado válida (ex: SP, RJ).'
   }
   if (
     form.issRate != null &&
-    form.issRate !== 0 &&
     (Number.isNaN(form.issRate) || form.issRate < 0 || form.issRate > 100)
   ) {
     errors.issRate = 'Informe uma alíquota válida entre 0 e 100.'
   }
+  const ibge = form.cityIbgeCode ?? ''
+  if (ibge && ibge.length !== FISCAL_PROFILE_FIELD_LIMITS.cityIbgeCode) {
+    errors.cityIbgeCode = 'O código IBGE deve conter 7 dígitos.'
+  }
   return errors
+}
+
+function formatIssRate(value: number | null): string {
+  return value == null || Number.isNaN(value) ? '' : String(value).replace('.', ',')
+}
+
+// Accepts "2", "2," and "2,5" while typing; up to 3 integer digits and 2 decimals.
+function sanitizeIssRateInput(value: string): string {
+  const raw = formatDecimalInput(value).replace('.', ',')
+  const [integerPart, decimalPart] = raw.split(',')
+  const integer = integerPart.slice(0, 3)
+  return decimalPart === undefined ? integer : `${integer},${decimalPart.slice(0, 2)}`
+}
+
+function parseIssRate(text: string): number | null {
+  if (!text) return null
+  return Number(text.replace(',', '.'))
+}
+
+function describeSensitiveChanges(form: FiscalProfilePayload, saved: SavedFiscalIdentity) {
+  const changes: string[] = []
+  if (normalizeDigits(form.documentNumber) !== normalizeDigits(saved.documentNumber)) {
+    changes.push(
+      `o CNPJ de ${formatCpfCnpjBR(saved.documentNumber)} para ${formatCpfCnpjBR(form.documentNumber)}`,
+    )
+  }
+  if (form.taxRegime !== saved.taxRegime) {
+    changes.push(
+      `o regime tributário de ${TAX_REGIME_LABEL[saved.taxRegime]} para ${TAX_REGIME_LABEL[form.taxRegime]}`,
+    )
+  }
+  return changes
 }
 
 type Props = {
   form: FiscalProfilePayload
+  /** The profile as currently saved; null when the clinic has no fiscal profile yet. */
+  savedIdentity?: SavedFiscalIdentity | null
   onChange: (form: FiscalProfilePayload) => void
   onCancel: () => void
   onSubmit: () => void
   isSaving?: boolean
 }
 
-export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving }: Props) {
+export function FiscalProfileForm({
+  form,
+  savedIdentity = null,
+  onChange,
+  onCancel,
+  onSubmit,
+  isSaving,
+}: Props) {
   const [errors, setErrors] = useState<FiscalProfileErrors>({})
   const [isCepLookingUp, setIsCepLookingUp] = useState(false)
   const [cepLookupError, setCepLookupError] = useState<string | null>(null)
+  const [pendingChanges, setPendingChanges] = useState<string[] | null>(null)
+  const [issRateDraft, setIssRateDraft] = useState(() => ({
+    value: form.issRate,
+    text: formatIssRate(form.issRate),
+  }))
+  // A draft is only trusted while it still describes the current value, so an
+  // externally loaded profile replaces what was being typed.
+  const issRateText = Object.is(issRateDraft.value, form.issRate)
+    ? issRateDraft.text
+    : formatIssRate(form.issRate)
 
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
   const formRef = useRef(form)
   formRef.current = form
+  // The address lookup only runs after the user edits the CEP. Hydrating a
+  // saved profile must never overwrite the stored street, district or city.
+  const hasEditedCepRef = useRef(false)
 
   const addressZipCode = form.addressZipCode
   useEffect(() => {
     setIsCepLookingUp(false)
-    if (!isValidCEP(addressZipCode)) return
+    if (!hasEditedCepRef.current || !isValidCEP(addressZipCode)) return
     let isCurrent = true
     const timer = setTimeout(async () => {
       setIsCepLookingUp(true)
@@ -103,14 +172,22 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
     }
   }, [addressZipCode])
 
-  function handleChange(updated: FiscalProfilePayload, field?: keyof FiscalProfileErrors) {
+  function handleChange(updated: FiscalProfilePayload, field?: FiscalProfileErrorField) {
     onChange(updated)
-    if (field && field in errors) {
+    if (field && errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
     if (field === 'addressZipCode') {
+      hasEditedCepRef.current = true
       setCepLookupError(null)
     }
+  }
+
+  function handleIssRateChange(value: string) {
+    const text = sanitizeIssRateInput(value)
+    const issRate = parseIssRate(text)
+    setIssRateDraft({ value: issRate, text })
+    handleChange({ ...form, issRate }, 'issRate')
   }
 
   function handleSubmit() {
@@ -120,8 +197,21 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
       return
     }
     setErrors({})
+    const changes = savedIdentity ? describeSensitiveChanges(form, savedIdentity) : []
+    if (changes.length > 0) {
+      setPendingChanges(changes)
+      return
+    }
     onSubmit()
   }
+
+  function confirmSensitiveChanges() {
+    setPendingChanges(null)
+    onSubmit()
+  }
+
+  const zipCodeError = errors.addressZipCode ?? cepLookupError ?? undefined
+  const missingForIssue = getMissingFiscalProfileFields(form)
 
   return (
     <PanelCard>
@@ -130,6 +220,15 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
         <p className="mt-1 text-sm text-muted-foreground">
           Confirme as informações com o contador da clínica antes de ativar a emissão real.
         </p>
+        {missingForIssue.length > 0 && (
+          <p
+            className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200"
+            data-testid="fiscal-profile-incomplete"
+          >
+            Você pode salvar o perfil incompleto. Para marcar notas como prontas ou simular a
+            emissão, falta preencher: {missingForIssue.join(', ')}.
+          </p>
+        )}
       </div>
 
       <div className="space-y-6">
@@ -147,7 +246,10 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
             >
               <TextInput
                 id="legalName"
+                placeholder="Razão social registrada no CNPJ"
+                autoComplete="organization"
                 value={form.legalName}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.legalName}
                 onChange={(e) => handleChange({ ...form, legalName: e.target.value }, 'legalName')}
                 aria-invalid={Boolean(errors.legalName)}
                 aria-describedby={errors.legalName ? 'legalName-error' : undefined}
@@ -156,13 +258,16 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
             <FormField label="Nome fantasia" htmlFor="tradeName" optional>
               <TextInput
                 id="tradeName"
+                placeholder="Nome fantasia da clínica"
                 value={form.tradeName ?? ''}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.tradeName}
                 onChange={(e) => handleChange({ ...form, tradeName: e.target.value })}
               />
             </FormField>
             <FormField label="CNPJ" htmlFor="documentNumber" error={errors.documentNumber}>
               <TextInput
                 id="documentNumber"
+                inputMode="numeric"
                 placeholder="00.000.000/0000-00"
                 value={form.documentNumber}
                 onChange={(e) =>
@@ -181,6 +286,7 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
                 id="municipalRegistration"
                 placeholder="Informe a inscrição municipal"
                 value={form.municipalRegistration ?? ''}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.registration}
                 onChange={(e) => handleChange({ ...form, municipalRegistration: e.target.value })}
               />
             </FormField>
@@ -189,6 +295,7 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
                 id="stateRegistration"
                 placeholder="Informe a inscrição estadual"
                 value={form.stateRegistration ?? ''}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.registration}
                 onChange={(e) => handleChange({ ...form, stateRegistration: e.target.value })}
               />
             </FormField>
@@ -201,14 +308,12 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
             Endereço fiscal
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <FormField
-              label="CEP"
-              htmlFor="zipCode"
-              error={errors.addressZipCode ?? cepLookupError ?? undefined}
-            >
+            <FormField label="CEP" htmlFor="zipCode" error={zipCodeError}>
               <div className="relative">
                 <TextInput
                   id="zipCode"
+                  inputMode="numeric"
+                  autoComplete="postal-code"
                   placeholder="00000-000"
                   value={form.addressZipCode}
                   onChange={(e) =>
@@ -218,8 +323,8 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
                     )
                   }
                   maxLength={9}
-                  aria-invalid={Boolean(errors.addressZipCode || cepLookupError)}
-                  aria-describedby={errors.addressZipCode ? 'zipCode-error' : undefined}
+                  aria-invalid={Boolean(zipCodeError)}
+                  aria-describedby={zipCodeError ? 'zipCode-error' : undefined}
                 />
                 {isCepLookingUp && (
                   <Loader2
@@ -232,35 +337,45 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
             <FormField label="Rua" htmlFor="street" className="sm:col-span-2">
               <TextInput
                 id="street"
+                placeholder="Rua, avenida ou logradouro"
                 value={form.addressStreet}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.addressStreet}
                 onChange={(e) => handleChange({ ...form, addressStreet: e.target.value })}
               />
             </FormField>
             <FormField label="Número" htmlFor="number">
               <TextInput
                 id="number"
+                placeholder="Ex: 120 ou S/N"
                 value={form.addressNumber}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.addressNumber}
                 onChange={(e) => handleChange({ ...form, addressNumber: e.target.value })}
               />
             </FormField>
             <FormField label="Complemento" htmlFor="complement" optional>
               <TextInput
                 id="complement"
+                placeholder="Sala, bloco, andar"
                 value={form.addressComplement ?? ''}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.addressComplement}
                 onChange={(e) => handleChange({ ...form, addressComplement: e.target.value })}
               />
             </FormField>
             <FormField label="Bairro" htmlFor="neighborhood">
               <TextInput
                 id="neighborhood"
+                placeholder="Bairro"
                 value={form.addressNeighborhood}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.addressNeighborhood}
                 onChange={(e) => handleChange({ ...form, addressNeighborhood: e.target.value })}
               />
             </FormField>
             <FormField label="Cidade" htmlFor="city" className="sm:col-span-2">
               <TextInput
                 id="city"
+                placeholder="Cidade"
                 value={form.addressCity}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.addressCity}
                 onChange={(e) => handleChange({ ...form, addressCity: e.target.value })}
               />
             </FormField>
@@ -294,14 +409,14 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
                 }
               >
                 <SelectTrigger id="taxRegime">
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione o regime tributário" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SIMPLES_NACIONAL">Simples Nacional</SelectItem>
-                  <SelectItem value="LUCRO_PRESUMIDO">Lucro Presumido</SelectItem>
-                  <SelectItem value="LUCRO_REAL">Lucro Real</SelectItem>
-                  <SelectItem value="MEI">MEI</SelectItem>
-                  <SelectItem value="OUTRO">Outro</SelectItem>
+                  {Object.entries(TAX_REGIME_LABEL).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormField>
@@ -315,14 +430,8 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
                 id="issRate"
                 inputMode="decimal"
                 placeholder="Ex: 2,00"
-                value={form.issRate != null ? String(form.issRate).replace('.', ',') : ''}
-                onChange={(e) => {
-                  const raw = formatDecimalInput(e.target.value)
-                  handleChange(
-                    { ...form, issRate: raw ? Number(raw.replace(',', '.')) : null },
-                    'issRate',
-                  )
-                }}
+                value={issRateText}
+                onChange={(e) => handleIssRateChange(e.target.value)}
                 aria-invalid={Boolean(errors.issRate)}
                 aria-describedby={errors.issRate ? 'issRate-error' : undefined}
               />
@@ -332,6 +441,7 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
                 id="profileServiceCode"
                 placeholder="Ex: 04.12"
                 value={form.serviceCode ?? ''}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.serviceCode}
                 onChange={(e) => handleChange({ ...form, serviceCode: e.target.value })}
               />
             </FormField>
@@ -340,18 +450,30 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
                 id="cnae"
                 placeholder="Ex: 8630-5/04"
                 value={form.cnae ?? ''}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.cnae}
                 onChange={(e) => handleChange({ ...form, cnae: e.target.value })}
               />
             </FormField>
-            <FormField label="Código IBGE do município" htmlFor="ibgeCode" optional>
+            <FormField
+              label="Código IBGE do município"
+              htmlFor="ibgeCode"
+              error={errors.cityIbgeCode}
+              optional
+            >
               <TextInput
                 id="ibgeCode"
+                inputMode="numeric"
                 placeholder="Ex: 3550308"
                 value={form.cityIbgeCode ?? ''}
                 onChange={(e) =>
-                  handleChange({ ...form, cityIbgeCode: e.target.value.replace(/\D/g, '') })
+                  handleChange(
+                    { ...form, cityIbgeCode: normalizeDigits(e.target.value) },
+                    'cityIbgeCode',
+                  )
                 }
-                maxLength={7}
+                maxLength={FISCAL_PROFILE_FIELD_LIMITS.cityIbgeCode}
+                aria-invalid={Boolean(errors.cityIbgeCode)}
+                aria-describedby={errors.cityIbgeCode ? 'ibgeCode-error' : undefined}
               />
             </FormField>
           </div>
@@ -377,6 +499,22 @@ export function FiscalProfileForm({ form, onChange, onCancel, onSubmit, isSaving
           Salvar dados fiscais
         </Button>
       </div>
+
+      <ConfirmDialog
+        open={pendingChanges !== null}
+        tone="warning"
+        title="Alterar dados fiscais da clínica?"
+        description={
+          <>
+            Você está alterando {pendingChanges?.join(' e ')}. Esses dados identificam a clínica
+            como emissora das notas fiscais. Confirme a alteração com o contador antes de salvar.
+          </>
+        }
+        confirmLabel="Salvar alteração"
+        cancelLabel="Revisar"
+        onCancel={() => setPendingChanges(null)}
+        onConfirm={confirmSensitiveChanges}
+      />
     </PanelCard>
   )
 }

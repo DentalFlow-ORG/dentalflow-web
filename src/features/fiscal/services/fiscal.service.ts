@@ -9,7 +9,7 @@ import type {
   FiscalProfileResponse,
   FiscalSummary,
   InvoiceFilters,
-  InvoicePayload,
+  InvoiceRequest,
   InvoicesResponse,
   ServiceInvoice,
 } from '../types/fiscal.types'
@@ -61,7 +61,7 @@ export function listInvoices(filters: InvoiceFilters) {
   )
 }
 
-export function createInvoice(payload: InvoicePayload) {
+export function createInvoice(payload: InvoiceRequest) {
   return apiRequest<ServiceInvoice>('/clinic/invoices', {
     method: 'POST',
     accessToken: getAccessToken(),
@@ -76,7 +76,7 @@ export function getInvoice(id: string) {
   })
 }
 
-export function updateInvoice(id: string, payload: Partial<InvoicePayload>) {
+export function updateInvoice(id: string, payload: InvoiceRequest) {
   return apiRequest<ServiceInvoice>(`/clinic/invoices/${id}`, {
     method: 'PATCH',
     accessToken: getAccessToken(),

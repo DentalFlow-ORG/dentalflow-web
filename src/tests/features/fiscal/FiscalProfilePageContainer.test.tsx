@@ -1,4 +1,4 @@
-import { render, screen } from '@/test-utils/render-utils'
+import { render, screen, waitFor } from '@/test-utils/render-utils'
 import userEvent from '@testing-library/user-event'
 
 vi.mock('@tanstack/react-router', async () => {
@@ -142,6 +142,22 @@ describe('FiscalProfilePageContainer', () => {
     expect(await screen.findByText('Perfil fiscal atualizado com sucesso.')).toBeInTheDocument()
   })
 
+  it('never sends the server-controlled provider routing back in the save payload', async () => {
+    mockGetFiscalProfile.mockResolvedValue({
+      profile: makeProfile({ fiscalProvider: 'FOCUS_NFE', fiscalProviderMode: 'SANDBOX' }),
+    })
+    mockSaveFiscalProfile.mockResolvedValue(undefined)
+    render(<FiscalProfilePageContainer />)
+    await screen.findByText('Clínica X')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+
+    await waitFor(() => expect(mockSaveFiscalProfile).toHaveBeenCalledOnce())
+    const payload = mockSaveFiscalProfile.mock.calls[0][0] as Record<string, unknown>
+    expect(payload).toMatchObject({ legalName: 'Clínica X' })
+    expect(payload).not.toHaveProperty('fiscalProvider')
+    expect(payload).not.toHaveProperty('fiscalProviderMode')
+  })
+
   it('shows a save error when saving fails', async () => {
     mockGetFiscalProfile.mockResolvedValue({
       profile: null,
@@ -149,7 +165,22 @@ describe('FiscalProfilePageContainer', () => {
       realIssuingEnabled: false,
       message: '',
     })
-    mockSaveFiscalProfile.mockRejectedValue(new Error('fail'))
+    mockSaveFiscalProfile.mockRejectedValue(new Error('CNPJ inválido.'))
+    render(<FiscalProfilePageContainer />)
+    await screen.findByTestId('legal-name')
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
+    // The backend's specific reason is shown instead of a generic message.
+    expect(await screen.findByText('CNPJ inválido.')).toBeInTheDocument()
+  })
+
+  it('falls back to a generic save error when the failure has no message', async () => {
+    mockGetFiscalProfile.mockResolvedValue({
+      profile: null,
+      providerMode: 'LOCAL',
+      realIssuingEnabled: false,
+      message: '',
+    })
+    mockSaveFiscalProfile.mockRejectedValue('network down')
     render(<FiscalProfilePageContainer />)
     await screen.findByTestId('legal-name')
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))

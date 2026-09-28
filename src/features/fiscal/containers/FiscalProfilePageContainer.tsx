@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { formatCepBR, formatCpfCnpjBR } from '@/lib/field-formatters'
 
-import { FiscalProfileForm } from '../components/FiscalProfileForm'
+import { FiscalProfileForm, type SavedFiscalIdentity } from '../components/FiscalProfileForm'
 import { getFiscalProfile, saveFiscalProfile } from '../services/fiscal.service'
 import type { FiscalProfilePayload } from '../types/fiscal.types'
 
@@ -29,8 +29,6 @@ const EMPTY_FORM: FiscalProfilePayload = {
   addressState: '',
   addressZipCode: '',
   cityIbgeCode: '',
-  fiscalProvider: 'LOCAL',
-  fiscalProviderMode: 'LOCAL',
 }
 
 export function FiscalProfilePageContainer() {
@@ -41,12 +39,14 @@ export function FiscalProfilePageContainer() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [savedIdentity, setSavedIdentity] = useState<SavedFiscalIdentity | null>(null)
 
   useEffect(() => {
     getFiscalProfile()
       .then((res) => {
         const p = res.profile
         if (p) {
+          setSavedIdentity({ documentNumber: p.documentNumber, taxRegime: p.taxRegime })
           setForm({
             legalName: p.legalName,
             tradeName: p.tradeName ?? '',
@@ -67,8 +67,6 @@ export function FiscalProfilePageContainer() {
             addressState: p.addressState,
             addressZipCode: p.addressZipCode ? formatCepBR(p.addressZipCode) : '',
             cityIbgeCode: p.cityIbgeCode ?? '',
-            fiscalProvider: p.fiscalProvider,
-            fiscalProviderMode: p.fiscalProviderMode,
           })
         }
       })
@@ -82,9 +80,14 @@ export function FiscalProfilePageContainer() {
     setSaveError(null)
     try {
       await saveFiscalProfile(form)
+      setSavedIdentity({ documentNumber: form.documentNumber, taxRegime: form.taxRegime })
       setSaveSuccess(true)
-    } catch {
-      setSaveError('Não foi possível salvar o perfil fiscal. Tente novamente.')
+    } catch (error) {
+      setSaveError(
+        error instanceof Error && error.message
+          ? error.message
+          : 'Não foi possível salvar o perfil fiscal. Tente novamente.',
+      )
     } finally {
       setIsSaving(false)
     }
@@ -111,6 +114,7 @@ export function FiscalProfilePageContainer() {
     <div className="space-y-4">
       <FiscalProfileForm
         form={form}
+        savedIdentity={savedIdentity}
         onChange={setForm}
         onCancel={handleCancel}
         onSubmit={handleSubmit}

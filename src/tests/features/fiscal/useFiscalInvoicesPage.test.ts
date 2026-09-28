@@ -355,21 +355,57 @@ describe('useFiscalInvoicesPage — saveProfile', () => {
 })
 
 describe('useFiscalInvoicesPage — saveInvoice', () => {
-  it('creates a new invoice when none is passed', async () => {
+  const formPayload = {
+    customerName: '  Ana Souza  ',
+    customerDocument: '',
+    customerEmail: '',
+    customerPhone: '(11) 98765-4321',
+    serviceDescription: ' Consulta ',
+    serviceCode: '',
+    amountCents: 15000,
+    competenceDate: '2026-06-07',
+    notes: '',
+  }
+
+  it('creates a new invoice without sending empty optional fields', async () => {
     const { result } = await renderLoaded()
     mockCreateInvoice.mockResolvedValue(makeInvoice())
-    await act(() => result.current.saveInvoice({} as never))
-    expect(mockCreateInvoice).toHaveBeenCalled()
+    await act(() => result.current.saveInvoice(formPayload))
+    // Regression: an empty e-mail string used to reach the API and fail IsEmail.
+    expect(mockCreateInvoice).toHaveBeenCalledWith({
+      customerName: 'Ana Souza',
+      customerDocument: undefined,
+      customerEmail: undefined,
+      customerPhone: '11987654321',
+      serviceDescription: 'Consulta',
+      serviceCode: undefined,
+      amountCents: 15000,
+      competenceDate: '2026-06-07',
+      notes: undefined,
+    })
     expect(mockShowAlert).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Nota salva como rascunho.' }),
     )
   })
 
-  it('updates an existing invoice when one is passed', async () => {
+  it('updates an existing invoice and clears emptied optional fields with null', async () => {
     const { result } = await renderLoaded()
     mockUpdateInvoice.mockResolvedValue(makeInvoice())
-    await act(() => result.current.saveInvoice({} as never, makeInvoice()))
-    expect(mockUpdateInvoice).toHaveBeenCalledWith('inv-1', {})
+    await act(() =>
+      result.current.saveInvoice(
+        { ...formPayload, customerDocument: '123.456.789-09', customerEmail: 'Ana@Ex.com ' },
+        makeInvoice(),
+      ),
+    )
+    expect(mockUpdateInvoice).toHaveBeenCalledWith(
+      'inv-1',
+      expect.objectContaining({
+        customerDocument: '12345678909',
+        customerEmail: 'Ana@Ex.com',
+        serviceCode: null,
+        notes: null,
+      }),
+    )
     expect(mockShowAlert).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Nota fiscal atualizada.' }),
     )
@@ -378,7 +414,7 @@ describe('useFiscalInvoicesPage — saveInvoice', () => {
   it('shows an error alert and rethrows when saving fails', async () => {
     const { result } = await renderLoaded()
     mockCreateInvoice.mockRejectedValue(new Error('fail'))
-    await expect(act(() => result.current.saveInvoice({} as never))).rejects.toThrow('fail')
+    await expect(act(() => result.current.saveInvoice(formPayload))).rejects.toThrow('fail')
     expect(mockShowAlert).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Não foi possível salvar a nota fiscal.' }),
     )

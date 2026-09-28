@@ -139,6 +139,13 @@ function makeHookState(overrides: Partial<ReturnType<typeof mockUseFiscalInvoice
   }
 }
 
+// Fills the invoice fields the form requires before it can be saved.
+function fillRequiredInvoiceFields() {
+  fireEvent.change(screen.getByLabelText('Cliente/Paciente'), { target: { value: 'Ana Lima' } })
+  fireEvent.change(screen.getByLabelText('Serviço prestado'), { target: { value: 'Limpeza' } })
+  fireEvent.change(screen.getByLabelText('Valor'), { target: { value: '15000' } })
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   mockUseAuth.mockReturnValue({ user: { role: 'OWNER' } })
@@ -198,8 +205,7 @@ describe('FiscalInvoicesPageContainer — form persistence', () => {
       if (editing)
         fireEvent.click(screen.getAllByRole('button', { name: /editar nota de joão silva/i })[0])
       else fireEvent.click(screen.getByRole('button', { name: 'Criar nota fiscal' }))
-      fireEvent.change(screen.getByLabelText('Cliente/Paciente'), { target: { value: 'Ana Lima' } })
-      fireEvent.change(screen.getByLabelText('Serviço prestado'), { target: { value: 'Limpeza' } })
+      fillRequiredInvoiceFields()
       fireEvent.click(
         screen.getByRole('button', { name: editing ? 'Salvar alterações' : 'Salvar rascunho' }),
       )
@@ -228,7 +234,7 @@ describe('FiscalInvoicesPageContainer — form persistence', () => {
     mockUseFiscalInvoicesPage.mockReturnValue(makeHookState({ saveInvoice }))
     render(<FiscalInvoicesPageContainer />)
     fireEvent.click(screen.getByRole('button', { name: 'Criar nota fiscal' }))
-    fireEvent.change(screen.getByLabelText('Cliente/Paciente'), { target: { value: 'Ana Lima' } })
+    fillRequiredInvoiceFields()
     await userEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
     expect(screen.getByLabelText('Cliente/Paciente')).toHaveValue('Ana Lima')
     await userEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
@@ -241,6 +247,7 @@ describe('FiscalInvoicesPageContainer — form persistence', () => {
     mockUseFiscalInvoicesPage.mockReturnValue(makeHookState({ saveInvoice }))
     render(<FiscalInvoicesPageContainer />)
     fireEvent.click(screen.getByRole('button', { name: 'Criar nota fiscal' }))
+    fillRequiredInvoiceFields()
     fireEvent.change(screen.getByLabelText(/CPF\/CNPJ do cliente/), {
       target: { value: '11111111111' },
     })
@@ -308,6 +315,7 @@ describe('FiscalInvoicesPageContainer — form persistence', () => {
           name: kind === 'invoice' ? 'Configurar dados fiscais' : 'Criar nota fiscal',
         }),
       )
+      if (kind === 'invoice') fillRequiredInvoiceFields()
       await userEvent.click(
         screen.getByRole('button', {
           name: kind === 'invoice' ? 'Salvar rascunho' : 'Salvar dados fiscais',
@@ -413,34 +421,159 @@ describe('FiscalInvoicesPageContainer — form persistence', () => {
     expect(loadInvoiceDetails).toHaveBeenCalledTimes(2)
   })
 
-  it.each(['markReady', 'simulateIssue'] as const)(
-    'dispatches %s and absorbs an already-reported failure',
-    async (action) => {
-      const mutation = vi
-        .fn()
-        .mockRejectedValueOnce(new Error('reported by hook'))
-        .mockResolvedValue(undefined)
-      const invoice = makeInvoice({ status: action === 'markReady' ? 'DRAFT' : 'READY_TO_ISSUE' })
+  it('marks an invoice ready and absorbs an already-reported failure', async () => {
+    const mutation = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('reported by hook'))
+      .mockResolvedValue(undefined)
+    const invoice = makeInvoice({ status: 'DRAFT' })
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({ invoices: [invoice], total: 1, markReady: mutation }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    const label = /marcar nota de joão silva como pronta/i
+    await userEvent.click(screen.getAllByRole('button', { name: label })[0])
+    expect(mutation).toHaveBeenCalledExactlyOnceWith(invoice)
+    await waitFor(() => expect(screen.getAllByRole('button', { name: label })[0]).toBeEnabled())
+    await userEvent.click(screen.getAllByRole('button', { name: label })[0])
+    expect(mutation).toHaveBeenCalledTimes(2)
+  })
+
+  it('disables the invoice actions while marking it ready, preventing a double submit', async () => {
+    let resolve!: () => void
+    const markReady = vi.fn(
+      () =>
+        new Promise<void>((done) => {
+          resolve = done
+        }),
+    )
+    const invoice = makeInvoice({ status: 'DRAFT' })
+    const secondInvoice = makeInvoice({ id: 'inv-2', customerName: 'Ana Lima', status: 'DRAFT' })
+    mockUseFiscalInvoicesPage.mockReturnValue(
+      makeHookState({ invoices: [invoice, secondInvoice], total: 2, markReady }),
+    )
+    render(<FiscalInvoicesPageContainer />)
+    const label = /marcar nota de joão silva como pronta/i
+    await userEvent.click(screen.getAllByRole('button', { name: label })[0])
+    for (const button of screen.getAllByRole('button', { name: label })) {
+      expect(button).toBeDisabled()
+    }
+    fireEvent.click(screen.getAllByRole('button', { name: label })[0])
+    await userEvent.click(
+      screen.getAllByRole('button', { name: /marcar nota de ana lima como pronta/i })[0],
+    )
+    expect(markReady).toHaveBeenCalledOnce()
+    await act(async () => resolve())
+    expect(screen.getAllByRole('button', { name: label })[0]).toBeEnabled()
+  })
+
+  describe('simulate issue confirmation', () => {
+    const simulateLabel = /simular emissão da nota de joão silva/i
+
+    function renderReadyInvoice(simulateIssue: ReturnType<typeof vi.fn>) {
+      const invoice = makeInvoice({ status: 'READY_TO_ISSUE', invoiceNumber: '42' })
       mockUseFiscalInvoicesPage.mockReturnValue(
         makeHookState({
           invoices: [invoice],
           total: 1,
           profileResponse: { profile: FULL_PROFILE, providerMode: 'LOCAL' },
-          [action]: mutation,
+          simulateIssue,
         }),
       )
       render(<FiscalInvoicesPageContainer />)
-      const label =
-        action === 'markReady'
-          ? /marcar nota de joão silva como pronta/i
-          : /simular emissão da nota de joão silva/i
-      await userEvent.click(screen.getAllByRole('button', { name: label })[0])
-      expect(mutation).toHaveBeenCalledExactlyOnceWith(invoice)
-      expect(screen.getAllByRole('button', { name: label })[0]).toBeEnabled()
-      await userEvent.click(screen.getAllByRole('button', { name: label })[0])
-      expect(mutation).toHaveBeenCalledTimes(2)
-    },
-  )
+      return invoice
+    }
+
+    function confirmButton() {
+      return within(screen.getByRole('dialog')).getByRole('button', {
+        name: /Simular emissão|Aguarde/,
+      })
+    }
+
+    it('asks for confirmation naming the invoice before simulating', async () => {
+      const simulateIssue = vi.fn().mockResolvedValue(undefined)
+      renderReadyInvoice(simulateIssue)
+      await userEvent.click(screen.getAllByRole('button', { name: simulateLabel })[0])
+      expect(screen.getByRole('dialog')).toHaveTextContent('Nota nº 42 · João Silva')
+      expect(simulateIssue).not.toHaveBeenCalled()
+    })
+
+    it('does nothing when the confirmation is cancelled', async () => {
+      const simulateIssue = vi.fn().mockResolvedValue(undefined)
+      renderReadyInvoice(simulateIssue)
+      await userEvent.click(screen.getAllByRole('button', { name: simulateLabel })[0])
+      await userEvent.click(screen.getByRole('button', { name: 'Voltar' }))
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(simulateIssue).not.toHaveBeenCalled()
+    })
+
+    it('simulates on confirm, shows progress, and closes on success', async () => {
+      let resolve!: () => void
+      const simulateIssue = vi.fn(
+        () =>
+          new Promise<void>((done) => {
+            resolve = done
+          }),
+      )
+      const invoice = renderReadyInvoice(simulateIssue)
+      await userEvent.click(screen.getAllByRole('button', { name: simulateLabel })[0])
+      await userEvent.click(confirmButton())
+      expect(simulateIssue).toHaveBeenCalledExactlyOnceWith(invoice)
+      expect(confirmButton()).toBeDisabled()
+      await act(async () => resolve())
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    it('blocks simulating with an incomplete fiscal draft and names what is missing', async () => {
+      const simulateIssue = vi.fn().mockResolvedValue(undefined)
+      mockUseFiscalInvoicesPage.mockReturnValue(
+        makeHookState({
+          invoices: [makeInvoice({ status: 'READY_TO_ISSUE', invoiceNumber: '42' })],
+          total: 1,
+          profileResponse: {
+            profile: { ...FULL_PROFILE, addressZipCode: '', addressState: '' },
+            providerMode: 'LOCAL',
+          },
+          simulateIssue,
+        }),
+      )
+      render(<FiscalInvoicesPageContainer />)
+      await userEvent.click(screen.getAllByRole('button', { name: simulateLabel })[0])
+
+      const dialog = screen.getByRole('dialog')
+      expect(within(dialog).getByRole('alert')).toHaveTextContent(
+        'Complete os dados fiscais da clínica antes de simular. Falta: UF, CEP.',
+      )
+      expect(confirmButton()).toBeDisabled()
+      await userEvent.click(confirmButton())
+      expect(simulateIssue).not.toHaveBeenCalled()
+    })
+
+    it('keeps the dialog open for retry when the simulation fails', async () => {
+      const simulateIssue = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('reported by hook'))
+        .mockResolvedValue(undefined)
+      renderReadyInvoice(simulateIssue)
+      await userEvent.click(screen.getAllByRole('button', { name: simulateLabel })[0])
+      await userEvent.click(confirmButton())
+      await waitFor(() => expect(confirmButton()).toBeEnabled())
+      await userEvent.click(confirmButton())
+      expect(simulateIssue).toHaveBeenCalledTimes(2)
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    })
+  })
+
+  it('names the invoice in the cancel dialog and limits the reason to 500 characters', async () => {
+    const invoice = makeInvoice({ status: 'DRAFT' })
+    mockUseFiscalInvoicesPage.mockReturnValue(makeHookState({ invoices: [invoice], total: 1 }))
+    render(<FiscalInvoicesPageContainer />)
+    await userEvent.click(
+      screen.getAllByRole('button', { name: /cancelar nota de joão silva/i })[0],
+    )
+    expect(screen.getByRole('dialog')).toHaveTextContent('João Silva')
+    expect(screen.getByLabelText('Motivo do cancelamento')).toHaveAttribute('maxLength', '500')
+  })
 })
 
 describe('FiscalInvoicesPageContainer', () => {
@@ -728,64 +861,69 @@ describe('FiscalInvoicesPageContainer — appointment picker flow', () => {
     ).toBeInTheDocument()
   })
 
-  it('loads the draft and opens the invoice form when an appointment is selected', async () => {
-    mockListAppointmentsForInvoice.mockResolvedValue({
-      data: [
-        {
+  it.each(['', undefined])(
+    'loads an appointment draft with optional contact %j',
+    async (contact) => {
+      mockListAppointmentsForInvoice.mockResolvedValue({
+        data: [
+          {
+            id: 'appt-1',
+            patientName: 'Maria Silva',
+            patientEmail: null,
+            patientPhone: null,
+            appointmentDate: '2026-06-10',
+            startTime: '10:00',
+            status: 'COMPLETED',
+            paymentStatus: 'PAID',
+            estimatedAmountCents: 10000,
+            paidAmountCents: 10000,
+            profile: { id: 'p1', displayName: 'Dra. Ana' },
+            service: { id: 's1', name: 'Limpeza' },
+            hasActiveInvoice: false,
+            activeInvoiceId: null,
+          },
+        ],
+        total: 1,
+        page: 1,
+        limit: 20,
+      })
+      mockGetAppointmentInvoiceDraft.mockResolvedValue({
+        draft: {
+          customerName: 'Maria Silva',
+          customerDocument: '',
+          customerEmail: contact,
+          customerPhone: contact,
+          serviceDescription: 'Limpeza',
+          serviceCode: '',
+          amountCents: 10000,
+          competenceDate: '2026-06-10',
+          notes: '',
+        },
+        appointment: {
           id: 'appt-1',
           patientName: 'Maria Silva',
-          patientEmail: null,
-          patientPhone: null,
           appointmentDate: '2026-06-10',
-          startTime: '10:00',
-          status: 'COMPLETED',
+          profileDisplayName: 'Dra. Ana',
+          serviceName: 'Limpeza',
           paymentStatus: 'PAID',
           estimatedAmountCents: 10000,
           paidAmountCents: 10000,
-          profile: { id: 'p1', displayName: 'Dra. Ana' },
-          service: { id: 's1', name: 'Limpeza' },
-          hasActiveInvoice: false,
-          activeInvoiceId: null,
         },
-      ],
-      total: 1,
-      page: 1,
-      limit: 20,
-    })
-    mockGetAppointmentInvoiceDraft.mockResolvedValue({
-      draft: {
-        customerName: 'Maria Silva',
-        customerDocument: '',
-        customerEmail: '',
-        customerPhone: '',
-        serviceDescription: 'Limpeza',
-        serviceCode: '',
-        amountCents: 10000,
-        competenceDate: '2026-06-10',
-        notes: '',
-      },
-      appointment: {
-        id: 'appt-1',
-        patientName: 'Maria Silva',
-        appointmentDate: '2026-06-10',
-        profileDisplayName: 'Dra. Ana',
-        serviceName: 'Limpeza',
-        paymentStatus: 'PAID',
-        estimatedAmountCents: 10000,
-        paidAmountCents: 10000,
-      },
-      existingInvoice: null,
-      warnings: { paymentPending: false, hasExistingInvoice: false },
-    })
+        existingInvoice: null,
+        warnings: { paymentPending: false, hasExistingInvoice: false },
+      })
 
-    render(<FiscalInvoicesPageContainer />)
-    await userEvent.click(screen.getByRole('button', { name: /gerar a partir de consulta/i }))
-    await screen.findByText('Maria Silva')
-    await userEvent.click(screen.getByRole('button', { name: 'Selecionar' }))
+      render(<FiscalInvoicesPageContainer />)
+      await userEvent.click(screen.getByRole('button', { name: /gerar a partir de consulta/i }))
+      await screen.findByText('Maria Silva')
+      await userEvent.click(screen.getByRole('button', { name: 'Selecionar' }))
 
-    expect(mockGetAppointmentInvoiceDraft).toHaveBeenCalledWith('appt-1')
-    expect(await screen.findByLabelText('Área de trabalho fiscal')).toBeInTheDocument()
-  })
+      expect(mockGetAppointmentInvoiceDraft).toHaveBeenCalledWith('appt-1')
+      expect(await screen.findByLabelText('Área de trabalho fiscal')).toBeInTheDocument()
+      expect(screen.getByLabelText(/E-mail/i)).toHaveValue('')
+      expect(screen.getByLabelText(/Telefone/i)).toHaveValue('')
+    },
+  )
 
   it('warns about pending payment and an existing invoice before creating another draft', async () => {
     mockListAppointmentsForInvoice.mockResolvedValue({

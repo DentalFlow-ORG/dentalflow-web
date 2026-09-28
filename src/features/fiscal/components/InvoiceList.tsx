@@ -24,6 +24,8 @@ type Props = {
   totalPages: number
   total: number
   limit: number
+  /** Invoice whose status action is in flight; its row actions stay disabled. */
+  pendingInvoiceId?: string | null
   onViewDetails: (invoice: ServiceInvoice) => void
   onEdit: (invoice: ServiceInvoice) => void
   onMarkReady: (invoice: ServiceInvoice) => void
@@ -48,6 +50,7 @@ export function InvoiceList({
   totalPages,
   total,
   limit,
+  pendingInvoiceId = null,
   onViewDetails,
   onEdit,
   onMarkReady,
@@ -118,6 +121,7 @@ export function InvoiceList({
                       variant="outline"
                       size="sm"
                       aria-label={getInvoiceActionLabel('edit', invoice.customerName)}
+                      disabled={pendingInvoiceId === invoice.id}
                       onClick={() => onEdit(invoice)}
                     >
                       Editar
@@ -128,6 +132,7 @@ export function InvoiceList({
                       variant="outline"
                       size="sm"
                       aria-label={getInvoiceActionLabel('markReady', invoice.customerName)}
+                      disabled={pendingInvoiceId === invoice.id}
                       onClick={() => onMarkReady(invoice)}
                     >
                       Marcar pronta
@@ -137,6 +142,7 @@ export function InvoiceList({
                     <Button
                       size="sm"
                       aria-label={getInvoiceActionLabel('simulate', invoice.customerName)}
+                      disabled={pendingInvoiceId === invoice.id}
                       onClick={() => onSimulate(invoice)}
                     >
                       Simular emissão
@@ -147,6 +153,7 @@ export function InvoiceList({
                       variant="outline"
                       size="sm"
                       aria-label={getInvoiceActionLabel('cancel', invoice.customerName)}
+                      disabled={pendingInvoiceId === invoice.id}
                       onClick={() => onCancel(invoice)}
                     >
                       Cancelar
@@ -229,6 +236,7 @@ export function InvoiceList({
                               variant="outline"
                               size="sm"
                               aria-label={getInvoiceActionLabel('edit', invoice.customerName)}
+                              disabled={pendingInvoiceId === invoice.id}
                               onClick={() => onEdit(invoice)}
                             >
                               Editar
@@ -239,6 +247,7 @@ export function InvoiceList({
                               variant="outline"
                               size="sm"
                               aria-label={getInvoiceActionLabel('markReady', invoice.customerName)}
+                              disabled={pendingInvoiceId === invoice.id}
                               onClick={() => onMarkReady(invoice)}
                             >
                               Marcar pronta
@@ -249,6 +258,7 @@ export function InvoiceList({
                               <Button
                                 size="sm"
                                 aria-label={getInvoiceActionLabel('simulate', invoice.customerName)}
+                                disabled={pendingInvoiceId === invoice.id}
                                 onClick={() => onSimulate(invoice)}
                               >
                                 Simular emissão
@@ -259,6 +269,7 @@ export function InvoiceList({
                               variant="outline"
                               size="sm"
                               aria-label={getInvoiceActionLabel('cancel', invoice.customerName)}
+                              disabled={pendingInvoiceId === invoice.id}
                               onClick={() => onCancel(invoice)}
                             >
                               Cancelar

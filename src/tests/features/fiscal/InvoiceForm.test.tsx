@@ -18,6 +18,12 @@ import type { InvoicePayload } from '@/features/fiscal/types/fiscal.types'
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
+const requiredFields = {
+  customerName: 'Ana Souza',
+  serviceDescription: 'Consulta odontológica',
+  amountCents: 15000,
+}
+
 const emptyForm: InvoicePayload = {
   customerName: '',
   customerDocument: '',
@@ -389,7 +395,7 @@ describe('InvoiceForm', () => {
     const onSubmit = vi.fn()
     render(
       <InvoiceForm
-        form={emptyForm}
+        form={{ ...emptyForm, ...requiredFields }}
         editing={false}
         onChange={vi.fn()}
         onCancel={vi.fn()}
@@ -406,6 +412,7 @@ describe('InvoiceForm', () => {
       <InvoiceForm
         form={{
           ...emptyForm,
+          ...requiredFields,
           customerDocument: '123.456.789-09',
           customerPhone: '(11) 98765-4321',
         }}
@@ -477,5 +484,97 @@ describe('InvoiceForm', () => {
       />,
     )
     expect(screen.queryByText('Informe um CPF ou CNPJ válido.')).not.toBeInTheDocument()
+  })
+})
+
+describe('InvoiceForm — QA remediation', () => {
+  function renderWithSubmit(form: InvoicePayload, props: { isSaving?: boolean } = {}) {
+    const onSubmit = vi.fn()
+    render(
+      <InvoiceForm
+        form={form}
+        editing={false}
+        isSaving={props.isSaving}
+        onChange={vi.fn()}
+        onCancel={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    )
+    return onSubmit
+  }
+
+  it('requires a competence date before saving', () => {
+    const onSubmit = renderWithSubmit({ ...emptyForm, ...requiredFields, competenceDate: '' })
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByText('Informe a data de competência.')).toBeInTheDocument()
+  })
+
+  it('requires the customer name, service description and a positive amount', () => {
+    const onSubmit = renderWithSubmit({
+      ...emptyForm,
+      customerName: '   ',
+      serviceDescription: '',
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByText('Informe o nome do cliente ou paciente.')).toBeInTheDocument()
+    expect(screen.getByText('Descreva o serviço prestado.')).toBeInTheDocument()
+    expect(screen.getByText('Informe um valor maior que zero.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Cliente/Paciente')).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('rejects an invalid optional e-mail with an inline message', () => {
+    const onSubmit = renderWithSubmit({
+      ...emptyForm,
+      ...requiredFields,
+      customerEmail: 'ana@',
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByText('Informe um e-mail válido.')).toBeInTheDocument()
+  })
+
+  it('disables both actions and shows progress while saving', () => {
+    const onSubmit = renderWithSubmit({ ...emptyForm, ...requiredFields }, { isSaving: true })
+    const save = screen.getByRole('button', { name: /Salvando/ })
+    expect(save).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+    fireEvent.click(save)
+    expect(onSubmit).not.toHaveBeenCalled()
+  })
+
+  it('mirrors the backend length limits', () => {
+    renderForm()
+    expect(screen.getByLabelText('Cliente/Paciente')).toHaveAttribute('maxLength', '150')
+    expect(screen.getByLabelText(/E-mail/)).toHaveAttribute('maxLength', '254')
+    expect(screen.getByLabelText('Serviço prestado')).toHaveAttribute('maxLength', '2000')
+    expect(screen.getByLabelText(/Código de serviço/)).toHaveAttribute('maxLength', '50')
+    expect(screen.getByLabelText(/Observações/)).toHaveAttribute('maxLength', '2000')
+  })
+
+  it('renders notes as a multiline field with placeholders on the service fields', () => {
+    renderForm()
+    expect(screen.getByLabelText(/Observações/).tagName).toBe('TEXTAREA')
+    expect(screen.getByLabelText('Serviço prestado')).toHaveAttribute(
+      'placeholder',
+      'Descreva o serviço prestado...',
+    )
+    expect(screen.getByLabelText('Valor')).toHaveAttribute('placeholder', 'R$ 0,00')
+  })
+
+  it('caps the amount at the backend maximum while typing', () => {
+    const onChange = vi.fn()
+    render(
+      <InvoiceForm
+        form={emptyForm}
+        editing={false}
+        onChange={onChange}
+        onCancel={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('Valor'), { target: { value: '99999999999' } })
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ amountCents: 999_999_999 }))
   })
 })

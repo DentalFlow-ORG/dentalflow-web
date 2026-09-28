@@ -113,9 +113,17 @@ export type InvoiceFilters = {
   limit: number
 }
 
+// Provider routing (fiscalProvider / fiscalProviderMode) is server-controlled:
+// the API rejects it in the upsert body, so it is read-only on the client.
 export type FiscalProfilePayload = Omit<
   ClinicFiscalProfile,
-  'id' | 'clinicId' | 'isConfigured' | 'createdAt' | 'updatedAt'
+  | 'id'
+  | 'clinicId'
+  | 'isConfigured'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'fiscalProvider'
+  | 'fiscalProviderMode'
 >
 
 export type InvoicePayload = {
@@ -132,6 +140,21 @@ export type InvoicePayload = {
   issRate?: number
   competenceDate: string
   notes?: string
+}
+
+type InvoiceOptionalTextField =
+  | 'customerDocument'
+  | 'customerEmail'
+  | 'customerPhone'
+  | 'serviceCode'
+  | 'notes'
+
+/**
+ * Body sent to the API. Empty optional fields are omitted on create and sent
+ * as `null` on update so a cleared value is really removed.
+ */
+export type InvoiceRequest = Omit<InvoicePayload, InvoiceOptionalTextField> & {
+  [Field in InvoiceOptionalTextField]?: string | null
 }
 
 export type AppointmentPaymentStatus =

@@ -47,12 +47,12 @@ describe('getFinanceFilterChips', () => {
 
   it('adds type chip for INCOME', () => {
     const chips = getFinanceFilterChips({ type: 'INCOME' }, DEFAULTS)
-    expect(chips).toContainEqual({ key: 'type', label: 'Tipo: Receita' })
+    expect(chips).toContainEqual({ key: 'type', label: 'Tipo: Entrada' })
   })
 
   it('adds type chip for EXPENSE', () => {
     const chips = getFinanceFilterChips({ type: 'EXPENSE' }, DEFAULTS)
-    expect(chips).toContainEqual({ key: 'type', label: 'Tipo: Despesa' })
+    expect(chips).toContainEqual({ key: 'type', label: 'Tipo: Saída' })
   })
 
   it('adds status chip for PENDING', () => {
@@ -115,7 +115,7 @@ describe('getInventoryFilterChips', () => {
 
   it('adds status chip for LOW', () => {
     const chips = getInventoryFilterChips({ status: 'LOW' })
-    expect(chips).toContainEqual({ key: 'status', label: 'Status: Estoque baixo' })
+    expect(chips).toContainEqual({ key: 'status', label: 'Status: Baixo estoque' })
   })
 
   it('adds status chip for EXPIRED', () => {
@@ -125,7 +125,7 @@ describe('getInventoryFilterChips', () => {
 
   it('adds status chip for EXPIRING', () => {
     const chips = getInventoryFilterChips({ status: 'EXPIRING' })
-    expect(chips).toContainEqual({ key: 'status', label: 'Status: Vencimento próximo' })
+    expect(chips).toContainEqual({ key: 'status', label: 'Status: Vencendo' })
   })
 })
 
@@ -150,12 +150,12 @@ describe('getInvoicesFilterChips', () => {
 
   it('adds status chip for ISSUED', () => {
     const chips = getInvoicesFilterChips({ status: 'ISSUED' }, DEFAULTS)
-    expect(chips).toContainEqual({ key: 'status', label: 'Status: Emitido' })
+    expect(chips).toContainEqual({ key: 'status', label: 'Status: Emitida' })
   })
 
   it('adds status chip for READY_TO_ISSUE', () => {
     const chips = getInvoicesFilterChips({ status: 'READY_TO_ISSUE' }, DEFAULTS)
-    expect(chips).toContainEqual({ key: 'status', label: 'Status: Pronto para emitir' })
+    expect(chips).toContainEqual({ key: 'status', label: 'Status: Pronta para emissão' })
   })
 })
 

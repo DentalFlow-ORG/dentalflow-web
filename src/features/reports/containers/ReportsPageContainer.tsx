@@ -15,6 +15,13 @@ import {
 } from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { getCachedBillingStatus } from '@/features/billing/services/billing-status-cache'
+import {
+  STATUS_LABEL as FINANCE_STATUS_LABEL,
+  TYPE_LABEL as FINANCE_TYPE_LABEL,
+} from '@/features/finance/constants/finance-display'
+import { INVOICE_STATUS_LABEL } from '@/features/fiscal/constants/invoice-status'
+import { STATUS_OPTIONS } from '@/features/inventory/constants/inventory-filters'
+import { STATUS_LABELS as APPOINTMENT_STATUS_LABELS } from '@/features/scheduling/constants/appointment-display'
 import { listAppointments } from '@/features/scheduling/services/scheduling.service'
 import type { Appointment } from '@/features/scheduling/types/scheduling.types'
 import { isoDateToString } from '@/features/scheduling/utils/time'
@@ -274,8 +281,11 @@ export function ReportsPageContainer() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os tipos</SelectItem>
-                    <SelectItem value="INCOME">Receita</SelectItem>
-                    <SelectItem value="EXPENSE">Despesa</SelectItem>
+                    {Object.entries(FINANCE_TYPE_LABEL).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormField>
@@ -294,9 +304,11 @@ export function ReportsPageContainer() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os status</SelectItem>
-                    <SelectItem value="PENDING">Pendente</SelectItem>
-                    <SelectItem value="PAID">Pago</SelectItem>
-                    <SelectItem value="CANCELED">Cancelado</SelectItem>
+                    {Object.entries(FINANCE_STATUS_LABEL).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormField>
@@ -349,11 +361,11 @@ export function ReportsPageContainer() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="PENDING">Pendente</SelectItem>
-                  <SelectItem value="CONFIRMED">Confirmado</SelectItem>
-                  <SelectItem value="COMPLETED">Concluído</SelectItem>
-                  <SelectItem value="CANCELED">Cancelado</SelectItem>
-                  <SelectItem value="NO_SHOW">Não compareceu</SelectItem>
+                  {Object.entries(APPOINTMENT_STATUS_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormField>
@@ -477,12 +489,11 @@ export function ReportsPageContainer() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="ACTIVE">Normal</SelectItem>
-                  <SelectItem value="LOW">Estoque baixo</SelectItem>
-                  <SelectItem value="EMPTY">Zerado</SelectItem>
-                  <SelectItem value="EXPIRING">Vencimento próximo</SelectItem>
-                  <SelectItem value="EXPIRED">Vencido</SelectItem>
-                  <SelectItem value="INACTIVE">Inativo</SelectItem>
+                  {STATUS_OPTIONS.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormField>
@@ -533,12 +544,11 @@ export function ReportsPageContainer() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os status</SelectItem>
-                  <SelectItem value="DRAFT">Rascunho</SelectItem>
-                  <SelectItem value="READY_TO_ISSUE">Pronto para emitir</SelectItem>
-                  <SelectItem value="SIMULATED">Simulado</SelectItem>
-                  <SelectItem value="ISSUED">Emitido</SelectItem>
-                  <SelectItem value="FAILED">Falhou</SelectItem>
-                  <SelectItem value="CANCELED">Cancelado</SelectItem>
+                  {Object.entries(INVOICE_STATUS_LABEL).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </FormField>

@@ -1,3 +1,11 @@
+import {
+  STATUS_LABEL as FINANCE_STATUS_LABEL,
+  TYPE_LABEL as FINANCE_TYPE_LABEL,
+} from '@/features/finance/constants/finance-display'
+import { INVOICE_STATUS_LABEL } from '@/features/fiscal/constants/invoice-status'
+import { STATUS_OPTIONS } from '@/features/inventory/constants/inventory-filters'
+import { STATUS_LABELS as APPOINTMENT_STATUS_LABELS } from '@/features/scheduling/constants/appointment-display'
+
 import type {
   AppointmentsReportFilters,
   FinanceReportFilters,
@@ -20,41 +28,14 @@ function formatChipDate(iso: string): string {
   return `${d}/${m}/${y}`
 }
 
-const FINANCE_TYPE_LABELS: Record<string, string> = {
-  INCOME: 'Receita',
-  EXPENSE: 'Despesa',
+// Labels come from each domain's canonical map so Reports never drifts from the
+// screens where the same statuses are shown and filtered.
+function labelFor(labels: Record<string, string>, value: string) {
+  return labels[value] ?? value
 }
 
-const FINANCE_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Pendente',
-  PAID: 'Pago',
-  CANCELED: 'Cancelado',
-}
-
-const APPT_STATUS_LABELS: Record<string, string> = {
-  PENDING: 'Pendente',
-  CONFIRMED: 'Confirmado',
-  COMPLETED: 'Concluído',
-  CANCELED: 'Cancelado',
-  NO_SHOW: 'Não compareceu',
-}
-
-const INV_STATUS_LABELS: Record<string, string> = {
-  ACTIVE: 'Normal',
-  LOW: 'Estoque baixo',
-  EMPTY: 'Zerado',
-  EXPIRING: 'Vencimento próximo',
-  EXPIRED: 'Vencido',
-  INACTIVE: 'Inativo',
-}
-
-const INVOICE_STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Rascunho',
-  READY_TO_ISSUE: 'Pronto para emitir',
-  SIMULATED: 'Simulado',
-  ISSUED: 'Emitido',
-  FAILED: 'Falhou',
-  CANCELED: 'Cancelado',
+function inventoryStatusLabel(value: string) {
+  return STATUS_OPTIONS.find((option) => option.value === value)?.label ?? value
 }
 
 export function getFinanceFilterChips(
@@ -69,12 +50,12 @@ export function getFinanceFilterChips(
     chips.push({ key: 'endDate', label: `Fim: ${formatChipDate(filters.endDate)}` })
   }
   if (filters.type) {
-    chips.push({ key: 'type', label: `Tipo: ${FINANCE_TYPE_LABELS[filters.type] ?? filters.type}` })
+    chips.push({ key: 'type', label: `Tipo: ${labelFor(FINANCE_TYPE_LABEL, filters.type)}` })
   }
   if (filters.status) {
     chips.push({
       key: 'status',
-      label: `Status: ${FINANCE_STATUS_LABELS[filters.status] ?? filters.status}`,
+      label: `Status: ${labelFor(FINANCE_STATUS_LABEL, filters.status)}`,
     })
   }
   return chips
@@ -94,7 +75,7 @@ export function getAppointmentsFilterChips(
   if (filters.status) {
     chips.push({
       key: 'status',
-      label: `Status: ${APPT_STATUS_LABELS[filters.status] ?? filters.status}`,
+      label: `Status: ${labelFor(APPOINTMENT_STATUS_LABELS, filters.status)}`,
     })
   }
   return chips
@@ -105,7 +86,7 @@ export function getInventoryFilterChips(filters: InventoryReportFilters): Filter
   if (filters.status) {
     chips.push({
       key: 'status',
-      label: `Status: ${INV_STATUS_LABELS[filters.status] ?? filters.status}`,
+      label: `Status: ${inventoryStatusLabel(filters.status)}`,
     })
   }
   return chips
@@ -131,7 +112,7 @@ export function getInvoicesFilterChips(
   if (filters.status) {
     chips.push({
       key: 'status',
-      label: `Status: ${INVOICE_STATUS_LABELS[filters.status] ?? filters.status}`,
+      label: `Status: ${labelFor(INVOICE_STATUS_LABEL, filters.status)}`,
     })
   }
   return chips
