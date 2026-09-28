@@ -36,11 +36,12 @@ vi.mock('@/features/scheduling/services/profiles.service', () => ({
 }))
 
 const mockUpsertPatientAvatar = vi.fn()
+const mockListPatients = vi.fn()
 
 vi.mock('@/features/patients/services/patients.service', () => ({
   getPatientAvatar: vi.fn().mockResolvedValue({ avatarUrl: null }),
   upsertPatientAvatar: (...args: unknown[]) => mockUpsertPatientAvatar(...args),
-  listPatients: vi.fn(),
+  listPatients: (...args: unknown[]) => mockListPatients(...args),
   getPatientHistory: vi.fn(),
 }))
 
@@ -153,6 +154,7 @@ beforeEach(() => {
   mockListAvailabilityExceptions.mockResolvedValue([])
   mockGetProfile.mockResolvedValue({ id: 'prof-1', services: [] })
   mockListProfiles.mockResolvedValue([FIXED_PROFILE])
+  mockListPatients.mockResolvedValue({ data: [], total: 0 })
 })
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -171,8 +173,16 @@ function renderModal(overrides: { onCreated?: () => void; onClose?: () => void }
   return { onCreated, onClose }
 }
 
+// Switches the patient choice to "Novo paciente" (idempotent: switching again
+// would clear the contact fields already typed).
+function chooseNewPatient() {
+  const newPatient = screen.getByRole('radio', { name: 'Novo paciente' })
+  if (newPatient.getAttribute('aria-checked') !== 'true') fireEvent.click(newPatient)
+}
+
 // Fills all required fields and returns after slots have loaded.
 async function fillRequiredFields() {
+  chooseNewPatient()
   fireEvent.change(screen.getByLabelText(/Nome do paciente/i), {
     target: { value: 'Maria Silva' },
   })
@@ -289,9 +299,12 @@ describe('CreateAppointmentModal — form lifecycle', () => {
       await userEvent.click(await screen.findByRole('button', { name: time }))
       submitForm()
       if (time === '11:00') {
-        expect(mockShowAlert).toHaveBeenCalledWith(
-          expect.objectContaining({ title: 'Horário inválido' }),
-        )
+        expect(
+          await screen.findByText(
+            'Para hoje, escolha um horário igual ou posterior ao horário atual.',
+          ),
+        ).toBeInTheDocument()
+        expect(mockShowAlert).not.toHaveBeenCalled()
         expect(mockCreateAppointment).not.toHaveBeenCalled()
       } else await waitFor(() => expect(mockCreateAppointment).toHaveBeenCalledOnce())
     },
@@ -324,13 +337,37 @@ describe('CreateAppointmentModal — form lifecycle', () => {
     },
   )
 
+  it('owns validation (noValidate) and shows every missing required field on its own field', async () => {
+    renderModal()
+    chooseNewPatient()
+    expect(document.getElementById('create-appointment-form')).toHaveAttribute('novalidate')
+    submitForm()
+
+    expect(await screen.findByText('Informe a data do agendamento.')).toBeInTheDocument()
+    expect(screen.getByText('Selecione um horário.')).toBeInTheDocument()
+    expect(screen.getByText('Informe o nome do paciente.')).toBeInTheDocument()
+    expect(screen.getByText('Informe um telefone com WhatsApp válido.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Nome do paciente/i)).toHaveAttribute('aria-invalid', 'true')
+    // Semantic attributes stay for assistive technology.
+    expect(screen.getByLabelText(/Nome do paciente/i)).toBeRequired()
+    expect(mockCreateAppointment).not.toHaveBeenCalled()
+
+    fireEvent.change(screen.getByLabelText(/Nome do paciente/i), { target: { value: 'Maria' } })
+    expect(screen.queryByText('Informe o nome do paciente.')).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/Nome do paciente/i)).not.toHaveAttribute('aria-invalid')
+  })
+
   it('rejects an invalid phone before persisting the appointment', async () => {
     renderModal()
     await fillRequiredFields()
     fireEvent.change(screen.getByLabelText(/Telefone/i), { target: { value: '123' } })
     submitForm()
-    expect(mockShowAlert).toHaveBeenCalledWith(
-      expect.objectContaining({ title: 'Telefone obrigatório' }),
+    // Shown on the field through the DentalFlow error pattern, not a toast.
+    expect(await screen.findByText('Informe um telefone com WhatsApp válido.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Telefone/i)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText(/Telefone/i)).toHaveAttribute(
+      'aria-describedby',
+      'patientPhone-error',
     )
     expect(mockCreateAppointment).not.toHaveBeenCalled()
   })
@@ -341,7 +378,7 @@ describe('CreateAppointmentModal — form lifecycle', () => {
     fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2000-01-01' } })
     await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
     submitForm()
-    expect(mockShowAlert).toHaveBeenCalledWith(expect.objectContaining({ title: 'Data inválida' }))
+    expect(await screen.findByText('Escolha uma data de hoje em diante.')).toBeInTheDocument()
     expect(mockCreateAppointment).not.toHaveBeenCalled()
   })
 
@@ -358,6 +395,11 @@ describe('CreateAppointmentModal — form lifecycle', () => {
     submitForm()
     expect(screen.getByLabelText(/Nome do paciente/i)).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+    fireEvent.pointerDown(document.body, { button: 0, pointerType: 'mouse' })
+    expect(onClose).not.toHaveBeenCalled()
+    submitForm()
+    expect(mockCreateAppointment).toHaveBeenCalledTimes(1)
     await act(async () => rejectCreate(new Error('Serviço indisponível')))
     expect(mockShowAlert).toHaveBeenCalledWith(
       expect.objectContaining({ description: 'Serviço indisponível', tone: 'error' }),
@@ -382,6 +424,11 @@ describe('CreateAppointmentModal — form lifecycle', () => {
     rerender(<CreateAppointmentModal {...props} open={false} />)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     rerender(<CreateAppointmentModal {...props} open />)
+    expect(screen.getByRole('radio', { name: 'Paciente existente' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    chooseNewPatient()
     expect(screen.getByLabelText(/Nome do paciente/i)).toHaveValue('')
     expect(screen.getByRole('button', { name: 'Adicionar foto do paciente' })).toBeInTheDocument()
     expect(mockCreateAppointment).not.toHaveBeenCalled()
@@ -545,6 +592,7 @@ describe('avatar upload on appointment creation', () => {
   it('calls upsertPatientAvatar with email as identifier when email is provided', async () => {
     renderModal()
     await selectAvatarFile()
+    chooseNewPatient()
     fireEvent.change(screen.getByLabelText(/E-mail/i), { target: { value: 'maria@example.com' } })
     await fillRequiredFields()
     submitForm()
@@ -601,5 +649,268 @@ describe('avatar upload on appointment creation', () => {
       )
     })
     expect(onCreated).toHaveBeenCalledOnce()
+  })
+})
+
+// ── Patient identity: existing vs new ─────────────────────────────────────────
+
+const EXISTING_PATIENT = {
+  patientId: 'patient-42',
+  identifier: 'ana@example.com',
+  patientName: 'Ana Souza',
+  patientEmail: 'ana@example.com',
+  patientPhone: '11987650000',
+  totalAppointments: 3,
+  completedAppointments: 2,
+  canceledAppointments: 0,
+  lastVisit: '2026-01-10',
+}
+
+async function pickDateAndSlot() {
+  fireEvent.change(screen.getByTestId('date-picker-input'), { target: { value: '2030-12-31' } })
+  await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
+}
+
+async function searchAndSelectExistingPatient() {
+  fireEvent.change(screen.getByLabelText('Buscar paciente'), { target: { value: 'Ana' } })
+  await userEvent.click(await screen.findByRole('button', { name: /Ana Souza/ }))
+}
+
+describe('CreateAppointmentModal — patient identity', () => {
+  it('requires an explicit professional and clears its error when one is selected', async () => {
+    mockListProfiles.mockResolvedValue([FIXED_PROFILE])
+    render(<CreateAppointmentModal open onCreated={vi.fn()} onClose={vi.fn()} />)
+    await waitFor(() => expect(mockListProfiles).toHaveBeenCalled())
+    submitForm()
+    expect(await screen.findByText('Selecione um profissional.')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('combobox', { name: 'Profissional' }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Dr. Silva' }))
+    expect(screen.queryByText('Selecione um profissional.')).not.toBeInTheDocument()
+    expect(mockCreateAppointment).not.toHaveBeenCalled()
+  })
+  it('keeps a selected Patient without contacts and requires a booking phone without changing identity', async () => {
+    mockListPatients.mockResolvedValue({
+      data: [{ ...EXISTING_PATIENT, patientEmail: null, patientPhone: null }],
+      total: 1,
+    })
+    renderModal()
+    await searchAndSelectExistingPatient()
+    expect(screen.getByLabelText(/E-mail/i)).toHaveValue('')
+    expect(screen.getByLabelText(/Telefone/i)).toHaveValue('')
+    await pickDateAndSlot()
+    submitForm()
+    expect(mockCreateAppointment).not.toHaveBeenCalled()
+    expect(await screen.findByText('Informe um telefone com WhatsApp válido.')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(/Telefone/i), { target: { value: '11987654321' } })
+    submitForm()
+    await waitFor(() =>
+      expect(mockCreateAppointment).toHaveBeenCalledWith(
+        expect.objectContaining({
+          patientId: 'patient-42',
+          patientPhone: '11987654321',
+          patientEmail: undefined,
+        }),
+      ),
+    )
+  })
+  it('starts on "Paciente existente" so a returning patient is looked up first', () => {
+    renderModal()
+    expect(screen.getByRole('radio', { name: 'Paciente existente' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    expect(screen.getByPlaceholderText('Buscar paciente por nome ou e-mail')).toBeInTheDocument()
+    expect(screen.queryByLabelText(/Nome do paciente/i)).not.toBeInTheDocument()
+  })
+
+  it('sends the selected patientId and keeps it when contact fields are edited', async () => {
+    mockListPatients.mockResolvedValue({ data: [EXISTING_PATIENT], total: 1 })
+    renderModal()
+    await searchAndSelectExistingPatient()
+
+    expect(mockListPatients).toHaveBeenCalledWith('Ana')
+    expect(screen.getByLabelText(/Nome do paciente/i)).toHaveValue('Ana Souza')
+    expect(screen.getByLabelText(/Telefone/i)).toHaveValue('(11) 98765-0000')
+
+    // Correcting the booking's contact snapshot must not change the identity.
+    fireEvent.change(screen.getByLabelText(/Telefone/i), { target: { value: '11912345678' } })
+    fireEvent.change(screen.getByLabelText(/E-mail/i), { target: { value: '' } })
+    await pickDateAndSlot()
+    submitForm()
+
+    await waitFor(() =>
+      expect(mockCreateAppointment).toHaveBeenCalledWith(
+        expect.objectContaining({
+          patientId: 'patient-42',
+          patientName: 'Ana Souza',
+          patientPhone: '11912345678',
+          patientEmail: undefined,
+        }),
+      ),
+    )
+  })
+
+  it('does not send a patientId for a new patient, even with the same contact data', async () => {
+    renderModal()
+    chooseNewPatient()
+    fireEvent.change(screen.getByLabelText(/Nome do paciente/i), {
+      target: { value: 'Ana Souza' },
+    })
+    fireEvent.change(screen.getByLabelText(/E-mail/i), { target: { value: 'ana@example.com' } })
+    fireEvent.change(screen.getByLabelText(/Telefone/i), { target: { value: '11987650000' } })
+    await pickDateAndSlot()
+    submitForm()
+
+    await waitFor(() => expect(mockCreateAppointment).toHaveBeenCalledOnce())
+    expect(mockCreateAppointment.mock.calls[0][0].patientId).toBeUndefined()
+    expect(mockListPatients).not.toHaveBeenCalled()
+  })
+
+  it('requires a selection before submitting in "Paciente existente" mode', async () => {
+    renderModal()
+    await pickDateAndSlot()
+    submitForm()
+
+    expect(
+      await screen.findByText('Selecione um paciente cadastrado ou escolha "Novo paciente".'),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Buscar paciente')).toHaveAttribute('aria-invalid', 'true')
+    expect(mockCreateAppointment).not.toHaveBeenCalled()
+  })
+
+  it('"Trocar paciente" clears the selection and its contact snapshot', async () => {
+    mockListPatients.mockResolvedValue({ data: [EXISTING_PATIENT], total: 1 })
+    renderModal()
+    await searchAndSelectExistingPatient()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Trocar paciente' }))
+
+    expect(screen.getByLabelText('Buscar paciente')).toHaveValue('')
+    expect(screen.queryByLabelText(/Nome do paciente/i)).not.toBeInTheDocument()
+  })
+
+  it('does not carry a selected patient into the next booking after closing', async () => {
+    mockListPatients.mockResolvedValue({ data: [EXISTING_PATIENT], total: 1 })
+    const props = { fixedProfile: FIXED_PROFILE, onClose: vi.fn(), onCreated: vi.fn() }
+    const { rerender } = render(<CreateAppointmentModal {...props} open />)
+    await searchAndSelectExistingPatient()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    rerender(<CreateAppointmentModal {...props} open={false} />)
+    rerender(<CreateAppointmentModal {...props} open />)
+
+    expect(screen.queryByText('Ana Souza')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Buscar paciente')).toHaveValue('')
+  })
+
+  it('reports an empty search result', async () => {
+    renderModal()
+    fireEvent.change(screen.getByLabelText('Buscar paciente'), { target: { value: 'Zé' } })
+    expect(await screen.findByText(/Nenhum paciente encontrado/)).toBeInTheDocument()
+  })
+
+  it('reports a failed search', async () => {
+    mockListPatients.mockRejectedValue(new Error('offline'))
+    renderModal()
+    fireEvent.change(screen.getByLabelText('Buscar paciente'), { target: { value: 'Ana' } })
+    expect(
+      await screen.findByText('Não foi possível buscar pacientes. Tente novamente.'),
+    ).toBeInTheDocument()
+  })
+
+  it('shows a loading state while the search is pending', async () => {
+    mockListPatients.mockReturnValue(new Promise(() => {}))
+    renderModal()
+    fireEvent.change(screen.getByLabelText('Buscar paciente'), { target: { value: 'Ana' } })
+    expect(screen.getByText('Buscando pacientes...')).toBeInTheDocument()
+  })
+
+  it('hides rows that have no stable patientId', async () => {
+    mockListPatients.mockResolvedValue({
+      data: [{ ...EXISTING_PATIENT, patientId: null, patientName: 'Legado Sem Id' }],
+      total: 1,
+    })
+    renderModal()
+    fireEvent.change(screen.getByLabelText('Buscar paciente'), { target: { value: 'Legado' } })
+    expect(await screen.findByText(/Nenhum paciente encontrado/)).toBeInTheDocument()
+    expect(screen.queryByText('Legado Sem Id')).not.toBeInTheDocument()
+  })
+
+  it('limits the search input to the API maximum of 100 characters', () => {
+    renderModal()
+    expect(screen.getByLabelText('Buscar paciente')).toHaveAttribute('maxLength', '100')
+  })
+})
+
+// ── Field validation and money ────────────────────────────────────────────────
+
+describe('CreateAppointmentModal — field validation', () => {
+  it('shows an inline error for an invalid e-mail and does not submit', async () => {
+    renderModal()
+    await fillRequiredFields()
+    fireEvent.change(screen.getByLabelText(/E-mail/i), { target: { value: 'maria@' } })
+    submitForm()
+
+    expect(await screen.findByText('Informe um e-mail válido.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/E-mail/i)).toHaveAttribute('aria-invalid', 'true')
+    expect(mockCreateAppointment).not.toHaveBeenCalled()
+  })
+
+  it('caps the patient e-mail at 254 characters and disables autofill of staff data', async () => {
+    renderModal()
+    chooseNewPatient()
+    const email = screen.getByLabelText(/E-mail/i)
+    expect(email).toHaveAttribute('maxLength', '254')
+    expect(email).toHaveAttribute('autoComplete', 'off')
+    expect(screen.getByLabelText(/Nome do paciente/i)).toHaveAttribute('autoComplete', 'off')
+    expect(screen.getByLabelText(/Telefone/i)).toHaveAttribute('autoComplete', 'off')
+  })
+
+  it('rejects a toll-free 0800 number as a WhatsApp phone', async () => {
+    renderModal()
+    await fillRequiredFields()
+    fireEvent.change(screen.getByLabelText(/Telefone/i), { target: { value: '08001234567' } })
+    submitForm()
+    expect(await screen.findByText('Informe um telefone com WhatsApp válido.')).toBeInTheDocument()
+    expect(mockCreateAppointment).not.toHaveBeenCalled()
+  })
+
+  it('sends a thousands-separated estimate as cents (regression: "1.250,00" was 125 cents)', async () => {
+    renderModal()
+    await fillRequiredFields()
+    fireEvent.change(screen.getByLabelText(/Valor previsto/), { target: { value: '125000' } })
+    expect(screen.getByLabelText(/Valor previsto/)).toHaveValue('1.250,00')
+    submitForm()
+    await waitFor(() =>
+      expect(mockCreateAppointment).toHaveBeenCalledWith(
+        expect.objectContaining({ estimatedAmountCents: 125000 }),
+      ),
+    )
+  })
+
+  it('omits the estimate when the amount is left empty', async () => {
+    renderModal()
+    await fillRequiredFields()
+    submitForm()
+    await waitFor(() => expect(mockCreateAppointment).toHaveBeenCalledOnce())
+    expect(mockCreateAppointment.mock.calls[0][0].estimatedAmountCents).toBeUndefined()
+  })
+
+  it('allows outside dismissal while idle', async () => {
+    const { onClose } = renderModal()
+    await userEvent.tab()
+    fireEvent.pointerDown(document.body, { button: 0, pointerType: 'mouse' })
+    expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('ignores Escape while the appointment is being created', async () => {
+    mockCreateAppointment.mockReturnValue(new Promise(() => {}))
+    const { onClose } = renderModal()
+    await fillRequiredFields()
+    submitForm()
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByLabelText(/Nome do paciente/i)).toHaveValue('Maria Silva')
   })
 })

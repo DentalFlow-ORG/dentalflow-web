@@ -7,6 +7,7 @@ import {
   updateAvailabilityException,
 } from '@/features/scheduling/services/scheduling.service'
 import type { AvailabilityException } from '@/features/scheduling/types/scheduling.types'
+import { formatDateBR } from '@/lib/date-time-formatters'
 
 const mocks = vi.hoisted(() => ({
   brazilTodayIso: vi.fn(() => '2026-06-05'),
@@ -116,6 +117,12 @@ beforeEach(() => {
   mocks.brazilTodayIso.mockReturnValue('2026-06-05')
 })
 
+// Deletion opens a confirmation naming the date; this confirms it.
+async function confirmExceptionDeletion(user: ReturnType<typeof userEvent.setup>) {
+  const dialog = await screen.findByRole('dialog', { name: 'Excluir exceção de agenda?' })
+  await user.click(within(dialog).getByRole('button', { name: 'Excluir exceção' }))
+}
+
 describe('ExceptionManager — mutation recovery', () => {
   it.each([new Error('Servidor indisponível'), null])(
     'preserves a new exception after rejection %s and retries',
@@ -187,22 +194,19 @@ describe('ExceptionManager — mutation recovery', () => {
           await user.click(screen.getByRole('button', { name: /editar exceção/i }))
         const buttonName = origin === 'modal' ? /excluir exceção/i : /remover exceção/i
         await user.click(screen.getByRole('button', { name: buttonName }))
-        if (origin === 'modal') {
-          await waitFor(() =>
-            expect(mocks.showAlert).toHaveBeenLastCalledWith(
-              expect.objectContaining({
-                title: error?.message ?? 'Erro ao remover exceção.',
-                tone: 'error',
-              }),
-            ),
-          )
-        } else {
-          expect(
-            await screen.findByText(error?.message ?? 'Erro ao remover exceção.'),
-          ).toBeInTheDocument()
-        }
+        await confirmExceptionDeletion(user)
+        await waitFor(() =>
+          expect(mocks.showAlert).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+              title: 'Erro ao remover exceção',
+              description: error?.message,
+              tone: 'error',
+            }),
+          ),
+        )
         expect(onExceptionsChange).not.toHaveBeenCalled()
-        await user.click(screen.getByRole('button', { name: buttonName }))
+        // The confirmation stays open after the failure so the user can retry.
+        await confirmExceptionDeletion(user)
         await waitFor(() => expect(onExceptionsChange).toHaveBeenCalledWith([]))
       },
     )
@@ -447,9 +451,30 @@ describe('ExceptionManager — edit modal', () => {
     await user.click(screen.getByRole('button', { name: /editar exceção/i }))
     await screen.findByText('Editar exceção')
     await user.click(screen.getByRole('button', { name: /excluir exceção/i }))
+    await confirmExceptionDeletion(user)
 
     await waitFor(() =>
       expect(deleteAvailabilityException).toHaveBeenCalledWith('profile-1', 'exc-future-1'),
+    )
+    await waitFor(() => expect(screen.queryByText('Editar exceção')).toBeNull())
+  })
+
+  it('sends null when the reason is cleared on edit', async () => {
+    const user = userEvent.setup()
+    vi.mocked(updateAvailabilityException).mockResolvedValue(FUTURE_1)
+    renderManager([FUTURE_1])
+
+    await user.click(screen.getByRole('button', { name: /editar exceção/i }))
+    await screen.findByText('Editar exceção')
+    await user.clear(screen.getByLabelText(/Motivo/))
+    await user.click(screen.getByRole('button', { name: /salvar alterações/i }))
+
+    await waitFor(() =>
+      expect(updateAvailabilityException).toHaveBeenCalledWith(
+        'profile-1',
+        FUTURE_1.id,
+        expect.objectContaining({ reason: null }),
+      ),
     )
   })
 
@@ -473,10 +498,24 @@ describe('ExceptionManager — row delete', () => {
     renderManager([FUTURE_1])
 
     await user.click(screen.getByRole('button', { name: /remover exceção/i }))
+    await confirmExceptionDeletion(user)
 
     await waitFor(() =>
       expect(deleteAvailabilityException).toHaveBeenCalledWith('profile-1', 'exc-future-1'),
     )
+  })
+
+  it('names the date in the confirmation and keeps the exception when dismissed', async () => {
+    const user = userEvent.setup()
+    renderManager([FUTURE_1])
+
+    await user.click(screen.getByRole('button', { name: /remover exceção/i }))
+    const dialog = await screen.findByRole('dialog', { name: 'Excluir exceção de agenda?' })
+    expect(dialog).toHaveTextContent(formatDateBR(FUTURE_1.exceptionDate))
+    await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(deleteAvailabilityException).not.toHaveBeenCalled()
   })
 
   it('delete button calls onExceptionsChange with the exception removed', async () => {
@@ -486,6 +525,7 @@ describe('ExceptionManager — row delete', () => {
 
     const row1 = screen.getByTestId('exception-row-exc-future-1')
     await user.click(within(row1).getByRole('button', { name: /remover exceção/i }))
+    await confirmExceptionDeletion(user)
 
     await waitFor(() => expect(onExceptionsChange).toHaveBeenCalledWith([FUTURE_2]))
   })

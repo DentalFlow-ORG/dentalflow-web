@@ -1,16 +1,19 @@
 import { Clock, Plus } from 'lucide-react'
 import { useState } from 'react'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 
+import { DAY_OPTIONS } from '../../constants/availability-display'
 import {
   createAvailability,
   deleteAvailability,
   updateAvailability,
 } from '../../services/scheduling.service'
 import type { Availability, CreateAvailabilityDto } from '../../types/scheduling.types'
+import { formatWallTime } from '../../utils/time'
 import { AvailabilitySlotForm } from './AvailabilitySlotForm'
 import { AvailabilitySlotRow } from './AvailabilitySlotRow'
 
@@ -26,6 +29,7 @@ export function AvailabilityManager({ profileId, slots, onSlotsChange }: Availab
   const [editingId, setEditingId] = useState<string | null>(null)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Availability | null>(null)
 
   async function handleAdd(dto: CreateAvailabilityDto) {
     setLoadingId('new')
@@ -61,12 +65,15 @@ export function AvailabilityManager({ profileId, slots, onSlotsChange }: Availab
     }
   }
 
-  async function handleDelete(slot: Availability) {
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return
+    const slot = deleteTarget
     setLoadingId(slot.id)
     setError(null)
     try {
       await deleteAvailability(profileId, slot.id)
       onSlotsChange(slots.filter((s) => s.id !== slot.id))
+      setDeleteTarget(null)
       showAlert({ title: 'Disponibilidade removida', tone: 'success' })
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erro ao remover.'
@@ -133,11 +140,27 @@ export function AvailabilityManager({ profileId, slots, onSlotsChange }: Availab
               onEditStart={() => setEditingId(slot.id)}
               onEditCancel={() => setEditingId(null)}
               onUpdate={(dto) => handleUpdate(slot, dto)}
-              onDelete={() => handleDelete(slot)}
+              onDelete={() => setDeleteTarget(slot)}
             />
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Remover horário de atendimento?"
+        subject={deleteTarget ? describeSlot(deleteTarget) : undefined}
+        description="Novos agendamentos deixarão de ser oferecidos neste horário. Consultas já marcadas não são alteradas."
+        confirmLabel="Remover horário"
+        isConfirming={deleteTarget !== null && loadingId === deleteTarget.id}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
+}
+
+function describeSlot(slot: Availability) {
+  const day = DAY_OPTIONS.find((option) => option.value === slot.dayOfWeek)?.label ?? ''
+  return `${day} · ${formatWallTime(slot.startTime)} – ${formatWallTime(slot.endTime)}`
 }

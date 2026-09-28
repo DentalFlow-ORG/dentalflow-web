@@ -1,3 +1,5 @@
+export const TIME_RANGE_ORDER_MESSAGE = 'O horário de início deve ser anterior ao horário de fim.'
+
 export const DAY_OPTIONS = [
   { value: 1, label: 'Segunda-feira' },
   { value: 2, label: 'Terça-feira' },

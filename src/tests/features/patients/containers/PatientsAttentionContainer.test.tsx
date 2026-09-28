@@ -305,6 +305,35 @@ describe('PatientsAttentionContainer — detail panel actions', () => {
     expect(telLinks.length).toBeGreaterThan(0)
   })
 
+  it.each(['11998887766', '(11) 99888-7766', '+55 (11) 99888-7766', '005511998887766'])(
+    'uses the international WhatsApp destination for %s',
+    (patientPhone) => {
+      const item = makeAttentionItem({ patientPhone, hasWhatsappConsent: true })
+      mockUsePatientsAttention.mockReturnValue(
+        makeDefaultHookState({ allItems: [item], filteredItems: [item] }),
+      )
+      render(<PatientsAttentionContainer />)
+      fireEvent.click(screen.getAllByRole('button', { name: /ver detalhes/i })[0])
+      expect(screen.getByRole('link', { name: 'WhatsApp' })).toHaveAttribute(
+        'href',
+        'https://wa.me/5511998887766',
+      )
+    },
+  )
+
+  it('preserves an international legacy destination without truncating it', () => {
+    const item = makeAttentionItem({ patientPhone: '+44 20 7946 0958', hasWhatsappConsent: true })
+    mockUsePatientsAttention.mockReturnValue(
+      makeDefaultHookState({ allItems: [item], filteredItems: [item] }),
+    )
+    render(<PatientsAttentionContainer />)
+    fireEvent.click(screen.getAllByRole('button', { name: /ver detalhes/i })[0])
+    expect(screen.getByRole('link', { name: 'WhatsApp' })).toHaveAttribute(
+      'href',
+      'https://wa.me/442079460958',
+    )
+  })
+
   it('renders mailto: link in detail panel when email exists', () => {
     const item = makeAttentionItem({ patientEmail: 'carlos@email.com' })
     mockUsePatientsAttention.mockReturnValue(

@@ -1,6 +1,7 @@
 import { Ban, CheckCircle2, Clock } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextArea, TextInput } from '@/components/common/FormField'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
@@ -14,8 +15,17 @@ import {
 } from '@/components/ui/select'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { formatDateBR, formatDateInputValue } from '@/lib/date-time-formatters'
+import { centsToMoneyInput, formatMoneyInputFromDigits } from '@/lib/money-input'
+import { formatCurrencyBRLCents } from '@/lib/number-formatters'
 
 import { PAYMENT_METHOD_LABELS } from '../../constants/appointment-display'
+import {
+  CLEARING_PAYMENT_ACTION_COPY,
+  CLEARING_PAYMENT_STATUSES,
+  type ClearingPaymentStatus,
+  NO_PAYMENT_METHOD,
+  PAYMENT_NOTES_MAX_LENGTH,
+} from '../../constants/appointment-form'
 import { updateAppointmentPayment } from '../../services/scheduling.service'
 import type {
   Appointment,
@@ -23,7 +33,7 @@ import type {
   AppointmentPaymentStatus,
   UpdateAppointmentPaymentDto,
 } from '../../types/scheduling.types'
-import { centsToReais, reaisToCents } from '../../utils/appointment-form-utils'
+import { moneyInputToOptionalCents } from '../../utils/appointment-form-utils'
 import { AppointmentDetailsRow, AppointmentDetailsSection } from './AppointmentDetailsSection'
 import { AppointmentPaymentBadge } from './AppointmentPaymentBadge'
 
@@ -45,7 +55,16 @@ export function AppointmentPaymentSection({
     return <PaymentReadOnly appointment={appointment} />
   }
 
-  return <PaymentEditForm appointment={appointment} onUpdated={onUpdated} showAlert={showAlert} />
+  // Keyed by the record version so the form reseeds whenever the appointment
+  // changes, instead of keeping values seeded from an older copy.
+  return (
+    <PaymentEditForm
+      key={`${appointment.id}:${appointment.updatedAt}`}
+      appointment={appointment}
+      onUpdated={onUpdated}
+      showAlert={showAlert}
+    />
+  )
 }
 
 function PaymentReadOnly({ appointment }: { appointment: Appointment }) {
@@ -56,12 +75,12 @@ function PaymentReadOnly({ appointment }: { appointment: Appointment }) {
       </AppointmentDetailsRow>
       {appointment.estimatedAmountCents != null && (
         <AppointmentDetailsRow label="Valor previsto">
-          R$ {centsToReais(appointment.estimatedAmountCents)}
+          {formatCurrencyBRLCents(appointment.estimatedAmountCents)}
         </AppointmentDetailsRow>
       )}
       {appointment.paidAmountCents != null && (
         <AppointmentDetailsRow label="Valor pago">
-          R$ {centsToReais(appointment.paidAmountCents)}
+          {formatCurrencyBRLCents(appointment.paidAmountCents)}
         </AppointmentDetailsRow>
       )}
       {appointment.paymentMethod && (
@@ -93,8 +112,8 @@ function PaymentEditForm({
   showAlert: ShowAlert
 }) {
   const [status, setStatus] = useState<AppointmentPaymentStatus>(appointment.paymentStatus)
-  const [estimated, setEstimated] = useState(centsToReais(appointment.estimatedAmountCents))
-  const [paid, setPaid] = useState(centsToReais(appointment.paidAmountCents))
+  const [estimated, setEstimated] = useState(centsToMoneyInput(appointment.estimatedAmountCents))
+  const [paid, setPaid] = useState(centsToMoneyInput(appointment.paidAmountCents))
   const [method, setMethod] = useState<AppointmentPaymentMethod | ''>(
     appointment.paymentMethod ?? '',
   )
@@ -103,32 +122,68 @@ function PaymentEditForm({
   )
   const [notes, setNotes] = useState(appointment.paymentNotes ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [pendingClearing, setPendingClearing] = useState<ClearingPaymentStatus | null>(null)
+  // Guards against a second submit fired before React re-renders the disabled
+  // buttons (fast double click / Enter repeat).
+  const submittingRef = useRef(false)
 
   const requiresPaid = status === 'PAID' || status === 'PARTIALLY_PAID'
+  const fieldId = (name: string) => `payment-${appointment.id}-${name}`
 
-  const handleSubmit = async (overrideStatus?: AppointmentPaymentStatus) => {
+  const isClearingTransition = (
+    target: AppointmentPaymentStatus,
+  ): target is ClearingPaymentStatus =>
+    (CLEARING_PAYMENT_STATUSES as readonly AppointmentPaymentStatus[]).includes(target) &&
+    target !== appointment.paymentStatus
+
+  // Single entry point for every save path: a move into PENDING or CANCELED is
+  // always confirmed, whichever button or select produced it.
+  const requestSubmit = (overrideStatus?: AppointmentPaymentStatus) => {
     const finalStatus = overrideStatus ?? status
-    const paidCents = requiresPaid || overrideStatus ? reaisToCents(paid) : undefined
-    const estimatedCents = reaisToCents(estimated)
+    if (isClearingTransition(finalStatus)) {
+      setPendingClearing(finalStatus)
+      return
+    }
+    void handleSubmit(finalStatus)
+  }
 
-    if ((finalStatus === 'PAID' || finalStatus === 'PARTIALLY_PAID') && !paidCents) {
+  const handleSubmit = async (finalStatus: AppointmentPaymentStatus): Promise<boolean> => {
+    if (submittingRef.current) return false
+    const clearsSettlement = (
+      CLEARING_PAYMENT_STATUSES as readonly AppointmentPaymentStatus[]
+    ).includes(finalStatus)
+    const settles = finalStatus === 'PAID' || finalStatus === 'PARTIALLY_PAID'
+    const paidCents = settles ? (moneyInputToOptionalCents(paid) ?? undefined) : undefined
+
+    if (settles && !paidCents) {
       showAlert({
         title: 'Valor obrigatório',
         description: 'Informe o valor pago para confirmar o pagamento.',
         tone: 'error',
       })
-      return
+      return false
     }
 
-    const dto: UpdateAppointmentPaymentDto = {
-      paymentStatus: finalStatus,
-      estimatedAmountCents: estimatedCents,
-      paidAmountCents: paidCents,
-      paymentMethod: method || undefined,
-      paymentDate: paymentDate || undefined,
-      paymentNotes: notes.trim() || undefined,
-    }
+    const dto: UpdateAppointmentPaymentDto = clearsSettlement
+      ? {
+          paymentStatus: finalStatus,
+          estimatedAmountCents: moneyInputToOptionalCents(estimated),
+          // Not settled: no paid amount, payment date or method is kept.
+          paidAmountCents: null,
+          paymentMethod: null,
+          paymentDate: null,
+          paymentNotes: notes.trim() || undefined,
+        }
+      : {
+          paymentStatus: finalStatus,
+          estimatedAmountCents: moneyInputToOptionalCents(estimated),
+          paidAmountCents: paidCents,
+          paymentMethod: method || null,
+          paymentDate: paymentDate || undefined,
+          paymentNotes: notes.trim() || undefined,
+        }
 
+    submittingRef.current = true
     setIsSubmitting(true)
     try {
       const updated = await updateAppointmentPayment(appointment.id, dto)
@@ -138,16 +193,30 @@ function PaymentEditForm({
         description: 'As informações de pagamento foram salvas.',
         tone: 'success',
       })
-    } catch {
+      return true
+    } catch (err) {
       showAlert({
-        title: 'Erro',
-        description: 'Não foi possível atualizar o pagamento. Tente novamente.',
+        title: 'Erro ao atualizar pagamento',
+        description:
+          err instanceof Error && err.message
+            ? err.message
+            : 'Não foi possível atualizar o pagamento. Tente novamente.',
         tone: 'error',
       })
+      return false
     } finally {
+      submittingRef.current = false
       setIsSubmitting(false)
     }
   }
+
+  async function handleConfirmClearing() {
+    if (!pendingClearing) return
+    const succeeded = await handleSubmit(pendingClearing)
+    if (succeeded) setPendingClearing(null)
+  }
+
+  const clearingCopy = pendingClearing ? CLEARING_PAYMENT_ACTION_COPY[pendingClearing] : null
 
   return (
     <div>
@@ -164,9 +233,9 @@ function PaymentEditForm({
         {/* Form fields */}
         <div className="space-y-4 border-t border-border p-4">
           {/* Status select */}
-          <FormField label="Status de pagamento">
+          <FormField label="Status de pagamento" htmlFor={fieldId('status')}>
             <Select value={status} onValueChange={(v) => setStatus(v as AppointmentPaymentStatus)}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger id={fieldId('status')} className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -180,33 +249,42 @@ function PaymentEditForm({
           </FormField>
 
           {/* Estimated */}
-          <FormField label="Valor previsto (R$)" optional>
+          <FormField label="Valor previsto (R$)" htmlFor={fieldId('estimated')} optional>
             <TextInput
-              placeholder="Ex: 250,00"
+              id={fieldId('estimated')}
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="0,00"
               value={estimated}
-              onChange={(e) => setEstimated(e.target.value)}
+              onChange={(e) => setEstimated(formatMoneyInputFromDigits(e.target.value))}
             />
           </FormField>
 
           {/* Paid */}
-          <FormField
-            label={requiresPaid ? 'Valor pago (R$)' : 'Valor pago (R$)'}
-            optional={!requiresPaid}
-          >
+          <FormField label="Valor pago (R$)" htmlFor={fieldId('paid')} optional={!requiresPaid}>
             <TextInput
-              placeholder="Ex: 250,00"
+              id={fieldId('paid')}
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="0,00"
               value={paid}
-              onChange={(e) => setPaid(e.target.value)}
+              onChange={(e) => setPaid(formatMoneyInputFromDigits(e.target.value))}
             />
           </FormField>
 
           {/* Payment method */}
-          <FormField label="Forma de pagamento" optional>
-            <Select value={method} onValueChange={(v) => setMethod(v as AppointmentPaymentMethod)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecione..." />
+          <FormField label="Forma de pagamento" htmlFor={fieldId('method')} optional>
+            <Select
+              value={method}
+              onValueChange={(v) =>
+                setMethod(v === NO_PAYMENT_METHOD ? '' : (v as AppointmentPaymentMethod))
+              }
+            >
+              <SelectTrigger id={fieldId('method')} className="w-full">
+                <SelectValue placeholder="Selecione a forma de pagamento" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={NO_PAYMENT_METHOD}>Não informado</SelectItem>
                 {(
                   Object.entries(PAYMENT_METHOD_LABELS) as [AppointmentPaymentMethod, string][]
                 ).map(([value, label]) => (
@@ -219,8 +297,9 @@ function PaymentEditForm({
           </FormField>
 
           {/* Payment date */}
-          <FormField label="Data do pagamento" optional>
+          <FormField label="Data do pagamento" htmlFor={fieldId('date')} optional>
             <DatePickerInput
+              id={fieldId('date')}
               value={paymentDate}
               onValueChange={setPaymentDate}
               placeholder="DD/MM/AAAA"
@@ -228,8 +307,15 @@ function PaymentEditForm({
           </FormField>
 
           {/* Notes */}
-          <FormField label="Observação financeira" optional>
+          <FormField
+            label="Observação financeira"
+            htmlFor={fieldId('notes')}
+            optional
+            hint={`Até ${PAYMENT_NOTES_MAX_LENGTH} caracteres.`}
+          >
             <TextArea
+              id={fieldId('notes')}
+              maxLength={PAYMENT_NOTES_MAX_LENGTH}
               placeholder="Observações sobre o pagamento..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -245,7 +331,13 @@ function PaymentEditForm({
               size="sm"
               className="w-full justify-start"
               disabled={isSubmitting}
-              onClick={() => handleSubmit(status === 'PAYMENT_PENDING' ? 'PAID' : undefined)}
+              onClick={() =>
+                requestSubmit(
+                  status === 'PAYMENT_PENDING' && appointment.paymentStatus === 'PAYMENT_PENDING'
+                    ? 'PAID'
+                    : undefined,
+                )
+              }
             >
               <CheckCircle2 />
               {status === 'PARTIALLY_PAID' ? 'Salvar pagamento parcial' : 'Confirmar pagamento'}
@@ -257,7 +349,7 @@ function PaymentEditForm({
                 size="sm"
                 className="w-full justify-start"
                 disabled={isSubmitting}
-                onClick={() => handleSubmit('PAYMENT_PENDING')}
+                onClick={() => requestSubmit('PAYMENT_PENDING')}
               >
                 <Clock />
                 Marcar como pendente
@@ -270,7 +362,7 @@ function PaymentEditForm({
                 size="sm"
                 className="w-full justify-start text-muted-foreground"
                 disabled={isSubmitting}
-                onClick={() => handleSubmit('CANCELED')}
+                onClick={() => requestSubmit('CANCELED')}
               >
                 <Ban />
                 Cancelar cobrança
@@ -279,6 +371,19 @@ function PaymentEditForm({
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={clearingCopy !== null}
+        tone="warning"
+        title={clearingCopy?.title ?? ''}
+        subject={appointment.patientName}
+        description={clearingCopy?.description ?? ''}
+        confirmLabel={clearingCopy?.confirmLabel}
+        cancelLabel="Voltar"
+        isConfirming={isSubmitting}
+        onConfirm={handleConfirmClearing}
+        onCancel={() => setPendingClearing(null)}
+      />
     </div>
   )
 }

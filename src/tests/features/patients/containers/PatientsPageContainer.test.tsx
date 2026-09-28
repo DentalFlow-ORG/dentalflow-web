@@ -562,6 +562,12 @@ describe('PatientsPageContainer — detail interactions', () => {
     expect(state.handleSearchChange).toHaveBeenCalledWith('Ana')
   })
 
+  it('limits the patient search to the API maximum of 100 characters', () => {
+    preparePatient({}, false)
+    render(<PatientsPageContainer />)
+    expect(screen.getByLabelText('Buscar paciente')).toHaveAttribute('maxLength', '100')
+  })
+
   it('shows the clinical empty state for an authorized owner and returns to appointments', () => {
     preparePatient()
     render(<PatientsPageContainer />)
@@ -586,6 +592,10 @@ describe('PatientsPageContainer — detail interactions', () => {
     render(<PatientsPageContainer />)
     fireEvent.click(screen.getByRole('button', { name: 'Alterar foto do paciente' }))
     fireEvent.click(screen.getByRole('menuitem', { name: 'Remover foto' }))
+    // Removing a stored photo is confirmed first.
+    expect(mockUpdateAvatar).not.toHaveBeenCalled()
+    const dialog = await screen.findByRole('dialog', { name: 'Remover foto do paciente?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Remover foto' }))
     await waitFor(() =>
       expect(mockShowAlert).toHaveBeenCalledWith({
         title: 'Foto removida.',
@@ -594,6 +604,27 @@ describe('PatientsPageContainer — detail interactions', () => {
       }),
     )
     expect(mockUpdateAvatar).toHaveBeenCalledExactlyOnceWith(null)
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Remover foto do paciente?' }),
+      ).not.toBeInTheDocument(),
+    )
+  })
+
+  it('keeps the stored photo when the removal confirmation is dismissed', async () => {
+    preparePatient()
+    mockAvatar.mockReturnValue({ avatarUrl: 'photo', isSaving: false, update: mockUpdateAvatar })
+    render(<PatientsPageContainer />)
+    fireEvent.click(screen.getByRole('button', { name: 'Alterar foto do paciente' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Remover foto' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Remover foto do paciente?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Remover foto do paciente?' }),
+      ).not.toBeInTheDocument(),
+    )
+    expect(mockUpdateAvatar).not.toHaveBeenCalled()
   })
 
   it('reports avatar persistence failure and allows another attempt', async () => {
@@ -603,6 +634,8 @@ describe('PatientsPageContainer — detail interactions', () => {
     render(<PatientsPageContainer />)
     fireEvent.click(screen.getByRole('button', { name: 'Alterar foto do paciente' }))
     fireEvent.click(screen.getByRole('menuitem', { name: 'Remover foto' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Remover foto do paciente?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Remover foto' }))
     await waitFor(() =>
       expect(mockShowAlert).toHaveBeenCalledWith({
         title: 'Erro',
@@ -610,8 +643,8 @@ describe('PatientsPageContainer — detail interactions', () => {
         tone: 'error',
       }),
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Alterar foto do paciente' }))
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Remover foto' }))
+    // The confirmation stays open after a failure so the removal can be retried.
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Remover foto' }))
     await waitFor(() =>
       expect(mockShowAlert).toHaveBeenCalledWith(
         expect.objectContaining({

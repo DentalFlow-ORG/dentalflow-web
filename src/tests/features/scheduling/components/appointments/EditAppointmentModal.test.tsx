@@ -56,6 +56,15 @@ vi.mock('@/components/common/DatePickerInput', async (importOriginal) => {
 })
 
 const SERVICE = { id: 'svc-1', name: 'Limpeza', priceFrom: 100, isActive: true }
+it('shows application validation when submitting a blank patient name', async () => {
+  renderModal()
+  await userEvent.clear(screen.getByLabelText('Paciente'))
+  await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+  expect(mockUpdateAppointment).not.toHaveBeenCalled()
+  expect(screen.getByText('Informe o nome do paciente.')).toBeInTheDocument()
+  expect(screen.getByLabelText('Paciente')).toHaveAttribute('aria-invalid', 'true')
+})
+
 const SLOT = { time: '10:00', available: true, durationMinutes: 30 }
 
 const FUTURE_APPOINTMENT = makeAppointment({
@@ -101,6 +110,18 @@ function renderModal(
 }
 
 describe('EditAppointmentModal — form lifecycle', () => {
+  it('rejects a cleared date and time before updating the appointment', async () => {
+    calendarMode.real = true
+    renderModal()
+    const date = document.getElementById('editAppointmentDate') as HTMLInputElement
+    await userEvent.clear(date)
+    const form = document.getElementById('edit-appointment-form')
+    if (!form) throw new Error('Appointment form not found')
+    fireEvent.submit(form)
+    expect(mockUpdateAppointment).not.toHaveBeenCalled()
+    expect(screen.getByText('Informe a data do agendamento.')).toBeInTheDocument()
+    expect(screen.getByText('Selecione um horário.')).toBeInTheDocument()
+  })
   it('reschedules using an available calendar day and dismisses with Escape', async () => {
     calendarMode.real = true
     const { onClose } = renderModal()
@@ -161,15 +182,89 @@ describe('EditAppointmentModal — form lifecycle', () => {
     expect(amount).toHaveValue('')
     await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
     await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    // Cleared optional fields are sent as null so the API removes the stored
+    // values (regression: undefined kept the old service, e-mail and notes).
     expect(mockUpdateAppointment).toHaveBeenCalledWith(
       'appt-1',
       expect.objectContaining({
-        serviceId: undefined,
-        estimatedAmountCents: undefined,
-        patientEmail: undefined,
-        notes: undefined,
+        serviceId: null,
+        estimatedAmountCents: null,
+        patientEmail: null,
+        notes: null,
       }),
     )
+  })
+
+  it('clears a stored e-mail, notes and estimate when the fields are emptied', async () => {
+    renderModal({
+      appointment: makeAppointment({
+        ...FUTURE_APPOINTMENT,
+        patientEmail: 'ana@example.com',
+        notes: 'Retorno',
+        estimatedAmountCents: 25000,
+      }),
+    })
+    await waitFor(() => expect(screen.getByLabelText(/Valor previsto/)).toHaveValue('250,00'))
+    fireEvent.change(screen.getByLabelText(/E-mail/), { target: { value: '' } })
+    fireEvent.change(screen.getByLabelText(/Observações/), { target: { value: '   ' } })
+    fireEvent.change(screen.getByLabelText(/Valor previsto/), { target: { value: '' } })
+    await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(mockUpdateAppointment).toHaveBeenCalledWith(
+      'appt-1',
+      expect.objectContaining({ patientEmail: null, notes: null, estimatedAmountCents: null }),
+    )
+  })
+
+  it('shows an inline error for an invalid e-mail and does not save', async () => {
+    renderModal()
+    fireEvent.change(screen.getByLabelText(/E-mail/), { target: { value: 'ana@exemplo' } })
+    await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(await screen.findByText('Informe um e-mail válido.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/E-mail/)).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByLabelText(/E-mail/)).toHaveAttribute('maxLength', '254')
+    expect(mockUpdateAppointment).not.toHaveBeenCalled()
+  })
+
+  it('sends a thousands-separated estimate as cents (regression: "1.250,00" was 125 cents)', async () => {
+    renderModal()
+    fireEvent.change(screen.getByLabelText(/Valor previsto/), { target: { value: '125000' } })
+    expect(screen.getByLabelText(/Valor previsto/)).toHaveValue('1.250,00')
+    await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    expect(mockUpdateAppointment).toHaveBeenCalledWith(
+      'appt-1',
+      expect.objectContaining({ estimatedAmountCents: 125000 }),
+    )
+  })
+
+  it('surfaces the API message when a finished appointment can no longer be edited', async () => {
+    mockUpdateAppointment.mockRejectedValueOnce(
+      new Error('Agendamentos cancelados ou concluídos não podem ser alterados.'),
+    )
+    const { onClose } = renderModal()
+    await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    await waitFor(() =>
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Erro ao atualizar agendamento',
+          description: 'Agendamentos cancelados ou concluídos não podem ser alterados.',
+        }),
+      ),
+    )
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('ignores Escape while the changes are being saved', async () => {
+    mockUpdateAppointment.mockReturnValue(new Promise(() => {}))
+    const { onClose } = renderModal()
+    await userEvent.click(await screen.findByRole('button', { name: '10:00' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
   it.each(['11:00', '13:00'])(
     'validates a same-day slot at %s against the current time',
@@ -224,6 +319,7 @@ describe('EditAppointmentModal — form lifecycle', () => {
     )
     const { onClose, onUpdated } = renderModal()
     await screen.findByRole('button', { name: '10:00' })
+    expect(screen.getByLabelText(/Telefone/)).toHaveValue('(11) 98765-4321')
     fireEvent.change(screen.getByLabelText('Paciente'), { target: { value: '  Ana Silva  ' } })
     fireEvent.change(screen.getByLabelText(/E-mail/), { target: { value: 'ana@example.com' } })
     fireEvent.change(screen.getByLabelText(/Telefone/), { target: { value: '21987654321' } })
@@ -233,13 +329,18 @@ describe('EditAppointmentModal — form lifecycle', () => {
     expect(screen.getByLabelText('Paciente')).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeDisabled()
     expect(onUpdated).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+    fireEvent.pointerDown(document.body, { button: 0, pointerType: 'mouse' })
+    expect(onClose).not.toHaveBeenCalled()
+    fireEvent.submit(document.getElementById('edit-appointment-form') as HTMLFormElement)
+    expect(mockUpdateAppointment).toHaveBeenCalledTimes(1)
     await act(async () => resolveUpdate(FUTURE_APPOINTMENT))
     expect(mockUpdateAppointment).toHaveBeenCalledWith(
       'appt-1',
       expect.objectContaining({
         patientName: 'Ana Silva',
         patientEmail: 'ana@example.com',
-        patientPhone: '(21) 98765-4321',
+        patientPhone: '21987654321',
         notes: 'Retorno',
         estimatedAmountCents: 10000,
       }),
@@ -443,6 +544,13 @@ describe('EditAppointmentModal', () => {
         expect.objectContaining({ title: 'Erro ao atualizar agendamento', tone: 'error' }),
       ),
     )
+  })
+
+  it('allows outside dismissal while idle', async () => {
+    const { onClose } = renderModal()
+    await userEvent.tab()
+    fireEvent.pointerDown(document.body, { button: 0, pointerType: 'mouse' })
+    expect(onClose).toHaveBeenCalledOnce()
   })
 
   it('clears services/availability/exceptions when there is no appointment on re-render', () => {

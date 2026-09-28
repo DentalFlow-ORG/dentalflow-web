@@ -23,7 +23,8 @@ type AppointmentDrawerProps = {
   isActionLoading: boolean
   onClose: () => void
   onEdit?: (appointment: Appointment) => void
-  onStatusChange: (id: string, status: AppointmentStatus) => void
+  /** Resolves to `false` when the change failed, so a confirmation can stay open. */
+  onStatusChange: (id: string, status: AppointmentStatus) => unknown
   onCancelRequest: (appointment: Appointment) => void
   onPaymentUpdated?: (updated: Appointment) => void
 }
@@ -165,7 +166,7 @@ export function AppointmentDrawer({
                   )}
                   {active.patientPhone && (
                     <AppointmentDetailsRow label="Telefone">
-                      {active.patientPhone}
+                      {displayPhoneBR(active.patientPhone)}
                     </AppointmentDetailsRow>
                   )}
                 </AppointmentDetailsSection>
@@ -210,3 +211,4 @@ export function AppointmentDrawer({
     </Dialog.Root>
   )
 }
+import { displayPhoneBR } from '@/lib/field-formatters'

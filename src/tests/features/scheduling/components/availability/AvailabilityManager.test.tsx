@@ -1,6 +1,12 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen } from '@/test-utils/render-utils'
+import { render, screen, within } from '@/test-utils/render-utils'
+
+// Row deletion opens a confirmation; this confirms it.
+async function confirmSlotRemoval() {
+  const dialog = await screen.findByRole('dialog', { name: 'Remover horário de atendimento?' })
+  await userEvent.click(within(dialog).getByRole('button', { name: 'Remover horário' }))
+}
 
 // Radix Select does not work reliably in JSDOM — stub with a native <select>,
 // mirroring the pattern used in AvailabilitySlotForm.test.tsx.
@@ -212,11 +218,11 @@ describe('AvailabilityManager — edit flow', () => {
     await userEvent.click(screen.getByRole('button', { name: /editar/i }))
     await userEvent.click(screen.getByRole('button', { name: 'Salvar' }))
 
+    // Editing keeps the slot's active state (regression: edits forced isActive: true).
     expect(mockUpdateAvailability).toHaveBeenCalledWith('prof-1', 'slot-1', {
       dayOfWeek: 3,
       startTime: '08:00',
       endTime: '12:00',
-      isActive: true,
     })
     expect(onSlotsChange).toHaveBeenCalledWith([updated])
     expect(mockShowAlert).toHaveBeenCalledWith({
@@ -248,10 +254,12 @@ describe('AvailabilityManager — delete flow', () => {
         onSlotsChange={onSlotsChange}
       />,
     )
-    await userEvent.click(screen.getByRole('button', { name: /remover|excluir|deletar/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Remover disponibilidade' }))
+    await confirmSlotRemoval()
     expect(await screen.findByText('Erro ao remover.')).toBeInTheDocument()
     expect(onSlotsChange).not.toHaveBeenCalled()
-    await userEvent.click(screen.getByRole('button', { name: /remover|excluir|deletar/i }))
+    // The confirmation stays open after the failure so the user can retry.
+    await confirmSlotRemoval()
     expect(onSlotsChange).toHaveBeenCalledWith([])
   })
 
@@ -261,7 +269,8 @@ describe('AvailabilityManager — delete flow', () => {
     const onSlotsChange = vi.fn()
 
     render(<AvailabilityManager profileId="prof-1" slots={[slot]} onSlotsChange={onSlotsChange} />)
-    await userEvent.click(screen.getByRole('button', { name: /remover|excluir|deletar/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Remover disponibilidade' }))
+    await confirmSlotRemoval()
 
     expect(mockDeleteAvailability).toHaveBeenCalledWith('prof-1', 'slot-1')
     expect(onSlotsChange).toHaveBeenCalledWith([])
@@ -276,8 +285,41 @@ describe('AvailabilityManager — delete flow', () => {
     mockDeleteAvailability.mockRejectedValue(new Error('Falha ao remover'))
     render(<AvailabilityManager profileId="prof-1" slots={[slot]} onSlotsChange={vi.fn()} />)
 
-    await userEvent.click(screen.getByRole('button', { name: /remover|excluir|deletar/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Remover disponibilidade' }))
+    await confirmSlotRemoval()
 
     expect(await screen.findByText('Falha ao remover')).toBeInTheDocument()
+  })
+
+  it('names the day and time in the confirmation and keeps the slot when dismissed', async () => {
+    const slot = makeAvailability({
+      id: 'slot-1',
+      dayOfWeek: 3,
+      startTime: '08:00',
+      endTime: '12:00',
+    })
+    render(<AvailabilityManager profileId="prof-1" slots={[slot]} onSlotsChange={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remover disponibilidade' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Remover horário de atendimento?' })
+    expect(dialog).toHaveTextContent('Quarta-feira · 08:00 – 12:00')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(mockDeleteAvailability).not.toHaveBeenCalled()
+  })
+
+  it('disables the confirmation while the slot is being removed', async () => {
+    mockDeleteAvailability.mockReturnValue(new Promise(() => {}))
+    render(
+      <AvailabilityManager
+        profileId="prof-1"
+        slots={[makeAvailability()]}
+        onSlotsChange={vi.fn()}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Remover disponibilidade' }))
+    await confirmSlotRemoval()
+    expect(await screen.findByRole('button', { name: /Aguarde/ })).toBeDisabled()
   })
 })

@@ -27,6 +27,24 @@ function props() {
   }
 }
 
+it('shows a custom error for missing special schedule times', async () => {
+  const callbacks = props()
+  renderWithProviders(<ExceptionEditModal {...callbacks} />)
+  fireEvent.change(screen.getByLabelText('Início'), { target: { value: '' } })
+  await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+  expect(callbacks.onSave).not.toHaveBeenCalled()
+  expect(screen.getByText('Informe os horários de início e fim.')).toBeInTheDocument()
+})
+
+it('rejects a missing end time even when the start time is valid', async () => {
+  const callbacks = props()
+  renderWithProviders(<ExceptionEditModal {...callbacks} />)
+  fireEvent.change(screen.getByLabelText('Fim'), { target: { value: '' } })
+  await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+  expect(callbacks.onSave).not.toHaveBeenCalled()
+  expect(screen.getByText('Informe os horários de início e fim.')).toBeInTheDocument()
+})
+
 it('edits a special schedule and submits the existing date with the changed values', async () => {
   const callbacks = props()
   renderWithProviders(<ExceptionEditModal {...callbacks} />)
@@ -94,4 +112,23 @@ it('does not render a form before an exception is selected', () => {
   renderWithProviders(<ExceptionEditModal {...props()} open={false} exception={null} />)
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Salvar alterações' })).not.toBeInTheDocument()
+})
+
+it('blocks a special schedule whose end is not after its start and clears the error on edit', async () => {
+  const callbacks = props()
+  renderWithProviders(<ExceptionEditModal {...callbacks} />)
+  fireEvent.change(screen.getByLabelText('Fim'), { target: { value: '09:00' } })
+  await userEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+  expect(callbacks.onSave).not.toHaveBeenCalled()
+  const start = screen.getByLabelText('Início')
+  const end = screen.getByLabelText('Fim')
+  expect(screen.getByRole('alert')).toBeInTheDocument()
+  expect(start).toHaveAttribute('aria-invalid', 'true')
+  expect(end).toHaveAttribute('aria-invalid', 'true')
+  expect(end).toHaveAttribute('aria-describedby', `${end.id}-error`)
+
+  fireEvent.change(end, { target: { value: '12:30' } })
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(end).not.toHaveAttribute('aria-invalid')
 })

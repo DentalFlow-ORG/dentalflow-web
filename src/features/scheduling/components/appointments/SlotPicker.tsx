@@ -10,9 +10,18 @@ type SlotPickerProps = {
   onChange: (time: string) => void
   isLoading: boolean
   disabled?: boolean
+  /** Accessible name for the slot group; the grid of buttons has no single input to label. */
+  label?: string
 }
 
-export function SlotPicker({ slots, value, onChange, isLoading, disabled }: SlotPickerProps) {
+export function SlotPicker({
+  slots,
+  value,
+  onChange,
+  isLoading,
+  disabled,
+  label = 'Horário',
+}: SlotPickerProps) {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 py-5 text-muted-foreground">
@@ -31,7 +40,11 @@ export function SlotPicker({ slots, value, onChange, isLoading, disabled }: Slot
   }
 
   return (
-    <div className="grid grid-cols-3 gap-2 min-[380px]:grid-cols-4 sm:grid-cols-5">
+    <div
+      role="group"
+      aria-label={label}
+      className="grid grid-cols-3 gap-2 min-[380px]:grid-cols-4 sm:grid-cols-5"
+    >
       {slots.map((slot) => (
         <button
           key={slot.time}

@@ -24,10 +24,13 @@ describe('PatientIdentityBadge — contact info', () => {
     expect(screen.getByText('ana@email.com')).toBeInTheDocument()
   })
 
-  it('renders phone when provided and showContact is true', () => {
-    render(<PatientIdentityBadge name="Ana" phone="(11) 99999-0000" />)
-    expect(screen.getByText('(11) 99999-0000')).toBeInTheDocument()
-  })
+  it.each(['(11) 99999-0000', '11999990000', '+55 (11) 99999-0000'])(
+    'formats phone %s when showContact is true',
+    (phone) => {
+      render(<PatientIdentityBadge name="Ana" phone={phone} />)
+      expect(screen.getByText('(11) 99999-0000')).toBeInTheDocument()
+    },
+  )
 
   it('renders both email and phone when both provided', () => {
     render(<PatientIdentityBadge name="Ana" email="ana@email.com" phone="(11) 99999-0000" />)

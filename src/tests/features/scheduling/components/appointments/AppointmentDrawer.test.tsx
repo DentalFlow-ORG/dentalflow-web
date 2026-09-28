@@ -226,7 +226,7 @@ describe('AppointmentDrawer — body sections', () => {
       />,
     )
     expect(screen.getByText('ana@x.com')).toBeInTheDocument()
-    expect(screen.getByText('11999999999')).toBeInTheDocument()
+    expect(screen.getByText('(11) 99999-9999')).toBeInTheDocument()
   })
 
   it('shows the notes section only when notes is set', () => {

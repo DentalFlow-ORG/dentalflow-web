@@ -4,19 +4,19 @@ import {
   formatDateInputValue,
   formatTimeInputValue,
 } from '@/lib/date-time-formatters'
+import { centsToMoneyInput, parseMoneyInputToCents } from '@/lib/money-input'
 
 import type { Appointment, Availability, AvailabilityException } from '../types/scheduling.types'
 
-export function reaisToCents(value: string): number | undefined {
-  const normalized = value.replace(',', '.').replace(/[^0-9.]/g, '')
-  const parsed = Number.parseFloat(normalized)
-  if (Number.isNaN(parsed) || parsed < 0) return undefined
-  return Math.round(parsed * 100)
+/** Service prices come from the API in reais; the form edits them as a cents-masked input. */
+export function servicePriceToMoneyInput(priceFrom: number | null | undefined): string {
+  if (priceFrom == null) return ''
+  return centsToMoneyInput(Math.round(priceFrom * 100))
 }
 
-export function centsToReais(cents: number | null | undefined): string {
-  if (cents == null) return ''
-  return (cents / 100).toFixed(2).replace('.', ',')
+/** An empty money input means "not informed", which the API stores as null. */
+export function moneyInputToOptionalCents(value: string): number | null {
+  return value.trim() ? parseMoneyInputToCents(value) : null
 }
 
 export function getCurrentTimeInputValue(): string {

@@ -1,10 +1,10 @@
 import {
-  centsToReais,
   getCurrentTimeInputValue,
   getInitials,
   hasAppointmentTimePassed,
   isDateAvailable,
-  reaisToCents,
+  moneyInputToOptionalCents,
+  servicePriceToMoneyInput,
 } from '@/features/scheduling/utils/appointment-form-utils'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
 import {
@@ -12,29 +12,31 @@ import {
   makeAvailabilityException,
 } from '@/test-utils/factories/availability.factory'
 
-// ── reaisToCents ──────────────────────────────────────────────────────────────
+// ── moneyInputToOptionalCents ─────────────────────────────────────────────────
 
-describe('reaisToCents', () => {
-  it('parses a comma-decimal BRL string', () => expect(reaisToCents('12,50')).toBe(1250))
-  it('parses a dot-decimal string', () => expect(reaisToCents('12.50')).toBe(1250))
-  it('parses a whole-number string', () => expect(reaisToCents('100')).toBe(10000))
-  it('parses zero', () => expect(reaisToCents('0')).toBe(0))
-  it('parses the minimum non-zero value', () => expect(reaisToCents('0,01')).toBe(1))
-  it('strips a currency prefix (e.g. "R$ ")', () => expect(reaisToCents('R$ 12,50')).toBe(1250))
-  it('returns undefined for an empty string', () => expect(reaisToCents('')).toBeUndefined())
-  it('returns undefined for a non-numeric string', () =>
-    expect(reaisToCents('abc')).toBeUndefined())
+describe('moneyInputToOptionalCents', () => {
+  it('reads a thousands-separated amount as cents (regression: was 125 cents)', () =>
+    expect(moneyInputToOptionalCents('1.250,00')).toBe(125000))
+  it('reads a masked amount with cents', () =>
+    expect(moneyInputToOptionalCents('12,50')).toBe(1250))
+  it('reads the minimum non-zero value', () => expect(moneyInputToOptionalCents('0,01')).toBe(1))
+  it('returns null for an empty input so the API clears the value', () =>
+    expect(moneyInputToOptionalCents('')).toBeNull())
+  it('returns null for a whitespace-only input', () =>
+    expect(moneyInputToOptionalCents('   ')).toBeNull())
 })
 
-// ── centsToReais ──────────────────────────────────────────────────────────────
+// ── servicePriceToMoneyInput ──────────────────────────────────────────────────
 
-describe('centsToReais', () => {
-  it('converts 1250 to "12,50"', () => expect(centsToReais(1250)).toBe('12,50'))
-  it('converts 100 to "1,00"', () => expect(centsToReais(100)).toBe('1,00'))
-  it('converts 1 to "0,01"', () => expect(centsToReais(1)).toBe('0,01'))
-  it('converts 0 to "0,00"', () => expect(centsToReais(0)).toBe('0,00'))
-  it('returns empty string for null', () => expect(centsToReais(null)).toBe(''))
-  it('returns empty string for undefined', () => expect(centsToReais(undefined)).toBe(''))
+describe('servicePriceToMoneyInput', () => {
+  it('formats a service price in reais as a masked input', () =>
+    expect(servicePriceToMoneyInput(1250)).toBe('1.250,00'))
+  it('rounds fractional cents from the API', () =>
+    expect(servicePriceToMoneyInput(99.999)).toBe('100,00'))
+  it('returns an empty input when the service has no price', () => {
+    expect(servicePriceToMoneyInput(null)).toBe('')
+    expect(servicePriceToMoneyInput(undefined)).toBe('')
+  })
 })
 
 // ── isDateAvailable ───────────────────────────────────────────────────────────

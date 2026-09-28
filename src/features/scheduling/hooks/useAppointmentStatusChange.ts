@@ -20,19 +20,22 @@ export function useAppointmentStatusChange({
 }: Options) {
   const { showAlert } = useGlobalAlerts()
 
-  async function handleStatusChange(id: string, status: AppointmentStatus) {
+  // Resolves to whether the change was saved, so a confirmation can stay open on failure.
+  async function handleStatusChange(id: string, status: AppointmentStatus): Promise<boolean> {
     setIsActionLoading(true)
     try {
       const updated = await updateAppointmentStatus(id, { status })
       setAppointments((prev) => prev.map((a) => (a.id === id ? updated : a)))
       if (drawerAppointment?.id === id) setDrawerAppointment(updated)
       showAlert({ title: 'Status atualizado', tone: 'success' })
+      return true
     } catch (err) {
       showAlert({
         title: 'Erro ao atualizar status',
         description: err instanceof Error ? err.message : undefined,
         tone: 'error',
       })
+      return false
     } finally {
       setIsActionLoading(false)
     }

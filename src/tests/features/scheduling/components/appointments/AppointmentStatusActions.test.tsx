@@ -1,4 +1,4 @@
-import { render, screen, userEvent } from '@/test-utils/render-utils'
+import { render, screen, userEvent, waitFor } from '@/test-utils/render-utils'
 
 import { AppointmentStatusActions } from '@/features/scheduling/components/appointments/AppointmentStatusActions'
 import { makeAppointment } from '@/test-utils/factories/appointment.factory'
@@ -125,26 +125,26 @@ describe('AppointmentStatusActions — CONFIRMED (time-sensitive)', () => {
 // ── allowedTransitions (DENTIST restrictions) ─────────────────────────────────
 
 describe('AppointmentStatusActions — allowedTransitions', () => {
-  it.each([
-    ['Concluir consulta', 'COMPLETED'],
-    ['Não compareceu', 'NO_SHOW'],
-  ] as const)('dispatches %s only after loading ends', async (label, status) => {
-    const onStatusChange = vi.fn()
-    const props = {
-      appointment: makeAppointment({ status: 'CONFIRMED', appointmentDate: '2020-01-01' }),
-      allowedTransitions: ['COMPLETED', 'NO_SHOW'] as ('COMPLETED' | 'NO_SHOW')[],
-      onStatusChange,
-      onCancelRequest: vi.fn(),
-    }
-    const user = userEvent.setup()
-    const { rerender } = render(<AppointmentStatusActions {...props} isLoading />)
-    expect(screen.queryByRole('button', { name: /Cancelar/i })).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: label }))
-    expect(onStatusChange).not.toHaveBeenCalled()
-    rerender(<AppointmentStatusActions {...props} isLoading={false} />)
-    await user.click(screen.getByRole('button', { name: label }))
-    expect(onStatusChange).toHaveBeenCalledExactlyOnceWith('appt-1', status)
-  })
+  it.each([['Concluir consulta', 'COMPLETED']] as const)(
+    'dispatches %s only after loading ends',
+    async (label, status) => {
+      const onStatusChange = vi.fn()
+      const props = {
+        appointment: makeAppointment({ status: 'CONFIRMED', appointmentDate: '2020-01-01' }),
+        allowedTransitions: ['COMPLETED', 'NO_SHOW'] as ('COMPLETED' | 'NO_SHOW')[],
+        onStatusChange,
+        onCancelRequest: vi.fn(),
+      }
+      const user = userEvent.setup()
+      const { rerender } = render(<AppointmentStatusActions {...props} isLoading />)
+      expect(screen.queryByRole('button', { name: /Cancelar/i })).not.toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: label }))
+      expect(onStatusChange).not.toHaveBeenCalled()
+      rerender(<AppointmentStatusActions {...props} isLoading={false} />)
+      await user.click(screen.getByRole('button', { name: label }))
+      expect(onStatusChange).toHaveBeenCalledExactlyOnceWith('appt-1', status)
+    },
+  )
 
   it('hides Confirmar when CONFIRMED is not in allowedTransitions', () => {
     render(
@@ -189,5 +189,73 @@ describe('AppointmentStatusActions — loading state', () => {
     )
     const buttons = screen.getAllByRole('button')
     for (const btn of buttons) expect(btn).toBeDisabled()
+  })
+})
+
+// ── NO_SHOW confirmation ──────────────────────────────────────────────────────
+
+describe('AppointmentStatusActions — NO_SHOW confirmation', () => {
+  function renderNoShow(onStatusChange = vi.fn().mockResolvedValue(true), isLoading = false) {
+    const props = {
+      appointment: makeAppointment({
+        status: 'CONFIRMED',
+        appointmentDate: '2020-01-01',
+        patientName: 'Ana Souza',
+      }),
+      allowedTransitions: ['NO_SHOW'] as 'NO_SHOW'[],
+      onStatusChange,
+      onCancelRequest: vi.fn(),
+    }
+    const view = render(<AppointmentStatusActions {...props} isLoading={isLoading} />)
+    return { ...view, props, onStatusChange }
+  }
+
+  it('asks for confirmation naming the patient before registering a no-show', async () => {
+    const user = userEvent.setup()
+    const { onStatusChange } = renderNoShow()
+    await user.click(screen.getByRole('button', { name: 'Não compareceu' }))
+    const dialog = screen.getByRole('dialog', { name: 'Registrar falta?' })
+    expect(dialog).toHaveTextContent('Ana Souza')
+    expect(dialog).toHaveTextContent('não pode ser desfeita')
+    expect(onStatusChange).not.toHaveBeenCalled()
+  })
+
+  it('does not change the status when the confirmation is dismissed', async () => {
+    const user = userEvent.setup()
+    const { onStatusChange } = renderNoShow()
+    await user.click(screen.getByRole('button', { name: 'Não compareceu' }))
+    await user.click(screen.getByRole('button', { name: 'Voltar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(onStatusChange).not.toHaveBeenCalled()
+  })
+
+  it('registers the no-show on confirm and closes the dialog on success', async () => {
+    const user = userEvent.setup()
+    const { onStatusChange } = renderNoShow()
+    await user.click(screen.getByRole('button', { name: 'Não compareceu' }))
+    await user.click(screen.getByRole('button', { name: 'Registrar falta' }))
+    expect(onStatusChange).toHaveBeenCalledExactlyOnceWith('appt-1', 'NO_SHOW')
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('keeps the dialog open when the change fails so it can be retried', async () => {
+    const user = userEvent.setup()
+    const onStatusChange = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true)
+    renderNoShow(onStatusChange)
+    await user.click(screen.getByRole('button', { name: 'Não compareceu' }))
+    await user.click(screen.getByRole('button', { name: 'Registrar falta' }))
+    expect(screen.getByRole('dialog', { name: 'Registrar falta?' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Registrar falta' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(onStatusChange).toHaveBeenCalledTimes(2)
+  })
+
+  it('disables the confirmation while the change is pending', async () => {
+    const user = userEvent.setup()
+    const { rerender, props } = renderNoShow()
+    await user.click(screen.getByRole('button', { name: 'Não compareceu' }))
+    rerender(<AppointmentStatusActions {...props} isLoading />)
+    expect(screen.getByRole('button', { name: /Aguarde/ })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Voltar' })).toBeDisabled()
   })
 })

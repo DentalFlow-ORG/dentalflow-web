@@ -6,8 +6,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { formatMoneyInputFromDigits } from '@/lib/money-input'
+import { formatCurrencyBRL } from '@/lib/number-formatters'
 
 import type { ProfileService } from '../../types/profile.types'
+import { servicePriceToMoneyInput } from '../../utils/appointment-form-utils'
 
 // Sentinel used internally to represent "no service selected" in edit mode,
 // where the Select needs an explicit "Sem serviço" option to clear the value.
@@ -65,9 +68,7 @@ export function AppointmentServiceValueSection({
 }: AppointmentServiceValueSectionProps) {
   const currentService = services.find((s) => s.id === serviceId)
   const restoredPrice =
-    currentService?.priceFrom != null
-      ? (Math.round(currentService.priceFrom * 100) / 100).toFixed(2).replace('.', ',')
-      : null
+    currentService?.priceFrom != null ? servicePriceToMoneyInput(currentService.priceFrom) : null
 
   // Sentinel handling: edit mode uses a sentinel so the select always has a value
   const selectValue = showNoServiceOption ? serviceId || NO_SERVICE_SENTINEL : serviceId
@@ -109,7 +110,7 @@ export function AppointmentServiceValueSection({
               <SelectItem key={s.id} value={s.id}>
                 {s.name}
                 {s.durationMinutes ? ` (${s.durationMinutes} min)` : ''}
-                {s.priceFrom != null ? ` — R$ ${s.priceFrom.toFixed(2).replace('.', ',')}` : ''}
+                {s.priceFrom != null ? ` — ${formatCurrencyBRL(s.priceFrom)}` : ''}
               </SelectItem>
             ))}
           </SelectContent>
@@ -125,12 +126,13 @@ export function AppointmentServiceValueSection({
         >
           <TextInput
             id="appt-estimatedAmount"
-            inputMode="decimal"
+            inputMode="numeric"
+            autoComplete="off"
             disabled={isSubmitting}
-            placeholder="Ex: 250,00"
+            placeholder="0,00"
             value={estimatedAmount}
             onChange={(e) => {
-              onAmountChange(e.target.value)
+              onAmountChange(formatMoneyInputFromDigits(e.target.value))
               onAmountManuallyEdited()
             }}
           />

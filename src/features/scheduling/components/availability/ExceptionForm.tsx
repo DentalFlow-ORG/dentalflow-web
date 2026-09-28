@@ -1,5 +1,5 @@
 import { Loader2, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 
 import { DatePickerInput } from '@/components/common/DatePickerInput'
 import { FormField, TextInput, TimeInput } from '@/components/common/FormField'
@@ -11,7 +11,11 @@ import {
 } from '@/lib/date-time-formatters'
 import { cn } from '@/lib/utils'
 
+import { TIME_RANGE_ORDER_MESSAGE } from '../../constants/availability-display'
 import type { CreateAvailabilityExceptionDto } from '../../types/scheduling.types'
+
+// Mirrors CreateAvailabilityExceptionDto.reason on the API.
+const EXCEPTION_REASON_MAX_LENGTH = 200
 
 type ExceptionFormProps = {
   initial?: {
@@ -41,14 +45,42 @@ export function ExceptionForm({
   className,
 }: ExceptionFormProps) {
   const [isDayOff, setIsDayOff] = useState(initial?.isDayOff ?? true)
+  const [timeError, setTimeError] = useState<string | null>(null)
+  const [dateError, setDateError] = useState<string | null>(null)
+  const fieldId = useId()
+  const ids = {
+    exceptionDate: `${fieldId}-exceptionDate`,
+    startTime: `${fieldId}-startTime`,
+    endTime: `${fieldId}-endTime`,
+    reason: `${fieldId}-reason`,
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const data = new FormData(e.currentTarget)
+    const exceptionDate = initial
+      ? formatDateInputValue(initial.exceptionDate)
+      : formatDateInputValue(String(data.get('exceptionDate') ?? ''))
+    if (!exceptionDate) {
+      setDateError('Informe a data da exceção.')
+      return
+    }
+    setDateError(null)
+    if (!isDayOff) {
+      const start = formatTimeInputValue(String(data.get('startTime')))
+      const end = formatTimeInputValue(String(data.get('endTime')))
+      if (!start || !end) {
+        setTimeError('Informe os horários de início e fim.')
+        return
+      }
+      if (start >= end) {
+        setTimeError(TIME_RANGE_ORDER_MESSAGE)
+        return
+      }
+    }
+    setTimeError(null)
     const dto: CreateAvailabilityExceptionDto = {
-      exceptionDate: initial
-        ? formatDateInputValue(initial.exceptionDate)
-        : formatDateInputValue(String(data.get('exceptionDate'))),
+      exceptionDate,
       isDayOff,
       reason: String(data.get('reason') ?? '').trim() || undefined,
     }
@@ -62,6 +94,7 @@ export function ExceptionForm({
 
   return (
     <form
+      noValidate
       onSubmit={handleSubmit}
       className={className ?? 'rounded-lg border border-border bg-muted p-4 space-y-4'}
     >
@@ -71,8 +104,15 @@ export function ExceptionForm({
           <p className="text-sm text-foreground">{formatDateBR(initial.exceptionDate)}</p>
         </div>
       ) : (
-        <FormField label="Data" htmlFor="exceptionDate">
-          <DatePickerInput id="exceptionDate" name="exceptionDate" required disabled={isLoading} />
+        <FormField label="Data" htmlFor={ids.exceptionDate} error={dateError}>
+          <DatePickerInput
+            id={ids.exceptionDate}
+            name="exceptionDate"
+            invalid={Boolean(dateError)}
+            onValueChange={() => setDateError(null)}
+            required
+            disabled={isLoading}
+          />
         </FormField>
       )}
 
@@ -115,32 +155,38 @@ export function ExceptionForm({
 
       {!isDayOff && (
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Início" htmlFor="startTime">
+          <FormField label="Início" htmlFor={ids.startTime}>
             <TimeInput
-              id="startTime"
+              id={ids.startTime}
               name="startTime"
               required={!isDayOff}
               disabled={isLoading}
               defaultValue={formatTimeInputValue(initial?.startTime)}
+              aria-invalid={timeError ? true : undefined}
+              aria-describedby={timeError ? `${ids.endTime}-error` : undefined}
+              onChange={() => setTimeError(null)}
             />
           </FormField>
-          <FormField label="Fim" htmlFor="endTime">
+          <FormField label="Fim" htmlFor={ids.endTime} error={timeError}>
             <TimeInput
-              id="endTime"
+              id={ids.endTime}
               name="endTime"
               required={!isDayOff}
               disabled={isLoading}
               defaultValue={formatTimeInputValue(initial?.endTime)}
+              aria-invalid={timeError ? true : undefined}
+              aria-describedby={timeError ? `${ids.endTime}-error` : undefined}
+              onChange={() => setTimeError(null)}
             />
           </FormField>
         </div>
       )}
 
-      <FormField label="Motivo" htmlFor="reason" optional>
+      <FormField label="Motivo" htmlFor={ids.reason} optional>
         <TextInput
-          id="reason"
+          id={ids.reason}
           name="reason"
-          maxLength={200}
+          maxLength={EXCEPTION_REASON_MAX_LENGTH}
           disabled={isLoading}
           defaultValue={initial?.reason ?? ''}
           placeholder={isDayOff ? 'Ex: Feriado, Férias...' : 'Ex: Atendimento emergencial...'}

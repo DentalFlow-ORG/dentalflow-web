@@ -55,6 +55,12 @@ describe('cancel reason field', () => {
     await user.type(textarea, 'Paciente cancelou')
     expect(textarea).toHaveValue('Paciente cancelou')
   })
+
+  it('labels the reason field and caps it at the API limit of 500 characters', () => {
+    renderDialog()
+    const textarea = screen.getByLabelText(/Motivo do cancelamento/)
+    expect(textarea).toHaveAttribute('maxLength', '500')
+  })
 })
 
 // ─── confirm action ───────────────────────────────────────────────────────────
@@ -77,13 +83,43 @@ describe('confirm action', () => {
     expect(onConfirm).toHaveBeenCalledWith('')
   })
 
-  it('clears the reason textarea after confirming', async () => {
+  it('trims surrounding whitespace from the reason', async () => {
     const user = userEvent.setup()
-    renderDialog()
-    const textarea = screen.getByRole('textbox')
-    await user.type(textarea, 'Motivo qualquer')
+    const onConfirm = vi.fn()
+    renderDialog({ onConfirm })
+    await user.type(screen.getByRole('textbox'), '  Viagem  ')
     await user.click(screen.getByRole('button', { name: /Confirmar cancelamento/i }))
-    expect(textarea).toHaveValue('')
+    expect(onConfirm).toHaveBeenCalledWith('Viagem')
+  })
+
+  it('keeps the typed reason when the cancellation fails and the dialog stays open', async () => {
+    const user = userEvent.setup()
+    const props = {
+      patientName: 'João Silva',
+      onCancel: vi.fn(),
+      onConfirm: vi.fn(),
+    }
+    const { rerender } = render(<CancelAppointmentDialog {...props} open isCanceling={false} />)
+    await user.type(screen.getByRole('textbox'), 'Motivo qualquer')
+    await user.click(screen.getByRole('button', { name: /Confirmar cancelamento/i }))
+    rerender(<CancelAppointmentDialog {...props} open isCanceling />)
+    rerender(<CancelAppointmentDialog {...props} open isCanceling={false} />)
+    expect(screen.getByRole('textbox')).toHaveValue('Motivo qualquer')
+  })
+
+  it('starts a new cancellation with an empty reason', async () => {
+    const user = userEvent.setup()
+    const props = {
+      patientName: 'João Silva',
+      isCanceling: false,
+      onCancel: vi.fn(),
+      onConfirm: vi.fn(),
+    }
+    const { rerender } = render(<CancelAppointmentDialog {...props} open />)
+    await user.type(screen.getByRole('textbox'), 'Motivo antigo')
+    rerender(<CancelAppointmentDialog {...props} open={false} />)
+    rerender(<CancelAppointmentDialog {...props} open />)
+    expect(screen.getByRole('textbox')).toHaveValue('')
   })
 })
 
@@ -102,18 +138,26 @@ describe('close action', () => {
 // ─── loading state ────────────────────────────────────────────────────────────
 
 describe('loading state', () => {
-  it('disables both action buttons when isCanceling is true', () => {
+  it('disables both action buttons and the reason field when isCanceling is true', () => {
     renderDialog({ isCanceling: true })
-    expect(screen.getByRole('button', { name: /Cancelando/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Aguarde/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: /Voltar/i })).toBeDisabled()
+    expect(screen.getByRole('textbox')).toBeDisabled()
   })
 
-  it('shows "Cancelando..." as the confirm button label when isCanceling is true', () => {
+  it('replaces the confirm label with a pending label when isCanceling is true', () => {
     renderDialog({ isCanceling: true })
-    expect(screen.getByRole('button', { name: /Cancelando/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Aguarde/i })).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /Confirmar cancelamento/i }),
     ).not.toBeInTheDocument()
+  })
+
+  it('ignores Escape while the cancellation is in progress', () => {
+    const onCancel = vi.fn()
+    renderDialog({ isCanceling: true, onCancel })
+    fireEvent.keyDown(document, { key: 'Escape', keyCode: 27 })
+    expect(onCancel).not.toHaveBeenCalled()
   })
 })
 

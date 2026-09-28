@@ -19,17 +19,27 @@ import {
   WHATSAPP_PHONE_REQUIRED_MESSAGE,
   formatPhoneBR,
   isValidWhatsappPhoneBR,
+  normalizePhoneBR,
 } from '@/lib/field-formatters'
+import { EMAIL_MAX_LENGTH, INVALID_EMAIL_MESSAGE, isValidEmail } from '@/lib/validators/email'
+import {
+  APPOINTMENT_FIELD_MESSAGES,
+  APPOINTMENT_NOTES_MAX_LENGTH,
+  PATIENT_NAME_MAX_LENGTH,
+  PATIENT_PHONE_MAX_LENGTH,
+} from '../../constants/appointment-form'
 import { getProfile, listProfiles } from '../../services/profiles.service'
 import type { ProfileListItem, ProfileService } from '../../types/profile.types'
 import {
   getCurrentTimeInputValue,
   isDateAvailable,
-  reaisToCents,
+  moneyInputToOptionalCents,
+  servicePriceToMoneyInput,
 } from '../../utils/appointment-form-utils'
 
 import { PatientAvatarWidget } from '@/features/patients/components/PatientAvatarWidget'
 import { upsertPatientAvatar } from '@/features/patients/services/patients.service'
+import type { PatientSummary } from '@/features/patients/types/patients.types'
 import {
   createAppointment,
   getAvailableSlots,
@@ -44,6 +54,7 @@ import type {
   CreateAppointmentDto,
 } from '../../types/scheduling.types'
 import { AppointmentServiceValueSection } from './AppointmentServiceValueSection'
+import { PatientPicker } from './PatientPicker'
 import { SlotPicker } from './SlotPicker'
 
 type CreateAppointmentModalProps = {
@@ -52,6 +63,21 @@ type CreateAppointmentModalProps = {
   onCreated: (appointment: Appointment) => void
   fixedProfile?: ProfileListItem | null
 }
+
+type PatientMode = 'existing' | 'new'
+
+type FieldErrors = Partial<
+  Record<
+    | 'profileId'
+    | 'appointmentDate'
+    | 'startTime'
+    | 'patient'
+    | 'patientName'
+    | 'patientEmail'
+    | 'patientPhone',
+    string
+  >
+>
 
 type FormState = {
   profileId: string
@@ -85,6 +111,13 @@ export function CreateAppointmentModal({
 }: CreateAppointmentModalProps) {
   const { showAlert } = useGlobalAlerts()
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  // Starts on "existing" so a returning patient is looked up before a new
+  // Patient record is created for them.
+  const [patientMode, setPatientMode] = useState<PatientMode>('existing')
+  // The explicitly chosen Patient. Its patientId is the appointment's
+  // identity; the contact fields below are only this booking's snapshot.
+  const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [pendingAvatarBase64, setPendingAvatarBase64] = useState<string | null>(null)
   const [profiles, setProfiles] = useState<ProfileListItem[]>([])
   const [services, setServices] = useState<ProfileService[]>([])
@@ -144,12 +177,7 @@ export function CreateAppointmentModal({
       return
     }
     const service = services.find((s) => s.id === form.serviceId)
-    if (service?.priceFrom != null) {
-      const cents = Math.round(service.priceFrom * 100)
-      set('estimatedAmount', (cents / 100).toFixed(2).replace('.', ','))
-    } else {
-      set('estimatedAmount', '')
-    }
+    set('estimatedAmount', servicePriceToMoneyInput(service?.priceFrom))
   }, [form.serviceId, services, estimateManuallyEdited])
 
   useEffect(() => {
@@ -184,8 +212,45 @@ export function CreateAppointmentModal({
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
+  function resetPatient() {
+    setPatientMode('existing')
+    setSelectedPatient(null)
+    setFieldErrors({})
+  }
+
+  function handlePatientModeChange(mode: PatientMode) {
+    setPatientMode(mode)
+    setSelectedPatient(null)
+    setFieldErrors({})
+    setForm((prev) => ({ ...prev, patientName: '', patientEmail: '', patientPhone: '' }))
+  }
+
+  function handlePatientSelect(patient: PatientSummary) {
+    setSelectedPatient(patient)
+    setFieldErrors((prev) => ({ ...prev, patient: undefined }))
+    setForm((prev) => ({
+      ...prev,
+      patientName: patient.patientName,
+      patientEmail: patient.patientEmail ?? '',
+      patientPhone: patient.patientPhone ? formatPhoneBR(patient.patientPhone) : '',
+    }))
+  }
+
+  function handlePatientClear() {
+    setSelectedPatient(null)
+    setForm((prev) => ({ ...prev, patientName: '', patientEmail: '', patientPhone: '' }))
+  }
+
   function handleClose() {
+    // A pending request must finish first: closing would reset the form while
+    // the appointment may still be created.
+    if (isSubmitting) return
+    resetAndClose()
+  }
+
+  function resetAndClose() {
     setForm(EMPTY_FORM)
+    resetPatient()
     setServices([])
     setProfileAvailability([])
     setProfileExceptions([])
@@ -195,50 +260,57 @@ export function CreateAppointmentModal({
     onClose()
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!form.profileId || !form.patientName.trim() || !form.appointmentDate || !form.startTime) {
-      return
+  // The form is noValidate: every rule is checked here and shown on its field.
+  function validateAppointmentForm(): FieldErrors {
+    const errors: FieldErrors = {}
+    const date = formatDateInputValue(form.appointmentDate)
+    if (!form.profileId) errors.profileId = APPOINTMENT_FIELD_MESSAGES.profileRequired
+    if (!date) errors.appointmentDate = APPOINTMENT_FIELD_MESSAGES.dateRequired
+    else if (date < todayInputValue) errors.appointmentDate = APPOINTMENT_FIELD_MESSAGES.datePast
+    if (!form.startTime) errors.startTime = APPOINTMENT_FIELD_MESSAGES.timeRequired
+    else if (date === todayInputValue && form.startTime < nowTimeInputValue) {
+      errors.startTime = APPOINTMENT_FIELD_MESSAGES.timePast
+    }
+    if (patientMode === 'existing' && !selectedPatient?.patientId) {
+      errors.patient = APPOINTMENT_FIELD_MESSAGES.patientRequired
+      return errors
+    }
+    if (!form.patientName.trim())
+      errors.patientName = APPOINTMENT_FIELD_MESSAGES.patientNameRequired
+    if (form.patientEmail.trim() && !isValidEmail(form.patientEmail)) {
+      errors.patientEmail = INVALID_EMAIL_MESSAGE
     }
     if (!isValidWhatsappPhoneBR(form.patientPhone)) {
-      showAlert({
-        title: 'Telefone obrigatório',
-        description: WHATSAPP_PHONE_REQUIRED_MESSAGE,
-        tone: 'error',
-      })
-      return
+      errors.patientPhone = WHATSAPP_PHONE_REQUIRED_MESSAGE
     }
-    if (formatDateInputValue(form.appointmentDate) < todayInputValue) {
-      showAlert({
-        title: 'Data inválida',
-        description: 'Escolha uma data de hoje em diante para criar o agendamento.',
-        tone: 'error',
-      })
-      return
-    }
-    if (
-      formatDateInputValue(form.appointmentDate) === todayInputValue &&
-      form.startTime < nowTimeInputValue
-    ) {
-      showAlert({
-        title: 'Horário inválido',
-        description: 'Para hoje, escolha um horário igual ou posterior ao horário atual.',
-        tone: 'error',
-      })
-      return
-    }
+    return errors
+  }
+
+  function clearFieldError(field: keyof FieldErrors) {
+    setFieldErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev))
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (isSubmitting) return
+    const nextErrors = validateAppointmentForm()
+    setFieldErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) return
     setIsSubmitting(true)
     try {
       const dto: CreateAppointmentDto = {
+        patientId:
+          patientMode === 'existing' ? (selectedPatient?.patientId ?? undefined) : undefined,
         profileId: form.profileId,
         serviceId: form.serviceId || undefined,
         patientName: form.patientName.trim(),
         patientEmail: form.patientEmail.trim() || undefined,
-        patientPhone: form.patientPhone.trim(),
+        // Stored as digits; formatting is presentation only.
+        patientPhone: normalizePhoneBR(form.patientPhone),
         appointmentDate: form.appointmentDate,
         startTime: form.startTime,
         notes: form.notes.trim() || undefined,
-        estimatedAmountCents: reaisToCents(form.estimatedAmount),
+        estimatedAmountCents: moneyInputToOptionalCents(form.estimatedAmount) ?? undefined,
       }
       const appointment = await createAppointment(dto)
 
@@ -250,7 +322,7 @@ export function CreateAppointmentModal({
 
       showAlert({ title: 'Agendamento criado', tone: 'success' })
       onCreated(appointment)
-      handleClose()
+      resetAndClose()
 
       if (avatarToUpload) {
         upsertPatientAvatar(avatarIdentifier, avatarToUpload, appointment.patientId).catch(() => {
@@ -279,8 +351,12 @@ export function CreateAppointmentModal({
         <Dialog.Content
           aria-labelledby="create-modal-title"
           className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg max-h-[90vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150 flex flex-col"
-          onEscapeKeyDown={handleClose}
-          onInteractOutside={handleClose}
+          onEscapeKeyDown={(event) => {
+            if (isSubmitting) event.preventDefault()
+          }}
+          onInteractOutside={(event) => {
+            if (isSubmitting) event.preventDefault()
+          }}
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border px-6 py-5">
@@ -304,16 +380,18 @@ export function CreateAppointmentModal({
           {/* Form */}
           <form
             id="create-appointment-form"
+            noValidate
             onSubmit={handleSubmit}
             className="app-scrollbar flex-1 overflow-y-auto px-6 py-6 space-y-5"
           >
             {/* Dentist */}
-            <FormField label="Profissional" htmlFor="profileId">
+            <FormField label="Profissional" htmlFor="profileId" error={fieldErrors.profileId}>
               <Select
                 required
                 disabled={Boolean(fixedProfile) || isLoadingProfiles || isSubmitting}
                 value={form.profileId}
                 onValueChange={(value) => {
+                  clearFieldError('profileId')
                   set('profileId', value)
                   set('serviceId', '')
                   set('appointmentDate', '')
@@ -321,7 +399,11 @@ export function CreateAppointmentModal({
                   setEstimateManuallyEdited(false)
                 }}
               >
-                <SelectTrigger id="profileId">
+                <SelectTrigger
+                  id="profileId"
+                  aria-invalid={fieldErrors.profileId ? true : undefined}
+                  aria-describedby={fieldErrors.profileId ? 'profileId-error' : undefined}
+                >
                   <SelectValue
                     placeholder={isLoadingProfiles ? 'Carregando...' : 'Selecione um profissional'}
                   />
@@ -352,10 +434,11 @@ export function CreateAppointmentModal({
             />
 
             {/* Date */}
-            <FormField label="Data" htmlFor="appointmentDate">
+            <FormField label="Data" htmlFor="appointmentDate" error={fieldErrors.appointmentDate}>
               <DatePickerInput
                 id="appointmentDate"
                 required
+                invalid={Boolean(fieldErrors.appointmentDate)}
                 disabled={!form.profileId || isSubmitting}
                 value={form.appointmentDate}
                 minValue={todayInputValue}
@@ -365,13 +448,14 @@ export function CreateAppointmentModal({
                     : undefined
                 }
                 onValueChange={(value) => {
+                  clearFieldError('appointmentDate')
                   set('appointmentDate', formatDateInputValue(value))
                 }}
               />
             </FormField>
 
             {/* Time slots */}
-            <FormField label="Horário">
+            <FormField label="Horário" error={fieldErrors.startTime}>
               {!form.profileId || !form.appointmentDate ? (
                 <p className="py-2 text-sm text-muted-foreground">
                   {!form.profileId
@@ -382,7 +466,10 @@ export function CreateAppointmentModal({
                 <SlotPicker
                   slots={slots}
                   value={form.startTime}
-                  onChange={(time) => set('startTime', time)}
+                  onChange={(time) => {
+                    clearFieldError('startTime')
+                    set('startTime', time)
+                  }}
                   isLoading={isLoadingSlots}
                   disabled={isSubmitting}
                 />
@@ -416,48 +503,134 @@ export function CreateAppointmentModal({
               </div>
             </div>
 
-            {/* Patient info */}
-            <FormField label="Nome do paciente" htmlFor="patientName">
-              <TextInput
-                id="patientName"
-                required
-                maxLength={100}
-                disabled={isSubmitting}
-                placeholder="Nome completo"
-                value={form.patientName}
-                onChange={(e) => set('patientName', e.target.value)}
-              />
-            </FormField>
+            {/* Patient identity: explicit choice between an existing Patient and a new one */}
+            <fieldset className="space-y-3">
+              <legend className="text-sm font-semibold text-foreground">Paciente</legend>
+              <div
+                role="radiogroup"
+                aria-label="Tipo de paciente"
+                className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-1"
+              >
+                {(
+                  [
+                    ['existing', 'Paciente existente'],
+                    ['new', 'Novo paciente'],
+                  ] as const
+                ).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    role="radio"
+                    aria-checked={patientMode === mode}
+                    disabled={isSubmitting}
+                    onClick={() => handlePatientModeChange(mode)}
+                    className={
+                      patientMode === mode
+                        ? 'rounded-md bg-card px-3 py-2 text-sm font-semibold text-foreground shadow-sm'
+                        : 'rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground'
+                    }
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="E-mail" htmlFor="patientEmail" optional>
-                <TextInput
-                  id="patientEmail"
-                  type="email"
+              {patientMode === 'existing' && (
+                <PatientPicker
+                  selected={selectedPatient}
                   disabled={isSubmitting}
-                  placeholder="email@exemplo.com"
-                  value={form.patientEmail}
-                  onChange={(e) => set('patientEmail', e.target.value)}
+                  error={fieldErrors.patient}
+                  onSelect={handlePatientSelect}
+                  onClear={handlePatientClear}
                 />
-              </FormField>
-              <FormField label="Telefone com WhatsApp" htmlFor="patientPhone">
-                <TextInput
-                  id="patientPhone"
-                  type="tel"
-                  maxLength={20}
-                  required
-                  disabled={isSubmitting}
-                  placeholder="(11) 99999-9999"
-                  value={form.patientPhone}
-                  onChange={(e) => set('patientPhone', formatPhoneBR(e.target.value))}
-                />
-              </FormField>
-            </div>
+              )}
+            </fieldset>
+
+            {(patientMode === 'new' || selectedPatient) && (
+              <>
+                {selectedPatient && (
+                  <p className="text-xs text-muted-foreground">
+                    Os dados de contato abaixo ficam registrados neste agendamento. Ajustá-los não
+                    troca o paciente selecionado.
+                  </p>
+                )}
+                <FormField
+                  label="Nome do paciente"
+                  htmlFor="patientName"
+                  error={fieldErrors.patientName}
+                >
+                  <TextInput
+                    id="patientName"
+                    required
+                    aria-invalid={fieldErrors.patientName ? true : undefined}
+                    aria-describedby={fieldErrors.patientName ? 'patientName-error' : undefined}
+                    autoComplete="off"
+                    maxLength={PATIENT_NAME_MAX_LENGTH}
+                    disabled={isSubmitting}
+                    placeholder="Nome completo"
+                    value={form.patientName}
+                    onChange={(e) => {
+                      clearFieldError('patientName')
+                      set('patientName', e.target.value)
+                    }}
+                  />
+                </FormField>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    label="E-mail"
+                    htmlFor="patientEmail"
+                    optional
+                    error={fieldErrors.patientEmail}
+                  >
+                    <TextInput
+                      id="patientEmail"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="off"
+                      maxLength={EMAIL_MAX_LENGTH}
+                      disabled={isSubmitting}
+                      placeholder="nome@exemplo.com"
+                      value={form.patientEmail}
+                      aria-invalid={fieldErrors.patientEmail ? true : undefined}
+                      aria-describedby={fieldErrors.patientEmail ? 'patientEmail-error' : undefined}
+                      onChange={(e) => {
+                        set('patientEmail', e.target.value)
+                        clearFieldError('patientEmail')
+                      }}
+                    />
+                  </FormField>
+                  <FormField
+                    label="Telefone com WhatsApp"
+                    htmlFor="patientPhone"
+                    error={fieldErrors.patientPhone}
+                  >
+                    <TextInput
+                      id="patientPhone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="off"
+                      maxLength={PATIENT_PHONE_MAX_LENGTH}
+                      required
+                      disabled={isSubmitting}
+                      placeholder="(11) 99999-9999"
+                      value={form.patientPhone}
+                      aria-invalid={fieldErrors.patientPhone ? true : undefined}
+                      aria-describedby={fieldErrors.patientPhone ? 'patientPhone-error' : undefined}
+                      onChange={(e) => {
+                        clearFieldError('patientPhone')
+                        set('patientPhone', formatPhoneBR(e.target.value))
+                      }}
+                    />
+                  </FormField>
+                </div>
+              </>
+            )}
 
             <FormField label="Observações" htmlFor="notes" optional>
               <TextArea
                 id="notes"
-                maxLength={2000}
+                maxLength={APPOINTMENT_NOTES_MAX_LENGTH}
                 disabled={isSubmitting}
                 placeholder="Anotações internas sobre a consulta..."
                 value={form.notes}

@@ -1,5 +1,6 @@
 import { Mail, Phone } from 'lucide-react'
 
+import { displayPhoneBR } from '@/lib/field-formatters'
 import { cn } from '@/lib/utils'
 
 import { PatientAvatar } from './PatientAvatar'
@@ -54,7 +55,7 @@ export function PatientIdentityBadge({
             {phone && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Phone className="h-3 w-3 shrink-0" aria-hidden="true" />
-                <span>{phone}</span>
+                <span>{displayPhoneBR(phone)}</span>
               </span>
             )}
           </div>

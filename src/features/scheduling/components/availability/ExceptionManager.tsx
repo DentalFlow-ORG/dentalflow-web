@@ -1,10 +1,12 @@
 import { CalendarOff, Plus } from 'lucide-react'
 import { useState } from 'react'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { InlineFeedback } from '@/components/common/InlineFeedback'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { brazilTodayIso } from '@/lib/brazil-timezone'
+import { formatDateBR } from '@/lib/date-time-formatters'
 import { cn } from '@/lib/utils'
 
 import {
@@ -58,6 +60,12 @@ export function ExceptionManager({
   const [isModalDeleting, setIsModalDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<ExceptionFilter>('upcoming')
+  // Deletion is confirmed first; `fromModal` records whether the edit modal
+  // should also close once the exception is removed.
+  const [deleteTarget, setDeleteTarget] = useState<{
+    exception: AvailabilityException
+    fromModal: boolean
+  } | null>(null)
 
   const today = brazilTodayIso()
 
@@ -93,7 +101,8 @@ export function ExceptionManager({
       isDayOff: dto.isDayOff,
       startTime: dto.startTime,
       endTime: dto.endTime,
-      reason: dto.reason,
+      // A cleared reason is sent as null so the stored text is removed.
+      reason: dto.reason ?? null,
     }
     setIsModalSaving(true)
     try {
@@ -111,35 +120,28 @@ export function ExceptionManager({
     }
   }
 
-  async function handleModalDelete() {
-    if (!editingException) return
-    setIsModalDeleting(true)
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return
+    const { exception, fromModal } = deleteTarget
+    if (fromModal) setIsModalDeleting(true)
+    else setLoadingId(exception.id)
+    setError(null)
     try {
-      await deleteAvailabilityException(profileId, editingException.id)
-      onExceptionsChange(exceptions.filter((e) => e.id !== editingException.id))
-      setEditingException(null)
+      await deleteAvailabilityException(profileId, exception.id)
+      onExceptionsChange(exceptions.filter((e) => e.id !== exception.id))
+      setDeleteTarget(null)
+      if (fromModal) setEditingException(null)
       showAlert({ title: 'Exceção removida', tone: 'success' })
     } catch (err) {
+      // The exception is kept and the dialog stays open so the user can retry.
       showAlert({
-        title: err instanceof Error ? err.message : 'Erro ao remover exceção.',
+        title: 'Erro ao remover exceção',
+        description: err instanceof Error ? err.message : undefined,
         tone: 'error',
       })
     } finally {
-      setIsModalDeleting(false)
-    }
-  }
-
-  async function handleRowDelete(exc: AvailabilityException) {
-    setLoadingId(exc.id)
-    setError(null)
-    try {
-      await deleteAvailabilityException(profileId, exc.id)
-      onExceptionsChange(exceptions.filter((e) => e.id !== exc.id))
-      showAlert({ title: 'Exceção removida', tone: 'success' })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao remover exceção.')
-    } finally {
-      setLoadingId(null)
+      if (fromModal) setIsModalDeleting(false)
+      else setLoadingId(null)
     }
   }
 
@@ -232,7 +234,7 @@ export function ExceptionManager({
                     isLoading={loadingId === exc.id}
                     isPast={exc.exceptionDate < today}
                     onEdit={() => setEditingException(exc)}
-                    onDelete={() => handleRowDelete(exc)}
+                    onDelete={() => setDeleteTarget({ exception: exc, fromModal: false })}
                   />
                 ))}
               </div>
@@ -248,7 +250,26 @@ export function ExceptionManager({
         isDeleting={isModalDeleting}
         onClose={() => setEditingException(null)}
         onSave={handleModalSave}
-        onDelete={handleModalDelete}
+        onDelete={() => {
+          if (editingException) setDeleteTarget({ exception: editingException, fromModal: true })
+        }}
+      />
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Excluir exceção de agenda?"
+        subject={deleteTarget ? formatDateBR(deleteTarget.exception.exceptionDate) : undefined}
+        description="A exceção será removida e a agenda volta a seguir os horários semanais nesta data."
+        confirmLabel="Excluir exceção"
+        isConfirming={
+          deleteTarget
+            ? deleteTarget.fromModal
+              ? isModalDeleting
+              : loadingId === deleteTarget.exception.id
+            : false
+        }
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
       />
     </>
   )

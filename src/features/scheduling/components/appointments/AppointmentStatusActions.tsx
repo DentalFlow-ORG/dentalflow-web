@@ -1,15 +1,18 @@
 import { Check, CheckCircle2, UserX, X } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 
 import type { Appointment, AppointmentStatus } from '../../types/scheduling.types'
 import { getAvailableTransitions, isTerminalStatus } from '../../utils/appointment-state-machine'
+import { NoShowConfirmDialog } from './NoShowConfirmDialog'
 
 type AppointmentStatusActionsProps = {
   appointment: Appointment
   isLoading: boolean
   allowedTransitions?: AppointmentStatus[]
-  onStatusChange: (id: string, status: AppointmentStatus) => void
+  /** Resolves to `false` when the change failed, so a confirmation can stay open. */
+  onStatusChange: (id: string, status: AppointmentStatus) => unknown
   onCancelRequest: (appointment: Appointment) => void
 }
 
@@ -32,6 +35,13 @@ export function AppointmentStatusActions({
     roleAllowedTargets: allowedTransitions,
   })
   const can = (target: AppointmentStatus) => available.includes(target)
+  // NO_SHOW is terminal, so it is confirmed before the status changes.
+  const [isConfirmingNoShow, setIsConfirmingNoShow] = useState(false)
+
+  async function handleNoShowConfirm() {
+    const saved = await onStatusChange(id, 'NO_SHOW')
+    if (saved !== false) setIsConfirmingNoShow(false)
+  }
 
   if (isTerminalStatus(status) || available.length === 0) {
     return null
@@ -75,7 +85,7 @@ export function AppointmentStatusActions({
             size="sm"
             className="w-full justify-start text-orange-600 hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:hover:bg-orange-900/40 dark:hover:text-orange-300"
             disabled={isLoading}
-            onClick={() => onStatusChange(id, 'NO_SHOW')}
+            onClick={() => setIsConfirmingNoShow(true)}
           >
             <UserX aria-hidden="true" />
             Não compareceu
@@ -95,6 +105,13 @@ export function AppointmentStatusActions({
           </Button>
         )}
       </div>
+
+      <NoShowConfirmDialog
+        appointment={isConfirmingNoShow ? appointment : null}
+        isConfirming={isLoading}
+        onConfirm={handleNoShowConfirm}
+        onCancel={() => setIsConfirmingNoShow(false)}
+      />
     </div>
   )
 }

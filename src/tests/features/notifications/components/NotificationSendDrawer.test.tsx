@@ -1,6 +1,6 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen } from '@/test-utils/render-utils'
+import { render, screen, within } from '@/test-utils/render-utils'
 
 vi.mock('@tanstack/react-router', async () => {
   const m = await import('@/test-utils/mocks/router')
@@ -159,11 +159,70 @@ describe('NotificationSendDrawer — consent section', () => {
     expect(mockGrant).toHaveBeenCalledWith('11987654321')
   })
 
-  it('calls revoke when the toggle is turned off', async () => {
+  it('asks for confirmation, naming the patient, before revoking consent', async () => {
     render(<NotificationSendDrawer {...baseProps} />)
     await userEvent.click(screen.getByRole('checkbox'))
-    expect(mockRevoke).toHaveBeenCalledOnce()
+    const dialog = screen.getByRole('dialog', { name: 'Revogar consentimento do WhatsApp?' })
+    expect(within(dialog).getByText(baseProps.patientName)).toBeInTheDocument()
+    expect(mockRevoke).not.toHaveBeenCalled()
   })
+
+  it('keeps consent when the revoke confirmation is cancelled', async () => {
+    render(<NotificationSendDrawer {...baseProps} />)
+    await userEvent.click(screen.getByRole('checkbox'))
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(mockRevoke).not.toHaveBeenCalled()
+    expect(
+      screen.queryByRole('dialog', { name: 'Revogar consentimento do WhatsApp?' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('revokes consent after confirmation and reports success', async () => {
+    mockRevoke.mockResolvedValue(undefined)
+    render(<NotificationSendDrawer {...baseProps} />)
+    await userEvent.click(screen.getByRole('checkbox'))
+    await userEvent.click(screen.getByRole('button', { name: 'Revogar consentimento' }))
+    expect(mockRevoke).toHaveBeenCalledOnce()
+    expect(mockShowAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Consentimento revogado', tone: 'success' }),
+    )
+  })
+
+  it.each([new Error('Serviço indisponível'), 'offline'])(
+    'reports a failed revoke: %s',
+    async (error) => {
+      mockRevoke.mockRejectedValue(error)
+      render(<NotificationSendDrawer {...baseProps} />)
+      await userEvent.click(screen.getByRole('checkbox'))
+      await userEvent.click(screen.getByRole('button', { name: 'Revogar consentimento' }))
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Erro ao revogar consentimento',
+          description:
+            error instanceof Error ? error.message : 'Não foi possível revogar o consentimento.',
+          tone: 'error',
+        }),
+      )
+    },
+  )
+
+  it.each([new Error('Serviço indisponível'), 'offline'])(
+    'reports a failed grant: %s',
+    async (error) => {
+      setDefaults({ consent: { consent: null } })
+      mockGrant.mockRejectedValue(error)
+      render(<NotificationSendDrawer {...baseProps} />)
+      await userEvent.click(screen.getByRole('checkbox'))
+      expect(mockGrant).toHaveBeenCalledOnce()
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description:
+            error instanceof Error ? error.message : 'Não foi possível registrar o consentimento.',
+          tone: 'error',
+        }),
+      )
+    },
+  )
 })
 
 describe('NotificationSendDrawer — quota and blocked states', () => {

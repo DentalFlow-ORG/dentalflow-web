@@ -169,6 +169,7 @@ export function AppointmentsPageContainer() {
         onEdit={handleEdit}
         onStatusChange={handleStatusChange}
         onCancelRequest={handleCancelRequest}
+        onPaymentUpdated={handleUpdated}
       />
 
       <CancelAppointmentDialog

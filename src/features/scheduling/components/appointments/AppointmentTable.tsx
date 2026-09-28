@@ -14,7 +14,8 @@ type AppointmentTableProps = {
   allowedTransitions?: AppointmentStatus[]
   emptyDescription?: string
   onRowClick: (appointment: Appointment) => void
-  onStatusChange: (id: string, status: AppointmentStatus) => void
+  /** Resolves to `false` when the change failed, so a confirmation can stay open. */
+  onStatusChange: (id: string, status: AppointmentStatus) => unknown
   onCancelRequest: (appointment: Appointment) => void
 }
 
@@ -167,7 +168,8 @@ function AppointmentCard({
   isActionLoading: boolean
   allowedTransitions?: AppointmentStatus[]
   onClick: () => void
-  onStatusChange: (id: string, status: AppointmentStatus) => void
+  /** Resolves to `false` when the change failed, so a confirmation can stay open. */
+  onStatusChange: (id: string, status: AppointmentStatus) => unknown
   onCancelRequest: (appointment: Appointment) => void
 }) {
   return (

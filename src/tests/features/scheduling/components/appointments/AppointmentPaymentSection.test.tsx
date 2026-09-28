@@ -8,7 +8,15 @@ import {
   makeOwnerUser,
 } from '@/test-utils/factories/user.factory'
 import { resetAuthMocks, setMockAuthState } from '@/test-utils/mocks/auth'
-import { act, fireEvent, render, screen, userEvent, waitFor } from '@/test-utils/render-utils'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+  within,
+} from '@/test-utils/render-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockShowAlert = vi.fn()
@@ -30,6 +38,14 @@ beforeEach(() => {
   vi.clearAllMocks()
   resetAuthMocks()
 })
+
+// "Marcar como pendente" and "Cancelar cobrança" clear the paid amount, so
+// both open a confirmation first. This opens it and confirms.
+async function requestAndConfirm(action: 'Marcar como pendente' | 'Cancelar cobrança') {
+  fireEvent.click(screen.getByRole('button', { name: action }))
+  const dialog = await screen.findByRole('dialog')
+  fireEvent.click(within(dialog).getByRole('button', { name: action }))
+}
 
 // ─── role-based rendering ─────────────────────────────────────────────────────
 
@@ -129,14 +145,14 @@ describe('service call', () => {
         onUpdated={vi.fn()}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: /Marcar como pendente/i }))
+    await requestAndConfirm('Marcar como pendente')
     await waitFor(() => {
       expect(updateAppointmentPayment).toHaveBeenCalledWith('appt-42', {
         paymentStatus: 'PAYMENT_PENDING',
-        estimatedAmountCents: undefined,
-        paidAmountCents: undefined,
-        paymentMethod: undefined,
-        paymentDate: undefined,
+        estimatedAmountCents: null,
+        paidAmountCents: null,
+        paymentMethod: null,
+        paymentDate: null,
         paymentNotes: undefined,
       })
     })
@@ -160,8 +176,9 @@ describe('on success', () => {
         onUpdated={onUpdated}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: /Marcar como pendente/i }))
+    await requestAndConfirm('Marcar como pendente')
     await waitFor(() => expect(onUpdated).toHaveBeenCalledWith(updated))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
   it('shows a success alert', async () => {
@@ -172,7 +189,7 @@ describe('on success', () => {
         onUpdated={vi.fn()}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: /Marcar como pendente/i }))
+    await requestAndConfirm('Marcar como pendente')
     await waitFor(() => {
       expect(mockShowAlert).toHaveBeenCalledWith({
         title: 'Pagamento atualizado',
@@ -195,14 +212,35 @@ describe('on error', () => {
         onUpdated={vi.fn()}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: /Marcar como pendente/i }))
+    await requestAndConfirm('Marcar como pendente')
     await waitFor(() => {
       expect(mockShowAlert).toHaveBeenCalledWith({
-        title: 'Erro',
-        description: 'Não foi possível atualizar o pagamento. Tente novamente.',
+        title: 'Erro ao atualizar pagamento',
+        description: 'fail',
         tone: 'error',
       })
     })
+    // The confirmation stays open so the user can retry or go back.
+    expect(screen.getByRole('dialog', { name: 'Marcar pagamento como pendente?' })).toBeVisible()
+  })
+
+  it('falls back to a generic message when the error has no text', async () => {
+    vi.mocked(updateAppointmentPayment).mockRejectedValue(null)
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+    render(
+      <AppointmentPaymentSection
+        appointment={makeAppointment({ paymentStatus: 'PAID' })}
+        onUpdated={vi.fn()}
+      />,
+    )
+    await requestAndConfirm('Marcar como pendente')
+    await waitFor(() =>
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: 'Não foi possível atualizar o pagamento. Tente novamente.',
+        }),
+      ),
+    )
   })
 })
 
@@ -230,11 +268,12 @@ describe('loading state', () => {
     expect(confirmBtn).not.toBeDisabled()
     expect(pendingBtn).not.toBeDisabled()
 
-    fireEvent.click(pendingBtn)
+    await requestAndConfirm('Marcar como pendente')
 
     await waitFor(() => {
       expect(confirmBtn).toBeDisabled()
       expect(pendingBtn).toBeDisabled()
+      expect(screen.getByRole('button', { name: /Aguarde/ })).toBeDisabled()
     })
 
     await act(async () => {
@@ -243,6 +282,7 @@ describe('loading state', () => {
 
     expect(confirmBtn).not.toBeDisabled()
     expect(pendingBtn).not.toBeDisabled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })
 
@@ -279,7 +319,8 @@ describe('payment editing workflow', () => {
     expect(mockShowAlert).toHaveBeenLastCalledWith(
       expect.objectContaining({ title: 'Valor obrigatório' }),
     )
-    const [estimated, paid] = screen.getAllByPlaceholderText('Ex: 250,00')
+    const estimated = screen.getByLabelText(/Valor previsto/)
+    const paid = screen.getByLabelText(/Valor pago/)
     fireEvent.change(estimated, { target: { value: '250,00' } })
     fireEvent.change(paid, { target: { value: '125,50' } })
     await user.click(screen.getAllByRole('combobox')[1])
@@ -289,7 +330,9 @@ describe('payment editing workflow', () => {
     })
     await user.click(screen.getByRole('button', { name: 'Salvar pagamento parcial' }))
     await waitFor(() =>
-      expect(mockShowAlert).toHaveBeenLastCalledWith(expect.objectContaining({ title: 'Erro' })),
+      expect(mockShowAlert).toHaveBeenLastCalledWith(
+        expect.objectContaining({ title: 'Erro ao atualizar pagamento' }),
+      ),
     )
     expect(onUpdated).not.toHaveBeenCalled()
     expect(paid).toHaveValue('125,50')
@@ -312,13 +355,102 @@ describe('payment editing workflow', () => {
         onUpdated={vi.fn()}
       />,
     )
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Cancelar cobrança' }))
+    await requestAndConfirm('Cancelar cobrança')
     await waitFor(() =>
       expect(updateAppointmentPayment).toHaveBeenCalledWith(
         'appt-1',
         expect.objectContaining({ paymentStatus: 'CANCELED' }),
       ),
     )
+  })
+
+  it('explains that cancelling collection clears the paid amount and can be dismissed', async () => {
+    render(
+      <AppointmentPaymentSection
+        appointment={makeAppointment({ status: 'CANCELED', patientName: 'Ana Souza' })}
+        onUpdated={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar cobrança' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Cancelar cobrança?' })
+    expect(dialog).toHaveTextContent('Ana Souza')
+    expect(dialog).toHaveTextContent(
+      'o valor pago, a data e a forma de pagamento registrados serão removidos',
+    )
+    expect(dialog).toHaveTextContent('lançamento financeiro vinculado, se houver, será cancelado')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Voltar' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(updateAppointmentPayment).not.toHaveBeenCalled()
+  })
+
+  it('reads a thousands-separated amount as cents (regression: "1.250,00" was 125 cents)', async () => {
+    render(
+      <AppointmentPaymentSection
+        appointment={makeAppointment({ paymentStatus: 'PAYMENT_PENDING' })}
+        onUpdated={vi.fn()}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText(/Valor pago/), { target: { value: '125000' } })
+    expect(screen.getByLabelText(/Valor pago/)).toHaveValue('1.250,00')
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pagamento' }))
+    await waitFor(() =>
+      expect(updateAppointmentPayment).toHaveBeenCalledWith(
+        'appt-1',
+        expect.objectContaining({ paymentStatus: 'PAID', paidAmountCents: 125000 }),
+      ),
+    )
+  })
+
+  it('clears a stored estimate and payment method by sending null', async () => {
+    render(
+      <AppointmentPaymentSection
+        appointment={makeAppointment({
+          paymentStatus: 'PAID',
+          paidAmountCents: 10000,
+          estimatedAmountCents: 25000,
+          paymentMethod: 'PIX',
+        })}
+        onUpdated={vi.fn()}
+      />,
+    )
+    const user = userEvent.setup()
+    expect(screen.getByLabelText(/Valor previsto/)).toHaveValue('250,00')
+    fireEvent.change(screen.getByLabelText(/Valor previsto/), { target: { value: '' } })
+    await user.click(screen.getByRole('combobox', { name: /Forma de pagamento/ }))
+    await user.click(screen.getByRole('option', { name: 'Não informado' }))
+    await user.click(screen.getByRole('button', { name: 'Confirmar pagamento' }))
+    await waitFor(() =>
+      expect(updateAppointmentPayment).toHaveBeenCalledWith(
+        'appt-1',
+        expect.objectContaining({ estimatedAmountCents: null, paymentMethod: null }),
+      ),
+    )
+  })
+
+  it('labels every field and caps the financial note at 500 characters', () => {
+    render(<AppointmentPaymentSection appointment={makeAppointment()} onUpdated={vi.fn()} />)
+    expect(screen.getByRole('combobox', { name: /Status de pagamento/ })).toBeInTheDocument()
+    expect(screen.getByLabelText(/Valor previsto/)).toHaveAttribute('inputMode', 'numeric')
+    expect(screen.getByLabelText(/Valor pago/)).toHaveAttribute('inputMode', 'numeric')
+    expect(screen.getByRole('combobox', { name: /Forma de pagamento/ })).toBeInTheDocument()
+    expect(screen.getByLabelText(/Observação financeira/)).toHaveAttribute('maxLength', '500')
+  })
+
+  it('reseeds the form when the appointment is updated elsewhere', () => {
+    const { rerender } = render(
+      <AppointmentPaymentSection
+        appointment={makeAppointment({ estimatedAmountCents: 10000, updatedAt: 'v1' })}
+        onUpdated={vi.fn()}
+      />,
+    )
+    expect(screen.getByLabelText(/Valor previsto/)).toHaveValue('100,00')
+    rerender(
+      <AppointmentPaymentSection
+        appointment={makeAppointment({ estimatedAmountCents: 30000, updatedAt: 'v2' })}
+        onUpdated={vi.fn()}
+      />,
+    )
+    expect(screen.getByLabelText(/Valor previsto/)).toHaveValue('300,00')
   })
 
   it('saves a refunded status without requiring a paid amount', async () => {
@@ -356,5 +488,168 @@ describe('payment editing workflow', () => {
     expect(screen.getByText('Conferido')).toBeInTheDocument()
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+})
+
+// ─── clearing a settled payment (no bypass) ───────────────────────────────────
+
+describe('clearing a settled payment', () => {
+  const settled = () =>
+    makeAppointment({
+      id: 'appt-7',
+      status: 'CANCELED',
+      patientName: 'Ana Souza',
+      paymentStatus: 'PAID',
+      paidAmountCents: 25000,
+      paymentMethod: 'PIX',
+      paymentDate: '2026-09-10',
+    })
+
+  beforeEach(() => {
+    setMockAuthState({ user: makeOwnerUser(), isAuthenticated: true })
+  })
+
+  async function chooseStatus(label: string) {
+    await userEvent.click(screen.getByLabelText('Status de pagamento'))
+    await userEvent.click(await screen.findByRole('option', { name: label }))
+  }
+
+  it.each(['Pagamento pendente', 'Cancelado'])(
+    'confirms %s selected through the primary action activated by keyboard',
+    async (label) => {
+      vi.mocked(updateAppointmentPayment).mockResolvedValue(makeAppointment())
+      render(<AppointmentPaymentSection appointment={settled()} onUpdated={vi.fn()} />)
+      await chooseStatus(label)
+      screen.getByRole('button', { name: 'Confirmar pagamento' }).focus()
+      await userEvent.keyboard('{Enter}')
+      const dialog = await screen.findByRole('dialog')
+      expect(updateAppointmentPayment).not.toHaveBeenCalled()
+      const action = label === 'Cancelado' ? 'Cancelar cobrança' : 'Marcar como pendente'
+      await userEvent.click(within(dialog).getByRole('button', { name: action }))
+      expect(updateAppointmentPayment).toHaveBeenCalledWith(
+        'appt-7',
+        expect.objectContaining({
+          paymentStatus: label === 'Cancelado' ? 'CANCELED' : 'PAYMENT_PENDING',
+          paidAmountCents: null,
+          paymentMethod: null,
+          paymentDate: null,
+        }),
+      )
+    },
+  )
+
+  it('asks for confirmation when Cancelado is chosen in the select and the main button is used', async () => {
+    vi.mocked(updateAppointmentPayment).mockResolvedValue(makeAppointment())
+    render(<AppointmentPaymentSection appointment={settled()} onUpdated={vi.fn()} />)
+    await chooseStatus('Cancelado')
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pagamento' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Cancelar cobrança?' })
+    expect(dialog).toHaveTextContent('Ana Souza')
+    expect(updateAppointmentPayment).not.toHaveBeenCalled()
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar cobrança' }))
+    await waitFor(() =>
+      expect(updateAppointmentPayment).toHaveBeenCalledWith('appt-7', {
+        paymentStatus: 'CANCELED',
+        estimatedAmountCents: null,
+        paidAmountCents: null,
+        paymentMethod: null,
+        paymentDate: null,
+        paymentNotes: undefined,
+      }),
+    )
+  })
+
+  it('clears amount, date and method through the dedicated "Marcar como pendente" action', async () => {
+    vi.mocked(updateAppointmentPayment).mockResolvedValue(makeAppointment())
+    render(<AppointmentPaymentSection appointment={settled()} onUpdated={vi.fn()} />)
+    await requestAndConfirm('Marcar como pendente')
+    await waitFor(() =>
+      expect(updateAppointmentPayment).toHaveBeenCalledWith(
+        'appt-7',
+        expect.objectContaining({
+          paymentStatus: 'PAYMENT_PENDING',
+          paidAmountCents: null,
+          paymentMethod: null,
+          paymentDate: null,
+        }),
+      ),
+    )
+  })
+
+  it('keeps the settled values and sends nothing when the confirmation is dismissed', async () => {
+    render(<AppointmentPaymentSection appointment={settled()} onUpdated={vi.fn()} />)
+    await chooseStatus('Cancelado')
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pagamento' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Cancelar cobrança?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Voltar' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(updateAppointmentPayment).not.toHaveBeenCalled()
+    expect(screen.getByLabelText(/Valor pago/)).toHaveValue('250,00')
+  })
+
+  it('sends a single request when the confirmation is clicked repeatedly on a slow request', async () => {
+    let resolve!: (appt: Appointment) => void
+    vi.mocked(updateAppointmentPayment).mockImplementation(
+      () =>
+        new Promise<Appointment>((r) => {
+          resolve = r
+        }),
+    )
+    render(<AppointmentPaymentSection appointment={settled()} onUpdated={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar cobrança' }))
+    const dialog = await screen.findByRole('dialog')
+    const confirm = within(dialog).getByRole('button', { name: 'Cancelar cobrança' })
+    fireEvent.click(confirm)
+    fireEvent.click(confirm)
+
+    await waitFor(() =>
+      expect(within(dialog).getByRole('button', { name: /Aguarde/ })).toBeDisabled(),
+    )
+    fireEvent.click(within(dialog).getByRole('button', { name: /Aguarde/ }))
+    expect(updateAppointmentPayment).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      resolve(makeAppointment())
+    })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('keeps the dialog open and usable when the API rejects the change', async () => {
+    vi.mocked(updateAppointmentPayment).mockRejectedValue(new Error('Falha ao salvar.'))
+    const onUpdated = vi.fn()
+    render(<AppointmentPaymentSection appointment={settled()} onUpdated={onUpdated} />)
+    await requestAndConfirm('Marcar como pendente')
+
+    await waitFor(() =>
+      expect(mockShowAlert).toHaveBeenCalledWith(
+        expect.objectContaining({ tone: 'error', description: 'Falha ao salvar.' }),
+      ),
+    )
+    const dialog = screen.getByRole('dialog', { name: 'Marcar pagamento como pendente?' })
+    expect(within(dialog).getByRole('button', { name: 'Marcar como pendente' })).toBeEnabled()
+    expect(within(dialog).getByRole('button', { name: 'Voltar' })).toBeEnabled()
+    expect(onUpdated).not.toHaveBeenCalled()
+    expect(screen.getByLabelText(/Valor pago/)).toHaveValue('250,00')
+  })
+
+  it('saves directly, without confirmation, when the status is already canceled', async () => {
+    vi.mocked(updateAppointmentPayment).mockResolvedValue(makeAppointment())
+    render(
+      <AppointmentPaymentSection
+        appointment={makeAppointment({ id: 'appt-8', paymentStatus: 'CANCELED' })}
+        onUpdated={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar pagamento' }))
+    await waitFor(() =>
+      expect(updateAppointmentPayment).toHaveBeenCalledWith(
+        'appt-8',
+        expect.objectContaining({ paymentStatus: 'CANCELED', paidAmountCents: null }),
+      ),
+    )
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

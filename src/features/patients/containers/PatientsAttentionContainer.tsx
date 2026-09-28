@@ -31,7 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { displayPhoneBR, normalizePhoneBR } from '@/lib/field-formatters'
 import { formatCurrencyBR } from '@/lib/number-formatters'
+import { isValidBrazilianPhone, normalizeDigits } from '@/lib/validators/br'
 
 import { HomeActionGrid } from '@/features/home/components/HomeActionGrid'
 import { HomeDashboardHeader } from '@/features/home/components/HomeDashboardHeader'
@@ -144,6 +146,11 @@ function AttentionDetailPanel({
 }) {
   const hasPhone = !!item?.patientPhone
   const hasEmail = !!item?.patientEmail
+  const whatsappDestination = item?.patientPhone
+    ? isValidBrazilianPhone(item.patientPhone)
+      ? `55${normalizePhoneBR(item.patientPhone)}`
+      : normalizeDigits(item.patientPhone)
+    : ''
 
   return (
     <Dialog.Root open={!!item} onOpenChange={(open: boolean) => !open && onClose()}>
@@ -175,7 +182,7 @@ function AttentionDetailPanel({
               {item?.patientPhone && (
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                   <Phone className="h-3 w-3 shrink-0" aria-hidden="true" />
-                  <span>{item.patientPhone}</span>
+                  <span>{displayPhoneBR(item.patientPhone)}</span>
                 </p>
               )}
               {!item?.patientEmail && !item?.patientPhone && (
@@ -209,7 +216,7 @@ function AttentionDetailPanel({
               {hasPhone && item.hasWhatsappConsent && (
                 <Button variant="outline" size="sm" asChild>
                   <a
-                    href={`https://wa.me/${item.patientPhone!.replace(/\D/g, '')}`}
+                    href={`https://wa.me/${whatsappDestination}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

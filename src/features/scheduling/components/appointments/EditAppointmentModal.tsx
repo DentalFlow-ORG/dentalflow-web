@@ -12,14 +12,24 @@ import {
   WHATSAPP_PHONE_REQUIRED_MESSAGE,
   formatPhoneBR,
   isValidWhatsappPhoneBR,
+  normalizePhoneBR,
 } from '@/lib/field-formatters'
+import { centsToMoneyInput } from '@/lib/money-input'
+import { EMAIL_MAX_LENGTH, INVALID_EMAIL_MESSAGE, isValidEmail } from '@/lib/validators/email'
+import {
+  APPOINTMENT_FIELD_MESSAGES,
+  APPOINTMENT_NOTES_MAX_LENGTH,
+  PATIENT_NAME_MAX_LENGTH,
+  PATIENT_PHONE_MAX_LENGTH,
+} from '../../constants/appointment-form'
 import { getProfile } from '../../services/profiles.service'
 import type { ProfileService } from '../../types/profile.types'
 import {
   getCurrentTimeInputValue,
   hasAppointmentTimePassed,
   isDateAvailable,
-  reaisToCents,
+  moneyInputToOptionalCents,
+  servicePriceToMoneyInput,
 } from '../../utils/appointment-form-utils'
 
 import {
@@ -69,6 +79,8 @@ export function EditAppointmentModal({
   const [isLoadingServices, setIsLoadingServices] = useState(false)
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [estimateManuallyEdited, setEstimateManuallyEdited] = useState(
     () => appointment?.estimatedAmountCents != null,
   )
@@ -77,6 +89,8 @@ export function EditAppointmentModal({
 
   useEffect(() => {
     setForm(buildFormState(appointment))
+    setEmailError(null)
+    setFieldErrors({})
     setEstimateManuallyEdited(appointment?.estimatedAmountCents != null)
   }, [appointment])
 
@@ -114,12 +128,8 @@ export function EditAppointmentModal({
       return
     }
     const service = services.find((s) => s.id === form.serviceId)
-    if (service?.priceFrom != null) {
-      const cents = Math.round(service.priceFrom * 100)
-      setForm((prev) => ({ ...prev, estimatedAmount: (cents / 100).toFixed(2).replace('.', ',') }))
-    } else {
-      setForm((prev) => ({ ...prev, estimatedAmount: '' }))
-    }
+    const estimatedAmount = servicePriceToMoneyInput(service?.priceFrom)
+    setForm((prev) => ({ ...prev, estimatedAmount }))
   }, [form.serviceId, services, estimateManuallyEdited])
 
   useEffect(() => {
@@ -159,19 +169,35 @@ export function EditAppointmentModal({
 
   function set(field: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
+    setFieldErrors((prev) => ({ ...prev, [field]: undefined }))
   }
 
   function handleClose() {
+    // Keep the modal open while saving so the result is not hidden.
+    if (isSubmitting) return
     onClose()
   }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
+    if (isSubmitting) return
 
-    if (!form.patientName.trim() || !form.appointmentDate || !form.startTime) {
+    if (!isPastAppointment && form.patientEmail.trim() && !isValidEmail(form.patientEmail)) {
+      setEmailError(INVALID_EMAIL_MESSAGE)
+      return
+    }
+
+    const errors: Partial<Record<keyof FormState, string>> = {}
+    if (!form.patientName.trim())
+      errors.patientName = APPOINTMENT_FIELD_MESSAGES.patientNameRequired
+    if (!form.appointmentDate) errors.appointmentDate = APPOINTMENT_FIELD_MESSAGES.dateRequired
+    if (!form.startTime) errors.startTime = APPOINTMENT_FIELD_MESSAGES.timeRequired
+    setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) {
       return
     }
     if (!isPastAppointment && !isValidWhatsappPhoneBR(form.patientPhone)) {
+      setFieldErrors({ patientPhone: WHATSAPP_PHONE_REQUIRED_MESSAGE })
       showAlert({
         title: 'Telefone obrigatório',
         description: WHATSAPP_PHONE_REQUIRED_MESSAGE,
@@ -209,12 +235,14 @@ export function EditAppointmentModal({
         ? scheduleDto
         : {
             ...scheduleDto,
-            serviceId: form.serviceId || undefined,
+            // Empty optional fields are sent as null so a cleared value is
+            // persisted instead of silently keeping the old one.
+            serviceId: form.serviceId || null,
             patientName: form.patientName.trim(),
-            patientEmail: form.patientEmail.trim() || undefined,
-            patientPhone: form.patientPhone.trim(),
-            notes: form.notes.trim() || undefined,
-            estimatedAmountCents: reaisToCents(form.estimatedAmount),
+            patientEmail: form.patientEmail.trim() || null,
+            patientPhone: normalizePhoneBR(form.patientPhone),
+            notes: form.notes.trim() || null,
+            estimatedAmountCents: moneyInputToOptionalCents(form.estimatedAmount),
           }
       const updated = await updateAppointment(currentAppointment.id, dto)
 
@@ -223,7 +251,7 @@ export function EditAppointmentModal({
         tone: 'success',
       })
       onUpdated(updated)
-      handleClose()
+      onClose()
     } catch (err) {
       showAlert({
         title: 'Erro ao atualizar agendamento',
@@ -242,8 +270,12 @@ export function EditAppointmentModal({
         <Dialog.Content
           aria-labelledby="edit-appointment-title"
           className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-2xl shadow-black/15 animate-in fade-in-0 zoom-in-[0.97] duration-150"
-          onEscapeKeyDown={handleClose}
-          onInteractOutside={handleClose}
+          onEscapeKeyDown={(event) => {
+            if (isSubmitting) event.preventDefault()
+          }}
+          onInteractOutside={(event) => {
+            if (isSubmitting) event.preventDefault()
+          }}
         >
           <div className="flex items-center justify-between border-b border-border px-6 py-5">
             <div>
@@ -272,14 +304,19 @@ export function EditAppointmentModal({
 
           <form
             id="edit-appointment-form"
+            noValidate
             onSubmit={handleSubmit}
             className="app-scrollbar flex-1 space-y-5 overflow-y-auto px-6 py-6"
           >
-            <FormField label="Paciente" htmlFor="editPatientName">
+            <FormField label="Paciente" htmlFor="editPatientName" error={fieldErrors.patientName}>
               <TextInput
                 id="editPatientName"
+                aria-invalid={Boolean(fieldErrors.patientName)}
+                aria-describedby={fieldErrors.patientName ? 'editPatientName-error' : undefined}
                 required
-                maxLength={100}
+                autoComplete="off"
+                maxLength={PATIENT_NAME_MAX_LENGTH}
+                placeholder="Nome completo"
                 disabled={isSubmitting || isPastAppointment}
                 value={form.patientName}
                 onChange={(event) => set('patientName', event.target.value)}
@@ -287,20 +324,38 @@ export function EditAppointmentModal({
             </FormField>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="E-mail" htmlFor="editPatientEmail" optional>
+              <FormField label="E-mail" htmlFor="editPatientEmail" optional error={emailError}>
                 <TextInput
                   id="editPatientEmail"
                   type="email"
+                  inputMode="email"
+                  autoComplete="off"
+                  maxLength={EMAIL_MAX_LENGTH}
+                  placeholder="nome@exemplo.com"
                   disabled={isSubmitting || isPastAppointment}
                   value={form.patientEmail}
-                  onChange={(event) => set('patientEmail', event.target.value)}
+                  aria-invalid={emailError ? true : undefined}
+                  aria-describedby={emailError ? 'editPatientEmail-error' : undefined}
+                  onChange={(event) => {
+                    set('patientEmail', event.target.value)
+                    setEmailError(null)
+                  }}
                 />
               </FormField>
-              <FormField label="Telefone com WhatsApp" htmlFor="editPatientPhone">
+              <FormField
+                label="Telefone com WhatsApp"
+                htmlFor="editPatientPhone"
+                error={fieldErrors.patientPhone}
+              >
                 <TextInput
                   id="editPatientPhone"
+                  aria-invalid={Boolean(fieldErrors.patientPhone)}
+                  aria-describedby={fieldErrors.patientPhone ? 'editPatientPhone-error' : undefined}
                   type="tel"
-                  maxLength={20}
+                  inputMode="tel"
+                  autoComplete="off"
+                  maxLength={PATIENT_PHONE_MAX_LENGTH}
+                  placeholder="(11) 99999-9999"
                   required={!isPastAppointment}
                   disabled={isSubmitting || isPastAppointment}
                   value={form.patientPhone}
@@ -333,9 +388,14 @@ export function EditAppointmentModal({
             />
 
             {/* Date */}
-            <FormField label="Data" htmlFor="editAppointmentDate">
+            <FormField
+              label="Data"
+              htmlFor="editAppointmentDate"
+              error={fieldErrors.appointmentDate}
+            >
               <DatePickerInput
                 id="editAppointmentDate"
+                invalid={Boolean(fieldErrors.appointmentDate)}
                 required
                 disabled={isSubmitting}
                 minValue={todayInputValue}
@@ -349,7 +409,7 @@ export function EditAppointmentModal({
             </FormField>
 
             {/* Time slots */}
-            <FormField label="Horário">
+            <FormField label="Horário" error={fieldErrors.startTime}>
               {!form.appointmentDate ? (
                 <p className="py-2 text-sm text-muted-foreground">
                   Selecione uma data para ver os horários disponíveis
@@ -368,7 +428,8 @@ export function EditAppointmentModal({
             <FormField label="Observações" htmlFor="editNotes" optional>
               <TextArea
                 id="editNotes"
-                maxLength={2000}
+                maxLength={APPOINTMENT_NOTES_MAX_LENGTH}
+                placeholder="Anotações internas sobre a consulta..."
                 disabled={isSubmitting || isPastAppointment}
                 value={form.notes}
                 onChange={(event) => set('notes', event.target.value)}
@@ -402,13 +463,10 @@ function buildFormState(appointment: Appointment | null): FormState {
     serviceId: appointment?.serviceId ?? '',
     patientName: appointment?.patientName ?? '',
     patientEmail: appointment?.patientEmail ?? '',
-    patientPhone: appointment?.patientPhone ?? '',
+    patientPhone: formatPhoneBR(appointment?.patientPhone ?? ''),
     appointmentDate: appointment ? formatDateInputValue(appointment.appointmentDate) : '',
     startTime: appointment ? formatTimeInputValue(appointment.startTime) : '',
     notes: appointment?.notes ?? '',
-    estimatedAmount:
-      appointment?.estimatedAmountCents != null
-        ? (appointment.estimatedAmountCents / 100).toFixed(2).replace('.', ',')
-        : '',
+    estimatedAmount: centsToMoneyInput(appointment?.estimatedAmountCents),
   }
 }

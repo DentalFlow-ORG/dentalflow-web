@@ -243,7 +243,7 @@ function ConfirmationsSection({
                     )}
                     {appt.patientPhone && (
                       <span className="block text-xs text-muted-foreground">
-                        {appt.patientPhone}
+                        {displayPhoneBR(appt.patientPhone)}
                       </span>
                     )}
                   </span>
@@ -377,3 +377,4 @@ function PendingPaymentsSection({ appointments }: { appointments: Appointment[] 
     </HomeSection>
   )
 }
+import { displayPhoneBR } from '@/lib/field-formatters'

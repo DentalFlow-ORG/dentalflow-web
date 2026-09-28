@@ -115,7 +115,18 @@ export type CreateAppointmentDto = {
   estimatedAmountCents?: number
 }
 
-export type UpdateAppointmentDto = Partial<Omit<CreateAppointmentDto, 'profileId'>>
+// `null` explicitly clears an optional field; omitting a field keeps its value.
+export type UpdateAppointmentDto = {
+  serviceId?: string | null
+  patientName?: string
+  patientEmail?: string | null
+  patientPhone?: string
+  appointmentDate?: string
+  startTime?: string
+  durationMinutes?: number
+  notes?: string | null
+  estimatedAmountCents?: number | null
+}
 
 export type UpdateAppointmentStatusDto = {
   status: AppointmentStatus
@@ -125,10 +136,10 @@ export type UpdateAppointmentStatusDto = {
 
 export type UpdateAppointmentPaymentDto = {
   paymentStatus: AppointmentPaymentStatus
-  estimatedAmountCents?: number
-  paidAmountCents?: number
-  paymentMethod?: AppointmentPaymentMethod
-  paymentDate?: string
+  estimatedAmountCents?: number | null
+  paidAmountCents?: number | null
+  paymentMethod?: AppointmentPaymentMethod | null
+  paymentDate?: string | null
   paymentNotes?: string
   categoryId?: string
 }
@@ -151,8 +162,11 @@ export type CreateAvailabilityExceptionDto = {
 }
 
 export type UpdateAvailabilityExceptionDto = Partial<
-  Omit<CreateAvailabilityExceptionDto, 'exceptionDate'>
->
+  Omit<CreateAvailabilityExceptionDto, 'exceptionDate' | 'reason'>
+> & {
+  // `null` clears the reason; omitting it keeps the stored value.
+  reason?: string | null
+}
 
 export type AvailabilitySlot = {
   time: string

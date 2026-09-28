@@ -1,3 +1,4 @@
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { useGlobalAlerts } from '@/components/common/global-alerts-context'
 import { Button } from '@/components/ui/button'
 import { safeFormatDateBR, safeFormatTimeBR } from '@/lib/date-time-formatters'
@@ -17,10 +18,6 @@ import { ConsentToggle } from './ConsentToggle'
 import { MessageStatusBadge } from './MessageStatusBadge'
 import { TemplatePreviewer } from './TemplatePreviewer'
 import { WhatsAppLockedPreview } from './WhatsAppLockedPreview'
-
-function normalizePhone(phone: string) {
-  return normalizePhoneBR(phone)
-}
 
 function canPrepareMessage(dateLabel: string, timeLabel: string) {
   return dateLabel !== safeFormatDateBR(null) && timeLabel !== safeFormatTimeBR(null)
@@ -60,7 +57,8 @@ export function NotificationSendDrawer({
   const { showAlert } = useGlobalAlerts()
   const [isSending, setIsSending] = useState(false)
   const [lastStatus, setLastStatus] = useState<'SENT' | 'FAILED' | null>(null)
-  const phone = normalizePhone(patientPhone)
+  const phone = normalizePhoneBR(patientPhone)
+  const [confirmRevokeOpen, setConfirmRevokeOpen] = useState(false)
   const { quota, isLoading: quotaLoading } = useNotificationQuota()
   const { preferences } = useNotificationPreferences()
   const {
@@ -112,11 +110,30 @@ export function NotificationSendDrawer({
     }
   }
 
+  // Granting is immediate; revoking stops all WhatsApp messages to this
+  // patient, so it is confirmed first.
   const handleConsentChange = async (granted: boolean) => {
-    if (granted) {
+    if (!granted) {
+      setConfirmRevokeOpen(true)
+      return
+    }
+    try {
       await grant(phone)
-    } else {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Não foi possível registrar o consentimento.'
+      showAlert({ title: 'Erro ao registrar consentimento', description: msg, tone: 'error' })
+    }
+  }
+
+  const handleRevokeConfirmed = async () => {
+    try {
       await revoke()
+      showAlert({ title: 'Consentimento revogado', tone: 'success' })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Não foi possível revogar o consentimento.'
+      showAlert({ title: 'Erro ao revogar consentimento', description: msg, tone: 'error' })
+    } finally {
+      setConfirmRevokeOpen(false)
     }
   }
 
@@ -225,6 +242,16 @@ export function NotificationSendDrawer({
           </div>
         </Dialog.Content>
       </Dialog.Portal>
+      <ConfirmDialog
+        open={confirmRevokeOpen}
+        title="Revogar consentimento do WhatsApp?"
+        subject={patientName}
+        description="O paciente deixará de receber mensagens da clínica pelo WhatsApp, incluindo lembretes de consulta, até que um novo consentimento seja registrado."
+        confirmLabel="Revogar consentimento"
+        isConfirming={consentSaving}
+        onConfirm={() => void handleRevokeConfirmed()}
+        onCancel={() => setConfirmRevokeOpen(false)}
+      />
     </Dialog.Root>
   )
 }
