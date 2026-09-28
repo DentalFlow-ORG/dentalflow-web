@@ -111,6 +111,16 @@ describe('PrivacyRequestsTab', () => {
     expect(screen.getAllByText('—').length).toBeGreaterThan(0)
   })
 
+  it('names the search box and caps it at the 100 characters the API accepts', async () => {
+    mockListPrivacyRequests.mockResolvedValue(makeResult())
+    render(<PrivacyRequestsTab />)
+    await screen.findAllByText('Ana Silva')
+    expect(screen.getByRole('textbox', { name: 'Buscar solicitações' })).toHaveAttribute(
+      'maxLength',
+      '100',
+    )
+  })
+
   it('filters by search text and resets to page 1', async () => {
     mockListPrivacyRequests.mockResolvedValue(makeResult())
     render(<PrivacyRequestsTab />)

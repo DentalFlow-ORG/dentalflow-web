@@ -1,6 +1,7 @@
 import userEvent from '@testing-library/user-event'
 
-import { render, screen } from '@/test-utils/render-utils'
+import { ApiError } from '@/services/http'
+import { render, screen, waitFor } from '@/test-utils/render-utils'
 
 vi.mock('@tanstack/react-router', async () => {
   const m = await import('@/test-utils/mocks/router')
@@ -68,6 +69,14 @@ async function fillRequiredFields() {
 // makes Vitest misattribute the (production-code-caught) rejection as
 // unhandled, failing the test even though the page's own try/catch handles it.
 describe('PrivacyRequestFormPage', () => {
+  it('clears the field error when a rejected missing name is corrected', async () => {
+    render(<PrivacyRequestFormPage />)
+    await userEvent.click(screen.getByRole('button', { name: /enviar solicitação/i }))
+    const name = screen.getByPlaceholderText('Seu nome completo')
+    expect(name).toHaveAttribute('aria-invalid', 'true')
+    await userEvent.type(name, 'Ana Martins')
+    expect(name).not.toHaveAttribute('aria-invalid', 'true')
+  })
   it('renders the form header and all sections', () => {
     render(<PrivacyRequestFormPage />)
     expect(screen.getByText('Formulário de Solicitação')).toBeInTheDocument()
@@ -153,6 +162,85 @@ describe('PrivacyRequestFormPage', () => {
       'abc',
     )
     expect(screen.getByText('3/2000')).toBeInTheDocument()
+  })
+
+  it('gives every text field an accessible name from its visible label', () => {
+    render(<PrivacyRequestFormPage />)
+    expect(screen.getByLabelText('Nome completo')).toHaveAttribute('id', 'privacy-name')
+    expect(screen.getByLabelText('E-mail')).toHaveAttribute('id', 'privacy-email')
+    expect(screen.getByLabelText(/Nome da clínica/)).toHaveAttribute('id', 'privacy-clinic')
+    expect(screen.getByLabelText('Descrição da solicitação')).toHaveAttribute(
+      'id',
+      'privacy-description',
+    )
+  })
+
+  it('validates each field inline before calling the API', async () => {
+    const callsBefore = mockCreatePrivacyRequest.mock.calls.length
+    render(<PrivacyRequestFormPage />)
+    await userEvent.type(screen.getByLabelText('Nome completo'), 'A')
+    await userEvent.type(screen.getByLabelText('E-mail'), 'ana@clinica')
+    await userEvent.type(screen.getByLabelText('Descrição da solicitação'), 'Curta')
+    await userEvent.click(screen.getByRole('button', { name: /enviar solicitação/i }))
+
+    expect(screen.getByLabelText('Nome completo')).toHaveAccessibleDescription(
+      'Informe seu nome completo.',
+    )
+    expect(screen.getByLabelText('E-mail')).toHaveAccessibleDescription('Informe um e-mail válido.')
+    expect(screen.getByLabelText('Descrição da solicitação')).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    )
+    expect(
+      screen.getByText('Descreva sua solicitação com pelo menos 10 caracteres.'),
+    ).toBeInTheDocument()
+    expect(mockCreatePrivacyRequest.mock.calls.length).toBe(callsBefore)
+  })
+
+  it('accepts a description of exactly 10 characters', async () => {
+    mockCreatePrivacyRequest.mockResolvedValue({ requestCode: 'REQ-10', message: 'ok' })
+    render(<PrivacyRequestFormPage />)
+    await userEvent.type(screen.getByLabelText('Nome completo'), 'Ana Martins')
+    await userEvent.type(screen.getByLabelText('E-mail'), 'ana@clinica.com')
+    await userEvent.type(screen.getByLabelText('Descrição da solicitação'), '1234567890')
+    await userEvent.click(
+      screen.getByText(/entendo que a dentalflow poderá precisar verificar minha identidade/i),
+    )
+    await userEvent.click(screen.getByRole('button', { name: /enviar solicitação/i }))
+    await waitFor(() => expect(mockCreatePrivacyRequest).toHaveBeenCalled())
+  })
+
+  it('omits an empty clinic name and normalises the e-mail', async () => {
+    mockCreatePrivacyRequest.mockResolvedValue({ requestCode: 'REQ-1', message: 'ok' })
+    render(<PrivacyRequestFormPage />)
+    await userEvent.type(screen.getByLabelText('Nome completo'), '  Ana Martins ')
+    await userEvent.type(screen.getByLabelText('E-mail'), ' Ana@Clinica.COM ')
+    await userEvent.type(screen.getByLabelText(/Nome da clínica/), '   ')
+    await userEvent.type(
+      screen.getByLabelText('Descrição da solicitação'),
+      'Quero acessar meus dados pessoais.',
+    )
+    await userEvent.click(
+      screen.getByText(/entendo que a dentalflow poderá precisar verificar minha identidade/i),
+    )
+    await userEvent.click(screen.getByRole('button', { name: /enviar solicitação/i }))
+    await waitFor(() => expect(mockCreatePrivacyRequest).toHaveBeenCalled())
+    const payload = mockCreatePrivacyRequest.mock.calls.at(-1)?.[0]
+    expect(payload.clinicName).toBeUndefined()
+    expect(payload.requesterEmail).toBe('ana@clinica.com')
+    expect(payload.requesterName).toBe('Ana Martins')
+  })
+
+  it('shows the API validation message instead of a generic error', async () => {
+    mockCreatePrivacyRequest.mockImplementation(async () => {
+      throw new ApiError('A descrição deve ter pelo menos 10 caracteres.', 400, null)
+    })
+    render(<PrivacyRequestFormPage />)
+    await fillRequiredFields()
+    await userEvent.click(screen.getByRole('button', { name: /enviar solicitação/i }))
+    expect(
+      await screen.findByText('A descrição deve ter pelo menos 10 caracteres.'),
+    ).toBeInTheDocument()
   })
 
   it('changes the requester type and request type via the selects', async () => {

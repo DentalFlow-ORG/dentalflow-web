@@ -64,6 +64,8 @@ export function PrivacyRequestsTab() {
         <input
           type="text"
           placeholder="Buscar por código, e-mail ou nome..."
+          aria-label="Buscar solicitações"
+          maxLength={100}
           value={filters.search}
           onChange={(e) => setFilter('search', e.target.value)}
           className="h-9 w-64 rounded-md border border-input bg-background px-3 text-sm shadow-sm outline-none placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15"
